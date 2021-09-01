@@ -1,0 +1,10 @@
+[workspace]
+
+members = [
+    "simdpath",
+    "simdpath-core",
+    "simdpath-stack-based",
+    "simdpath-stackless",
+    "simdpath-stackless-macros",
+    "simdpath-tests"
+]

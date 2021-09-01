@@ -1,0 +1,68 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'simdpath-core'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=simdpath-core"
+                ],
+                "filter": {
+                    "name": "simdpath-core",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'simdpath'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=simdpath",
+                    "--package=simdpath"
+                ],
+                "filter": {
+                    "name": "simdpath",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "./simdpath-tests/data/wikidata/wikidata_properties.json",
+                "$..qualifiers..datavalue..id",
+                "-v"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'simdpath'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=simdpath",
+                    "--package=simdpath"
+                ],
+                "filter": {
+                    "name": "simdpath",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

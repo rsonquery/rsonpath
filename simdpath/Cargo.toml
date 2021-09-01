@@ -1,0 +1,21 @@
+[package]
+name = "simdpath"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+simdpath-core = { path = "../simdpath-core"}
+simdpath-stack-based = { path = "../simdpath-stack-based"}
+simdpath-stackless = { path = "../simdpath-stackless"}
+clap = "2.33.3"
+log = "0.4"
+simple_logger = "1.11"
+
+[dev-dependencies]
+criterion = "0.3.5"
+
+[[bench]]
+name = "simdpath_stack_based_vs_stackless"
+harness = false

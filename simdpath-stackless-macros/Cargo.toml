@@ -1,0 +1,14 @@
+[package]
+name = "simdpath-stackless-macros"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+simdpath-core = { path = "../simdpath-core" }
+syn = "1.0.75"
+quote = "1.0.9"
+
+[lib]
+proc-macro = true
