@@ -6,7 +6,7 @@ use simdpath_stack_based::StackBasedRunner;
 use simdpath_stackless::run_simdpath3;
 use std::fs;
 
-const ROOT_TEST_DIRECTORY: &str = "./simdpath-tests/data";
+const ROOT_TEST_DIRECTORY: &str = "../simdpath-tests/data";
 
 fn get_contents(test_path: &str) -> String {
     let path = format!("{}/{}", ROOT_TEST_DIRECTORY, test_path);
@@ -92,7 +92,9 @@ pub fn simdpath_stack_based_vs_stackless(c: &mut Criterion) {
     group.finish();
 }
 
-
-
-criterion_group!(benches, simdpath_stack_based_vs_stackless, simdpath_stack_based_vs_stackless_combined_file);
+criterion_group!(
+    benches,
+    simdpath_stack_based_vs_stackless,
+    simdpath_stack_based_vs_stackless_combined_file
+);
 criterion_main!(benches);

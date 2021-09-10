@@ -1,4 +1,7 @@
-use memchr::*;
+#[cfg(feature = "nosimd")]
+pub use self::nosimd::*;
+#[cfg(not(feature = "nosimd"))]
+pub use self::simd::*;
 
 pub fn find_unescaped_byte(byte: u8, slice: &[u8]) -> Option<usize> {
     let mut i = 0;
@@ -39,16 +42,6 @@ pub fn find_unescaped_byte2(byte1: u8, byte2: u8, slice: &[u8]) -> Option<usize>
 }
 
 #[inline(always)]
-pub fn find_byte(byte: u8, slice: &[u8]) -> Option<usize> {
-    memchr(byte, slice)
-}
-
-#[inline(always)]
-pub fn find_byte2(byte1: u8, byte2: u8, slice: &[u8]) -> Option<usize> {
-    memchr2(byte1, byte2, slice)
-}
-
-#[inline(always)]
 pub fn find_non_whitespace(slice: &[u8]) -> Option<usize> {
     // Insignificant whitespace in JSON:
     // https://datatracker.ietf.org/doc/html/rfc4627#section-2
@@ -63,6 +56,49 @@ pub fn find_non_whitespace(slice: &[u8]) -> Option<usize> {
     }
 
     None
+}
+
+#[cfg(not(feature = "nosimd"))]
+mod simd {
+    use memchr::*;
+
+    #[inline(always)]
+    pub fn find_byte(byte: u8, slice: &[u8]) -> Option<usize> {
+        memchr(byte, slice)
+    }
+
+    #[inline(always)]
+    pub fn find_byte2(byte1: u8, byte2: u8, slice: &[u8]) -> Option<usize> {
+        memchr2(byte1, byte2, slice)
+    }
+}
+
+#[cfg(feature = "nosimd")]
+mod nosimd {
+
+    #[inline(always)]
+    pub fn find_byte(byte: u8, slice: &[u8]) -> Option<usize> {
+        let mut i = 0;
+        while i < slice.len() {
+            if slice[i] == byte {
+                return Some(i);
+            }
+            i += 1;
+        }
+        None
+    }
+
+    #[inline(always)]
+    pub fn find_byte2(byte1: u8, byte2: u8, slice: &[u8]) -> Option<usize> {
+        let mut i = 0;
+        while i < slice.len() {
+            if slice[i] == byte1 || slice[i] == byte2 {
+                return Some(i);
+            }
+            i += 1;
+        }
+        None
+    }
 }
 
 #[cfg(test)]

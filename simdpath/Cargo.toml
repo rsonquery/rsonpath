@@ -16,6 +16,9 @@ simple_logger = "1.11"
 [dev-dependencies]
 criterion = "0.3.5"
 
+[features]
+nosimd = []
+
 [[bench]]
 name = "simdpath_stack_based_vs_stackless"
 harness = false

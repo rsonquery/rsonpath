@@ -8,3 +8,6 @@ edition = "2018"
 [dependencies]
 nom = "7.0.0"
 memchr = "2.4.1"
+
+[features]
+nosimd = []
