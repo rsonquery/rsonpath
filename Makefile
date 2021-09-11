@@ -18,7 +18,7 @@ install: simdpath
 	$(CARGO) install --path ./simdpath
 
 test:
-	$(CARGO) test
+	$(CARGO) test || \
 	$(CARGO) test --features nosimd
 
 uninstall:
