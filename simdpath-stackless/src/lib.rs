@@ -1,173 +1,53 @@
 use simdpath_core::bytes::*;
+use simdpath_core::engine::result::*;
+use simdpath_core::engine::runner::*;
+use simdpath_core::query::*;
 
-pub fn run_simdpath3(contents: &str, word1: &str, word2: &str, word3: &str) -> usize {
-    let word1 = word1.as_bytes();
-    let word2 = word2.as_bytes();
-    let word3 = word3.as_bytes();
-    let mut reg1: usize = 0;
-    let mut reg2: usize = 0;
-    let mut depth: usize = 0;
-    let mut state = 0;
-    let mut bytes = contents.as_bytes();
-    let mut count = 0;
+pub struct StacklessRunner<'a> {
+    labels: Vec<&'a [u8]>,
+}
 
-    loop {
-        match state {
-            0 => {
-                if let Some(i) = find_non_whitespace(bytes) {
-                    match bytes[i] {
-                        b'{' => {
-                            depth += 1;
-                            bytes = &bytes[i + 1..];
-                        }
-                        b'}' => {
-                            depth -= 1;
-                            bytes = &bytes[i + 1..];
-                        }
-                        b'[' => {
-                            depth += 1;
-                            bytes = &bytes[i + 1..];
-                        }
-                        b']' => {
-                            depth -= 1;
-                            bytes = &bytes[i + 1..];
-                        }
-                        b'\\' => {
-                            bytes = &bytes[i + 2..];
-                        }
-                        b'"' => {
-                            bytes = &bytes[i + 1..];
-                            let closing_quote = find_unescaped_byte(b'"', bytes)
-                                .expect("Malformed JSON: closing quote missing.");
+impl<'a> Runner for StacklessRunner<'a> {
+    fn count(&self, input: &str) -> CountResult {
+        let count = automata::dispatch_automaton(&self.labels, input.as_bytes());
 
-                            let label = &bytes[..closing_quote];
-                            bytes = &bytes[closing_quote + 1..];
-                            let next = find_non_whitespace(bytes).unwrap();
+        CountResult { count }
+    }
+}
 
-                            if bytes[next] == b':' && label == word1 {
-                                state = 1;
-                                reg1 = depth;
-                                bytes = &bytes[next + 1..];
-                            } else {
-                                bytes = &bytes[next..];
-                            }
-                        }
-                        _ => {
-                            bytes = &bytes[i + 1..];
-                        }
-                    }
-                } else {
-                    break;
+pub fn compile_query<'a>(query: &JsonPathQuery<'a>) -> StacklessRunner<'a> {
+    let labels = query_to_descendant_pattern_labels(query);
+
+    StacklessRunner { labels }
+}
+
+fn query_to_descendant_pattern_labels<'a>(query: &JsonPathQuery<'a>) -> Vec<&'a [u8]> {
+    debug_assert!(query.root().is_root());
+    let mut node_opt = query.root().child();
+    let mut result = vec![];
+
+    while let Some(node) = node_opt {
+        match node {
+            JsonPathQueryNode::Descendant(label_node) => match label_node.as_ref() {
+                JsonPathQueryNode::Label(label, next_node) => {
+                    result.push(*label);
+                    node_opt = next_node.as_deref();
                 }
-            }
-            1 => {
-                if let Some(i) = find_non_whitespace(bytes) {
-                    match bytes[i] {
-                        b'{' => {
-                            depth += 1;
-                            bytes = &bytes[i + 1..];
-                        }
-                        b'}' => {
-                            depth -= 1;
-                            bytes = &bytes[i + 1..];
-                            if depth == reg1 {
-                                state = 0;
-                            }
-                        }
-                        b'[' => {
-                            depth += 1;
-                            bytes = &bytes[i + 1..];
-                        }
-                        b']' => {
-                            depth -= 1;
-                            bytes = &bytes[i + 1..];
-                            if depth == reg1 {
-                                state = 0;
-                            }
-                        }
-                        b'\\' => {
-                            bytes = &bytes[i + 2..];
-                        }
-                        b'"' => {
-                            bytes = &bytes[i + 1..];
-                            let closing_quote = find_unescaped_byte(b'"', bytes)
-                                .expect("Malformed JSON: closing quote missing.");
-
-                            let label = &bytes[..closing_quote];
-                            bytes = &bytes[closing_quote + 1..];
-                            let next = find_non_whitespace(bytes).unwrap();
-
-                            if bytes[next] == b':' && label == word2 {
-                                state = 2;
-                                reg2 = depth;
-                                bytes = &bytes[next + 1..];
-                            } else {
-                                bytes = &bytes[next..];
-                            }
-                        }
-                        _ => {
-                            bytes = &bytes[i + 1..];
-                        }
-                    }
-                } else {
-                    break;
-                }
-            }
-            2 => {
-                if let Some(i) = find_non_whitespace(bytes) {
-                    match bytes[i] {
-                        b'{' => {
-                            depth += 1;
-                            bytes = &bytes[i + 1..];
-                        }
-                        b'}' => {
-                            depth -= 1;
-                            bytes = &bytes[i + 1..];
-                            if depth == reg2 {
-                                state = 1;
-                            }
-                        }
-                        b'[' => {
-                            depth += 1;
-                            bytes = &bytes[i + 1..];
-                        }
-                        b']' => {
-                            depth -= 1;
-                            bytes = &bytes[i + 1..];
-                            if depth == reg2 {
-                                state = 1;
-                            }
-                        }
-                        b'\\' => {
-                            bytes = &bytes[i + 2..];
-                        }
-                        b'"' => {
-                            bytes = &bytes[i + 1..];
-                            let closing_quote = find_unescaped_byte(b'"', bytes)
-                                .expect("Malformed JSON: closing quote missing.");
-
-                            let label = &bytes[..closing_quote];
-                            bytes = &bytes[closing_quote + 1..];
-                            let next = find_non_whitespace(bytes).unwrap();
-
-                            if bytes[next] == b':' && label == word3 {
-                                count += 1;
-                                bytes = &bytes[next + 1..];
-                            } else {
-                                bytes = &bytes[next..];
-                            }
-                        }
-                        _ => {
-                            bytes = &bytes[i + 1..];
-                        }
-                    }
-                } else {
-                    break;
-                }
-            }
-            _ => unreachable! {},
+                _ => panic! {"Unexpected type of node, expected Label."},
+            },
+            _ => panic! {"Unexpected type of node, expected Descendant."},
         }
     }
 
-    count
+    result
+}
+
+mod automata {
+    use simdpath_stackless_macros::*;
+
+    initialize!();
+
+    pub fn dispatch_automaton<'a>(labels: &Vec<&'a [u8]>, bytes: &'a [u8]) -> usize {
+        dispatch_automaton!(labels, bytes)
+    }
 }

@@ -30,8 +30,7 @@
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=simdpath",
-                    "--package=simdpath"
+                    "--workspace"
                 ],
                 "filter": {
                     "name": "simdpath",
@@ -39,8 +38,8 @@
                 }
             },
             "args": [
-                "./simdpath-tests/data/wikidata/wikidata_properties.json",
-                "$..qualifiers..datavalue..id",
+                "./simdpath-tests/data/wikidata/debug.json",
+                "$..references..snaks..datavalue..value..id",
                 "-v"
             ],
             "cwd": "${workspaceFolder}"

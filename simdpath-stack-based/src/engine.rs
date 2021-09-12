@@ -1,3 +1,4 @@
+use log::*;
 use simdpath_core::bytes::*;
 use simdpath_core::engine::result::*;
 use simdpath_core::engine::runner::*;
@@ -153,6 +154,11 @@ impl<'a, 'b, 'c> Runnable<'c> for RecursiveDescentState<'a, 'b, 'c> {
 
             if label == current_label {
                 if label_node.child().is_none() {
+                    static mut COUNT: usize = 0;
+                    unsafe {
+                        COUNT += 1;
+                        debug! {"Hit at {} left, {} count", bytes.len(), COUNT}
+                    }
                     count += 1;
                 }
                 match object_start_byte {

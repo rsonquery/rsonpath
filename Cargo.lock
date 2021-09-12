@@ -542,6 +542,7 @@ version = "0.1.0"
 dependencies = [
  "log",
  "simdpath-core",
+ "simdpath-stackless-macros",
 ]
 
 [[package]]

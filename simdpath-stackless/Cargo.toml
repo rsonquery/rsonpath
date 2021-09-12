@@ -7,4 +7,5 @@ edition = "2018"
 
 [dependencies]
 simdpath-core = { path = "../simdpath-core" }
-log = "0.4"
+simdpath-stackless-macros = { path = "../simdpath-stackless-macros" }
+log = "0.4.1"

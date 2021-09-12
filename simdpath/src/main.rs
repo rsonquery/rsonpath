@@ -3,7 +3,7 @@ use log::*;
 use simdpath_core::engine::runner::Runner;
 use simdpath_core::query::{self, *};
 use simdpath_stack_based::StackBasedRunner;
-use simdpath_stackless::run_simdpath3;
+use simdpath_stackless;
 use simple_logger::SimpleLogger;
 use std::error::Error;
 use std::fs;
@@ -24,16 +24,32 @@ fn main() -> Result<(), Box<dyn Error>> {
     let query = parse_query(query_string)?;
     info!("Executing query: {}\n", query);
 
+    let contents = fs::read_to_string(&file_path)?;
+
+    let stackless_runner = simdpath_stackless::compile_query(&query);
+    let stackless_count = stackless_runner.count(&contents);
+    info!("Stackless count: {}", stackless_count.count);
+
+    Ok(())
+    /*
     let runner = StackBasedRunner::compile_query(&query);
     let contents = fs::read_to_string(&file_path)?;
 
     let stack_based_count = runner.count(&contents);
     info!("StackBasedRunner count: {}", stack_based_count.count);
 
-    let simdpath_count = run_simdpath3(&contents, "claims", "references", "hash");
+    let simdpath_count = simdpath_stackless::run_simdpath5(
+        &contents,
+        "references",
+        "snaks",
+        "datavalue",
+        "value",
+        "id",
+    );
     info!("Simdpath count: {}", simdpath_count);
 
     Ok(())
+    */
 }
 
 fn parse_query(query_string: &str) -> Result<JsonPathQuery<'_>, String> {
