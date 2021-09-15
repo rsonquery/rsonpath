@@ -514,35 +514,10 @@ dependencies = [
  "clap",
  "criterion",
  "log",
- "simdpath-core",
- "simdpath-stack-based",
- "simdpath-stackless",
- "simple_logger",
-]
-
-[[package]]
-name = "simdpath-core"
-version = "0.1.0"
-dependencies = [
  "memchr",
  "nom",
-]
-
-[[package]]
-name = "simdpath-stack-based"
-version = "0.1.0"
-dependencies = [
- "log",
- "simdpath-core",
-]
-
-[[package]]
-name = "simdpath-stackless"
-version = "0.1.0"
-dependencies = [
- "log",
- "simdpath-core",
  "simdpath-stackless-macros",
+ "simple_logger",
 ]
 
 [[package]]
@@ -550,17 +525,7 @@ name = "simdpath-stackless-macros"
 version = "0.1.0"
 dependencies = [
  "quote",
- "simdpath-core",
  "syn",
-]
-
-[[package]]
-name = "simdpath-tests"
-version = "0.1.0"
-dependencies = [
- "simdpath-core",
- "simdpath-stack-based",
- "simdpath-stackless",
 ]
 
 [[package]]

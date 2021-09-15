@@ -2,3 +2,7 @@
 /simdpath-tests/data/wikidata_prettified/wikidata_person.json filter=lfs diff=lfs merge=lfs -text
 /simdpath-tests/data/wikidata_prettified/wikidata_profession.json filter=lfs diff=lfs merge=lfs -text
 /simdpath-tests/data/wikidata_prettified/wikidata_properties.json filter=lfs diff=lfs merge=lfs -text
+/simdpath/data/wikidata/wikidata_combined.json filter=lfs diff=lfs merge=lfs -text
+/simdpath/data/wikidata_prettified/wikidata_person.json filter=lfs diff=lfs merge=lfs -text
+/simdpath/data/wikidata_prettified/wikidata_profession.json filter=lfs diff=lfs merge=lfs -text
+/simdpath/data/wikidata_prettified/wikidata_properties.json filter=lfs diff=lfs merge=lfs -text

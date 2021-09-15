@@ -58,7 +58,7 @@ pub fn create_descendant_only_automaton(tokens: TokenStream) -> TokenStream {
         } else {
             let reg = &reg_idents[i as usize];
             quote! {
-                if (bytes[next] == b'{' || bytes[next] == b'[') && label == labels[#i as usize] {     
+                if (bytes[next] == b'{' || bytes[next] == b'[') && label == labels[#i as usize] {
                     state = #i + 1;
                     #reg = depth;
                     depth += 1;
@@ -88,15 +88,15 @@ pub fn create_descendant_only_automaton(tokens: TokenStream) -> TokenStream {
                 }
                 b'"' => {
                     bytes = &bytes[i + 1..];
-                    let closing_quote = ::simdpath_core::bytes::find_unescaped_byte(b'"', bytes).unwrap();
+                    let closing_quote = crate::bytes::find_unescaped_byte(b'"', bytes).unwrap();
 
                     let label = &bytes[..closing_quote];
                     bytes = &bytes[closing_quote + 1..];
-                    let next = ::simdpath_core::bytes::find_non_whitespace(bytes).unwrap();
+                    let next = crate::bytes::find_non_whitespace(bytes).unwrap();
 
                     if bytes[next] == b':' {
                         bytes = &bytes[next + 1..];
-                        let next = ::simdpath_core::bytes::find_non_whitespace(bytes).unwrap();
+                        let next = crate::bytes::find_non_whitespace(bytes).unwrap();
                         #found_if else {
                             bytes = &bytes[next..];
                         }
@@ -112,7 +112,7 @@ pub fn create_descendant_only_automaton(tokens: TokenStream) -> TokenStream {
     });
 
     let automaton_code = quote! {
-        pub fn #fn_ident<'a>(labels: &Vec<&'a [u8]>, bytes: &'a [u8]) -> usize {
+        pub fn #fn_ident<'a>(labels: &[&'a [u8]], bytes: &'a [u8]) -> usize {
             debug_assert_eq!(labels.len(), #size as usize);
 
             let mut bytes = bytes;
@@ -121,7 +121,7 @@ pub fn create_descendant_only_automaton(tokens: TokenStream) -> TokenStream {
             let mut count: usize = 0;
             #(#reg_decls)*
 
-            while let Some(i) = ::simdpath_core::bytes::find_non_whitespace(bytes) {
+            while let Some(i) = crate::bytes::find_non_whitespace(bytes) {
                 match state {
                     #(#states,)*
                     _ => unreachable! {},

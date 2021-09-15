@@ -1,7 +1,7 @@
-use simdpath_core::engine::runner::Runner;
-use simdpath_core::query::parse_json_path_query;
-use simdpath_stack_based::StackBasedRunner;
-use simdpath_stackless::{compile_query, run_simdpath5};
+use simdpath::engine::runner::Runner;
+use simdpath::query::JsonPathQuery;
+use simdpath::stack_based::StackBasedRunner;
+use simdpath::stackless::StacklessRunner;
 use std::fs;
 
 const ROOT_TEST_DIRECTORY: &str = "./data";
@@ -14,8 +14,8 @@ fn get_contents(test_path: &str) -> String {
 #[test]
 fn simdpath_stackless_small_no_list() {
     let contents = get_contents("small_no_list.json");
-    let query = parse_json_path_query("$..person..phoneNumber..number").unwrap();
-    let result = compile_query(&query).count(&contents);
+    let query = JsonPathQuery::parse("$..person..phoneNumber..number").unwrap();
+    let result = StacklessRunner::compile_query(&query).count(&contents);
 
     assert_eq!(2, result.count);
 }
@@ -23,8 +23,8 @@ fn simdpath_stackless_small_no_list() {
 #[test]
 fn simdpath_stackless_small() {
     let contents = get_contents("small.json");
-    let query = parse_json_path_query("$..person..phoneNumber..number").unwrap();
-    let result = compile_query(&query).count(&contents);
+    let query = JsonPathQuery::parse("$..person..phoneNumber..number").unwrap();
+    let result = StacklessRunner::compile_query(&query).count(&contents);
 
     assert_eq!(4, result.count);
 }
@@ -32,8 +32,8 @@ fn simdpath_stackless_small() {
 #[test]
 fn simdpath_stackless_twitter() {
     let contents = get_contents("twitter.json");
-    let query = parse_json_path_query("$..user..entities..url").unwrap();
-    let result = compile_query(&query).count(&contents);
+    let query = JsonPathQuery::parse("$..user..entities..url").unwrap();
+    let result = StacklessRunner::compile_query(&query).count(&contents);
 
     assert_eq!(44, result.count);
 }
@@ -41,8 +41,8 @@ fn simdpath_stackless_twitter() {
 #[test]
 fn simdpath_stackless_wikidata_person_claims_references_hash() {
     let contents = get_contents("wikidata/wikidata_person.json");
-    let query = parse_json_path_query("$..claims..references..hash").unwrap();
-    let result = compile_query(&query).count(&contents);
+    let query = JsonPathQuery::parse("$..claims..references..hash").unwrap();
+    let result = StacklessRunner::compile_query(&query).count(&contents);
 
     assert_eq!(37736, result.count);
 }
@@ -50,8 +50,8 @@ fn simdpath_stackless_wikidata_person_claims_references_hash() {
 #[test]
 fn simdpath_stackless_wikidata_person_references_snaks_datavalue() {
     let contents = get_contents("wikidata/wikidata_person.json");
-    let query = parse_json_path_query("$..references..snaks..datavalue").unwrap();
-    let result = compile_query(&query).count(&contents);
+    let query = JsonPathQuery::parse("$..references..snaks..datavalue").unwrap();
+    let result = StacklessRunner::compile_query(&query).count(&contents);
 
     assert_eq!(25118, result.count);
 }
@@ -59,8 +59,8 @@ fn simdpath_stackless_wikidata_person_references_snaks_datavalue() {
 #[test]
 fn simdpath_stackless_wikidata_person_references_snaks_datavalue_value() {
     let contents = get_contents("wikidata/wikidata_person.json");
-    let query = parse_json_path_query("$..references..snaks..datavalue..value").unwrap();
-    let result = compile_query(&query).count(&contents);
+    let query = JsonPathQuery::parse("$..references..snaks..datavalue..value").unwrap();
+    let result = StacklessRunner::compile_query(&query).count(&contents);
 
     assert_eq!(25118, result.count);
 }
@@ -68,8 +68,8 @@ fn simdpath_stackless_wikidata_person_references_snaks_datavalue_value() {
 #[test]
 fn simdpath_stackless_wikidata_person_references_snaks_datavalue_value_id() {
     let contents = get_contents("wikidata/wikidata_person.json");
-    let query = parse_json_path_query("$..references..snaks..datavalue..value..id").unwrap();
-    let result = compile_query(&query).count(&contents);
+    let query = JsonPathQuery::parse("$..references..snaks..datavalue..value..id").unwrap();
+    let result = StacklessRunner::compile_query(&query).count(&contents);
 
     assert_eq!(11113, result.count);
 }
@@ -77,8 +77,8 @@ fn simdpath_stackless_wikidata_person_references_snaks_datavalue_value_id() {
 #[test]
 fn simdpath_stackless_wikidata_person_snaks_datavalue_value() {
     let contents = get_contents("wikidata/wikidata_person.json");
-    let query = parse_json_path_query("$..snaks..datavalue..value").unwrap();
-    let result = compile_query(&query).count(&contents);
+    let query = JsonPathQuery::parse("$..snaks..datavalue..value").unwrap();
+    let result = StacklessRunner::compile_query(&query).count(&contents);
 
     assert_eq!(25118, result.count);
 }
@@ -86,8 +86,8 @@ fn simdpath_stackless_wikidata_person_snaks_datavalue_value() {
 #[test]
 fn simdpath_stackless_wikidata_person_datavalue_value_id() {
     let contents = get_contents("wikidata/wikidata_person.json");
-    let query = parse_json_path_query("$..datavalue..value..id").unwrap();
-    let result = compile_query(&query).count(&contents);
+    let query = JsonPathQuery::parse("$..datavalue..value..id").unwrap();
+    let result = StacklessRunner::compile_query(&query).count(&contents);
 
     assert_eq!(25093, result.count);
 }
@@ -95,8 +95,8 @@ fn simdpath_stackless_wikidata_person_datavalue_value_id() {
 #[test]
 fn simdpath_stackless_wikidata_person_mainsnak_datavalue_value() {
     let contents = get_contents("wikidata/wikidata_person.json");
-    let query = parse_json_path_query("$..mainsnak..datavalue..value").unwrap();
-    let result = compile_query(&query).count(&contents);
+    let query = JsonPathQuery::parse("$..mainsnak..datavalue..value").unwrap();
+    let result = StacklessRunner::compile_query(&query).count(&contents);
 
     assert_eq!(26115, result.count);
 }
@@ -104,8 +104,8 @@ fn simdpath_stackless_wikidata_person_mainsnak_datavalue_value() {
 #[test]
 fn simdpath_stackless_wikidata_person_mainsnak_datavalue_value_id() {
     let contents = get_contents("wikidata/wikidata_person.json");
-    let query = parse_json_path_query("$..mainsnak..datavalue..value..id").unwrap();
-    let result = compile_query(&query).count(&contents);
+    let query = JsonPathQuery::parse("$..mainsnak..datavalue..value..id").unwrap();
+    let result = StacklessRunner::compile_query(&query).count(&contents);
 
     assert_eq!(12958, result.count);
 }
@@ -113,8 +113,8 @@ fn simdpath_stackless_wikidata_person_mainsnak_datavalue_value_id() {
 #[test]
 fn simdpath_stackless_wikidata_profession() {
     let contents = get_contents("wikidata/wikidata_profession.json");
-    let query = parse_json_path_query("$..claims..mainsnak..value").unwrap();
-    let result = compile_query(&query).count(&contents);
+    let query = JsonPathQuery::parse("$..claims..mainsnak..value").unwrap();
+    let result = StacklessRunner::compile_query(&query).count(&contents);
 
     assert_eq!(59112, result.count);
 }
@@ -122,8 +122,8 @@ fn simdpath_stackless_wikidata_profession() {
 #[test]
 fn simdpath_stackless_wikidata_properties() {
     let contents = get_contents("wikidata/wikidata_properties.json");
-    let query = parse_json_path_query("$..qualifiers..datavalue..id").unwrap();
-    let result = compile_query(&query).count(&contents);
+    let query = JsonPathQuery::parse("$..qualifiers..datavalue..id").unwrap();
+    let result = StacklessRunner::compile_query(&query).count(&contents);
 
     assert_eq!(18219, result.count);
 }
@@ -131,7 +131,7 @@ fn simdpath_stackless_wikidata_properties() {
 #[test]
 fn simdpath_stack_based_small_no_list() {
     let contents = get_contents("small_no_list.json");
-    let query = parse_json_path_query("$..person..phoneNumber..number").unwrap();
+    let query = JsonPathQuery::parse("$..person..phoneNumber..number").unwrap();
     let result = StackBasedRunner::compile_query(&query).count(&contents);
 
     assert_eq!(2, result.count);
@@ -140,7 +140,7 @@ fn simdpath_stack_based_small_no_list() {
 #[test]
 fn simdpath_stack_based_small() {
     let contents = get_contents("small.json");
-    let query = parse_json_path_query("$..person..phoneNumber..number").unwrap();
+    let query = JsonPathQuery::parse("$..person..phoneNumber..number").unwrap();
     let result = StackBasedRunner::compile_query(&query).count(&contents);
 
     assert_eq!(4, result.count);
@@ -149,7 +149,7 @@ fn simdpath_stack_based_small() {
 #[test]
 fn simdpath_stack_based_twitter() {
     let contents = get_contents("twitter.json");
-    let query = parse_json_path_query("$..user..entities..url").unwrap();
+    let query = JsonPathQuery::parse("$..user..entities..url").unwrap();
     let result = StackBasedRunner::compile_query(&query).count(&contents);
 
     assert_eq!(44, result.count);
@@ -158,7 +158,7 @@ fn simdpath_stack_based_twitter() {
 #[test]
 fn simdpath_stack_based_wikidata_person_claims_references_hash() {
     let contents = get_contents("wikidata/wikidata_person.json");
-    let query = parse_json_path_query("$..claims..references..hash").unwrap();
+    let query = JsonPathQuery::parse("$..claims..references..hash").unwrap();
     let result = StackBasedRunner::compile_query(&query).count(&contents);
 
     assert_eq!(37736, result.count);
@@ -167,7 +167,7 @@ fn simdpath_stack_based_wikidata_person_claims_references_hash() {
 #[test]
 fn simdpath_stack_based_wikidata_person_references_snaks_datavalue() {
     let contents = get_contents("wikidata/wikidata_person.json");
-    let query = parse_json_path_query("$..references..snaks..datavalue").unwrap();
+    let query = JsonPathQuery::parse("$..references..snaks..datavalue").unwrap();
     let result = StackBasedRunner::compile_query(&query).count(&contents);
 
     assert_eq!(25118, result.count);
@@ -176,7 +176,7 @@ fn simdpath_stack_based_wikidata_person_references_snaks_datavalue() {
 #[test]
 fn simdpath_stack_based_wikidata_person_references_snaks_datavalue_value() {
     let contents = get_contents("wikidata/wikidata_person.json");
-    let query = parse_json_path_query("$..references..snaks..datavalue..value").unwrap();
+    let query = JsonPathQuery::parse("$..references..snaks..datavalue..value").unwrap();
     let result = StackBasedRunner::compile_query(&query).count(&contents);
 
     assert_eq!(25118, result.count);
@@ -185,7 +185,7 @@ fn simdpath_stack_based_wikidata_person_references_snaks_datavalue_value() {
 #[test]
 fn simdpath_stack_based_wikidata_person_references_snaks_datavalue_value_id() {
     let contents = get_contents("wikidata/wikidata_person.json");
-    let query = parse_json_path_query("$..references..snaks..datavalue..value..id").unwrap();
+    let query = JsonPathQuery::parse("$..references..snaks..datavalue..value..id").unwrap();
     let result = StackBasedRunner::compile_query(&query).count(&contents);
 
     assert_eq!(11113, result.count);
@@ -194,7 +194,7 @@ fn simdpath_stack_based_wikidata_person_references_snaks_datavalue_value_id() {
 #[test]
 fn simdpath_stack_based_wikidata_person_snaks_datavalue_value() {
     let contents = get_contents("wikidata/wikidata_person.json");
-    let query = parse_json_path_query("$..snaks..datavalue..value").unwrap();
+    let query = JsonPathQuery::parse("$..snaks..datavalue..value").unwrap();
     let result = StackBasedRunner::compile_query(&query).count(&contents);
 
     assert_eq!(25118, result.count);
@@ -203,7 +203,7 @@ fn simdpath_stack_based_wikidata_person_snaks_datavalue_value() {
 #[test]
 fn simdpath_stack_based_wikidata_person_datavalue_value_id() {
     let contents = get_contents("wikidata/wikidata_person.json");
-    let query = parse_json_path_query("$..datavalue..value..id").unwrap();
+    let query = JsonPathQuery::parse("$..datavalue..value..id").unwrap();
     let result = StackBasedRunner::compile_query(&query).count(&contents);
 
     assert_eq!(25093, result.count);
@@ -212,7 +212,7 @@ fn simdpath_stack_based_wikidata_person_datavalue_value_id() {
 #[test]
 fn simdpath_stack_based_wikidata_person_references_mainsnak_datavalue_value() {
     let contents = get_contents("wikidata/wikidata_person.json");
-    let query = parse_json_path_query("$..mainsnak..datavalue..value").unwrap();
+    let query = JsonPathQuery::parse("$..mainsnak..datavalue..value").unwrap();
     let result = StackBasedRunner::compile_query(&query).count(&contents);
 
     assert_eq!(26115, result.count);
@@ -221,7 +221,7 @@ fn simdpath_stack_based_wikidata_person_references_mainsnak_datavalue_value() {
 #[test]
 fn simdpath_stack_based_wikidata_person_references_mainsnak_datavalue_value_id() {
     let contents = get_contents("wikidata/wikidata_person.json");
-    let query = parse_json_path_query("$..mainsnak..datavalue..value..id").unwrap();
+    let query = JsonPathQuery::parse("$..mainsnak..datavalue..value..id").unwrap();
     let result = StackBasedRunner::compile_query(&query).count(&contents);
 
     assert_eq!(12958, result.count);
@@ -230,7 +230,7 @@ fn simdpath_stack_based_wikidata_person_references_mainsnak_datavalue_value_id()
 #[test]
 fn simdpath_stack_based_wikidata_profession() {
     let contents = get_contents("wikidata/wikidata_profession.json");
-    let query = parse_json_path_query("$..claims..mainsnak..value").unwrap();
+    let query = JsonPathQuery::parse("$..claims..mainsnak..value").unwrap();
     let result = StackBasedRunner::compile_query(&query).count(&contents);
 
     assert_eq!(59112, result.count);
@@ -239,7 +239,7 @@ fn simdpath_stack_based_wikidata_profession() {
 #[test]
 fn simdpath_stack_based_wikidata_properties() {
     let contents = get_contents("wikidata/wikidata_properties.json");
-    let query = parse_json_path_query("$..qualifiers..datavalue..id").unwrap();
+    let query = JsonPathQuery::parse("$..qualifiers..datavalue..id").unwrap();
     let result = StackBasedRunner::compile_query(&query).count(&contents);
 
     assert_eq!(18219, result.count);

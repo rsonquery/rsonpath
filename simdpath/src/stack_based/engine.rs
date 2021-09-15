@@ -1,8 +1,8 @@
+use crate::bytes;
+use crate::engine::result::CountResult;
+use crate::engine::runner::Runner;
+use crate::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType};
 use log::*;
-use simdpath_core::bytes::*;
-use simdpath_core::engine::result::*;
-use simdpath_core::engine::runner::*;
-use simdpath_core::query::*;
 
 pub struct StackBasedRunner<'a, 'b> {
     query: &'b JsonPathQuery<'a>,
@@ -86,7 +86,7 @@ impl<'a, 'b, 'c> Runnable<'c> for InitialState<'a, 'b, 'c> {
     fn run(&mut self) -> RunnerResult<'c> {
         debug_assert! {self.node.is_root()};
 
-        let first_brace = find_byte(b'{', self.bytes);
+        let first_brace = bytes::find_byte(b'{', self.bytes);
         match first_brace {
             None => RunnerResult {
                 count: 0,
@@ -129,7 +129,7 @@ impl<'a, 'b, 'c> Runnable<'c> for RecursiveDescentState<'a, 'b, 'c> {
         let mut count = 0;
 
         loop {
-            let next = find_unescaped_byte2(b'"', b'}', bytes)
+            let next = bytes::find_unescaped_byte2(b'"', b'}', bytes)
                 .expect("JSON is malformed: closing brace missing.");
             let byte = bytes[next];
             bytes = &bytes[next + 1..];
@@ -139,16 +139,16 @@ impl<'a, 'b, 'c> Runnable<'c> for RecursiveDescentState<'a, 'b, 'c> {
             }
 
             // Here byte == '"' and bytes[0] is exactly the first byte of the label.
-            let end_of_label = find_unescaped_byte(b'"', bytes)
+            let end_of_label = bytes::find_unescaped_byte(b'"', bytes)
                 .expect("JSON is malformed: closing quote missing.");
             let current_label = &bytes[..end_of_label];
             bytes = &bytes[end_of_label + 1..];
 
-            let colon = find_byte(b':', bytes).expect("JSON is malformed: colon missing.");
+            let colon = bytes::find_byte(b':', bytes).expect("JSON is malformed: colon missing.");
             bytes = &bytes[colon + 1..];
 
             let object_start =
-                find_non_whitespace(bytes).expect("JSON is malformed: value missing.");
+                bytes::find_non_whitespace(bytes).expect("JSON is malformed: value missing.");
             let object_start_byte = bytes[object_start];
             bytes = &bytes[object_start + 1..];
 
@@ -205,12 +205,12 @@ impl<'a, 'b, 'c> Runnable<'c> for RecursiveDescentState<'a, 'b, 'c> {
                         count += result.count;
                     }
                     b'"' => {
-                        let next = find_unescaped_byte(b'"', bytes)
+                        let next = bytes::find_unescaped_byte(b'"', bytes)
                             .expect("JSON is malformed: closing quote missing.");
                         bytes = &bytes[next + 1..];
                     }
                     _ => {
-                        let next = find_byte2(b',', b'}', bytes)
+                        let next = bytes::find_byte2(b',', b'}', bytes)
                             .expect("JSON is malformed: closing brace missing.");
                         bytes = &bytes[next..];
                     }
@@ -232,12 +232,12 @@ impl<'a, 'b, 'c> Runnable<'c> for RecursiveDescentState<'a, 'b, 'c> {
                         count += result.count;
                     }
                     b'"' => {
-                        let next = find_unescaped_byte(b'"', bytes)
+                        let next = bytes::find_unescaped_byte(b'"', bytes)
                             .expect("JSON is malformed: closing quote missing.");
                         bytes = &bytes[next + 1..];
                     }
                     _ => {
-                        let next = find_byte2(b',', b'}', bytes)
+                        let next = bytes::find_byte2(b',', b'}', bytes)
                             .expect("JSON is malformed: closing brace missing.");
                         bytes = &bytes[next..];
                     }
@@ -263,8 +263,8 @@ impl<'a, 'b, 'c> Runnable<'c> for RecurseInListState<'a, 'b, 'c> {
         let mut count = 0;
 
         loop {
-            let next =
-                find_non_whitespace(bytes).expect("JSON is malformed: closing bracket missing.");
+            let next = bytes::find_non_whitespace(bytes)
+                .expect("JSON is malformed: closing bracket missing.");
             let byte = bytes[next];
             bytes = &bytes[next + 1..];
 
@@ -280,7 +280,7 @@ impl<'a, 'b, 'c> Runnable<'c> for RecurseInListState<'a, 'b, 'c> {
                     bytes = result.remaining_bytes;
                     count += result.count;
 
-                    let next = find_byte2(b',', b']', bytes)
+                    let next = bytes::find_byte2(b',', b']', bytes)
                         .expect("JSON is malformed: closing bracket missing.");
 
                     if bytes[next] == b',' {
@@ -296,10 +296,10 @@ impl<'a, 'b, 'c> Runnable<'c> for RecurseInListState<'a, 'b, 'c> {
                     count += result.count;
                 }
                 b'"' => {
-                    let next = find_unescaped_byte(b'"', bytes)
+                    let next = bytes::find_unescaped_byte(b'"', bytes)
                         .expect("JSON is malformed: closing quote missing.");
                     bytes = &bytes[next + 1..];
-                    let comma = find_byte2(b',', b']', bytes)
+                    let comma = bytes::find_byte2(b',', b']', bytes)
                         .expect("JSON is malformed: closing bracket missing.");
 
                     if bytes[comma] == b',' {
@@ -309,7 +309,7 @@ impl<'a, 'b, 'c> Runnable<'c> for RecurseInListState<'a, 'b, 'c> {
                     }
                 }
                 _ => {
-                    let next = find_byte2(b',', b']', bytes)
+                    let next = bytes::find_byte2(b',', b']', bytes)
                         .expect("JSON is malformed: closing bracket missing.");
 
                     if bytes[next] == b',' {

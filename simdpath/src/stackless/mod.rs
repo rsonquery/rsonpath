@@ -1,10 +1,16 @@
-use simdpath_core::bytes::*;
-use simdpath_core::engine::result::*;
-use simdpath_core::engine::runner::*;
-use simdpath_core::query::*;
+use crate::engine::result::CountResult;
+use crate::engine::runner::Runner;
+use crate::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType};
 
 pub struct StacklessRunner<'a> {
     labels: Vec<&'a [u8]>,
+}
+
+impl<'a> StacklessRunner<'a> {
+    pub fn compile_query(query: &JsonPathQuery<'a>) -> StacklessRunner<'a> {
+        let labels = query_to_descendant_pattern_labels(query);
+        StacklessRunner { labels }
+    }
 }
 
 impl<'a> Runner for StacklessRunner<'a> {
@@ -13,12 +19,6 @@ impl<'a> Runner for StacklessRunner<'a> {
 
         CountResult { count }
     }
-}
-
-pub fn compile_query<'a>(query: &JsonPathQuery<'a>) -> StacklessRunner<'a> {
-    let labels = query_to_descendant_pattern_labels(query);
-
-    StacklessRunner { labels }
 }
 
 fn query_to_descendant_pattern_labels<'a>(query: &JsonPathQuery<'a>) -> Vec<&'a [u8]> {
@@ -47,7 +47,7 @@ mod automata {
 
     initialize!();
 
-    pub fn dispatch_automaton<'a>(labels: &Vec<&'a [u8]>, bytes: &'a [u8]) -> usize {
+    pub fn dispatch_automaton<'a>(labels: &[&'a [u8]], bytes: &'a [u8]) -> usize {
         dispatch_automaton!(labels, bytes)
     }
 }

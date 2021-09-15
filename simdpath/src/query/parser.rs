@@ -1,4 +1,4 @@
-use crate::query::*;
+use crate::query::{JsonPathQuery, JsonPathQueryNode};
 use nom::{
     branch::*,
     bytes::complete::*,

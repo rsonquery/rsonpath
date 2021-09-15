@@ -1,4 +1,3 @@
-pub use self::parser::parse_json_path_query;
 mod parser;
 use std::fmt::{self, Display};
 
@@ -20,6 +19,10 @@ pub struct JsonPathQuery<'a> {
 impl<'a> JsonPathQuery<'a> {
     pub fn root(&self) -> &JsonPathQueryNode<'a> {
         self.root.as_ref()
+    }
+
+    pub fn parse(query_string: &str) -> Result<JsonPathQuery<'_>, String> {
+        self::parser::parse_json_path_query(query_string)
     }
 }
 
