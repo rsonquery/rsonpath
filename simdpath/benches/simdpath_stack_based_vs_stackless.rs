@@ -8,26 +8,34 @@ use std::fs;
 
 const ROOT_TEST_DIRECTORY: &str = "./data";
 
+struct BenchmarkOptions<'a> {
+    pub path: &'a str,
+    pub query_string: &'a str,
+    pub id: &'a str,
+    pub warm_up_time: Duration,
+    pub measurement_time: Duration,
+}
+
 fn get_contents(test_path: &str) -> String {
     let path = format!("{}/{}", ROOT_TEST_DIRECTORY, test_path);
     fs::read_to_string(path).unwrap()
 }
 
-fn simdpath_stack_based_vs_stackless(c: &mut Criterion, path: &str, query_string: &str, id: &str) {
-    let contents = get_contents(path);
-    let query = JsonPathQuery::parse(query_string).unwrap();
+fn simdpath_stack_based_vs_stackless(c: &mut Criterion, options: BenchmarkOptions<'_>) {
+    let contents = get_contents(options.path);
+    let query = JsonPathQuery::parse(options.query_string).unwrap();
 
-    let mut group = c.benchmark_group(format! {"simdpath_{}", id});
-    group.warm_up_time(Duration::from_secs(10));
-    group.measurement_time(Duration::from_secs(40));
+    let mut group = c.benchmark_group(format! {"simdpath_{}", options.id});
+    group.warm_up_time(options.warm_up_time);
+    group.measurement_time(options.measurement_time);
 
     group.bench_with_input(
-        BenchmarkId::new("stack-based", id),
+        BenchmarkId::new("stack-based", options.id),
         &(&query, &contents),
         |b, (q, c)| b.iter(|| StackBasedRunner::compile_query(q).count(c)),
     );
     group.bench_with_input(
-        BenchmarkId::new("stackless", id),
+        BenchmarkId::new("stackless", options.id),
         &(&query, &contents),
         |b, (q, c)| b.iter(|| StacklessRunner::compile_query(q).count(c)),
     );
@@ -37,36 +45,52 @@ fn simdpath_stack_based_vs_stackless(c: &mut Criterion, path: &str, query_string
 pub fn wikidata_combined(c: &mut Criterion) {
     simdpath_stack_based_vs_stackless(
         c,
-        "wikidata_compressed/wikidata_combined.json",
-        "$..claims..references..hash",
-        "wikidata_combined",
+        BenchmarkOptions {
+            path: "wikidata_compressed/wikidata_combined.json",
+            query_string: "$..claims..references..hash",
+            id: "wikidata_combined",
+            warm_up_time: Duration::from_secs(10),
+            measurement_time: Duration::from_secs(40),
+        },
     );
 }
 
 pub fn wikidata_person(c: &mut Criterion) {
     simdpath_stack_based_vs_stackless(
         c,
-        "wikidata_compressed/wikidata_person.json",
-        "$..claims..references..hash",
-        "wikidata_person",
+        BenchmarkOptions {
+            path: "wikidata_compressed/wikidata_person.json",
+            query_string: "$..claims..references..hash",
+            id: "wikidata_person",
+            warm_up_time: Duration::from_secs(3),
+            measurement_time: Duration::from_secs(5),
+        },
     );
 }
 
 pub fn wikidata_profession(c: &mut Criterion) {
     simdpath_stack_based_vs_stackless(
         c,
-        "wikidata_compressed/wikidata_profession.json",
-        "$..claims..mainsnak..value",
-        "wikidata_profession",
+        BenchmarkOptions {
+            path: "wikidata_compressed/wikidata_profession.json",
+            query_string: "$..claims..mainsnak..value",
+            id: "wikidata_profession",
+            warm_up_time: Duration::from_secs(3),
+            measurement_time: Duration::from_secs(5),
+        },
     );
 }
 
 pub fn wikidata_properties(c: &mut Criterion) {
     simdpath_stack_based_vs_stackless(
         c,
-        "wikidata_compressed/wikidata_properties.json",
-        "$..qualifiers..datavalue..id",
-        "wikidata_properties",
+        BenchmarkOptions {
+            path: "wikidata_compressed/wikidata_properties.json",
+            query_string: "$..qualifiers..datavalue..id",
+            id: "wikidata_properties",
+            warm_up_time: Duration::from_secs(3),
+            measurement_time: Duration::from_secs(5),
+        },
     );
 }
 
