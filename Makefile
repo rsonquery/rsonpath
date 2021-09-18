@@ -1,10 +1,9 @@
-RUSTC=rustc
 CARGO=cargo
 
 make: simdpath
 
 simdpath: check_cargo
-	RUSTC=$(RUSTC) $(CARGO) build --bin simdpath --release
+	$(CARGO) build --bin simdpath --release
 
 .PHONY: check_cargo clean install uninstall test
 

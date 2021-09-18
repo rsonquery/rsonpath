@@ -43,19 +43,11 @@ pub fn find_unescaped_byte2(byte1: u8, byte2: u8, slice: &[u8]) -> Option<usize>
 
 #[inline(always)]
 pub fn find_non_whitespace(slice: &[u8]) -> Option<usize> {
-    // Insignificant whitespace in JSON:
-    // https://datatracker.ietf.org/doc/html/rfc4627#section-2
-    const WHITESPACES: [u8; 4] = [b' ', b'\n', b'\t', b'\r'];
-
-    let mut i = 0;
-    while i < slice.len() {
-        if !WHITESPACES.contains(&slice[i]) {
-            return Some(i);
-        }
-        i += 1;
+    if slice.is_empty() {
+        None
+    } else {
+        Some(0)
     }
-
-    None
 }
 
 #[cfg(not(feature = "nosimd"))]
@@ -104,6 +96,21 @@ mod nosimd {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[inline(always)]
+    fn find_non_whitespace(slice: &[u8]) -> Option<usize> {
+        // Insignificant whitespace in JSON:
+        // https://datatracker.ietf.org/doc/html/rfc4627#section-2
+        const WHITESPACES: [u8; 4] = [b' ', b'\n', b'\t', b'\r'];
+        let mut i = 0;
+        while i < slice.len() {
+            if !WHITESPACES.contains(&slice[i]) {
+                return Some(i);
+            }
+            i += 1;
+        }
+        None
+    }
 
     #[test]
     fn find_byte_when_there_are_no_bytes_returns_none() {
