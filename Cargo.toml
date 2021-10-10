@@ -4,3 +4,6 @@ members = [
     "simdpath",
     "simdpath-stackless-macros"
 ]
+
+[profile.release]
+lto = "thin"

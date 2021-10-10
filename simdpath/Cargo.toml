@@ -17,8 +17,14 @@ memchr = "2.4.1"
 criterion = "0.3.5"
 
 [features]
+default = ["simd_x86"]
+simd_x86 = []
 nosimd = []
 
 [[bench]]
 name = "simdpath_stack_based_vs_stackless"
+harness = false
+
+[[bench]]
+name = "find_byte_sequence_benches"
 harness = false
