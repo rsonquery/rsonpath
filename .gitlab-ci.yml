@@ -5,6 +5,6 @@ rust-latest:
   stage: build
   image: rust:latest
   script:
-    - cargo build --verbose
+    - RUSTFLAGS="--deny warnings" cargo build --verbose
     - cargo test --verbose
     - cargo test --verbose --features nosimd

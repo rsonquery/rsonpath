@@ -5,6 +5,21 @@ use syn::{parse::*, *};
 
 const MAX_AUTOMATON_SIZE: u8 = 32;
 
+#[proc_macro]
+pub fn assert_supported_size(tokens: TokenStream) -> TokenStream {
+    let value = parse_macro_input!(tokens as Expr);
+    let assertion = quote! {
+        let value = #value;
+        let value_u8 = std::convert::TryInto::<u8>::try_into(value);
+        assert!(value_u8.map_or(false, |x| x <= #MAX_AUTOMATON_SIZE),
+            "Max supported length of a query for StacklessRunner is currently {}. The supplied query has length {}.",
+            #MAX_AUTOMATON_SIZE,
+            value);
+    };
+
+    assertion.into()
+}
+
 struct Arguments {
     labels_expr: Expr,
     bytes_expr: Expr,

@@ -1,51 +1,77 @@
+//! Stack based implementation of a JSONPath query engine.
+//!
+//! Baseline engine for processing of JSONPath queries executing the query in
+//! the natural, recursive manner.
+//!
+//! The [`stackless`](super::stackless) implementation should be more performant than
+//! this one.
+
 use crate::bytes;
 use crate::engine::result::CountResult;
-use crate::engine::runner::Runner;
+use crate::engine::Runner;
 use crate::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType};
 use log::*;
 
+/// Stack based runner for a fixed JSONPath query.
+///
+/// The runner is stateless, meaning that it can be executed
+/// on any number of separate inputs, even on separate threads.
 pub struct StackBasedRunner<'a, 'b> {
     query: &'b JsonPathQuery<'a>,
 }
 
+/// Result of a recursive descent of the runner.
 struct RunnerResult<'a> {
+    /// Count of matched values during the recursive descent.
     pub count: usize,
+    /// Bytes not processed during the recursive descent.
     pub remaining_bytes: &'a [u8],
 }
 
 impl<'a, 'b> StackBasedRunner<'a, 'b> {
+    /// Compile a query into a [`StackBasedRunner`].
     pub fn compile_query(query: &'b JsonPathQuery<'a>) -> Self {
         StackBasedRunner { query }
     }
 }
 
 impl<'a, 'b> Runner for StackBasedRunner<'a, 'b> {
-    fn count(&self, input: &str) -> CountResult {
-        let bytes = input.as_bytes();
-        let mut state = State::Initial(InitialState::new(self.query.root(), bytes));
+    fn count(&self, input: &[u8]) -> CountResult {
+        let mut state = State::Initial(InitialState::new(self.query.root(), input));
         CountResult {
             count: state.run().count,
         }
     }
 }
 
+/// Trait implemented by states of the engine that can
+/// be executed for results.
 trait Runnable<'a> {
     fn run(&mut self) -> RunnerResult<'a>;
 }
 
+/// Created at the beginning of query execution to kick off the engine.
+///
+/// Corresponds to a [`JsonPathQueryNode::Root`](super::query::JsonPathQueryNode<_>::Root) query node.
 struct InitialState<'a, 'b, 'c> {
     node: &'b JsonPathQueryNode<'a>,
     bytes: &'c [u8],
 }
 
+/// Created to seek for a label recursively in an object.
+///
+/// Corresponds to a [`JsonPathQueryNode::Descendant`](super::query::JsonPathQueryNode<_>::Descendant) query node.
 struct RecursiveDescentState<'a, 'b, 'c> {
     node: &'b JsonPathQueryNode<'a>,
-    pub bytes: &'c [u8],
+    bytes: &'c [u8],
 }
 
+/// Created to seek for a label recursively in a list.
+///
+/// Corresponds to a [`JsonPathQueryNode::Descendant`](super::query::JsonPathQueryNode<_>::Descendant) query node.
 struct RecurseInListState<'a, 'b, 'c> {
     node: &'b JsonPathQueryNode<'a>,
-    pub bytes: &'c [u8],
+    bytes: &'c [u8],
 }
 
 impl<'a, 'b, 'c> InitialState<'a, 'b, 'c> {
