@@ -17,8 +17,10 @@ install: simdpath
 	$(CARGO) install --path ./simdpath
 
 test:
-	$(CARGO) test || \
-	$(CARGO) test --features nosimd
+	cd simdpath
+	$(CARGO) test --manifest-path ./simdpath/Cargo.toml && \
+	$(CARGO) test --manifest-path ./simdpath/Cargo.toml --features nosimd
+	
 
 uninstall:
 	$(CARGO) uninstall simdpath

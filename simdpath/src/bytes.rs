@@ -1,8 +1,59 @@
+//! Byte stream utilities for quick navigation through a JSON structure.
+//!
+//! This module comes in two flavours, SIMD and no-SIMD.
+//!
+//! SIMD is implemented for x86/x86_64 architectures and CPUs supporting AVX2.
+//! On other architectures or older CPUs the module falls back to using no-SIMD operations.
+//! The no-SIMD operations are always available through the [`nosimd`] submodule.
+//!
+//! This module publicly reexports the functions from either [`simd`] or [`nosimd`] submodule
+//! and these reexports are what the JSONPath engine implementations use. The default is
+//! SIMD mode, but this can be changed by enabling the feature `nosimd`.
+
 #[cfg(feature = "nosimd")]
 pub use nosimd::*;
 #[cfg(not(feature = "nosimd"))]
+#[doc(inline)]
 pub use simd::*;
 
+/// Find the first occurence of a byte in the slice that is not escaped, if it exists.
+///
+/// An escaped byte is one which is immediately preceeded by an unescaped backslash
+/// character `\` U+005C. This applies recursively, so the quote character in `\"`
+/// is escaped, in `\\"` it's unescaped, `\\\"` it's escaped, etc.
+///
+/// # Examples
+/// ```
+/// # use simdpath::bytes::find_unescaped_byte;
+/// let bytes = "jsonpath".as_bytes();
+/// let result = find_unescaped_byte(b'n', bytes);
+///
+/// assert_eq!(Some(3), result);
+/// ```
+///
+/// ```
+/// # use simdpath::bytes::find_unescaped_byte;
+/// let bytes = "jsonpath".as_bytes();
+/// let result = find_unescaped_byte(b'x', bytes);
+///
+/// assert_eq!(None, result);
+/// ```
+///
+/// ```
+/// # use simdpath::bytes::find_unescaped_byte;
+/// let bytes = r#"jso\npath"#.as_bytes();
+/// let result = find_unescaped_byte(b'n', bytes);
+///
+/// assert_eq!(None, result);
+/// ```
+///
+/// ```
+/// # use simdpath::bytes::find_unescaped_byte;
+/// let bytes = r#"jso\\\\npath"#.as_bytes();
+/// let result = find_unescaped_byte(b'n', bytes);
+///
+/// assert_eq!(Some(7), result);
+/// ```
 pub fn find_unescaped_byte(byte: u8, slice: &[u8]) -> Option<usize> {
     let mut i = 0;
     while i < slice.len() {
@@ -11,7 +62,7 @@ pub fn find_unescaped_byte(byte: u8, slice: &[u8]) -> Option<usize> {
             None => return None,
             Some(j) if j == 0 => return Some(j + i),
             Some(j) => {
-                if slice[j + i - 1] != b'\\' {
+                if !is_escaped(j + i, slice) {
                     return Some(j + i);
                 } else {
                     i = j + i + 1;
@@ -22,6 +73,52 @@ pub fn find_unescaped_byte(byte: u8, slice: &[u8]) -> Option<usize> {
     None
 }
 
+/// Find the first occurence of either of two bites in the slice that is not escaped, if it exists.
+///
+/// An escaped byte is one which is immediately preceeded by an unescaped backslash
+/// character `\` U+005C. This applies recursively, so the quote character in `\"`
+/// is escaped, in `\\"` it's unescaped, `\\\"` it's escaped, etc.
+///
+/// # Examples
+/// ```
+/// # use simdpath::bytes::find_unescaped_byte2;
+/// let bytes = "jsonpath".as_bytes();
+/// let result = find_unescaped_byte2(b'n', b'o', bytes);
+///
+/// assert_eq!(Some(2), result);
+/// ```
+///
+/// ```
+/// # use simdpath::bytes::find_unescaped_byte2;
+/// let bytes = "jsonpath".as_bytes();
+/// let result = find_unescaped_byte2(b'n', b'p', bytes);
+///
+/// assert_eq!(Some(3), result);
+/// ```
+///
+/// ```
+/// # use simdpath::bytes::find_unescaped_byte2;
+/// let bytes = r#"jso\npath"#.as_bytes();
+/// let result = find_unescaped_byte2(b'n', b'p', bytes);
+///
+/// assert_eq!(Some(5), result);
+/// ```
+///
+/// ```
+/// # use simdpath::bytes::find_unescaped_byte2;
+/// let bytes = r#"jso\\\\npath"#.as_bytes();
+/// let result = find_unescaped_byte2(b'n', b'p', bytes);
+///
+/// assert_eq!(Some(7), result);
+/// ```
+///
+/// ```
+/// # use simdpath::bytes::find_unescaped_byte2;
+/// let bytes = r#"jso\n\path"#.as_bytes();
+/// let result = find_unescaped_byte2(b'n', b'p', bytes);
+///
+/// assert_eq!(None, result);
+/// ```
 pub fn find_unescaped_byte2(byte1: u8, byte2: u8, slice: &[u8]) -> Option<usize> {
     let mut i = 0;
     while i < slice.len() {
@@ -30,7 +127,7 @@ pub fn find_unescaped_byte2(byte1: u8, byte2: u8, slice: &[u8]) -> Option<usize>
             None => return None,
             Some(j) if j == 0 => return Some(j + i),
             Some(j) => {
-                if slice[j + i - 1] != b'\\' {
+                if !is_escaped(j + i, slice) {
                     return Some(j + i);
                 } else {
                     i = j + i + 1;
@@ -42,6 +139,23 @@ pub fn find_unescaped_byte2(byte1: u8, byte2: u8, slice: &[u8]) -> Option<usize>
 }
 
 #[inline(always)]
+fn is_escaped(idx: usize, slice: &[u8]) -> bool {
+    let mut k = 1;
+    let mut parity = true;
+
+    while idx >= k && slice[idx - k] == b'\\' {
+        k += 1;
+        parity = !parity;
+    }
+
+    !parity
+}
+
+/// Find the first occurence of a non-whitespace byte in the slice, if it exists.
+///
+/// This function is a stub. Currently we assume there is no whitespace between structural
+/// characters, so the next non-whitespace byte is simply the next byte.
+#[inline(always)]
 pub fn find_non_whitespace(slice: &[u8]) -> Option<usize> {
     if slice.is_empty() {
         None
@@ -50,54 +164,195 @@ pub fn find_non_whitespace(slice: &[u8]) -> Option<usize> {
     }
 }
 
+/// Sequential byte utilities _not_ utlizing SIMD.
+///
+/// These are the default operations used when the `nosimd` feature is enabled,
+/// or AVX2 is not supported on the target CPU.
 pub mod nosimd {
+    /// Find the first occurence of a byte in the slice, if it exists.
+    ///
+    /// This is a sequential, no-SIMD version. For big slices it is recommended to use
+    /// the [`simd`](super::simd) module variant for better performance.
+    /// # Examples
+    /// ```
+    /// # use simdpath::bytes::nosimd::find_byte;
+    /// let bytes = "abcdefgh".as_bytes();
+    /// let result = find_byte(b'd', bytes);
+    ///
+    /// assert_eq!(Some(3), result);
+    /// ```
+    ///
+    /// ```
+    /// # use simdpath::bytes::nosimd::find_byte;
+    /// let bytes = "abcdefgh".as_bytes();
+    /// let result = find_byte(b'i', bytes);
+    ///
+    /// assert_eq!(None, result);
+    /// ```
     #[inline(always)]
     pub fn find_byte(byte: u8, slice: &[u8]) -> Option<usize> {
         slice.iter().position(|&x| x == byte)
     }
 
+    /// Find the first occurence of either of two bytes in the slice, if it exists.
+    ///
+    /// This is a sequential, no-SIMD version. For big slices it is recommended to use
+    /// the [`simd`](super::simd) module variant for better performance.
+    /// # Examples
+    /// ```
+    /// # use simdpath::bytes::nosimd::find_byte2;
+    /// let bytes = "abcdefgh".as_bytes();
+    /// let result = find_byte2(b'd', b'c', bytes);
+    ///
+    /// assert_eq!(Some(2), result);
+    /// ```
+    ///
+    /// ```
+    /// # use simdpath::bytes::nosimd::find_byte2;
+    /// let bytes = "abcdefgh".as_bytes();
+    /// let result = find_byte2(b'i', b'j', bytes);
+    ///
+    /// assert_eq!(None, result);
+    /// ```
     #[inline(always)]
     pub fn find_byte2(byte1: u8, byte2: u8, slice: &[u8]) -> Option<usize> {
         slice.iter().position(|&x| x == byte1 || x == byte2)
     }
 
+    /// Find the first occurence of a two byte sequence in the slice, if it exists.
+    ///
+    /// This is a sequential, no-SIMD version. For big slices it is recommended to use
+    /// the [`simd`](super::simd) module variant for better performance.
+    /// # Examples
+    /// ```
+    /// # use simdpath::bytes::nosimd::find_byte_sequence2;
+    /// let bytes = "abcdefgh".as_bytes();
+    /// let result = find_byte_sequence2(b'd', b'e', bytes);
+    ///
+    /// assert_eq!(Some(3), result);
+    /// ```
+    ///
+    /// ```
+    /// # use simdpath::bytes::nosimd::find_byte_sequence2;
+    /// let bytes = "abcdefgh".as_bytes();
+    /// let result = find_byte_sequence2(b'e', b'd', bytes);
+    ///
+    /// assert_eq!(None, result);
+    /// ```
     pub fn find_byte_sequence2(byte1: u8, byte2: u8, slice: &[u8]) -> Option<usize> {
         let needle = [byte1, byte2];
         slice.windows(2).position(|xs| xs == needle)
     }
 }
 
+/// Vectorized byte utilities utilizing SIMD.
+///
+/// These are the default operations. Currently SIMD is only implemented
+/// for x86/x86_64 architecture CPUs supporting AVX2. For all other targets
+/// the functions in this module fall back to the [`nosimd`] module.
+///
+/// This module is not compiled if the `nosimd` feature is enabled.
 #[cfg(not(feature = "nosimd"))]
 pub mod simd {
     use super::nosimd;
+    #[cfg(all(target_arch = "x86", target_feature = "avx2"))]
+    use core::arch::x86::*;
+    #[cfg(all(target_arch = "x86_64", target_feature = "avx2"))]
     use core::arch::x86_64::*;
     use memchr::*;
 
+    #[allow(dead_code)]
     const BYTES_IN_AVX2_REGISTER: usize = 256 / 8;
 
+    /// Find the first occurence of a byte in the slice, if it exists.
+    ///
+    /// This is a SIMD version.
+    /// # Examples
+    /// ```
+    /// # use simdpath::bytes::simd::find_byte;
+    /// let bytes = "abcdefgh".as_bytes();
+    /// let result = find_byte(b'd', bytes);
+    ///
+    /// assert_eq!(Some(3), result);
+    /// ```
+    ///
+    /// ```
+    /// # use simdpath::bytes::simd::find_byte;
+    /// let bytes = "abcdefgh".as_bytes();
+    /// let result = find_byte(b'i', bytes);
+    ///
+    /// assert_eq!(None, result);
+    /// ```
     pub fn find_byte(byte: u8, slice: &[u8]) -> Option<usize> {
         memchr(byte, slice)
     }
 
+    /// Find the first occurence of either of two bytes in the slice, if it exists.
+    ///
+    /// This is a SIMD version.
+    /// # Examples
+    /// ```
+    /// # use simdpath::bytes::simd::find_byte2;
+    /// let bytes = "abcdefgh".as_bytes();
+    /// let result = find_byte2(b'd', b'c', bytes);
+    ///
+    /// assert_eq!(Some(2), result);
+    /// ```
+    ///
+    /// ```
+    /// # use simdpath::bytes::simd::find_byte2;
+    /// let bytes = "abcdefgh".as_bytes();
+    /// let result = find_byte2(b'i', b'j', bytes);
+    ///
+    /// assert_eq!(None, result);
+    /// ```
     #[inline(always)]
     pub fn find_byte2(byte1: u8, byte2: u8, slice: &[u8]) -> Option<usize> {
         memchr2(byte1, byte2, slice)
     }
 
+    /// Find the first occurence of a two byte sequence in the slice, if it exists.
+    ///
+    /// This is a SIMD version, if the target CPU is not x86/x86_64 or does not
+    /// support AVX2 this will fallback to [`nosimd::find_byte_sequence2`].
+    /// # Examples
+    /// ```
+    /// # use simdpath::bytes::simd::find_byte_sequence2;
+    /// let bytes = "abcdefgh".as_bytes();
+    /// let result = find_byte_sequence2(b'd', b'e', bytes);
+    ///
+    /// assert_eq!(Some(3), result);
+    /// ```
+    ///
+    /// ```
+    /// # use simdpath::bytes::simd::find_byte_sequence2;
+    /// let bytes = "abcdefgh".as_bytes();
+    /// let result = find_byte_sequence2(b'e', b'd', bytes);
+    ///
+    /// assert_eq!(None, result);
+    /// ```
     #[inline(always)]
-    #[cfg(target_feature = "avx2")]
     pub fn find_byte_sequence2(byte1: u8, byte2: u8, slice: &[u8]) -> Option<usize> {
-        unsafe { avx2_find_byte_sequence2(byte1, byte2, slice) }
-    }
+        #[cfg(all(
+            any(target_arch = "x86", target_arch = "x86_64"),
+            target_feature = "avx2"
+        ))]
+        unsafe {
+            avx2_find_byte_sequence2(byte1, byte2, slice)
+        }
 
-    #[inline(always)]
-    #[cfg(not(target_feature = "avx2"))]
-    pub fn find_byte_sequence2(byte1: u8, byte2: u8, slice: &[u8]) -> Option<usize> {
+        #[cfg(not(all(
+            any(target_arch = "x86", target_arch = "x86_64"),
+            target_feature = "avx2"
+        )))]
         nosimd::find_byte_sequence2(byte1, byte2, slice)
     }
 
     #[target_feature(enable = "avx2")]
-    #[allow(dead_code)]
+    #[cfg(all(
+        any(target_arch = "x86", target_arch = "x86_64"),
+        target_feature = "avx2"
+    ))]
     unsafe fn avx2_find_byte_sequence2(byte1: u8, byte2: u8, slice: &[u8]) -> Option<usize> {
         if slice.len() < BYTES_IN_AVX2_REGISTER * 2 {
             return nosimd::find_byte_sequence2(byte1, byte2, slice);
@@ -331,6 +586,26 @@ mod tests {
     }
 
     #[test]
+    fn find_unescaped_byte_when_the_backslash_is_escaped_treats_as_unsescaped() {
+        let string = r#"text \n xxx yyyy \\n was unescaped"#;
+        let bytes = string.as_bytes();
+
+        let result = find_unescaped_byte(b'n', bytes);
+
+        assert_eq!(Some(19), result);
+    }
+
+    #[test]
+    fn find_unescaped_byte_when_the_backslash_is_escaped_many_times_treats_as_unsescaped() {
+        let string = r#"text \n xxx yyyy \\\\\\\\\\\\n was unescaped"#;
+        let bytes = string.as_bytes();
+
+        let result = find_unescaped_byte(b'n', bytes);
+
+        assert_eq!(Some(29), result);
+    }
+
+    #[test]
     fn find_unescaped_byte2_when_there_is_no_bytes_returns_none() {
         let string = "";
         let bytes = string.as_bytes();
@@ -383,6 +658,46 @@ mod tests {
         let result = find_unescaped_byte2(b'"', b'}', bytes);
 
         assert_eq!(Some(61), result);
+    }
+
+    #[test]
+    fn find_unescaped_byte2_when_the_backslash_is_escaped_treats_as_unsescaped_1() {
+        let string = r#"text \n xxx yyyy \\n was unescaped"#;
+        let bytes = string.as_bytes();
+
+        let result = find_unescaped_byte2(b'n', b'}', bytes);
+
+        assert_eq!(Some(19), result);
+    }
+
+    #[test]
+    fn find_unescaped_byte2_when_the_backslash_is_escaped_treats_as_unsescaped_2() {
+        let string = r#"text \n xxx yyyy \\n was unescaped"#;
+        let bytes = string.as_bytes();
+
+        let result = find_unescaped_byte2(b'}', b'n', bytes);
+
+        assert_eq!(Some(19), result);
+    }
+
+    #[test]
+    fn find_unescaped_byte2_when_the_backslash_is_escaped_many_times_treats_as_unsescaped_1() {
+        let string = r#"text \n xxx yyyy \\\\\\\\\\\\n was unescaped"#;
+        let bytes = string.as_bytes();
+
+        let result = find_unescaped_byte2(b'n', b'}', bytes);
+
+        assert_eq!(Some(29), result);
+    }
+
+    #[test]
+    fn find_unescaped_byte2_when_the_backslash_is_escaped_many_times_treats_as_unsescaped_2() {
+        let string = r#"text \n xxx yyyy \\\\\\\\\\\\n was unescaped"#;
+        let bytes = string.as_bytes();
+
+        let result = find_unescaped_byte2(b'}', b'n', bytes);
+
+        assert_eq!(Some(29), result);
     }
 
     #[test]
@@ -501,10 +816,10 @@ mod tests {
     fn find_byte_sequence2_when_sequence_is_on_n_byte_boundary_returns_n_minus_1(n: usize) {
         let mut bytes: Vec<_> = iter::repeat(b'z').take(n * 2).collect();
 
-        bytes[n - 1] = b'x';
-        bytes[n] = b'y';
+        bytes[n - 1] = b'a';
+        bytes[n] = b'b';
 
-        let result = find_byte_sequence2(b'x', b'y', &bytes);
+        let result = find_byte_sequence2(b'a', b'b', &bytes);
 
         assert_eq!(Some(n - 1), result);
     }
@@ -512,10 +827,10 @@ mod tests {
     fn find_byte_sequence2_when_sequence_is_before_n_byte_boundary_returns_n_minus_2(n: usize) {
         let mut bytes: Vec<_> = iter::repeat(b'z').take(n * 2).collect();
 
-        bytes[n - 2] = b'x';
-        bytes[n - 1] = b'y';
+        bytes[n - 2] = b'a';
+        bytes[n - 1] = b'b';
 
-        let result = find_byte_sequence2(b'x', b'y', &bytes);
+        let result = find_byte_sequence2(b'a', b'b', &bytes);
 
         assert_eq!(Some(n - 2), result);
     }
@@ -523,10 +838,10 @@ mod tests {
     fn find_byte_sequence2_when_sequence_is_after_n_byte_boundary_returns_n(n: usize) {
         let mut bytes: Vec<_> = iter::repeat(b'z').take(n * 2).collect();
 
-        bytes[n] = b'x';
-        bytes[n + 1] = b'y';
+        bytes[n] = b'a';
+        bytes[n + 1] = b'b';
 
-        let result = find_byte_sequence2(b'x', b'y', &bytes);
+        let result = find_byte_sequence2(b'a', b'b', &bytes);
 
         assert_eq!(Some(n), result);
     }

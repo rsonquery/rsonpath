@@ -1,10 +1,12 @@
 stages:
-  - build
+  - build-and-test
 
 rust-latest:
-  stage: build
+  stage: build-and-test
+  rules:
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "master"'
   image: rust:latest
   script:
-    - cargo build --verbose
+    - RUSTFLAGS="--deny warnings" cargo build --verbose
     - cargo test --verbose
     - cargo test --verbose --features nosimd
