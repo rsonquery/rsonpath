@@ -3,8 +3,9 @@ stages:
 
 rust-latest:
   stage: build-and-test
-  rules:
-    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "master"'
+  only:
+    - master
+    - merge_requests
   image: rust:latest
   script:
     - RUSTFLAGS="--deny warnings" cargo build --verbose
