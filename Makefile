@@ -11,7 +11,12 @@ check_cargo:
 	$(CARGO) --version || (curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y)
 
 clean:
+	$(eval TMPDIR := $(shell mktemp -d -t criterion-reports-tmp-XXXXXXXX))
+	cp -r ./target/criterion/* $(TMPDIR)/
 	$(CARGO) clean
+	mkdir -p ./target/criterion
+	cp -r $(TMPDIR)/* ./target/criterion
+	rm -rf $(TMPDIR)
 
 install: simdpath
 	$(CARGO) install --path ./simdpath

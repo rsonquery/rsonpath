@@ -2,7 +2,7 @@
 
 members = [
     "simdpath",
-    "simdpath-stackless-macros"
+    "simdpath-codegen"
 ]
 
 [profile.release]

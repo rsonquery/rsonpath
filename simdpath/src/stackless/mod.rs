@@ -8,6 +8,9 @@
 //! This implementation should be more performant than [`stack_based`](super::stack_based)
 //! even on targets that don't support AVX2 SIMD operations.
 
+#[allow(clippy::all)]
+mod automata;
+
 use crate::engine::result::CountResult;
 use crate::engine::Runner;
 use crate::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType};
@@ -27,7 +30,7 @@ impl<'a> StacklessRunner<'a> {
     pub fn compile_query(query: &JsonPathQuery<'a>) -> StacklessRunner<'a> {
         let labels = query_to_descendant_pattern_labels(query);
 
-        simdpath_stackless_macros::assert_supported_size!(labels.len());
+        automata::assert_supported_size!(labels.len());
 
         StacklessRunner { labels }
     }
@@ -60,18 +63,4 @@ fn query_to_descendant_pattern_labels<'a>(query: &JsonPathQuery<'a>) -> Vec<&'a 
     }
 
     result
-}
-
-mod automata {
-    use simdpath_stackless_macros::*;
-
-    // Initialization from the simdpath_stackless_macros crate that creates
-    // automaton functions for all supported lengths of a query.
-    initialize!();
-
-    pub fn dispatch_automaton<'a>(labels: &[&'a [u8]], bytes: &'a [u8]) -> usize {
-        // Switches on length of the labels array to run the correct automaton
-        // created by the `initialize!` macro.
-        dispatch_automaton!(labels, bytes)
-    }
 }
