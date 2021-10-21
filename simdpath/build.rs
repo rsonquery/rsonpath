@@ -1,5 +1,4 @@
 use proc_macro2::TokenStream;
-use simdpath_codegen::get_automata_mod_source;
 use std::env;
 use std::error::Error;
 use std::fs;
@@ -20,10 +19,16 @@ struct CodegenFile<'a> {
 fn main() -> Result<(), Box<dyn Error>> {
     let codegen = Codegen {
         md5_digest: simdpath_codegen::calculate_codegen_md5(),
-        files: vec![CodegenFile {
-            source_token_stream: get_automata_mod_source(),
-            file_name: "automata.rs",
-        }],
+        files: vec![
+            CodegenFile {
+                source_token_stream: simdpath_codegen::stackless::automata::get_mod_source(),
+                file_name: "stackless/automata.rs",
+            },
+            CodegenFile {
+                source_token_stream: simdpath_codegen::bytes::sequences::get_mod_source(),
+                file_name: "bytes/sequences.rs",
+            },
+        ],
     };
 
     generate(codegen)?;
@@ -57,7 +62,7 @@ fn generate(codegen: Codegen) -> Result<(), Box<dyn Error>> {
 
         let source = format!("{}\n{}", comment, codegen_file.source_token_stream);
 
-        fs::create_dir_all(&dest_dir)?;
+        fs::create_dir_all(dest.parent().unwrap())?;
         fs::write(&dest, source)?;
 
         let rustfmt_status = Command::new("rustfmt")

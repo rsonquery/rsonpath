@@ -535,6 +535,7 @@ dependencies = [
  "md5",
  "proc-macro2",
  "quote",
+ "walkdir",
 ]
 
 [[package]]
