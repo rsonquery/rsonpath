@@ -10,6 +10,8 @@
 //! and these reexports are what the JSONPath engine implementations use. The default is
 //! SIMD mode, but this can be changed by enabling the feature `nosimd`.
 
+mod sequences;
+
 #[cfg(feature = "nosimd")]
 pub use nosimd::*;
 #[cfg(not(feature = "nosimd"))]
@@ -169,6 +171,9 @@ pub fn find_non_whitespace(slice: &[u8]) -> Option<usize> {
 /// These are the default operations used when the `nosimd` feature is enabled,
 /// or AVX2 is not supported on the target CPU.
 pub mod nosimd {
+    #[doc(inline)]
+    pub use super::sequences::nosimd::*;
+
     /// Find the first occurence of a byte in the slice, if it exists.
     ///
     /// This is a sequential, no-SIMD version. For big slices it is recommended to use
@@ -218,31 +223,6 @@ pub mod nosimd {
     pub fn find_byte2(byte1: u8, byte2: u8, slice: &[u8]) -> Option<usize> {
         slice.iter().position(|&x| x == byte1 || x == byte2)
     }
-
-    /// Find the first occurence of a two byte sequence in the slice, if it exists.
-    ///
-    /// This is a sequential, no-SIMD version. For big slices it is recommended to use
-    /// the [`simd`](super::simd) module variant for better performance.
-    /// # Examples
-    /// ```
-    /// # use simdpath::bytes::nosimd::find_byte_sequence2;
-    /// let bytes = "abcdefgh".as_bytes();
-    /// let result = find_byte_sequence2(b'd', b'e', bytes);
-    ///
-    /// assert_eq!(Some(3), result);
-    /// ```
-    ///
-    /// ```
-    /// # use simdpath::bytes::nosimd::find_byte_sequence2;
-    /// let bytes = "abcdefgh".as_bytes();
-    /// let result = find_byte_sequence2(b'e', b'd', bytes);
-    ///
-    /// assert_eq!(None, result);
-    /// ```
-    pub fn find_byte_sequence2(byte1: u8, byte2: u8, slice: &[u8]) -> Option<usize> {
-        let needle = [byte1, byte2];
-        slice.windows(2).position(|xs| xs == needle)
-    }
 }
 
 /// Vectorized byte utilities utilizing SIMD.
@@ -254,11 +234,8 @@ pub mod nosimd {
 /// This module is not compiled if the `nosimd` feature is enabled.
 #[cfg(not(feature = "nosimd"))]
 pub mod simd {
-    use super::nosimd;
-    #[cfg(all(target_arch = "x86", target_feature = "avx2"))]
-    use core::arch::x86::*;
-    #[cfg(all(target_arch = "x86_64", target_feature = "avx2"))]
-    use core::arch::x86_64::*;
+    #[doc(inline)]
+    pub use super::sequences::simd::*;
     use memchr::*;
 
     #[allow(dead_code)]
@@ -310,100 +287,11 @@ pub mod simd {
     pub fn find_byte2(byte1: u8, byte2: u8, slice: &[u8]) -> Option<usize> {
         memchr2(byte1, byte2, slice)
     }
-
-    /// Find the first occurence of a two byte sequence in the slice, if it exists.
-    ///
-    /// This is a SIMD version, if the target CPU is not x86/x86_64 or does not
-    /// support AVX2 this will fallback to [`nosimd::find_byte_sequence2`].
-    /// # Examples
-    /// ```
-    /// # use simdpath::bytes::simd::find_byte_sequence2;
-    /// let bytes = "abcdefgh".as_bytes();
-    /// let result = find_byte_sequence2(b'd', b'e', bytes);
-    ///
-    /// assert_eq!(Some(3), result);
-    /// ```
-    ///
-    /// ```
-    /// # use simdpath::bytes::simd::find_byte_sequence2;
-    /// let bytes = "abcdefgh".as_bytes();
-    /// let result = find_byte_sequence2(b'e', b'd', bytes);
-    ///
-    /// assert_eq!(None, result);
-    /// ```
-    #[inline(always)]
-    pub fn find_byte_sequence2(byte1: u8, byte2: u8, slice: &[u8]) -> Option<usize> {
-        #[cfg(all(
-            any(target_arch = "x86", target_arch = "x86_64"),
-            target_feature = "avx2"
-        ))]
-        unsafe {
-            avx2_find_byte_sequence2(byte1, byte2, slice)
-        }
-
-        #[cfg(not(all(
-            any(target_arch = "x86", target_arch = "x86_64"),
-            target_feature = "avx2"
-        )))]
-        nosimd::find_byte_sequence2(byte1, byte2, slice)
-    }
-
-    #[target_feature(enable = "avx2")]
-    #[cfg(all(
-        any(target_arch = "x86", target_arch = "x86_64"),
-        target_feature = "avx2"
-    ))]
-    unsafe fn avx2_find_byte_sequence2(byte1: u8, byte2: u8, slice: &[u8]) -> Option<usize> {
-        if slice.len() < BYTES_IN_AVX2_REGISTER * 2 {
-            return nosimd::find_byte_sequence2(byte1, byte2, slice);
-        }
-
-        let mut slice = slice;
-        let mut i: usize = 0;
-
-        let mask1 = _mm256_set1_epi8(byte1 as i8);
-        let mask2 = _mm256_set1_epi8(byte2 as i8);
-
-        let first_block = _mm256_loadu_si256(slice.as_ptr() as *const __m256i);
-        let cmp_mask1_first_block_vector = _mm256_cmpeq_epi8(first_block, mask1);
-        let cmp_mask2_first_block_vector = _mm256_cmpeq_epi8(first_block, mask2);
-        let mut cmp_mask1_first_block = _mm256_movemask_epi8(cmp_mask1_first_block_vector) as u32;
-        let mut cmp_mask2_first_block = _mm256_movemask_epi8(cmp_mask2_first_block_vector) as u32;
-
-        while slice.len() >= BYTES_IN_AVX2_REGISTER * 2 {
-            let ptr = slice.as_ptr() as *const __m256i;
-
-            let next_block = _mm256_loadu_si256(ptr.offset(1));
-
-            let cmp_mask1_next_block_vector = _mm256_cmpeq_epi8(next_block, mask1);
-            let cmp_mask2_next_block_vector = _mm256_cmpeq_epi8(next_block, mask2);
-
-            let cmp_mask1_next_block = _mm256_movemask_epi8(cmp_mask1_next_block_vector) as u32;
-            let cmp_mask2_next_block = _mm256_movemask_epi8(cmp_mask2_next_block_vector) as u32;
-
-            let cmp_mask1 = (cmp_mask1_first_block as u64) | ((cmp_mask1_next_block as u64) << 32);
-            let cmp_mask2 = (cmp_mask2_first_block as u64) | ((cmp_mask2_next_block as u64) << 32);
-
-            let cmp = cmp_mask1 & (cmp_mask2 >> 1);
-
-            if cmp != 0 {
-                return Some(i + (cmp.trailing_zeros() as usize));
-            }
-
-            cmp_mask1_first_block = cmp_mask1_next_block;
-            cmp_mask2_first_block = cmp_mask2_next_block;
-            i += BYTES_IN_AVX2_REGISTER;
-            slice = &slice[BYTES_IN_AVX2_REGISTER..];
-        }
-
-        nosimd::find_byte_sequence2(byte1, byte2, slice)
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::iter;
 
     #[inline(always)]
     fn find_non_whitespace(slice: &[u8]) -> Option<usize> {
@@ -764,174 +652,5 @@ mod tests {
         let result = find_non_whitespace(&bytes);
 
         assert_eq!(Some(0), result);
-    }
-
-    #[test]
-    fn find_byte_sequence2_when_slice_is_empty_returns_none() {
-        let bytes = [];
-
-        let result = find_byte_sequence2(b'x', b'y', &bytes);
-
-        assert_eq!(None, result);
-    }
-
-    #[test]
-    fn find_byte_sequence2_when_slice_is_only_the_sequence_returns_0() {
-        let string = "xy";
-        let bytes = string.as_bytes();
-
-        let result = find_byte_sequence2(b'x', b'y', bytes);
-
-        assert_eq!(Some(0), result);
-    }
-
-    #[test]
-    fn find_byte_sequence2_when_the_sequence_is_reversed_returns_none() {
-        let string = "xy";
-        let bytes = string.as_bytes();
-
-        let result = find_byte_sequence2(b'y', b'x', bytes);
-
-        assert_eq!(None, result);
-    }
-
-    #[test]
-    fn find_byte_sequence2_when_sequence_is_only_first_byte_returns_none() {
-        let bytes: Vec<_> = iter::repeat(b'x').take(256).collect();
-
-        let result = find_byte_sequence2(b'x', b'y', &bytes);
-
-        assert_eq!(None, result);
-    }
-
-    #[test]
-    fn find_byte_sequence2_when_sequence_is_only_second_byte_returns_none() {
-        let bytes: Vec<_> = iter::repeat(b'y').take(256).collect();
-
-        let result = find_byte_sequence2(b'x', b'y', &bytes);
-
-        assert_eq!(None, result);
-    }
-
-    fn find_byte_sequence2_when_sequence_is_on_n_byte_boundary_returns_n_minus_1(n: usize) {
-        let mut bytes: Vec<_> = iter::repeat(b'z').take(n * 2).collect();
-
-        bytes[n - 1] = b'a';
-        bytes[n] = b'b';
-
-        let result = find_byte_sequence2(b'a', b'b', &bytes);
-
-        assert_eq!(Some(n - 1), result);
-    }
-
-    fn find_byte_sequence2_when_sequence_is_before_n_byte_boundary_returns_n_minus_2(n: usize) {
-        let mut bytes: Vec<_> = iter::repeat(b'z').take(n * 2).collect();
-
-        bytes[n - 2] = b'a';
-        bytes[n - 1] = b'b';
-
-        let result = find_byte_sequence2(b'a', b'b', &bytes);
-
-        assert_eq!(Some(n - 2), result);
-    }
-
-    fn find_byte_sequence2_when_sequence_is_after_n_byte_boundary_returns_n(n: usize) {
-        let mut bytes: Vec<_> = iter::repeat(b'z').take(n * 2).collect();
-
-        bytes[n] = b'a';
-        bytes[n + 1] = b'b';
-
-        let result = find_byte_sequence2(b'a', b'b', &bytes);
-
-        assert_eq!(Some(n), result);
-    }
-
-    #[test]
-    fn find_byte_sequence2_when_sequence_is_on_8_byte_boundary_returns_7() {
-        find_byte_sequence2_when_sequence_is_on_n_byte_boundary_returns_n_minus_1(8)
-    }
-
-    #[test]
-    fn find_byte_sequence2_when_sequence_is_on_16_byte_boundary_returns_15() {
-        find_byte_sequence2_when_sequence_is_on_n_byte_boundary_returns_n_minus_1(16)
-    }
-
-    #[test]
-    fn find_byte_sequence2_when_sequence_is_on_32_byte_boundary_returns_31() {
-        find_byte_sequence2_when_sequence_is_on_n_byte_boundary_returns_n_minus_1(32)
-    }
-
-    #[test]
-    fn find_byte_sequence2_when_sequence_is_on_64_byte_boundary_returns_63() {
-        find_byte_sequence2_when_sequence_is_on_n_byte_boundary_returns_n_minus_1(64)
-    }
-
-    #[test]
-    fn find_byte_sequence2_when_sequence_is_before_8_byte_boundary_returns_7() {
-        find_byte_sequence2_when_sequence_is_before_n_byte_boundary_returns_n_minus_2(8)
-    }
-
-    #[test]
-    fn find_byte_sequence2_when_sequence_is_before_16_byte_boundary_returns_15() {
-        find_byte_sequence2_when_sequence_is_before_n_byte_boundary_returns_n_minus_2(16)
-    }
-
-    #[test]
-    fn find_byte_sequence2_when_sequence_is_before_32_byte_boundary_returns_31() {
-        find_byte_sequence2_when_sequence_is_before_n_byte_boundary_returns_n_minus_2(32)
-    }
-
-    #[test]
-    fn find_byte_sequence2_when_sequence_is_before_64_byte_boundary_returns_63() {
-        find_byte_sequence2_when_sequence_is_before_n_byte_boundary_returns_n_minus_2(64)
-    }
-
-    #[test]
-    fn find_byte_sequence2_when_sequence_is_after_8_byte_boundary_returns_7() {
-        find_byte_sequence2_when_sequence_is_after_n_byte_boundary_returns_n(8)
-    }
-
-    #[test]
-    fn find_byte_sequence2_when_sequence_is_after_16_byte_boundary_returns_15() {
-        find_byte_sequence2_when_sequence_is_after_n_byte_boundary_returns_n(16)
-    }
-
-    #[test]
-    fn find_byte_sequence2_when_sequence_is_after_32_byte_boundary_returns_31() {
-        find_byte_sequence2_when_sequence_is_after_n_byte_boundary_returns_n(32)
-    }
-
-    #[test]
-    fn find_byte_sequence2_when_sequence_is_after_64_byte_boundary_returns_63() {
-        find_byte_sequence2_when_sequence_is_after_n_byte_boundary_returns_n(64)
-    }
-
-    #[test]
-    // This is the same data as used in the find_byte_sequence_benches bench,
-    // however there is no clean way of sharing that code between tests and benches,
-    // so it's duplicated here as a test.
-    fn find_byte_sequence2_in_long_string() {
-        const BYTE1: u8 = b'y';
-        const BYTE2: u8 = b'x';
-        const LENGTH: usize = 32 * 1024 * 1024;
-        const LETTERS: &str = "abcdefghijklmnopqrstuvwxyz";
-        let mut contents = String::new();
-
-        while contents.len() < LENGTH {
-            contents += LETTERS;
-        }
-
-        contents += "y";
-        contents += "x";
-        contents += LETTERS;
-
-        while contents.len() % 32 != 0 {
-            contents += "x";
-        }
-
-        let bytes = contents.as_bytes();
-        let result = find_byte_sequence2(BYTE1, BYTE2, bytes);
-
-        assert_eq!(Some(33554456), result)
     }
 }

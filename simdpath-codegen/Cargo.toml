@@ -9,3 +9,6 @@ edition = "2018"
 md5 = "0.7.0"
 proc-macro2 = "1.0.30"
 quote = "1.0.9"
+
+[dev-dependencies]
+walkdir = "2.3.2"
