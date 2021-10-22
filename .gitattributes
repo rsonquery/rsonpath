@@ -1,6 +1,6 @@
-reports/* linguist-documentation
-target/criterion/* linguist-documentation
-target/docs/* linguist-documentation
+reports/* linguist-vendored
+target/criterion/* linguist-vendored
+target/docs/* linguist-vendored
 /simdpath-tests/data/wikidata/wikidata_combined.json filter=lfs diff=lfs merge=lfs -text
 /simdpath-tests/data/wikidata_prettified/wikidata_person.json filter=lfs diff=lfs merge=lfs -text
 /simdpath-tests/data/wikidata_prettified/wikidata_profession.json filter=lfs diff=lfs merge=lfs -text
