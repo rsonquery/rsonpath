@@ -10,6 +10,7 @@
 //! and these reexports are what the JSONPath engine implementations use. The default is
 //! SIMD mode, but this can be changed by enabling the feature `nosimd`.
 
+pub mod depth;
 mod sequences;
 
 #[cfg(feature = "nosimd")]
