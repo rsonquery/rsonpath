@@ -34,7 +34,7 @@ fn do_bench<'a, F: FnOnce(&'a [u8]) -> BytesWithDepth<'a, D>, D: DepthBlock>(
 
 fn wikidata_combined(c: &mut Criterion) {
     let mut group = c.benchmark_group("wikidata_combined");
-    group.measurement_time(Duration::from_secs(20));
+    group.measurement_time(Duration::from_secs(30));
 
     let contents = get_contents("wikidata_compressed/wikidata_combined.json");
 
