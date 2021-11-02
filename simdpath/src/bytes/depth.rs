@@ -38,6 +38,13 @@ impl<'a, D: DepthBlock> BytesWithDepth<'a, D> {
     }
 
     pub fn advance(&mut self) -> bool {
+        if self.bytes.is_empty() {
+            return false;
+        }
+
+        self.bytes = &self.bytes[1..];
+        true
+        /*
         if self.current_vector.advance() {
             return true;
         }
@@ -55,7 +62,7 @@ impl<'a, D: DepthBlock> BytesWithDepth<'a, D> {
         self.accumulated_depth += self.current_vector.depth_at_end();
         self.current_vector = D::new(self.bytes);
 
-        true
+        true*/
     }
 }
 

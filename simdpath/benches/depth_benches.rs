@@ -1,8 +1,5 @@
 use core::time::Duration;
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
-use criterion_perf_events::Perf;
-use perfcnt::linux::HardwareEventType as Hardware;
-use perfcnt::linux::PerfCounterBuilderLinux as Builder;
 use simdpath::bytes::depth::nosimd;
 use simdpath::bytes::depth::simd;
 use simdpath::bytes::depth::{BytesWithDepth, DepthBlock};
@@ -37,7 +34,7 @@ fn do_bench<'a, F: FnOnce(&'a [u8]) -> BytesWithDepth<'a, D>, D: DepthBlock>(
     count
 }
 
-fn wikidata_combined(c: &mut Criterion<Perf>) {
+fn wikidata_combined(c: &mut Criterion) {
     let mut group = c.benchmark_group("wikidata_combined");
     group.measurement_time(Duration::from_secs(30));
 
@@ -63,6 +60,6 @@ fn wikidata_combined(c: &mut Criterion<Perf>) {
 
 criterion_group!(
     name = benches;
-    config = Criterion::default().with_measurement(Perf::new(Builder::from_hardware_event(Hardware::RefCPUCycles)));
+    config = Criterion::default();//.with_measurement(Perf::new(Builder::from_hardware_event(Hardware::RefCPUCycles)));
     targets = wikidata_combined);
 criterion_main!(benches);
