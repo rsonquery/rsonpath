@@ -1,121 +1,76 @@
 #[allow(dead_code)]
 const BYTES_IN_AVX2_REGISTER: usize = 256 / 8;
 
-#[cfg(all(not(feature = "nosimd"), target_feature = "avx2"))]
-#[inline]
-pub fn decorate_depth(bytes: &[u8]) -> BytesWithDepth<simd::Vector> {
-    simd::decorate_depth(bytes)
-}
-
 #[cfg(any(feature = "nosimd", not(target_feature = "avx2")))]
-#[inline]
-pub fn decorate_depth(bytes: &[u8]) -> BytesWithDepth<nosimd::Vector> {
-    nosimd::decorate_depth(bytes)
+pub fn decorate_depth(bytes: &[u8]) -> nosimd::Vector {
+    nosimd::Vector::new(bytes)
 }
 
-pub struct BytesWithDepth<'a, D: DepthBlock> {
-    bytes: &'a [u8],
-    accumulated_depth: isize,
-    current_vector: D,
+#[cfg(all(not(feature = "nosimd"), target_feature = "avx2"))]
+pub fn decorate_depth(bytes: &[u8]) -> simd::Vector {
+    simd::Vector::new(bytes)
 }
 
-impl<'a, D: DepthBlock> BytesWithDepth<'a, D> {
-    #[inline]
-    pub fn new(bytes: &'a [u8]) -> Self {
-        let vector = D::new(bytes);
-        Self {
-            bytes,
-            accumulated_depth: 0,
-            current_vector: vector,
-        }
-    }
-
-    #[inline]
-    pub fn is_depth_greater_or_equal_to(&mut self, depth: isize) -> bool {
-        let adjusted_depth = depth - self.accumulated_depth; // TODO signs
-        self.current_vector
-            .is_depth_greater_or_equal_to(adjusted_depth)
-    }
-
-    pub fn advance(&mut self) -> bool {
-        if self.bytes.is_empty() {
-            return false;
-        }
-
-        self.bytes = &self.bytes[1..];
-        true
-        /*
-        if self.current_vector.advance() {
-            return true;
-        }
-
-        if self.bytes.is_empty() {
-            return false;
-        }
-
-        self.bytes = &self.bytes[self.current_vector.len()..];
-
-        if self.bytes.is_empty() {
-            return false;
-        }
-
-        self.accumulated_depth += self.current_vector.depth_at_end();
-        self.current_vector = D::new(self.bytes);
-
-        true*/
-    }
-}
-
-pub trait DepthBlock {
-    fn new(bytes: &[u8]) -> Self;
+pub trait DepthBlock<'a> {
+    fn new(bytes: &'a [u8]) -> Self;
     fn len(&self) -> usize;
     fn advance(&mut self) -> bool;
     fn is_depth_greater_or_equal_to(&mut self, depth: isize) -> bool;
-    fn depth_at_end(&mut self) -> isize;
+    fn depth_at_end(self) -> isize;
 }
 
 pub mod nosimd {
     use super::*;
 
-    #[inline]
-    pub fn decorate_depth(bytes: &'_ [u8]) -> BytesWithDepth<'_, nosimd::Vector> {
-        BytesWithDepth::<nosimd::Vector>::new(bytes)
+    pub struct Vector<'a> {
+        bytes: &'a [u8],
+        depth: isize,
+        idx: usize,
     }
 
-    pub struct Vector {
-        byte: u8,
-    }
-
-    impl DepthBlock for Vector {
+    impl<'a> DepthBlock<'a> for Vector<'a> {
         #[inline]
-        fn new(bytes: &[u8]) -> Self {
-            Self { byte: bytes[0] }
+        fn new(bytes: &'a [u8]) -> Self {
+            let mut vector = Self {
+                bytes,
+                depth: 0,
+                idx: 0,
+            };
+            vector.advance();
+            vector
         }
 
         #[inline]
         fn len(&self) -> usize {
-            1
+            self.bytes.len()
         }
 
         #[inline]
         fn advance(&mut self) -> bool {
-            false
-        }
-
-        #[inline]
-        fn is_depth_greater_or_equal_to(&mut self, depth: isize) -> bool {
-            self.depth_at_end() >= depth
-        }
-
-        #[inline]
-        fn depth_at_end(&mut self) -> isize {
-            match self.byte {
+            if self.idx >= self.bytes.len() {
+                return false;
+            }
+            self.depth += match self.bytes[self.idx] {
                 b'{' => 1,
                 b'[' => 1,
                 b'}' => -1,
                 b']' => -1,
                 _ => 0,
-            }
+            };
+            self.idx += 1;
+
+            true
+        }
+
+        #[inline]
+        fn is_depth_greater_or_equal_to(&mut self, depth: isize) -> bool {
+            self.depth >= depth
+        }
+
+        #[inline]
+        fn depth_at_end(mut self) -> isize {
+            while self.advance() {}
+            self.depth
         }
     }
 }
@@ -127,16 +82,6 @@ pub mod simd {
     use core::arch::x86::*;
     #[cfg(target_arch = "x86_64")]
     use core::arch::x86_64::*;
-
-    #[inline]
-    pub fn decorate_depth(bytes: &'_ [u8]) -> BytesWithDepth<'_, simd::Vector> {
-        BytesWithDepth::<simd::Vector>::new(bytes)
-    }
-
-    #[inline]
-    pub fn decorate_depth_lazy(bytes: &'_ [u8]) -> BytesWithDepth<'_, simd::LazyVector> {
-        BytesWithDepth::<simd::LazyVector>::new(bytes)
-    }
 
     pub struct Vector {
         depth_bytes: [i8; BYTES_IN_AVX2_REGISTER],
@@ -157,28 +102,42 @@ pub mod simd {
     impl LazyVector {
         fn new_sequential(bytes: &[u8]) -> Self {
             let mut sum: i8 = 0;
-            let mut depth_bytes = [0; BYTES_IN_AVX2_REGISTER];
-
-            for i in 0..bytes.len() {
-                sum += match bytes[i] {
-                    b'{' => 1,
-                    b'[' => 1,
-                    b'}' => -1,
-                    b']' => -1,
-                    _ => 0,
-                };
-                depth_bytes[i] = sum;
-            }
-
-            LazyVector {
-                depth_bytes: Some(depth_bytes),
+            let mut vector = LazyVector {
+                depth_bytes: None,
                 opening_vector: None,
                 closing_vector: None,
                 opening_count: 0,
                 closing_count: 0,
                 len: bytes.len(),
                 idx: 0,
+            };
+            let mut depth_bytes = [0; BYTES_IN_AVX2_REGISTER];
+
+            for i in 0..bytes.len() {
+                match bytes[i] {
+                    b'{' => {
+                        vector.opening_count += 1;
+                        sum += 1;
+                    }
+                    b'[' => {
+                        vector.opening_count += 1;
+                        sum += 1
+                    }
+                    b'}' => {
+                        vector.closing_count += 1;
+                        sum -= 1
+                    }
+                    b']' => {
+                        vector.closing_count += 1;
+                        sum -= 1
+                    }
+                    _ => (),
+                };
+                depth_bytes[i] = sum;
             }
+
+            vector.depth_bytes = Some(depth_bytes);
+            vector
         }
 
         #[target_feature(enable = "avx2")]
@@ -240,9 +199,9 @@ pub mod simd {
         }
     }
 
-    impl DepthBlock for LazyVector {
+    impl<'a> DepthBlock<'a> for LazyVector {
         #[inline]
-        fn new(bytes: &[u8]) -> Self {
+        fn new(bytes: &'a [u8]) -> Self {
             if bytes.len() >= BYTES_IN_AVX2_REGISTER {
                 unsafe { Self::new_avx2(bytes) }
             } else {
@@ -250,14 +209,14 @@ pub mod simd {
             }
         }
 
-        #[inline]
+        #[inline(always)]
         fn len(&self) -> usize {
             self.len
         }
 
         #[inline]
         fn advance(&mut self) -> bool {
-            if self.idx == BYTES_IN_AVX2_REGISTER - 1 {
+            if self.idx + 1 >= self.len() {
                 return false;
             }
             self.idx += 1;
@@ -275,8 +234,8 @@ pub mod simd {
             actual_depth >= depth
         }
 
-        #[inline]
-        fn depth_at_end(&mut self) -> isize {
+        #[inline(always)]
+        fn depth_at_end(self) -> isize {
             (self.opening_count - self.closing_count) as isize
         }
     }
@@ -343,9 +302,9 @@ pub mod simd {
         }
     }
 
-    impl DepthBlock for Vector {
+    impl<'a> DepthBlock<'a> for Vector {
         #[inline]
-        fn new(bytes: &[u8]) -> Self {
+        fn new(bytes: &'a [u8]) -> Self {
             if bytes.len() >= BYTES_IN_AVX2_REGISTER {
                 unsafe { Self::new_avx2(bytes) }
             } else {
@@ -353,28 +312,28 @@ pub mod simd {
             }
         }
 
-        #[inline]
+        #[inline(always)]
         fn len(&self) -> usize {
             self.len
         }
 
         #[inline]
         fn advance(&mut self) -> bool {
-            if self.idx == BYTES_IN_AVX2_REGISTER - 1 {
+            if self.idx + 1 >= self.len() {
                 return false;
             }
             self.idx += 1;
             true
         }
 
-        #[inline]
+        #[inline(always)]
         fn is_depth_greater_or_equal_to(&mut self, depth: isize) -> bool {
             (self.depth_bytes[self.idx] as isize) >= depth
         }
 
-        #[inline]
-        fn depth_at_end(&mut self) -> isize {
-            self.depth_bytes[BYTES_IN_AVX2_REGISTER - 1] as isize
+        #[inline(always)]
+        fn depth_at_end(self) -> isize {
+            self.depth_bytes[self.len() - 1] as isize
         }
     }
 
@@ -391,10 +350,56 @@ pub mod simd {
 mod tests {
     use super::*;
 
-    fn is_depth_greater_or_equal_to_correctness<
+    fn is_depth_greater_or_equal_to_correctness<'a, F: Fn(&'a [u8]) -> D, D: DepthBlock<'a>>(
+        build: &F,
+        bytes: &'a [u8],
+        depths: &[isize],
+    ) {
+        assert_eq!(bytes.len(), depths.len(), "Invalid test data.");
+        let mut bytes = bytes;
+        let mut depths_idx = 0;
+        let mut accumulated_depth = 0;
+
+        while !bytes.is_empty() {
+            let mut vector = build(bytes);
+            bytes = &bytes[vector.len()..];
+
+            loop {
+                let depth = depths[depths_idx];
+                let adjusted_depth = depth - accumulated_depth;
+                assert!(
+                    vector.is_depth_greater_or_equal_to(adjusted_depth),
+                    "Failed for exact depth: '{}' at index '{}'",
+                    adjusted_depth,
+                    depths_idx
+                );
+                assert!(
+                    vector.is_depth_greater_or_equal_to(adjusted_depth - 1),
+                    "Failed for depth one below: '{}' at index '{}'",
+                    adjusted_depth,
+                    depths_idx
+                );
+                assert!(
+                    !vector.is_depth_greater_or_equal_to(adjusted_depth + 1),
+                    "Failed for depth one above: '{}' at index '{}'",
+                    adjusted_depth,
+                    depths_idx
+                );
+                depths_idx += 1;
+                if !vector.advance() {
+                    break;
+                }
+            }
+            accumulated_depth += vector.depth_at_end();
+        }
+
+        assert_eq!(depths.len(), depths_idx);
+    }
+
+    fn is_depth_greater_or_equal_to_correctness_suite<
         'a,
-        F: FnOnce(&'a [u8]) -> BytesWithDepth<'a, D>,
-        D: DepthBlock,
+        F: Fn(&'a [u8]) -> D,
+        D: DepthBlock<'a>,
     >(
         build: F,
     ) {
@@ -403,50 +408,37 @@ mod tests {
             1, 1, 1, 1, 1, 1, 1, 2, 3, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 4, 3,
             2, 1, 0,
         ];
-        let bytes = json.as_bytes();
-        let mut bytes_with_depth = build(bytes);
 
-        assert_eq!(32, json.len());
-        assert_eq!(json.len(), depths.len());
+        is_depth_greater_or_equal_to_correctness(&build, json.as_bytes(), &depths);
 
-        for (i, &depth) in depths.iter().enumerate() {
-            assert!(
-                bytes_with_depth.is_depth_greater_or_equal_to(depth),
-                "Failed for exact depth: '{}' at index '{}'",
-                depth,
-                i
-            );
-            if depth > 0 {
-                assert!(
-                    bytes_with_depth.is_depth_greater_or_equal_to(depth - 1),
-                    "Failed for depth one below: '{}' at index '{}'",
-                    depth,
-                    i
-                );
-            }
-            assert!(
-                !bytes_with_depth.is_depth_greater_or_equal_to(depth + 1),
-                "Failed for depth one above: '{}' at index '{}'",
-                depth,
-                i
-            );
+        let json = r#"{}"#;
+        let depths = [1, 0];
 
-            let expected_flag = i < bytes.len() - 1;
-            let advance_flag = bytes_with_depth.advance();
-            assert_eq!(expected_flag, advance_flag);
-        }
+        is_depth_greater_or_equal_to_correctness(&build, json.as_bytes(), &depths);
 
-        assert!(!bytes_with_depth.advance());
+        let json = r#""#;
+        let depths = [];
+
+        is_depth_greater_or_equal_to_correctness(&build, json.as_bytes(), &depths);
+
+        let json = r#"{"aaa":[{},{"b":{"c":[1,2,3]}}],"e":{"a":[[],[1,2,3],[{"b":[{}]}]]},"d":42}"#;
+        let depths = [
+            1, 1, 1, 1, 1, 1, 1, 2, 3, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 4, 3,
+            2, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 4, 3, 3, 4, 4, 4, 4, 4, 4, 3, 3, 4, 5, 5, 5, 5,
+            5, 6, 7, 6, 5, 4, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1, 0,
+        ];
+
+        is_depth_greater_or_equal_to_correctness(&build, json.as_bytes(), &depths);
     }
 
     #[test]
     fn is_depth_greater_or_equal_to_correctness_for_decorate_depth() {
-        is_depth_greater_or_equal_to_correctness(decorate_depth);
+        is_depth_greater_or_equal_to_correctness_suite(decorate_depth);
     }
 
     #[test]
     #[cfg(all(not(feature = "nosimd"), target_feature = "avx2"))]
     fn is_depth_greater_or_equal_to_correctness_for_decorate_depth_lazy() {
-        is_depth_greater_or_equal_to_correctness(simd::decorate_depth_lazy);
+        is_depth_greater_or_equal_to_correctness_suite(simd::LazyVector::new);
     }
 }
