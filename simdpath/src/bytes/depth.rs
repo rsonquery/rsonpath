@@ -1,3 +1,8 @@
+//! JSON depth calculations on byte streams.
+//!
+//! The recommended struct to use is [`simd::LazyVector`], which is optimised for the usual
+//! case where the depth does not change too sharply within a single 32-byte block.
+
 #[allow(dead_code)]
 const BYTES_IN_AVX2_REGISTER: usize = 256 / 8;
 
@@ -11,12 +16,22 @@ pub fn decorate_depth(bytes: &[u8]) -> simd::Vector {
     simd::Vector::new(bytes)
 }
 
+#[allow(clippy::len_without_is_empty)]
 pub trait DepthBlock<'a> {
     fn new(bytes: &'a [u8]) -> Self;
     fn len(&self) -> usize;
     fn advance(&mut self) -> bool;
     fn is_depth_greater_or_equal_to(&mut self, depth: isize) -> bool;
     fn depth_at_end(self) -> isize;
+
+    fn advance_by(&mut self, i: usize) -> bool {
+        for _ in 0..i {
+            if !self.advance() {
+                return false;
+            }
+        }
+        true
+    }
 }
 
 pub mod nosimd {
@@ -224,6 +239,15 @@ pub mod simd {
         }
 
         #[inline]
+        fn advance_by(&mut self, i: usize) -> bool {
+            if self.idx + i >= self.len() {
+                return false;
+            }
+            self.idx += i;
+            true
+        }
+
+        #[inline]
         fn is_depth_greater_or_equal_to(&mut self, depth: isize) -> bool {
             if depth <= -(self.closing_count as isize) {
                 return true;
@@ -323,6 +347,15 @@ pub mod simd {
                 return false;
             }
             self.idx += 1;
+            true
+        }
+
+        #[inline]
+        fn advance_by(&mut self, i: usize) -> bool {
+            if self.idx + i >= self.len() {
+                return false;
+            }
+            self.idx += i;
             true
         }
 
