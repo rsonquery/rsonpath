@@ -5,7 +5,7 @@ make: simdpath
 simdpath: check_cargo
 	$(CARGO) build --bin simdpath --release
 
-.PHONY: check_cargo clean install uninstall test
+.PHONY: check_cargo clean doc install uninstall test
 
 check_cargo:
 	$(CARGO) --version || (curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y)
@@ -17,6 +17,9 @@ clean:
 	mkdir -p ./target/criterion
 	cp -r $(TMPDIR)/* ./target/criterion
 	rm -rf $(TMPDIR)
+
+doc:
+	RUSTDOCFLAGS="--cfg docsrs" cargo +nightly doc --open
 
 install: simdpath
 	$(CARGO) install --path ./simdpath

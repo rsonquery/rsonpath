@@ -1,42 +1,74 @@
 //! JSON depth calculations on byte streams.
 //!
-//! The recommended struct to use is [`simd::LazyVector`], which is optimised for the usual
-//! case where the depth does not change too sharply within a single 32-byte block.
+//! The recommended implementation of [`DepthBlock`] is [`simd::LazyAvx2Vector`],
+//! which is optimised for the usual case where the depth does not change too sharply
+//! within a single 32-byte block.
 
 #[allow(dead_code)]
 const BYTES_IN_AVX2_REGISTER: usize = 256 / 8;
 
-#[cfg(any(feature = "nosimd", not(target_feature = "avx2")))]
-pub fn decorate_depth(bytes: &[u8]) -> nosimd::Vector {
-    nosimd::Vector::new(bytes)
-}
-
-#[cfg(all(not(feature = "nosimd"), target_feature = "avx2"))]
-pub fn decorate_depth(bytes: &[u8]) -> simd::Vector {
-    simd::Vector::new(bytes)
-}
-
+/// Common trait for structs that enrich a byte block with JSON depth information.
 #[allow(clippy::len_without_is_empty)]
-pub trait DepthBlock<'a> {
-    fn new(bytes: &'a [u8]) -> Self;
+pub trait DepthBlock<'a>: Sized {
+    /// Decorate a byte block with depth information,
+    /// returning an instance and the remaining portion of the
+    /// byte slice that did not get decorated.
+    fn new(bytes: &'a [u8]) -> (Self, &'a [u8]);
+
+    /// Return the length of the decorated block.
+    ///
+    /// This should be constant throughout the lifetime of a `DepthBlock`
+    /// and always satisfy:
+    /// ```rust
+    /// # use simdpath::bytes::nosimd::depth::Vector as Impl;
+    /// # use simdpath::bytes::DepthBlock;
+    /// # let bytes = &[0; 256];
+    /// let (depth_block, rem) = Impl::new(bytes);
+    /// let expected_len = bytes.len() - rem.len();
+    ///
+    /// assert_eq!(expected_len, depth_block.len());
+    /// ```
     fn len(&self) -> usize;
+
+    /// Advance to the next position in the decorated slice.
+    /// Returns `true` if the position changed, `false` if
+    /// the end of the decorated slice was reached.
     fn advance(&mut self) -> bool;
+
+    /// Check whether the depth at current position of the slice is
+    /// greater than or equal to `depth`.
+    ///
+    /// Implementing structs should start at the first position in the
+    /// decorated slice. To change the position, call
+    /// [`advance`](`DepthBlock::advance`) or [`advance_by`](`DepthBlock::advance_by`).
     fn is_depth_greater_or_equal_to(&mut self, depth: isize) -> bool;
+
+    /// Returns exact depth at the end of the decorated slice,
+    /// consuming the block.
     fn depth_at_end(self) -> isize;
 
-    fn advance_by(&mut self, i: usize) -> bool {
-        for _ in 0..i {
+    /// Advance by `i` positions in the decorated slice.
+    /// Returns the number of positions by which the block advanced.
+    /// If it is less than `i` then the end of the decorated slice was reached.
+    fn advance_by(&mut self, i: usize) -> usize {
+        let mut j = 0;
+        while j < i {
             if !self.advance() {
-                return false;
+                break;
             }
+            j += 1;
         }
-        true
+        j
     }
 }
 
+/// Sequential depth computation.
 pub mod nosimd {
     use super::*;
 
+    /// Decorates a byte slice with JSON depth information.
+    ///
+    /// This struct works on the entire slice and calculates the depth sequentially.
     pub struct Vector<'a> {
         bytes: &'a [u8],
         depth: isize,
@@ -44,15 +76,18 @@ pub mod nosimd {
     }
 
     impl<'a> DepthBlock<'a> for Vector<'a> {
+        /// The remainder is guaranteed to be an empty slice,
+        /// since this implementation works on the entire byte
+        /// slice at once.
         #[inline]
-        fn new(bytes: &'a [u8]) -> Self {
+        fn new(bytes: &'a [u8]) -> (Self, &'a [u8]) {
             let mut vector = Self {
                 bytes,
                 depth: 0,
                 idx: 0,
             };
             vector.advance();
-            vector
+            (vector, &[])
         }
 
         #[inline]
@@ -90,21 +125,67 @@ pub mod nosimd {
     }
 }
 
-#[cfg(all(not(feature = "nosimd"), target_feature = "avx2"))]
+/// Depth computation powered by SIMD.
+#[cfg(not(feature = "nosimd"))]
+#[cfg_attr(docsrs, doc(cfg(not(feature = "nosimd"))))]
 pub mod simd {
+    #[cfg(any(
+        all(
+            target_feature = "avx2",
+            any(target_arch = "x86", target_arch = "x86_64")
+        ),
+        doc
+    ))]
+    #[doc(inline)]
+    pub use super::avx2_simd::*;
+}
+
+#[cfg(any(
+    all(
+        not(feature = "nosimd"),
+        any(target_arch = "x86", target_arch = "x86_64"),
+        target_feature = "avx2"
+    ),
+    doc
+))]
+mod avx2_simd {
     use super::*;
     #[cfg(target_arch = "x86")]
     use core::arch::x86::*;
     #[cfg(target_arch = "x86_64")]
     use core::arch::x86_64::*;
 
-    pub struct Vector {
+    /// Works on a 32-byte slice, calculating the depth vectorially
+    /// at construction.
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(all(
+            target_feature = "avx2",
+            any(target_arch = "x86", target_arch = "x86_64")
+        )))
+    )]
+    pub struct Avx2Vector {
         depth_bytes: [i8; BYTES_IN_AVX2_REGISTER],
         len: usize,
         idx: usize,
     }
 
-    pub struct LazyVector {
+    /// Works on a 32-byte slice, but uses a heuristic to quickly
+    /// respond to queries and not count the depth exactly unless
+    /// needed.
+    ///
+    /// The heuristic checks if it is possible to achieve the queried
+    /// depth within the block by counting the number of opening
+    /// and closing structural characters. This can be done much
+    /// more quickly than precise depth calculation.
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(all(
+            target_feature = "avx2",
+            any(target_arch = "x86", target_arch = "x86_64")
+        )))
+    )]
+    pub struct LazyAvx2Vector {
         depth_bytes: Option<[i8; BYTES_IN_AVX2_REGISTER]>,
         opening_vector: Option<__m256i>,
         closing_vector: Option<__m256i>,
@@ -114,10 +195,10 @@ pub mod simd {
         idx: usize,
     }
 
-    impl LazyVector {
-        fn new_sequential(bytes: &[u8]) -> Self {
+    impl LazyAvx2Vector {
+        fn new_sequential(bytes: &[u8]) -> (Self, &[u8]) {
             let mut sum: i8 = 0;
-            let mut vector = LazyVector {
+            let mut vector = Self {
                 depth_bytes: None,
                 opening_vector: None,
                 closing_vector: None,
@@ -152,36 +233,28 @@ pub mod simd {
             }
 
             vector.depth_bytes = Some(depth_bytes);
-            vector
+            (vector, &[])
         }
 
         #[target_feature(enable = "avx2")]
         #[inline]
-        unsafe fn new_avx2(bytes: &[u8]) -> Self {
-            let byte_vector = _mm256_loadu_si256(bytes.as_ptr() as *const __m256i);
-            let opening_brace_mask = _mm256_set1_epi8(b'{' as i8);
-            let opening_bracket_mask = _mm256_set1_epi8(b'[' as i8);
-            let closing_brace_mask = _mm256_set1_epi8(b'}' as i8);
-            let closing_bracket_mask = _mm256_set1_epi8(b']' as i8);
-            let opening_brace_cmp = _mm256_cmpeq_epi8(byte_vector, opening_brace_mask);
-            let opening_bracket_cmp = _mm256_cmpeq_epi8(byte_vector, opening_bracket_mask);
-            let closing_brace_cmp = _mm256_cmpeq_epi8(byte_vector, closing_brace_mask);
-            let closing_bracket_cmp = _mm256_cmpeq_epi8(byte_vector, closing_bracket_mask);
-            let opening_cmp = _mm256_or_si256(opening_brace_cmp, opening_bracket_cmp);
-            let closing_cmp = _mm256_or_si256(closing_brace_cmp, closing_bracket_cmp);
+        unsafe fn new_avx2(bytes: &[u8]) -> (Self, &[u8]) {
+            let (opening_vector, closing_vector) = get_opening_and_closing_vectors(bytes);
 
-            let opening_count = _mm256_movemask_epi8(opening_cmp).count_ones() as i8;
-            let closing_count = _mm256_movemask_epi8(closing_cmp).count_ones() as i8;
+            let opening_count = _mm256_movemask_epi8(opening_vector).count_ones() as i8;
+            let closing_count = _mm256_movemask_epi8(closing_vector).count_ones() as i8;
 
-            LazyVector {
+            let vector = Self {
                 depth_bytes: None,
-                opening_vector: Some(opening_cmp),
-                closing_vector: Some(closing_cmp),
+                opening_vector: Some(opening_vector),
+                closing_vector: Some(closing_vector),
                 opening_count,
                 closing_count,
                 len: BYTES_IN_AVX2_REGISTER,
                 idx: 0,
-            }
+            };
+
+            (vector, &bytes[BYTES_IN_AVX2_REGISTER..])
         }
 
         #[target_feature(enable = "avx2")]
@@ -191,32 +264,19 @@ pub mod simd {
                 return depth_bytes;
             }
 
-            self.depth_bytes = Some([0; BYTES_IN_AVX2_REGISTER]);
-
-            let vector1 =
-                _mm256_sub_epi8(self.closing_vector.unwrap(), self.opening_vector.unwrap());
-            let vector2 = _mm256_add_epi8(vector1, _mm256_slli_si256::<1>(vector1));
-            let vector4 = _mm256_add_epi8(vector2, _mm256_slli_si256::<2>(vector2));
-            let vector8 = _mm256_add_epi8(vector4, _mm256_slli_si256::<4>(vector4));
-            let vector16 = _mm256_add_epi8(vector8, _mm256_slli_si256::<8>(vector8));
-
-            let halfway = _mm256_extract_epi8::<15>(vector16);
-            let halfway_vector = _mm256_set1_epi8(halfway as i8);
-            let halfway_vector_second_lane_only =
-                _mm256_permute2x128_si256::<8>(halfway_vector, halfway_vector);
-
-            let vector32 = _mm256_add_epi8(vector16, halfway_vector_second_lane_only);
-
-            let array_ptr = self.depth_bytes.as_ref().unwrap().as_ptr() as *mut __m256i;
-            _mm256_storeu_si256(array_ptr, vector32);
+            let depth_bytes = calculate_depth_from_vectors(
+                self.opening_vector.unwrap(),
+                self.closing_vector.unwrap(),
+            );
+            self.depth_bytes = Some(depth_bytes);
 
             self.depth_bytes.as_ref().unwrap()
         }
     }
 
-    impl<'a> DepthBlock<'a> for LazyVector {
+    impl<'a> DepthBlock<'a> for LazyAvx2Vector {
         #[inline]
-        fn new(bytes: &'a [u8]) -> Self {
+        fn new(bytes: &'a [u8]) -> (Self, &'a [u8]) {
             if bytes.len() >= BYTES_IN_AVX2_REGISTER {
                 unsafe { Self::new_avx2(bytes) }
             } else {
@@ -239,18 +299,19 @@ pub mod simd {
         }
 
         #[inline]
-        fn advance_by(&mut self, i: usize) -> bool {
-            if self.idx + i >= self.len() {
-                return false;
-            }
-            self.idx += i;
-            true
+        fn advance_by(&mut self, i: usize) -> usize {
+            let j = std::cmp::min(i, self.len() - self.idx + 1);
+            self.idx += j;
+            j
         }
 
         #[inline]
         fn is_depth_greater_or_equal_to(&mut self, depth: isize) -> bool {
             if depth <= -(self.closing_count as isize) {
                 return true;
+            }
+            if depth > (self.opening_count as isize) {
+                return false;
             }
 
             let idx = self.idx;
@@ -264,18 +325,18 @@ pub mod simd {
         }
     }
 
-    impl Vector {
+    impl Avx2Vector {
         #[inline]
-        fn new_sequential(bytes: &[u8]) -> Self {
+        fn new_sequential(bytes: &[u8]) -> (Self, &[u8]) {
             let mut sum: i8 = 0;
-            let mut vector = Vector {
+            let mut vector = Self {
                 depth_bytes: [0; BYTES_IN_AVX2_REGISTER],
                 len: bytes.len(),
                 idx: 0,
             };
 
-            for i in 0..vector.len {
-                sum += match bytes[i] {
+            for (i, byte) in bytes.iter().enumerate() {
+                sum += match byte {
                     b'{' => 1,
                     b'[' => 1,
                     b'}' => -1,
@@ -285,50 +346,27 @@ pub mod simd {
                 vector.depth_bytes[i] = sum;
             }
 
-            vector
+            (vector, &[])
         }
 
-        #[target_feature(enable = "avx2")]
         #[inline]
-        unsafe fn new_avx2(bytes: &[u8]) -> Self {
-            let byte_vector = _mm256_loadu_si256(bytes.as_ptr() as *const __m256i);
-            let opening_brace_mask = _mm256_set1_epi8(b'{' as i8);
-            let opening_bracket_mask = _mm256_set1_epi8(b'[' as i8);
-            let closing_brace_mask = _mm256_set1_epi8(b'}' as i8);
-            let closing_bracket_mask = _mm256_set1_epi8(b']' as i8);
-            let opening_brace_cmp = _mm256_cmpeq_epi8(byte_vector, opening_brace_mask);
-            let opening_bracket_cmp = _mm256_cmpeq_epi8(byte_vector, opening_bracket_mask);
-            let closing_brace_cmp = _mm256_cmpeq_epi8(byte_vector, closing_brace_mask);
-            let closing_bracket_cmp = _mm256_cmpeq_epi8(byte_vector, closing_bracket_mask);
-            let opening_cmp = _mm256_or_si256(opening_brace_cmp, opening_bracket_cmp);
-            let closing_cmp = _mm256_or_si256(closing_brace_cmp, closing_bracket_cmp);
-            let vector1 = _mm256_sub_epi8(closing_cmp, opening_cmp);
-            let vector2 = _mm256_add_epi8(vector1, _mm256_slli_si256::<1>(vector1));
-            let vector4 = _mm256_add_epi8(vector2, _mm256_slli_si256::<2>(vector2));
-            let vector8 = _mm256_add_epi8(vector4, _mm256_slli_si256::<4>(vector4));
-            let vector16 = _mm256_add_epi8(vector8, _mm256_slli_si256::<8>(vector8));
+        #[target_feature(enable = "avx2")]
+        unsafe fn new_avx2(bytes: &[u8]) -> (Self, &[u8]) {
+            let (opening_vector, closing_vector) = get_opening_and_closing_vectors(bytes);
+            let depth_bytes = calculate_depth_from_vectors(opening_vector, closing_vector);
 
-            let halfway = _mm256_extract_epi8::<15>(vector16);
-            let halfway_vector = _mm256_set1_epi8(halfway as i8);
-            let halfway_vector_second_lane_only =
-                _mm256_permute2x128_si256::<8>(halfway_vector, halfway_vector);
-
-            let vector32 = _mm256_add_epi8(vector16, halfway_vector_second_lane_only);
-
-            let mut vector = Self {
-                depth_bytes: [0; BYTES_IN_AVX2_REGISTER],
+            let vector = Self {
+                depth_bytes,
                 len: BYTES_IN_AVX2_REGISTER,
                 idx: 0,
             };
-            let array_ptr = vector.depth_bytes.as_ptr() as *mut __m256i;
-            _mm256_storeu_si256(array_ptr, vector32);
-            vector
+            (vector, &bytes[BYTES_IN_AVX2_REGISTER..])
         }
     }
 
-    impl<'a> DepthBlock<'a> for Vector {
+    impl<'a> DepthBlock<'a> for Avx2Vector {
         #[inline]
-        fn new(bytes: &'a [u8]) -> Self {
+        fn new(bytes: &'a [u8]) -> (Self, &[u8]) {
             if bytes.len() >= BYTES_IN_AVX2_REGISTER {
                 unsafe { Self::new_avx2(bytes) }
             } else {
@@ -351,12 +389,10 @@ pub mod simd {
         }
 
         #[inline]
-        fn advance_by(&mut self, i: usize) -> bool {
-            if self.idx + i >= self.len() {
-                return false;
-            }
-            self.idx += i;
-            true
+        fn advance_by(&mut self, i: usize) -> usize {
+            let j = std::cmp::min(i, self.len() - self.idx + 1);
+            self.idx += j;
+            j
         }
 
         #[inline(always)]
@@ -370,11 +406,59 @@ pub mod simd {
         }
     }
 
+    #[inline]
     #[target_feature(enable = "avx2")]
-    unsafe fn debug_mm256(vec: &__m256i) -> [i8; BYTES_IN_AVX2_REGISTER] {
+    unsafe fn get_opening_and_closing_vectors(bytes: &[u8]) -> (__m256i, __m256i) {
+        debug_assert!(bytes.len() >= BYTES_IN_AVX2_REGISTER);
+
+        let byte_vector = _mm256_loadu_si256(bytes.as_ptr() as *const __m256i);
+        let opening_brace_mask = _mm256_set1_epi8(b'{' as i8);
+        let opening_bracket_mask = _mm256_set1_epi8(b'[' as i8);
+        let closing_brace_mask = _mm256_set1_epi8(b'}' as i8);
+        let closing_bracket_mask = _mm256_set1_epi8(b']' as i8);
+        let opening_brace_cmp = _mm256_cmpeq_epi8(byte_vector, opening_brace_mask);
+        let opening_bracket_cmp = _mm256_cmpeq_epi8(byte_vector, opening_bracket_mask);
+        let closing_brace_cmp = _mm256_cmpeq_epi8(byte_vector, closing_brace_mask);
+        let closing_bracket_cmp = _mm256_cmpeq_epi8(byte_vector, closing_bracket_mask);
+        let opening_cmp = _mm256_or_si256(opening_brace_cmp, opening_bracket_cmp);
+        let closing_cmp = _mm256_or_si256(closing_brace_cmp, closing_bracket_cmp);
+        (opening_cmp, closing_cmp)
+    }
+
+    #[inline]
+    #[target_feature(enable = "avx2")]
+    unsafe fn calculate_depth_from_vectors(
+        opening_vector: __m256i,
+        closing_vector: __m256i,
+    ) -> [i8; BYTES_IN_AVX2_REGISTER] {
         let array = [0; BYTES_IN_AVX2_REGISTER];
+
+        /* Calculate depth as prefix sums of the closing and opening vectors.
+            This is done by calculating prefix sums of length 2, 4, 8, 16
+            and finally 32. This can be thought of as creating a binary tree over
+            the vector.
+
+            This is a bit more tricky with AVX2, because the vector is physically
+            split into two 128-bit lanes, and they can only be bitwise
+            shifted independently. This allows us to calculate two 16-byte long
+            prefix sums, but to combine them we need to extract the total sum from
+            the first lane and then add it to the entire second lane.
+        */
+        let vector1 = _mm256_sub_epi8(closing_vector, opening_vector);
+        let vector2 = _mm256_add_epi8(vector1, _mm256_slli_si256::<1>(vector1));
+        let vector4 = _mm256_add_epi8(vector2, _mm256_slli_si256::<2>(vector2));
+        let vector8 = _mm256_add_epi8(vector4, _mm256_slli_si256::<4>(vector4));
+        let vector16 = _mm256_add_epi8(vector8, _mm256_slli_si256::<8>(vector8));
+
+        let halfway = _mm256_extract_epi8::<15>(vector16);
+        let halfway_vector = _mm256_set1_epi8(halfway as i8);
+        let halfway_vector_second_lane_only =
+            _mm256_permute2x128_si256::<8>(halfway_vector, halfway_vector);
+
+        let vector32 = _mm256_add_epi8(vector16, halfway_vector_second_lane_only);
         let array_ptr = array.as_ptr() as *mut __m256i;
-        _mm256_storeu_si256(array_ptr, *vec);
+        _mm256_storeu_si256(array_ptr, vector32);
+
         array
     }
 }
@@ -383,7 +467,11 @@ pub mod simd {
 mod tests {
     use super::*;
 
-    fn is_depth_greater_or_equal_to_correctness<'a, F: Fn(&'a [u8]) -> D, D: DepthBlock<'a>>(
+    fn is_depth_greater_or_equal_to_correctness<
+        'a,
+        F: Fn(&'a [u8]) -> (D, &[u8]),
+        D: DepthBlock<'a>,
+    >(
         build: &F,
         bytes: &'a [u8],
         depths: &[isize],
@@ -394,8 +482,8 @@ mod tests {
         let mut accumulated_depth = 0;
 
         while !bytes.is_empty() {
-            let mut vector = build(bytes);
-            bytes = &bytes[vector.len()..];
+            let (mut vector, rem) = build(bytes);
+            bytes = rem;
 
             loop {
                 let depth = depths[depths_idx];
@@ -431,7 +519,7 @@ mod tests {
 
     fn is_depth_greater_or_equal_to_correctness_suite<
         'a,
-        F: Fn(&'a [u8]) -> D,
+        F: Fn(&'a [u8]) -> (D, &'a [u8]),
         D: DepthBlock<'a>,
     >(
         build: F,
@@ -465,13 +553,19 @@ mod tests {
     }
 
     #[test]
-    fn is_depth_greater_or_equal_to_correctness_for_decorate_depth() {
-        is_depth_greater_or_equal_to_correctness_suite(decorate_depth);
+    fn is_depth_greater_or_equal_to_correctness_for_nosimd_vector() {
+        is_depth_greater_or_equal_to_correctness_suite(nosimd::Vector::new);
     }
 
     #[test]
     #[cfg(all(not(feature = "nosimd"), target_feature = "avx2"))]
-    fn is_depth_greater_or_equal_to_correctness_for_decorate_depth_lazy() {
-        is_depth_greater_or_equal_to_correctness_suite(simd::LazyVector::new);
+    fn is_depth_greater_or_equal_to_correctness_for_simd_vector() {
+        is_depth_greater_or_equal_to_correctness_suite(simd::Avx2Vector::new);
+    }
+
+    #[test]
+    #[cfg(all(not(feature = "nosimd"), target_feature = "avx2"))]
+    fn is_depth_greater_or_equal_to_correctness_for_simd_lazy_vectpr() {
+        is_depth_greater_or_equal_to_correctness_suite(simd::LazyAvx2Vector::new);
     }
 }

@@ -1,8 +1,7 @@
 use core::time::Duration;
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
-use simdpath::bytes::depth::nosimd;
-use simdpath::bytes::depth::simd;
-use simdpath::bytes::depth::DepthBlock;
+use simdpath::bytes::simd;
+use simdpath::bytes::DepthBlock;
 use std::fs;
 
 const ROOT_TEST_DIRECTORY: &str = "./data";
@@ -33,7 +32,7 @@ fn do_sequential_bench(bytes: &[u8], depth_base: isize) -> usize {
     count
 }
 
-fn do_bench<'a, F: Fn(&'a [u8]) -> D, D: DepthBlock<'a>>(
+fn do_bench<'a, F: Fn(&'a [u8]) -> (D, &'a [u8]), D: DepthBlock<'a>>(
     bytes: &'a [u8],
     depth_base: isize,
     build: F,
@@ -43,8 +42,8 @@ fn do_bench<'a, F: Fn(&'a [u8]) -> D, D: DepthBlock<'a>>(
     let mut accumulated_depth = 0;
 
     while !bytes.is_empty() {
-        let mut vector = build(bytes);
-        bytes = &bytes[vector.len()..];
+        let (mut vector, rem) = build(bytes);
+        bytes = rem;
 
         let adjusted_depth = depth_base - accumulated_depth;
         loop {
@@ -64,36 +63,6 @@ fn do_bench<'a, F: Fn(&'a [u8]) -> D, D: DepthBlock<'a>>(
     count
 }
 
-fn do_sparse_bench<'a, F: Fn(&'a [u8]) -> D, D: DepthBlock<'a>>(
-    bytes: &'a [u8],
-    depth_base: isize,
-    build: F,
-) -> usize {
-    let mut bytes = bytes;
-    let mut count = 0;
-    let mut accumulated_depth = 0;
-
-    while !bytes.is_empty() {
-        let mut vector = build(bytes);
-        bytes = &bytes[vector.len()..];
-
-        let adjusted_depth = depth_base - accumulated_depth;
-        loop {
-            if vector.is_depth_greater_or_equal_to(adjusted_depth) {
-                count += 1;
-            }
-
-            if !vector.advance_by(10) {
-                break;
-            }
-        }
-
-        accumulated_depth += vector.depth_at_end();
-    }
-
-    count
-}
-
 fn wikidata_combined(c: &mut Criterion) {
     let mut group = c.benchmark_group("wikidata_combined");
     group.measurement_time(Duration::from_secs(30));
@@ -108,36 +77,12 @@ fn wikidata_combined(c: &mut Criterion) {
     group.bench_with_input(
         BenchmarkId::new("simd", "wikidata_combined"),
         &(5, &contents),
-        |b, &(d, c)| b.iter(|| do_bench(c.as_bytes(), d, simd::Vector::new)),
+        |b, &(d, c)| b.iter(|| do_bench(c.as_bytes(), d, simd::depth::Avx2Vector::new)),
     );
     group.bench_with_input(
         BenchmarkId::new("simd_lazy", "wikidata_combined"),
         &(5, &contents),
-        |b, &(d, c)| b.iter(|| do_bench(c.as_bytes(), d, simd::LazyVector::new)),
-    );
-    group.finish();
-}
-
-fn wikidata_combined_sparse(c: &mut Criterion) {
-    let mut group = c.benchmark_group("wikidata_combined_sparse");
-    group.measurement_time(Duration::from_secs(30));
-
-    let contents = get_contents("wikidata_compressed/wikidata_combined.json");
-
-    group.bench_with_input(
-        BenchmarkId::new("nosimd", "wikidata_combined_sparse"),
-        &(5, &contents),
-        |b, &(d, c)| b.iter(|| do_sparse_bench(c.as_bytes(), d, nosimd::Vector::new)),
-    );
-    group.bench_with_input(
-        BenchmarkId::new("simd", "wikidata_combined_sparse"),
-        &(5, &contents),
-        |b, &(d, c)| b.iter(|| do_sparse_bench(c.as_bytes(), d, simd::Vector::new)),
-    );
-    group.bench_with_input(
-        BenchmarkId::new("simd_lazy", "wikidata_combined_sparse"),
-        &(5, &contents),
-        |b, &(d, c)| b.iter(|| do_sparse_bench(c.as_bytes(), d, simd::LazyVector::new)),
+        |b, &(d, c)| b.iter(|| do_bench(c.as_bytes(), d, simd::depth::LazyAvx2Vector::new)),
     );
     group.finish();
 }

@@ -98,6 +98,7 @@
 
 #![warn(missing_docs)]
 #![warn(rustdoc::missing_crate_level_docs)]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 
 pub mod bytes;
 pub mod engine;

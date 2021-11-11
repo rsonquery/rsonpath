@@ -2,7 +2,6 @@ use core::time::Duration;
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use memchr;
 use simdpath::bytes::nosimd;
-use simdpath::bytes::simd;
 
 const LENGTH: usize = 32 * 1024 * 1024;
 const LETTERS: &str = "abcdefghijklmnopqrstuvwxyz";

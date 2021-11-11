@@ -3,6 +3,9 @@ name = "simdpath"
 version = "0.1.0"
 edition = "2018"
 
+[package.metadata.docs.rs]
+rustdoc-args = ["--cfg", "docsrs"]
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]

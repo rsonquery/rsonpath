@@ -1,7 +1,6 @@
 //! Code generation for `simdpath::stackless::sequences`.
 //!
 //! Used by the `build.rs` script to generate the `find_byte_sequenceN` functions.
-//! functions.
 
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
@@ -108,7 +107,7 @@ fn get_nosimd_find_byte_sequence_source() -> TokenStream {
         ///  Find the first occurence of a continuous byte sequence in the slice, if it exists.
         ///
         /// This is a sequential, no-SIMD version. For big slices it is recommended to use
-        /// the [`simd`](super::simd) module variant for better performance.
+        /// the [`simd::find_byte_sequence`](`super::simd::find_byte_sequence`) variant for better performance.
         /// # Examples
         /// ```
         /// # use simdpath::bytes::nosimd::find_byte_sequence;
@@ -175,10 +174,20 @@ fn get_find_byte_sequence_source(n: usize) -> TokenStream {
         let cmp_mask_next_block_ident = &cmp_mask_next_block_idents[i];
         let cmp_mask_ident = &cmp_mask_idents[i];
 
+        let mask_computation = if i > 0 {
+            quote! {
+                let #cmp_mask_ident = ((#cmp_mask_first_block_ident as u64) | ((#cmp_mask_next_block_ident as u64) << 32)) >> #i;
+            }
+        } else {
+            quote! {
+                let #cmp_mask_ident = (#cmp_mask_first_block_ident as u64) | ((#cmp_mask_next_block_ident as u64) << 32);
+            }
+        };
+
         quote! {
             let #cmp_mask_next_block_vector_ident = _mm256_cmpeq_epi8(next_block, #mask_ident);
             let #cmp_mask_next_block_ident = _mm256_movemask_epi8(#cmp_mask_next_block_vector_ident) as u32;
-            let #cmp_mask_ident = ((#cmp_mask_first_block_ident as u64) | ((#cmp_mask_next_block_ident as u64) << 32)) >> #i;
+            #mask_computation
         }
     });
 
