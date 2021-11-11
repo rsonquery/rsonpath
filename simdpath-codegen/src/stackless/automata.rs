@@ -71,10 +71,6 @@ fn get_descendant_only_automaton_source(size: u8) -> TokenStream {
     assert!(size <= MAX_AUTOMATON_SIZE);
 
     let fn_ident = format_ident!("descendant_only_automaton_{}", size);
-    let reg_idents: Vec<_> = (1..size).map(|i| format_ident!("reg_{}", i)).collect();
-    let reg_decls = reg_idents
-        .iter()
-        .map(|reg| quote! {let mut #reg : usize = 0;});
     let states = (0..size).map(|i| {
         let closing_code = if i == 0 {
             quote! {
@@ -82,11 +78,11 @@ fn get_descendant_only_automaton_source(size: u8) -> TokenStream {
                 bytes = &bytes[i + 1..];
             }
         } else {
-            let reg = &reg_idents[(i - 1) as usize];
+            let reg = (i - 1) as usize;
             quote! {
                 depth -= 1;
                 bytes = &bytes[i + 1..];
-                if depth == #reg {
+                if depth == regs[#reg] {
                     state = #i - 1;
                 }
             }
@@ -99,11 +95,10 @@ fn get_descendant_only_automaton_source(size: u8) -> TokenStream {
                 }
             }
         } else {
-            let reg = &reg_idents[i as usize];
             quote! {
                 if (bytes[next] == b'{' || bytes[next] == b'[') && label == labels[#i as usize] {
                     state = #i + 1;
-                    #reg = depth;
+                    regs[#i as usize] = depth;
                     depth += 1;
                     bytes = &bytes[next + 1..];
                 }
@@ -191,6 +186,14 @@ fn get_descendant_only_automaton_source(size: u8) -> TokenStream {
         }
     };
 
+    let reg_decl = if size == 1 {
+        quote! {}
+    } else {
+        quote! {
+            let mut regs = [0usize; #size as usize];
+        }
+    };
+
     let automaton_code = quote! {
         fn #fn_ident<'a>(labels: &[&'a [u8]], bytes: &'a [u8]) -> usize {
             debug_assert_eq!(labels.len(), #size as usize);
@@ -199,7 +202,7 @@ fn get_descendant_only_automaton_source(size: u8) -> TokenStream {
             #depth_decl
             #state_decl
             let mut count: usize = 0;
-            #(#reg_decls)*
+            #reg_decl
 
             while let Some(i) = crate::bytes::find_non_whitespace(bytes) {
                 match state {

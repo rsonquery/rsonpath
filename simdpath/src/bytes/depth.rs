@@ -186,53 +186,40 @@ mod avx2_simd {
         )))
     )]
     pub struct LazyAvx2Vector {
-        depth_bytes: Option<[i8; BYTES_IN_AVX2_REGISTER]>,
-        opening_vector: Option<__m256i>,
-        closing_vector: Option<__m256i>,
-        opening_count: i8,
-        closing_count: i8,
+        opening_mask: u32,
+        closing_mask: u32,
         len: usize,
-        idx: usize,
+        rev_idx: usize,
     }
 
     impl LazyAvx2Vector {
         fn new_sequential(bytes: &[u8]) -> (Self, &[u8]) {
-            let mut sum: i8 = 0;
             let mut vector = Self {
-                depth_bytes: None,
-                opening_vector: None,
-                closing_vector: None,
-                opening_count: 0,
-                closing_count: 0,
+                opening_mask: 0,
+                closing_mask: 0,
                 len: bytes.len(),
-                idx: 0,
+                rev_idx: bytes.len() - 1,
             };
-            let mut depth_bytes = [0; BYTES_IN_AVX2_REGISTER];
-
-            for i in 0..bytes.len() {
-                match bytes[i] {
+            for byte in bytes {
+                vector.opening_mask >>= 1;
+                vector.closing_mask >>= 1;
+                match byte {
                     b'{' => {
-                        vector.opening_count += 1;
-                        sum += 1;
+                        vector.opening_mask |= 1 << 31;
                     }
                     b'[' => {
-                        vector.opening_count += 1;
-                        sum += 1
+                        vector.opening_mask |= 1 << 31;
                     }
                     b'}' => {
-                        vector.closing_count += 1;
-                        sum -= 1
+                        vector.closing_mask |= 1 << 31;
                     }
                     b']' => {
-                        vector.closing_count += 1;
-                        sum -= 1
+                        vector.closing_mask |= 1 << 31;
                     }
                     _ => (),
                 };
-                depth_bytes[i] = sum;
             }
 
-            vector.depth_bytes = Some(depth_bytes);
             (vector, &[])
         }
 
@@ -241,36 +228,17 @@ mod avx2_simd {
         unsafe fn new_avx2(bytes: &[u8]) -> (Self, &[u8]) {
             let (opening_vector, closing_vector) = get_opening_and_closing_vectors(bytes);
 
-            let opening_count = _mm256_movemask_epi8(opening_vector).count_ones() as i8;
-            let closing_count = _mm256_movemask_epi8(closing_vector).count_ones() as i8;
+            let opening_mask = _mm256_movemask_epi8(opening_vector) as u32;
+            let closing_mask = _mm256_movemask_epi8(closing_vector) as u32;
 
             let vector = Self {
-                depth_bytes: None,
-                opening_vector: Some(opening_vector),
-                closing_vector: Some(closing_vector),
-                opening_count,
-                closing_count,
+                opening_mask,
+                closing_mask,
                 len: BYTES_IN_AVX2_REGISTER,
-                idx: 0,
+                rev_idx: BYTES_IN_AVX2_REGISTER - 1,
             };
 
             (vector, &bytes[BYTES_IN_AVX2_REGISTER..])
-        }
-
-        #[target_feature(enable = "avx2")]
-        #[inline]
-        unsafe fn depth_bytes(&mut self) -> &[i8; BYTES_IN_AVX2_REGISTER] {
-            if let Some(ref depth_bytes) = self.depth_bytes {
-                return depth_bytes;
-            }
-
-            let depth_bytes = calculate_depth_from_vectors(
-                self.opening_vector.unwrap(),
-                self.closing_vector.unwrap(),
-            );
-            self.depth_bytes = Some(depth_bytes);
-
-            self.depth_bytes.as_ref().unwrap()
         }
     }
 
@@ -291,37 +259,36 @@ mod avx2_simd {
 
         #[inline]
         fn advance(&mut self) -> bool {
-            if self.idx + 1 >= self.len() {
+            if self.rev_idx == 0 {
                 return false;
             }
-            self.idx += 1;
+            self.rev_idx -= 1;
             true
         }
 
         #[inline]
         fn advance_by(&mut self, i: usize) -> usize {
-            let j = std::cmp::min(i, self.len() - self.idx + 1);
-            self.idx += j;
+            let j = std::cmp::min(i, self.rev_idx);
+            self.rev_idx -= j;
             j
         }
 
         #[inline]
         fn is_depth_greater_or_equal_to(&mut self, depth: isize) -> bool {
-            if depth <= -(self.closing_count as isize) {
+            let closing_count = self.closing_mask.count_ones() as isize;
+            if depth <= -closing_count {
                 return true;
             }
-            if depth > (self.opening_count as isize) {
-                return false;
-            }
 
-            let idx = self.idx;
-            let actual_depth = unsafe { self.depth_bytes()[idx] as isize };
-            actual_depth >= depth
+            let actual_depth = ((self.opening_mask << self.rev_idx).count_ones() as i32)
+                - ((self.closing_mask << self.rev_idx).count_ones() as i32);
+            actual_depth as isize >= depth
         }
 
         #[inline(always)]
         fn depth_at_end(self) -> isize {
-            (self.opening_count - self.closing_count) as isize
+            ((self.opening_mask.count_ones() as i32) - (self.closing_mask.count_ones() as i32))
+                as isize
         }
     }
 
@@ -431,8 +398,6 @@ mod avx2_simd {
         opening_vector: __m256i,
         closing_vector: __m256i,
     ) -> [i8; BYTES_IN_AVX2_REGISTER] {
-        let array = [0; BYTES_IN_AVX2_REGISTER];
-
         /* Calculate depth as prefix sums of the closing and opening vectors.
             This is done by calculating prefix sums of length 2, 4, 8, 16
             and finally 32. This can be thought of as creating a binary tree over
@@ -444,6 +409,7 @@ mod avx2_simd {
             prefix sums, but to combine them we need to extract the total sum from
             the first lane and then add it to the entire second lane.
         */
+        let array = [0; BYTES_IN_AVX2_REGISTER];
         let vector1 = _mm256_sub_epi8(closing_vector, opening_vector);
         let vector2 = _mm256_add_epi8(vector1, _mm256_slli_si256::<1>(vector1));
         let vector4 = _mm256_add_epi8(vector2, _mm256_slli_si256::<2>(vector2));
