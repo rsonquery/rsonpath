@@ -8,7 +8,7 @@
 
 use crate::bytes;
 use crate::engine::result::CountResult;
-use crate::engine::Runner;
+use crate::engine::{Input, Runner};
 use crate::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType};
 use log::*;
 
@@ -36,8 +36,8 @@ impl<'a, 'b> StackBasedRunner<'a, 'b> {
 }
 
 impl<'a, 'b> Runner for StackBasedRunner<'a, 'b> {
-    fn count(&self, input: &[u8]) -> CountResult {
-        let mut state = State::Initial(InitialState::new(self.query.root(), input));
+    fn count<T: AsRef<[u8]>>(&self, input: &Input<T>) -> CountResult {
+        let mut state = State::Initial(InitialState::new(self.query.root(), input.as_ref()));
         CountResult {
             count: state.run().count,
         }

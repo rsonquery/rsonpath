@@ -5,7 +5,7 @@
 //!
 //! # Examples
 //! ```rust
-//! use simdpath::engine::Runner;
+//! use simdpath::engine::{Input, Runner};
 //! use simdpath::query::JsonPathQuery;
 //! use simdpath::stackless::StacklessRunner;
 //! # use std::error::Error;
@@ -33,10 +33,12 @@
 //! "#;
 //! // Remove whitespace from the JSON - limitation of the current version.
 //! let stripped_contents = contents.chars().filter(|c| !c.is_whitespace()).collect::<String>();
+//! // Convert the contents to the Input type required by the Runners.
+//! let input = Input::new(stripped_contents);
 //! // Compile the query. The runner can be reused to run the same query on different contents.
 //! let runner = StacklessRunner::compile_query(&query);
 //! // Count the number of occurences of elements satisfying the query.
-//! let count = runner.count_utf8(&stripped_contents).count;
+//! let count = runner.count(&input).count;
 //!
 //! assert_eq!(2, count);
 //! # Ok(())

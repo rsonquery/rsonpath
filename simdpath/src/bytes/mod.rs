@@ -245,6 +245,8 @@ pub mod simd {
     pub use super::sequences::simd::*;
     use memchr::*;
 
+    pub const BLOCK_SIZE: usize = BYTES_IN_AVX2_REGISTER;
+
     #[allow(dead_code)]
     const BYTES_IN_AVX2_REGISTER: usize = 256 / 8;
 

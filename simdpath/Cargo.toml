@@ -10,6 +10,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
 clap = "2.33.3"
+len-trait = "0.6.1"
 log = "0.4"
 memchr = "2.4.1"
 nom = "7.0.0"

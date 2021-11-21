@@ -1,6 +1,6 @@
 use clap::{App, Arg};
 use log::*;
-use simdpath::engine::Runner;
+use simdpath::engine::{Input, Runner};
 use simdpath::query::JsonPathQuery;
 use simdpath::stack_based::StackBasedRunner;
 use simdpath::stackless::StacklessRunner;
@@ -25,13 +25,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     info!("Executing query: {}\n", query);
 
     let contents = fs::read_to_string(&file_path)?;
+    let input = Input::new(contents);
 
     let stack_based_runner = StackBasedRunner::compile_query(&query);
-    let stack_based_count = stack_based_runner.count_utf8(&contents);
+    let stack_based_count = stack_based_runner.count(&input);
     info!("Stack based count: {}", stack_based_count.count);
 
     let stackless_runner = StacklessRunner::compile_query(&query);
-    let stackless_count = stackless_runner.count_utf8(&contents);
+    let stackless_count = stackless_runner.count(&input);
     info!("Stackless count: {}", stackless_count.count);
 
     Ok(())
