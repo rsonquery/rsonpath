@@ -38,8 +38,6 @@ impl<'a> StacklessRunner<'a> {
 
 impl<'a> Runner for StacklessRunner<'a> {
     fn count<T: AsRef<[u8]>>(&self, input: &Input<T>) -> CountResult {
-        assert_eq!(input.as_ref().len() % crate::bytes::simd::BLOCK_SIZE, 0);
-
         /*if self.labels.len() == 3 {
             let count = custom_automaton3(&self.labels, input.as_ref());
             return CountResult { count };
@@ -71,39 +69,110 @@ fn query_to_descendant_pattern_labels<'a>(query: &JsonPathQuery<'a>) -> Vec<&'a 
 
     result
 }
-/*
+
+struct BlockIterator<'a> {
+    bytes: &'a [u8],
+}
+
+impl<'a> BlockIterator<'a> {
+    #[inline(always)]
+    fn new(bytes: &'a [u8]) -> Self {
+        debug_assert_eq!(bytes.len() / crate::bytes::simd::BLOCK_SIZE, 0);
+        Self { bytes }
+    }
+
+    #[inline(always)]
+    fn block_count(&self) -> usize {
+        use crate::bytes::simd::BLOCK_SIZE;
+
+        (self.bytes.len() + BLOCK_SIZE - 1) / BLOCK_SIZE
+    }
+}
+
 impl<'a> Iterator for BlockIterator<'a> {
     type Item = &'a [u8];
 
+    #[inline(always)]
     fn next(&mut self) -> Option<Self::Item> {
-        let ret = match self.bytes {
-            &[] => None,
-            bytes if bytes.len() >= 32 => Some(&self.bytes[..32]),
-            _ => {
-                self.buffer.copy_into_prefix(self.bytes);
-                let r: &'a [u8] = self.buffer.get_ref();
-                Some(self.buffer.get_ref())
-            }
-        };
-        self.bytes = &self.bytes[32..];
-        ret
+        use crate::bytes::simd::BLOCK_SIZE;
+
+        let block = &self.bytes[..BLOCK_SIZE];
+        debug_assert_eq!(block.len(), BLOCK_SIZE);
+        self.bytes = &self.bytes[BLOCK_SIZE..];
+
+        if block.is_empty() {
+            None
+        } else {
+            Some(block)
+        }
     }
 
+    #[inline(always)]
     fn size_hint(&self) -> (usize, Option<usize>) {
         (self.block_count(), Some(self.block_count()))
     }
-}*/
+}
 
-fn custom_automaton3(labels: &[&[u8]], bytes: &[u8]) -> usize {
+impl<'a> ExactSizeIterator for BlockIterator<'a> {}
+
+#[cfg(all(
+    not(feature = "nosimd"),
+    any(target_arch = "x86", target_arch = "x86_64")
+))]
+#[target_feature(enable = "avx2")]
+unsafe fn custom_automaton3(labels: &[&[u8]], bytes: &[u8]) -> usize {
+    #[cfg(target_arch = "x86")]
+    use core::arch::x86::*;
+    #[cfg(target_arch = "x86_64")]
+    use core::arch::x86_64::*;
     debug_assert_eq!(labels.len(), 3usize);
 
-    let mut depth: usize = 0;
+    let mut depth: isize = 0;
     let mut state: u8 = 0;
     let mut count: usize = 0;
-    let mut regs = [0usize; 3u8 as usize];
+    let mut regs = [0isize; 3];
+    let mut blocks = BlockIterator::new(bytes);
+    let opening_brace_mask = _mm256_set1_epi8(b'{' as i8);
+    let opening_bracket_mask = _mm256_set1_epi8(b'[' as i8);
+    let closing_brace_mask = _mm256_set1_epi8(b'}' as i8);
+    let closing_bracket_mask = _mm256_set1_epi8(b']' as i8);
 
-    let mut bytes = bytes;
+    for block in blocks {
+        let byte_vector = _mm256_loadu_si256(block.as_ptr() as *const __m256i);
+        let opening_brace_cmp = _mm256_cmpeq_epi8(byte_vector, opening_brace_mask);
+        let opening_bracket_cmp = _mm256_cmpeq_epi8(byte_vector, opening_bracket_mask);
+        let closing_brace_cmp = _mm256_cmpeq_epi8(byte_vector, closing_brace_mask);
+        let closing_bracket_cmp = _mm256_cmpeq_epi8(byte_vector, closing_bracket_mask);
+        let opening_vector = _mm256_or_si256(opening_brace_cmp, opening_bracket_cmp);
+        let closing_vector = _mm256_or_si256(closing_brace_cmp, closing_bracket_cmp);
+        let opening_mask = _mm256_movemask_epi8(opening_vector) as u32;
+        let closing_mask = _mm256_movemask_epi8(closing_vector) as u32;
+        let opening_count = opening_mask.count_ones() as isize;
+        let closing_count = closing_mask.count_ones() as isize;
 
+        let idx = 0;
+
+        while idx < block.len() {
+            match state {
+                0 => {
+                    // Depth is irrelevant.
+                }
+                1 => {}
+                2 => {}
+                _ => unreachable!(),
+            }
+        }
+
+        if depth <= -closing_count {
+            // Depth is guaranteed to not go below within the block.
+        } else {
+            // Depth may go below within the block.
+        }
+
+        depth += opening_count - closing_count;
+    }
+    count
+    /*
     while let Some(i) = crate::bytes::find_non_whitespace(bytes) {
         match state {
             0u8 => match bytes[i] {
@@ -258,5 +327,5 @@ fn custom_automaton3(labels: &[&[u8]], bytes: &[u8]) -> usize {
             _ => unreachable! {},
         }
     }
-    count
+    count*/
 }

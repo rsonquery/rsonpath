@@ -22,7 +22,6 @@ impl<T> std::ops::Deref for Input<T> {
     }
 }
 
-#[cfg(not(feature = "nosimd"))]
 impl<T> Input<T>
 where
     T: Extend<char> + Len,
@@ -44,7 +43,7 @@ where
         }
         #[cfg(feature = "nosimd")]
         {
-            Self { src }
+            Self { contents: src }
         }
     }
 }

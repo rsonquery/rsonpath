@@ -27,14 +27,7 @@ mod tests {
             let sequence = &LONG_SEQUENCE[..i];
             let result = find_byte_sequence(sequence, &LONG_SEQUENCE);
 
-            assert_eq!(
-                Some(0),
-                result,
-                "failed for sequence of length {}\n  left: `{:?}`\n right: `{:?}`",
-                i,
-                Some(0),
-                result
-            );
+            assert_eq!(Some(0), result, "failed for sequence of length{}", i);
         }
     }
 
@@ -86,8 +79,8 @@ mod tests {
 
                 assert_eq!(
                     expected, result,
-                    "failed for sequence of length {} with starting_index {}\n  left: `{:?}`\n right: `{:?}`",
-                    sequence_length, starting_index, expected, result
+                    "failed for sequence of length {} with starting_index {}",
+                    sequence_length, starting_index
                 );
             }
         }
@@ -110,10 +103,8 @@ mod tests {
             assert_eq!(
                 Some(expected),
                 result,
-                "failed for sequence of length {}\n  left: `{:?}`\n right: `{:?}`",
-                sequence_length,
-                expected,
-                result
+                "failed for sequence of length {}",
+                sequence_length
             );
         }
     }
@@ -136,8 +127,8 @@ mod tests {
 
             assert_eq!(
                 expected, result,
-                "failed for sequence of length {}\n  left: `{:?}`\n right: `{:?}`",
-                sequence_length, expected, result
+                "failed for sequence of length {}",
+                sequence_length
             );
         }
 
@@ -153,5 +144,29 @@ mod tests {
             }
             contents
         }
+    }
+
+    #[test]
+    fn find_any_of_sequences_correctness() {
+        let sequences = ["doggy".as_bytes(), "dog".as_bytes(), "cat".as_bytes()];
+        let contents = "Petting a doggy.";
+        let result = find_any_of_sequences(&sequences, contents.as_bytes());
+
+        assert_eq!(result, Some((10, 0)), "Test case 1.");
+
+        let contents = "Petting a dog.";
+        let result = find_any_of_sequences(&sequences, contents.as_bytes());
+
+        assert_eq!(result, Some((10, 1)), "Test case 2.");
+
+        let contents = "Scratched by a cat.";
+        let result = find_any_of_sequences(&sequences, contents.as_bytes());
+
+        assert_eq!(result, Some((15, 2)), "Test case 3.");
+
+        let contents = "I have no pets :(";
+        let result = find_any_of_sequences(&sequences, contents.as_bytes());
+
+        assert_eq!(result, None, "Test case 4.");
     }
 }

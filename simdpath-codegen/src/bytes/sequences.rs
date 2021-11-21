@@ -35,6 +35,36 @@ pub fn get_mod_source() -> TokenStream {
             #find_byte_sequence_dispatch_source
             #find_byte_sequence_sources
             #find_long_byte_sequence_source
+
+            #[inline]
+            pub fn find_any_of_sequences(sequences: &[&[u8]], bytes: &[u8]) -> Option<(usize, usize)> {
+                #[cfg(target_feature = "avx2")]
+                {
+                    assert!(sequences.len() <= 8);
+                    let mut sequence_buffer = [0u8; 32];
+
+                    for (i, sequence) in sequences.iter().enumerate() {
+                        (&mut sequence_buffer[4*i..4*(i+1)]).clone_from_slice(&sequence[..4]);
+                    }
+
+                    let mut i = 0;
+                    let mut bytes = bytes;
+
+                    while !bytes.is_empty() {
+                        for (j, sequence) in sequences.iter().enumerate() {
+                            if bytes.starts_with(sequence) {
+                                return Some((i, j));
+                            }
+                        }
+                        i += 1;
+                        bytes = &bytes[1..];
+                    }
+                    None
+                }
+
+                #[cfg(not(target_feature = "avx2"))]
+                nosimd::find_any_of_sequences(sequences, bytes)
+            }
         }
     }
 }
@@ -133,6 +163,23 @@ fn get_nosimd_find_byte_sequence_source() -> TokenStream {
                 #(#match_body,)*
                 _ => bytes.windows(sequence.len()).position(|x| x == sequence)
             }
+        }
+
+        #[inline]
+        pub fn find_any_of_sequences(sequences: &[&[u8]], bytes: &[u8]) -> Option<(usize, usize)> {
+            let mut i = 0;
+            let mut bytes = bytes;
+
+            while !bytes.is_empty() {
+                for (j, sequence) in sequences.iter().enumerate() {
+                    if bytes.starts_with(sequence) {
+                        return Some((i, j));
+                    }
+                }
+                i += 1;
+                bytes = &bytes[1..];
+            }
+            None
         }
     }
 }
