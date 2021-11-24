@@ -147,26 +147,76 @@ mod tests {
     }
 
     #[test]
-    fn find_any_of_sequences_correctness() {
+    fn find_any_of_sequences_correctness_1() {
         let sequences = ["doggy".as_bytes(), "dog".as_bytes(), "cat".as_bytes()];
         let contents = "Petting a doggy.";
         let result = find_any_of_sequences(&sequences, contents.as_bytes());
 
-        assert_eq!(result, Some((10, 0)), "Test case 1.");
+        assert_eq!(result, Some((10, 0)));
+    }
 
+    #[test]
+    fn find_any_of_sequences_correctness_2() {
+        let sequences = ["doggy".as_bytes(), "dog".as_bytes(), "cat".as_bytes()];
         let contents = "Petting a dog.";
         let result = find_any_of_sequences(&sequences, contents.as_bytes());
 
-        assert_eq!(result, Some((10, 1)), "Test case 2.");
+        assert_eq!(result, Some((10, 1)));
+    }
 
+    #[test]
+    fn find_any_of_sequences_correctness_3() {
+        let sequences = ["doggy".as_bytes(), "dog".as_bytes(), "cat".as_bytes()];
         let contents = "Scratched by a cat.";
         let result = find_any_of_sequences(&sequences, contents.as_bytes());
 
-        assert_eq!(result, Some((15, 2)), "Test case 3.");
-
+        assert_eq!(result, Some((15, 2)));
+    }
+    #[test]
+    fn find_any_of_sequences_correctness_4() {
+        let sequences = ["doggy".as_bytes(), "dog".as_bytes(), "cat".as_bytes()];
         let contents = "I have no pets :(";
         let result = find_any_of_sequences(&sequences, contents.as_bytes());
 
-        assert_eq!(result, None, "Test case 4.");
+        assert_eq!(result, None);
+    }
+
+    #[test]
+    fn find_any_of_sequences_long_sequence_correctness_1() {
+        let sequences = ["pretty long".as_bytes(), "pretty".as_bytes()];
+        let contents = "Very pretty, but not pretty long.";
+        let result = find_any_of_sequences(&sequences, contents.as_bytes());
+
+        assert_eq!(result, Some((5, 1)));
+    }
+
+    #[test]
+    fn find_any_of_sequences_long_sequence_correctness_2() {
+        let sequences = ["pretty long".as_bytes(), "pretty".as_bytes()];
+        let contents = "This sentence is not pretty long.";
+        let result = find_any_of_sequences(&sequences, contents.as_bytes());
+
+        assert_eq!(result, Some((21, 0)));
+    }
+
+    #[test]
+    fn find_any_of_sequences_eight_sequences_correctness() {
+        let sequences = [
+            "aaaaaaab".as_bytes(),
+            "aaaaaaac".as_bytes(),
+            "aaaaaaad".as_bytes(),
+            "aaaaaaae".as_bytes(),
+            "aaaaaaaf".as_bytes(),
+            "aaaaaaag".as_bytes(),
+            "aaaaaaah".as_bytes(),
+            "aaaaaaai".as_bytes(),
+        ];
+        let contents = std::iter::repeat(b'a')
+            .take(1024)
+            .chain(sequences[7].iter().map(|x| *x))
+            .collect::<Vec<_>>();
+        let result = find_any_of_sequences(&sequences, &contents);
+
+        assert_eq!(result, Some((1024, 7)));
     }
 }

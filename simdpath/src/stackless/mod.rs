@@ -37,13 +37,13 @@ impl<'a> StacklessRunner<'a> {
 }
 
 impl<'a> Runner for StacklessRunner<'a> {
-    fn count<T: AsRef<[u8]>>(&self, input: &Input<T>) -> CountResult {
-        /*if self.labels.len() == 3 {
-            let count = custom_automaton3(&self.labels, input.as_ref());
+    fn count_bytes(&self, input: &Input<&[u8]>) -> CountResult {
+        if self.labels.len() == 3 {
+            let count = unsafe { custom_automaton3(&self.labels, input) };
             return CountResult { count };
-        }*/
+        }
 
-        let count = automata::dispatch_automaton(&self.labels, input.as_ref());
+        let count = automata::dispatch_automaton(&self.labels, input);
 
         CountResult { count }
     }
@@ -70,57 +70,73 @@ fn query_to_descendant_pattern_labels<'a>(query: &JsonPathQuery<'a>) -> Vec<&'a 
     result
 }
 
-struct BlockIterator<'a> {
-    bytes: &'a [u8],
+enum BlockEvent {
+    Closing(usize),
+    Quote(usize),
 }
 
-impl<'a> BlockIterator<'a> {
-    #[inline(always)]
-    fn new(bytes: &'a [u8]) -> Self {
-        debug_assert_eq!(bytes.len() / crate::bytes::simd::BLOCK_SIZE, 0);
-        Self { bytes }
-    }
-
-    #[inline(always)]
-    fn block_count(&self) -> usize {
-        use crate::bytes::simd::BLOCK_SIZE;
-
-        (self.bytes.len() + BLOCK_SIZE - 1) / BLOCK_SIZE
-    }
+struct BlockEventSource {
+    opening_mask: u32,
+    closing_mask: u32,
+    event_mask: u32,
 }
 
-impl<'a> Iterator for BlockIterator<'a> {
-    type Item = &'a [u8];
-
+impl BlockEventSource {
     #[inline(always)]
-    fn next(&mut self) -> Option<Self::Item> {
-        use crate::bytes::simd::BLOCK_SIZE;
-
-        let block = &self.bytes[..BLOCK_SIZE];
-        debug_assert_eq!(block.len(), BLOCK_SIZE);
-        self.bytes = &self.bytes[BLOCK_SIZE..];
-
-        if block.is_empty() {
-            None
-        } else {
-            Some(block)
+    pub fn new(opening_mask: u32, closing_mask: u32, quote_mask: u32) -> Self {
+        Self {
+            opening_mask,
+            closing_mask,
+            event_mask: closing_mask | quote_mask,
         }
     }
 
     #[inline(always)]
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        (self.block_count(), Some(self.block_count()))
+    pub fn poll(&mut self) -> Option<BlockEvent> {
+        use BlockEvent::*;
+        let next_event_idx = self.event_mask.trailing_zeros();
+
+        if next_event_idx == 32 {
+            return None;
+        }
+
+        let bit_mask = 1 << next_event_idx;
+
+        self.event_mask ^= bit_mask;
+
+        let event = if self.closing_mask & bit_mask != 0 {
+            Closing(next_event_idx as usize)
+        } else {
+            Quote(next_event_idx as usize)
+        };
+
+        Some(event)
+    }
+
+    #[inline(always)]
+    pub fn depth_at_index(&self, idx: usize) -> isize {
+        use crate::bytes::simd::BLOCK_SIZE;
+        let rev_idx = BLOCK_SIZE - idx - 1;
+
+        let depth = ((self.opening_mask << rev_idx).count_ones() as i32)
+            - ((self.closing_mask << rev_idx).count_ones() as i32);
+        depth as isize
+    }
+
+    #[inline(always)]
+    pub fn depth_at_end(&self) -> isize {
+        use crate::bytes::simd::BLOCK_SIZE;
+        self.depth_at_index(BLOCK_SIZE - 1)
     }
 }
-
-impl<'a> ExactSizeIterator for BlockIterator<'a> {}
 
 #[cfg(all(
     not(feature = "nosimd"),
     any(target_arch = "x86", target_arch = "x86_64")
 ))]
 #[target_feature(enable = "avx2")]
-unsafe fn custom_automaton3(labels: &[&[u8]], bytes: &[u8]) -> usize {
+unsafe fn custom_automaton3(labels: &[&[u8]], contents: &[u8]) -> usize {
+    use crate::bytes::simd::BLOCK_SIZE;
     #[cfg(target_arch = "x86")]
     use core::arch::x86::*;
     #[cfg(target_arch = "x86_64")]
@@ -131,45 +147,94 @@ unsafe fn custom_automaton3(labels: &[&[u8]], bytes: &[u8]) -> usize {
     let mut state: u8 = 0;
     let mut count: usize = 0;
     let mut regs = [0isize; 3];
-    let mut blocks = BlockIterator::new(bytes);
-    let opening_brace_mask = _mm256_set1_epi8(b'{' as i8);
-    let opening_bracket_mask = _mm256_set1_epi8(b'[' as i8);
-    let closing_brace_mask = _mm256_set1_epi8(b'}' as i8);
-    let closing_bracket_mask = _mm256_set1_epi8(b']' as i8);
+    let mut bytes = contents;
+    let opening_brace_byte_mask = _mm256_set1_epi8(b'{' as i8);
+    let opening_bracket_byte_mask = _mm256_set1_epi8(b'[' as i8);
+    let closing_brace_byte_mask = _mm256_set1_epi8(b'}' as i8);
+    let closing_bracket_byte_mask = _mm256_set1_epi8(b']' as i8);
+    let quote_byte_mask = _mm256_set1_epi8(b'"' as i8);
 
-    for block in blocks {
-        let byte_vector = _mm256_loadu_si256(block.as_ptr() as *const __m256i);
-        let opening_brace_cmp = _mm256_cmpeq_epi8(byte_vector, opening_brace_mask);
-        let opening_bracket_cmp = _mm256_cmpeq_epi8(byte_vector, opening_bracket_mask);
-        let closing_brace_cmp = _mm256_cmpeq_epi8(byte_vector, closing_brace_mask);
-        let closing_bracket_cmp = _mm256_cmpeq_epi8(byte_vector, closing_bracket_mask);
+    while !bytes.is_empty() {
+        let byte_vector = _mm256_loadu_si256(bytes.as_ptr() as *const __m256i);
+        let opening_brace_cmp = _mm256_cmpeq_epi8(byte_vector, opening_brace_byte_mask);
+        let opening_bracket_cmp = _mm256_cmpeq_epi8(byte_vector, opening_bracket_byte_mask);
+        let closing_brace_cmp = _mm256_cmpeq_epi8(byte_vector, closing_brace_byte_mask);
+        let closing_bracket_cmp = _mm256_cmpeq_epi8(byte_vector, closing_bracket_byte_mask);
+        let quote_cmp = _mm256_cmpeq_epi8(byte_vector, quote_byte_mask);
         let opening_vector = _mm256_or_si256(opening_brace_cmp, opening_bracket_cmp);
         let closing_vector = _mm256_or_si256(closing_brace_cmp, closing_bracket_cmp);
         let opening_mask = _mm256_movemask_epi8(opening_vector) as u32;
         let closing_mask = _mm256_movemask_epi8(closing_vector) as u32;
-        let opening_count = opening_mask.count_ones() as isize;
-        let closing_count = closing_mask.count_ones() as isize;
+        let quote_mask = _mm256_movemask_epi8(quote_cmp) as u32;
 
-        let idx = 0;
+        let mut block_event_source = BlockEventSource::new(opening_mask, closing_mask, quote_mask);
 
-        while idx < block.len() {
+        while let Some(event) = block_event_source.poll() {
             match state {
                 0 => {
                     // Depth is irrelevant.
+                    if let BlockEvent::Quote(idx) = event {
+                        let len = labels[0].len();
+                        let closing_quote_position = idx + len + 1;
+
+                        if bytes[closing_quote_position..closing_quote_position + 2] == [b'"', b':']
+                            && bytes[idx + 1..].starts_with(labels[0])
+                        {
+                            state = 1;
+                            regs[0] = depth + block_event_source.depth_at_index(idx);
+                        }
+                    }
                 }
-                1 => {}
-                2 => {}
+                1 => match event {
+                    BlockEvent::Closing(idx) => {
+                        let actual_depth = depth + block_event_source.depth_at_index(idx);
+                        if actual_depth <= regs[0] {
+                            state = 0;
+                        }
+                    }
+                    BlockEvent::Quote(idx) => {
+                        let len = labels[1].len();
+                        let closing_quote_position = idx + len + 1;
+
+                        if bytes[closing_quote_position..closing_quote_position + 2] == [b'"', b':']
+                            && bytes[idx + 1..].starts_with(labels[1])
+                        {
+                            state = 2;
+                            regs[1] = depth + block_event_source.depth_at_index(idx);
+                        }
+                    }
+                },
+                2 => match event {
+                    BlockEvent::Closing(idx) => {
+                        let actual_depth = depth + block_event_source.depth_at_index(idx);
+                        if actual_depth <= regs[1] {
+                            state = 1;
+                        }
+                    }
+                    BlockEvent::Quote(idx) => {
+                        let len = labels[2].len();
+                        let closing_quote_position = idx + len + 1;
+
+                        if bytes[closing_quote_position..closing_quote_position + 2] == [b'"', b':']
+                            && bytes[idx + 1..].starts_with(labels[2])
+                        {
+                            count += 1;
+                        }
+                    }
+                },
                 _ => unreachable!(),
             }
         }
 
-        if depth <= -closing_count {
+        depth += block_event_source.depth_at_end();
+        bytes = &bytes[BLOCK_SIZE..];
+        /*if depth <= -closing_count {
             // Depth is guaranteed to not go below within the block.
         } else {
             // Depth may go below within the block.
         }
 
-        depth += opening_count - closing_count;
+        depth += opening_count - closing_count;*/
     }
     count
     /*
@@ -328,4 +393,90 @@ unsafe fn custom_automaton3(labels: &[&[u8]], bytes: &[u8]) -> usize {
         }
     }
     count*/
+}
+
+struct BlockIterator<'a> {
+    bytes: &'a [u8],
+}
+
+impl<'a> BlockIterator<'a> {
+    #[inline(always)]
+    fn new(bytes: &'a [u8]) -> Self {
+        debug_assert_eq!(bytes.len() / crate::bytes::simd::BLOCK_SIZE, 0);
+        Self { bytes }
+    }
+
+    #[inline(always)]
+    fn block_count(&self) -> usize {
+        use crate::bytes::simd::BLOCK_SIZE;
+
+        (self.bytes.len() + BLOCK_SIZE - 1) / BLOCK_SIZE
+    }
+}
+
+impl<'a> Iterator for BlockIterator<'a> {
+    type Item = &'a [u8];
+
+    #[inline(always)]
+    fn next(&mut self) -> Option<Self::Item> {
+        use crate::bytes::simd::BLOCK_SIZE;
+
+        let block = &self.bytes[..BLOCK_SIZE];
+        debug_assert_eq!(block.len(), BLOCK_SIZE);
+        self.bytes = &self.bytes[BLOCK_SIZE..];
+
+        if block.is_empty() {
+            None
+        } else {
+            Some(block)
+        }
+    }
+
+    #[inline(always)]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.block_count(), Some(self.block_count()))
+    }
+}
+
+impl<'a> ExactSizeIterator for BlockIterator<'a> {}
+
+struct TwoBlockWindowIterator<'a> {
+    block_iterator: BlockIterator<'a>,
+    current_block: &'a [u8],
+}
+
+impl<'a> TwoBlockWindowIterator<'a> {
+    #[inline(always)]
+    pub fn new(mut block_iterator: BlockIterator<'a>) -> Self {
+        let first_block = block_iterator
+            .next()
+            .expect("empty BlockIterator provided for TwoBlockWindowIterator");
+        Self {
+            block_iterator,
+            current_block: first_block,
+        }
+    }
+}
+
+impl<'a> Iterator for TwoBlockWindowIterator<'a> {
+    type Item = (&'a [u8], &'a [u8]);
+
+    #[inline(always)]
+    fn next(&mut self) -> Option<Self::Item> {
+        let next_block = self.block_iterator.next();
+
+        match next_block {
+            None => None,
+            Some(block) => {
+                let result = (self.current_block, block);
+                self.current_block = block;
+                Some(result)
+            }
+        }
+    }
+
+    #[inline(always)]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.block_iterator.size_hint()
+    }
 }

@@ -34,7 +34,7 @@ where
             let rem = contents.len() % BLOCK_SIZE;
             let pad = if rem == 0 { 0 } else { BLOCK_SIZE - rem };
 
-            let extension = std::iter::repeat('\0').take(pad);
+            let extension = std::iter::repeat('\0').take(pad + BLOCK_SIZE);
             contents.extend(extension);
 
             debug_assert_eq!(contents.len() % BLOCK_SIZE, 0);
@@ -52,5 +52,18 @@ where
 pub trait Runner {
     /// Count the number of values satisfying the query on given input
     /// that can be interpreted as a slice of bytes.
-    fn count<T: AsRef<[u8]>>(&self, input: &Input<T>) -> CountResult;
+    ///
+    /// ## Implementing
+    /// This function _SHOULD NOT_ be implemented by structs implementing
+    /// the [`Runner`] trait. The default implementation performs
+    /// conversion to bytes and delegates to [`count_bytes`] to preserve
+    /// alignment. Implement [`count_bytes`] instead.
+    fn count<T: AsRef<[u8]>>(&self, input: &Input<T>) -> CountResult {
+        let new_input = Input {
+            contents: input.contents.as_ref(),
+        };
+        self.count_bytes(&new_input)
+    }
+
+    fn count_bytes(&self, input: &Input<&[u8]>) -> CountResult;
 }

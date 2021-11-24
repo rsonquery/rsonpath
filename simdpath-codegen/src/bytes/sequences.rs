@@ -39,29 +39,52 @@ pub fn get_mod_source() -> TokenStream {
             #[inline]
             pub fn find_any_of_sequences(sequences: &[&[u8]], bytes: &[u8]) -> Option<(usize, usize)> {
                 #[cfg(target_feature = "avx2")]
-                {
-                    assert!(sequences.len() <= 8);
+                unsafe {
+                    use crate::bytes::simd::BLOCK_SIZE;
+                    assert!(sequences.len() <= BLOCK_SIZE);
+
+                    let prefix_len = BLOCK_SIZE / sequences.len();
+                    debug_assert!(prefix_len > 0);
+
                     let mut sequence_buffer = [0u8; 32];
-
                     for (i, sequence) in sequences.iter().enumerate() {
-                        (&mut sequence_buffer[4*i..4*(i+1)]).clone_from_slice(&sequence[..4]);
+                        let len = std::cmp::min(sequence.len(), 4);
+                        (&mut sequence_buffer[4 * i..4 * i + len]).clone_from_slice(&sequence[..len]);
                     }
 
-                    let mut i = 0;
+                    let sequence_vector = _mm256_loadu_si256(sequence_buffer.as_ptr() as *const __m256i);
+                    let zeros = _mm256_set1_epi8(0);
+                    let sequence_nonzero_vector = _mm256_cmpgt_epi8(sequence_vector, zeros);
+                    let sequence_absence_mask: u32 = if sequences.len() == 8 {0xFFFFFFFF} else {!(0xFFFFFFFF << (4 * sequences.len()))};
+
                     let mut bytes = bytes;
+                    let mut i = 0;
 
-                    while !bytes.is_empty() {
-                        for (j, sequence) in sequences.iter().enumerate() {
-                            if bytes.starts_with(sequence) {
-                                return Some((i, j));
+                    while bytes.len() >= 4 {
+                        let first_four = &bytes[..4];
+                        let first_four_as_int = i32::from_ne_bytes(first_four.try_into().unwrap());
+                        let vector = _mm256_set1_epi32(first_four_as_int);
+                        let vector_on_nonzero = _mm256_and_si256(vector, sequence_nonzero_vector);
+                        let cmp = _mm256_cmpeq_epi32(vector_on_nonzero, sequence_vector);
+                        let cmp_mask = _mm256_movemask_epi8(cmp) as u32;
+                        let cmp_mask_existing = cmp_mask & sequence_absence_mask;
+
+                        let mut remaining_mask = cmp_mask_existing;
+                        while remaining_mask != 0 {
+                            let candidate_bit = remaining_mask.trailing_zeros() as usize;
+                            let candidate = candidate_bit / 4;
+                            let len = std::cmp::min(4, sequences[candidate].len());
+                            if bytes[len..].starts_with(&sequences[candidate][len..]) {
+                                return Some((i, candidate));
                             }
+                            remaining_mask ^= 1 << candidate_bit;
                         }
-                        i += 1;
-                        bytes = &bytes[1..];
-                    }
-                    None
-                }
 
+                        bytes = &bytes[1..];
+                        i += 1;
+                    }
+                    nosimd::find_any_of_sequences(sequences, bytes)
+                }
                 #[cfg(not(target_feature = "avx2"))]
                 nosimd::find_any_of_sequences(sequences, bytes)
             }

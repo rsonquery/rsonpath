@@ -36,8 +36,8 @@ impl<'a, 'b> StackBasedRunner<'a, 'b> {
 }
 
 impl<'a, 'b> Runner for StackBasedRunner<'a, 'b> {
-    fn count<T: AsRef<[u8]>>(&self, input: &Input<T>) -> CountResult {
-        let mut state = State::Initial(InitialState::new(self.query.root(), input.as_ref()));
+    fn count_bytes(&self, input: &Input<&[u8]>) -> CountResult {
+        let mut state = State::Initial(InitialState::new(self.query.root(), input));
         CountResult {
             count: state.run().count,
         }

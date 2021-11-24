@@ -1,6 +1,5 @@
 use core::time::Duration;
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
-use memchr;
 use simdpath::bytes::nosimd;
 
 const LENGTH: usize = 32 * 1024 * 1024;
