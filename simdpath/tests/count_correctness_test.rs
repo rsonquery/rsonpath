@@ -6,7 +6,7 @@ use std::fs;
 
 const ROOT_TEST_DIRECTORY: &str = "./data";
 
-fn get_contents(test_path: &str) -> Input<String> {
+fn get_contents(test_path: &str) -> Input {
     let path = format!("{}/{}", ROOT_TEST_DIRECTORY, test_path);
     let raw = fs::read_to_string(path).unwrap();
     Input::new(raw)

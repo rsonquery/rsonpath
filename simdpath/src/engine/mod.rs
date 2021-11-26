@@ -6,27 +6,24 @@
 
 pub mod result;
 
+use crate::bytes::aligned::{alignment, AlignedBytes};
 use len_trait::Len;
 use result::CountResult;
 
-#[repr(align(4096))]
-pub struct Input<T> {
-    contents: T,
+pub struct Input {
+    bytes: AlignedBytes<alignment::Page>,
 }
 
-impl<T> std::ops::Deref for Input<T> {
-    type Target = T;
+impl std::ops::Deref for Input {
+    type Target = AlignedBytes<alignment::Page>;
 
     fn deref(&self) -> &Self::Target {
-        &self.contents
+        &self.bytes
     }
 }
 
-impl<T> Input<T>
-where
-    T: Extend<char> + Len,
-{
-    pub fn new(src: T) -> Self {
+impl Input {
+    pub fn new<T: Extend<char> + Len + AsRef<[u8]>>(src: T) -> Self {
         #[cfg(not(feature = "nosimd"))]
         {
             use crate::bytes::simd::BLOCK_SIZE;
@@ -39,31 +36,21 @@ where
 
             debug_assert_eq!(contents.len() % BLOCK_SIZE, 0);
 
-            Self { contents }
+            Self {
+                bytes: AlignedBytes::<alignment::Page>::from(contents.as_ref()),
+            }
         }
         #[cfg(feature = "nosimd")]
         {
-            Self { contents: src }
+            Self {
+                bytes: AlignedBytes::<alignment::Page>::from(src.as_ref()),
+            }
         }
     }
 }
 
 /// Trait for an engine that can run its query on a given input.
 pub trait Runner {
-    /// Count the number of values satisfying the query on given input
-    /// that can be interpreted as a slice of bytes.
-    ///
-    /// ## Implementing
-    /// This function _SHOULD NOT_ be implemented by structs implementing
-    /// the [`Runner`] trait. The default implementation performs
-    /// conversion to bytes and delegates to [`count_bytes`] to preserve
-    /// alignment. Implement [`count_bytes`] instead.
-    fn count<T: AsRef<[u8]>>(&self, input: &Input<T>) -> CountResult {
-        let new_input = Input {
-            contents: input.contents.as_ref(),
-        };
-        self.count_bytes(&new_input)
-    }
-
-    fn count_bytes(&self, input: &Input<&[u8]>) -> CountResult;
+    /// Count the number of values satisfying the query on given [`Input`].
+    fn count(&self, input: &Input) -> CountResult;
 }

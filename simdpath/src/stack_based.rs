@@ -7,6 +7,7 @@
 //! this one.
 
 use crate::bytes;
+use crate::bytes::aligned::{alignment, AlignedBytes};
 use crate::engine::result::CountResult;
 use crate::engine::{Input, Runner};
 use crate::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType};
@@ -16,8 +17,8 @@ use log::*;
 ///
 /// The runner is stateless, meaning that it can be executed
 /// on any number of separate inputs, even on separate threads.
-pub struct StackBasedRunner<'a, 'b> {
-    query: &'b JsonPathQuery<'a>,
+pub struct StackBasedRunner<'a> {
+    query: &'a JsonPathQuery,
 }
 
 /// Result of a recursive descent of the runner.
@@ -28,15 +29,15 @@ struct RunnerResult<'a> {
     pub remaining_bytes: &'a [u8],
 }
 
-impl<'a, 'b> StackBasedRunner<'a, 'b> {
+impl<'a> StackBasedRunner<'a> {
     /// Compile a query into a [`StackBasedRunner`].
-    pub fn compile_query(query: &'b JsonPathQuery<'a>) -> Self {
+    pub fn compile_query(query: &'a JsonPathQuery) -> Self {
         StackBasedRunner { query }
     }
 }
 
-impl<'a, 'b> Runner for StackBasedRunner<'a, 'b> {
-    fn count_bytes(&self, input: &Input<&[u8]>) -> CountResult {
+impl<'a> Runner for StackBasedRunner<'a> {
+    fn count(&self, input: &Input) -> CountResult {
         let mut state = State::Initial(InitialState::new(self.query.root(), input));
         CountResult {
             count: state.run().count,
@@ -53,54 +54,54 @@ trait Runnable<'a> {
 /// Created at the beginning of query execution to kick off the engine.
 ///
 /// Corresponds to a [`JsonPathQueryNode::Root`](super::query::JsonPathQueryNode<_>::Root) query node.
-struct InitialState<'a, 'b, 'c> {
-    node: &'b JsonPathQueryNode<'a>,
-    bytes: &'c [u8],
+struct InitialState<'a, 'b> {
+    node: &'a JsonPathQueryNode,
+    bytes: &'b [u8],
 }
 
 /// Created to seek for a label recursively in an object.
 ///
 /// Corresponds to a [`JsonPathQueryNode::Descendant`](super::query::JsonPathQueryNode<_>::Descendant) query node.
-struct RecursiveDescentState<'a, 'b, 'c> {
-    node: &'b JsonPathQueryNode<'a>,
-    bytes: &'c [u8],
+struct RecursiveDescentState<'a, 'b> {
+    node: &'a JsonPathQueryNode,
+    bytes: &'b [u8],
 }
 
 /// Created to seek for a label recursively in a list.
 ///
 /// Corresponds to a [`JsonPathQueryNode::Descendant`](super::query::JsonPathQueryNode<_>::Descendant) query node.
-struct RecurseInListState<'a, 'b, 'c> {
-    node: &'b JsonPathQueryNode<'a>,
-    bytes: &'c [u8],
+struct RecurseInListState<'a, 'b> {
+    node: &'a JsonPathQueryNode,
+    bytes: &'b [u8],
 }
 
-impl<'a, 'b, 'c> InitialState<'a, 'b, 'c> {
-    fn new(node: &'b JsonPathQueryNode<'a>, bytes: &'c [u8]) -> Self {
+impl<'a, 'b> InitialState<'a, 'b> {
+    fn new(node: &'a JsonPathQueryNode, bytes: &'b [u8]) -> Self {
         InitialState { node, bytes }
     }
 }
 
-impl<'a, 'b, 'c> RecursiveDescentState<'a, 'b, 'c> {
-    fn new(node: &'b JsonPathQueryNode<'a>, bytes: &'c [u8]) -> Self {
+impl<'a, 'b> RecursiveDescentState<'a, 'b> {
+    fn new(node: &'a JsonPathQueryNode, bytes: &'b [u8]) -> Self {
         debug_assert! {node.is_descendant()}
         RecursiveDescentState { node, bytes }
     }
 }
 
-impl<'a, 'b, 'c> RecurseInListState<'a, 'b, 'c> {
-    fn new(node: &'b JsonPathQueryNode<'a>, bytes: &'c [u8]) -> Self {
+impl<'a, 'b> RecurseInListState<'a, 'b> {
+    fn new(node: &'a JsonPathQueryNode, bytes: &'b [u8]) -> Self {
         debug_assert! {node.is_descendant()}
         RecurseInListState { node, bytes }
     }
 }
 
-enum State<'a, 'b, 'c> {
-    Initial(InitialState<'a, 'b, 'c>),
-    RecursivelyFindLabel(RecursiveDescentState<'a, 'b, 'c>),
+enum State<'a, 'b> {
+    Initial(InitialState<'a, 'b>),
+    RecursivelyFindLabel(RecursiveDescentState<'a, 'b>),
 }
 
-impl<'a, 'b, 'c> Runnable<'c> for State<'a, 'b, 'c> {
-    fn run(&mut self) -> RunnerResult<'c> {
+impl<'a, 'b> Runnable<'b> for State<'a, 'b> {
+    fn run(&mut self) -> RunnerResult<'b> {
         match self {
             State::Initial(state) => state.run(),
             State::RecursivelyFindLabel(state) => state.run(),
@@ -108,8 +109,8 @@ impl<'a, 'b, 'c> Runnable<'c> for State<'a, 'b, 'c> {
     }
 }
 
-impl<'a, 'b, 'c> Runnable<'c> for InitialState<'a, 'b, 'c> {
-    fn run(&mut self) -> RunnerResult<'c> {
+impl<'a, 'b> Runnable<'b> for InitialState<'a, 'b> {
+    fn run(&mut self) -> RunnerResult<'b> {
         debug_assert! {self.node.is_root()};
 
         let first_brace = bytes::find_byte(b'{', self.bytes);
@@ -140,10 +141,10 @@ impl<'a, 'b, 'c> Runnable<'c> for InitialState<'a, 'b, 'c> {
     }
 }
 
-impl<'a, 'b, 'c> Runnable<'c> for RecursiveDescentState<'a, 'b, 'c> {
-    fn run(&mut self) -> RunnerResult<'c> {
+impl<'a, 'b> Runnable<'b> for RecursiveDescentState<'a, 'b> {
+    fn run(&mut self) -> RunnerResult<'b> {
         let label_node = self.node.child().unwrap();
-        let label = *match label_node {
+        let label = match label_node {
             JsonPathQueryNode::Label(label, _) => label,
             _ => panic!("RecursiveDescentState must be run on a Label node."),
         };
@@ -280,8 +281,8 @@ impl<'a, 'b, 'c> Runnable<'c> for RecursiveDescentState<'a, 'b, 'c> {
     }
 }
 
-impl<'a, 'b, 'c> Runnable<'c> for RecurseInListState<'a, 'b, 'c> {
-    fn run(&mut self) -> RunnerResult<'c> {
+impl<'a, 'b> Runnable<'b> for RecurseInListState<'a, 'b> {
+    fn run(&mut self) -> RunnerResult<'b> {
         // Inbound contract: we are inside a JSON list after its opening bracket
         // and zero or more values passed. Therefore there is either another
         // value in front or the closing bracket.

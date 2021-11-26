@@ -26,35 +26,102 @@
 //! // Final node will have a None child.
 //! assert!(label_node2.child().is_none());
 //!
-//! assert_eq!(label_node1.label(), Some("person".as_bytes()));
-//! assert_eq!(label_node2.label(), Some("phoneNumber".as_bytes()));
+//! assert_eq!(label_node1.label().unwrap(), "person".as_bytes());
+//! assert_eq!(label_node2.label().unwrap(), "phoneNumber".as_bytes());
 //! # Ok(())
 //! # }
 //! ```
 //!
 mod parser;
+use crate::bytes::aligned::{alignment, AlignedBytes};
 use std::fmt::{self, Display};
 
-type JsonPathQueryNodeBox<'a> = Box<JsonPathQueryNode<'a>>;
-use std::ops::Deref;
+#[derive(Debug)]
+pub struct Label {
+    label: AlignedBytes<alignment::Block>,
+    label_with_quotes: AlignedBytes<alignment::Block>,
+}
+
+impl Label {
+    pub fn new(label: &[u8]) -> Self {
+        let without_quotes = AlignedBytes::<alignment::Block>::from(label);
+        let mut with_quotes = AlignedBytes::<alignment::Block>::new(label.len() + 2);
+        with_quotes[0] = b'"';
+        with_quotes[1..label.len() + 1].copy_from_slice(label);
+        with_quotes[label.len() + 1] = b'"';
+
+        Self {
+            label: without_quotes,
+            label_with_quotes: with_quotes,
+        }
+    }
+
+    pub fn bytes(&self) -> &AlignedBytes<alignment::Block> {
+        &self.label
+    }
+
+    pub fn bytes_with_quotes(&self) -> &AlignedBytes<alignment::Block> {
+        &self.label_with_quotes
+    }
+}
+
+impl std::ops::Deref for Label {
+    type Target = AlignedBytes<alignment::Block>;
+
+    fn deref(&self) -> &Self::Target {
+        self.bytes()
+    }
+}
+
+impl PartialEq<Label> for Label {
+    fn eq(&self, other: &Label) -> bool {
+        self.label == other.label
+    }
+}
+
+impl Eq for Label {}
+
+impl PartialEq<Label> for [u8] {
+    fn eq(&self, other: &Label) -> bool {
+        self == other.label
+    }
+}
+
+impl PartialEq<Label> for &[u8] {
+    fn eq(&self, other: &Label) -> bool {
+        *self == other.label
+    }
+}
+
+impl PartialEq<[u8]> for Label {
+    fn eq(&self, other: &[u8]) -> bool {
+        self.label == other
+    }
+}
+
+impl PartialEq<&[u8]> for Label {
+    fn eq(&self, other: &&[u8]) -> bool {
+        self.label == *other
+    }
+}
 
 /// Linked list structure of a JSONPath query.
 #[derive(Debug)]
-pub enum JsonPathQueryNode<'a> {
+pub enum JsonPathQueryNode {
     /// The first link in the list representing the root '`$`' character.
-    Root(Option<JsonPathQueryNodeBox<'a>>),
+    Root(Option<Box<JsonPathQueryNode>>),
     /// Represents recursive descent ('`..`' token).
-    Descendant(JsonPathQueryNodeBox<'a>),
+    Descendant(Box<JsonPathQueryNode>),
     /// Represents a label/key to be matched in the input JSON.
-    Label(&'a [u8], Option<JsonPathQueryNodeBox<'a>>),
+    Label(Label, Option<Box<JsonPathQueryNode>>),
 }
 
 use JsonPathQueryNode::*;
 
-impl<'a> JsonPathQueryNode<'a> {
+impl JsonPathQueryNode {
     /// Retrieve the child of the node or `None` if it is the last one
     /// on the list.
-    pub fn child(&self) -> Option<&JsonPathQueryNode<'a>> {
+    pub fn child(&self) -> Option<&JsonPathQueryNode> {
         match self {
             Root(node) => node.as_deref(),
             Descendant(node) => Some(node),
@@ -66,21 +133,21 @@ impl<'a> JsonPathQueryNode<'a> {
 /// JSONPath query structure represented by the root link of the
 /// [`JsonPathQueryNode`] list.
 #[derive(Debug)]
-pub struct JsonPathQuery<'a> {
-    root: JsonPathQueryNodeBox<'a>,
+pub struct JsonPathQuery {
+    root: Box<JsonPathQueryNode>,
 }
 
-impl<'a> JsonPathQuery<'a> {
+impl JsonPathQuery {
     /// Retrieve reference to the root node.
     ///
     /// It is guaranteed that the root is the [`JsonPathQueryNode::Root`]
     /// variant and always exists.
-    pub fn root(&self) -> &JsonPathQueryNode<'a> {
+    pub fn root(&self) -> &JsonPathQueryNode {
         self.root.as_ref()
     }
 
     /// Parse a query string into a [`JsonPathQuery`].
-    pub fn parse(query_string: &str) -> Result<JsonPathQuery<'_>, String> {
+    pub fn parse(query_string: &str) -> Result<JsonPathQuery, String> {
         self::parser::parse_json_path_query(query_string)
     }
 
@@ -88,7 +155,7 @@ impl<'a> JsonPathQuery<'a> {
     ///
     /// If node is not the [`JsonPathQueryNode::Root`] variant it will be
     /// automatically wrapped into a [`JsonPathQueryNode::Root`] node.
-    pub fn new(node: JsonPathQueryNodeBox<'a>) -> Result<JsonPathQuery<'a>, String> {
+    pub fn new(node: Box<JsonPathQueryNode>) -> Result<JsonPathQuery, String> {
         let root = if node.is_root() {
             node
         } else {
@@ -102,7 +169,7 @@ impl<'a> JsonPathQuery<'a> {
         }
     }
 
-    fn validate(node: &JsonPathQueryNode<'a>) -> Result<(), String> {
+    fn validate(node: &JsonPathQueryNode) -> Result<(), String> {
         match node {
             Root(_) => Err(
                 "The Root expression ('$') can appear only once at the start of the query."
@@ -120,18 +187,18 @@ impl<'a> JsonPathQuery<'a> {
     }
 }
 
-impl<'a> Display for JsonPathQuery<'a> {
+impl Display for JsonPathQuery {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.root.as_ref())
     }
 }
 
-impl<'a> Display for JsonPathQueryNode<'a> {
+impl Display for JsonPathQueryNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let head = match self {
             Root(_) => "$",
             Descendant(_) => "..",
-            Label(label, _) => std::str::from_utf8(label).unwrap(),
+            Label(label, _) => std::str::from_utf8(label.bytes()).unwrap(),
         };
         write!(f, "{}", head)?;
 
@@ -145,7 +212,7 @@ impl<'a> Display for JsonPathQueryNode<'a> {
 
 /// Equips a struct with information on the type of [`JsonPathQueryNode`] it represents
 /// and methods to extract query elements from it.
-pub trait JsonPathQueryNodeType<'a> {
+pub trait JsonPathQueryNodeType {
     /// Returns `true` iff the type is [`JsonPathQueryNode::Root`].
     fn is_root(&self) -> bool;
 
@@ -157,10 +224,10 @@ pub trait JsonPathQueryNodeType<'a> {
 
     /// If the type is [`JsonPathQueryNode::Label`] returns the label it represents;
     /// otherwise, `None`.
-    fn label(&self) -> Option<&'a [u8]>;
+    fn label(&self) -> Option<&Label>;
 }
 
-impl<'a> JsonPathQueryNodeType<'a> for JsonPathQueryNode<'a> {
+impl JsonPathQueryNodeType for JsonPathQueryNode {
     fn is_root(&self) -> bool {
         matches!(self, Root(_))
     }
@@ -173,7 +240,7 @@ impl<'a> JsonPathQueryNodeType<'a> for JsonPathQueryNode<'a> {
         matches!(self, Label(_, _))
     }
 
-    fn label(&self) -> Option<&'a [u8]> {
+    fn label(&self) -> Option<&Label> {
         match self {
             JsonPathQueryNode::Label(label, _) => Some(label),
             _ => None,
@@ -181,13 +248,11 @@ impl<'a> JsonPathQueryNodeType<'a> for JsonPathQueryNode<'a> {
     }
 }
 
-/// Utility blanket implementation for a [`JsonPathQueryNodeType`] wrapped in an [`Option`].
+/// Utility blanket implementation for a [`JsonPathQueryNode`] wrapped in an [`Option`].
 ///
 /// If the value is `None` automatically returns `false` or `None` on all calls in
 /// the natural manner.
-impl<'a, T: JsonPathQueryNodeType<'a>, U: Deref<Target = T>> JsonPathQueryNodeType<'a>
-    for Option<U>
-{
+impl<T: std::ops::Deref<Target = JsonPathQueryNode>> JsonPathQueryNodeType for Option<T> {
     fn is_root(&self) -> bool {
         self.as_ref().map_or(false, |x| x.is_root())
     }
@@ -200,7 +265,7 @@ impl<'a, T: JsonPathQueryNodeType<'a>, U: Deref<Target = T>> JsonPathQueryNodeTy
         self.as_ref().map_or(false, |x| x.is_label())
     }
 
-    fn label(&self) -> Option<&'a [u8]> {
+    fn label(&self) -> Option<&Label> {
         self.as_ref().and_then(|x| x.label())
     }
 }

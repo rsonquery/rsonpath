@@ -38,7 +38,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn parse_query(query_string: &str) -> Result<JsonPathQuery<'_>, String> {
+fn parse_query(query_string: &str) -> Result<JsonPathQuery, String> {
     let query_result = JsonPathQuery::parse(query_string);
 
     match query_result {

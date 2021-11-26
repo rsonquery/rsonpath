@@ -11,23 +11,24 @@
 #[allow(clippy::all)]
 mod automata;
 
+use crate::bytes::aligned::{alignment, AlignedBytes};
 use crate::engine::result::CountResult;
 use crate::engine::{Input, Runner};
-use crate::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType};
+use crate::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label};
 
 /// Stackless runner for a fixed JSONPath query.
 ///
 /// The runner is stateless, meaning that it can be executed
 /// on any number of separate inputs, even on separate threads.
 pub struct StacklessRunner<'a> {
-    labels: Vec<&'a [u8]>,
+    labels: Vec<&'a Label>,
 }
 
 impl<'a> StacklessRunner<'a> {
     /// Compile a query into a [`StacklessRunner`].
     ///
     /// Compilation time is proportional to the length of the query.
-    pub fn compile_query(query: &JsonPathQuery<'a>) -> StacklessRunner<'a> {
+    pub fn compile_query(query: &JsonPathQuery) -> StacklessRunner<'_> {
         let labels = query_to_descendant_pattern_labels(query);
 
         automata::assert_supported_size!(labels.len());
@@ -37,7 +38,11 @@ impl<'a> StacklessRunner<'a> {
 }
 
 impl<'a> Runner for StacklessRunner<'a> {
-    fn count_bytes(&self, input: &Input<&[u8]>) -> CountResult {
+    fn count(&self, input: &Input) -> CountResult {
+        #[cfg(all(
+            not(feature = "nosimd"),
+            any(target_arch = "x86", target_arch = "x86_64")
+        ))]
         if self.labels.len() == 3 {
             let count = unsafe { custom_automaton3(&self.labels, input) };
             return CountResult { count };
@@ -49,7 +54,7 @@ impl<'a> Runner for StacklessRunner<'a> {
     }
 }
 
-fn query_to_descendant_pattern_labels<'a>(query: &JsonPathQuery<'a>) -> Vec<&'a [u8]> {
+fn query_to_descendant_pattern_labels(query: &JsonPathQuery) -> Vec<&Label> {
     debug_assert!(query.root().is_root());
     let mut node_opt = query.root().child();
     let mut result = vec![];
@@ -58,7 +63,7 @@ fn query_to_descendant_pattern_labels<'a>(query: &JsonPathQuery<'a>) -> Vec<&'a 
         match node {
             JsonPathQueryNode::Descendant(label_node) => match label_node.as_ref() {
                 JsonPathQueryNode::Label(label, next_node) => {
-                    result.push(*label);
+                    result.push(label);
                     node_opt = next_node.as_deref();
                 }
                 _ => panic! {"Unexpected type of node, expected Label."},
@@ -70,24 +75,52 @@ fn query_to_descendant_pattern_labels<'a>(query: &JsonPathQuery<'a>) -> Vec<&'a 
     result
 }
 
+#[cfg(all(
+    not(feature = "nosimd"),
+    any(target_arch = "x86", target_arch = "x86_64")
+))]
 enum BlockEvent {
     Closing(usize),
-    Quote(usize),
+    Colon(usize),
 }
 
+#[cfg(all(
+    not(feature = "nosimd"),
+    any(target_arch = "x86", target_arch = "x86_64")
+))]
 struct BlockEventSource {
     opening_mask: u32,
     closing_mask: u32,
     event_mask: u32,
 }
 
+#[cfg(all(
+    not(feature = "nosimd"),
+    any(target_arch = "x86", target_arch = "x86_64")
+))]
 impl BlockEventSource {
     #[inline(always)]
-    pub fn new(opening_mask: u32, closing_mask: u32, quote_mask: u32) -> Self {
-        Self {
-            opening_mask,
-            closing_mask,
-            event_mask: closing_mask | quote_mask,
+    pub fn new(
+        opening_mask: u32,
+        closing_mask: u32,
+        colon_mask: u32,
+        depth_difference_threshold: isize,
+    ) -> Self {
+        let closing_count = closing_mask.count_ones() as isize;
+        if depth_difference_threshold > closing_count {
+            // Depth is guaranteed to not go below within the block.
+            Self {
+                opening_mask,
+                closing_mask,
+                event_mask: colon_mask,
+            }
+        } else {
+            // Depth may go below within the block.
+            Self {
+                opening_mask,
+                closing_mask,
+                event_mask: closing_mask | colon_mask,
+            }
         }
     }
 
@@ -107,7 +140,7 @@ impl BlockEventSource {
         let event = if self.closing_mask & bit_mask != 0 {
             Closing(next_event_idx as usize)
         } else {
-            Quote(next_event_idx as usize)
+            Colon(next_event_idx as usize)
         };
 
         Some(event)
@@ -135,7 +168,7 @@ impl BlockEventSource {
     any(target_arch = "x86", target_arch = "x86_64")
 ))]
 #[target_feature(enable = "avx2")]
-unsafe fn custom_automaton3(labels: &[&[u8]], contents: &[u8]) -> usize {
+unsafe fn custom_automaton3(labels: &[&Label], bytes: &AlignedBytes<alignment::Page>) -> usize {
     use crate::bytes::simd::BLOCK_SIZE;
     #[cfg(target_arch = "x86")]
     use core::arch::x86::*;
@@ -147,41 +180,54 @@ unsafe fn custom_automaton3(labels: &[&[u8]], contents: &[u8]) -> usize {
     let mut state: u8 = 0;
     let mut count: usize = 0;
     let mut regs = [0isize; 3];
-    let mut bytes = contents;
+    let mut block: &[u8] = bytes;
+    let mut offset = 0usize;
     let opening_brace_byte_mask = _mm256_set1_epi8(b'{' as i8);
     let opening_bracket_byte_mask = _mm256_set1_epi8(b'[' as i8);
     let closing_brace_byte_mask = _mm256_set1_epi8(b'}' as i8);
     let closing_bracket_byte_mask = _mm256_set1_epi8(b']' as i8);
-    let quote_byte_mask = _mm256_set1_epi8(b'"' as i8);
+    let colon_byte_mask = _mm256_set1_epi8(b':' as i8);
 
-    while !bytes.is_empty() {
-        let byte_vector = _mm256_loadu_si256(bytes.as_ptr() as *const __m256i);
+    while !block.is_empty() {
+        let byte_vector = _mm256_load_si256(block.as_ptr() as *const __m256i);
         let opening_brace_cmp = _mm256_cmpeq_epi8(byte_vector, opening_brace_byte_mask);
         let opening_bracket_cmp = _mm256_cmpeq_epi8(byte_vector, opening_bracket_byte_mask);
         let closing_brace_cmp = _mm256_cmpeq_epi8(byte_vector, closing_brace_byte_mask);
         let closing_bracket_cmp = _mm256_cmpeq_epi8(byte_vector, closing_bracket_byte_mask);
-        let quote_cmp = _mm256_cmpeq_epi8(byte_vector, quote_byte_mask);
+        let colon_cmp = _mm256_cmpeq_epi8(byte_vector, colon_byte_mask);
         let opening_vector = _mm256_or_si256(opening_brace_cmp, opening_bracket_cmp);
         let closing_vector = _mm256_or_si256(closing_brace_cmp, closing_bracket_cmp);
         let opening_mask = _mm256_movemask_epi8(opening_vector) as u32;
         let closing_mask = _mm256_movemask_epi8(closing_vector) as u32;
-        let quote_mask = _mm256_movemask_epi8(quote_cmp) as u32;
+        let colon_mask = _mm256_movemask_epi8(colon_cmp) as u32;
 
-        let mut block_event_source = BlockEventSource::new(opening_mask, closing_mask, quote_mask);
+        let depth_difference_threshold = match state {
+            0 => isize::MIN,
+            1 => depth - regs[0],
+            2 => depth - regs[1],
+            _ => unreachable!(),
+        };
+        let mut block_event_source = BlockEventSource::new(
+            opening_mask,
+            closing_mask,
+            colon_mask,
+            depth_difference_threshold,
+        );
 
         while let Some(event) = block_event_source.poll() {
             match state {
                 0 => {
                     // Depth is irrelevant.
-                    if let BlockEvent::Quote(idx) = event {
+                    if let BlockEvent::Colon(idx) = event {
                         let len = labels[0].len();
-                        let closing_quote_position = idx + len + 1;
+                        if offset + idx >= len + 2 {
+                            let opening_quote_idx = offset + idx - len - 2;
+                            let slice = &bytes[opening_quote_idx..offset + idx];
 
-                        if bytes[closing_quote_position..closing_quote_position + 2] == [b'"', b':']
-                            && bytes[idx + 1..].starts_with(labels[0])
-                        {
-                            state = 1;
-                            regs[0] = depth + block_event_source.depth_at_index(idx);
+                            if slice == labels[0].bytes_with_quotes() {
+                                state = 1;
+                                regs[0] = depth + block_event_source.depth_at_index(idx);
+                            }
                         }
                     }
                 }
@@ -192,15 +238,16 @@ unsafe fn custom_automaton3(labels: &[&[u8]], contents: &[u8]) -> usize {
                             state = 0;
                         }
                     }
-                    BlockEvent::Quote(idx) => {
+                    BlockEvent::Colon(idx) => {
                         let len = labels[1].len();
-                        let closing_quote_position = idx + len + 1;
+                        if offset + idx >= len + 2 {
+                            let opening_quote_idx = offset + idx - len - 2;
+                            let slice = &bytes[opening_quote_idx..offset + idx];
 
-                        if bytes[closing_quote_position..closing_quote_position + 2] == [b'"', b':']
-                            && bytes[idx + 1..].starts_with(labels[1])
-                        {
-                            state = 2;
-                            regs[1] = depth + block_event_source.depth_at_index(idx);
+                            if slice == labels[1].bytes_with_quotes() {
+                                state = 2;
+                                regs[1] = depth + block_event_source.depth_at_index(idx);
+                            }
                         }
                     }
                 },
@@ -211,14 +258,15 @@ unsafe fn custom_automaton3(labels: &[&[u8]], contents: &[u8]) -> usize {
                             state = 1;
                         }
                     }
-                    BlockEvent::Quote(idx) => {
+                    BlockEvent::Colon(idx) => {
                         let len = labels[2].len();
-                        let closing_quote_position = idx + len + 1;
+                        if offset + idx >= len + 2 {
+                            let opening_quote_idx = offset + idx - len - 2;
+                            let slice = &bytes[opening_quote_idx..offset + idx];
 
-                        if bytes[closing_quote_position..closing_quote_position + 2] == [b'"', b':']
-                            && bytes[idx + 1..].starts_with(labels[2])
-                        {
-                            count += 1;
+                            if slice == labels[2].bytes_with_quotes() {
+                                count += 1;
+                            }
                         }
                     }
                 },
@@ -227,7 +275,8 @@ unsafe fn custom_automaton3(labels: &[&[u8]], contents: &[u8]) -> usize {
         }
 
         depth += block_event_source.depth_at_end();
-        bytes = &bytes[BLOCK_SIZE..];
+        block = &block[BLOCK_SIZE..];
+        offset += BLOCK_SIZE;
         /*if depth <= -closing_count {
             // Depth is guaranteed to not go below within the block.
         } else {
@@ -395,10 +444,18 @@ unsafe fn custom_automaton3(labels: &[&[u8]], contents: &[u8]) -> usize {
     count*/
 }
 
+#[cfg(all(
+    not(feature = "nosimd"),
+    any(target_arch = "x86", target_arch = "x86_64")
+))]
 struct BlockIterator<'a> {
     bytes: &'a [u8],
 }
 
+#[cfg(all(
+    not(feature = "nosimd"),
+    any(target_arch = "x86", target_arch = "x86_64")
+))]
 impl<'a> BlockIterator<'a> {
     #[inline(always)]
     fn new(bytes: &'a [u8]) -> Self {
@@ -414,6 +471,10 @@ impl<'a> BlockIterator<'a> {
     }
 }
 
+#[cfg(all(
+    not(feature = "nosimd"),
+    any(target_arch = "x86", target_arch = "x86_64")
+))]
 impl<'a> Iterator for BlockIterator<'a> {
     type Item = &'a [u8];
 
@@ -438,13 +499,25 @@ impl<'a> Iterator for BlockIterator<'a> {
     }
 }
 
+#[cfg(all(
+    not(feature = "nosimd"),
+    any(target_arch = "x86", target_arch = "x86_64")
+))]
 impl<'a> ExactSizeIterator for BlockIterator<'a> {}
 
+#[cfg(all(
+    not(feature = "nosimd"),
+    any(target_arch = "x86", target_arch = "x86_64")
+))]
 struct TwoBlockWindowIterator<'a> {
     block_iterator: BlockIterator<'a>,
     current_block: &'a [u8],
 }
 
+#[cfg(all(
+    not(feature = "nosimd"),
+    any(target_arch = "x86", target_arch = "x86_64")
+))]
 impl<'a> TwoBlockWindowIterator<'a> {
     #[inline(always)]
     pub fn new(mut block_iterator: BlockIterator<'a>) -> Self {
@@ -458,6 +531,10 @@ impl<'a> TwoBlockWindowIterator<'a> {
     }
 }
 
+#[cfg(all(
+    not(feature = "nosimd"),
+    any(target_arch = "x86", target_arch = "x86_64")
+))]
 impl<'a> Iterator for TwoBlockWindowIterator<'a> {
     type Item = (&'a [u8], &'a [u8]);
 

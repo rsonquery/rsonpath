@@ -14,6 +14,8 @@ pub fn get_mod_source() -> TokenStream {
     let dispatch_automaton_source = get_dispatch_automaton_source();
     let automaton_source = get_all_descendant_only_automaton_sources();
     quote! {
+        use crate::query::{Label};
+
         #assert_supported_size_macro_source
         #dispatch_automaton_source
         #automaton_source
@@ -49,7 +51,7 @@ fn get_dispatch_automaton_source() -> TokenStream {
     });
 
     let tokens = quote! {
-        pub fn dispatch_automaton(labels : &[&[u8]], bytes: &[u8]) -> usize {
+        pub fn dispatch_automaton(labels : &[&Label], bytes: &[u8]) -> usize {
             match labels.len() {
                 #(#match_body,)*
                 0 => 1,
@@ -195,7 +197,7 @@ fn get_descendant_only_automaton_source(size: u8) -> TokenStream {
     };
 
     let automaton_code = quote! {
-        fn #fn_ident<'a>(labels: &[&'a [u8]], bytes: &'a [u8]) -> usize {
+        fn #fn_ident(labels: &[&Label], bytes: &[u8]) -> usize {
             debug_assert_eq!(labels.len(), #size as usize);
 
             let mut bytes = bytes;
