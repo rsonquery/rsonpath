@@ -213,7 +213,7 @@ mod tests {
         ];
         let contents = std::iter::repeat(b'a')
             .take(1024)
-            .chain(sequences[7].iter().map(|x| *x))
+            .chain(sequences[7].iter().copied())
             .collect::<Vec<_>>();
         let result = find_any_of_sequences(&sequences, &contents);
 

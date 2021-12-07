@@ -33,7 +33,7 @@
 //! ```
 //!
 mod parser;
-use crate::bytes::aligned::{alignment, AlignedBytes};
+use crate::bytes::align::{alignment, Aligned, AlignedBytes};
 use std::fmt::{self, Display};
 
 #[derive(Debug)]

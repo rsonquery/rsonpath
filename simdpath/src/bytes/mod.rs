@@ -10,7 +10,7 @@
 //! and these reexports are what the JSONPath engine implementations use. The default is
 //! SIMD mode, but this can be changed by enabling the feature `nosimd`.
 
-pub mod aligned;
+pub mod align;
 mod depth;
 mod sequences;
 
@@ -246,6 +246,8 @@ pub mod simd {
     pub use super::sequences::simd::*;
     use memchr::*;
 
+    /// Size of a single SIMD block, i.e. number of bytes
+    /// stored in a single SIMD register.
     pub const BLOCK_SIZE: usize = BYTES_IN_AVX2_REGISTER;
 
     #[allow(dead_code)]

@@ -7,7 +7,6 @@
 //! this one.
 
 use crate::bytes;
-use crate::bytes::aligned::{alignment, AlignedBytes};
 use crate::engine::result::CountResult;
 use crate::engine::{Input, Runner};
 use crate::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType};

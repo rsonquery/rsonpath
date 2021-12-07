@@ -6,10 +6,11 @@
 
 pub mod result;
 
-use crate::bytes::aligned::{alignment, AlignedBytes};
+use crate::bytes::align::{alignment, AlignedBytes};
 use len_trait::Len;
 use result::CountResult;
 
+/// Input into a query engine.
 pub struct Input {
     bytes: AlignedBytes<alignment::Page>,
 }
@@ -23,6 +24,10 @@ impl std::ops::Deref for Input {
 }
 
 impl Input {
+    /// Transmute a buffer into an input.
+    ///
+    /// The buffer must know its length, may be extended by auxilliary UTF8 characters
+    /// and will be interpreted as a slice of bytes at the end.
     pub fn new<T: Extend<char> + Len + AsRef<[u8]>>(src: T) -> Self {
         #[cfg(not(feature = "nosimd"))]
         {
