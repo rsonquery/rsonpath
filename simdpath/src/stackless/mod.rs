@@ -175,31 +175,52 @@ unsafe fn custom_automaton3(labels: &[&Label], bytes: &AlignedBytes<alignment::P
     #[cfg(target_arch = "x86_64")]
     use core::arch::x86_64::*;
     debug_assert_eq!(labels.len(), 3usize);
-
+    
     let mut depth: isize = 0;
     let mut state: u8 = 0;
     let mut count: usize = 0;
     let mut regs = [0isize; 3];
     let mut block: &[u8] = bytes;
     let mut offset = 0usize;
-    let opening_brace_byte_mask = _mm256_set1_epi8(b'{' as i8);
-    let opening_bracket_byte_mask = _mm256_set1_epi8(b'[' as i8);
-    let closing_brace_byte_mask = _mm256_set1_epi8(b'}' as i8);
-    let closing_bracket_byte_mask = _mm256_set1_epi8(b']' as i8);
-    let colon_byte_mask = _mm256_set1_epi8(b':' as i8);
+
+    let lower_nibble_mask_array: [u8; 32] = [
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0x20, 0x80,
+        0, 0x40, 0, 0,
+        
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0x20, 0x80,
+        0, 0x40, 0, 0,
+    ];    
+    let upper_nibble_mask_array: [u8; 32] = [
+        0, 0, 0, 0x20,
+        0, 0xc0, 0, 0xc0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        
+        0, 0, 0, 0x20,
+        0, 0xc0, 0, 0xc0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+    ];
+
+    let lower_nibble_mask = _mm256_loadu_si256(lower_nibble_mask_array.as_ptr() as *const __m256i);
+    let upper_nibble_mask = _mm256_loadu_si256(upper_nibble_mask_array.as_ptr() as *const __m256i);
+
+    let upper_nibble_zeroing_mask = _mm256_set1_epi8(0x0F);
 
     while !block.is_empty() {
         let byte_vector = _mm256_load_si256(block.as_ptr() as *const __m256i);
-        let opening_brace_cmp = _mm256_cmpeq_epi8(byte_vector, opening_brace_byte_mask);
-        let opening_bracket_cmp = _mm256_cmpeq_epi8(byte_vector, opening_bracket_byte_mask);
-        let closing_brace_cmp = _mm256_cmpeq_epi8(byte_vector, closing_brace_byte_mask);
-        let closing_bracket_cmp = _mm256_cmpeq_epi8(byte_vector, closing_bracket_byte_mask);
-        let colon_cmp = _mm256_cmpeq_epi8(byte_vector, colon_byte_mask);
-        let opening_vector = _mm256_or_si256(opening_brace_cmp, opening_bracket_cmp);
-        let closing_vector = _mm256_or_si256(closing_brace_cmp, closing_bracket_cmp);
-        let opening_mask = _mm256_movemask_epi8(opening_vector) as u32;
-        let closing_mask = _mm256_movemask_epi8(closing_vector) as u32;
-        let colon_mask = _mm256_movemask_epi8(colon_cmp) as u32;
+        let shifted_byte_vector = _mm256_srli_epi16::<4>(byte_vector);
+        let upper_nibble_byte_vector = _mm256_and_si256(shifted_byte_vector, upper_nibble_zeroing_mask);
+        let lower_nibble_lookup = _mm256_shuffle_epi8(lower_nibble_mask, byte_vector);
+        let upper_nibble_lookup = _mm256_shuffle_epi8(upper_nibble_mask, upper_nibble_byte_vector);
+        let classification = _mm256_and_si256(lower_nibble_lookup, upper_nibble_lookup);
+        let opening_mask = _mm256_movemask_epi8(classification) as u32;
+        let closing_mask = _mm256_movemask_epi8(_mm256_slli_epi16::<1>(classification)) as u32;
+        let colon_mask = _mm256_movemask_epi8(_mm256_slli_epi16::<2>(classification)) as u32;
 
         let depth_difference_threshold = match state {
             0 => isize::MIN,
