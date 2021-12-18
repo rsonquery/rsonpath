@@ -82,52 +82,35 @@ fn query_to_descendant_pattern_labels(query: &JsonPathQuery) -> Vec<&Label> {
 enum BlockEvent {
     Closing(usize),
     Colon(usize),
+    Opening(usize),
 }
 
 #[cfg(all(
     not(feature = "nosimd"),
     any(target_arch = "x86", target_arch = "x86_64")
 ))]
-struct BlockEventSource {
-    opening_mask: u32,
-    closing_mask: u32,
-    event_mask: u32,
+struct BlockEventSource<'a> {
+    block: &'a [u8],
+    structural_mask: u32,
 }
 
 #[cfg(all(
     not(feature = "nosimd"),
     any(target_arch = "x86", target_arch = "x86_64")
 ))]
-impl BlockEventSource {
+impl<'a> BlockEventSource<'a> {
     #[inline(always)]
-    pub fn new(
-        opening_mask: u32,
-        closing_mask: u32,
-        colon_mask: u32,
-        depth_difference_threshold: isize,
-    ) -> Self {
-        let closing_count = closing_mask.count_ones() as isize;
-        if depth_difference_threshold > closing_count {
-            // Depth is guaranteed to not go below within the block.
-            Self {
-                opening_mask,
-                closing_mask,
-                event_mask: colon_mask,
-            }
-        } else {
-            // Depth may go below within the block.
-            Self {
-                opening_mask,
-                closing_mask,
-                event_mask: closing_mask | colon_mask,
-            }
+    pub fn new(block: &'a [u8], structural_mask: u32) -> Self {
+        Self {
+            block,
+            structural_mask,
         }
     }
 
     #[inline(always)]
     pub fn poll(&mut self) -> Option<BlockEvent> {
         use BlockEvent::*;
-        let next_event_idx = self.event_mask.trailing_zeros();
+        let next_event_idx = self.structural_mask.trailing_zeros();
 
         if next_event_idx == 32 {
             return None;
@@ -135,31 +118,16 @@ impl BlockEventSource {
 
         let bit_mask = 1 << next_event_idx;
 
-        self.event_mask ^= bit_mask;
+        self.structural_mask ^= bit_mask;
 
-        let event = if self.closing_mask & bit_mask != 0 {
-            Closing(next_event_idx as usize)
-        } else {
-            Colon(next_event_idx as usize)
+        let idx = next_event_idx as usize;
+        let event = match self.block[idx] {
+            b']' | b'}' => Closing(idx),
+            b'[' | b'{' => Opening(idx),
+            _ => Colon(idx),
         };
 
         Some(event)
-    }
-
-    #[inline(always)]
-    pub fn depth_at_index(&self, idx: usize) -> isize {
-        use crate::bytes::simd::BLOCK_SIZE;
-        let rev_idx = BLOCK_SIZE - idx - 1;
-
-        let depth = ((self.opening_mask << rev_idx).count_ones() as i32)
-            - ((self.closing_mask << rev_idx).count_ones() as i32);
-        depth as isize
-    }
-
-    #[inline(always)]
-    pub fn depth_at_end(&self) -> isize {
-        use crate::bytes::simd::BLOCK_SIZE;
-        self.depth_at_index(BLOCK_SIZE - 1)
     }
 }
 
@@ -175,7 +143,6 @@ unsafe fn custom_automaton3(labels: &[&Label], bytes: &AlignedBytes<alignment::P
     #[cfg(target_arch = "x86_64")]
     use core::arch::x86_64::*;
     debug_assert_eq!(labels.len(), 3usize);
-    
     let mut depth: isize = 0;
     let mut state: u8 = 0;
     let mut count: usize = 0;
@@ -184,26 +151,14 @@ unsafe fn custom_automaton3(labels: &[&Label], bytes: &AlignedBytes<alignment::P
     let mut offset = 0usize;
 
     let lower_nibble_mask_array: [u8; 32] = [
-        0, 0, 0, 0,
-        0, 0, 0, 0,
-        0, 0, 0x20, 0x80,
-        0, 0x40, 0, 0,
-        
-        0, 0, 0, 0,
-        0, 0, 0, 0,
-        0, 0, 0x20, 0x80,
-        0, 0x40, 0, 0,
-    ];    
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x02, 0x00, 0x02, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x02, 0x00, 0x02,
+        0x00, 0x00,
+    ];
     let upper_nibble_mask_array: [u8; 32] = [
-        0, 0, 0, 0x20,
-        0, 0xc0, 0, 0xc0,
-        0, 0, 0, 0,
-        0, 0, 0, 0,
-        
-        0, 0, 0, 0x20,
-        0, 0xc0, 0, 0xc0,
-        0, 0, 0, 0,
-        0, 0, 0, 0,
+        0xFF, 0xFF, 0xFF, 0x01, 0xFF, 0x02, 0xFF, 0x02, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+        0xFF, 0xFF, 0xFF, 0xFF, 0x01, 0xFF, 0x02, 0xFF, 0x02, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+        0xFF, 0xFF,
     ];
 
     let lower_nibble_mask = _mm256_loadu_si256(lower_nibble_mask_array.as_ptr() as *const __m256i);
@@ -214,32 +169,25 @@ unsafe fn custom_automaton3(labels: &[&Label], bytes: &AlignedBytes<alignment::P
     while !block.is_empty() {
         let byte_vector = _mm256_load_si256(block.as_ptr() as *const __m256i);
         let shifted_byte_vector = _mm256_srli_epi16::<4>(byte_vector);
-        let upper_nibble_byte_vector = _mm256_and_si256(shifted_byte_vector, upper_nibble_zeroing_mask);
+        let upper_nibble_byte_vector =
+            _mm256_and_si256(shifted_byte_vector, upper_nibble_zeroing_mask);
         let lower_nibble_lookup = _mm256_shuffle_epi8(lower_nibble_mask, byte_vector);
         let upper_nibble_lookup = _mm256_shuffle_epi8(upper_nibble_mask, upper_nibble_byte_vector);
-        let classification = _mm256_and_si256(lower_nibble_lookup, upper_nibble_lookup);
-        let opening_mask = _mm256_movemask_epi8(classification) as u32;
-        let closing_mask = _mm256_movemask_epi8(_mm256_slli_epi16::<1>(classification)) as u32;
-        let colon_mask = _mm256_movemask_epi8(_mm256_slli_epi16::<2>(classification)) as u32;
+        let structural = _mm256_cmpeq_epi8(lower_nibble_lookup, upper_nibble_lookup);
+        let structural_mask = _mm256_movemask_epi8(structural) as u32;
 
-        let depth_difference_threshold = match state {
-            0 => isize::MIN,
-            1 => depth - regs[0],
-            2 => depth - regs[1],
-            _ => unreachable!(),
-        };
-        let mut block_event_source = BlockEventSource::new(
-            opening_mask,
-            closing_mask,
-            colon_mask,
-            depth_difference_threshold,
-        );
+        let mut block_event_source = BlockEventSource::new(block, structural_mask);
 
         while let Some(event) = block_event_source.poll() {
             match state {
-                0 => {
-                    // Depth is irrelevant.
-                    if let BlockEvent::Colon(idx) = event {
+                0 => match event {
+                    BlockEvent::Closing(_) => {
+                        depth -= 1;
+                    }
+                    BlockEvent::Opening(_) => {
+                        depth += 1;
+                    }
+                    BlockEvent::Colon(idx) => {
                         let len = labels[0].len();
                         if offset + idx >= len + 2 {
                             let opening_quote_idx = offset + idx - len - 2;
@@ -247,17 +195,20 @@ unsafe fn custom_automaton3(labels: &[&Label], bytes: &AlignedBytes<alignment::P
 
                             if slice == labels[0].bytes_with_quotes() {
                                 state = 1;
-                                regs[0] = depth + block_event_source.depth_at_index(idx);
+                                regs[0] = depth;
                             }
                         }
                     }
-                }
+                },
                 1 => match event {
-                    BlockEvent::Closing(idx) => {
-                        let actual_depth = depth + block_event_source.depth_at_index(idx);
-                        if actual_depth <= regs[0] {
+                    BlockEvent::Closing(_) => {
+                        depth -= 1;
+                        if depth <= regs[0] {
                             state = 0;
                         }
+                    }
+                    BlockEvent::Opening(_) => {
+                        depth += 1;
                     }
                     BlockEvent::Colon(idx) => {
                         let len = labels[1].len();
@@ -267,17 +218,20 @@ unsafe fn custom_automaton3(labels: &[&Label], bytes: &AlignedBytes<alignment::P
 
                             if slice == labels[1].bytes_with_quotes() {
                                 state = 2;
-                                regs[1] = depth + block_event_source.depth_at_index(idx);
+                                regs[1] = depth;
                             }
                         }
                     }
                 },
                 2 => match event {
-                    BlockEvent::Closing(idx) => {
-                        let actual_depth = depth + block_event_source.depth_at_index(idx);
-                        if actual_depth <= regs[1] {
+                    BlockEvent::Closing(_) => {
+                        depth -= 1;
+                        if depth <= regs[1] {
                             state = 1;
                         }
+                    }
+                    BlockEvent::Opening(_) => {
+                        depth += 1;
                     }
                     BlockEvent::Colon(idx) => {
                         let len = labels[2].len();
@@ -295,7 +249,6 @@ unsafe fn custom_automaton3(labels: &[&Label], bytes: &AlignedBytes<alignment::P
             }
         }
 
-        depth += block_event_source.depth_at_end();
         block = &block[BLOCK_SIZE..];
         offset += BLOCK_SIZE;
     }
