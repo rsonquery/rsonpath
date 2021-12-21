@@ -91,7 +91,7 @@ enum BlockEvent {
 ))]
 struct BlockEventSource<'a> {
     block: &'a [u8],
-    structural_mask: u32,
+    structural_mask: u64,
 }
 
 #[cfg(all(
@@ -100,7 +100,7 @@ struct BlockEventSource<'a> {
 ))]
 impl<'a> BlockEventSource<'a> {
     #[inline(always)]
-    pub fn new(block: &'a [u8], structural_mask: u32) -> Self {
+    pub fn new(block: &'a [u8], structural_mask: u64) -> Self {
         Self {
             block,
             structural_mask,
@@ -112,7 +112,7 @@ impl<'a> BlockEventSource<'a> {
         use BlockEvent::*;
         let next_event_idx = self.structural_mask.trailing_zeros();
 
-        if next_event_idx == 32 {
+        if next_event_idx == 64 {
             return None;
         }
 
@@ -167,14 +167,24 @@ unsafe fn custom_automaton3(labels: &[&Label], bytes: &AlignedBytes<alignment::P
     let upper_nibble_zeroing_mask = _mm256_set1_epi8(0x0F);
 
     while !block.is_empty() {
-        let byte_vector = _mm256_load_si256(block.as_ptr() as *const __m256i);
-        let shifted_byte_vector = _mm256_srli_epi16::<4>(byte_vector);
-        let upper_nibble_byte_vector =
-            _mm256_and_si256(shifted_byte_vector, upper_nibble_zeroing_mask);
-        let lower_nibble_lookup = _mm256_shuffle_epi8(lower_nibble_mask, byte_vector);
-        let upper_nibble_lookup = _mm256_shuffle_epi8(upper_nibble_mask, upper_nibble_byte_vector);
-        let structural = _mm256_cmpeq_epi8(lower_nibble_lookup, upper_nibble_lookup);
-        let structural_mask = _mm256_movemask_epi8(structural) as u32;
+        let byte_vector1 = _mm256_load_si256(block.as_ptr() as *const __m256i);
+        let byte_vector2 = _mm256_load_si256(block[BLOCK_SIZE..].as_ptr() as *const __m256i);
+        let shifted_byte_vector1 = _mm256_srli_epi16::<4>(byte_vector1);
+        let shifted_byte_vector2 = _mm256_srli_epi16::<4>(byte_vector2);
+        let upper_nibble_byte_vector1 =
+            _mm256_and_si256(shifted_byte_vector1, upper_nibble_zeroing_mask);
+        let upper_nibble_byte_vector2 =
+            _mm256_and_si256(shifted_byte_vector2, upper_nibble_zeroing_mask);
+        let lower_nibble_lookup1 = _mm256_shuffle_epi8(lower_nibble_mask, byte_vector1);
+        let lower_nibble_lookup2 = _mm256_shuffle_epi8(lower_nibble_mask, byte_vector2);
+        let upper_nibble_lookup1 = _mm256_shuffle_epi8(upper_nibble_mask, upper_nibble_byte_vector1);
+        let upper_nibble_lookup2 = _mm256_shuffle_epi8(upper_nibble_mask, upper_nibble_byte_vector2);
+        let structural1 = _mm256_cmpeq_epi8(lower_nibble_lookup1, upper_nibble_lookup1);
+        let structural2 = _mm256_cmpeq_epi8(lower_nibble_lookup2, upper_nibble_lookup2);
+        let structural_mask1 = _mm256_movemask_epi8(structural1) as u32;
+        let structural_mask2 = _mm256_movemask_epi8(structural2) as u32;
+
+        let structural_mask = (structural_mask1 as u64) | ((structural_mask2 as u64) << 32);
 
         let mut block_event_source = BlockEventSource::new(block, structural_mask);
 
@@ -249,8 +259,8 @@ unsafe fn custom_automaton3(labels: &[&Label], bytes: &AlignedBytes<alignment::P
             }
         }
 
-        block = &block[BLOCK_SIZE..];
-        offset += BLOCK_SIZE;
+        block = &block[2 * BLOCK_SIZE..];
+        offset += 2 * BLOCK_SIZE;
     }
     count
 }

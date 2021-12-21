@@ -32,14 +32,15 @@ impl Input {
         #[cfg(not(feature = "nosimd"))]
         {
             use crate::bytes::simd::BLOCK_SIZE;
+            const TWO_BLOCKS_SIZE : usize = 2 * BLOCK_SIZE;
             let mut contents = src;
-            let rem = contents.len() % BLOCK_SIZE;
-            let pad = if rem == 0 { 0 } else { BLOCK_SIZE - rem };
+            let rem = contents.len() % TWO_BLOCKS_SIZE;
+            let pad = if rem == 0 { 0 } else { TWO_BLOCKS_SIZE - rem };
 
-            let extension = std::iter::repeat('\0').take(pad + BLOCK_SIZE);
+            let extension = std::iter::repeat('\0').take(pad + TWO_BLOCKS_SIZE);
             contents.extend(extension);
 
-            debug_assert_eq!(contents.len() % BLOCK_SIZE, 0);
+            debug_assert_eq!(contents.len() % TWO_BLOCKS_SIZE, 0);
 
             Self {
                 bytes: AlignedBytes::<alignment::Page>::from(contents.as_ref()),
