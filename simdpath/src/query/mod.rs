@@ -36,6 +36,21 @@ mod parser;
 use crate::bytes::align::{alignment, Aligned, AlignedBytes};
 use std::fmt::{self, Display};
 
+/// Label to search for in a JSON document.
+///
+/// Represents the bytes defining a label/key in a JSON object
+/// that can be matched against when executing a query.
+///
+/// # Examples
+///
+/// ```
+/// # use simdpath::query::Label;
+///
+/// let label = Label::new("needle".as_bytes());
+///
+/// assert_eq!(label.bytes(), "needle".as_bytes());
+/// assert_eq!(label.bytes_with_quotes(), "\"needle\"".as_bytes());
+/// ```
 #[derive(Debug)]
 pub struct Label {
     label: AlignedBytes<alignment::Block>,
@@ -43,6 +58,7 @@ pub struct Label {
 }
 
 impl Label {
+    /// Create a new label from its raw bytes.
     pub fn new(label: &[u8]) -> Self {
         let without_quotes = AlignedBytes::<alignment::Block>::from(label);
         let mut with_quotes = AlignedBytes::<alignment::Block>::new(label.len() + 2);
@@ -56,10 +72,13 @@ impl Label {
         }
     }
 
+    /// Return the raw bytes of the label, guaranteed to be block-aligned.
     pub fn bytes(&self) -> &AlignedBytes<alignment::Block> {
         &self.label
     }
 
+    /// Return the bytes representing the label with a leading and trailing
+    /// double quote symbol `"`, guaranteed to be block-aligned.
     pub fn bytes_with_quotes(&self) -> &AlignedBytes<alignment::Block> {
         &self.label_with_quotes
     }

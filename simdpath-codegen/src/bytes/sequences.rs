@@ -36,6 +36,41 @@ pub fn get_mod_source() -> TokenStream {
             #find_byte_sequence_sources
             #find_long_byte_sequence_source
 
+            /// Find the frist occurence of any of the continuous byte sequences in `sequences` in the slice,
+            /// if it exists.
+            ///
+            /// The first element of the tuple is the starting index of the found sequence in the
+            /// `bytes` slice, while the second element discriminates which sequence was found. In
+            /// other words, result `Some(i, j)` indicates that the sequence `sequences[j]` was found
+            /// in `bytes` starting at index `i`.
+            ///
+            /// This is a SIMD version, if the target CPU is not x86/x86_64 or does not
+            /// support AVX2 this will fallback to [`nosimd::find_byte_sequence`].
+            /// # Examples
+            /// ```
+            /// # use simdpath::bytes::nosimd::find_any_of_sequences;
+            /// let bytes = "abcdefgh".as_bytes();
+            /// let sequences = ["fg".as_bytes(), "de".as_bytes()];
+            /// let result = find_any_of_sequences(&sequences, bytes);
+            ///
+            /// assert_eq!(result, Some((3, 1)));
+            /// ```
+            /// ```
+            /// # use simdpath::bytes::nosimd::find_any_of_sequences;
+            /// let bytes = "abcdefgh".as_bytes();
+            /// let sequences = ["fg".as_bytes(), "ed".as_bytes()];
+            /// let result = find_any_of_sequences(&sequences, bytes);
+            ///
+            /// assert_eq!(result, Some((5, 0)));
+            /// ```
+            /// ```
+            /// # use simdpath::bytes::nosimd::find_any_of_sequences;
+            /// let bytes = "abcdefgh".as_bytes();
+            /// let sequences = ["gf".as_bytes(), "ed".as_bytes()];
+            /// let result = find_any_of_sequences(&sequences, bytes);
+            ///
+            /// assert_eq!(result, None);
+            /// ```
             #[inline]
             pub fn find_any_of_sequences(sequences: &[&[u8]], bytes: &[u8]) -> Option<(usize, usize)> {
                 #[cfg(target_feature = "avx2")]
@@ -157,10 +192,11 @@ fn get_nosimd_find_byte_sequence_source() -> TokenStream {
     });
 
     quote! {
-        ///  Find the first occurence of a continuous byte sequence in the slice, if it exists.
+        /// Find the first occurence of a continuous byte sequence in the slice, if it exists.
         ///
         /// This is a sequential, no-SIMD version. For big slices it is recommended to use
         /// the [`simd::find_byte_sequence`](`super::simd::find_byte_sequence`) variant for better performance.
+        ///
         /// # Examples
         /// ```
         /// # use simdpath::bytes::nosimd::find_byte_sequence;
@@ -188,6 +224,42 @@ fn get_nosimd_find_byte_sequence_source() -> TokenStream {
             }
         }
 
+        /// Find the frist occurence of any of the continuous byte sequences in `sequences` in the slice,
+        /// if it exists.
+        ///
+        /// The first element of the tuple is the starting index of the found sequence in the
+        /// `bytes` slice, while the second element discriminates which sequence was found. In
+        /// other words, result `Some(i, j)` indicates that the sequence `sequences[j]` was found
+        /// in `bytes` starting at index `i`.
+        ///
+        /// This is a sequential, no-SIMD version. For big slices it is recommended to use
+        /// the [`simd::find_any_of_sequences`](`super::simd::find_any_of_sequences`) variant for better performance.
+        ///
+        /// # Examples
+        /// ```
+        /// # use simdpath::bytes::nosimd::find_any_of_sequences;
+        /// let bytes = "abcdefgh".as_bytes();
+        /// let sequences = ["fg".as_bytes(), "de".as_bytes()];
+        /// let result = find_any_of_sequences(&sequences, bytes);
+        ///
+        /// assert_eq!(result, Some((3, 1)));
+        /// ```
+        /// ```
+        /// # use simdpath::bytes::nosimd::find_any_of_sequences;
+        /// let bytes = "abcdefgh".as_bytes();
+        /// let sequences = ["fg".as_bytes(), "ed".as_bytes()];
+        /// let result = find_any_of_sequences(&sequences, bytes);
+        ///
+        /// assert_eq!(result, Some((5, 0)));
+        /// ```
+        /// ```
+        /// # use simdpath::bytes::nosimd::find_any_of_sequences;
+        /// let bytes = "abcdefgh".as_bytes();
+        /// let sequences = ["gf".as_bytes(), "ed".as_bytes()];
+        /// let result = find_any_of_sequences(&sequences, bytes);
+        ///
+        /// assert_eq!(result, None);
+        /// ```
         #[inline]
         pub fn find_any_of_sequences(sequences: &[&[u8]], bytes: &[u8]) -> Option<(usize, usize)> {
             let mut i = 0;
