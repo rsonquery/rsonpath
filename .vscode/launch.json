@@ -70,6 +70,25 @@
             },
             "args": [],
             "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration tests in 'count_correctness_test'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--package=simdpath",
+                    "--test=count_correctness_test"
+                ],
+                "filter": {
+                    "name": "count_correctness_test",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}/simdpath"
         }
     ]
 }

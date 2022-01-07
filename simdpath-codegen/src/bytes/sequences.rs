@@ -1,7 +1,6 @@
 //! Code generation for `simdpath::stackless::sequences`.
 //!
 //! Used by the `build.rs` script to generate the `find_byte_sequenceN` functions.
-//! functions.
 
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
@@ -36,6 +35,94 @@ pub fn get_mod_source() -> TokenStream {
             #find_byte_sequence_dispatch_source
             #find_byte_sequence_sources
             #find_long_byte_sequence_source
+
+            /// Find the frist occurence of any of the continuous byte sequences in `sequences` in the slice,
+            /// if it exists.
+            ///
+            /// The first element of the tuple is the starting index of the found sequence in the
+            /// `bytes` slice, while the second element discriminates which sequence was found. In
+            /// other words, result `Some(i, j)` indicates that the sequence `sequences[j]` was found
+            /// in `bytes` starting at index `i`.
+            ///
+            /// This is a SIMD version, if the target CPU is not x86/x86_64 or does not
+            /// support AVX2 this will fallback to [`nosimd::find_byte_sequence`].
+            /// # Examples
+            /// ```
+            /// # use simdpath::bytes::nosimd::find_any_of_sequences;
+            /// let bytes = "abcdefgh".as_bytes();
+            /// let sequences = ["fg".as_bytes(), "de".as_bytes()];
+            /// let result = find_any_of_sequences(&sequences, bytes);
+            ///
+            /// assert_eq!(result, Some((3, 1)));
+            /// ```
+            /// ```
+            /// # use simdpath::bytes::nosimd::find_any_of_sequences;
+            /// let bytes = "abcdefgh".as_bytes();
+            /// let sequences = ["fg".as_bytes(), "ed".as_bytes()];
+            /// let result = find_any_of_sequences(&sequences, bytes);
+            ///
+            /// assert_eq!(result, Some((5, 0)));
+            /// ```
+            /// ```
+            /// # use simdpath::bytes::nosimd::find_any_of_sequences;
+            /// let bytes = "abcdefgh".as_bytes();
+            /// let sequences = ["gf".as_bytes(), "ed".as_bytes()];
+            /// let result = find_any_of_sequences(&sequences, bytes);
+            ///
+            /// assert_eq!(result, None);
+            /// ```
+            #[inline]
+            pub fn find_any_of_sequences(sequences: &[&[u8]], bytes: &[u8]) -> Option<(usize, usize)> {
+                #[cfg(target_feature = "avx2")]
+                unsafe {
+                    use crate::bytes::simd::BLOCK_SIZE;
+                    assert!(sequences.len() <= BLOCK_SIZE);
+
+                    let prefix_len = BLOCK_SIZE / sequences.len();
+                    debug_assert!(prefix_len > 0);
+
+                    let mut sequence_buffer = [0u8; 32];
+                    for (i, sequence) in sequences.iter().enumerate() {
+                        let len = std::cmp::min(sequence.len(), 4);
+                        (&mut sequence_buffer[4 * i..4 * i + len]).clone_from_slice(&sequence[..len]);
+                    }
+
+                    let sequence_vector = _mm256_loadu_si256(sequence_buffer.as_ptr() as *const __m256i);
+                    let zeros = _mm256_set1_epi8(0);
+                    let sequence_nonzero_vector = _mm256_cmpgt_epi8(sequence_vector, zeros);
+                    let sequence_absence_mask: u32 = if sequences.len() == 8 {0xFFFFFFFF} else {!(0xFFFFFFFF << (4 * sequences.len()))};
+
+                    let mut bytes = bytes;
+                    let mut i = 0;
+
+                    while bytes.len() >= 4 {
+                        let first_four = &bytes[..4];
+                        let first_four_as_int = i32::from_ne_bytes(first_four.try_into().unwrap());
+                        let vector = _mm256_set1_epi32(first_four_as_int);
+                        let vector_on_nonzero = _mm256_and_si256(vector, sequence_nonzero_vector);
+                        let cmp = _mm256_cmpeq_epi32(vector_on_nonzero, sequence_vector);
+                        let cmp_mask = _mm256_movemask_epi8(cmp) as u32;
+                        let cmp_mask_existing = cmp_mask & sequence_absence_mask;
+
+                        let mut remaining_mask = cmp_mask_existing;
+                        while remaining_mask != 0 {
+                            let candidate_bit = remaining_mask.trailing_zeros() as usize;
+                            let candidate = candidate_bit / 4;
+                            let len = std::cmp::min(4, sequences[candidate].len());
+                            if bytes[len..].starts_with(&sequences[candidate][len..]) {
+                                return Some((i, candidate));
+                            }
+                            remaining_mask ^= 1 << candidate_bit;
+                        }
+
+                        bytes = &bytes[1..];
+                        i += 1;
+                    }
+                    nosimd::find_any_of_sequences(sequences, bytes)
+                }
+                #[cfg(not(target_feature = "avx2"))]
+                nosimd::find_any_of_sequences(sequences, bytes)
+            }
         }
     }
 }
@@ -105,10 +192,11 @@ fn get_nosimd_find_byte_sequence_source() -> TokenStream {
     });
 
     quote! {
-        ///  Find the first occurence of a continuous byte sequence in the slice, if it exists.
+        /// Find the first occurence of a continuous byte sequence in the slice, if it exists.
         ///
         /// This is a sequential, no-SIMD version. For big slices it is recommended to use
-        /// the [`simd`](super::simd) module variant for better performance.
+        /// the [`simd::find_byte_sequence`](`super::simd::find_byte_sequence`) variant for better performance.
+        ///
         /// # Examples
         /// ```
         /// # use simdpath::bytes::nosimd::find_byte_sequence;
@@ -134,6 +222,59 @@ fn get_nosimd_find_byte_sequence_source() -> TokenStream {
                 #(#match_body,)*
                 _ => bytes.windows(sequence.len()).position(|x| x == sequence)
             }
+        }
+
+        /// Find the frist occurence of any of the continuous byte sequences in `sequences` in the slice,
+        /// if it exists.
+        ///
+        /// The first element of the tuple is the starting index of the found sequence in the
+        /// `bytes` slice, while the second element discriminates which sequence was found. In
+        /// other words, result `Some(i, j)` indicates that the sequence `sequences[j]` was found
+        /// in `bytes` starting at index `i`.
+        ///
+        /// This is a sequential, no-SIMD version. For big slices it is recommended to use
+        /// the [`simd::find_any_of_sequences`](`super::simd::find_any_of_sequences`) variant for better performance.
+        ///
+        /// # Examples
+        /// ```
+        /// # use simdpath::bytes::nosimd::find_any_of_sequences;
+        /// let bytes = "abcdefgh".as_bytes();
+        /// let sequences = ["fg".as_bytes(), "de".as_bytes()];
+        /// let result = find_any_of_sequences(&sequences, bytes);
+        ///
+        /// assert_eq!(result, Some((3, 1)));
+        /// ```
+        /// ```
+        /// # use simdpath::bytes::nosimd::find_any_of_sequences;
+        /// let bytes = "abcdefgh".as_bytes();
+        /// let sequences = ["fg".as_bytes(), "ed".as_bytes()];
+        /// let result = find_any_of_sequences(&sequences, bytes);
+        ///
+        /// assert_eq!(result, Some((5, 0)));
+        /// ```
+        /// ```
+        /// # use simdpath::bytes::nosimd::find_any_of_sequences;
+        /// let bytes = "abcdefgh".as_bytes();
+        /// let sequences = ["gf".as_bytes(), "ed".as_bytes()];
+        /// let result = find_any_of_sequences(&sequences, bytes);
+        ///
+        /// assert_eq!(result, None);
+        /// ```
+        #[inline]
+        pub fn find_any_of_sequences(sequences: &[&[u8]], bytes: &[u8]) -> Option<(usize, usize)> {
+            let mut i = 0;
+            let mut bytes = bytes;
+
+            while !bytes.is_empty() {
+                for (j, sequence) in sequences.iter().enumerate() {
+                    if bytes.starts_with(sequence) {
+                        return Some((i, j));
+                    }
+                }
+                i += 1;
+                bytes = &bytes[1..];
+            }
+            None
         }
     }
 }
@@ -175,10 +316,20 @@ fn get_find_byte_sequence_source(n: usize) -> TokenStream {
         let cmp_mask_next_block_ident = &cmp_mask_next_block_idents[i];
         let cmp_mask_ident = &cmp_mask_idents[i];
 
+        let mask_computation = if i > 0 {
+            quote! {
+                let #cmp_mask_ident = ((#cmp_mask_first_block_ident as u64) | ((#cmp_mask_next_block_ident as u64) << 32)) >> #i;
+            }
+        } else {
+            quote! {
+                let #cmp_mask_ident = (#cmp_mask_first_block_ident as u64) | ((#cmp_mask_next_block_ident as u64) << 32);
+            }
+        };
+
         quote! {
             let #cmp_mask_next_block_vector_ident = _mm256_cmpeq_epi8(next_block, #mask_ident);
             let #cmp_mask_next_block_ident = _mm256_movemask_epi8(#cmp_mask_next_block_vector_ident) as u32;
-            let #cmp_mask_ident = ((#cmp_mask_first_block_ident as u64) | ((#cmp_mask_next_block_ident as u64) << 32)) >> #i;
+            #mask_computation
         }
     });
 

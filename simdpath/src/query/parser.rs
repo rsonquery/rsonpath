@@ -1,4 +1,4 @@
-use crate::query::{JsonPathQuery, JsonPathQueryNode};
+use crate::query::{JsonPathQuery, JsonPathQueryNode, Label};
 use nom::{
     branch::*,
     bytes::complete::*,
@@ -15,7 +15,7 @@ enum Token<'a> {
     Label(&'a [u8]),
 }
 
-pub fn parse_json_path_query(query_string: &str) -> Result<JsonPathQuery<'_>, String> {
+pub fn parse_json_path_query(query_string: &str) -> Result<JsonPathQuery, String> {
     let tokens_result = many0(json_path_query_node())(query_string.as_bytes());
     let finished = tokens_result.finish();
     match finished {
@@ -42,7 +42,7 @@ pub fn parse_json_path_query(query_string: &str) -> Result<JsonPathQuery<'_>, St
 
 fn tokens_to_node<'a, I: Iterator<Item = Token<'a>>>(
     tokens: &mut I,
-) -> Result<Option<JsonPathQueryNode<'a>>, String> {
+) -> Result<Option<JsonPathQueryNode>, String> {
     let token = tokens.next();
 
     if token.is_none() {
@@ -59,7 +59,10 @@ fn tokens_to_node<'a, I: Iterator<Item = Token<'a>>>(
             })?;
             Ok(Some(JsonPathQueryNode::Descendant(child_node)))
         }
-        Token::Label(label) => Ok(Some(JsonPathQueryNode::Label(label, child_node))),
+        Token::Label(label) => Ok(Some(JsonPathQueryNode::Label(
+            Label::new(label),
+            child_node,
+        ))),
     }
 }
 

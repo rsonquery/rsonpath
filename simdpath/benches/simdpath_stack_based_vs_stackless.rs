@@ -1,6 +1,6 @@
 use core::time::Duration;
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
-use simdpath::engine::Runner;
+use simdpath::engine::{Input, Runner};
 use simdpath::query::JsonPathQuery;
 use simdpath::stack_based::StackBasedRunner;
 use simdpath::stackless::StacklessRunner;
@@ -16,9 +16,10 @@ struct BenchmarkOptions<'a> {
     pub measurement_time: Duration,
 }
 
-fn get_contents(test_path: &str) -> String {
+fn get_contents(test_path: &str) -> Input {
     let path = format!("{}/{}", ROOT_TEST_DIRECTORY, test_path);
-    fs::read_to_string(path).unwrap()
+    let raw = fs::read_to_string(path).unwrap();
+    Input::new(raw)
 }
 
 fn simdpath_stack_based_vs_stackless(c: &mut Criterion, options: BenchmarkOptions<'_>) {
@@ -30,15 +31,16 @@ fn simdpath_stack_based_vs_stackless(c: &mut Criterion, options: BenchmarkOption
     group.measurement_time(options.measurement_time);
 
     group.bench_with_input(
-        BenchmarkId::new("stack-based", options.id),
-        &(&query, &contents),
-        |b, (q, c)| b.iter(|| StackBasedRunner::compile_query(q).count_utf8(c)),
-    );
-    group.bench_with_input(
         BenchmarkId::new("stackless", options.id),
         &(&query, &contents),
-        |b, (q, c)| b.iter(|| StacklessRunner::compile_query(q).count_utf8(c)),
+        |b, (q, c)| b.iter(|| StacklessRunner::compile_query(q).count(c)),
     );
+    group.bench_with_input(
+        BenchmarkId::new("stack-based", options.id),
+        &(&query, &contents),
+        |b, (q, c)| b.iter(|| StackBasedRunner::compile_query(q).count(c)),
+    );
+
     group.finish();
 }
 
