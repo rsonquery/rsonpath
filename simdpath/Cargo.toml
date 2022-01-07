@@ -43,10 +43,6 @@ name = "find_byte_sequence_benches"
 harness = false
 
 [[bench]]
-name = "find_byte_benches"
-harness = false
-
-[[bench]]
 name = "depth_benches"
 harness = false
 
