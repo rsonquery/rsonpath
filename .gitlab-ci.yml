@@ -9,5 +9,6 @@ rust-latest:
   image: rust:latest
   script:
     - RUSTFLAGS="--deny warnings" cargo build --verbose
+    - cargo clippy -- --deny warnings
     - cargo test --verbose
     - cargo test --verbose --features nosimd
