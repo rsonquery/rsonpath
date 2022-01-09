@@ -11,7 +11,7 @@
 //! SIMD mode, but this can be changed by enabling the feature `nosimd`.
 
 pub mod align;
-pub mod classify;
+mod classify;
 mod depth;
 mod sequences;
 
@@ -147,15 +147,16 @@ pub fn find_unescaped_byte2(byte1: u8, byte2: u8, slice: &[u8]) -> Option<usize>
 
 #[inline(always)]
 fn is_escaped(idx: usize, slice: &[u8]) -> bool {
-    let mut k = 1;
-    let mut parity = true;
-
-    while idx >= k && slice[idx - k] == b'\\' {
-        k += 1;
-        parity = !parity;
+    if idx == 0 {
+        return false;
     }
-
-    !parity
+    slice[..idx]
+        .iter()
+        .rev()
+        .take_while(|&&x| x == b'\\')
+        .count()
+        % 2
+        != 0
 }
 
 /// Find the first occurence of a non-whitespace byte in the slice, if it exists.
@@ -164,11 +165,17 @@ fn is_escaped(idx: usize, slice: &[u8]) -> bool {
 /// characters, so the next non-whitespace byte is simply the next byte.
 #[inline(always)]
 pub fn find_non_whitespace(slice: &[u8]) -> Option<usize> {
-    if slice.is_empty() {
-        None
-    } else {
-        Some(0)
+    // Insignificant whitespace in JSON:
+    // https://datatracker.ietf.org/doc/html/rfc4627#section-2
+    const WHITESPACES: [u8; 4] = [b' ', b'\n', b'\t', b'\r'];
+    let mut i = 0;
+    while i < slice.len() {
+        if !WHITESPACES.contains(&slice[i]) {
+            return Some(i);
+        }
+        i += 1;
     }
+    None
 }
 
 /// Sequential byte utilities _not_ utlizing SIMD.
@@ -176,6 +183,8 @@ pub fn find_non_whitespace(slice: &[u8]) -> Option<usize> {
 /// These are the default operations used when the `nosimd` feature is enabled,
 /// or AVX2 is not supported on the target CPU.
 pub mod nosimd {
+    #[doc(inline)]
+    pub use super::classify::nosimd::*;
     #[doc(inline)]
     pub use super::depth::nosimd as depth;
     #[doc(inline)]
@@ -241,6 +250,8 @@ pub mod nosimd {
 /// This module is not compiled if the `nosimd` feature is enabled.
 #[cfg(not(feature = "nosimd"))]
 pub mod simd {
+    #[doc(inline)]
+    pub use super::classify::simd::*;
     #[doc(inline)]
     pub use super::depth::simd as depth;
     #[doc(inline)]
@@ -364,5 +375,16 @@ mod tests {
     #[test_case(r#"text \n xxx yyyy \\\\\\\\\\\\n was unescaped"#, b'}', b'n' => Some(29); "when the backslash is escaped many times 2")]
     fn test_find_unescaped_byte2(string: &str, byte1: u8, byte2: u8) -> Option<usize> {
         find_unescaped_byte2(byte1, byte2, string.as_bytes())
+    }
+
+    #[test_case("" => None; "when there are no bytes")]
+    #[test_case("x" => Some(0); "when there is only one non whitespace byte")]
+    #[test_case(" \t\n\r  \t  \n\t  \r \n\r  x" => Some(19); "when there is leading whitespace")]
+    #[test_case("\u{000b}" => Some(0); "does not treat U+000B VERTICAL TAB as whitespace")]
+    #[test_case("\u{000c}" => Some(0); "does not treat U+000C FORM FEED as whitespace")]
+    #[test_case("\u{0085}" => Some(0); "does not treat U+0085 NEXT LINE as whitespace")]
+    #[test_case("\u{00A0}" => Some(0); "does not treat U+00A0 NO-BREAK SPACE as whitespace")]
+    fn test_find_non_whitespace(string: &str) -> Option<usize> {
+        find_non_whitespace(string.as_bytes())
     }
 }

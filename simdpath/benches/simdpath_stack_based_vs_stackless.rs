@@ -57,6 +57,19 @@ pub fn wikidata_combined(c: &mut Criterion) {
     );
 }
 
+pub fn wikidata_combined_with_whitespace(c: &mut Criterion) {
+    simdpath_stack_based_vs_stackless(
+        c,
+        BenchmarkOptions {
+            path: "wikidata_prettified/wikidata_combined.json",
+            query_string: "$..claims..references..hash",
+            id: "wikidata_combined",
+            warm_up_time: Duration::from_secs(10),
+            measurement_time: Duration::from_secs(40),
+        },
+    );
+}
+
 pub fn wikidata_person(c: &mut Criterion) {
     simdpath_stack_based_vs_stackless(
         c,
@@ -99,6 +112,7 @@ pub fn wikidata_properties(c: &mut Criterion) {
 criterion_group!(
     benches,
     wikidata_combined,
+    wikidata_combined_with_whitespace,
     wikidata_person,
     wikidata_profession,
     wikidata_properties,

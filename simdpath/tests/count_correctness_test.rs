@@ -15,47 +15,49 @@ fn get_contents(test_path: &str) -> Input {
 
 macro_rules! test_cases {
     ($testname:ident, $impl:ident) => {
-        #[test_case("basic_compressed/small_no_list.json", "$..person..phoneNumber..number" => 2; "small_no_list.json")]
-        #[test_case("basic_compressed/small.json", "$..person..phoneNumber..number" => 4; "small.json")]
-        #[test_case("basic_compressed/twitter.json", "$..user..entities..url" => 44; "twitter.json")]
+        #[test_case("basic/small_no_list.json", "$..person..phoneNumber..number" => 2; "small_no_list.json $..person..phoneNumber..number")]
+        #[test_case("basic/small.json", "$..person..phoneNumber..number" => 4; "small.json $..person..phoneNumber..number")]
+        #[test_case("basic/twitter.json", "$..user..entities..url" => 44; "twitter.json $..user..entities..url")]
+        #[test_case("basic/escapes.json", r#"$..a..b..['label\\']"# => 1; "escapes.json existing label")]
+        #[test_case("basic/escapes.json", r#"$..a..b..['label\']"# => 0; "escapes.json nonexistant label")]
         #[test_case(
-            "wikidata_compressed/wikidata_person.json", "$..claims..references..hash" => 37736;
+            "wikidata/wikidata_person.json", "$..claims..references..hash" => 37736;
             "wikidata_person.json $..claims..references..hash"
         )]
         #[test_case(
-            "wikidata_compressed/wikidata_person.json", "$..references..snaks..datavalue" => 25118;
+            "wikidata/wikidata_person.json", "$..references..snaks..datavalue" => 25118;
             "wikidata_person.json $..references..snaks..datavalue"
         )]
         #[test_case(
-            "wikidata_compressed/wikidata_person.json", "$..references..snaks..datavalue..value" => 25118;
+            "wikidata/wikidata_person.json", "$..references..snaks..datavalue..value" => 25118;
             "wikidata_person.json $..references..snaks..datavalue..value"
         )]
         #[test_case(
-            "wikidata_compressed/wikidata_person.json", "$..references..snaks..datavalue..value..id" => 11113;
+            "wikidata/wikidata_person.json", "$..references..snaks..datavalue..value..id" => 11113;
             "wikidata_person.json $..references..snaks..datavalue..value..id"
         )]
         #[test_case(
-            "wikidata_compressed/wikidata_person.json", "$..snaks..datavalue..value" => 25118;
+            "wikidata/wikidata_person.json", "$..snaks..datavalue..value" => 25118;
             "wikidata_person.json $..snaks..datavalue..value"
         )]
         #[test_case(
-            "wikidata_compressed/wikidata_person.json", "$..datavalue..value..id" => 25093;
+            "wikidata/wikidata_person.json", "$..datavalue..value..id" => 25093;
             "wikidata_person.json $..datavalue..value..id"
         )]
         #[test_case(
-            "wikidata_compressed/wikidata_person.json", "$..mainsnak..datavalue..value" => 26115;
+            "wikidata/wikidata_person.json", "$..mainsnak..datavalue..value" => 26115;
             "wikidata_person.json $..mainsnak..datavalue..value"
         )]
         #[test_case(
-            "wikidata_compressed/wikidata_person.json", "$..mainsnak..datavalue..value..id" => 12958;
+            "wikidata/wikidata_person.json", "$..mainsnak..datavalue..value..id" => 12958;
             "wikidata_person.json $..mainsnak..datavalue..value..id"
         )]
         #[test_case(
-            "wikidata_compressed/wikidata_profession.json", "$..claims..mainsnak..value" => 59112;
+            "wikidata/wikidata_profession.json", "$..claims..mainsnak..value" => 59112;
             "wikidata_profession.json $..claims..mainsnak..value"
         )]
         #[test_case(
-            "wikidata_compressed/wikidata_properties.json", "$..qualifiers..datavalue..id" => 18219;
+            "wikidata/wikidata_properties.json", "$..qualifiers..datavalue..id" => 18219;
             "wikidata_properties.json $..qualifiers..datavalue..id"
         )]
         fn $testname(test_path: &str, query_string: &str) -> usize {

@@ -35,6 +35,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     let stackless_count = stackless_runner.count(&input);
     info!("Stackless count: {}", stackless_count.count);
 
+    if stack_based_count.count != stackless_count.count {
+        error!("Count mismatch!");
+        return Err("Count mismatch!".into());
+    }
+
+    println!("{}", stack_based_count.count);
+
     Ok(())
 }
 
