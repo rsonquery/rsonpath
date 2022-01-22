@@ -65,7 +65,7 @@ pub mod simd {
 
 pub mod nosimd {
     use super::*;
-    
+
     /// Calculate a bitmasks that marks all escaped, non-backslash characters
     /// with set bits.
     /// 
@@ -96,7 +96,7 @@ pub mod nosimd {
                 }
             };
         }
-        return result;
+        result
     }
 }
 
