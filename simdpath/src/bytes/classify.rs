@@ -8,6 +8,19 @@ pub mod simd {
     #[cfg(all(target_arch = "x86_64", target_feature = "avx2"))]
     use core::arch::x86_64::*;
 
+    /// Calculate a bitmasks that marks all escaped, non-backslash characters
+    /// with set bits.
+    /// 
+    /// # Examples
+    /// ```
+    /// # use simdpath::bytes::classify_escaped;
+    /// # use simdpath::bytes::align::{alignment, AlignedBytes};
+    /// let string = r#"abc \" \{ \} \\\" \\\\""#;
+    /// let bytes = AlignedBytes::<alignment::Block>::from(string.as_bytes());
+    /// let result = classify_escaped(&bytes);
+    /// 
+    /// assert_eq!(result, 0b10000100100100000);
+    /// ```
     #[inline(always)]
     pub fn classify_escaped(bytes: &AlignedBytes<alignment::Block>) -> u32 {
         #[cfg(target_feature = "avx2")]
@@ -52,7 +65,20 @@ pub mod simd {
 
 pub mod nosimd {
     use super::*;
-
+    
+    /// Calculate a bitmasks that marks all escaped, non-backslash characters
+    /// with set bits.
+    /// 
+    /// # Examples
+    /// ```
+    /// # use simdpath::bytes::classify_escaped;
+    /// # use simdpath::bytes::align::{alignment, AlignedBytes};
+    /// let string = r#"abc \" \{ \} \\\" \\\\""#;
+    /// let bytes = AlignedBytes::<alignment::Block>::from(string.as_bytes());
+    /// let result = classify_escaped(&bytes);
+    /// 
+    /// assert_eq!(result, 0b10000100100100000);
+    /// ```
     #[inline]
     pub fn classify_escaped(bytes: &AlignedBytes<alignment::Block>) -> u32 {
         let mut result = 0u32;

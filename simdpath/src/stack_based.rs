@@ -10,7 +10,6 @@ use crate::bytes;
 use crate::engine::result::CountResult;
 use crate::engine::{Input, Runner};
 use crate::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType};
-use log::*;
 
 /// Stack based runner for a fixed JSONPath query.
 ///
@@ -180,11 +179,6 @@ impl<'a, 'b> Runnable<'b> for RecursiveDescentState<'a, 'b> {
 
             if label == current_label {
                 if label_node.child().is_none() {
-                    //static mut COUNT: usize = 0;
-                    /*unsafe {
-                        COUNT += 1;
-                        //debug! {"Hit at {} left, {} count", bytes.len(), COUNT}
-                    }*/
                     count += 1;
                 }
                 match object_start_byte {
