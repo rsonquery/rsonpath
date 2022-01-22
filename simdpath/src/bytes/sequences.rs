@@ -12,6 +12,8 @@ mod tests {
     #[cfg(not(feature = "nosimd"))]
     use super::simd::*;
 
+    use test_case::test_case;
+
     static LONG_SEQUENCE: [u8; 128] = [
         1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
         26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48,
@@ -146,77 +148,33 @@ mod tests {
         }
     }
 
-    #[test]
-    fn find_any_of_sequences_correctness_1() {
-        let sequences = ["doggy".as_bytes(), "dog".as_bytes(), "cat".as_bytes()];
-        let contents = "Petting a doggy.";
-        let result = find_any_of_sequences(&sequences, contents.as_bytes());
-
-        assert_eq!(result, Some((10, 0)));
-    }
-
-    #[test]
-    fn find_any_of_sequences_correctness_2() {
-        let sequences = ["doggy".as_bytes(), "dog".as_bytes(), "cat".as_bytes()];
-        let contents = "Petting a dog.";
-        let result = find_any_of_sequences(&sequences, contents.as_bytes());
-
-        assert_eq!(result, Some((10, 1)));
-    }
-
-    #[test]
-    fn find_any_of_sequences_correctness_3() {
-        let sequences = ["doggy".as_bytes(), "dog".as_bytes(), "cat".as_bytes()];
-        let contents = "Scratched by a cat.";
-        let result = find_any_of_sequences(&sequences, contents.as_bytes());
-
-        assert_eq!(result, Some((15, 2)));
-    }
-    #[test]
-    fn find_any_of_sequences_correctness_4() {
-        let sequences = ["doggy".as_bytes(), "dog".as_bytes(), "cat".as_bytes()];
-        let contents = "I have no pets :(";
-        let result = find_any_of_sequences(&sequences, contents.as_bytes());
-
-        assert_eq!(result, None);
-    }
-
-    #[test]
-    fn find_any_of_sequences_long_sequence_correctness_1() {
-        let sequences = ["pretty long".as_bytes(), "pretty".as_bytes()];
-        let contents = "Very pretty, but not pretty long.";
-        let result = find_any_of_sequences(&sequences, contents.as_bytes());
-
-        assert_eq!(result, Some((5, 1)));
-    }
-
-    #[test]
-    fn find_any_of_sequences_long_sequence_correctness_2() {
-        let sequences = ["pretty long".as_bytes(), "pretty".as_bytes()];
-        let contents = "This sentence is not pretty long.";
-        let result = find_any_of_sequences(&sequences, contents.as_bytes());
-
-        assert_eq!(result, Some((21, 0)));
-    }
-
-    #[test]
-    fn find_any_of_sequences_eight_sequences_correctness() {
-        let sequences = [
-            "aaaaaaab".as_bytes(),
-            "aaaaaaac".as_bytes(),
-            "aaaaaaad".as_bytes(),
-            "aaaaaaae".as_bytes(),
-            "aaaaaaaf".as_bytes(),
-            "aaaaaaag".as_bytes(),
-            "aaaaaaah".as_bytes(),
-            "aaaaaaai".as_bytes(),
-        ];
-        let contents = std::iter::repeat(b'a')
-            .take(1024)
-            .chain(sequences[7].iter().copied())
-            .collect::<Vec<_>>();
-        let result = find_any_of_sequences(&sequences, &contents);
-
-        assert_eq!(result, Some((1024, 7)));
+    #[test_case(&["doggy", "dog", "cat"], "Petting a doggy." => Some((10, 0)); "when first matches")]
+    #[test_case(&["doggy", "dog", "cat"], "Petting a dog." => Some((10, 1)); "when second matches")]
+    #[test_case(&["doggy", "dog", "cat"], "Scratched by a cat." => Some((15, 2)); "when third matches")]
+    #[test_case(&["doggy", "dog", "cat"], "I have no pets :(" => None; "when none matches")]
+    #[test_case(&["pretty long", "pretty"], "Very pretty, but not pretty long." => Some((5, 1)); "when long sequence matches")]
+    #[test_case(&["pretty long", "pretty"], "This sentence is not pretty long." => Some((21, 0)); "when long sequence does not match")]
+    #[test_case(&[
+        "aaaaaaab",
+        "aaaaaaac",
+        "aaaaaaad",
+        "aaaaaaae",
+        "aaaaaaaf",
+        "aaaaaaag",
+        "aaaaaaah",
+        "aaaaaaai"
+    ],
+    &std::iter::repeat('a')
+        .take(1024)
+        .chain("aaaaaaai".chars())
+        .collect::<String>() => Some((1024, 7)); "for a long example with 8 sequences")]
+    fn find_any_of_sequences_correctness(
+        sequences: &[&str],
+        contents: &str,
+    ) -> Option<(usize, usize)> {
+        find_any_of_sequences(
+            &sequences.iter().map(|x| x.as_bytes()).collect::<Vec<_>>(),
+            contents.as_bytes(),
+        )
     }
 }

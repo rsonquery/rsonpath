@@ -24,6 +24,8 @@ proc-macro2 = "1.0.30"
 
 [dev-dependencies]
 criterion = "0.3.5"
+proptest = "1.0.0"
+test-case = "1.2.1"
 
 [features]
 default = ["simd_x86"]

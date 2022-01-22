@@ -432,6 +432,7 @@ mod avx2_simd {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use test_case::test_case;
 
     fn is_depth_greater_or_equal_to_correctness<
         'a,
@@ -483,6 +484,12 @@ mod tests {
         assert_eq!(depths.len(), depths_idx);
     }
 
+    #[cfg_attr(
+        all(not(feature = "nosimd"), target_feature = "avx2"),
+        test_case(simd::Avx2Vector::new; "using simd::Avx2Vector::new"),
+        test_case(simd::LazyAvx2Vector::new; "using simd::LazyAvx2Vector::new"),
+    )]
+    #[test_case(nosimd::Vector::new; "using nosimd::Vector::new")]
     fn is_depth_greater_or_equal_to_correctness_suite<
         'a,
         F: Fn(&'a [u8]) -> (D, &'a [u8]),
@@ -516,22 +523,5 @@ mod tests {
         ];
 
         is_depth_greater_or_equal_to_correctness(&build, json.as_bytes(), &depths);
-    }
-
-    #[test]
-    fn is_depth_greater_or_equal_to_correctness_for_nosimd_vector() {
-        is_depth_greater_or_equal_to_correctness_suite(nosimd::Vector::new);
-    }
-
-    #[test]
-    #[cfg(all(not(feature = "nosimd"), target_feature = "avx2"))]
-    fn is_depth_greater_or_equal_to_correctness_for_simd_vector() {
-        is_depth_greater_or_equal_to_correctness_suite(simd::Avx2Vector::new);
-    }
-
-    #[test]
-    #[cfg(all(not(feature = "nosimd"), target_feature = "avx2"))]
-    fn is_depth_greater_or_equal_to_correctness_for_simd_lazy_vectpr() {
-        is_depth_greater_or_equal_to_correctness_suite(simd::LazyAvx2Vector::new);
     }
 }
