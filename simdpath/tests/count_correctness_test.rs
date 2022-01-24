@@ -20,6 +20,7 @@ macro_rules! test_cases {
         #[test_case("basic/twitter.json", "$..user..entities..url" => 44; "twitter.json $..user..entities..url")]
         #[test_case("basic/escapes.json", r#"$..a..b..['label\\']"# => 1; "escapes.json existing label")]
         #[test_case("basic/escapes.json", r#"$..a..b..['label\']"# => 0; "escapes.json nonexistant label")]
+        #[test_case("basic/spaced_colon.json", r#"$..a..b..label"# => 2; "spaced colon")]
         #[test_case(
             "wikidata/wikidata_person.json", "$..claims..references..hash" => 37736;
             "wikidata_person.json $..claims..references..hash"
