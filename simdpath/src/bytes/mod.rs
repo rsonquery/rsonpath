@@ -12,9 +12,12 @@
 
 pub mod align;
 mod classify;
+pub mod debug;
 mod depth;
 mod sequences;
 
+#[doc(inline)]
+pub use classify::Structural;
 #[doc(inline)]
 pub use depth::DepthBlock;
 #[cfg(feature = "nosimd")]
@@ -184,7 +187,7 @@ pub fn find_non_whitespace(slice: &[u8]) -> Option<usize> {
 /// or AVX2 is not supported on the target CPU.
 pub mod nosimd {
     #[doc(inline)]
-    pub use super::classify::nosimd::*;
+    pub use super::classify::*;
     #[doc(inline)]
     pub use super::depth::nosimd as depth;
     #[doc(inline)]
@@ -251,7 +254,7 @@ pub mod nosimd {
 #[cfg(not(feature = "nosimd"))]
 pub mod simd {
     #[doc(inline)]
-    pub use super::classify::simd::*;
+    pub use super::classify::*;
     #[doc(inline)]
     pub use super::depth::simd as depth;
     #[doc(inline)]

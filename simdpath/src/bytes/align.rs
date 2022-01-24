@@ -50,6 +50,7 @@
 //! assert!(aligned.iter().all(|&x| x == 0));
 //! ```
 
+use static_assertions as sa;
 use std::mem;
 use std::ops::{Deref, DerefMut};
 
@@ -120,6 +121,8 @@ struct FourMBAlignment {
 struct EightMBAlignment {
     x: [u8; 8192],
 }
+
+sa::const_assert!(mem::size_of::<MBAlignment>() % mem::size_of::<BlockAlignment>() == 0);
 
 /// Types of possible alignment type arguments for [`AlignedBytes`](`AlignedBytes`).
 pub mod alignment {
@@ -246,6 +249,18 @@ impl<T: AsRef<[u8]>> From<T> for AlignedBytes<alignment::Page> {
         let mut bytes = Self::new(slice.len());
         bytes.copy_from_slice(slice);
         bytes
+    }
+}
+
+impl From<AlignedBytes<alignment::Page>> for AlignedBytes<alignment::Block> {
+    fn from(s: AlignedBytes<alignment::Page>) -> Self {
+        sa::assert_eq_size!(
+            AlignedBytes::<alignment::Page>,
+            AlignedBytes::<alignment::Block>,
+        );
+        debug_assert!(alignment::Page::size() % alignment::Block::size() == 0);
+
+        unsafe { mem::transmute(s) }
     }
 }
 
@@ -383,5 +398,14 @@ mod tests {
         let bytes = AlignedBytes::<alignment::Page>::new(0);
 
         assert_eq!(bytes.len(), 0);
+    }
+
+    #[test]
+    fn block_alignment_from_page_alignment_is_identity() {
+        let slice = (0..=47).collect::<Vec<u8>>();
+        let page_aligned = AlignedBytes::<alignment::Page>::from(&slice);
+        let block_aligned: AlignedBytes<alignment::Block> = page_aligned.into();
+
+        assert_eq!(block_aligned, slice);
     }
 }
