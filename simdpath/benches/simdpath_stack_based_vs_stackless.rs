@@ -1,6 +1,7 @@
 use core::time::Duration;
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use simdpath::engine::{Input, Runner};
+use simdpath::new_stack_based::NewStackBasedRunner;
 use simdpath::query::JsonPathQuery;
 use simdpath::stack_based::StackBasedRunner;
 use simdpath::stackless::StacklessRunner;
@@ -39,6 +40,11 @@ fn simdpath_stack_based_vs_stackless(c: &mut Criterion, options: BenchmarkOption
         BenchmarkId::new("stack-based", options.id),
         &(&query, &contents),
         |b, (q, c)| b.iter(|| StackBasedRunner::compile_query(q).count(c)),
+    );
+    group.bench_with_input(
+        BenchmarkId::new("new-stack-based", options.id),
+        &(&query, &contents),
+        |b, (q, c)| b.iter(|| NewStackBasedRunner::compile_query(q).count(c)),
     );
 
     group.finish();

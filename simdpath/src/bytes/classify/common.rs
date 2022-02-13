@@ -1,5 +1,3 @@
-use crate::bytes::align::{alignment, AlignedBytes};
-
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum Structural {
     Closing(usize),
@@ -27,3 +25,5 @@ impl Structural {
         }
     }
 }
+
+pub trait StructuralIterator<'a>: Iterator<Item = Structural> + len_trait::Empty + 'a {}

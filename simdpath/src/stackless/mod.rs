@@ -11,7 +11,6 @@
 #[allow(clippy::all)]
 mod automata;
 
-use crate::bytes::align::{alignment, AlignedBytes};
 use crate::engine::result::CountResult;
 use crate::engine::{Input, Runner};
 use crate::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label};
@@ -37,13 +36,9 @@ impl<'a> StacklessRunner<'a> {
     }
 }
 
-#[cfg(all(
-    not(feature = "nosimd"),
-    any(target_arch = "x86", target_arch = "x86_64", target_feature = "avx2")
-))]
 impl<'a> Runner for StacklessRunner<'a> {
     fn count(&self, input: &Input) -> CountResult {
-        let count = unsafe { automata::dispatch_automaton(&self.labels, input) };
+        let count = automata::dispatch_automaton(&self.labels, input);
 
         CountResult { count }
     }

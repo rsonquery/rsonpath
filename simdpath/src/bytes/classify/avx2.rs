@@ -137,6 +137,14 @@ mod avx2 {
 
     impl<'a> std::iter::FusedIterator for Avx2Classifier<'a> {}
 
+    impl<'a> Empty for Avx2Classifier<'a> {
+        fn is_empty(&self) -> bool {
+            self.current_block_is_spent() && self.bytes.is_empty()
+        }
+    }
+
+    impl<'a> StructuralIterator<'a> for Avx2Classifier<'a> {}
+
     pub struct BlockAvx2Classifier {
         prev_quote_bit: u64,
         prev_slash_bit: u64,

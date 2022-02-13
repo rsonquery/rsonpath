@@ -104,6 +104,7 @@
 
 pub mod bytes;
 pub mod engine;
+pub mod new_stack_based;
 pub mod query;
 pub mod stack_based;
 pub mod stackless;

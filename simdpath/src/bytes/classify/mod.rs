@@ -1,3 +1,41 @@
+//! Classification of structurally significant JSON bytes.
+//!
+//! Provides the [`common::Structural`] struct and [`common::StructuralIterator`] trait
+//! that allow effectively iterating over structural characters in a JSON document.
+//!
+//! # Examples
+//! ```rust
+//! use simdpath::bytes::{Structural, classify_structural_characters};
+//!
+//! let json = r#"{"x": [{"y": 42}, {}]}""#;
+//! let expected = vec![
+//!     Structural::Opening(0),
+//!     Structural::Colon(4),
+//!     Structural::Opening(6),
+//!     Structural::Opening(7),
+//!     Structural::Colon(11),
+//!     Structural::Closing(15),
+//!     Structural::Opening(18),
+//!     Structural::Closing(19),
+//!     Structural::Closing(20),
+//!     Structural::Closing(21)
+//! ];
+//! let actual = classify_structural_characters(json.as_bytes()).collect::<Vec<Structural>>();
+//! assert_eq!(expected, actual);
+//! ```
+//! ```rust
+//! use simdpath::bytes::{Structural, classify_structural_characters};
+//!
+//! let json = r#"{"x": "[\"\"]"}""#;
+//! let expected = vec![
+//!     Structural::Opening(0),
+//!     Structural::Colon(4),
+//!     Structural::Closing(14)
+//! ];
+//! let actual = classify_structural_characters(json.as_bytes()).collect::<Vec<Structural>>();
+//! assert_eq!(expected, actual);
+//! ```
+
 use cfg_if::cfg_if;
 
 mod common;
@@ -6,28 +44,27 @@ pub use common::*;
 cfg_if! {
     if #[cfg(all(
             any(target_arch = "x86_64", target_arch = "x86"),
-            target_feature = "avx2"
+            target_feature = "avx2",
+            not(feature = "nosimd")
     ))] {
         mod avx2;
     }
-    else {
-        mod nosimd;
-    }
 }
 
+mod nosimd;
+
 #[inline(always)]
-pub fn classify_structural_characters<'a>(
-    bytes: &'a [u8],
-) -> impl Iterator<Item = Structural> + 'a {
+pub fn classify_structural_characters<'a>(bytes: &'a [u8]) -> impl StructuralIterator<'a> {
     cfg_if! {
         if #[cfg(all(
                 any(target_arch = "x86_64", target_arch = "x86"),
-                target_feature = "avx2"
+                target_feature = "avx2",
+                not(feature = "nosimd")
         ))] {
             avx2::Avx2Classifier::new(bytes)
         }
         else {
-            todo!()
+            nosimd::SequentialClassifier::new(bytes)
         }
     }
 }

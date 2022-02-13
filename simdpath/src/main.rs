@@ -1,6 +1,7 @@
 use clap::{App, Arg};
 use log::*;
 use simdpath::engine::{Input, Runner};
+use simdpath::new_stack_based::NewStackBasedRunner;
 use simdpath::query::JsonPathQuery;
 use simdpath::stack_based::StackBasedRunner;
 use simdpath::stackless::StacklessRunner;
@@ -31,11 +32,17 @@ fn main() -> Result<(), Box<dyn Error>> {
     let stack_based_count = stack_based_runner.count(&input);
     info!("Stack based count: {}", stack_based_count.count);
 
+    let new_stack_based_runner = NewStackBasedRunner::compile_query(&query);
+    let new_stack_based_count = new_stack_based_runner.count(&input);
+    info!("New stack based count: {}", new_stack_based_count.count);
+
     let stackless_runner = StacklessRunner::compile_query(&query);
     let stackless_count = stackless_runner.count(&input);
     info!("Stackless count: {}", stackless_count.count);
 
-    if stack_based_count.count != stackless_count.count {
+    if stack_based_count.count != stackless_count.count
+        || new_stack_based_count.count != stack_based_count.count
+    {
         error!("Count mismatch!");
         return Err("Count mismatch!".into());
     }

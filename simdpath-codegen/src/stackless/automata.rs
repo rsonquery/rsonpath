@@ -53,7 +53,7 @@ fn get_dispatch_automaton_source() -> TokenStream {
     });
 
     let tokens = quote! {
-        pub unsafe fn dispatch_automaton(labels : &[&Label], input: &Input) -> usize {
+        pub fn dispatch_automaton(labels : &[&Label], input: &Input) -> usize {
             match labels.len() {
                 #(#match_body,)*
                 0 => 1,
@@ -201,7 +201,7 @@ fn get_descendant_only_automaton_source(size: u8) -> TokenStream {
     });
 
     let automaton_code = quote! {
-        unsafe fn #fn_ident(labels: &[&Label], bytes: &AlignedBytes<alignment::Page>) -> usize {
+        fn #fn_ident(labels: &[&Label], bytes: &AlignedBytes<alignment::Page>) -> usize {
             use crate::bytes::{classify_structural_characters, Structural};
 
             debug_assert_eq!(labels.len(), #size as usize);
@@ -214,157 +214,6 @@ fn get_descendant_only_automaton_source(size: u8) -> TokenStream {
             let mut block_event_source = classify_structural_characters(bytes).peekable();
 
             while let Some(event) = block_event_source.next() {
-                match state {
-                    #(#states,)*
-                    _ => unreachable! {},
-                }
-            }
-
-            count
-        }
-    };
-
-    automaton_code
-}
-
-fn old_get_descendant_only_automaton_source(size: u8) -> TokenStream {
-    assert!(size <= MAX_AUTOMATON_SIZE);
-
-    let fn_ident = format_ident!("descendant_only_automaton_{}", size);
-    let states = (0..size).map(|i| {
-        let closing_code = if i == 0 {
-            quote! {
-                depth -= 1;
-                bytes = &bytes[i + 1..];
-            }
-        } else {
-            let reg = (i - 1) as usize;
-            quote! {
-                depth -= 1;
-                bytes = &bytes[i + 1..];
-                if depth == regs[#reg] {
-                    state = #i - 1;
-                }
-            }
-        };
-        let found_if = if i == size - 1 {
-            quote! {
-                if label == labels[#i as usize] {
-                    count += 1;
-                    bytes = &bytes[next..];
-                }
-            }
-        } else {
-            quote! {
-                if (bytes[next] == b'{' || bytes[next] == b'[') && label == labels[#i as usize] {
-                    state = #i + 1;
-                    regs[#i as usize] = depth;
-                    depth += 1;
-                    bytes = &bytes[next + 1..];
-                }
-            }
-        };
-
-        let quote_match_body = quote! {
-            bytes = &bytes[i + 1..];
-            let closing_quote = crate::bytes::find_unescaped_byte(b'"', bytes).unwrap();
-
-            let label = &bytes[..closing_quote];
-            bytes = &bytes[closing_quote + 1..];
-            let next = crate::bytes::find_non_whitespace(bytes).unwrap();
-
-            if bytes[next] == b':' {
-                bytes = &bytes[next + 1..];
-                let next = crate::bytes::find_non_whitespace(bytes).unwrap();
-                #found_if else {
-                    bytes = &bytes[next..];
-                }
-            } else {
-                bytes = &bytes[next..];
-            }
-        };
-
-        if size == 1 {
-            quote! {
-                #i => match bytes[i] {
-                    b'\\' => {
-                        bytes = &bytes[i + 2..];
-                    }
-                    b'"' => {
-                        #quote_match_body
-                    }
-                    _ => {
-                        bytes = &bytes[i + 1..];
-                    }
-                }
-            }
-        } else {
-            quote! {
-                #i => match bytes[i] {
-                    b'{' => {
-                        depth += 1;
-                        bytes = &bytes[i + 1..];
-                    }
-                    b'}' => {
-                        #closing_code
-                    }
-                    b'[' => {
-                        depth += 1;
-                        bytes = &bytes[i + 1..];
-                    }
-                    b']' => {
-                        #closing_code
-                    }
-                    b'\\' => {
-                        bytes = &bytes[i + 2..];
-                    }
-                    b'"' => {
-                        #quote_match_body
-                    }
-                    _ => {
-                        bytes = &bytes[i + 1..];
-                    }
-                }
-            }
-        }
-    });
-
-    let depth_decl = if size == 1 {
-        quote! {}
-    } else {
-        quote! {
-            let mut depth: usize = 0;
-        }
-    };
-    let state_decl = if size == 1 {
-        quote! {
-            let state: u8 = 0;
-        }
-    } else {
-        quote! {
-            let mut state: u8 = 0;
-        }
-    };
-
-    let reg_decl = if size == 1 {
-        quote! {}
-    } else {
-        quote! {
-            let mut regs = [0usize; #size as usize];
-        }
-    };
-
-    let automaton_code = quote! {
-        fn #fn_ident(labels: &[&Label], bytes: &[u8]) -> usize {
-            debug_assert_eq!(labels.len(), #size as usize);
-
-            let mut bytes = bytes;
-            #depth_decl
-            #state_decl
-            let mut count: usize = 0;
-            #reg_decl
-
-            while let Some(i) = crate::bytes::find_non_whitespace(bytes) {
                 match state {
                     #(#states,)*
                     _ => unreachable! {},
