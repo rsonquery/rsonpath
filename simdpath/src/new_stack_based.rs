@@ -1,4 +1,4 @@
-//! WIP version of [`stack_based`].
+//! WIP version of [`stack_based`](`crate::stack_based`).
 use log;
 use std::iter::Peekable;
 
@@ -7,13 +7,13 @@ use crate::bytes::{classify_structural_characters, Structural, StructuralIterato
 use crate::engine::{result, Input, Runner};
 use crate::query::{JsonPathQuery, JsonPathQueryNode, Label};
 
-/// New version of [`StackBasedRunner`].
+/// New version of [`StackBasedRunner`](`crate::stack_based::StackBasedRunner`).
 pub struct NewStackBasedRunner<'a> {
     query: &'a JsonPathQuery,
 }
 
 impl<'a> NewStackBasedRunner<'a> {
-    /// Compile a query into a [`StackBasedRunner`].
+    /// Compile a query into a [`NewStackBasedRunner`].
     pub fn compile_query(query: &'a JsonPathQuery) -> Self {
         NewStackBasedRunner { query }
     }

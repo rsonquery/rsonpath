@@ -150,7 +150,7 @@ pub mod alignment {
 
     /// Alignment to a SIMD block guarantee.
     ///
-    /// It is guaranteed that this alignment's [`size`] is a multiplicity
+    /// It is guaranteed that this alignment's [`size`](`Alignment::size`) is a multiplicity
     /// of the size of a SIMD register of the target architecture.
     /// In `nosimd` feature mode the size is one.
     ///
@@ -259,7 +259,8 @@ impl<A: Alignment> AlignedBytes<A> {
     /// from them undefined behavior (yes, [even for `u8` reading uninitialized bytes is UB](https://doc.rust-lang.org/std/mem/union.MaybeUninit.html#initialization-invariant)).
     /// To use the bytes you must first initialize them manually.
     ///
-    /// If you want zeroed bytes, use [`new_zeroed`] instead.
+    /// If you want zeroed bytes, use [`AlignedBytes::new_zeroed`] instead.
+    /// If you want to initialize the bytes with custom logic, use [`AlignedBytes::new_initialize`] instead.
     /// If you want to align existing bytes, use the [`From`] trait implementations.
     #[inline]
     pub unsafe fn new(size: usize) -> Self {
@@ -335,11 +336,6 @@ impl<A: Alignment> AlignedBytes<A> {
     /// Return the size of the alignment in bytes.
     pub fn alignment_size() -> usize {
         A::size()
-    }
-
-    /// Return an iterator over consecutive aligned chunks of the bytes.
-    pub fn iter_chunks(&self) -> AlignedChunkIterator<A> {
-        AlignedChunkIterator { bytes: self }
     }
 }
 
@@ -755,7 +751,7 @@ pub enum AlignedBlock<'a, A: alignment::Alignment> {
 
 /// Thin wrapper for the underlying slice of [`AlignedBlock::Inline`].
 ///
-/// /// # Safety
+/// # Safety
 /// Similarly to [`AlignedSlice`], the used `repr` is [`transparent`](https://doc.rust-lang.org/reference/type-layout.html#the-transparent-representation),
 /// and it is possible to directly [`std::mem::transmute`] an [`AlignedSlice<A>`] into an [`AlignedBlockSlice<A>`] (and vice-versa).
 /// This is only safe if the original slice is already aligned to [`A::size()`](`alignment::Alignment::size`)
