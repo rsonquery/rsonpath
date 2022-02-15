@@ -12,7 +12,7 @@
 
 pub mod align;
 mod classify;
-pub mod debug;
+pub(crate) mod debug;
 mod depth;
 mod sequences;
 
@@ -315,6 +315,8 @@ pub mod simd {
         memchr2(byte1, byte2, slice)
     }
 }
+
+//cspell:disable - a lot of French words incoming.
 
 #[cfg(test)]
 mod tests {

@@ -14,7 +14,7 @@ pub fn get_mod_source() -> TokenStream {
     let dispatch_automaton_source = get_dispatch_automaton_source();
     let automaton_source = get_all_descendant_only_automaton_sources();
     quote! {
-        use crate::bytes::align::{alignment, AlignedBytes};
+        use crate::bytes::align::{alignment, AlignedSlice};
         use crate::engine::{Input};
         use crate::query::{Label};
 
@@ -100,7 +100,7 @@ fn get_descendant_only_automaton_source(size: u8) -> TokenStream {
     };
 
     let states = (0..size).map(|i| {
-        let iusize = i as usize;
+        let i_usize = i as usize;
         if size == 1 {
             quote! {
                 0 => match event {
@@ -135,7 +135,7 @@ fn get_descendant_only_automaton_source(size: u8) -> TokenStream {
             };
             let matching_code = if i == size - 1 {
                 quote! {
-                    let len = labels[#iusize].len();
+                    let len = labels[#i_usize].len();
                     if idx >= len + 2 {
                         let mut closing_quote_idx = idx - 1;
                         while bytes[closing_quote_idx] != b'"' {
@@ -145,7 +145,7 @@ fn get_descendant_only_automaton_source(size: u8) -> TokenStream {
                         let opening_quote_idx = closing_quote_idx - len - 1;
                         let slice = &bytes[opening_quote_idx..closing_quote_idx + 1];
 
-                        if slice == labels[#iusize].bytes_with_quotes() {
+                        if slice == labels[#i_usize].bytes_with_quotes() {
                             count += 1;
                         }
                     }
@@ -157,7 +157,7 @@ fn get_descendant_only_automaton_source(size: u8) -> TokenStream {
                     //log::debug!("Next event: {:?}", next_event);
                     match block_event_source.peek() {
                         Some(Structural::Opening(_)) => {
-                            let len = labels[#iusize].len();
+                            let len = labels[#i_usize].len();
                             if idx >= len + 2 {
                                 let mut closing_quote_idx = idx - 1;
                                 while bytes[closing_quote_idx] != b'"' {
@@ -167,9 +167,9 @@ fn get_descendant_only_automaton_source(size: u8) -> TokenStream {
                                 let opening_quote_idx = closing_quote_idx - len - 1;
                                 let slice = &bytes[opening_quote_idx..closing_quote_idx + 1];
 
-                                if slice == labels[#iusize].bytes_with_quotes() {
+                                if slice == labels[#i_usize].bytes_with_quotes() {
                                     state = #next_state;
-                                    regs[#iusize] = depth;
+                                    regs[#i_usize] = depth;
                                 }
                             }
                         }
@@ -201,7 +201,7 @@ fn get_descendant_only_automaton_source(size: u8) -> TokenStream {
     });
 
     let automaton_code = quote! {
-        fn #fn_ident(labels: &[&Label], bytes: &AlignedBytes<alignment::Page>) -> usize {
+        fn #fn_ident(labels: &[&Label], bytes: &AlignedSlice<alignment::Page>) -> usize {
             use crate::bytes::{classify_structural_characters, Structural};
 
             debug_assert_eq!(labels.len(), #size as usize);
@@ -211,7 +211,7 @@ fn get_descendant_only_automaton_source(size: u8) -> TokenStream {
             let mut count: usize = 0;
             #reg_decl
 
-            let mut block_event_source = classify_structural_characters(bytes).peekable();
+            let mut block_event_source = classify_structural_characters(bytes.relax_alignment()).peekable();
 
             while let Some(event) = block_event_source.next() {
                 match state {

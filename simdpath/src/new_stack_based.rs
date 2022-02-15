@@ -1,10 +1,13 @@
+//! WIP version of [`stack_based`].
 use log;
 use std::iter::Peekable;
 
+use crate::bytes::align::{alignment, AlignedSlice};
 use crate::bytes::{classify_structural_characters, Structural, StructuralIterator};
 use crate::engine::{result, Input, Runner};
 use crate::query::{JsonPathQuery, JsonPathQueryNode, Label};
 
+/// New version of [`StackBasedRunner`].
 pub struct NewStackBasedRunner<'a> {
     query: &'a JsonPathQuery,
 }
@@ -15,9 +18,11 @@ impl<'a> NewStackBasedRunner<'a> {
         NewStackBasedRunner { query }
     }
 }
+
 impl<'a> Runner for NewStackBasedRunner<'a> {
     fn count(&self, input: &Input) -> result::CountResult {
-        let classifier = classify_structural_characters(input);
+        let aligned_bytes: &AlignedSlice<alignment::Page> = input;
+        let classifier = classify_structural_characters(aligned_bytes.relax_alignment());
         let execution_ctx = ExecutionContext::new(self.query, classifier, input);
         result::CountResult {
             count: execution_ctx.run(),
@@ -56,8 +61,8 @@ where
     fn run_state(&mut self, state: State, next_node: Option<&JsonPathQueryNode>) {
         match state {
             State::Initial => self.transition_based_on_node(next_node),
-            State::MatchLabel(label) => match self.classifier.peek() {
-                Some(&Structural::Colon(idx)) => {
+            State::MatchLabel(label) => {
+                if let Some(&Structural::Colon(idx)) = self.classifier.peek() {
                     log::debug!("Colon detected, matching label.");
                     self.classifier.next();
                     let len = label.len();
@@ -79,8 +84,7 @@ where
                         }
                     }
                 }
-                _ => (),
-            },
+            }
             State::RecursiveDescent => {
                 loop {
                     self.transition_based_on_node(next_node);
@@ -108,27 +112,25 @@ where
                 log::debug!("Transitioning to Accepting.");
                 self.count += 1;
             }
-            Some(JsonPathQueryNode::Root(child)) => match self.classifier.peek() {
-                Some(Structural::Opening(_)) => {
+            Some(JsonPathQueryNode::Root(child)) => {
+                if let Some(Structural::Opening(_)) = self.classifier.peek() {
                     log::debug!("Transitioning to Initial.");
                     self.run_state(State::Initial, child.as_deref());
                 }
-                _ => return,
-            },
+            }
             Some(JsonPathQueryNode::Label(label, child)) => {
                 log::debug!("Transitioning to MatchLabel({:?}).", unsafe {
                     std::str::from_utf8_unchecked(label)
                 });
                 self.run_state(State::MatchLabel(label), child.as_deref())
             }
-            Some(JsonPathQueryNode::Descendant(child)) => match self.classifier.peek() {
-                Some(Structural::Opening(_)) => {
+            Some(JsonPathQueryNode::Descendant(child)) => {
+                if let Some(Structural::Opening(_)) = self.classifier.peek() {
                     log::debug!("Transitioning to RecursiveDescent.");
                     self.classifier.next();
                     self.run_state(State::RecursiveDescent, Some(child));
                 }
-                _ => return,
-            },
+            }
         }
     }
 }

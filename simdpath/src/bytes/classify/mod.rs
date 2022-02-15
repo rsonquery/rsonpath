@@ -6,8 +6,10 @@
 //! # Examples
 //! ```rust
 //! use simdpath::bytes::{Structural, classify_structural_characters};
+//! use simdpath::bytes::align::{alignment, AlignedBytes};
 //!
 //! let json = r#"{"x": [{"y": 42}, {}]}""#;
+//! let aligned: AlignedBytes<alignment::TwoBlocks> = json.as_bytes().into();
 //! let expected = vec![
 //!     Structural::Opening(0),
 //!     Structural::Colon(4),
@@ -20,22 +22,25 @@
 //!     Structural::Closing(20),
 //!     Structural::Closing(21)
 //! ];
-//! let actual = classify_structural_characters(json.as_bytes()).collect::<Vec<Structural>>();
+//! let actual = classify_structural_characters(&aligned).collect::<Vec<Structural>>();
 //! assert_eq!(expected, actual);
 //! ```
 //! ```rust
 //! use simdpath::bytes::{Structural, classify_structural_characters};
+//! use simdpath::bytes::align::{alignment, AlignedBytes};
 //!
 //! let json = r#"{"x": "[\"\"]"}""#;
+//! let aligned: AlignedBytes<alignment::TwoBlocks> = json.as_bytes().into();
 //! let expected = vec![
 //!     Structural::Opening(0),
 //!     Structural::Colon(4),
 //!     Structural::Closing(14)
 //! ];
-//! let actual = classify_structural_characters(json.as_bytes()).collect::<Vec<Structural>>();
+//! let actual = classify_structural_characters(&aligned).collect::<Vec<Structural>>();
 //! assert_eq!(expected, actual);
 //! ```
 
+use super::align::{alignment, AlignedSlice};
 use cfg_if::cfg_if;
 
 mod common;
@@ -53,8 +58,12 @@ cfg_if! {
 
 mod nosimd;
 
+/// Walk through the JSON document represented by `bytes` and iterate over all
+/// occurrences of structural characters in it.
 #[inline(always)]
-pub fn classify_structural_characters<'a>(bytes: &'a [u8]) -> impl StructuralIterator<'a> {
+pub fn classify_structural_characters(
+    bytes: &AlignedSlice<alignment::TwoBlocks>,
+) -> impl StructuralIterator {
     cfg_if! {
         if #[cfg(all(
                 any(target_arch = "x86_64", target_arch = "x86"),

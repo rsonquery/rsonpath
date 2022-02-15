@@ -1,3 +1,6 @@
+//! Utilities for debugging SIMD algorithms.
+
+/// Debug log the given u64 expression by its full 64-bit binary string representation.
 #[macro_export]
 macro_rules! bin {
     ($name: expr, $e:expr) => {
