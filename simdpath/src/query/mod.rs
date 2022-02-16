@@ -33,7 +33,7 @@
 //! ```
 //!
 mod parser;
-use crate::bytes::align::{alignment, Aligned, AlignedBytes};
+use crate::bytes::align::{alignment, AlignedBytes, AlignedSlice};
 use std::fmt::{self, Display};
 
 /// Label to search for in a JSON document.
@@ -61,7 +61,10 @@ impl Label {
     /// Create a new label from its raw bytes.
     pub fn new(label: &[u8]) -> Self {
         let without_quotes = AlignedBytes::<alignment::Block>::from(label);
-        let mut with_quotes = AlignedBytes::<alignment::Block>::new(label.len() + 2);
+
+        // SAFETY:
+        // We immediately initialize the bytes below.
+        let mut with_quotes = unsafe { AlignedBytes::<alignment::Block>::new(label.len() + 2) };
         with_quotes[0] = b'"';
         with_quotes[1..label.len() + 1].copy_from_slice(label);
         with_quotes[label.len() + 1] = b'"';
@@ -73,19 +76,19 @@ impl Label {
     }
 
     /// Return the raw bytes of the label, guaranteed to be block-aligned.
-    pub fn bytes(&self) -> &AlignedBytes<alignment::Block> {
+    pub fn bytes(&self) -> &AlignedSlice<alignment::Block> {
         &self.label
     }
 
     /// Return the bytes representing the label with a leading and trailing
     /// double quote symbol `"`, guaranteed to be block-aligned.
-    pub fn bytes_with_quotes(&self) -> &AlignedBytes<alignment::Block> {
+    pub fn bytes_with_quotes(&self) -> &AlignedSlice<alignment::Block> {
         &self.label_with_quotes
     }
 }
 
 impl std::ops::Deref for Label {
-    type Target = AlignedBytes<alignment::Block>;
+    type Target = AlignedSlice<alignment::Block>;
 
     fn deref(&self) -> &Self::Target {
         self.bytes()
@@ -102,25 +105,25 @@ impl Eq for Label {}
 
 impl PartialEq<Label> for [u8] {
     fn eq(&self, other: &Label) -> bool {
-        self == other.label
+        self == &other.label
     }
 }
 
 impl PartialEq<Label> for &[u8] {
     fn eq(&self, other: &Label) -> bool {
-        *self == other.label
+        *self == &other.label
     }
 }
 
 impl PartialEq<[u8]> for Label {
     fn eq(&self, other: &[u8]) -> bool {
-        self.label == other
+        &self.label == other
     }
 }
 
 impl PartialEq<&[u8]> for Label {
     fn eq(&self, other: &&[u8]) -> bool {
-        self.label == *other
+        &self.label == *other
     }
 }
 
@@ -194,7 +197,7 @@ impl JsonPathQuery {
                 "The Root expression ('$') can appear only once at the start of the query."
                     .to_string(),
             ),
-            Descendant(n) if n.is_descendant() => Err("Descendant expression ('..') cannot immediatelly follow another Descendant expression.".to_string()),
+            Descendant(n) if n.is_descendant() => Err("Descendant expression ('..') cannot immediately follow another Descendant expression.".to_string()),
             Label(_, n) if n.is_label() => Err("Child Label expressions are not supported.".to_string()),
             _ => Ok(())
         }?;

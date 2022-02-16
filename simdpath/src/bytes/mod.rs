@@ -12,9 +12,12 @@
 
 pub mod align;
 mod classify;
+pub(crate) mod debug;
 mod depth;
 mod sequences;
 
+#[doc(inline)]
+pub use classify::Structural;
 #[doc(inline)]
 pub use depth::DepthBlock;
 #[cfg(feature = "nosimd")]
@@ -23,9 +26,9 @@ pub use nosimd::*;
 #[doc(inline)]
 pub use simd::*;
 
-/// Find the first occurence of a byte in the slice that is not escaped, if it exists.
+/// Find the first occurrence of a byte in the slice that is not escaped, if it exists.
 ///
-/// An escaped byte is one which is immediately preceeded by an unescaped backslash
+/// An escaped byte is one which is immediately preceded by an unescaped backslash
 /// character `\` U+005C. This applies recursively, so the quote character in `\"`
 /// is escaped, in `\\"` it's unescaped, `\\\"` it's escaped, etc.
 ///
@@ -80,9 +83,9 @@ pub fn find_unescaped_byte(byte: u8, slice: &[u8]) -> Option<usize> {
     None
 }
 
-/// Find the first occurence of either of two bites in the slice that is not escaped, if it exists.
+/// Find the first occurrence of either of two bites in the slice that is not escaped, if it exists.
 ///
-/// An escaped byte is one which is immediately preceeded by an unescaped backslash
+/// An escaped byte is one which is immediately preceded by an unescaped backslash
 /// character `\` U+005C. This applies recursively, so the quote character in `\"`
 /// is escaped, in `\\"` it's unescaped, `\\\"` it's escaped, etc.
 ///
@@ -159,7 +162,7 @@ fn is_escaped(idx: usize, slice: &[u8]) -> bool {
         != 0
 }
 
-/// Find the first occurence of a non-whitespace byte in the slice, if it exists.
+/// Find the first occurrence of a non-whitespace byte in the slice, if it exists.
 ///
 /// This function is a stub. Currently we assume there is no whitespace between structural
 /// characters, so the next non-whitespace byte is simply the next byte.
@@ -178,19 +181,19 @@ pub fn find_non_whitespace(slice: &[u8]) -> Option<usize> {
     None
 }
 
-/// Sequential byte utilities _not_ utlizing SIMD.
+/// Sequential byte utilities _not_ utilizing SIMD.
 ///
 /// These are the default operations used when the `nosimd` feature is enabled,
 /// or AVX2 is not supported on the target CPU.
 pub mod nosimd {
     #[doc(inline)]
-    pub use super::classify::nosimd::*;
+    pub use super::classify::*;
     #[doc(inline)]
     pub use super::depth::nosimd as depth;
     #[doc(inline)]
     pub use super::sequences::nosimd::*;
 
-    /// Find the first occurence of a byte in the slice, if it exists.
+    /// Find the first occurrence of a byte in the slice, if it exists.
     ///
     /// This is a sequential, no-SIMD version. For big slices it is recommended to use
     /// the [`simd`](super::simd) module variant for better performance.
@@ -215,7 +218,7 @@ pub mod nosimd {
         slice.iter().position(|&x| x == byte)
     }
 
-    /// Find the first occurence of either of two bytes in the slice, if it exists.
+    /// Find the first occurrence of either of two bytes in the slice, if it exists.
     ///
     /// This is a sequential, no-SIMD version. For big slices it is recommended to use
     /// the [`simd`](super::simd) module variant for better performance.
@@ -251,7 +254,7 @@ pub mod nosimd {
 #[cfg(not(feature = "nosimd"))]
 pub mod simd {
     #[doc(inline)]
-    pub use super::classify::simd::*;
+    pub use super::classify::*;
     #[doc(inline)]
     pub use super::depth::simd as depth;
     #[doc(inline)]
@@ -265,7 +268,7 @@ pub mod simd {
     #[allow(dead_code)]
     const BYTES_IN_AVX2_REGISTER: usize = 256 / 8;
 
-    /// Find the first occurence of a byte in the slice, if it exists.
+    /// Find the first occurrence of a byte in the slice, if it exists.
     ///
     /// This is a SIMD version.
     /// # Examples
@@ -288,7 +291,7 @@ pub mod simd {
         memchr(byte, slice)
     }
 
-    /// Find the first occurence of either of two bytes in the slice, if it exists.
+    /// Find the first occurrence of either of two bytes in the slice, if it exists.
     ///
     /// This is a SIMD version.
     /// # Examples
@@ -312,6 +315,8 @@ pub mod simd {
         memchr2(byte1, byte2, slice)
     }
 }
+
+//cspell:disable - a lot of French words incoming.
 
 #[cfg(test)]
 mod tests {

@@ -37,7 +37,7 @@
 //! let input = Input::new(stripped_contents);
 //! // Compile the query. The runner can be reused to run the same query on different contents.
 //! let runner = StacklessRunner::compile_query(&query);
-//! // Count the number of occurences of elements satisfying the query.
+//! // Count the number of occurrences of elements satisfying the query.
 //! let count = runner.count(&input).count;
 //!
 //! assert_eq!(2, count);
@@ -82,20 +82,20 @@
 //! ### Root expression
 //! The root expression may only appear at the beginning of the query and is implicit if not specified.
 //! It matches the root object or array. Thus the query "$" gives either 1 or 0 results, if the JSON
-//! is empty or non-empty, respectivelly.
+//! is empty or non-empty, respectively.
 //!
 //! ### Label expression
 //! Matches any value under a specified key in the current object or array and then executes the rest of the query on that value.
 //!
 //! ### Descendant expression
-//! Switches the engine into a recursive descent mode. The remainder of the query is executed recursivelly on every value
+//! Switches the engine into a recursive descent mode. The remainder of the query is executed recursively on every value
 //! nested in the current object or array.
 //!
 //! ## Limitations
 //!
 //! The only type of query supported as of now is a sequence of descendant-label expressions.
 //! ```json
-//! $..label1..label2..[...]..labeln
+//! $..label_1..label_2..[...]..label_n
 //! ```
 
 #![warn(missing_docs)]
@@ -104,6 +104,7 @@
 
 pub mod bytes;
 pub mod engine;
+pub mod new_stack_based;
 pub mod query;
 pub mod stack_based;
 pub mod stackless;

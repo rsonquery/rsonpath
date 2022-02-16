@@ -26,13 +26,13 @@ impl std::ops::Deref for Input {
 impl Input {
     /// Transmute a buffer into an input.
     ///
-    /// The buffer must know its length, may be extended by auxilliary UTF8 characters
+    /// The buffer must know its length, may be extended by auxillary UTF8 characters
     /// and will be interpreted as a slice of bytes at the end.
     pub fn new<T: Extend<char> + Len + AsRef<[u8]>>(src: T) -> Self {
         #[cfg(not(feature = "nosimd"))]
         {
             use crate::bytes::simd::BLOCK_SIZE;
-            const TWO_BLOCKS_SIZE : usize = 2 * BLOCK_SIZE;
+            const TWO_BLOCKS_SIZE: usize = 2 * BLOCK_SIZE;
             let mut contents = src;
             let rem = contents.len() % TWO_BLOCKS_SIZE;
             let pad = if rem == 0 { 0 } else { TWO_BLOCKS_SIZE - rem };
