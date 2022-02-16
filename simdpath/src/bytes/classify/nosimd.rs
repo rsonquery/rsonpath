@@ -1,5 +1,4 @@
 use super::common::*;
-use crate::bytes::align::{alignment, AlignedBytes};
 use len_trait::Empty;
 
 pub struct SequentialClassifier<'a> {
@@ -10,7 +9,7 @@ pub struct SequentialClassifier<'a> {
 impl<'a> SequentialClassifier<'a> {
     #[inline(always)]
     #[allow(dead_code)]
-    pub fn new(bytes: &'a AlignedBytes<alignment::Block>) -> Self {
+    pub fn new(bytes: &'a [u8]) -> Self {
         Self { bytes, idx: 0 }
     }
 }
