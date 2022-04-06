@@ -6,10 +6,10 @@
 //! # Examples
 //! ```rust
 //! use simdpath::bytes::{Structural, classify_structural_characters};
-//! use simdpath::bytes::align::{alignment, AlignedBytes};
+//! use align::{alignment, AlignedBytes};
 //!
 //! let json = r#"{"x": [{"y": 42}, {}]}""#;
-//! let aligned: AlignedBytes<alignment::TwoBlocks> = json.as_bytes().into();
+//! let aligned = AlignedBytes::<alignment::TwoSimdBlocks>::new_padded(json.as_bytes());
 //! let expected = vec![
 //!     Structural::Opening(0),
 //!     Structural::Colon(4),
@@ -27,10 +27,10 @@
 //! ```
 //! ```rust
 //! use simdpath::bytes::{Structural, classify_structural_characters};
-//! use simdpath::bytes::align::{alignment, AlignedBytes};
+//! use align::{alignment, AlignedBytes};
 //!
 //! let json = r#"{"x": "[\"\"]"}""#;
-//! let aligned: AlignedBytes<alignment::TwoBlocks> = json.as_bytes().into();
+//! let aligned = AlignedBytes::<alignment::TwoSimdBlocks>::new_padded(json.as_bytes());
 //! let expected = vec![
 //!     Structural::Opening(0),
 //!     Structural::Colon(4),
@@ -40,7 +40,7 @@
 //! assert_eq!(expected, actual);
 //! ```
 
-use super::align::{alignment, AlignedSlice};
+use align::{alignment, AlignedSlice};
 use cfg_if::cfg_if;
 
 mod common;
@@ -62,7 +62,7 @@ mod nosimd;
 /// occurrences of structural characters in it.
 #[inline(always)]
 pub fn classify_structural_characters(
-    bytes: &AlignedSlice<alignment::TwoBlocks>,
+    bytes: &AlignedSlice<alignment::TwoSimdBlocks>,
 ) -> impl StructuralIterator {
     cfg_if! {
         if #[cfg(all(

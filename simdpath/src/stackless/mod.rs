@@ -8,9 +8,7 @@
 //! This implementation should be more performant than [`stack_based`](super::stack_based)
 //! even on targets that don't support AVX2 SIMD operations.
 
-#[allow(clippy::all)]
-mod automata;
-
+use align::{alignment, AlignedBytes};
 use crate::engine::result::CountResult;
 use crate::engine::{Input, Runner};
 use crate::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label};
@@ -23,6 +21,8 @@ pub struct StacklessRunner<'a> {
     labels: Vec<&'a Label>,
 }
 
+const MAX_AUTOMATON_SIZE: usize = 256;
+
 impl<'a> StacklessRunner<'a> {
     /// Compile a query into a [`StacklessRunner`].
     ///
@@ -30,7 +30,10 @@ impl<'a> StacklessRunner<'a> {
     pub fn compile_query(query: &JsonPathQuery) -> StacklessRunner<'_> {
         let labels = query_to_descendant_pattern_labels(query);
 
-        automata::assert_supported_size!(labels.len());
+        assert!(labels.len() <= MAX_AUTOMATON_SIZE,
+            "Max supported length of a query for StacklessRunner is currently {}. The supplied query has length {}.",
+            MAX_AUTOMATON_SIZE,
+            labels.len());
 
         StacklessRunner { labels }
     }
@@ -38,7 +41,7 @@ impl<'a> StacklessRunner<'a> {
 
 impl<'a> Runner for StacklessRunner<'a> {
     fn count(&self, input: &Input) -> CountResult {
-        let count = automata::dispatch_automaton(&self.labels, input);
+        let count = descendant_only_automaton(&self.labels, input);
 
         CountResult { count }
     }
@@ -63,4 +66,69 @@ fn query_to_descendant_pattern_labels(query: &JsonPathQuery) -> Vec<&Label> {
     }
 
     result
+}
+
+fn descendant_only_automaton(labels: &[&Label], bytes: &AlignedBytes<alignment::Page>) -> usize {
+    use crate::bytes::{classify_structural_characters, Structural};
+    let mut depth: usize = 0;
+    let mut state: u8 = 1;
+    let last_state = labels.len() as u8;
+    let mut count: usize = 0;
+    let mut regs = [0usize; 256];
+    let mut block_event_source = classify_structural_characters(bytes.relax_alignment()).peekable();
+    while let Some(event) = block_event_source.next() {
+        match event {
+            Structural::Closing(_) => {
+                depth -= 1;
+                if depth <= regs[(state - 1) as usize] {
+                    state -= 1;
+                }
+            }
+            Structural::Opening(_) => {
+                depth += 1;
+            }
+            Structural::Colon(idx) => match block_event_source.peek() {
+                Some(Structural::Opening(_)) => {
+                    let len = labels[(state - 1) as usize].len();
+                    if idx >= len + 2 {
+                        let mut closing_quote_idx = idx - 1;
+                        while bytes[closing_quote_idx] != b'"' {
+                            closing_quote_idx -= 1;
+                        }
+                        let opening_quote_idx = closing_quote_idx - len - 1;
+                        let slice = &bytes[opening_quote_idx..closing_quote_idx + 1];
+                        if slice == labels[(state - 1) as usize].bytes_with_quotes() {
+                            if state == last_state {
+                                count += 1;
+                            } else {
+                                state += 1;
+                                regs[(state - 1) as usize] = depth;
+                            }
+                        }
+                    }
+                }
+                _ if state == last_state => {
+                    let len = labels[(state - 1) as usize].len();
+                    if idx >= len + 2 {
+                        let mut closing_quote_idx = idx - 1;
+                        while bytes[closing_quote_idx] != b'"' {
+                            closing_quote_idx -= 1;
+                        }
+                        let opening_quote_idx = closing_quote_idx - len - 1;
+                        let slice = &bytes[opening_quote_idx..closing_quote_idx + 1];
+                        if slice == labels[(state - 1) as usize].bytes_with_quotes() {
+                            if state == last_state {
+                                count += 1;
+                            } else {
+                                state += 1;
+                                regs[(state - 1) as usize] = depth;
+                            }
+                        }
+                    }
+                }
+                _ => (),
+            },
+        }
+    }
+    count
 }

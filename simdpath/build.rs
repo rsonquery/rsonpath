@@ -21,10 +21,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         md5_digest: simdpath_codegen::calculate_codegen_md5(),
         files: vec![
             CodegenFile {
-                source_token_stream: simdpath_codegen::stackless::automata::get_mod_source(),
-                file_name: "stackless/automata.rs",
-            },
-            CodegenFile {
                 source_token_stream: simdpath_codegen::bytes::sequences::get_mod_source(),
                 file_name: "bytes/sequences.rs",
             },

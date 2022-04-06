@@ -1,7 +1,7 @@
 //! WIP version of [`stack_based`](`crate::stack_based`).
 use std::iter::Peekable;
 
-use crate::bytes::align::{alignment, AlignedSlice};
+use align::{alignment, AlignedSlice};
 use crate::bytes::{classify_structural_characters, Structural, StructuralIterator};
 use crate::engine::{result, Input, Runner};
 use crate::query::{JsonPathQuery, JsonPathQueryNode, Label};
