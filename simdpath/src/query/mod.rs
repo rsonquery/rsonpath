@@ -33,7 +33,7 @@
 //! ```
 //!
 mod parser;
-use crate::bytes::align::{alignment, AlignedBytes, AlignedSlice};
+use align::{alignment, AlignedBytes, AlignedSlice};
 use std::fmt::{self, Display};
 
 /// Label to search for in a JSON document.
@@ -53,18 +53,18 @@ use std::fmt::{self, Display};
 /// ```
 #[derive(Debug)]
 pub struct Label {
-    label: AlignedBytes<alignment::Block>,
-    label_with_quotes: AlignedBytes<alignment::Block>,
+    label: AlignedBytes<alignment::SimdBlock>,
+    label_with_quotes: AlignedBytes<alignment::SimdBlock>,
 }
 
 impl Label {
     /// Create a new label from its raw bytes.
     pub fn new(label: &[u8]) -> Self {
-        let without_quotes = AlignedBytes::<alignment::Block>::from(label);
+        let without_quotes = AlignedBytes::<alignment::SimdBlock>::from(label);
 
         // SAFETY:
         // We immediately initialize the bytes below.
-        let mut with_quotes = unsafe { AlignedBytes::<alignment::Block>::new(label.len() + 2) };
+        let mut with_quotes = unsafe { AlignedBytes::<alignment::SimdBlock>::new(label.len() + 2) };
         with_quotes[0] = b'"';
         with_quotes[1..label.len() + 1].copy_from_slice(label);
         with_quotes[label.len() + 1] = b'"';
@@ -76,19 +76,19 @@ impl Label {
     }
 
     /// Return the raw bytes of the label, guaranteed to be block-aligned.
-    pub fn bytes(&self) -> &AlignedSlice<alignment::Block> {
+    pub fn bytes(&self) -> &AlignedSlice<alignment::SimdBlock> {
         &self.label
     }
 
     /// Return the bytes representing the label with a leading and trailing
     /// double quote symbol `"`, guaranteed to be block-aligned.
-    pub fn bytes_with_quotes(&self) -> &AlignedSlice<alignment::Block> {
+    pub fn bytes_with_quotes(&self) -> &AlignedSlice<alignment::SimdBlock> {
         &self.label_with_quotes
     }
 }
 
 impl std::ops::Deref for Label {
-    type Target = AlignedSlice<alignment::Block>;
+    type Target = AlignedSlice<alignment::SimdBlock>;
 
     fn deref(&self) -> &Self::Target {
         self.bytes()

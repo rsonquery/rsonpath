@@ -1,0 +1,34 @@
+Performance counter stats for './profile.sh':
+
+         60,099.32 msec task-clock                #    0.999 CPUs utilized
+               599      context-switches          #    0.010 K/sec
+                 2      cpu-migrations            #    0.000 K/sec
+           174,380      page-faults               #    0.003 M/sec
+   185,332,904,604      cycles                    #    3.084 GHz                      (49.99%)
+   500,929,216,569      instructions              #    2.70  insn per cycle           (62.49%)
+    89,075,397,190      branches                  # 1482.137 M/sec                    (62.50%)
+       958,613,456      branch-misses             #    1.08% of all branches          (62.49%)
+   137,043,774,371      L1-dcache-loads           # 2280.288 M/sec                    (62.50%)
+     1,151,531,762      L1-dcache-load-misses     #    0.84% of all L1-dcache accesses  (62.52%)
+        25,392,405      LLC-loads                 #    0.423 M/sec                    (50.01%)
+        14,504,445      LLC-load-misses           #   57.12% of all LL-cache accesses  (50.00%)
+
+      60.159322682 seconds time elapsed
+
+      59.622319000 seconds user
+       0.479967000 seconds sys
+
+
+
+
+    91,546,668,060      branch-instructions                                           (66.66%)
+     1,237,281,366      branch-misses             #    1.35% of all branches          (66.65%)
+     1,391,033,704      cache-misses                                                  (66.67%)
+   188,264,750,807      cpu-cycles                                                    (66.67%)
+                 0      mem-loads                                                     (66.68%)
+    40,619,378,650      mem-stores                                                    (66.67%)
+
+      61.233873949 seconds time elapsed
+
+      60.615694000 seconds user
+       0.511359000 seconds sys

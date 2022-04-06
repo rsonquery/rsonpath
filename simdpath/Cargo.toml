@@ -1,7 +1,15 @@
 [package]
 name = "simdpath"
 version = "0.1.0"
+authors = ["Mateusz Gienieczko <mat@gienieczko.com>"]
 edition = "2021"
+description = "Blazing fast JSONPath query engine powered by SIMD."
+readme = "../README.md"
+license = "MIT"
+keywords = ["json", "jsonpath", "query", "simd"]
+build = "build.rs"
+exclude = ["/data"]
+categories = ["command-line-utilities", "text-processing", "database-implementations"]
 
 [package.metadata.docs.rs]
 rustdoc-args = ["--cfg", "docsrs"]
@@ -9,13 +17,13 @@ rustdoc-args = ["--cfg", "docsrs"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+align = { path = "../align" }
 cfg-if = "1.0.0"
 clap = "2.33.3"
 len-trait = "0.6.1"
 log = "0.4"
 memchr = "2.4.1"
 nom = "7.0.0"
-page_size = "0.4.2"
 simple_logger = "1.11"
 static_assertions = "1.1.0"
 

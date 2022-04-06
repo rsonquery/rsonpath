@@ -6,7 +6,7 @@
 
 pub mod result;
 
-use crate::bytes::align::{alignment, AlignedBytes};
+use align::{alignment, AlignedBytes};
 use len_trait::Len;
 use result::CountResult;
 

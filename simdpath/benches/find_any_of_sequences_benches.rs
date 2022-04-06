@@ -49,7 +49,7 @@ fn bench_find_any_of_sequences_no_partial_matches(c: &mut Criterion) {
     ];
     let contents = std::iter::repeat(b'x')
         .take(LENGTH - 8)
-        .chain(sequences[7].iter().map(|x| *x))
+        .chain(sequences[7].iter().copied())
         .collect::<Vec<_>>();
 
     bench(
@@ -79,7 +79,7 @@ fn bench_find_any_of_sequences_ten_percent_partial_matches(c: &mut Criterion) {
         .flatten()
         .take(LENGTH - 8)
         .chain(sequences[7].iter())
-        .map(|x| *x)
+        .copied()
         .collect::<Vec<_>>();
 
     bench(
@@ -109,7 +109,7 @@ fn bench_find_any_of_sequences_twenty_percent_partial_matches(c: &mut Criterion)
         .flatten()
         .take(LENGTH - 8)
         .chain(sequences[7].iter())
-        .map(|x| *x)
+        .copied()
         .collect::<Vec<_>>();
 
     bench(

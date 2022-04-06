@@ -3,6 +3,15 @@
 version = 3
 
 [[package]]
+name = "align"
+version = "0.1.0"
+dependencies = [
+ "cfg-if 1.0.0",
+ "len-trait",
+ "page_size",
+]
+
+[[package]]
 name = "ansi_term"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -697,6 +706,7 @@ dependencies = [
 name = "simdpath"
 version = "0.1.0"
 dependencies = [
+ "align",
  "cfg-if 1.0.0",
  "clap",
  "criterion",
@@ -705,7 +715,6 @@ dependencies = [
  "md5",
  "memchr",
  "nom",
- "page_size",
  "proc-macro2",
  "proptest",
  "simdpath-codegen",
