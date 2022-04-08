@@ -8,10 +8,10 @@
 //! This implementation should be more performant than [`stack_based`](super::stack_based)
 //! even on targets that don't support AVX2 SIMD operations.
 
-use align::{alignment, AlignedBytes};
 use crate::engine::result::CountResult;
 use crate::engine::{Input, Runner};
 use crate::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label};
+use align::{alignment, AlignedBytes};
 
 /// Stackless runner for a fixed JSONPath query.
 ///
@@ -87,8 +87,10 @@ fn descendant_only_automaton(labels: &[&Label], bytes: &AlignedBytes<alignment::
             Structural::Opening(_) => {
                 depth += 1;
             }
-            Structural::Colon(idx) => match block_event_source.peek() {
-                Some(Structural::Opening(_)) => {
+            Structural::Colon(idx) => {
+                let event = block_event_source.peek();
+
+                if matches!(event, Some(Structural::Opening(_))) || state == last_state {
                     let len = labels[(state - 1) as usize].len();
                     if idx >= len + 2 {
                         let mut closing_quote_idx = idx - 1;
@@ -107,27 +109,7 @@ fn descendant_only_automaton(labels: &[&Label], bytes: &AlignedBytes<alignment::
                         }
                     }
                 }
-                _ if state == last_state => {
-                    let len = labels[(state - 1) as usize].len();
-                    if idx >= len + 2 {
-                        let mut closing_quote_idx = idx - 1;
-                        while bytes[closing_quote_idx] != b'"' {
-                            closing_quote_idx -= 1;
-                        }
-                        let opening_quote_idx = closing_quote_idx - len - 1;
-                        let slice = &bytes[opening_quote_idx..closing_quote_idx + 1];
-                        if slice == labels[(state - 1) as usize].bytes_with_quotes() {
-                            if state == last_state {
-                                count += 1;
-                            } else {
-                                state += 1;
-                                regs[(state - 1) as usize] = depth;
-                            }
-                        }
-                    }
-                }
-                _ => (),
-            },
+            }
         }
     }
     count
