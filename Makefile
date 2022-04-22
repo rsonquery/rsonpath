@@ -31,7 +31,7 @@ install: simdpath
 
 test:
 	cd simdpath
-	$(CARGO) test --features nosimd && \
+	$(CARGO) test --no-default-features && \
 	$(CARGO) test
 
 uninstall:

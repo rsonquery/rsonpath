@@ -11,4 +11,4 @@ rust-latest:
     - RUSTFLAGS="--deny warnings" cargo build --verbose
     - cargo clippy -- --deny warnings
     - cargo test --verbose
-    - cargo test --verbose --features nosimd
+    - cargo test --verbose --no-default-features

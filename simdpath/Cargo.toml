@@ -14,8 +14,6 @@ categories = ["command-line-utilities", "text-processing", "database-implementat
 [package.metadata.docs.rs]
 rustdoc-args = ["--cfg", "docsrs"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 align = { path = "../align" }
 cfg-if = "1.0.0"
@@ -38,9 +36,8 @@ proptest = "1.0.0"
 test-case = "1.2.1"
 
 [features]
-default = ["simd_x86"]
-simd_x86 = []
-nosimd = []
+default = ["simd"]
+simd = []
 
 [[bench]]
 name = "simdpath_stack_based_vs_stackless"
