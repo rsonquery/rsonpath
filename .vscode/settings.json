@@ -7,6 +7,7 @@
         "cvtsi",
         "datavalue",
         "dealloc",
+        "Deque",
         "docsrs",
         "ebnf",
         "Gienieczko",

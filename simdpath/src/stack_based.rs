@@ -184,7 +184,7 @@ impl<'a, 'b> Runnable<'b> for RecursiveDescentState<'a, 'b> {
                 match object_start_byte {
                     b'{' => {
                         let mut next_state = match label_node.child() {
-                            // No child means that we keep recursivelly searching for the same label.
+                            // No child means that we keep recursively searching for the same label.
                             None => RecursiveDescentState::new(self.node, bytes),
                             Some(child_node) => match child_node {
                                 JsonPathQueryNode::Descendant(_) => {
@@ -205,7 +205,7 @@ impl<'a, 'b> Runnable<'b> for RecursiveDescentState<'a, 'b> {
                     }
                     b'[' => {
                         let mut next_state = match label_node.child() {
-                            // No child means that we keep recursivelly searching for the same label.
+                            // No child means that we keep recursively searching for the same label.
                             None => RecurseInListState::new(self.node, bytes),
                             Some(child_node) => match child_node {
                                 JsonPathQueryNode::Descendant(_) => {

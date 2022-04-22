@@ -1,10 +1,10 @@
 //! WIP version of [`stack_based`](`crate::stack_based`).
 use std::iter::Peekable;
 
-use align::{alignment, AlignedSlice};
-use crate::bytes::{classify_structural_characters, Structural, StructuralIterator};
+use crate::bytes::classify::{classify_structural_characters, Structural, StructuralIterator};
 use crate::engine::{result, Input, Runner};
 use crate::query::{JsonPathQuery, JsonPathQueryNode, Label};
+use align::{alignment, AlignedSlice};
 
 /// New version of [`StackBasedRunner`](`crate::stack_based::StackBasedRunner`).
 pub struct NewStackBasedRunner<'a> {

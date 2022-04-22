@@ -1,6 +1,6 @@
 use core::time::Duration;
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
-use simdpath::bytes::nosimd;
+use simdpath::bytes;
 
 const LENGTH: usize = 32 * 1024 * 1024;
 const LETTERS: &str = "abcdefghijklmnopqrstuvwxyz";
@@ -47,7 +47,7 @@ unsafe fn simd_find_byte(byte: u8, bytes: &[u8]) -> Option<usize> {
         bytes = &bytes[BYTES_IN_AVX2_REGISTER..];
     }
 
-    nosimd::find_byte(byte, bytes)
+    bytes::find_byte(byte, bytes)
 }
 
 fn bench_find_byte(c: &mut Criterion) {
@@ -73,7 +73,7 @@ fn bench_find_byte(c: &mut Criterion) {
             format!("bench_{}", contents.len()),
         ),
         &(b'X', &bytes),
-        |bench, &(b, c)| bench.iter(|| nosimd::find_byte(b, c)),
+        |bench, &(b, c)| bench.iter(|| bytes::find_byte(b, c)),
     );
     group.finish();
 }

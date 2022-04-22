@@ -1,7 +1,6 @@
 use core::time::Duration;
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
-use simdpath::bytes::nosimd;
-use simdpath::bytes::simd;
+use simdpath::bytes::sequences;
 
 const LENGTH: usize = 32 * 1024 * 1024;
 
@@ -19,19 +18,11 @@ fn bench(c: &mut Criterion, options: BenchmarkOptions) {
 
     group.bench_with_input(
         BenchmarkId::new(
-            "simd::find_any_of_sequences",
+            "find_any_of_sequences",
             format!("{}_{}", options.bench_name, options.contents.len()),
         ),
         &(options.sequences, options.contents),
-        |bench, &(s, c)| bench.iter(|| simd::find_any_of_sequences(s, c).unwrap()),
-    );
-    group.bench_with_input(
-        BenchmarkId::new(
-            "nosimd::find_any_of_sequences",
-            format!("{}_{}", options.bench_name, options.contents.len()),
-        ),
-        &(options.sequences, options.contents),
-        |bench, &(s, c)| bench.iter(|| nosimd::find_any_of_sequences(s, c).unwrap()),
+        |bench, &(s, c)| bench.iter(|| sequences::find_any_of_sequences(s, c).unwrap()),
     );
     group.finish();
 }

@@ -15,7 +15,7 @@ categories = ["command-line-utilities", "text-processing", "database-implementat
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
-align = { path = "../align" }
+align = { path = "../align", default-features = false }
 cfg-if = "1.0.0"
 clap = "2.33.3"
 len-trait = "0.6.1"

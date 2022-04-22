@@ -21,8 +21,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         md5_digest: simdpath_codegen::calculate_codegen_md5(),
         files: vec![
             CodegenFile {
-                source_token_stream: simdpath_codegen::bytes::sequences::get_mod_source(),
-                file_name: "bytes/sequences.rs",
+                source_token_stream: simdpath_codegen::bytes::sequences::get_avx2_source(),
+                file_name: "bytes/sequences/avx2.rs",
+            },
+            CodegenFile {
+                source_token_stream: simdpath_codegen::bytes::sequences::get_nosimd_source(),
+                file_name: "bytes/sequences/nosimd.rs",
             },
         ],
     };

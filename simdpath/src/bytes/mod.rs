@@ -1,29 +1,36 @@
 //! Byte stream utilities for quick navigation through a JSON structure.
 //!
-//! This module comes in two flavours, SIMD and no-SIMD.
-//!
-//! SIMD is implemented for x86/x86_64 architectures and CPUs supporting AVX2.
-//! On other architectures or older CPUs the module falls back to using no-SIMD operations.
-//! The no-SIMD operations are always available through the [`nosimd`] submodule.
-//!
-//! This module publicly reexports the functions from either [`simd`] or [`nosimd`] submodule
-//! and these reexports are what the JSONPath engine implementations use. The default is
-//! SIMD mode, but this can be changed by enabling the feature `nosimd`.
+//! This module comes in two flavours, SIMD and no-SIMD. SIMD is enabled by default with
+//! the `simd` feature. The no-SIMD is exported in [`nosimd`].
 
-mod classify;
+pub mod classify;
 pub(crate) mod debug;
-mod depth;
-mod sequences;
+pub mod depth;
+pub mod nosimd;
+pub mod sequences;
 
-#[doc(inline)]
-pub use classify::Structural;
-#[doc(inline)]
-pub use depth::DepthBlock;
-#[cfg(feature = "nosimd")]
-pub use nosimd::*;
-#[cfg(not(feature = "nosimd"))]
-#[doc(inline)]
-pub use simd::*;
+use cfg_if::cfg_if;
+
+cfg_if! {
+    if #[cfg(doc)] {
+        // All public export signatures are the same for simd and nosimd.
+        #[doc(inline)]
+        pub use nosimd::*;
+    }
+    else if #[cfg(not(feature = "simd"))] {
+        pub use nosimd::*;
+    }
+    else if #[cfg(all(
+        any(target_arch = "x86", target_arch = "x86_64"),
+        target_feature = "avx2",
+    ))] {
+        mod avx2;
+        pub use avx2::*;
+    }
+    else {
+        compile_error!("Target architecture is not supported by SIMD features of this crate. Disable the default `simd` feature.");
+    }
+}
 
 /// Find the first occurrence of a byte in the slice that is not escaped, if it exists.
 ///
@@ -178,141 +185,6 @@ pub fn find_non_whitespace(slice: &[u8]) -> Option<usize> {
         i += 1;
     }
     None
-}
-
-/// Sequential byte utilities _not_ utilizing SIMD.
-///
-/// These are the default operations used when the `nosimd` feature is enabled,
-/// or AVX2 is not supported on the target CPU.
-pub mod nosimd {
-    #[doc(inline)]
-    pub use super::classify::*;
-    #[doc(inline)]
-    pub use super::depth::nosimd as depth;
-    #[doc(inline)]
-    pub use super::sequences::nosimd::*;
-
-    /// Find the first occurrence of a byte in the slice, if it exists.
-    ///
-    /// This is a sequential, no-SIMD version. For big slices it is recommended to use
-    /// the [`simd`](super::simd) module variant for better performance.
-    /// # Examples
-    /// ```
-    /// # use simdpath::bytes::nosimd::find_byte;
-    /// let bytes = "abcdefgh".as_bytes();
-    /// let result = find_byte(b'd', bytes);
-    ///
-    /// assert_eq!(Some(3), result);
-    /// ```
-    ///
-    /// ```
-    /// # use simdpath::bytes::nosimd::find_byte;
-    /// let bytes = "abcdefgh".as_bytes();
-    /// let result = find_byte(b'i', bytes);
-    ///
-    /// assert_eq!(None, result);
-    /// ```
-    #[inline(always)]
-    pub fn find_byte(byte: u8, slice: &[u8]) -> Option<usize> {
-        slice.iter().position(|&x| x == byte)
-    }
-
-    /// Find the first occurrence of either of two bytes in the slice, if it exists.
-    ///
-    /// This is a sequential, no-SIMD version. For big slices it is recommended to use
-    /// the [`simd`](super::simd) module variant for better performance.
-    /// # Examples
-    /// ```
-    /// # use simdpath::bytes::nosimd::find_byte2;
-    /// let bytes = "abcdefgh".as_bytes();
-    /// let result = find_byte2(b'd', b'c', bytes);
-    ///
-    /// assert_eq!(Some(2), result);
-    /// ```
-    ///
-    /// ```
-    /// # use simdpath::bytes::nosimd::find_byte2;
-    /// let bytes = "abcdefgh".as_bytes();
-    /// let result = find_byte2(b'i', b'j', bytes);
-    ///
-    /// assert_eq!(None, result);
-    /// ```
-    #[inline(always)]
-    pub fn find_byte2(byte1: u8, byte2: u8, slice: &[u8]) -> Option<usize> {
-        slice.iter().position(|&x| x == byte1 || x == byte2)
-    }
-}
-
-/// Vectorized byte utilities utilizing SIMD.
-///
-/// These are the default operations. Currently SIMD is only implemented
-/// for x86/x86_64 architecture CPUs supporting AVX2. For all other targets
-/// the functions in this module fall back to the [`nosimd`] module.
-///
-/// This module is not compiled if the `nosimd` feature is enabled.
-#[cfg(not(feature = "nosimd"))]
-pub mod simd {
-    #[doc(inline)]
-    pub use super::classify::*;
-    #[doc(inline)]
-    pub use super::depth::simd as depth;
-    #[doc(inline)]
-    pub use super::sequences::simd::*;
-    use memchr::*;
-
-    /// Size of a single SIMD block, i.e. number of bytes
-    /// stored in a single SIMD register.
-    pub const BLOCK_SIZE: usize = BYTES_IN_AVX2_REGISTER;
-
-    #[allow(dead_code)]
-    const BYTES_IN_AVX2_REGISTER: usize = 256 / 8;
-
-    /// Find the first occurrence of a byte in the slice, if it exists.
-    ///
-    /// This is a SIMD version.
-    /// # Examples
-    /// ```
-    /// # use simdpath::bytes::simd::find_byte;
-    /// let bytes = "abcdefgh".as_bytes();
-    /// let result = find_byte(b'd', bytes);
-    ///
-    /// assert_eq!(Some(3), result);
-    /// ```
-    ///
-    /// ```
-    /// # use simdpath::bytes::simd::find_byte;
-    /// let bytes = "abcdefgh".as_bytes();
-    /// let result = find_byte(b'i', bytes);
-    ///
-    /// assert_eq!(None, result);
-    /// ```
-    pub fn find_byte(byte: u8, slice: &[u8]) -> Option<usize> {
-        memchr(byte, slice)
-    }
-
-    /// Find the first occurrence of either of two bytes in the slice, if it exists.
-    ///
-    /// This is a SIMD version.
-    /// # Examples
-    /// ```
-    /// # use simdpath::bytes::simd::find_byte2;
-    /// let bytes = "abcdefgh".as_bytes();
-    /// let result = find_byte2(b'd', b'c', bytes);
-    ///
-    /// assert_eq!(Some(2), result);
-    /// ```
-    ///
-    /// ```
-    /// # use simdpath::bytes::simd::find_byte2;
-    /// let bytes = "abcdefgh".as_bytes();
-    /// let result = find_byte2(b'i', b'j', bytes);
-    ///
-    /// assert_eq!(None, result);
-    /// ```
-    #[inline(always)]
-    pub fn find_byte2(byte1: u8, byte2: u8, slice: &[u8]) -> Option<usize> {
-        memchr2(byte1, byte2, slice)
-    }
 }
 
 //cspell:disable - a lot of French words incoming.

@@ -6,7 +6,10 @@
 
 pub mod result;
 
-use align::{alignment, AlignedBytes};
+use align::{
+    alignment::{self, Alignment},
+    AlignedBytes,
+};
 use len_trait::Len;
 use result::CountResult;
 
@@ -31,16 +34,18 @@ impl Input {
     pub fn new<T: Extend<char> + Len + AsRef<[u8]>>(src: T) -> Self {
         #[cfg(not(feature = "nosimd"))]
         {
-            use crate::bytes::simd::BLOCK_SIZE;
-            const TWO_BLOCKS_SIZE: usize = 2 * BLOCK_SIZE;
             let mut contents = src;
-            let rem = contents.len() % TWO_BLOCKS_SIZE;
-            let pad = if rem == 0 { 0 } else { TWO_BLOCKS_SIZE - rem };
+            let rem = contents.len() % alignment::TwoSimdBlocks::size();
+            let pad = if rem == 0 {
+                0
+            } else {
+                alignment::TwoSimdBlocks::size() - rem
+            };
 
-            let extension = std::iter::repeat('\0').take(pad + TWO_BLOCKS_SIZE);
+            let extension = std::iter::repeat('\0').take(pad + alignment::TwoSimdBlocks::size());
             contents.extend(extension);
 
-            debug_assert_eq!(contents.len() % TWO_BLOCKS_SIZE, 0);
+            debug_assert_eq!(contents.len() % alignment::TwoSimdBlocks::size(), 0);
 
             Self {
                 bytes: AlignedBytes::<alignment::Page>::from(contents.as_ref()),

@@ -15,12 +15,39 @@ pub unsafe trait Alignment {
     fn size() -> usize;
 }
 
+/// Alignment to 1 byte, so no special alignment &ndash; every slice is always one-byte-aligned.
+///
+/// # Examples
+/// ```rust
+/// use align::alignment::{self, Alignment};
+///
+/// assert_eq!(1, alignment::One::size());
+/// ```
+#[derive(Debug)]
+pub struct One {}
+
 /// Alignment to page boundary.
 ///
 /// Size is the size of a single page in the OS as returned by the
 /// [`page_size`] crate.
+///
+/// # Examples
+/// ```rust
+/// use page_size;
+/// use align::alignment::{self, Alignment};
+///
+/// assert_eq!(page_size::get(), alignment::Page::size());
+/// ```
 #[derive(Debug)]
 pub struct Page {}
+
+// SAFETY:
+// One is a constant power of two.
+unsafe impl Alignment for One {
+    fn size() -> usize {
+        1
+    }
+}
 
 // SAFETY:
 // We check whether the size is power of two. The [`page_size`] crate caches the result
@@ -50,7 +77,15 @@ unsafe impl Alignment for Page {
 }
 
 cfg_if! {
-    if #[cfg(feature = "simd")] {
+    if #[cfg(doc)] {
+        #[cfg_attr(docsrs, doc(cfg(feature = "simd")))]
+        mod simd;
+
+        #[cfg_attr(docsrs, doc(cfg(feature = "simd")))]
+        #[doc(inline)]
+        pub use simd::*;
+    }
+    else if #[cfg(feature = "simd")] {
         mod simd;
         pub use simd::*;
     }

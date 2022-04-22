@@ -15,6 +15,7 @@ use cfg_if::cfg_if;
 /// |-----------------|------------------:|
 /// | AVX2            | 32                |
 #[derive(Debug)]
+#[cfg_attr(docsrs, doc(cfg(feature = "simd")))]
 pub struct SimdBlock {}
 
 /// Alignment to two SIMD blocks guarantee.
@@ -28,6 +29,7 @@ pub struct SimdBlock {}
 /// assert_eq!(2 * alignment::SimdBlock::size(), alignment::TwoSimdBlocks::size());
 /// ```
 #[derive(Debug)]
+#[cfg_attr(docsrs, doc(cfg(feature = "simd")))]
 pub struct TwoSimdBlocks {}
 
 // SAFETY:
