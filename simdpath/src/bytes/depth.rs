@@ -1,7 +1,7 @@
 //! JSON depth calculations on byte streams.
 //!
 //! The recommended implementation of [`DepthBlock`] is [`simd::LazyAvx2Vector`],
-//! which is optimised for the usual case where the depth does not change too sharply
+//! which is optimized for the usual case where the depth does not change too sharply
 //! within a single 32-byte block.
 
 #[allow(dead_code)]
@@ -41,7 +41,7 @@ pub trait DepthBlock<'a>: Sized {
     /// Implementing structs should start at the first position in the
     /// decorated slice. To change the position, call
     /// [`advance`](`DepthBlock::advance`) or [`advance_by`](`DepthBlock::advance_by`).
-    fn is_depth_greater_or_equal_to(&mut self, depth: isize) -> bool;
+    fn is_depth_greater_or_equal_to(&self, depth: isize) -> bool;
 
     /// Returns exact depth at the end of the decorated slice,
     /// consuming the block.
@@ -113,7 +113,7 @@ pub mod nosimd {
         }
 
         #[inline]
-        fn is_depth_greater_or_equal_to(&mut self, depth: isize) -> bool {
+        fn is_depth_greater_or_equal_to(&self, depth: isize) -> bool {
             self.depth >= depth
         }
 
@@ -274,7 +274,7 @@ mod avx2_simd {
         }
 
         #[inline]
-        fn is_depth_greater_or_equal_to(&mut self, depth: isize) -> bool {
+        fn is_depth_greater_or_equal_to(&self, depth: isize) -> bool {
             let closing_count = self.closing_mask.count_ones() as isize;
             if depth <= -closing_count {
                 return true;
@@ -363,7 +363,7 @@ mod avx2_simd {
         }
 
         #[inline(always)]
-        fn is_depth_greater_or_equal_to(&mut self, depth: isize) -> bool {
+        fn is_depth_greater_or_equal_to(&self, depth: isize) -> bool {
             (self.depth_bytes[self.idx] as isize) >= depth
         }
 

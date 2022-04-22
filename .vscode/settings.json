@@ -1,5 +1,6 @@
 {
     "cSpell.words": [
+        "clippy",
         "clmulepi",
         "cmpeq",
         "cvtsi",
@@ -23,6 +24,7 @@
         "regs",
         "repr",
         "rustdoc",
+        "rustfmt",
         "SIMD",
         "simdpath",
         "snaks",
@@ -30,6 +32,8 @@
         "stackless",
         "Structurals",
         "Uninit",
+        "vectorially",
         "WHITESPACES"
-    ]
+    ],
+    "cSpell.language": "en-US"
 }

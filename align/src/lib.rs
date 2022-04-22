@@ -276,7 +276,7 @@ impl<A: Alignment> AlignedBytes<A> {
         if size == 0 {
             return Self::default();
         }
-        
+
         let layout = Self::get_layout(size);
 
         // SAFETY:
@@ -340,7 +340,7 @@ impl<A: Alignment> AlignedBytes<A> {
     /// Create a new block of bytes by copying the given bytes
     /// and padding them with zeroes, so that the total size is
     /// divisible by the alignment size.
-    /// 
+    ///
     /// This is primarily useful to guarantee that [`AlignedBlockIterator`]
     /// returns full blocks of size exactly equal to the alignment,
     /// as otherwise the final block can be potentially smaller.
@@ -350,7 +350,11 @@ impl<A: Alignment> AlignedBytes<A> {
         }
 
         let size = bytes.len();
-        let padding = if size % A::size() == 0 { 0 } else { A::size() - size % A::size() };
+        let padding = if size % A::size() == 0 {
+            0
+        } else {
+            A::size() - size % A::size()
+        };
         let padded_size = size + padding;
 
         let mut aligned = Self::new_zeroed(padded_size);
@@ -836,7 +840,6 @@ impl<'a, A: alignment::Alignment> Iterator for AlignedBlockIterator<'a, A> {
 
         Some(chunk)
     }
-
 
     fn size_hint(&self) -> (usize, Option<usize>) {
         let size = (self.bytes.len() + A::size() - 1) / A::size();
