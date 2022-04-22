@@ -4,9 +4,9 @@ Library for fast execution of JSONPath queries.
 
 ## Build & test
 
-Use the included `Makefile`. It will autoinstall Rust for you using the `rustup` tool if it detects there is no Cargo in your environment.
+Use the included `Makefile`. It will automatically install Rust for you using the `rustup` tool if it detects there is no Cargo in your environment.
 
-```
+```bash
 make
 make test
 ```
