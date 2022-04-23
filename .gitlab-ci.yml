@@ -8,7 +8,7 @@ rust-latest:
     - merge_requests
   image: rust:latest
   script:
-    - RUSTFLAGS="--deny warnings" cargo build --verbose
+    - RUSTFLAGS="--deny warnings -C target-feature=+avx2" cargo build --verbose
     - cargo clippy -- --deny warnings
     - cargo test --verbose
     - cargo test --verbose --no-default-features
