@@ -92,22 +92,20 @@ fn descendant_only_automaton(labels: &[&Label], bytes: &AlignedBytes<alignment::
 
                 if matches!(event, Some(Structural::Opening(_))) || state == last_state {
                     let len = labels[(state - 1) as usize].len();
-                    if idx < len + 2 {
-                        continue;
-                    }
-
-                    let mut closing_quote_idx = idx - 1;
-                    while bytes[closing_quote_idx] != b'"' {
-                        closing_quote_idx -= 1;
-                    }
-                    let opening_quote_idx = closing_quote_idx - len - 1;
-                    let slice = &bytes[opening_quote_idx..closing_quote_idx + 1];
-                    if slice == labels[(state - 1) as usize].bytes_with_quotes() {
-                        if state == last_state {
-                            count += 1;
-                        } else {
-                            state += 1;
-                            regs[(state - 1) as usize] = depth;
+                    if idx >= len + 2 {
+                        let mut closing_quote_idx = idx - 1;
+                        while bytes[closing_quote_idx] != b'"' {
+                            closing_quote_idx -= 1;
+                        }
+                        let opening_quote_idx = closing_quote_idx - len - 1;
+                        let slice = &bytes[opening_quote_idx..closing_quote_idx + 1];
+                        if slice == labels[(state - 1) as usize].bytes_with_quotes() {
+                            if state == last_state {
+                                count += 1;
+                            } else {
+                                state += 1;
+                                regs[(state - 1) as usize] = depth;
+                            }
                         }
                     }
                 }
