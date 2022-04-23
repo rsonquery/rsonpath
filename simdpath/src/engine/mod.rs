@@ -10,6 +10,7 @@ use align::{
     alignment::{self, Alignment},
     AlignedBytes,
 };
+use cfg_if::cfg_if;
 use len_trait::Len;
 use result::CountResult;
 
@@ -32,29 +33,29 @@ impl Input {
     /// The buffer must know its length, may be extended by auxillary UTF8 characters
     /// and will be interpreted as a slice of bytes at the end.
     pub fn new<T: Extend<char> + Len + AsRef<[u8]>>(src: T) -> Self {
-        #[cfg(not(feature = "nosimd"))]
-        {
-            let mut contents = src;
-            let rem = contents.len() % alignment::TwoSimdBlocks::size();
-            let pad = if rem == 0 {
-                0
-            } else {
-                alignment::TwoSimdBlocks::size() - rem
-            };
+        cfg_if! {
+            if #[cfg(feature = "simd")] {
+                let mut contents = src;
+                let rem = contents.len() % alignment::TwoSimdBlocks::size();
+                let pad = if rem == 0 {
+                    0
+                } else {
+                    alignment::TwoSimdBlocks::size() - rem
+                };
 
-            let extension = std::iter::repeat('\0').take(pad + alignment::TwoSimdBlocks::size());
-            contents.extend(extension);
+                let extension = std::iter::repeat('\0').take(pad + alignment::TwoSimdBlocks::size());
+                contents.extend(extension);
 
-            debug_assert_eq!(contents.len() % alignment::TwoSimdBlocks::size(), 0);
+                debug_assert_eq!(contents.len() % alignment::TwoSimdBlocks::size(), 0);
 
-            Self {
-                bytes: AlignedBytes::<alignment::Page>::from(contents.as_ref()),
+                Self {
+                    bytes: AlignedBytes::<alignment::Page>::from(contents.as_ref()),
+                }
             }
-        }
-        #[cfg(feature = "nosimd")]
-        {
-            Self {
-                bytes: AlignedBytes::<alignment::Page>::from(src.as_ref()),
+            else {
+                Self {
+                    bytes: AlignedBytes::<alignment::Page>::from(src.as_ref()),
+                }
             }
         }
     }

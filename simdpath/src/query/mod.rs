@@ -34,7 +34,19 @@
 //!
 mod parser;
 use align::{alignment, AlignedBytes, AlignedSlice};
+use cfg_if::cfg_if;
 use std::fmt::{self, Display};
+
+cfg_if! {
+    if #[cfg(feature = "simd")] {
+        /// Label byte alignment for SIMD.
+        pub type LabelAlignment = alignment::SimdBlock;
+    }
+    else {
+        /// Label byte alignment for `simd` feature disabled.
+        pub type LabelAlignment = alignment::One;
+    }
+}
 
 /// Label to search for in a JSON document.
 ///
@@ -53,18 +65,18 @@ use std::fmt::{self, Display};
 /// ```
 #[derive(Debug)]
 pub struct Label {
-    label: AlignedBytes<alignment::SimdBlock>,
-    label_with_quotes: AlignedBytes<alignment::SimdBlock>,
+    label: AlignedBytes<LabelAlignment>,
+    label_with_quotes: AlignedBytes<LabelAlignment>,
 }
 
 impl Label {
     /// Create a new label from its raw bytes.
     pub fn new(label: &[u8]) -> Self {
-        let without_quotes = AlignedBytes::<alignment::SimdBlock>::from(label);
+        let without_quotes = AlignedBytes::<LabelAlignment>::from(label);
 
         // SAFETY:
         // We immediately initialize the bytes below.
-        let mut with_quotes = unsafe { AlignedBytes::<alignment::SimdBlock>::new(label.len() + 2) };
+        let mut with_quotes = unsafe { AlignedBytes::<LabelAlignment>::new(label.len() + 2) };
         with_quotes[0] = b'"';
         with_quotes[1..label.len() + 1].copy_from_slice(label);
         with_quotes[label.len() + 1] = b'"';
@@ -76,19 +88,19 @@ impl Label {
     }
 
     /// Return the raw bytes of the label, guaranteed to be block-aligned.
-    pub fn bytes(&self) -> &AlignedSlice<alignment::SimdBlock> {
+    pub fn bytes(&self) -> &AlignedSlice<LabelAlignment> {
         &self.label
     }
 
     /// Return the bytes representing the label with a leading and trailing
     /// double quote symbol `"`, guaranteed to be block-aligned.
-    pub fn bytes_with_quotes(&self) -> &AlignedSlice<alignment::SimdBlock> {
+    pub fn bytes_with_quotes(&self) -> &AlignedSlice<LabelAlignment> {
         &self.label_with_quotes
     }
 }
 
 impl std::ops::Deref for Label {
-    type Target = AlignedSlice<alignment::SimdBlock>;
+    type Target = AlignedSlice<LabelAlignment>;
 
     fn deref(&self) -> &Self::Target {
         self.bytes()

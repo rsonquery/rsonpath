@@ -10,14 +10,6 @@ use core::arch::x86_64::*;
 
 static_assertions::assert_eq_size!(usize, u64);
 
-/// Walk through the JSON document represented by `bytes` and iterate over all
-/// occurrences of structural characters in it.
-pub fn classify_structural_characters(
-    bytes: &AlignedSlice<alignment::TwoSimdBlocks>,
-) -> impl StructuralIterator {
-    Avx2Classifier::new(bytes)
-}
-
 struct StructuralsBlock<'a> {
     block: &'a AlignedBlock<alignment::TwoSimdBlocks>,
     structural_mask: u64,
@@ -74,7 +66,7 @@ impl<'a> Empty for StructuralsBlock<'a> {
     }
 }
 
-struct Avx2Classifier<'a> {
+pub struct Avx2Classifier<'a> {
     iter: AlignedBlockIterator<'a, alignment::TwoSimdBlocks>,
     offset: usize,
     classifier: BlockAvx2Classifier,
@@ -83,7 +75,7 @@ struct Avx2Classifier<'a> {
 
 impl<'a> Avx2Classifier<'a> {
     #[inline(always)]
-    fn new(bytes: &'a AlignedSlice<alignment::TwoSimdBlocks>) -> Self {
+    pub fn new(bytes: &'a AlignedSlice<alignment::TwoSimdBlocks>) -> Self {
         Self {
             iter: bytes.iter_blocks(),
             offset: 0,

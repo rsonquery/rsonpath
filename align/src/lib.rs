@@ -196,10 +196,10 @@ impl<A: Alignment> AlignedBytes<A> {
     /// # Examples
     /// ```rust
     /// # use align::{Aligned, AlignedBytes, alignment::{self, Alignment}};
-    /// let aligned = AlignedBytes::<alignment::SimdBlock>::new_initialize(8, |i| { (i % 2) as u8 });
+    /// let aligned = AlignedBytes::<alignment::Page>::new_initialize(8, |i| { (i % 2) as u8 });
     /// let ptr = aligned.as_ptr();
     ///
-    /// assert_eq!(ptr as usize % alignment::SimdBlock::size(), 0);
+    /// assert_eq!(ptr as usize % alignment::Page::size(), 0);
     /// assert_eq!(aligned, [0, 1, 0, 1, 0, 1, 0, 1]);
     /// ```
     pub fn new_initialize<F>(size: usize, f: F) -> Self

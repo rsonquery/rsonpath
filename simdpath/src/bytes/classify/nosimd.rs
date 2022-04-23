@@ -2,15 +2,7 @@ use super::*;
 use align::{alignment, AlignedSlice};
 use len_trait::Empty;
 
-/// Walk through the JSON document represented by `bytes` and iterate over all
-/// occurrences of structural characters in it.
-pub fn classify_structural_characters(
-    bytes: &AlignedSlice<alignment::TwoSimdBlocks>,
-) -> impl StructuralIterator {
-    SequentialClassifier::new(bytes)
-}
-
-struct SequentialClassifier<'a> {
+pub struct SequentialClassifier<'a> {
     bytes: &'a [u8],
     idx: usize,
 }
@@ -18,7 +10,7 @@ struct SequentialClassifier<'a> {
 impl<'a> SequentialClassifier<'a> {
     #[inline(always)]
     #[allow(dead_code)]
-    fn new(bytes: &'a [u8]) -> Self {
+    pub fn new(bytes: &'a [u8]) -> Self {
         Self { bytes, idx: 0 }
     }
 }
