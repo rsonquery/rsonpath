@@ -1,10 +1,13 @@
 {
     "cSpell.words": [
+        "clippy",
         "clmulepi",
         "cmpeq",
+        "codegen",
         "cvtsi",
         "datavalue",
         "dealloc",
+        "Deque",
         "docsrs",
         "ebnf",
         "Gienieczko",
@@ -20,9 +23,12 @@
         "nonquoted",
         "nosimd",
         "Peekable",
+        "proptest",
         "regs",
         "repr",
         "rustdoc",
+        "RUSTFLAGS",
+        "rustfmt",
         "SIMD",
         "simdpath",
         "snaks",
@@ -30,6 +36,8 @@
         "stackless",
         "Structurals",
         "Uninit",
+        "vectorially",
         "WHITESPACES"
-    ]
+    ],
+    "cSpell.language": "en-US"
 }

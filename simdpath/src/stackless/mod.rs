@@ -69,7 +69,7 @@ fn query_to_descendant_pattern_labels(query: &JsonPathQuery) -> Vec<&Label> {
 }
 
 fn descendant_only_automaton(labels: &[&Label], bytes: &AlignedBytes<alignment::Page>) -> usize {
-    use crate::bytes::{classify_structural_characters, Structural};
+    use crate::bytes::classify::{classify_structural_characters, Structural};
     let mut depth: usize = 0;
     let mut state: u8 = 1;
     let last_state = labels.len() as u8;

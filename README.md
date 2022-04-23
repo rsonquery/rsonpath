@@ -4,9 +4,9 @@ Library for fast execution of JSONPath queries.
 
 ## Build & test
 
-Use the included `Makefile`. It will autoinstall Rust for you using the `rustup` tool if it detects there is no Cargo in your environment.
+Use the included `Makefile`. It will automatically install Rust for you using the `rustup` tool if it detects there is no Cargo in your environment.
 
-```
+```bash
 make
 make test
 ```
@@ -15,7 +15,7 @@ make test
 
 To install the `simdpath` executable run:
 
-```
+```bash
 make install
 ```
 
@@ -25,14 +25,14 @@ Note: it is recommended to install `gnuplot` before generating reports.
 
 This highly depends on the exact scenario you want to benchmark, so there is no `Makefile`. To run the stack-based vs stackless bench run:
 
-```
+```bash
 cargo bench --bench simdpath_stack_based_vs_stackless
 ```
 
-If you want to bench the no-SIMD scenario add the `nosimd` feature flag:
+If you want to bench the no-SIMD scenario, disable the default `simd_x86` feature flag:
 
-```
-cargo bench --bench simdpath_stack_based_vs_stackless --features nosimd
+```bash
+cargo bench --bench simdpath_stack_based_vs_stackless --no-default-features
 ```
 
 For details about benchmarking refer to [Criterion.rs docs](https://github.com/bheisler/criterion.rs).

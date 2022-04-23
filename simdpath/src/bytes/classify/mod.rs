@@ -1,15 +1,22 @@
 //! Classification of structurally significant JSON bytes.
 //!
-//! Provides the [`common::Structural`] struct and [`common::StructuralIterator`] trait
+//! Provides the [`Structural`] struct and [`StructuralIterator`] trait
 //! that allow effectively iterating over structural characters in a JSON document.
 //!
 //! # Examples
 //! ```rust
-//! use simdpath::bytes::{Structural, classify_structural_characters};
+//! use simdpath::bytes::classify::{Structural, classify_structural_characters};
 //! use align::{alignment, AlignedBytes};
 //!
 //! let json = r#"{"x": [{"y": 42}, {}]}""#;
-//! let aligned = AlignedBytes::<alignment::TwoSimdBlocks>::new_padded(json.as_bytes());
+#![cfg_attr(
+    not(feature = "simd"),
+    doc = "let aligned = AlignedBytes::<alignment::One>::new_padded(json.as_bytes());"
+)]
+#![cfg_attr(
+    feature = "simd",
+    doc = "let aligned = AlignedBytes::<alignment::TwoSimdBlocks>::new_padded(json.as_bytes());"
+)]
 //! let expected = vec![
 //!     Structural::Opening(0),
 //!     Structural::Colon(4),
@@ -26,11 +33,18 @@
 //! assert_eq!(expected, actual);
 //! ```
 //! ```rust
-//! use simdpath::bytes::{Structural, classify_structural_characters};
+//! use simdpath::bytes::classify::{Structural, classify_structural_characters};
 //! use align::{alignment, AlignedBytes};
 //!
 //! let json = r#"{"x": "[\"\"]"}""#;
-//! let aligned = AlignedBytes::<alignment::TwoSimdBlocks>::new_padded(json.as_bytes());
+#![cfg_attr(
+    not(feature = "simd"),
+    doc = "let aligned = AlignedBytes::<alignment::One>::new_padded(json.as_bytes());"
+)]
+#![cfg_attr(
+    feature = "simd",
+    doc = "let aligned = AlignedBytes::<alignment::TwoSimdBlocks>::new_padded(json.as_bytes());"
+)]
 //! let expected = vec![
 //!     Structural::Opening(0),
 //!     Structural::Colon(4),
@@ -40,40 +54,89 @@
 //! assert_eq!(expected, actual);
 //! ```
 
-use align::{alignment, AlignedSlice};
 use cfg_if::cfg_if;
 
-mod common;
-pub use common::*;
+/// Defines structural characters in JSON documents.
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
+pub enum Structural {
+    /// Represents either the closing brace '{' or closing bracket '['.
+    Closing(usize),
+    /// Represents the colon ':' character.
+    Colon(usize),
+    /// Represents either the opening brace '}' or opening bracket ']'.
+    Opening(usize),
+}
+use Structural::*;
 
-cfg_if! {
-    if #[cfg(all(
-            any(target_arch = "x86_64", target_arch = "x86"),
-            target_feature = "avx2",
-            not(feature = "nosimd")
-    ))] {
-        mod avx2;
+impl Structural {
+    /// Returns the index of the character in the document,
+    /// i.e. which byte it is counting from 0.
+    #[inline(always)]
+    pub fn idx(self) -> usize {
+        match self {
+            Closing(idx) => idx,
+            Colon(idx) => idx,
+            Opening(idx) => idx,
+        }
+    }
+
+    /// Add a given amount to the structural's index.
+    ///
+    /// # Examples
+    /// ```rust
+    /// # use simdpath::bytes::classify::{Structural};
+    ///
+    /// let structural = Structural::Colon(42);
+    /// let offset_structural = structural.offset(10);
+    ///
+    /// assert_eq!(structural.idx(), 42);
+    /// assert_eq!(offset_structural.idx(), 52);
+    /// ```
+    #[inline(always)]
+    pub fn offset(self, amount: usize) -> Self {
+        match self {
+            Closing(idx) => Closing(idx + amount),
+            Colon(idx) => Colon(idx + amount),
+            Opening(idx) => Opening(idx + amount),
+        }
     }
 }
 
-mod nosimd;
+/// Trait for classifier iterators, i.e. finite iterators of [`Structural`] characters
+/// that hold a reference to the JSON document valid for `'a`.
+pub trait StructuralIterator<'a>: Iterator<Item = Structural> + len_trait::Empty + 'a {}
 
-/// Walk through the JSON document represented by `bytes` and iterate over all
-/// occurrences of structural characters in it.
-#[inline(always)]
-pub fn classify_structural_characters(
-    bytes: &AlignedSlice<alignment::TwoSimdBlocks>,
-) -> impl StructuralIterator {
-    cfg_if! {
-        if #[cfg(all(
-                any(target_arch = "x86_64", target_arch = "x86"),
-                target_feature = "avx2",
-                not(feature = "nosimd")
-        ))] {
-            avx2::Avx2Classifier::new(bytes)
+use align::{alignment, AlignedSlice};
+
+cfg_if! {
+    if #[cfg(any(doc, not(feature = "simd")))] {
+        mod nosimd;
+        use nosimd::*;
+
+        /// Walk through the JSON document represented by `bytes` and iterate over all
+        /// occurrences of structural characters in it.
+        pub fn classify_structural_characters(
+            bytes: &AlignedSlice<alignment::One>,
+        ) -> impl StructuralIterator {
+            SequentialClassifier::new(bytes)
         }
-        else {
-            nosimd::SequentialClassifier::new(bytes)
+    }
+    else if #[cfg(all(
+        any(target_arch = "x86", target_arch = "x86_64"),
+        target_feature = "avx2",
+    ))] {
+        mod avx2;
+        use avx2::Avx2Classifier;
+
+        /// Walk through the JSON document represented by `bytes` and iterate over all
+        /// occurrences of structural characters in it.
+        pub fn classify_structural_characters(
+            bytes: &AlignedSlice<alignment::TwoSimdBlocks>,
+        ) -> impl StructuralIterator {
+            Avx2Classifier::new(bytes)
         }
+    }
+    else {
+        compile_error!("Target architecture is not supported by SIMD features of this crate. Disable the default `simd` feature.");
     }
 }

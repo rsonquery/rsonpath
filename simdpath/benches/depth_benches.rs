@@ -1,7 +1,6 @@
 use core::time::Duration;
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
-use simdpath::bytes::simd;
-use simdpath::bytes::DepthBlock;
+use simdpath::bytes::depth::{self, DepthBlock};
 use std::fs;
 
 const ROOT_TEST_DIRECTORY: &str = "./data";
@@ -77,12 +76,12 @@ fn wikidata_combined(c: &mut Criterion) {
     group.bench_with_input(
         BenchmarkId::new("simd", "wikidata_combined"),
         &(5, &contents),
-        |b, &(d, c)| b.iter(|| do_bench(c.as_bytes(), d, simd::depth::Avx2Vector::new)),
+        |b, &(d, c)| b.iter(|| do_bench(c.as_bytes(), d, depth::Avx2Vector::new)),
     );
     group.bench_with_input(
         BenchmarkId::new("simd_lazy", "wikidata_combined"),
         &(5, &contents),
-        |b, &(d, c)| b.iter(|| do_bench(c.as_bytes(), d, simd::depth::LazyAvx2Vector::new)),
+        |b, &(d, c)| b.iter(|| do_bench(c.as_bytes(), d, depth::LazyAvx2Vector::new)),
     );
     group.finish();
 }

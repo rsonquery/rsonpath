@@ -1,7 +1,6 @@
 use core::time::Duration;
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
-use simdpath::bytes::nosimd;
-use simdpath::bytes::simd;
+use simdpath::bytes::sequences;
 
 const LENGTH: usize = 32 * 1024 * 1024;
 const LETTERS: &str = "abcdefghijklmnopqrstuvwxyz";
@@ -33,19 +32,11 @@ fn bench_find_byte_sequencen(c: &mut Criterion, n: usize, measurement_time: Dura
 
     group.bench_with_input(
         BenchmarkId::new(
-            format!("simd::find_byte_sequence{}_bench", n),
+            format!("find_byte_sequence{}_bench", n),
             format!("bench_{}", contents.len()),
         ),
         &(&SEQUENCE[..n], &bytes),
-        |bench, &(s, c)| bench.iter(|| simd::find_byte_sequence(s.as_bytes(), c)),
-    );
-    group.bench_with_input(
-        BenchmarkId::new(
-            format!("nosimd::find_byte_sequence{}_bench", n),
-            format!("bench_{}", contents.len()),
-        ),
-        &(&SEQUENCE[..n], &bytes),
-        |bench, &(s, c)| bench.iter(|| nosimd::find_byte_sequence(s.as_bytes(), c)),
+        |bench, &(s, c)| bench.iter(|| sequences::find_byte_sequence(s.as_bytes(), c)),
     );
     group.finish();
 }

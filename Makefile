@@ -5,7 +5,10 @@ make: simdpath
 simdpath: check_cargo
 	$(CARGO) build --bin simdpath --release
 
-.PHONY: check_cargo clean clean_benches doc install uninstall test
+.PHONY: bench check_cargo clean clean_benches doc install uninstall test
+
+bench: simdpath
+	$(CARGO) bench --bench simdpath_stack_based_vs_stackless
 
 # Check if cargo is present, if not, use rustup to setup.
 check_cargo:
@@ -23,15 +26,15 @@ clean:
 clean_benches:
 	rm -rf ./target/criterion/*
 
-doc:
+doc: simdpath
 	RUSTDOCFLAGS="--cfg docsrs" cargo +nightly doc --open
 
 install: simdpath
 	$(CARGO) install --path ./simdpath
 
-test:
+test: simdpath
 	cd simdpath
-	$(CARGO) test --features nosimd && \
+	$(CARGO) test --no-default-features && \
 	$(CARGO) test
 
 uninstall:

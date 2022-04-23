@@ -1,4 +1,5 @@
-use super::common::*;
+use super::*;
+use align::{alignment, AlignedSlice};
 use len_trait::Empty;
 
 pub struct SequentialClassifier<'a> {

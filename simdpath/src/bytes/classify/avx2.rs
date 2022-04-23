@@ -1,7 +1,5 @@
-use super::common::*;
-use align::{
-    alignment, alignment::Alignment, AlignedBlock, AlignedBlockIterator, AlignedSlice,
-};
+use super::*;
+use align::{alignment, alignment::Alignment, AlignedBlock, AlignedBlockIterator, AlignedSlice};
 
 use len_trait::Empty;
 
@@ -12,14 +10,14 @@ use core::arch::x86_64::*;
 
 static_assertions::assert_eq_size!(usize, u64);
 
-pub struct StructuralsBlock<'a> {
+struct StructuralsBlock<'a> {
     block: &'a AlignedBlock<alignment::TwoSimdBlocks>,
     structural_mask: u64,
 }
 
 impl<'a> StructuralsBlock<'a> {
     #[inline(always)]
-    pub fn new(block: &'a AlignedBlock<alignment::TwoSimdBlocks>, structural_mask: u64) -> Self {
+    fn new(block: &'a AlignedBlock<alignment::TwoSimdBlocks>, structural_mask: u64) -> Self {
         Self {
             block,
             structural_mask,
@@ -72,7 +70,7 @@ pub struct Avx2Classifier<'a> {
     iter: AlignedBlockIterator<'a, alignment::TwoSimdBlocks>,
     offset: usize,
     classifier: BlockAvx2Classifier,
-    block: Option<StructuralsBlock<'a>>
+    block: Option<StructuralsBlock<'a>>,
 }
 
 impl<'a> Avx2Classifier<'a> {
@@ -82,7 +80,7 @@ impl<'a> Avx2Classifier<'a> {
             iter: bytes.iter_blocks(),
             offset: 0,
             classifier: unsafe { BlockAvx2Classifier::new() },
-            block: None
+            block: None,
         }
     }
 
@@ -112,7 +110,7 @@ impl<'a> Iterator for Avx2Classifier<'a> {
 
     #[inline(always)]
     fn next(&mut self) -> Option<Structural> {
-        use crate::bytes::simd::BLOCK_SIZE;
+        use align::alignment;
 
         if !self.next_block() {
             return None;
@@ -121,7 +119,7 @@ impl<'a> Iterator for Avx2Classifier<'a> {
             .as_mut()
             .unwrap()
             .next()
-            .map(|x| x.offset(self.offset - 2 * BLOCK_SIZE))
+            .map(|x| x.offset(self.offset - alignment::TwoSimdBlocks::size()))
     }
 }
 
@@ -135,7 +133,7 @@ impl<'a> Empty for Avx2Classifier<'a> {
 
 impl<'a> StructuralIterator<'a> for Avx2Classifier<'a> {}
 
-pub struct BlockAvx2Classifier {
+struct BlockAvx2Classifier {
     prev_quote_bit: u64,
     prev_slash_bit: u64,
     lower_nibble_mask: __m256i,
@@ -169,7 +167,7 @@ impl BlockAvx2Classifier {
 
     #[target_feature(enable = "avx2")]
     #[inline]
-    pub unsafe fn new() -> Self {
+    unsafe fn new() -> Self {
         Self {
             prev_quote_bit: 0,
             prev_slash_bit: 0,
