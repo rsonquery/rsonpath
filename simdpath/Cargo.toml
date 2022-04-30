@@ -18,6 +18,8 @@ rustdoc-args = ["--cfg", "docsrs"]
 align = { path = "../align", default-features = false }
 cfg-if = "1.0.0"
 clap = "2.33.3"
+color-eyre = { version = "0.6.1", default-features = false }
+eyre = "0.6.8"
 len-trait = "0.6.1"
 log = "0.4"
 memchr = "2.4.1"

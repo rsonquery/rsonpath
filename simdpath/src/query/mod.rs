@@ -35,6 +35,11 @@
 mod parser;
 use align::{alignment, AlignedBytes, AlignedSlice};
 use cfg_if::cfg_if;
+use color_eyre::{
+    eyre::{eyre, Result},
+    section::Section,
+};
+use log::*;
 use std::fmt::{self, Display};
 
 cfg_if! {
@@ -144,6 +149,8 @@ impl PartialEq<&[u8]> for Label {
 pub enum JsonPathQueryNode {
     /// The first link in the list representing the root '`$`' character.
     Root(Option<Box<JsonPathQueryNode>>),
+    /// Represents direct descendant ('`.`' token).
+    Child(Box<JsonPathQueryNode>),
     /// Represents recursive descent ('`..`' token).
     Descendant(Box<JsonPathQueryNode>),
     /// Represents a label/key to be matched in the input JSON.
@@ -158,8 +165,21 @@ impl JsonPathQueryNode {
     pub fn child(&self) -> Option<&JsonPathQueryNode> {
         match self {
             Root(node) => node.as_deref(),
+            Child(node) => Some(node),
             Descendant(node) => Some(node),
             Label(_, node) => node.as_deref(),
+        }
+    }
+
+    pub(crate) fn debug_description(&self) -> String {
+        match self {
+            Root(_) => "$".to_owned(),
+            Child(_) => ".".to_owned(),
+            Descendant(_) => "..".to_owned(),
+            Label(label, _) => format!(
+                "['{}']",
+                std::str::from_utf8(label).unwrap_or("[invalid utf8]")
+            ),
         }
     }
 }
@@ -181,7 +201,7 @@ impl JsonPathQuery {
     }
 
     /// Parse a query string into a [`JsonPathQuery`].
-    pub fn parse(query_string: &str) -> Result<JsonPathQuery, String> {
+    pub fn parse(query_string: &str) -> Result<JsonPathQuery> {
         self::parser::parse_json_path_query(query_string)
     }
 
@@ -189,28 +209,32 @@ impl JsonPathQuery {
     ///
     /// If node is not the [`JsonPathQueryNode::Root`] variant it will be
     /// automatically wrapped into a [`JsonPathQueryNode::Root`] node.
-    pub fn new(node: Box<JsonPathQueryNode>) -> Result<JsonPathQuery, String> {
+    pub fn new(node: Box<JsonPathQueryNode>) -> Result<JsonPathQuery> {
         let root = if node.is_root() {
             node
         } else {
+            info!("Implicitly using the Root expression (`$`) at the start of the query.");
             Box::new(Root(Some(node)))
         };
 
         match root.child() {
             None => Ok(Self { root }),
-            Some(x) if x.is_descendant() => Self::validate(x).map(|_| Self { root }),
-            Some(_) => Err("Root child expressions are not supported.".to_string()),
+            Some(x) => Self::validate(x)
+                .map_err(|r| r.note(format!("The query was parsed as: `{}`.", root.to_string())))
+                .map(|_| Self { root }),
         }
     }
 
-    fn validate(node: &JsonPathQueryNode) -> Result<(), String> {
+    fn validate(node: &JsonPathQueryNode) -> Result<()> {
         match node {
             Root(_) => Err(
-                "The Root expression ('$') can appear only once at the start of the query."
-                    .to_string(),
-            ),
-            Descendant(n) if n.is_descendant() => Err("Descendant expression ('..') cannot immediately follow another Descendant expression.".to_string()),
-            Label(_, n) if n.is_label() => Err("Child Label expressions are not supported.".to_string()),
+                    eyre!("The root expression (`$`) can appear only once at the start of the query.")
+                ).note("The query was successfully parsed, but a root expression is unexpected outside of the first position.")
+                .suggestion("The `$` character represents the root of a document. If you want to match a label with that character inside, use the explicit `['label']` syntax."),
+            Descendant(n) if n.is_descendant() => Err(
+                    eyre!("Descendant expression (`..`) cannot immediately follow another Descendant expression.")
+                ).note("The query was successfully parsed, but a doubled descendant expression is unexpected.")
+                .suggestion("If the invalid period sequence is part of a label, use the explicit `['label']` syntax."),
             _ => Ok(())
         }?;
 
@@ -229,12 +253,16 @@ impl Display for JsonPathQuery {
 
 impl Display for JsonPathQueryNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let head = match self {
-            Root(_) => "$",
-            Descendant(_) => "..",
-            Label(label, _) => std::str::from_utf8(label.bytes()).unwrap(),
-        };
-        write!(f, "{}", head)?;
+        match self {
+            Root(_) => write!(f, "$"),
+            Child(_) => write!(f, "."),
+            Descendant(_) => write!(f, ".."),
+            Label(label, _) => write!(
+                f,
+                "['{}']",
+                std::str::from_utf8(label.bytes()).unwrap_or("[invalid utf8]")
+            ),
+        }?;
 
         if let Some(child) = self.child() {
             write!(f, "{}", child)

@@ -5,6 +5,7 @@ use crate::bytes::classify::{classify_structural_characters, Structural, Structu
 use crate::engine::{result, Input, Runner};
 use crate::query::{JsonPathQuery, JsonPathQueryNode, Label};
 use align::{alignment, AlignedSlice};
+use log::*;
 
 /// New version of [`StackBasedRunner`](`crate::stack_based::StackBasedRunner`).
 pub struct NewStackBasedRunner<'a> {
@@ -37,6 +38,7 @@ where
     classifier: Peekable<I>,
     count: usize,
     bytes: &'b [u8],
+    recursive_state: State<'q>,
 }
 
 impl<'q, 'b, I> ExecutionContext<'q, 'b, I>
@@ -49,6 +51,7 @@ where
             classifier: classifier.peekable(),
             count: 0,
             bytes,
+            recursive_state: State(Mode::Skip, None),
         }
     }
 
@@ -57,10 +60,17 @@ where
         self.count
     }
 
-    fn run_state(&mut self, state: State, next_node: Option<&JsonPathQueryNode>) {
-        match state {
-            State::Initial => self.transition_based_on_node(next_node),
-            State::MatchLabel(label) => {
+    fn run_state(&mut self, state: State<'q>) {
+        let mode = state.0;
+        let next_node = state.1;
+        debug!(
+            "Running state: ({:?}, {:?})",
+            mode,
+            next_node.map(|x| x.debug_description())
+        );
+        match mode {
+            Mode::Initial => self.transition_based_on_node(next_node),
+            Mode::MatchLabel(label) => {
                 if let Some(&Structural::Colon(idx)) = self.classifier.peek() {
                     self.classifier.next();
                     let len = label.len();
@@ -74,17 +84,26 @@ where
                         let slice = &self.bytes[opening_quote_idx..closing_quote_idx + 1];
 
                         if slice == label.bytes_with_quotes() {
+                            debug!(
+                                "Label matched: {}",
+                                std::str::from_utf8(label.bytes_with_quotes()).unwrap()
+                            );
                             self.transition_based_on_node(next_node)
                         }
                     }
+                    debug!("Label not matched.");
+                } else {
+                    debug!("Not a label.")
                 }
             }
-            State::RecursiveDescent => loop {
+            Mode::RecursiveDescent => loop {
+                debug!("Setting recursive checkpoint.");
+                self.recursive_state = State(Mode::RecursiveDescent, next_node);
                 self.transition_based_on_node(next_node);
                 match self.classifier.peek() {
                     Some(Structural::Opening(_)) => {
                         self.classifier.next();
-                        self.run_state(State::RecursiveDescent, next_node)
+                        self.run_state(State(Mode::RecursiveDescent, next_node))
                     }
                     Some(Structural::Closing(_)) => {
                         self.classifier.next();
@@ -93,35 +112,79 @@ where
                     _ => (),
                 }
             },
+            Mode::DirectDescendant => loop {
+                self.transition_based_on_node(next_node);
+                match self.classifier.peek() {
+                    Some(Structural::Opening(_)) => {
+                        self.classifier.next();
+                        debug!("Invoking recursive checkpoint.");
+                        self.run_state(self.recursive_state);
+                        debug!(
+                            "Returned from recursive checkpoint back to ({:?}, {:?})",
+                            mode,
+                            next_node.map(|x| x.debug_description())
+                        );
+                    }
+                    Some(Structural::Closing(_)) => {
+                        self.classifier.next();
+                        break;
+                    }
+                    _ => (),
+                }
+            },
+            Mode::Skip => loop {
+                debug!("Skipping object...");
+                match self.classifier.next() {
+                    Some(Structural::Opening(_)) => self.run_state(State(Mode::Skip, next_node)),
+                    Some(Structural::Closing(_)) => break,
+                    _ => (),
+                }
+            },
         }
     }
 
-    fn transition_based_on_node(&mut self, node: Option<&JsonPathQueryNode>) {
+    fn transition_based_on_node(&mut self, node: Option<&'q JsonPathQueryNode>) {
+        debug!(
+            "Transitioning based on {:?}",
+            node.map(|x| x.debug_description())
+        );
         match node {
             None => {
+                debug!("Hit!");
                 self.count += 1;
             }
             Some(JsonPathQueryNode::Root(child)) => {
                 if let Some(Structural::Opening(_)) = self.classifier.peek() {
-                    self.run_state(State::Initial, child.as_deref());
+                    self.run_state(State(Mode::Initial, child.as_deref()));
                 }
             }
             Some(JsonPathQueryNode::Label(label, child)) => {
-                self.run_state(State::MatchLabel(label), child.as_deref())
+                self.run_state(State(Mode::MatchLabel(label), child.as_deref()))
             }
             Some(JsonPathQueryNode::Descendant(child)) => {
                 if let Some(Structural::Opening(_)) = self.classifier.peek() {
                     self.classifier.next();
-                    self.run_state(State::RecursiveDescent, Some(child));
+                    self.run_state(State(Mode::RecursiveDescent, Some(child)));
+                }
+            }
+            Some(JsonPathQueryNode::Child(child)) => {
+                if let Some(Structural::Opening(_)) = self.classifier.peek() {
+                    self.classifier.next();
+                    self.run_state(State(Mode::DirectDescendant, Some(child)));
                 }
             }
         }
     }
 }
 
-#[derive(Debug)]
-enum State<'a> {
+#[derive(Debug, Clone, Copy)]
+enum Mode<'a> {
     Initial,
     MatchLabel(&'a Label),
     RecursiveDescent,
+    DirectDescendant,
+    Skip,
 }
+
+#[derive(Debug, Clone, Copy)]
+struct State<'a>(Mode<'a>, Option<&'a JsonPathQueryNode>);

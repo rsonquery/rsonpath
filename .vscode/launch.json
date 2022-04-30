@@ -8,11 +8,13 @@
             "type": "lldb",
             "request": "launch",
             "name": "Debug executable 'simdpath'",
+            "env": {
+                "RUSTFLAGS": "-C target-feature=+avx2"
+            },
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=simdpath",
-                    "--package=simdpath"
+                    "--bin=simdpath"
                 ],
                 "filter": {
                     "name": "simdpath",
@@ -20,8 +22,8 @@
                 }
             },
             "args": [
-                "./simdpath-tests/data/wikidata/debug.json",
-                "$..references..snaks..datavalue..value..id",
+                "./simdpath/data/basic/child.json",
+                "$..a..b.c..d",
                 "-v"
             ],
             "cwd": "${workspaceFolder}"
@@ -30,6 +32,9 @@
             "type": "lldb",
             "request": "launch",
             "name": "Debug unit tests in library 'simdpath'",
+            "env": {
+                "RUSTFLAGS": "-C target-feature=+avx2"
+            },
             "cargo": {
                 "args": [
                     "test",
@@ -45,6 +50,9 @@
             "type": "lldb",
             "request": "launch",
             "name": "Debug unit tests in library 'simdpath-codegen'",
+            "env": {
+                "RUSTFLAGS": "-C target-feature=+avx2"
+            },
             "cargo": {
                 "args": [
                     "test",
@@ -60,6 +68,9 @@
             "type": "lldb",
             "request": "launch",
             "name": "Debug unit tests in executable 'simdpath'",
+            "env": {
+                "RUSTFLAGS": "-C target-feature=+avx2"
+            },
             "cargo": {
                 "args": [
                     "test",
@@ -75,6 +86,9 @@
             "type": "lldb",
             "request": "launch",
             "name": "Debug integration tests in 'count_correctness_test'",
+            "env": {
+                "RUSTFLAGS": "-C target-feature=+avx2"
+            },
             "cargo": {
                 "args": [
                     "test",

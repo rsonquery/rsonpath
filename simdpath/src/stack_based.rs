@@ -133,6 +133,7 @@ impl<'a, 'b> Runnable<'b> for InitialState<'a, 'b> {
                     JsonPathQueryNode::Root(_) => {
                         panic! {"Root expression should not be reachable."}
                     }
+                    _ => todo!(),
                 },
             },
         }
@@ -196,6 +197,7 @@ impl<'a, 'b> Runnable<'b> for RecursiveDescentState<'a, 'b> {
                                 JsonPathQueryNode::Root(_) => {
                                     panic! {"Root expression should not be reachable."}
                                 }
+                                _ => todo!(),
                             },
                         };
                         let result = next_state.run();
@@ -217,6 +219,7 @@ impl<'a, 'b> Runnable<'b> for RecursiveDescentState<'a, 'b> {
                                 JsonPathQueryNode::Root(_) => {
                                     panic! {"Root expression should not be reachable."}
                                 }
+                                _ => todo!(),
                             },
                         };
                         let result = next_state.run();
