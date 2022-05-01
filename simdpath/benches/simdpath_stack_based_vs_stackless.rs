@@ -31,20 +31,24 @@ fn simdpath_stack_based_vs_stackless(c: &mut Criterion, options: BenchmarkOption
     group.warm_up_time(options.warm_up_time);
     group.measurement_time(options.measurement_time);
 
+    let stackless = StacklessRunner::compile_query(&query);
+    let stack_based = StackBasedRunner::compile_query(&query);
+    let new_stack_based = StackBasedRunner::compile_query(&query);
+
     group.bench_with_input(
         BenchmarkId::new("stackless", options.id),
-        &(&query, &contents),
-        |b, (q, c)| b.iter(|| StacklessRunner::compile_query(q).count(c)),
+        &contents,
+        |b, c| b.iter(|| stackless.count(c)),
     );
     group.bench_with_input(
         BenchmarkId::new("stack-based", options.id),
-        &(&query, &contents),
-        |b, (q, c)| b.iter(|| StackBasedRunner::compile_query(q).count(c)),
+        &contents,
+        |b, c| b.iter(|| stack_based.count(c)),
     );
     group.bench_with_input(
         BenchmarkId::new("new-stack-based", options.id),
-        &(&query, &contents),
-        |b, (q, c)| b.iter(|| NewStackBasedRunner::compile_query(q).count(c)),
+        &contents,
+        |b, c| b.iter(|| new_stack_based.count(c)),
     );
 
     group.finish();

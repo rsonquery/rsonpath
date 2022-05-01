@@ -33,7 +33,7 @@ fn main() -> Result<()> {
     let new_stack_based_count = new_stack_based_runner.count(&input);
     info!("New stack based count: {}", new_stack_based_count.count);
 
-    let stack_based_runner = StackBasedRunner::compile_query(&query);
+    /*let stack_based_runner = StackBasedRunner::compile_query(&query);
     let stack_based_count = stack_based_runner.count(&input);
     info!("Stack based count: {}", stack_based_count.count);
 
@@ -45,9 +45,9 @@ fn main() -> Result<()> {
         || new_stack_based_count.count != stack_based_count.count
     {
         return Err(eyre!("Count mismatch!"));
-    }
+    }*/
 
-    println!("{}", stack_based_count.count);
+    println!("{}", new_stack_based_count.count);
 
     Ok(())
 }

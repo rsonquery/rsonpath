@@ -25,6 +25,7 @@ log = "0.4"
 memchr = "2.4.1"
 nom = "7.0.0"
 simple_logger = "1.11"
+smallvec = { version = "1.8.0", features = ["union"] }
 static_assertions = "1.1.0"
 
 [build-dependencies]

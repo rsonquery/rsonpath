@@ -1,9 +1,9 @@
+use crate::debug;
 use crate::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label};
 use color_eyre::{
     eyre::{eyre, Result, WrapErr},
     section::Section,
 };
-use log::*;
 use nom::{
     branch::*,
     bytes::complete::*,
@@ -69,7 +69,7 @@ pub fn parse_json_path_query(query_string: &str) -> Result<JsonPathQuery> {
                 "The preceding characters were successfully parsed as `{}`.",
                 parsed_characters
             ))
-            .suggestion(format!("Check the query syntax. If the error is caused by special characters in a label, use the explicit `['label']` syntax."))
+            .suggestion("Check the query syntax. If the error is caused by special characters in a label, use the explicit `['label']` syntax.")
         }
         Err(e) => Err(nom::error::Error {
             input: std::str::from_utf8(e.input)

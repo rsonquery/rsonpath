@@ -170,18 +170,6 @@ impl JsonPathQueryNode {
             Label(_, node) => node.as_deref(),
         }
     }
-
-    pub(crate) fn debug_description(&self) -> String {
-        match self {
-            Root(_) => "$".to_owned(),
-            Child(_) => ".".to_owned(),
-            Descendant(_) => "..".to_owned(),
-            Label(label, _) => format!(
-                "['{}']",
-                std::str::from_utf8(label).unwrap_or("[invalid utf8]")
-            ),
-        }
-    }
 }
 
 /// JSONPath query structure represented by the root link of the
@@ -220,7 +208,7 @@ impl JsonPathQuery {
         match root.child() {
             None => Ok(Self { root }),
             Some(x) => Self::validate(x)
-                .map_err(|r| r.note(format!("The query was parsed as: `{}`.", root.to_string())))
+                .map_err(|r| r.note(format!("The query was parsed as: `{}`.", root)))
                 .map(|_| Self { root }),
         }
     }
@@ -281,6 +269,9 @@ pub trait JsonPathQueryNodeType {
     /// Returns `true` iff the type is [`JsonPathQueryNode::Descendant`].
     fn is_descendant(&self) -> bool;
 
+    /// Returns `true` iff the type is [`JsonPathQueryNode::Child`].
+    fn is_child(&self) -> bool;
+
     /// Returns `true` iff the type is [`JsonPathQueryNode::Label`].
     fn is_label(&self) -> bool;
 
@@ -296,6 +287,10 @@ impl JsonPathQueryNodeType for JsonPathQueryNode {
 
     fn is_descendant(&self) -> bool {
         matches!(self, Descendant(_))
+    }
+
+    fn is_child(&self) -> bool {
+        matches!(self, Child(_))
     }
 
     fn is_label(&self) -> bool {
@@ -321,6 +316,10 @@ impl<T: std::ops::Deref<Target = JsonPathQueryNode>> JsonPathQueryNodeType for O
 
     fn is_descendant(&self) -> bool {
         self.as_ref().map_or(false, |x| x.is_descendant())
+    }
+
+    fn is_child(&self) -> bool {
+        self.as_ref().map_or(false, |x| x.is_child())
     }
 
     fn is_label(&self) -> bool {

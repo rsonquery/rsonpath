@@ -1,6 +1,8 @@
 use super::*;
 use align::{alignment, alignment::Alignment, AlignedBlock, AlignedBlockIterator, AlignedSlice};
 
+use crate::bin;
+use crate::debug;
 use len_trait::Empty;
 
 #[cfg(target_arch = "x86")]
@@ -222,7 +224,7 @@ impl BlockAvx2Classifier {
 
         let nonquoted_structural = structural & !within_quotes;
 
-        /*log::debug!(
+        debug!(
             "{: >24}: {}",
             "block",
             std::str::from_utf8_unchecked(
@@ -241,7 +243,7 @@ impl BlockAvx2Classifier {
         bin!("quotes & !escaped", quotes & !escaped);
         bin!("nonescaped_quotes", nonescaped_quotes);
         bin!("within_quotes", within_quotes);
-        bin!("nonquoted_structural", nonquoted_structural);*/
+        bin!("nonquoted_structural", nonquoted_structural);
 
         StructuralsBlock::new(two_blocks, nonquoted_structural)
     }
