@@ -23,7 +23,7 @@ pub struct StacklessRunner<'a> {
 
 const MAX_AUTOMATON_SIZE: usize = 256;
 
-impl<'a> StacklessRunner<'a> {
+impl StacklessRunner<'_> {
     /// Compile a query into a [`StacklessRunner`].
     ///
     /// Compilation time is proportional to the length of the query.
@@ -39,7 +39,7 @@ impl<'a> StacklessRunner<'a> {
     }
 }
 
-impl<'a> Runner for StacklessRunner<'a> {
+impl Runner for StacklessRunner<'_> {
     fn count(&self, input: &Input) -> CountResult {
         let count = descendant_only_automaton(&self.labels, input);
 

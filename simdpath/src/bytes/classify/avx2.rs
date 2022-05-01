@@ -27,7 +27,7 @@ impl<'a> StructuralsBlock<'a> {
     }
 }
 
-impl<'a> Iterator for StructuralsBlock<'a> {
+impl Iterator for StructuralsBlock<'_> {
     type Item = Structural;
 
     #[inline(always)]
@@ -54,21 +54,21 @@ impl<'a> Iterator for StructuralsBlock<'a> {
     }
 }
 
-impl<'a> std::iter::FusedIterator for StructuralsBlock<'a> {}
+impl std::iter::FusedIterator for StructuralsBlock<'_> {}
 
-impl<'a> ExactSizeIterator for StructuralsBlock<'a> {
+impl ExactSizeIterator for StructuralsBlock<'_> {
     fn len(&self) -> usize {
         self.structural_mask.count_ones() as usize
     }
 }
 
-impl<'a> Empty for StructuralsBlock<'a> {
+impl Empty for StructuralsBlock<'_> {
     fn is_empty(&self) -> bool {
         self.structural_mask == 0
     }
 }
 
-pub struct Avx2Classifier<'a> {
+pub(crate) struct Avx2Classifier<'a> {
     iter: AlignedBlockIterator<'a, alignment::TwoSimdBlocks>,
     offset: usize,
     classifier: BlockAvx2Classifier,
@@ -77,7 +77,7 @@ pub struct Avx2Classifier<'a> {
 
 impl<'a> Avx2Classifier<'a> {
     #[inline(always)]
-    pub fn new(bytes: &'a AlignedSlice<alignment::TwoSimdBlocks>) -> Self {
+    pub(crate) fn new(bytes: &'a AlignedSlice<alignment::TwoSimdBlocks>) -> Self {
         Self {
             iter: bytes.iter_blocks(),
             offset: 0,
@@ -107,7 +107,7 @@ impl<'a> Avx2Classifier<'a> {
     }
 }
 
-impl<'a> Iterator for Avx2Classifier<'a> {
+impl Iterator for Avx2Classifier<'_> {
     type Item = Structural;
 
     #[inline(always)]
@@ -125,9 +125,9 @@ impl<'a> Iterator for Avx2Classifier<'a> {
     }
 }
 
-impl<'a> std::iter::FusedIterator for Avx2Classifier<'a> {}
+impl std::iter::FusedIterator for Avx2Classifier<'_> {}
 
-impl<'a> Empty for Avx2Classifier<'a> {
+impl Empty for Avx2Classifier<'_> {
     fn is_empty(&self) -> bool {
         self.current_block_is_spent() && self.iter.len() == 0
     }

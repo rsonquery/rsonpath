@@ -10,6 +10,7 @@ keywords = ["json", "jsonpath", "query", "simd"]
 build = "build.rs"
 exclude = ["/data"]
 categories = ["command-line-utilities", "text-processing", "database-implementations"]
+repository = "https://gitlab.inria.fr/cpaperma/simdpath"
 
 [package.metadata.docs.rs]
 rustdoc-args = ["--cfg", "docsrs"]

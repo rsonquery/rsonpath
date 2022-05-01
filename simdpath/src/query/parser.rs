@@ -23,7 +23,7 @@ enum Token<'a> {
     Label(&'a [u8]),
 }
 
-impl<'a> Display for Token<'a> {
+impl Display for Token<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Token::Root => write!(f, "$"),
@@ -34,7 +34,7 @@ impl<'a> Display for Token<'a> {
     }
 }
 
-pub fn parse_json_path_query(query_string: &str) -> Result<JsonPathQuery> {
+pub(crate) fn parse_json_path_query(query_string: &str) -> Result<JsonPathQuery> {
     let tokens_result = many0(json_path_query_node())(query_string.as_bytes());
     let finished = tokens_result.finish();
     match finished {

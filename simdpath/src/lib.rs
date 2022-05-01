@@ -100,6 +100,13 @@
 
 #![warn(missing_docs)]
 #![warn(rustdoc::missing_crate_level_docs)]
+#![warn(
+    explicit_outlives_requirements,
+    unreachable_pub,
+    semicolon_in_expressions_from_macros,
+    unused_import_braces,
+    unused_lifetimes
+)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
 pub mod bytes;

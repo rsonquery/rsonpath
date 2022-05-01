@@ -14,8 +14,9 @@ impl AsRef<AlignedSlice<alignment::SimdBlock>> for AlignedSlice<alignment::Page>
     }
 }
 
-impl<'a> AlignedBlock<alignment::TwoSimdBlocks> {
+impl AlignedBlock<alignment::TwoSimdBlocks> {
     /// Split the block into two blocks aligned to [`alignment::SimdBlock`].
+    #[must_use]
     pub fn blocks(
         &self,
     ) -> (
@@ -24,6 +25,10 @@ impl<'a> AlignedBlock<alignment::TwoSimdBlocks> {
     ) {
         let slice: &AlignedSlice<alignment::TwoSimdBlocks> = self;
 
+        // SAFETY:
+        // AlignedBlock is a repr(transparent) over AlignedSlice, which is repr(transparent) over [u8].
+        // Both transmutes are safe. The alignment guarantee is obviously upheld, since slice is aligned
+        // to TwoSimdBlocks and the bytes are contiguous.
         unsafe {
             let block1 = mem::transmute(&slice[..alignment::SimdBlock::size()]);
             let block2 = mem::transmute(&slice[alignment::SimdBlock::size()..]);

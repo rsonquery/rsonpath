@@ -81,8 +81,8 @@ enum State<'q> {
 }
 
 #[cfg(debug_assertions)]
-impl<'q> State<'q> {
-    pub fn debug_name(&self) -> String {
+impl State<'_> {
+    pub(crate) fn debug_name(&self) -> String {
         match self {
             State::Accepting => "Accepting".to_owned(),
             State::Internal(state) => state.upgrade().unwrap().debug_name.clone(),
@@ -91,7 +91,7 @@ impl<'q> State<'q> {
 }
 
 #[cfg(debug_assertions)]
-impl<'q> core::fmt::Debug for State<'q> {
+impl core::fmt::Debug for State<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Accepting => write!(f, "Accepting"),
@@ -109,7 +109,7 @@ struct InternalState<'q> {
 }
 
 #[cfg(debug_assertions)]
-impl<'q> core::fmt::Debug for InternalState<'q> {
+impl core::fmt::Debug for InternalState<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let label_string = std::str::from_utf8(self.label.bytes()).unwrap_or("[invalid utf8]");
 
@@ -140,7 +140,7 @@ pub struct NewStackBasedRunner<'q> {
 }
 
 #[cfg(debug_assertions)]
-impl<'q> core::fmt::Debug for NewStackBasedRunner<'q> {
+impl core::fmt::Debug for NewStackBasedRunner<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "NewStackBasedRunner {{\n")?;
 
@@ -245,7 +245,7 @@ impl<'q> NewStackBasedRunner<'q> {
     }
 }
 
-impl<'q> Runner for NewStackBasedRunner<'q> {
+impl Runner for NewStackBasedRunner<'_> {
     fn count(&self, input: &Input) -> result::CountResult {
         let aligned_bytes: &AlignedSlice<alignment::Page> = input;
         let classifier = classify_structural_characters(aligned_bytes.relax_alignment());
@@ -273,7 +273,7 @@ where
     I: StructuralIterator<'b>,
 {
     #[cfg(debug_assertions)]
-    pub fn new(classifier: I, bytes: &'b [u8]) -> Self {
+    pub(crate) fn new(classifier: I, bytes: &'b [u8]) -> Self {
         Self {
             classifier: classifier.peekable(),
             count: 0,
@@ -283,7 +283,7 @@ where
     }
 
     #[cfg(not(debug_assertions))]
-    pub fn new(classifier: I, bytes: &'b [u8]) -> Self {
+    pub(crate) fn new(classifier: I, bytes: &'b [u8]) -> Self {
         Self {
             classifier: classifier.peekable(),
             count: 0,
@@ -291,7 +291,7 @@ where
         }
     }
 
-    pub fn run(&mut self, state: &State) {
+    pub(crate) fn run(&mut self, state: &State) {
         if let Some(Structural::Opening(_)) = self.classifier.next() {
             match state {
                 State::Accepting => self.count += 1,

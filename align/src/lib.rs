@@ -1,5 +1,23 @@
 #![warn(missing_docs)]
 #![warn(rustdoc::missing_crate_level_docs)]
+#![warn(
+    explicit_outlives_requirements,
+    unreachable_pub,
+    semicolon_in_expressions_from_macros,
+    unused_import_braces,
+    single_use_lifetimes,
+    unused_lifetimes
+)]
+#![warn(
+    clippy::undocumented_unsafe_blocks,
+    clippy::cargo_common_metadata,
+    clippy::missing_panics_doc,
+    clippy::doc_markdown,
+    clippy::ptr_as_ptr,
+    clippy::cloned_instead_of_copied,
+    clippy::unreadable_literal,
+    clippy::must_use_candidate
+)]
 // feature(doc_cfg) is nightly (https://doc.rust-lang.org/unstable-book/language-features/doc-cfg.html)
 // Since we don't want the entire crate to be nightly, this is enabled only when building documentation.
 #![cfg_attr(docsrs, feature(doc_cfg))]
@@ -166,6 +184,7 @@ impl<A: Alignment> AlignedBytes<A> {
     /// If you want to initialize the bytes with custom logic, use [`AlignedBytes::new_initialize`] instead.
     /// If you want to align existing bytes, use the [`From`] trait implementations.
     #[inline]
+    #[must_use]
     pub unsafe fn new(size: usize) -> Self {
         Self::new_impl(size)
     }
@@ -174,6 +193,10 @@ impl<A: Alignment> AlignedBytes<A> {
     fn new_impl(size: usize) -> Self {
         if size == 0 {
             return Self::default();
+        }
+
+        if size > (isize::MAX as usize) {
+            panic!("cannot allocate more than `isize::MAX` bytes, attempted to allocate {size}");
         }
 
         let layout = Self::get_layout(size);
@@ -206,6 +229,8 @@ impl<A: Alignment> AlignedBytes<A> {
     where
         F: Fn(usize) -> u8,
     {
+        // SAFETY:
+        // All bytes are initialized right after.
         let mut block = unsafe { Self::new(size) };
 
         for i in 0..block.size {
@@ -217,6 +242,9 @@ impl<A: Alignment> AlignedBytes<A> {
 
     /// Create new block of bytes of given length and initialize
     /// to all-zeroes.
+    /// # Panics
+    /// If allocating memory fails, i.e. internal call to [`std::alloc::alloc_zeroed`] panics.
+    #[must_use]
     pub fn new_zeroed(size: usize) -> Self {
         if size == 0 {
             return Self::default();
@@ -243,6 +271,7 @@ impl<A: Alignment> AlignedBytes<A> {
     /// This is primarily useful to guarantee that [`AlignedBlockIterator`]
     /// returns full blocks of size exactly equal to the alignment,
     /// as otherwise the final block can be potentially smaller.
+    #[must_use]
     pub fn new_padded(bytes: &[u8]) -> Self {
         if bytes.is_empty() {
             return Self::default();
@@ -263,6 +292,7 @@ impl<A: Alignment> AlignedBytes<A> {
     }
 
     /// Return the size of the alignment in bytes.
+    #[must_use]
     pub fn alignment_size() -> usize {
         A::size()
     }
@@ -274,6 +304,7 @@ impl<A: Alignment> AlignedSlice<A> {
     ///
     /// # Panics
     /// If there are less than `count` blocks until end of the slice.
+    #[must_use]
     pub fn offset(&self, count: isize) -> &Self {
         let offset_in_bytes = A::size() * (count as usize);
 
@@ -297,6 +328,7 @@ impl<A: Alignment> AlignedSlice<A> {
     }
 
     /// Return an iterator over consecutive aligned blocks of the slice.
+    #[must_use]
     pub fn iter_blocks(&self) -> AlignedBlockIterator<A> {
         AlignedBlockIterator { bytes: self }
     }
@@ -305,6 +337,7 @@ impl<A: Alignment> AlignedSlice<A> {
     ///
     /// # Panics
     /// If `B::size()` > `A::size()`.
+    #[must_use]
     pub fn relax_alignment<B: Alignment>(&self) -> &AlignedSlice<B> {
         if A::size() < B::size() {
             panic!("target alignment is larger than source alignment, the 'relax_alignment' conversion is not valid")
@@ -421,9 +454,24 @@ impl<A: Alignment> Deref for AlignedBytes<A> {
 }
 
 impl<A: Alignment> DerefMut for AlignedBytes<A> {
-    fn deref_mut(&mut self) -> &mut AlignedSlice<A> {
+    fn deref_mut<'a>(&'a mut self) -> &'a mut AlignedSlice<A> {
+        // SAFETY:
+        // 1. All the conditions for from_raw_parts_mut:
+        //   > `data` must be valid for reads for `len * mem::size_of::<T>()` many bytes, and it must be properly aligned.
+        //   - `T` is `u8` and we allocated `len` bytes in AlignedBytes' ctors. Proper alignment for `u8` is 1, trivially satisfied.
+        //   > `data` must point to `len` consecutive properly initialized values of type `T`.
+        //   - This is upheld by AlignedBytes' constructors.
+        //   > The memory referenced by the returned slice must not be accessed through any other pointer
+        //   > (not derived from the return value) for the duration of lifetime `'a`. Both read and write accesses are forbidden.
+        //   - This follows from the explicit lifetimes given. To call deref_mut we mutably borrow the AlignedBytes for 'a,
+        //     and return a mutable borrow of a slice valid for 'a. Because of borrow rules, this can be the only valid mutable
+        //     reference to the underlying bytes.
+        //   > The total size len * mem::size_of::<T>() of the slice must be no larger than isize::MAX. See the safety documentation of pointer::offset.
+        //   - This is asserted in AlignedBytes' ctor.
+        // 2. transmute is safe because of AlignedSlice's repr(transparent).
         unsafe {
-            let slice = std::slice::from_raw_parts_mut(self.bytes_ptr.as_ptr(), self.size);
+            let slice: &'a mut [u8] =
+                std::slice::from_raw_parts_mut(self.bytes_ptr.as_ptr(), self.size);
             std::mem::transmute(slice)
         }
     }
@@ -433,12 +481,16 @@ impl<A: Alignment> Deref for AlignedSlice<A> {
     type Target = [u8];
 
     fn deref(&self) -> &[u8] {
+        // SAFETY:
+        // Using AlignedSlice's repr(transparent).
         unsafe { std::mem::transmute(self) }
     }
 }
 
 impl<A: Alignment> DerefMut for AlignedSlice<A> {
     fn deref_mut(&mut self) -> &mut [u8] {
+        // SAFETY:
+        // Using AlignedSlice's repr(transparent).
         unsafe { std::mem::transmute(self) }
     }
 }
@@ -470,6 +522,8 @@ impl<A: Alignment> Default for AlignedBytes<A> {
 impl<A: Alignment> Default for &AlignedSlice<A> {
     fn default() -> Self {
         let default_slice: &[u8] = Default::default();
+        // SAFETY:
+        // Using AlignedSlice's repr(transparent).
         unsafe { std::mem::transmute(default_slice) }
     }
 }
@@ -477,6 +531,8 @@ impl<A: Alignment> Default for &AlignedSlice<A> {
 impl<A: Alignment> Default for &mut AlignedSlice<A> {
     fn default() -> Self {
         let default_slice: &mut [u8] = Default::default();
+        // SAFETY:
+        // Using AlignedSlice's repr(transparent).
         unsafe { std::mem::transmute(default_slice) }
     }
 }
@@ -674,11 +730,13 @@ impl<A: alignment::Alignment> Deref for AlignedBlock<A> {
 
 impl<A: alignment::Alignment> AlignedBlock<A> {
     /// Returns the length of the block. Guaranteed to be `A::size()`.
+    #[must_use]
     pub fn len(&self) -> usize {
         self.slice.len()
     }
 
     /// Returns whether the block is empty.
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.slice.is_empty()
     }
@@ -714,15 +772,15 @@ impl<'a, A: alignment::Alignment> Iterator for AlignedBlockIterator<'a, A> {
     }
 }
 
-impl<'a, A: alignment::Alignment> ExactSizeIterator for AlignedBlockIterator<'a, A> {}
+impl<A: alignment::Alignment> ExactSizeIterator for AlignedBlockIterator<'_, A> {}
 
-impl<'a, A: alignment::Alignment> Empty for AlignedBlockIterator<'a, A> {
+impl<A: alignment::Alignment> Empty for AlignedBlockIterator<'_, A> {
     fn is_empty(&self) -> bool {
         self.bytes.is_empty()
     }
 }
 
-impl<'a, A: alignment::Alignment> FusedIterator for AlignedBlockIterator<'a, A> {}
+impl<A: alignment::Alignment> FusedIterator for AlignedBlockIterator<'_, A> {}
 
 cfg_if! {
     if #[cfg(feature = "simd")] {

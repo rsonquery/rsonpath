@@ -22,9 +22,9 @@ pub struct StackBasedRunner<'a> {
 /// Result of a recursive descent of the runner.
 struct RunnerResult<'a> {
     /// Count of matched values during the recursive descent.
-    pub count: usize,
+    pub(crate) count: usize,
     /// Bytes not processed during the recursive descent.
-    pub remaining_bytes: &'a [u8],
+    pub(crate) remaining_bytes: &'a [u8],
 }
 
 impl<'a> StackBasedRunner<'a> {
@@ -34,7 +34,7 @@ impl<'a> StackBasedRunner<'a> {
     }
 }
 
-impl<'a> Runner for StackBasedRunner<'a> {
+impl Runner for StackBasedRunner<'_> {
     fn count(&self, input: &Input) -> CountResult {
         let mut state = State::Initial(InitialState::new(self.query.root(), input));
         CountResult {
@@ -98,7 +98,7 @@ enum State<'a, 'b> {
     RecursivelyFindLabel(RecursiveDescentState<'a, 'b>),
 }
 
-impl<'a, 'b> Runnable<'b> for State<'a, 'b> {
+impl<'b> Runnable<'b> for State<'_, 'b> {
     fn run(&mut self) -> RunnerResult<'b> {
         match self {
             State::Initial(state) => state.run(),
@@ -107,7 +107,7 @@ impl<'a, 'b> Runnable<'b> for State<'a, 'b> {
     }
 }
 
-impl<'a, 'b> Runnable<'b> for InitialState<'a, 'b> {
+impl<'b> Runnable<'b> for InitialState<'_, 'b> {
     fn run(&mut self) -> RunnerResult<'b> {
         debug_assert! {self.node.is_root()};
 
@@ -140,7 +140,7 @@ impl<'a, 'b> Runnable<'b> for InitialState<'a, 'b> {
     }
 }
 
-impl<'a, 'b> Runnable<'b> for RecursiveDescentState<'a, 'b> {
+impl<'b> Runnable<'b> for RecursiveDescentState<'_, 'b> {
     fn run(&mut self) -> RunnerResult<'b> {
         let label_node = self.node.child().unwrap();
         let label = match label_node {
@@ -277,7 +277,7 @@ impl<'a, 'b> Runnable<'b> for RecursiveDescentState<'a, 'b> {
     }
 }
 
-impl<'a, 'b> Runnable<'b> for RecurseInListState<'a, 'b> {
+impl<'b> Runnable<'b> for RecurseInListState<'_, 'b> {
     fn run(&mut self) -> RunnerResult<'b> {
         // Inbound contract: we are inside a JSON list after its opening bracket
         // and zero or more values passed. Therefore there is either another

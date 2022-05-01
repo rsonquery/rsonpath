@@ -33,7 +33,7 @@ fn simdpath_stack_based_vs_stackless(c: &mut Criterion, options: BenchmarkOption
 
     let stackless = StacklessRunner::compile_query(&query);
     let stack_based = StackBasedRunner::compile_query(&query);
-    let new_stack_based = StackBasedRunner::compile_query(&query);
+    let new_stack_based = NewStackBasedRunner::compile_query(&query);
 
     group.bench_with_input(
         BenchmarkId::new("stackless", options.id),
@@ -55,7 +55,7 @@ fn simdpath_stack_based_vs_stackless(c: &mut Criterion, options: BenchmarkOption
 }
 
 pub fn wikidata_combined(c: &mut Criterion) {
-    simdpath_stack_based_vs_stackless(
+    simdpath_stack_based_vs_stackless( 
         c,
         BenchmarkOptions {
             path: "wikidata_compressed/wikidata_combined.json",

@@ -8,6 +8,7 @@ readme = "./README.md"
 license = "MIT"
 keywords = ["alignment", "byte", "bytes", "block", "blocks"]
 categories = ["memory-management", "rust-patterns"]
+repository = "https://github.com/V0ldek/align"
 
 [package.metadata.docs.rs]
 rustdoc-args = ["--cfg", "docsrs"]
