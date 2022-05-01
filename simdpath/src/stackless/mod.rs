@@ -41,6 +41,10 @@ impl StacklessRunner<'_> {
 
 impl Runner for StacklessRunner<'_> {
     fn count(&self, input: &Input) -> CountResult {
+        if self.labels.is_empty() {
+            return empty_query(input);
+        }
+
         let count = descendant_only_automaton(&self.labels, input);
 
         CountResult { count }
@@ -66,6 +70,16 @@ fn query_to_descendant_pattern_labels(query: &JsonPathQuery) -> Vec<&Label> {
     }
 
     result
+}
+
+fn empty_query(bytes: &AlignedBytes<alignment::Page>) -> CountResult {
+    use crate::bytes::classify::{classify_structural_characters, Structural};
+    let mut block_event_source = classify_structural_characters(bytes.relax_alignment());
+
+    match block_event_source.next() {
+        Some(Structural::Opening(_)) => CountResult { count: 1 },
+        _ => CountResult { count: 0 },
+    }
 }
 
 fn descendant_only_automaton(labels: &[&Label], bytes: &AlignedBytes<alignment::Page>) -> usize {

@@ -16,6 +16,10 @@ fn get_contents(test_path: &str) -> Input {
 
 macro_rules! test_cases {
     ($test_name:ident, $impl:ident) => {
+        #[test_case("basic/empty.json", "" => 0; "empty.json")]
+        #[test_case("basic/empty.json", "$" => 0; "empty.json $")]
+        #[test_case("basic/root.json", "$" => 1; "root.json $")]
+        #[test_case("basic/root.json", "" => 1; "root.json")]
         #[test_case("basic/small_no_list.json", "$..person..phoneNumber..number" => 2; "small_no_list.json $..person..phoneNumber..number")]
         #[test_case("basic/small.json", "$..person..phoneNumber..number" => 4; "small.json $..person..phoneNumber..number")]
         #[test_case("basic/child.json", "$..a..b.c..d" => 3; "child.json $..a..b.c..d")]
