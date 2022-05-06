@@ -1,7 +1,6 @@
 use core::time::Duration;
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use simdpath::engine::{Input, Runner};
-use simdpath::new_stack_based::NewStackBasedRunner;
 use simdpath::query::JsonPathQuery;
 use simdpath::stack_based::StackBasedRunner;
 use simdpath::stackless::StacklessRunner;
@@ -33,7 +32,6 @@ fn simdpath_stack_based_vs_stackless(c: &mut Criterion, options: BenchmarkOption
 
     let stackless = StacklessRunner::compile_query(&query);
     let stack_based = StackBasedRunner::compile_query(&query);
-    let new_stack_based = NewStackBasedRunner::compile_query(&query);
 
     group.bench_with_input(
         BenchmarkId::new("stackless", options.id),
@@ -45,17 +43,12 @@ fn simdpath_stack_based_vs_stackless(c: &mut Criterion, options: BenchmarkOption
         &contents,
         |b, c| b.iter(|| stack_based.count(c)),
     );
-    group.bench_with_input(
-        BenchmarkId::new("new-stack-based", options.id),
-        &contents,
-        |b, c| b.iter(|| new_stack_based.count(c)),
-    );
 
     group.finish();
 }
 
 pub fn wikidata_combined(c: &mut Criterion) {
-    simdpath_stack_based_vs_stackless( 
+    simdpath_stack_based_vs_stackless(
         c,
         BenchmarkOptions {
             path: "wikidata_compressed/wikidata_combined.json",
