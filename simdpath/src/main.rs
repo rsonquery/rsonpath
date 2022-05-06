@@ -2,7 +2,6 @@ use clap::{App, Arg};
 use color_eyre::eyre::{eyre, Result, WrapErr};
 use log::*;
 use simdpath::engine::{Input, Runner};
-use simdpath::new_stack_based::NewStackBasedRunner;
 use simdpath::query::JsonPathQuery;
 use simdpath::stack_based::StackBasedRunner;
 use simdpath::stackless::StacklessRunner;
@@ -29,14 +28,11 @@ fn main() -> Result<()> {
     let contents = fs::read_to_string(&file_path)?;
     let input = Input::new(contents);
 
-    let new_stack_based_runner = NewStackBasedRunner::compile_query(&query);
-    let new_stack_based_count = new_stack_based_runner.count(&input);
-    info!("New stack based count: {}", new_stack_based_count.count);
-
-    /*let stack_based_runner = StackBasedRunner::compile_query(&query);
+    let stack_based_runner = StackBasedRunner::compile_query(&query);
     let stack_based_count = stack_based_runner.count(&input);
     info!("Stack based count: {}", stack_based_count.count);
 
+    /*
     let stackless_runner = StacklessRunner::compile_query(&query);
     let stackless_count = stackless_runner.count(&input);
     info!("Stackless count: {}", stackless_count.count);
@@ -47,7 +43,7 @@ fn main() -> Result<()> {
         return Err(eyre!("Count mismatch!"));
     }*/
 
-    println!("{}", new_stack_based_count.count);
+    println!("{}", stack_based_count.count);
 
     Ok(())
 }

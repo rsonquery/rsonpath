@@ -1,5 +1,4 @@
 use simdpath::engine::{Input, Runner};
-use simdpath::new_stack_based::NewStackBasedRunner;
 use simdpath::query::JsonPathQuery;
 use simdpath::stack_based::StackBasedRunner;
 use simdpath::stackless::StacklessRunner;
@@ -113,4 +112,3 @@ macro_rules! test_cases {
 
 test_cases!(simdpath_stackless, StacklessRunner);
 test_cases!(simdpath_stack_based, StackBasedRunner);
-test_cases!(simdpath_new_stack_based, NewStackBasedRunner);
