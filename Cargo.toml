@@ -1,7 +1,6 @@
 [workspace]
 
 members = [
-    "align",
     "simdpath",
     "simdpath-codegen"
 ]

@@ -16,7 +16,7 @@ repository = "https://gitlab.inria.fr/cpaperma/simdpath"
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
-align = { path = "../align", default-features = false }
+aligners = "0.0.2"
 cfg-if = "1.0.0"
 clap = "2.33.3"
 color-eyre = { version = "0.6.1", default-features = false }

@@ -1,5 +1,5 @@
 use super::*;
-use align::{alignment, alignment::Alignment, AlignedBlock, AlignedBlockIterator, AlignedSlice};
+use aligners::{alignment, alignment::Alignment, AlignedBlock, AlignedBlockIterator, AlignedSlice};
 
 use crate::bin;
 use crate::debug;
@@ -112,7 +112,7 @@ impl Iterator for Avx2Classifier<'_> {
 
     #[inline(always)]
     fn next(&mut self) -> Option<Structural> {
-        use align::alignment;
+        use aligners::alignment;
 
         if !self.next_block() {
             return None;

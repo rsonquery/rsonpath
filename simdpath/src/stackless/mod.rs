@@ -11,7 +11,7 @@
 use crate::engine::result::CountResult;
 use crate::engine::{Input, Runner};
 use crate::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label};
-use align::{alignment, AlignedBytes};
+use aligners::{alignment, AlignedBytes};
 
 /// Stackless runner for a fixed JSONPath query.
 ///

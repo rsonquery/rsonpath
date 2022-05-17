@@ -4,7 +4,7 @@ use crate::bytes::classify::{classify_structural_characters, Structural, Structu
 use crate::debug;
 use crate::engine::{result, Input, Runner};
 use crate::query::{JsonPathQuery, JsonPathQueryNode, Label};
-use align::{alignment, AlignedSlice};
+use aligners::{alignment, AlignedSlice};
 use smallvec::{smallvec, SmallVec};
 use std::iter::Peekable;
 use std::rc::{Rc, Weak};

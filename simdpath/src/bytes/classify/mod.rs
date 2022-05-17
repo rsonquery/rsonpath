@@ -6,7 +6,7 @@
 //! # Examples
 //! ```rust
 //! use simdpath::bytes::classify::{Structural, classify_structural_characters};
-//! use align::{alignment, AlignedBytes};
+//! use aligners::{alignment, AlignedBytes};
 //!
 //! let json = r#"{"x": [{"y": 42}, {}]}""#;
 #![cfg_attr(
@@ -34,7 +34,7 @@
 //! ```
 //! ```rust
 //! use simdpath::bytes::classify::{Structural, classify_structural_characters};
-//! use align::{alignment, AlignedBytes};
+//! use aligners::{alignment, AlignedBytes};
 //!
 //! let json = r#"{"x": "[\"\"]"}""#;
 #![cfg_attr(
@@ -106,7 +106,7 @@ impl Structural {
 /// that hold a reference to the JSON document valid for `'a`.
 pub trait StructuralIterator<'a>: Iterator<Item = Structural> + len_trait::Empty + 'a {}
 
-use align::{alignment, AlignedSlice};
+use aligners::{alignment, AlignedSlice};
 
 cfg_if! {
     if #[cfg(any(doc, not(feature = "simd")))] {

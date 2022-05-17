@@ -33,7 +33,7 @@
 //! ```
 //!
 mod parser;
-use align::{alignment, AlignedBytes, AlignedSlice};
+use aligners::{alignment, AlignedBytes, AlignedSlice};
 use cfg_if::cfg_if;
 use color_eyre::{
     eyre::{eyre, Result},

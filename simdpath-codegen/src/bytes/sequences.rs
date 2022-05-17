@@ -68,7 +68,7 @@ pub fn get_avx2_source() -> TokenStream {
         pub fn find_any_of_sequences(sequences: &[&[u8]], bytes: &[u8]) -> Option<(usize, usize)> {
             #[cfg(target_feature = "avx2")]
             unsafe {
-                use align::alignment::{self, Alignment};
+                use aligners::alignment::{self, Alignment};
                 assert!(sequences.len() <= alignment::SimdBlock::size());
 
                 let prefix_len = alignment::SimdBlock::size() / sequences.len();
