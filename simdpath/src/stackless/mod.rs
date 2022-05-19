@@ -12,6 +12,7 @@ use crate::engine::result::CountResult;
 use crate::engine::{Input, Runner};
 use crate::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label};
 use aligners::{alignment, AlignedBytes};
+use smallvec::{smallvec, SmallVec};
 
 /// Stackless runner for a fixed JSONPath query.
 ///
@@ -82,19 +83,48 @@ fn empty_query(bytes: &AlignedBytes<alignment::Page>) -> CountResult {
     }
 }
 
+struct SmallStack {
+    contents: SmallVec<[u8; 64]>,
+}
+
+impl SmallStack {
+    fn new() -> Self {
+        Self {
+            contents: smallvec![0; 64],
+        }
+    }
+
+    fn peek(&mut self) -> u8 {
+        debug_assert!(!self.contents.is_empty(), "SmallStack::peek on empty stack");
+        *self.contents.last().unwrap()
+    }
+
+    fn pop(&mut self) -> u8 {
+        debug_assert!(!self.contents.is_empty(), "SmallStack::pop on empty stack");
+        self.contents.pop().unwrap()
+    }
+
+    fn push(&mut self, value: u8) {
+        self.contents.push(value)
+    }
+}
+
 fn descendant_only_automaton(labels: &[&Label], bytes: &AlignedBytes<alignment::Page>) -> usize {
     use crate::bytes::classify::{classify_structural_characters, Structural};
-    let mut depth: usize = 0;
+    let mut depth: u8 = 0;
     let mut state: u8 = 1;
     let last_state = labels.len() as u8;
     let mut count: usize = 0;
-    let mut regs = [0usize; 256];
+    let mut stack = SmallStack::new();
+    stack.push(0);
     let mut block_event_source = classify_structural_characters(bytes.relax_alignment()).peekable();
     while let Some(event) = block_event_source.next() {
         match event {
             Structural::Closing(_) => {
+                let state_depth = stack.peek();
                 depth -= 1;
-                if depth <= regs[(state - 1) as usize] {
+                if depth <= state_depth {
+                    stack.pop();
                     state -= 1;
                 }
             }
@@ -118,7 +148,7 @@ fn descendant_only_automaton(labels: &[&Label], bytes: &AlignedBytes<alignment::
                                 count += 1;
                             } else {
                                 state += 1;
-                                regs[(state - 1) as usize] = depth;
+                                stack.push(depth);
                             }
                         }
                     }
