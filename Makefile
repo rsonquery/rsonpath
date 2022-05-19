@@ -34,8 +34,7 @@ install: simdpath
 
 test: simdpath
 	cd simdpath
-	$(CARGO) test --no-default-features && \
-	$(CARGO) test
+	$(CARGO) testall
 
 uninstall:
 	$(CARGO) uninstall simdpath
