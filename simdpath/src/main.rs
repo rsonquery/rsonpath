@@ -32,18 +32,15 @@ fn main() -> Result<()> {
     let stack_based_count = stack_based_runner.count(&input);
     info!("Stack based count: {}", stack_based_count.count);
 
-    /*
     let stackless_runner = StacklessRunner::compile_query(&query);
     let stackless_count = stackless_runner.count(&input);
     info!("Stackless count: {}", stackless_count.count);
 
-    if stack_based_count.count != stackless_count.count
-        || new_stack_based_count.count != stack_based_count.count
-    {
+    if stack_based_count.count != stackless_count.count {
         return Err(eyre!("Count mismatch!"));
-    }*/
+    }
 
-    println!("{}", stack_based_count.count);
+    println!("{}", stackless_count.count);
 
     Ok(())
 }

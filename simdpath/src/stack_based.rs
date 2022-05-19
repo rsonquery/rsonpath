@@ -211,7 +211,7 @@ impl<'q> StackBasedRunner<'q> {
     #[cfg(not(debug_assertions))]
     fn create_state(
         &self,
-        is_recursive: bool,
+        _is_recursive: bool,
         label: &'q Label,
         transition_on_match: State<'q>,
         recursive_transition: Option<Weak<InternalState<'q>>>,

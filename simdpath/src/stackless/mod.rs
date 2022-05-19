@@ -148,27 +148,33 @@ fn descendant_only_automaton(labels: &[SeekLabel], bytes: &AlignedBytes<alignmen
             Structural::Colon(idx) => {
                 let event = block_event_source.peek();
 
-                if matches!(event, Some(Structural::Opening(_))) || state == last_state {
-                    let len = labels[(state - 1) as usize].1.len();
-                    if idx >= len + 2 {
-                        let mut closing_quote_idx = idx - 1;
-                        while bytes[closing_quote_idx] != b'"' {
-                            closing_quote_idx -= 1;
-                        }
-                        let opening_quote_idx = closing_quote_idx - len - 1;
-                        let slice = &bytes[opening_quote_idx..closing_quote_idx + 1];
-                        if slice == labels[(state - 1) as usize].1.bytes_with_quotes() {
-                            if state == last_state {
-                                count += 1;
-                            } else {
-                                state += 1;
-                                stack.push(depth);
-                            }
-                        }
+                if (matches!(event, Some(Structural::Opening(_))) || state == last_state)
+                    && is_match(bytes, idx, labels[(state - 1) as usize].1)
+                {
+                    if state == last_state {
+                        count += 1;
+                    } else {
+                        state += 1;
+                        stack.push(depth);
                     }
                 }
             }
         }
     }
     count
+}
+
+fn is_match(bytes: &[u8], idx: usize, label: &Label) -> bool {
+    let len = label.len();
+    if idx < len + 2 {
+        return false;
+    }
+
+    let mut closing_quote_idx = idx - 1;
+    while bytes[closing_quote_idx] != b'"' {
+        closing_quote_idx -= 1;
+    }
+    let opening_quote_idx = closing_quote_idx - len - 1;
+    let slice = &bytes[opening_quote_idx..closing_quote_idx + 1];
+    slice == label.bytes_with_quotes()
 }
