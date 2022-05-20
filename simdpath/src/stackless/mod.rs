@@ -241,7 +241,7 @@ fn descendant_only_automaton(labels: &[SeekLabel], bytes: &AlignedBytes<alignmen
                     }
                 }*/
 
-                if !flushed_states {
+                /*if !flushed_states {
                     if is_next_opening {
                         unsafe { direct_states.set_len(expanded_count) };
                     }
@@ -275,7 +275,11 @@ fn descendant_only_automaton(labels: &[SeekLabel], bytes: &AlignedBytes<alignmen
                         depth,
                         label_idx: recursive_state,
                     });
-                }
+                }*/
+                stack.push(StackFrame {
+                    depth,
+                    label_idx: recursive_state,
+                });
 
                 if is_next_opening {
                     block_event_source.next();
