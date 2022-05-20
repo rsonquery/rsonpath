@@ -201,8 +201,10 @@ fn descendant_only_automaton(labels: &[SeekLabel], bytes: &AlignedBytes<alignmen
 
                 let event = block_event_source.peek();
                 let is_next_opening = matches!(event, Some(Structural::Opening(_)));
+                let mut expanded_count = 0;
+                let mut flushed_states = false;
 
-                if is_next_opening {
+                /*if is_next_opening {
                     for direct_states_idx in 0..direct_states.len() {
                         let direct_state = direct_states[direct_states_idx];
                         stack.push(StackFrame {
@@ -211,9 +213,6 @@ fn descendant_only_automaton(labels: &[SeekLabel], bytes: &AlignedBytes<alignmen
                         });
                     }
                 }
-
-                let mut expanded_count = 0;
-                let mut flushed_states = false;
 
                 for direct_states_idx in 0..direct_states.len() {
                     let direct_state = direct_states[direct_states_idx];
@@ -240,7 +239,7 @@ fn descendant_only_automaton(labels: &[SeekLabel], bytes: &AlignedBytes<alignmen
                             }
                         }
                     }
-                }
+                }*/
 
                 if !flushed_states {
                     if is_next_opening {
