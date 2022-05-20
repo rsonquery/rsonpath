@@ -52,11 +52,13 @@ impl Runner for StacklessRunner<'_> {
     }
 }
 
+#[derive(Clone, Copy, Debug)]
 enum Seek {
     Direct,
     Recursive,
 }
 
+#[derive(Clone, Copy, Debug)]
 struct SeekLabel<'a>(Seek, &'a Label);
 
 fn query_to_labels(query: &JsonPathQuery) -> Vec<SeekLabel> {
@@ -115,14 +117,22 @@ impl SmallStack {
         }
     }
 
-    fn peek(&mut self) -> StackFrame {
-        debug_assert!(!self.contents.is_empty(), "SmallStack::peek on empty stack");
-        *self.contents.last().unwrap()
+    fn peek(&mut self) -> Option<StackFrame> {
+        self.contents.last().copied()
     }
 
     fn pop(&mut self) -> StackFrame {
         debug_assert!(!self.contents.is_empty(), "SmallStack::pop on empty stack");
         self.contents.pop().unwrap()
+    }
+
+    fn pop_if_reached(&mut self, depth: u8) -> Option<StackFrame> {
+        if let Some(stack_frame) = self.peek() {
+            if depth <= stack_frame.depth {
+                return self.contents.pop();
+            }
+        }
+        None
     }
 
     fn push(&mut self, value: StackFrame) {
@@ -133,8 +143,9 @@ impl SmallStack {
 fn descendant_only_automaton(labels: &[SeekLabel], bytes: &AlignedBytes<alignment::Page>) -> usize {
     use crate::bytes::classify::{classify_structural_characters, Structural};
     let mut depth: u8 = 0;
-    let mut state: u8 = 1;
-    let last_state = labels.len() as u8;
+    let mut recursive_state: u8 = 0;
+    let mut direct_states: SmallVec<[u8; 2]> = smallvec![];
+    let last_state = (labels.len() - 1) as u8;
     let mut count: usize = 0;
     let mut stack = SmallStack::new();
     stack.push(StackFrame {
@@ -145,11 +156,13 @@ fn descendant_only_automaton(labels: &[SeekLabel], bytes: &AlignedBytes<alignmen
     while let Some(event) = block_event_source.next() {
         match event {
             Structural::Closing(_) => {
-                let stack_frame = stack.peek();
                 depth -= 1;
-                if depth <= stack_frame.depth {
-                    stack.pop();
-                    state -= 1;
+                direct_states.clear();
+                while let Some(stack_frame) = stack.pop_if_reached(depth) {
+                    match labels[stack_frame.label_idx as usize].0 {
+                        Seek::Recursive => recursive_state = stack_frame.label_idx,
+                        Seek::Direct => direct_states.push(stack_frame.label_idx),
+                    }
                 }
             }
             Structural::Opening(_) => {
@@ -158,17 +171,17 @@ fn descendant_only_automaton(labels: &[SeekLabel], bytes: &AlignedBytes<alignmen
             Structural::Colon(idx) => {
                 let event = block_event_source.peek();
 
-                if (matches!(event, Some(Structural::Opening(_))) || state == last_state)
-                    && is_match(bytes, idx, labels[(state - 1) as usize].1)
+                if (matches!(event, Some(Structural::Opening(_))) || recursive_state == last_state)
+                    && is_match(bytes, idx, labels[recursive_state as usize].1)
                 {
-                    if state == last_state {
+                    if recursive_state == last_state {
                         count += 1;
                     } else {
-                        state += 1;
                         stack.push(StackFrame {
                             depth,
-                            label_idx: 0,
+                            label_idx: recursive_state,
                         });
+                        recursive_state += 1;
                     }
                 }
             }
