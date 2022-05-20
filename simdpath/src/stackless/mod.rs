@@ -97,28 +97,35 @@ fn empty_query(bytes: &AlignedBytes<alignment::Page>) -> CountResult {
     }
 }
 
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+struct StackFrame {
+    depth: u8,
+    label_idx: u8,
+}
+
+#[derive(Debug)]
 struct SmallStack {
-    contents: SmallVec<[u8; 64]>,
+    contents: SmallVec<[StackFrame; 64]>,
 }
 
 impl SmallStack {
     fn new() -> Self {
         Self {
-            contents: smallvec![0; 64],
+            contents: smallvec![],
         }
     }
 
-    fn peek(&mut self) -> u8 {
+    fn peek(&mut self) -> StackFrame {
         debug_assert!(!self.contents.is_empty(), "SmallStack::peek on empty stack");
         *self.contents.last().unwrap()
     }
 
-    fn pop(&mut self) -> u8 {
+    fn pop(&mut self) -> StackFrame {
         debug_assert!(!self.contents.is_empty(), "SmallStack::pop on empty stack");
         self.contents.pop().unwrap()
     }
 
-    fn push(&mut self, value: u8) {
+    fn push(&mut self, value: StackFrame) {
         self.contents.push(value)
     }
 }
@@ -130,14 +137,17 @@ fn descendant_only_automaton(labels: &[SeekLabel], bytes: &AlignedBytes<alignmen
     let last_state = labels.len() as u8;
     let mut count: usize = 0;
     let mut stack = SmallStack::new();
-    stack.push(0);
+    stack.push(StackFrame {
+        depth: 0,
+        label_idx: 0,
+    });
     let mut block_event_source = classify_structural_characters(bytes.relax_alignment()).peekable();
     while let Some(event) = block_event_source.next() {
         match event {
             Structural::Closing(_) => {
-                let state_depth = stack.peek();
+                let stack_frame = stack.peek();
                 depth -= 1;
-                if depth <= state_depth {
+                if depth <= stack_frame.depth {
                     stack.pop();
                     state -= 1;
                 }
@@ -155,7 +165,10 @@ fn descendant_only_automaton(labels: &[SeekLabel], bytes: &AlignedBytes<alignmen
                         count += 1;
                     } else {
                         state += 1;
-                        stack.push(depth);
+                        stack.push(StackFrame {
+                            depth,
+                            label_idx: 0,
+                        });
                     }
                 }
             }
