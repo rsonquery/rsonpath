@@ -184,13 +184,13 @@ fn descendant_only_automaton(labels: &[SeekLabel], bytes: &AlignedBytes<alignmen
             }
             Structural::Opening(_) => {
                 //debug!("Opening, increasing depth and pushing stack.");
-                /*for direct_states_idx in 0..direct_states.len() {
+                for direct_states_idx in 0..direct_states.len() {
                     let direct_state = direct_states[direct_states_idx];
                     stack.push(StackFrame {
                         depth,
                         label_idx: direct_state,
                     });
-                }*/
+                }
 
                 depth += 1;
                 //direct_states.clear();
