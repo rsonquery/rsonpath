@@ -8,6 +8,7 @@
 //! This implementation should be more performant than [`stack_based`](super::stack_based)
 //! even on targets that don't support AVX2 SIMD operations.
 
+use crate::debug;
 use crate::engine::result::CountResult;
 use crate::engine::{Input, Runner};
 use crate::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label};
@@ -158,8 +159,18 @@ fn descendant_only_automaton(labels: &[SeekLabel], bytes: &AlignedBytes<alignmen
     });
     let mut block_event_source = classify_structural_characters(bytes.relax_alignment()).peekable();
     while let Some(event) = block_event_source.next() {
+        debug!("====================");
+        debug!("Event = {:?}", event);
+        debug!("Depth = {:?}", depth);
+        debug!("Stack = {:?}", stack);
+        debug!("Direct = {:?}", direct_states);
+        debug!("Recursive = {:?}", recursive_state);
+        debug!("Count = {:?}", count);
+        debug!("====================");
+
         match event {
             Structural::Closing(_) => {
+                debug!("Closing, decreasing depth and popping stack.");
                 depth -= 1;
                 direct_states.clear();
                 while let Some(stack_frame) = stack.pop_if_reached(depth) {
@@ -170,23 +181,106 @@ fn descendant_only_automaton(labels: &[SeekLabel], bytes: &AlignedBytes<alignmen
                 }
             }
             Structural::Opening(_) => {
+                debug!("Opening, increasing depth and pushing stack.");
+                for direct_states_idx in 0..direct_states.len() {
+                    let direct_state = direct_states[direct_states_idx];
+                    stack.push(StackFrame {
+                        depth,
+                        label_idx: direct_state,
+                    });
+                }
+
                 depth += 1;
+                direct_states.clear();
             }
             Structural::Colon(idx) => {
-                let event = block_event_source.peek();
+                debug!(
+                    "Colon, label ending with {:?}",
+                    std::str::from_utf8(&bytes[idx - 5..idx]).unwrap()
+                );
 
-                if (matches!(event, Some(Structural::Opening(_))) || recursive_state == last_state)
-                    && is_match(bytes, idx, labels[recursive_state as usize].1)
-                {
-                    if recursive_state == last_state {
-                        count += 1;
-                    } else {
+                let event = block_event_source.peek();
+                let is_next_opening = matches!(event, Some(Structural::Opening(_)));
+
+                if is_next_opening {
+                    for direct_states_idx in 0..direct_states.len() {
+                        let direct_state = direct_states[direct_states_idx];
                         stack.push(StackFrame {
                             depth,
-                            label_idx: recursive_state,
+                            label_idx: direct_state,
                         });
-                        recursive_state += 1;
                     }
+                }
+
+                let mut expanded_count = 0;
+                let mut flushed_states = false;
+
+                for direct_states_idx in 0..direct_states.len() {
+                    let direct_state = direct_states[direct_states_idx];
+                    if (is_next_opening || direct_state == last_state)
+                        && is_match(bytes, idx, labels[direct_state as usize].1)
+                    {
+                        if direct_state == last_state {
+                            debug!("Hit!");
+                            count += 1;
+                        } else {
+                            let next_state = labels[(direct_state + 1) as usize];
+
+                            match next_state.0 {
+                                Seek::Recursive => {
+                                    recursive_state = direct_state + 1;
+                                    direct_states.clear();
+                                    flushed_states = true;
+                                    break;
+                                }
+                                Seek::Direct => {
+                                    direct_states[expanded_count] = direct_state + 1;
+                                    expanded_count += 1;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if !flushed_states {
+                    if is_next_opening {
+                        unsafe { direct_states.set_len(expanded_count) };
+                    }
+
+                    if (is_next_opening || recursive_state == last_state)
+                        && is_match(bytes, idx, labels[recursive_state as usize].1)
+                    {
+                        if recursive_state == last_state {
+                            debug!("Hit!");
+                            count += 1;
+                        } else {
+                            let next_state = labels[(recursive_state + 1) as usize];
+
+                            match next_state.0 {
+                                Seek::Recursive => {
+                                    stack.push(StackFrame {
+                                        depth,
+                                        label_idx: recursive_state,
+                                    });
+                                    recursive_state += 1;
+                                    direct_states.clear();
+                                }
+                                Seek::Direct => {
+                                    direct_states.push(recursive_state + 1);
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    stack.push(StackFrame {
+                        depth,
+                        label_idx: recursive_state,
+                    });
+                }
+
+                if is_next_opening {
+                    block_event_source.next();
+                    depth += 1;
                 }
             }
         }

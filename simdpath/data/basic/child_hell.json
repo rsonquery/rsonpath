@@ -23,6 +23,7 @@
                                             },
                                             "c": {
                                                 "v": "this c is also a hit",
+                                                "c": "but this one is a miss",
                                                 "a": {
                                                     "b": {
                                                         "a": {

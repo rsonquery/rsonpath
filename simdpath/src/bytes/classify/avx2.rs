@@ -228,7 +228,7 @@ impl BlockAvx2Classifier {
             "{: >24}: {}",
             "block",
             std::str::from_utf8_unchecked(
-                &block1[..64]
+                &two_blocks[..64]
                     .iter()
                     .map(|x| if x.is_ascii_whitespace() { b' ' } else { *x })
                     .collect::<Vec<_>>()
