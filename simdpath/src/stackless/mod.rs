@@ -117,15 +117,18 @@ impl SmallStack {
         }
     }
 
+    #[inline(always)]
     fn peek(&mut self) -> Option<StackFrame> {
         self.contents.last().copied()
     }
 
+    #[inline(always)]
     fn pop(&mut self) -> StackFrame {
         debug_assert!(!self.contents.is_empty(), "SmallStack::pop on empty stack");
         self.contents.pop().unwrap()
     }
 
+    #[inline(always)]
     fn pop_if_reached(&mut self, depth: u8) -> Option<StackFrame> {
         if let Some(stack_frame) = self.peek() {
             if depth <= stack_frame.depth {
@@ -135,6 +138,7 @@ impl SmallStack {
         None
     }
 
+    #[inline(always)]
     fn push(&mut self, value: StackFrame) {
         self.contents.push(value)
     }
