@@ -8,6 +8,8 @@
 //! This implementation should be more performant than [`stack_based`](super::stack_based)
 //! even on targets that don't support AVX2 SIMD operations.
 
+use std::hint::unreachable_unchecked;
+
 use crate::debug;
 use crate::engine::result::CountResult;
 use crate::engine::{Input, Runner};
@@ -241,30 +243,47 @@ fn descendant_only_automaton(labels: &[SeekLabel], bytes: &AlignedBytes<alignmen
                     }
                 }*/
 
-                if (is_next_opening || recursive_state == last_state)
-                    && is_match(bytes, idx, labels[recursive_state as usize].1)
-                {
-                    if recursive_state == last_state {
-                        debug!("Hit!");
-                        count += 1;
-                    } else {
-                        let next_state = labels[(recursive_state + 1) as usize];
+                if !flushed_states {
+                    /*if is_next_opening {
+                        unsafe { direct_states.set_len(expanded_count) };
+                    }*/
 
-                        match next_state.0 {
-                            Seek::Recursive => {
-                                stack.push(StackFrame {
-                                    depth,
-                                    label_idx: recursive_state,
-                                });
-                                recursive_state += 1;
-                                direct_states.clear();
-                            }
-                            Seek::Direct => {
-                                direct_states.push(recursive_state + 1);
+                    if (is_next_opening || recursive_state == last_state)
+                        && is_match(bytes, idx, labels[recursive_state as usize].1)
+                    {
+                        if recursive_state == last_state {
+                            debug!("Hit!");
+                            count += 1;
+                        } else {
+                            let next_state = labels[(recursive_state + 1) as usize];
+
+                            match next_state.0 {
+                                Seek::Recursive => {
+                                    stack.push(StackFrame {
+                                        depth,
+                                        label_idx: recursive_state,
+                                    });
+                                    recursive_state += 1;
+                                    direct_states.clear();
+                                }
+                                Seek::Direct => unsafe { unreachable_unchecked() },
+                                /*Seek::Direct => {
+                                    direct_states.push(recursive_state + 1);
+                                }*/
                             }
                         }
                     }
+                } else {
+                    stack.push(StackFrame {
+                        depth,
+                        label_idx: recursive_state,
+                    });
                 }
+
+                /*if is_next_opening {
+                    block_event_source.next();
+                    depth += 1;
+                }*/
             }
         }
     }
