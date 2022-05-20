@@ -172,7 +172,7 @@ fn descendant_only_automaton(labels: &[SeekLabel], bytes: &AlignedBytes<alignmen
             Structural::Closing(_) => {
                 //debug!("Closing, decreasing depth and popping stack.");
                 depth -= 1;
-                direct_states.clear();
+                //direct_states.clear();
                 while let Some(stack_frame) = stack.pop_if_reached(depth) {
                     match labels[stack_frame.label_idx as usize].0 {
                         Seek::Recursive => recursive_state = stack_frame.label_idx,
@@ -182,16 +182,16 @@ fn descendant_only_automaton(labels: &[SeekLabel], bytes: &AlignedBytes<alignmen
             }
             Structural::Opening(_) => {
                 //debug!("Opening, increasing depth and pushing stack.");
-                for direct_states_idx in 0..direct_states.len() {
+                /*for direct_states_idx in 0..direct_states.len() {
                     let direct_state = direct_states[direct_states_idx];
                     stack.push(StackFrame {
                         depth,
                         label_idx: direct_state,
                     });
-                }
+                }*/
 
                 depth += 1;
-                direct_states.clear();
+                //direct_states.clear();
             }
             Structural::Colon(idx) => {
                 /*debug!(
@@ -241,7 +241,7 @@ fn descendant_only_automaton(labels: &[SeekLabel], bytes: &AlignedBytes<alignmen
                     }
                 }*/
 
-                /*if !flushed_states {
+                if !flushed_states {
                     if is_next_opening {
                         unsafe { direct_states.set_len(expanded_count) };
                     }
@@ -275,11 +275,7 @@ fn descendant_only_automaton(labels: &[SeekLabel], bytes: &AlignedBytes<alignmen
                         depth,
                         label_idx: recursive_state,
                     });
-                }*/
-                stack.push(StackFrame {
-                    depth,
-                    label_idx: recursive_state,
-                });
+                }
 
                 if is_next_opening {
                     block_event_source.next();
