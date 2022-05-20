@@ -159,8 +159,18 @@ fn descendant_only_automaton(labels: &[SeekLabel], bytes: &AlignedBytes<alignmen
     });
     let mut block_event_source = classify_structural_characters(bytes.relax_alignment()).peekable();
     while let Some(event) = block_event_source.next() {
+        /*debug!("====================");
+        debug!("Event = {:?}", event);
+        debug!("Depth = {:?}", depth);
+        debug!("Stack = {:?}", stack);
+        debug!("Direct = {:?}", direct_states);
+        debug!("Recursive = {:?}", recursive_state);
+        debug!("Count = {:?}", count);
+        debug!("====================");*/
+
         match event {
             Structural::Closing(_) => {
+                //debug!("Closing, decreasing depth and popping stack.");
                 depth -= 1;
                 direct_states.clear();
                 while let Some(stack_frame) = stack.pop_if_reached(depth) {
@@ -171,7 +181,17 @@ fn descendant_only_automaton(labels: &[SeekLabel], bytes: &AlignedBytes<alignmen
                 }
             }
             Structural::Opening(_) => {
+                //debug!("Opening, increasing depth and pushing stack.");
+                /*for direct_states_idx in 0..direct_states.len() {
+                    let direct_state = direct_states[direct_states_idx];
+                    stack.push(StackFrame {
+                        depth,
+                        label_idx: direct_state,
+                    });
+                }*/
+
                 depth += 1;
+                //direct_states.clear();
             }
             Structural::Colon(idx) => {
                 let event = block_event_source.peek();
