@@ -177,7 +177,7 @@ fn descendant_only_automaton<'q, 'b>(
 }
 
 impl<'q, 'b, I: StructuralIterator<'b>> Automaton<'q, 'b, I> {
-    fn run(mut self) -> usize {
+    fn run(&mut self) -> usize {
         while let Some(event) = self.block_event_source.next() {
             match event {
                 Structural::Closing(_) => {
