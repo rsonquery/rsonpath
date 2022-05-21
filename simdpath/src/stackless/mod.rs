@@ -177,42 +177,48 @@ fn descendant_only_automaton<'q, 'b>(
 }
 
 impl<'q, 'b, I: StructuralIterator<'b>> Automaton<'q, 'b, I> {
-    fn run(&mut self) -> usize {
-        while let Some(event) = self.block_event_source.next() {
+    fn run(mut self) -> usize {
+        let mut block_event_source = self.block_event_source;
+        let mut depth = self.depth;
+        let mut recursive_state = self.recursive_state;
+        let mut regs = self.regs;
+        let last_state = self.last_state;
+        let bytes = self.bytes;
+        let labels = self.labels;
+        let mut count = self.count;
+
+        while let Some(event) = block_event_source.next() {
             match event {
                 Structural::Closing(_) => {
-                    self.depth -= 1;
-                    if self.depth <= self.regs[(self.recursive_state - 1) as usize] {
-                        self.recursive_state -= 1;
+                    depth -= 1;
+                    if depth <= regs[(recursive_state - 1) as usize] {
+                        recursive_state -= 1;
                     }
                 }
                 Structural::Opening(_) => {
-                    self.depth += 1;
+                    depth += 1;
                 }
                 Structural::Colon(idx) => {
-                    let event = self.block_event_source.peek();
+                    let event = block_event_source.peek();
 
                     if matches!(event, Some(Structural::Opening(_)))
-                        || self.recursive_state == self.last_state
+                        || recursive_state == last_state
                     {
-                        let len = self.labels[(self.recursive_state - 1) as usize].1.len();
+                        let len = labels[(recursive_state - 1) as usize].1.len();
                         if idx >= len + 2 {
                             let mut closing_quote_idx = idx - 1;
-                            while self.bytes[closing_quote_idx] != b'"' {
+                            while bytes[closing_quote_idx] != b'"' {
                                 closing_quote_idx -= 1;
                             }
                             let opening_quote_idx = closing_quote_idx - len - 1;
-                            let slice = &self.bytes[opening_quote_idx..closing_quote_idx + 1];
-                            if slice
-                                == self.labels[(self.recursive_state - 1) as usize]
-                                    .1
-                                    .bytes_with_quotes()
+                            let slice = &bytes[opening_quote_idx..closing_quote_idx + 1];
+                            if slice == labels[(recursive_state - 1) as usize].1.bytes_with_quotes()
                             {
-                                if self.recursive_state == self.last_state {
-                                    self.count += 1;
+                                if recursive_state == last_state {
+                                    count += 1;
                                 } else {
-                                    self.recursive_state += 1;
-                                    self.regs[(self.recursive_state - 1) as usize] = self.depth;
+                                    recursive_state += 1;
+                                    regs[(recursive_state - 1) as usize] = depth;
                                 }
                             }
                         }
@@ -220,6 +226,6 @@ impl<'q, 'b, I: StructuralIterator<'b>> Automaton<'q, 'b, I> {
                 }
             }
         }
-        self.count
+        count
     }
 }
