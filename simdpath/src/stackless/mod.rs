@@ -195,9 +195,13 @@ impl<'q, 'b> Automaton<'q, 'b> {
                 Structural::Colon(idx) => {
                     let event = block_event_source.peek();
                     let label = self.labels[self.recursive_state as usize].1;
+                    let is_next_opening = matches!(event, Some(Structural::Opening(_)));
 
-                    if (matches!(event, Some(Structural::Opening(_)))
-                        || self.recursive_state == self.last_state)
+                    if is_next_opening {
+                        self.push_direct_states();
+                    }
+
+                    if (is_next_opening || self.recursive_state == self.last_state)
                         && self.is_match(idx, label)
                     {
                         if self.recursive_state == self.last_state {
@@ -209,6 +213,11 @@ impl<'q, 'b> Automaton<'q, 'b> {
                             });
                             self.recursive_state += 1;
                         }
+                    }
+
+                    if is_next_opening {
+                        block_event_source.next();
+                        self.depth += 1;
                     }
                 }
             }
