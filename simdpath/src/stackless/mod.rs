@@ -239,12 +239,11 @@ impl<'q, 'b> Automaton<'q, 'b> {
     }
 
     fn push_direct_states(&mut self) {
-        for direct_states_idx in 0..self.direct_states.len() {
-            let direct_state = self.direct_states[direct_states_idx];
+        for direct_state in self.direct_states.iter().copied() {
             self.stack.push(StackFrame {
                 depth: self.depth,
                 label_idx: direct_state,
-            });
+            })
         }
     }
 }
