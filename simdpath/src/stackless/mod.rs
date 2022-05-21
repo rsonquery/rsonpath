@@ -135,7 +135,7 @@ impl SmallStack {
     }
 
     #[inline(always)]
-    fn pop_if_reached(&mut self, depth: u8) -> Option<StackFrame> {
+    fn pop_if_at_or_below(&mut self, depth: u8) -> Option<StackFrame> {
         if let Some(stack_frame) = self.peek() {
             if depth <= stack_frame.depth {
                 return self.contents.pop();
@@ -186,18 +186,11 @@ impl<'q, 'b> Automaton<'q, 'b> {
             match event {
                 Structural::Closing(_) => {
                     self.depth -= 1;
-                    self.direct_states.clear();
-                    while let Some(stack_frame) = self.stack.pop_if_reached(self.depth) {
-                        match self.labels[stack_frame.label_idx as usize].0 {
-                            Seek::Recursive => self.recursive_state = stack_frame.label_idx,
-                            Seek::Direct => self.direct_states.push(stack_frame.label_idx),
-                        }
-                    }
+                    self.pop_states();
                 }
                 Structural::Opening(_) => {
                     self.push_direct_states();
                     self.depth += 1;
-                    self.direct_states.clear();
                 }
                 Structural::Colon(idx) => {
                     let event = block_event_source.peek();
@@ -238,6 +231,16 @@ impl<'q, 'b> Automaton<'q, 'b> {
         slice == label.bytes_with_quotes()
     }
 
+    fn pop_states(&mut self) {
+        self.direct_states.clear();
+        while let Some(stack_frame) = self.stack.pop_if_at_or_below(self.depth) {
+            match self.labels[stack_frame.label_idx as usize].0 {
+                Seek::Recursive => self.recursive_state = stack_frame.label_idx,
+                Seek::Direct => self.direct_states.push(stack_frame.label_idx),
+            }
+        }
+    }
+
     fn push_direct_states(&mut self) {
         for direct_state in self.direct_states.iter().copied() {
             self.stack.push(StackFrame {
@@ -245,5 +248,6 @@ impl<'q, 'b> Automaton<'q, 'b> {
                 label_idx: direct_state,
             })
         }
+        self.direct_states.clear();
     }
 }
