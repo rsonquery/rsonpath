@@ -201,24 +201,33 @@ impl<'q, 'b> Automaton<'q, 'b> {
                 Structural::Colon(idx) => {
                     let label = self.labels[self.recursive_state as usize].1;
                     let is_next_opening = matches!(next_event, Some(Structural::Opening(_)));
+                    let mut expanded_count = 0;
+                    let mut flushed_states = false;
 
                     if is_next_opening {
                         self.push_direct_states();
                         skip_push_on_opening = true;
                     }
 
-                    if (is_next_opening || self.recursive_state == self.last_state)
-                        && self.is_match(idx, label)
-                    {
-                        if self.recursive_state == self.last_state {
-                            self.count += 1;
-                        } else {
-                            self.stack.push(StackFrame {
-                                depth: self.depth,
-                                label_idx: self.recursive_state,
-                            });
-                            self.recursive_state += 1;
+                    if !flushed_states {
+                        if (is_next_opening || self.recursive_state == self.last_state)
+                            && self.is_match(idx, label)
+                        {
+                            if self.recursive_state == self.last_state {
+                                self.count += 1;
+                            } else {
+                                self.stack.push(StackFrame {
+                                    depth: self.depth,
+                                    label_idx: self.recursive_state,
+                                });
+                                self.recursive_state += 1;
+                            }
                         }
+                    } else {
+                        self.stack.push(StackFrame {
+                            depth: self.depth,
+                            label_idx: self.recursive_state,
+                        });
                     }
                 }
             }
