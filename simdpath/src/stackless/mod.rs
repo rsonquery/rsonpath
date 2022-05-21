@@ -181,6 +181,7 @@ impl<'q, 'b> Automaton<'q, 'b> {
     fn run(mut self) -> usize {
         let mut block_event_source =
             classify_structural_characters(self.bytes.relax_alignment()).peekable();
+        let mut skip_push_on_opening = false;
 
         while let Some(event) = block_event_source.next() {
             match event {
@@ -189,17 +190,21 @@ impl<'q, 'b> Automaton<'q, 'b> {
                     self.pop_states();
                 }
                 Structural::Opening(_) => {
-                    self.push_direct_states();
+                    if !skip_push_on_opening {
+                        self.push_direct_states();
+                    } else {
+                        skip_push_on_opening = false;
+                    }
                     self.depth += 1;
                 }
                 Structural::Colon(idx) => {
-                    let is_next_opening = block_event_source
-                        .next_if(|x| matches!(x, Structural::Opening(_)))
-                        .is_some();
+                    let event = block_event_source.peek();
                     let label = self.labels[self.recursive_state as usize].1;
+                    let is_next_opening = matches!(event, Some(Structural::Opening(_)));
 
                     if is_next_opening {
                         self.push_direct_states();
+                        skip_push_on_opening = true;
                     }
 
                     if (is_next_opening || self.recursive_state == self.last_state)
@@ -214,10 +219,6 @@ impl<'q, 'b> Automaton<'q, 'b> {
                             });
                             self.recursive_state += 1;
                         }
-                    }
-
-                    if is_next_opening {
-                        self.depth += 1;
                     }
                 }
             }
