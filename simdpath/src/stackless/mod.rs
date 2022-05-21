@@ -193,8 +193,9 @@ impl<'q, 'b> Automaton<'q, 'b> {
                 Structural::Opening(_) => {
                     if !skip_push_on_opening {
                         self.push_direct_states();
+                    } else {
+                        skip_push_on_opening = false;
                     }
-                    skip_push_on_opening = false;
                     self.depth += 1;
                 }
                 Structural::Colon(idx) => {
