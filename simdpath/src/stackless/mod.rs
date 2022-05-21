@@ -198,6 +198,7 @@ impl<'q, 'b> Automaton<'q, 'b> {
                     let is_next_opening = matches!(event, Some(Structural::Opening(_)));
 
                     if is_next_opening {
+                        block_event_source.next();
                         self.push_direct_states();
                     }
 
@@ -216,7 +217,6 @@ impl<'q, 'b> Automaton<'q, 'b> {
                     }
 
                     if is_next_opening {
-                        block_event_source.next();
                         self.depth += 1;
                     }
                 }
