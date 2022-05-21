@@ -184,6 +184,7 @@ impl<'q, 'b> Automaton<'q, 'b> {
         let mut skip_push_on_opening = false;
 
         while let Some(event) = block_event_source.next() {
+            let next_event = block_event_source.peek();
             match event {
                 Structural::Closing(_) => {
                     self.depth -= 1;
@@ -198,9 +199,8 @@ impl<'q, 'b> Automaton<'q, 'b> {
                     self.depth += 1;
                 }
                 Structural::Colon(idx) => {
-                    let event = block_event_source.peek();
                     let label = self.labels[self.recursive_state as usize].1;
-                    let is_next_opening = matches!(event, Some(Structural::Opening(_)));
+                    let is_next_opening = matches!(next_event, Some(Structural::Opening(_)));
 
                     if is_next_opening {
                         self.push_direct_states();
