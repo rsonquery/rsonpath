@@ -148,12 +148,12 @@ impl SmallStack {
 }
 
 struct Automaton<'q, 'b, I: StructuralIterator<'b>> {
-    depth: u8,
+    depth: usize,
     recursive_state: u8,
     direct_states: SmallVec<[u8; 2]>,
     last_state: u8,
     count: usize,
-    stack: SmallStack,
+    regs: [usize; 256],
     block_event_source: std::iter::Peekable<I>,
     labels: &'q [SeekLabel<'q>],
     bytes: &'b AlignedBytes<alignment::Page>,
@@ -165,11 +165,11 @@ fn descendant_only_automaton<'q, 'b>(
 ) -> Automaton<'q, 'b, impl StructuralIterator<'b>> {
     Automaton {
         depth: 0,
-        recursive_state: 0,
+        recursive_state: 1,
         direct_states: smallvec![],
-        last_state: (labels.len() - 1) as u8,
+        last_state: labels.len() as u8,
         count: 0,
-        stack: SmallStack::new(),
+        regs: [0; 256],
         block_event_source: classify_structural_characters(bytes.relax_alignment()).peekable(),
         labels,
         bytes,
@@ -182,12 +182,8 @@ impl<'q, 'b, I: StructuralIterator<'b>> Automaton<'q, 'b, I> {
             match event {
                 Structural::Closing(_) => {
                     self.depth -= 1;
-                    self.direct_states.clear();
-                    while let Some(stack_frame) = self.stack.pop_if_reached(self.depth) {
-                        match self.labels[stack_frame.label_idx as usize].0 {
-                            Seek::Recursive => self.recursive_state = stack_frame.label_idx,
-                            Seek::Direct => self.direct_states.push(stack_frame.label_idx),
-                        }
+                    if self.depth <= self.regs[(self.recursive_state - 1) as usize] {
+                        self.recursive_state -= 1;
                     }
                 }
                 Structural::Opening(_) => {
@@ -196,38 +192,34 @@ impl<'q, 'b, I: StructuralIterator<'b>> Automaton<'q, 'b, I> {
                 Structural::Colon(idx) => {
                     let event = self.block_event_source.peek();
 
-                    if (matches!(event, Some(Structural::Opening(_)))
-                        || self.recursive_state == self.last_state)
-                        && self.is_match(idx, self.labels[self.recursive_state as usize].1)
+                    if matches!(event, Some(Structural::Opening(_)))
+                        || self.recursive_state == self.last_state
                     {
-                        if self.recursive_state == self.last_state {
-                            self.count += 1;
-                        } else {
-                            self.stack.push(StackFrame {
-                                depth: self.depth,
-                                label_idx: self.recursive_state,
-                            });
-                            self.recursive_state += 1;
+                        let len = self.labels[(self.recursive_state - 1) as usize].1.len();
+                        if idx >= len + 2 {
+                            let mut closing_quote_idx = idx - 1;
+                            while self.bytes[closing_quote_idx] != b'"' {
+                                closing_quote_idx -= 1;
+                            }
+                            let opening_quote_idx = closing_quote_idx - len - 1;
+                            let slice = &self.bytes[opening_quote_idx..closing_quote_idx + 1];
+                            if slice
+                                == self.labels[(self.recursive_state - 1) as usize]
+                                    .1
+                                    .bytes_with_quotes()
+                            {
+                                if self.recursive_state == self.last_state {
+                                    self.count += 1;
+                                } else {
+                                    self.recursive_state += 1;
+                                    self.regs[(self.recursive_state - 1) as usize] = self.depth;
+                                }
+                            }
                         }
                     }
                 }
             }
         }
         self.count
-    }
-
-    fn is_match(&self, idx: usize, label: &Label) -> bool {
-        let len = label.len();
-        if idx < len + 2 {
-            return false;
-        }
-
-        let mut closing_quote_idx = idx - 1;
-        while self.bytes[closing_quote_idx] != b'"' {
-            closing_quote_idx -= 1;
-        }
-        let opening_quote_idx = closing_quote_idx - len - 1;
-        let slice = &self.bytes[opening_quote_idx..closing_quote_idx + 1];
-        slice == label.bytes_with_quotes()
     }
 }
