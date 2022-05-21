@@ -218,48 +218,19 @@ impl<'q, 'b> Automaton<'q, 'b> {
                     );
 
                     let is_next_opening = matches!(next_event, Some(Structural::Opening(_)));
-                    let mut expanded_count = 0;
-                    let mut flushed_states = false;
 
                     if is_next_opening {
                         self.push_direct_states();
                         skip_push_on_opening = true;
                     }
 
-                    /*for direct_states_idx in 0..self.direct_states.len() {
-                        let direct_state = self.direct_states[direct_states_idx];
-                        let label = self.labels[direct_state as usize].1;
-                        if (is_next_opening || direct_state == self.last_state)
-                            && self.is_match(idx, label)
-                        {
-                            debug!("Match for state {}", direct_state);
-                            if direct_state == self.last_state {
-                                self.count += 1;
-                            } else {
-                                let next_state = self.labels[(direct_state + 1) as usize];
-
-                                match next_state.0 {
-                                    Seek::Recursive => {
-                                        self.recursive_state = direct_state + 1;
-                                        expanded_count = 0;
-                                        flushed_states = true;
-                                        break;
-                                    }
-                                    Seek::Direct => {
-                                        debug!("Expanding {}", direct_state);
-                                        self.direct_states[expanded_count] = direct_state + 1;
-                                        expanded_count += 1;
-                                    }
-                                }
-                            }
-                        }
-                    }*/
+                    let expanded = self.expand_direct_states(idx, is_next_opening);
 
                     if is_next_opening {
-                        unsafe { self.direct_states.set_len(expanded_count) };
+                        unsafe { self.direct_states.set_len(expanded.unwrap_or(0)) };
                     }
 
-                    if !flushed_states {
+                    if expanded.is_some() {
                         let label = self.labels[self.recursive_state as usize].1;
                         if (is_next_opening || self.recursive_state == self.last_state)
                             && self.is_match(idx, label)
@@ -294,6 +265,36 @@ impl<'q, 'b> Automaton<'q, 'b> {
             }
         }
         self.count
+    }
+
+    fn expand_direct_states(&mut self, idx: usize, is_next_opening: bool) -> Option<usize> {
+        let mut expanded_count = 0;
+
+        for direct_states_idx in 0..self.direct_states.len() {
+            let direct_state = self.direct_states[direct_states_idx];
+            let label = self.labels[direct_state as usize].1;
+            if (is_next_opening || direct_state == self.last_state) && self.is_match(idx, label) {
+                debug!("Match for state {}", direct_state);
+                if direct_state == self.last_state {
+                    self.count += 1;
+                } else {
+                    let next_state = self.labels[(direct_state + 1) as usize];
+
+                    match next_state.0 {
+                        Seek::Recursive => {
+                            self.recursive_state = direct_state + 1;
+                            return None;
+                        }
+                        Seek::Direct => {
+                            debug!("Expanding {}", direct_state);
+                            self.direct_states[expanded_count] = direct_state + 1;
+                            expanded_count += 1;
+                        }
+                    }
+                }
+            }
+        }
+        Some(expanded_count)
     }
 
     fn is_match(&self, idx: usize, label: &Label) -> bool {
