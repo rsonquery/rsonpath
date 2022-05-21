@@ -195,14 +195,7 @@ impl<'q, 'b> Automaton<'q, 'b> {
                     }
                 }
                 Structural::Opening(_) => {
-                    for direct_states_idx in 0..self.direct_states.len() {
-                        let direct_state = self.direct_states[direct_states_idx];
-                        self.stack.push(StackFrame {
-                            depth: self.depth,
-                            label_idx: direct_state,
-                        });
-                    }
-
+                    self.push_direct_states();
                     self.depth += 1;
                     self.direct_states.clear();
                 }
@@ -243,5 +236,15 @@ impl<'q, 'b> Automaton<'q, 'b> {
         let opening_quote_idx = closing_quote_idx - len - 1;
         let slice = &self.bytes[opening_quote_idx..closing_quote_idx + 1];
         slice == label.bytes_with_quotes()
+    }
+
+    fn push_direct_states(&mut self) {
+        for direct_states_idx in 0..self.direct_states.len() {
+            let direct_state = self.direct_states[direct_states_idx];
+            self.stack.push(StackFrame {
+                depth: self.depth,
+                label_idx: direct_state,
+            });
+        }
     }
 }
