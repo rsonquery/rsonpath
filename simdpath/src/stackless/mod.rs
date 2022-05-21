@@ -119,13 +119,13 @@ impl SmallStack {
             contents: smallvec![StackFrame {
                 depth: 0,
                 label_idx: 0,
-            }],
+            }; 2],
         }
     }
 
     #[inline(always)]
-    fn peek(&mut self) -> Option<StackFrame> {
-        self.contents.last().copied()
+    fn peek(&self) -> StackFrame {
+        self.contents[self.contents.len() - 1]
     }
 
     #[inline(always)]
@@ -136,10 +136,8 @@ impl SmallStack {
 
     #[inline(always)]
     fn pop_if_reached(&mut self, depth: u8) -> Option<StackFrame> {
-        if let Some(stack_frame) = self.peek() {
-            if depth <= stack_frame.depth {
-                return self.contents.pop();
-            }
+        if depth <= self.peek().depth {
+            return self.contents.pop();
         }
         None
     }
@@ -166,7 +164,7 @@ fn descendant_only_automaton<'q, 'b>(
     bytes: &'b AlignedBytes<alignment::Page>,
 ) -> Automaton<'q, 'b> {
     Automaton {
-        depth: 0,
+        depth: 1,
         recursive_state: 0,
         direct_states: smallvec![],
         last_state: (labels.len() - 1) as u8,
