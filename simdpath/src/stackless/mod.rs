@@ -226,7 +226,7 @@ impl<'q, 'b> Automaton<'q, 'b> {
                         skip_push_on_opening = true;
                     }
 
-                    for direct_states_idx in 0..self.direct_states.len() {
+                    /*for direct_states_idx in 0..self.direct_states.len() {
                         let direct_state = self.direct_states[direct_states_idx];
                         let label = self.labels[direct_state as usize].1;
                         if (is_next_opening || direct_state == self.last_state)
@@ -253,7 +253,7 @@ impl<'q, 'b> Automaton<'q, 'b> {
                                 }
                             }
                         }
-                    }
+                    }*/
 
                     if is_next_opening {
                         unsafe { self.direct_states.set_len(expanded_count) };
