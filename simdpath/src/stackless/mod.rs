@@ -8,8 +8,6 @@
 //! This implementation should be more performant than [`stack_based`](super::stack_based)
 //! even on targets that don't support AVX2 SIMD operations.
 
-use std::hint::unreachable_unchecked;
-
 use crate::bytes::classify::{classify_structural_characters, Structural, StructuralIterator};
 use crate::debug;
 use crate::engine::result::CountResult;
@@ -184,22 +182,41 @@ impl<'q, 'b> Automaton<'q, 'b> {
         let mut skip_push_on_opening = false;
 
         while let Some(event) = block_event_source.next() {
+            debug!("====================");
+            debug!("Event = {:?}", event);
+            debug!("Depth = {:?}", self.depth);
+            debug!("Stack = {:?}", self.stack);
+            debug!("Direct = {:?}", self.direct_states);
+            debug!("Recursive = {:?}", self.recursive_state);
+            debug!("Count = {:?}", self.count);
+            debug!("====================");
+
             let next_event = block_event_source.peek();
             match event {
                 Structural::Closing(_) => {
+                    debug!("Closing, decreasing depth and popping stack.");
+
                     self.depth -= 1;
+                    self.direct_states.clear();
                     self.pop_states();
                 }
                 Structural::Opening(_) => {
+                    debug!("Opening, increasing depth and pushing stack.");
+
                     if !skip_push_on_opening {
                         self.push_direct_states();
+                        self.direct_states.clear();
                     } else {
                         skip_push_on_opening = false;
                     }
                     self.depth += 1;
                 }
                 Structural::Colon(idx) => {
-                    let label = self.labels[self.recursive_state as usize].1;
+                    debug!(
+                        "Colon, label ending with {:?}",
+                        std::str::from_utf8(&self.bytes[idx - 5..idx]).unwrap()
+                    );
+
                     let is_next_opening = matches!(next_event, Some(Structural::Opening(_)));
                     let mut expanded_count = 0;
                     let mut flushed_states = false;
@@ -209,18 +226,62 @@ impl<'q, 'b> Automaton<'q, 'b> {
                         skip_push_on_opening = true;
                     }
 
+                    for direct_states_idx in 0..self.direct_states.len() {
+                        let direct_state = self.direct_states[direct_states_idx];
+                        let label = self.labels[direct_state as usize].1;
+                        if (is_next_opening || direct_state == self.last_state)
+                            && self.is_match(idx, label)
+                        {
+                            debug!("Match for state {}", direct_state);
+                            if direct_state == self.last_state {
+                                self.count += 1;
+                            } else {
+                                let next_state = self.labels[(direct_state + 1) as usize];
+
+                                match next_state.0 {
+                                    Seek::Recursive => {
+                                        self.recursive_state = direct_state + 1;
+                                        expanded_count = 0;
+                                        flushed_states = true;
+                                        break;
+                                    }
+                                    Seek::Direct => {
+                                        debug!("Expanding {}", direct_state);
+                                        self.direct_states[expanded_count] = direct_state + 1;
+                                        expanded_count += 1;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if is_next_opening {
+                        unsafe { self.direct_states.set_len(expanded_count) };
+                    }
+
                     if !flushed_states {
+                        let label = self.labels[self.recursive_state as usize].1;
                         if (is_next_opening || self.recursive_state == self.last_state)
                             && self.is_match(idx, label)
                         {
                             if self.recursive_state == self.last_state {
                                 self.count += 1;
                             } else {
-                                self.stack.push(StackFrame {
-                                    depth: self.depth,
-                                    label_idx: self.recursive_state,
-                                });
-                                self.recursive_state += 1;
+                                let next_state = self.labels[(self.recursive_state + 1) as usize];
+
+                                match next_state.0 {
+                                    Seek::Recursive => {
+                                        self.stack.push(StackFrame {
+                                            depth: self.depth,
+                                            label_idx: self.recursive_state,
+                                        });
+                                        self.recursive_state += 1;
+                                        self.direct_states.clear();
+                                    }
+                                    Seek::Direct => {
+                                        self.direct_states.push(self.recursive_state + 1);
+                                    }
+                                }
                             }
                         }
                     } else {
@@ -251,7 +312,6 @@ impl<'q, 'b> Automaton<'q, 'b> {
     }
 
     fn pop_states(&mut self) {
-        self.direct_states.clear();
         while let Some(stack_frame) = self.stack.pop_if_at_or_below(self.depth) {
             match self.labels[stack_frame.label_idx as usize].0 {
                 Seek::Recursive => self.recursive_state = stack_frame.label_idx,
@@ -267,6 +327,5 @@ impl<'q, 'b> Automaton<'q, 'b> {
                 label_idx: direct_state,
             })
         }
-        self.direct_states.clear();
     }
 }
