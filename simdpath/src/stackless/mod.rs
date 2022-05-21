@@ -186,6 +186,7 @@ impl<'q, 'b> Automaton<'q, 'b> {
             match event {
                 Structural::Closing(_) => {
                     self.depth -= 1;
+                    self.direct_states.clear();
                     let stack_frame = self.stack.peek().unwrap();
                     if self.depth <= stack_frame.depth {
                         self.recursive_state = stack_frame.label_idx;
@@ -194,6 +195,7 @@ impl<'q, 'b> Automaton<'q, 'b> {
                 }
                 Structural::Opening(_) => {
                     self.depth += 1;
+                    self.direct_states.clear();
                 }
                 Structural::Colon(idx) => {
                     let event = block_event_source.peek();
