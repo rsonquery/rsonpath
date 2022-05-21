@@ -10,6 +10,7 @@
 
 use std::hint::unreachable_unchecked;
 
+use crate::bytes::classify::{classify_structural_characters, Structural, StructuralIterator};
 use crate::debug;
 use crate::engine::result::CountResult;
 use crate::engine::{Input, Runner};
@@ -49,7 +50,7 @@ impl Runner for StacklessRunner<'_> {
             return empty_query(input);
         }
 
-        let count = descendant_only_automaton(&self.labels, input);
+        let count = descendant_only_automaton(&self.labels, input).run();
 
         CountResult { count }
     }
@@ -93,7 +94,6 @@ fn query_to_labels(query: &JsonPathQuery) -> Vec<SeekLabel> {
 }
 
 fn empty_query(bytes: &AlignedBytes<alignment::Page>) -> CountResult {
-    use crate::bytes::classify::{classify_structural_characters, Structural};
     let mut block_event_source = classify_structural_characters(bytes.relax_alignment());
 
     match block_event_source.next() {
@@ -147,160 +147,179 @@ impl SmallStack {
     }
 }
 
-fn descendant_only_automaton(labels: &[SeekLabel], bytes: &AlignedBytes<alignment::Page>) -> usize {
-    use crate::bytes::classify::{classify_structural_characters, Structural};
-    let mut depth: u8 = 0;
-    let mut recursive_state: u8 = 0;
-    let mut direct_states: SmallVec<[u8; 2]> = smallvec![];
-    let last_state = (labels.len() - 1) as u8;
-    let mut count: usize = 0;
-    let mut stack = SmallStack::new();
-    stack.push(StackFrame {
-        depth: 0,
-        label_idx: 0,
-    });
-    let mut block_event_source = classify_structural_characters(bytes.relax_alignment()).peekable();
-    while let Some(event) = block_event_source.next() {
-        /*debug!("====================");
-        debug!("Event = {:?}", event);
-        debug!("Depth = {:?}", depth);
-        debug!("Stack = {:?}", stack);
-        debug!("Direct = {:?}", direct_states);
-        debug!("Recursive = {:?}", recursive_state);
-        debug!("Count = {:?}", count);
-        debug!("====================");*/
+struct Automaton<'q, 'b, I: StructuralIterator<'b>> {
+    depth: u8,
+    recursive_state: u8,
+    direct_states: SmallVec<[u8; 2]>,
+    last_state: u8,
+    count: usize,
+    stack: SmallStack,
+    block_event_source: std::iter::Peekable<I>,
+    labels: &'q [SeekLabel<'q>],
+    bytes: &'b AlignedBytes<alignment::Page>,
+}
 
-        match event {
-            Structural::Closing(_) => {
-                //debug!("Closing, decreasing depth and popping stack.");
-                depth -= 1;
-                direct_states.clear();
-                while let Some(stack_frame) = stack.pop_if_reached(depth) {
-                    match labels[stack_frame.label_idx as usize].0 {
-                        Seek::Recursive => recursive_state = stack_frame.label_idx,
-                        Seek::Direct => direct_states.push(stack_frame.label_idx),
+fn descendant_only_automaton<'q, 'b>(
+    labels: &'q [SeekLabel<'q>],
+    bytes: &'b AlignedBytes<alignment::Page>,
+) -> Automaton<'q, 'b, impl StructuralIterator<'b>> {
+    Automaton {
+        depth: 0,
+        recursive_state: 0,
+        direct_states: smallvec![],
+        last_state: (labels.len() - 1) as u8,
+        count: 0,
+        stack: SmallStack::new(),
+        block_event_source: classify_structural_characters(bytes.relax_alignment()).peekable(),
+        labels,
+        bytes,
+    }
+}
+
+impl<'q, 'b, I: StructuralIterator<'b>> Automaton<'q, 'b, I> {
+    fn run(mut self) -> usize {
+        while let Some(event) = self.block_event_source.next() {
+            /*debug!("====================");
+            debug!("Event = {:?}", event);
+            debug!("Depth = {:?}", depth);
+            debug!("Stack = {:?}", stack);
+            debug!("Direct = {:?}", direct_states);
+            debug!("Recursive = {:?}", recursive_state);
+            debug!("Count = {:?}", count);
+            debug!("====================");*/
+
+            match event {
+                Structural::Closing(_) => {
+                    //debug!("Closing, decreasing depth and popping stack.");
+                    self.depth -= 1;
+                    self.direct_states.clear();
+                    while let Some(stack_frame) = self.stack.pop_if_reached(self.depth) {
+                        match self.labels[stack_frame.label_idx as usize].0 {
+                            Seek::Recursive => self.recursive_state = stack_frame.label_idx,
+                            Seek::Direct => self.direct_states.push(stack_frame.label_idx),
+                        }
                     }
                 }
-            }
-            Structural::Opening(_) => {
-                //debug!("Opening, increasing depth and pushing stack.");
-                for direct_states_idx in 0..direct_states.len() {
-                    let direct_state = direct_states[direct_states_idx];
-                    stack.push(StackFrame {
-                        depth,
-                        label_idx: direct_state,
-                    });
-                }
-
-                depth += 1;
-                //direct_states.clear();
-            }
-            Structural::Colon(idx) => {
-                /*debug!(
-                    "Colon, label ending with {:?}",
-                    std::str::from_utf8(&bytes[idx - 5..idx]).unwrap()
-                );*/
-
-                let event = block_event_source.peek();
-                let is_next_opening = matches!(event, Some(Structural::Opening(_)));
-                let mut expanded_count = 0;
-                let mut flushed_states = false;
-
-                /*if is_next_opening {
-                    for direct_states_idx in 0..direct_states.len() {
+                Structural::Opening(_) => {
+                    //debug!("Opening, increasing depth and pushing stack.");
+                    /*for direct_states_idx in 0..direct_states.len() {
                         let direct_state = direct_states[direct_states_idx];
                         stack.push(StackFrame {
                             depth,
                             label_idx: direct_state,
                         });
-                    }
-                }
-
-                for direct_states_idx in 0..direct_states.len() {
-                    let direct_state = direct_states[direct_states_idx];
-                    if (is_next_opening || direct_state == last_state)
-                        && is_match(bytes, idx, labels[direct_state as usize].1)
-                    {
-                        if direct_state == last_state {
-                            debug!("Hit!");
-                            count += 1;
-                        } else {
-                            let next_state = labels[(direct_state + 1) as usize];
-
-                            match next_state.0 {
-                                Seek::Recursive => {
-                                    recursive_state = direct_state + 1;
-                                    direct_states.clear();
-                                    flushed_states = true;
-                                    break;
-                                }
-                                Seek::Direct => {
-                                    direct_states[expanded_count] = direct_state + 1;
-                                    expanded_count += 1;
-                                }
-                            }
-                        }
-                    }
-                }*/
-
-                if !flushed_states {
-                    /*if is_next_opening {
-                        unsafe { direct_states.set_len(expanded_count) };
                     }*/
 
-                    if (is_next_opening || recursive_state == last_state)
-                        && is_match(bytes, idx, labels[recursive_state as usize].1)
-                    {
-                        if recursive_state == last_state {
-                            debug!("Hit!");
-                            count += 1;
-                        } else {
-                            let next_state = labels[(recursive_state + 1) as usize];
+                    self.depth += 1;
+                    //direct_states.clear();
+                }
+                Structural::Colon(idx) => {
+                    /*debug!(
+                        "Colon, label ending with {:?}",
+                        std::str::from_utf8(&bytes[idx - 5..idx]).unwrap()
+                    );*/
 
-                            match next_state.0 {
-                                Seek::Recursive => {
-                                    stack.push(StackFrame {
-                                        depth,
-                                        label_idx: recursive_state,
-                                    });
-                                    recursive_state += 1;
-                                    direct_states.clear();
-                                }
-                                Seek::Direct => unsafe { unreachable_unchecked() },
-                                /*Seek::Direct => {
-                                    direct_states.push(recursive_state + 1);
-                                }*/
-                            }
+                    let event = self.block_event_source.peek();
+                    let is_next_opening = matches!(event, Some(Structural::Opening(_)));
+                    let mut expanded_count = 0;
+                    let mut flushed_states = false;
+
+                    /*if is_next_opening {
+                        for direct_states_idx in 0..direct_states.len() {
+                            let direct_state = direct_states[direct_states_idx];
+                            stack.push(StackFrame {
+                                depth,
+                                label_idx: direct_state,
+                            });
                         }
                     }
-                } else {
-                    stack.push(StackFrame {
-                        depth,
-                        label_idx: recursive_state,
-                    });
-                }
 
-                /*if is_next_opening {
-                    block_event_source.next();
-                    depth += 1;
-                }*/
+                    for direct_states_idx in 0..direct_states.len() {
+                        let direct_state = direct_states[direct_states_idx];
+                        if (is_next_opening || direct_state == last_state)
+                            && is_match(bytes, idx, labels[direct_state as usize].1)
+                        {
+                            if direct_state == last_state {
+                                debug!("Hit!");
+                                count += 1;
+                            } else {
+                                let next_state = labels[(direct_state + 1) as usize];
+
+                                match next_state.0 {
+                                    Seek::Recursive => {
+                                        recursive_state = direct_state + 1;
+                                        direct_states.clear();
+                                        flushed_states = true;
+                                        break;
+                                    }
+                                    Seek::Direct => {
+                                        direct_states[expanded_count] = direct_state + 1;
+                                        expanded_count += 1;
+                                    }
+                                }
+                            }
+                        }
+                    }*/
+
+                    if !flushed_states {
+                        /*if is_next_opening {
+                            unsafe { direct_states.set_len(expanded_count) };
+                        }*/
+
+                        if (is_next_opening || self.recursive_state == self.last_state)
+                            && self.is_match(idx, self.labels[self.recursive_state as usize].1)
+                        {
+                            if self.recursive_state == self.last_state {
+                                debug!("Hit!");
+                                self.count += 1;
+                            } else {
+                                let next_state = self.labels[(self.recursive_state + 1) as usize];
+
+                                match next_state.0 {
+                                    Seek::Recursive => {
+                                        self.stack.push(StackFrame {
+                                            depth: self.depth,
+                                            label_idx: self.recursive_state,
+                                        });
+                                        self.recursive_state += 1;
+                                        self.direct_states.clear();
+                                    }
+                                    Seek::Direct => {}
+                                    /*Seek::Direct => {
+                                        direct_states.push(recursive_state + 1);
+                                    }*/
+                                }
+                            }
+                        }
+                    } else {
+                        self.stack.push(StackFrame {
+                            depth: self.depth,
+                            label_idx: self.recursive_state,
+                        });
+                    }
+
+                    /*if is_next_opening {
+                        block_event_source.next();
+                        depth += 1;
+                    }*/
+                }
             }
         }
-    }
-    count
-}
-
-fn is_match(bytes: &[u8], idx: usize, label: &Label) -> bool {
-    let len = label.len();
-    if idx < len + 2 {
-        return false;
+        self.count
     }
 
-    let mut closing_quote_idx = idx - 1;
-    while bytes[closing_quote_idx] != b'"' {
-        closing_quote_idx -= 1;
+    fn is_match(&self, idx: usize, label: &Label) -> bool {
+        let len = label.len();
+        if idx < len + 2 {
+            return false;
+        }
+
+        let mut closing_quote_idx = idx - 1;
+        while self.bytes[closing_quote_idx] != b'"' {
+            closing_quote_idx -= 1;
+        }
+        let opening_quote_idx = closing_quote_idx - len - 1;
+        let slice = &self.bytes[opening_quote_idx..closing_quote_idx + 1];
+        slice == label.bytes_with_quotes()
     }
-    let opening_quote_idx = closing_quote_idx - len - 1;
-    let slice = &bytes[opening_quote_idx..closing_quote_idx + 1];
-    slice == label.bytes_with_quotes()
 }
