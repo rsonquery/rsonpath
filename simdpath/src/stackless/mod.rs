@@ -116,7 +116,10 @@ struct SmallStack {
 impl SmallStack {
     fn new() -> Self {
         Self {
-            contents: smallvec![],
+            contents: smallvec![StackFrame {
+                depth: 0,
+                label_idx: 0,
+            }],
         }
     }
 
@@ -148,12 +151,12 @@ impl SmallStack {
 }
 
 struct Automaton<'q, 'b> {
-    depth: usize,
+    depth: u8,
     recursive_state: u8,
     direct_states: SmallVec<[u8; 2]>,
     last_state: u8,
     count: usize,
-    regs: [usize; 256],
+    stack: SmallStack,
     labels: &'q [SeekLabel<'q>],
     bytes: &'b AlignedBytes<alignment::Page>,
 }
@@ -164,11 +167,11 @@ fn descendant_only_automaton<'q, 'b>(
 ) -> Automaton<'q, 'b> {
     Automaton {
         depth: 0,
-        recursive_state: 1,
+        recursive_state: 0,
         direct_states: smallvec![],
-        last_state: labels.len() as u8,
+        last_state: (labels.len() - 1) as u8,
         count: 0,
-        regs: [0; 256],
+        stack: SmallStack::new(),
         labels,
         bytes,
     }
@@ -183,8 +186,10 @@ impl<'q, 'b> Automaton<'q, 'b> {
             match event {
                 Structural::Closing(_) => {
                     self.depth -= 1;
-                    if self.depth <= self.regs[(self.recursive_state - 1) as usize] {
-                        self.recursive_state -= 1;
+                    let stack_frame = self.stack.peek().unwrap();
+                    if self.depth <= stack_frame.depth {
+                        self.recursive_state = stack_frame.label_idx;
+                        self.stack.pop();
                     }
                 }
                 Structural::Opening(_) => {
@@ -192,7 +197,7 @@ impl<'q, 'b> Automaton<'q, 'b> {
                 }
                 Structural::Colon(idx) => {
                     let event = block_event_source.peek();
-                    let label = self.labels[(self.recursive_state - 1) as usize].1;
+                    let label = self.labels[self.recursive_state as usize].1;
 
                     if (matches!(event, Some(Structural::Opening(_)))
                         || self.recursive_state == self.last_state)
@@ -201,8 +206,11 @@ impl<'q, 'b> Automaton<'q, 'b> {
                         if self.recursive_state == self.last_state {
                             self.count += 1;
                         } else {
+                            self.stack.push(StackFrame {
+                                depth: self.depth,
+                                label_idx: self.recursive_state,
+                            });
                             self.recursive_state += 1;
-                            self.regs[(self.recursive_state - 1) as usize] = self.depth;
                         }
                     }
                 }
