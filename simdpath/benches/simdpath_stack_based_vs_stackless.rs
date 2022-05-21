@@ -86,6 +86,32 @@ pub fn wikidata_person(c: &mut Criterion) {
     );
 }
 
+pub fn wikidata_person_en_value_recursive(c: &mut Criterion) {
+    simdpath_stack_based_vs_stackless(
+        c,
+        BenchmarkOptions {
+            path: "wikidata_compressed/wikidata_person.json",
+            query_string: "$..en..value",
+            id: "wikidata_person",
+            warm_up_time: Duration::from_secs(3),
+            measurement_time: Duration::from_secs(5),
+        },
+    );
+}
+
+pub fn wikidata_person_en_value_direct(c: &mut Criterion) {
+    simdpath_stack_based_vs_stackless(
+        c,
+        BenchmarkOptions {
+            path: "wikidata_compressed/wikidata_person.json",
+            query_string: "$..en.value",
+            id: "wikidata_person",
+            warm_up_time: Duration::from_secs(3),
+            measurement_time: Duration::from_secs(5),
+        },
+    );
+}
+
 pub fn wikidata_profession(c: &mut Criterion) {
     simdpath_stack_based_vs_stackless(
         c,
@@ -117,6 +143,8 @@ criterion_group!(
     wikidata_combined,
     wikidata_combined_with_whitespace,
     wikidata_person,
+    wikidata_person_en_value_recursive,
+    wikidata_person_en_value_direct,
     wikidata_profession,
     wikidata_properties,
 );
