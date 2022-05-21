@@ -178,7 +178,6 @@ fn descendant_only_automaton<'q, 'b>(
 
 impl<'q, 'b, I: StructuralIterator<'b>> Automaton<'q, 'b, I> {
     fn run(mut self) -> usize {
-        let mut block_event_source = self.block_event_source;
         let mut depth = self.depth;
         let mut recursive_state = self.recursive_state;
         let mut regs = self.regs;
@@ -187,7 +186,7 @@ impl<'q, 'b, I: StructuralIterator<'b>> Automaton<'q, 'b, I> {
         let labels = self.labels;
         let mut count = self.count;
 
-        while let Some(event) = block_event_source.next() {
+        while let Some(event) = self.block_event_source.next() {
             match event {
                 Structural::Closing(_) => {
                     depth -= 1;
@@ -199,7 +198,7 @@ impl<'q, 'b, I: StructuralIterator<'b>> Automaton<'q, 'b, I> {
                     depth += 1;
                 }
                 Structural::Colon(idx) => {
-                    let event = block_event_source.peek();
+                    let event = self.block_event_source.peek();
 
                     if matches!(event, Some(Structural::Opening(_)))
                         || recursive_state == last_state
