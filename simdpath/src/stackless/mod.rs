@@ -187,10 +187,11 @@ impl<'q, 'b> Automaton<'q, 'b> {
                 Structural::Closing(_) => {
                     self.depth -= 1;
                     self.direct_states.clear();
-                    let stack_frame = self.stack.peek().unwrap();
-                    if self.depth <= stack_frame.depth {
-                        self.recursive_state = stack_frame.label_idx;
-                        self.stack.pop();
+                    while let Some(stack_frame) = self.stack.pop_if_reached(self.depth) {
+                        match self.labels[stack_frame.label_idx as usize].0 {
+                            Seek::Recursive => self.recursive_state = stack_frame.label_idx,
+                            Seek::Direct => self.direct_states.push(stack_frame.label_idx),
+                        }
                     }
                 }
                 Structural::Opening(_) => {
