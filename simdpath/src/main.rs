@@ -29,10 +29,13 @@ fn main() -> Result<()> {
     let input = Input::new(contents);
 
     let stack_based_runner = StackBasedRunner::compile_query(&query);
+    let stackless_runner = StacklessRunner::compile_query(&query);
+
+    info!("Compilation finished, running...");
+
     let stack_based_count = stack_based_runner.count(&input);
     info!("Stack based count: {}", stack_based_count.count);
 
-    let stackless_runner = StacklessRunner::compile_query(&query);
     let stackless_count = stackless_runner.count(&input);
     info!("Stackless count: {}", stackless_count.count);
 

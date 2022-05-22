@@ -142,7 +142,7 @@ pub struct StackBasedRunner<'q> {
 #[cfg(debug_assertions)]
 impl core::fmt::Debug for StackBasedRunner<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "NewStackBasedRunner {{\n")?;
+        writeln!(f, "StackBasedRunner {{\n")?;
 
         for (i, s) in self.states.iter().rev().enumerate() {
             write!(f, "state.{}: ", i)?;
@@ -154,7 +154,7 @@ impl core::fmt::Debug for StackBasedRunner<'_> {
 }
 
 impl<'q> StackBasedRunner<'q> {
-    /// Compile a query into a [`NewStackBasedRunner`].
+    /// Compile a query into a [`StackBasedRunner`].
     pub fn compile_query(query: &'q JsonPathQuery) -> Self {
         let mut this = StackBasedRunner {
             states: vec![],

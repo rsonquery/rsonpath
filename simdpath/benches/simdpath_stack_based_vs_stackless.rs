@@ -66,7 +66,7 @@ pub fn wikidata_combined_with_whitespace(c: &mut Criterion) {
         BenchmarkOptions {
             path: "wikidata_prettified/wikidata_combined.json",
             query_string: "$..claims..references..hash",
-            id: "wikidata_combined",
+            id: "wikidata_combined_with_whitespace",
             warm_up_time: Duration::from_secs(10),
             measurement_time: Duration::from_secs(40),
         },
@@ -92,7 +92,7 @@ pub fn wikidata_person_en_value_recursive(c: &mut Criterion) {
         BenchmarkOptions {
             path: "wikidata_compressed/wikidata_person.json",
             query_string: "$..en..value",
-            id: "wikidata_person",
+            id: "wikidata_person_en_value_recursive",
             warm_up_time: Duration::from_secs(3),
             measurement_time: Duration::from_secs(5),
         },
@@ -105,7 +105,7 @@ pub fn wikidata_person_en_value_direct(c: &mut Criterion) {
         BenchmarkOptions {
             path: "wikidata_compressed/wikidata_person.json",
             query_string: "$..en.value",
-            id: "wikidata_person",
+            id: "wikidata_person_en_value_direct",
             warm_up_time: Duration::from_secs(3),
             measurement_time: Duration::from_secs(5),
         },
@@ -139,7 +139,7 @@ pub fn wikidata_properties(c: &mut Criterion) {
 }
 
 criterion_group!(
-    benches,
+    wikidata_benches,
     wikidata_combined,
     wikidata_combined_with_whitespace,
     wikidata_person,
@@ -148,4 +148,5 @@ criterion_group!(
     wikidata_profession,
     wikidata_properties,
 );
-criterion_main!(benches);
+
+criterion_main!(wikidata_benches);
