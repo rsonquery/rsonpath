@@ -121,12 +121,12 @@ impl SmallStack {
         }
     }
 
-    #[inline(always)]
+    #[inline]
     fn peek(&mut self) -> Option<StackFrame> {
         self.contents.last().copied()
     }
 
-    #[inline(always)]
+    #[inline]
     fn pop_if_at_or_below(&mut self, depth: u8) -> Option<StackFrame> {
         if let Some(stack_frame) = self.peek() {
             if depth <= stack_frame.depth {
@@ -136,7 +136,7 @@ impl SmallStack {
         None
     }
 
-    #[inline(always)]
+    #[inline]
     fn push(&mut self, value: StackFrame) {
         self.contents.push(value)
     }

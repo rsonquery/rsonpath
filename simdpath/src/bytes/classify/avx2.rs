@@ -18,7 +18,7 @@ struct StructuralsBlock<'a> {
 }
 
 impl<'a> StructuralsBlock<'a> {
-    #[inline(always)]
+    #[inline]
     fn new(block: &'a AlignedBlock<alignment::TwoSimdBlocks>, structural_mask: u64) -> Self {
         Self {
             block,
@@ -30,7 +30,7 @@ impl<'a> StructuralsBlock<'a> {
 impl Iterator for StructuralsBlock<'_> {
     type Item = Structural;
 
-    #[inline(always)]
+    #[inline]
     fn next(&mut self) -> Option<Structural> {
         use Structural::*;
         let next_character_idx = self.structural_mask.trailing_zeros();
@@ -45,9 +45,9 @@ impl Iterator for StructuralsBlock<'_> {
 
         let idx = next_character_idx as usize;
         let character = match self.block[idx] {
-            b']' | b'}' => Closing(idx),
+            b':' => Colon(idx),
             b'[' | b'{' => Opening(idx),
-            _ => Colon(idx),
+            _ => Closing(idx),
         };
 
         Some(character)
@@ -76,7 +76,7 @@ pub(crate) struct Avx2Classifier<'a> {
 }
 
 impl<'a> Avx2Classifier<'a> {
-    #[inline(always)]
+    #[inline]
     pub(crate) fn new(bytes: &'a AlignedSlice<alignment::TwoSimdBlocks>) -> Self {
         Self {
             iter: bytes.iter_blocks(),
