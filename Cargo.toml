@@ -1,10 +1,12 @@
 [workspace]
 
 members = [
-    "align",
     "simdpath",
     "simdpath-codegen"
 ]
+
+[profile.dev]
+lto = false
 
 [profile.release]
 lto = "thin"

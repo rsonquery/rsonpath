@@ -1,6 +1,8 @@
 use super::*;
-use align::{alignment, alignment::Alignment, AlignedBlock, AlignedBlockIterator, AlignedSlice};
+use aligners::{alignment, alignment::Alignment, AlignedBlock, AlignedBlockIterator, AlignedSlice};
 
+use crate::bin;
+use crate::debug;
 use len_trait::Empty;
 
 #[cfg(target_arch = "x86")]
@@ -16,7 +18,7 @@ struct StructuralsBlock<'a> {
 }
 
 impl<'a> StructuralsBlock<'a> {
-    #[inline(always)]
+    #[inline]
     fn new(block: &'a AlignedBlock<alignment::TwoSimdBlocks>, structural_mask: u64) -> Self {
         Self {
             block,
@@ -25,10 +27,10 @@ impl<'a> StructuralsBlock<'a> {
     }
 }
 
-impl<'a> Iterator for StructuralsBlock<'a> {
+impl Iterator for StructuralsBlock<'_> {
     type Item = Structural;
 
-    #[inline(always)]
+    #[inline]
     fn next(&mut self) -> Option<Structural> {
         use Structural::*;
         let next_character_idx = self.structural_mask.trailing_zeros();
@@ -43,30 +45,30 @@ impl<'a> Iterator for StructuralsBlock<'a> {
 
         let idx = next_character_idx as usize;
         let character = match self.block[idx] {
-            b']' | b'}' => Closing(idx),
+            b':' => Colon(idx),
             b'[' | b'{' => Opening(idx),
-            _ => Colon(idx),
+            _ => Closing(idx),
         };
 
         Some(character)
     }
 }
 
-impl<'a> std::iter::FusedIterator for StructuralsBlock<'a> {}
+impl std::iter::FusedIterator for StructuralsBlock<'_> {}
 
-impl<'a> ExactSizeIterator for StructuralsBlock<'a> {
+impl ExactSizeIterator for StructuralsBlock<'_> {
     fn len(&self) -> usize {
         self.structural_mask.count_ones() as usize
     }
 }
 
-impl<'a> Empty for StructuralsBlock<'a> {
+impl Empty for StructuralsBlock<'_> {
     fn is_empty(&self) -> bool {
         self.structural_mask == 0
     }
 }
 
-pub struct Avx2Classifier<'a> {
+pub(crate) struct Avx2Classifier<'a> {
     iter: AlignedBlockIterator<'a, alignment::TwoSimdBlocks>,
     offset: usize,
     classifier: BlockAvx2Classifier,
@@ -74,8 +76,8 @@ pub struct Avx2Classifier<'a> {
 }
 
 impl<'a> Avx2Classifier<'a> {
-    #[inline(always)]
-    pub fn new(bytes: &'a AlignedSlice<alignment::TwoSimdBlocks>) -> Self {
+    #[inline]
+    pub(crate) fn new(bytes: &'a AlignedSlice<alignment::TwoSimdBlocks>) -> Self {
         Self {
             iter: bytes.iter_blocks(),
             offset: 0,
@@ -105,12 +107,12 @@ impl<'a> Avx2Classifier<'a> {
     }
 }
 
-impl<'a> Iterator for Avx2Classifier<'a> {
+impl Iterator for Avx2Classifier<'_> {
     type Item = Structural;
 
     #[inline(always)]
     fn next(&mut self) -> Option<Structural> {
-        use align::alignment;
+        use aligners::alignment;
 
         if !self.next_block() {
             return None;
@@ -123,9 +125,9 @@ impl<'a> Iterator for Avx2Classifier<'a> {
     }
 }
 
-impl<'a> std::iter::FusedIterator for Avx2Classifier<'a> {}
+impl std::iter::FusedIterator for Avx2Classifier<'_> {}
 
-impl<'a> Empty for Avx2Classifier<'a> {
+impl Empty for Avx2Classifier<'_> {
     fn is_empty(&self) -> bool {
         self.current_block_is_spent() && self.iter.len() == 0
     }
@@ -222,11 +224,11 @@ impl BlockAvx2Classifier {
 
         let nonquoted_structural = structural & !within_quotes;
 
-        /*log::debug!(
+        debug!(
             "{: >24}: {}",
             "block",
             std::str::from_utf8_unchecked(
-                &block1[..64]
+                &two_blocks[..64]
                     .iter()
                     .map(|x| if x.is_ascii_whitespace() { b' ' } else { *x })
                     .collect::<Vec<_>>()
@@ -241,7 +243,7 @@ impl BlockAvx2Classifier {
         bin!("quotes & !escaped", quotes & !escaped);
         bin!("nonescaped_quotes", nonescaped_quotes);
         bin!("within_quotes", within_quotes);
-        bin!("nonquoted_structural", nonquoted_structural);*/
+        bin!("nonquoted_structural", nonquoted_structural);
 
         StructuralsBlock::new(two_blocks, nonquoted_structural)
     }

@@ -1,5 +1,6 @@
 {
     "cSpell.words": [
+        "automagically",
         "clippy",
         "clmulepi",
         "cmpeq",
@@ -31,6 +32,7 @@
         "rustfmt",
         "SIMD",
         "simdpath",
+        "smallvec",
         "snaks",
         "srli",
         "stackless",
@@ -39,5 +41,9 @@
         "vectorially",
         "WHITESPACES"
     ],
-    "cSpell.language": "en-US"
+    "cSpell.language": "en-US",
+    "lldb.displayFormat": "auto",
+    "lldb.showDisassembly": "never",
+    "lldb.dereferencePointers": true,
+    "lldb.consoleMode": "commands"
 }

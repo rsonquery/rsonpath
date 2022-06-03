@@ -100,11 +100,41 @@
 
 #![warn(missing_docs)]
 #![warn(rustdoc::missing_crate_level_docs)]
+#![warn(
+    explicit_outlives_requirements,
+    unreachable_pub,
+    semicolon_in_expressions_from_macros,
+    unused_import_braces,
+    unused_lifetimes
+)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
 pub mod bytes;
 pub mod engine;
-pub mod new_stack_based;
 pub mod query;
 pub mod stack_based;
 pub mod stackless;
+
+/// Macro for debug logging. Evaluates to [`log::debug`], if debug assertions are enabled.
+/// Otherwise it's an empty statement.
+///
+/// Use this instead of plain [`log::debug`], since this is automatically removed in
+/// release mode and incurs no performance penalties.
+#[cfg(debug_assertions)]
+#[macro_export]
+macro_rules! debug {
+    (target: $target:expr, $($arg:tt)+) => (log::debug!(target: $target, $($arg)+));
+    ($($arg:tt)+) => (log::debug!($($arg)+))
+}
+
+/// Macro for debug logging. Evaluates to [`log::debug`], if debug assertions are enabled.
+/// Otherwise it's an empty statement.
+///
+/// Use this instead of plain [`log::debug`], since this is automatically removed in
+/// release mode and incurs no performance penalties.
+#[cfg(not(debug_assertions))]
+#[macro_export]
+macro_rules! debug {
+    (target: $target:expr, $($arg:tt)+) => {};
+    ($($arg:tt)+) => {};
+}

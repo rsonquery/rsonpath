@@ -6,7 +6,7 @@
 
 pub mod result;
 
-use align::{
+use aligners::{
     alignment::{self, Alignment},
     AlignedBytes,
 };

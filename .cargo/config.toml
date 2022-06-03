@@ -1,2 +1,5 @@
 [build]
 rustflags = "-C target-feature=+avx2"
+
+[alias]
+testall = "hack test --feature-powerset --skip default"

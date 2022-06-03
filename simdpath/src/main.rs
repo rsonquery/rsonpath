@@ -1,21 +1,21 @@
 use clap::{App, Arg};
+use color_eyre::eyre::{eyre, Result, WrapErr};
 use log::*;
 use simdpath::engine::{Input, Runner};
-use simdpath::new_stack_based::NewStackBasedRunner;
 use simdpath::query::JsonPathQuery;
 use simdpath::stack_based::StackBasedRunner;
 use simdpath::stackless::StacklessRunner;
 use simple_logger::SimpleLogger;
-use std::error::Error;
 use std::fs;
 
 const VERBOSE: &str = "verbose";
 const FILE: &str = "file";
 const QUERY: &str = "query";
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<()> {
+    color_eyre::install()?;
     let app = configure_app();
-    let matches = app.get_matches();
+    let matches = app.get_matches_safe()?;
     let file_path = matches.value_of(FILE).unwrap();
     let query_string = matches.value_of(QUERY).unwrap();
     let verbose = matches.is_present(VERBOSE);
@@ -23,51 +23,39 @@ fn main() -> Result<(), Box<dyn Error>> {
     configure_logger(verbose)?;
 
     let query = parse_query(query_string)?;
-    info!("Executing query: {}\n", query);
+    info!("Executing query: `{}`\n", query);
 
     let contents = fs::read_to_string(&file_path)?;
     let input = Input::new(contents);
 
     let stack_based_runner = StackBasedRunner::compile_query(&query);
+    let stackless_runner = StacklessRunner::compile_query(&query);
+
+    info!("Compilation finished, running...");
+
     let stack_based_count = stack_based_runner.count(&input);
     info!("Stack based count: {}", stack_based_count.count);
 
-    let new_stack_based_runner = NewStackBasedRunner::compile_query(&query);
-    let new_stack_based_count = new_stack_based_runner.count(&input);
-    info!("New stack based count: {}", new_stack_based_count.count);
-
-    let stackless_runner = StacklessRunner::compile_query(&query);
     let stackless_count = stackless_runner.count(&input);
     info!("Stackless count: {}", stackless_count.count);
 
-    if stack_based_count.count != stackless_count.count
-        || new_stack_based_count.count != stack_based_count.count
-    {
-        error!("Count mismatch!");
-        return Err("Count mismatch!".into());
+    if stack_based_count.count != stackless_count.count {
+        return Err(eyre!("Count mismatch!"));
     }
 
-    println!("{}", stack_based_count.count);
+    println!("{}", stackless_count.count);
 
     Ok(())
 }
 
-fn parse_query(query_string: &str) -> Result<JsonPathQuery, String> {
-    let query_result = JsonPathQuery::parse(query_string);
-
-    match query_result {
-        Ok(q) => Ok(q),
-        Err(e) => {
-            error!("Could not parse JSONPath query: {}", e);
-            Err(e)
-        }
-    }
+fn parse_query(query_string: &str) -> Result<JsonPathQuery> {
+    JsonPathQuery::parse(query_string).wrap_err("Could not parse JSONPath query.")
 }
 
 fn configure_app() -> App<'static, 'static> {
     App::new("SIMD Path")
         .version("0.1.0")
-        .author("Mateusz Gienieczko <matgienieczko@gmail.com>")
+        .author("Mateusz Gienieczko <mat@gienieczko.com>")
         .about("High-performance JSON Path query engine.")
         .arg(
             Arg::with_name(VERBOSE)
@@ -97,12 +85,13 @@ fn configure_app() -> App<'static, 'static> {
         )
 }
 
-fn configure_logger(verbose: bool) -> Result<(), SetLoggerError> {
+fn configure_logger(verbose: bool) -> Result<()> {
     SimpleLogger::new()
         .with_level(if verbose {
             LevelFilter::Debug
         } else {
-            LevelFilter::Warn
+            LevelFilter::Info
         })
         .init()
+        .wrap_err("Logger configuration error.")
 }

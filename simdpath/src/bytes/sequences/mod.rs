@@ -67,10 +67,10 @@ mod tests {
     }
 
     struct TestByteStreamParameters<'a> {
-        pub base_byte: u8,
-        pub bytes_length: usize,
-        pub sequence: &'a [u8],
-        pub sequence_start_idx: usize,
+        pub(crate) base_byte: u8,
+        pub(crate) bytes_length: usize,
+        pub(crate) sequence: &'a [u8],
+        pub(crate) sequence_start_idx: usize,
     }
 
     fn test_byte_stream(parameters: TestByteStreamParameters<'_>) -> Vec<u8> {
