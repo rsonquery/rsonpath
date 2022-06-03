@@ -6,7 +6,7 @@ rust-latest:
   only:
     - master
     - merge_requests
-  image: rust:latest
+  image: rust:1.61
   script:
     - RUSTFLAGS="--deny warnings -C target-feature=+avx2" cargo build --verbose
     - cargo clippy -- --deny warnings
