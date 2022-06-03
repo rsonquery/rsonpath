@@ -18,7 +18,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 [dependencies]
 aligners = "0.0.2"
 cfg-if = "1.0.0"
-clap = "2.33.3"
+clap = "2.34.0"
 color-eyre = { version = "0.6.1", default-features = false }
 eyre = "0.6.8"
 len-trait = "0.6.1"
