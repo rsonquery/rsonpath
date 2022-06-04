@@ -32,13 +32,11 @@
 //! # }
 //! ```
 //!
+mod errors;
 mod parser;
 use aligners::{alignment, AlignedBytes, AlignedSlice};
 use cfg_if::cfg_if;
-use color_eyre::{
-    eyre::{eyre, Result},
-    section::Section,
-};
+use color_eyre::eyre::Result;
 use log::*;
 use std::fmt::{self, Display};
 
@@ -75,16 +73,17 @@ pub struct Label {
 }
 
 impl Label {
-    /// Create a new label from its raw bytes.
-    pub fn new(label: &[u8]) -> Self {
-        let without_quotes = AlignedBytes::<LabelAlignment>::from(label);
+    /// Create a new label from UTF8 input.
+    pub fn new(label: &str) -> Self {
+        let bytes = label.as_bytes();
+        let without_quotes = AlignedBytes::<LabelAlignment>::from(bytes);
 
         // SAFETY:
         // We immediately initialize the bytes below.
-        let mut with_quotes = unsafe { AlignedBytes::<LabelAlignment>::new(label.len() + 2) };
+        let mut with_quotes = unsafe { AlignedBytes::<LabelAlignment>::new(bytes.len() + 2) };
         with_quotes[0] = b'"';
-        with_quotes[1..label.len() + 1].copy_from_slice(label);
-        with_quotes[label.len() + 1] = b'"';
+        with_quotes[1..bytes.len() + 1].copy_from_slice(bytes);
+        with_quotes[bytes.len() + 1] = b'"';
 
         Self {
             label: without_quotes,
@@ -150,11 +149,9 @@ pub enum JsonPathQueryNode {
     /// The first link in the list representing the root '`$`' character.
     Root(Option<Box<JsonPathQueryNode>>),
     /// Represents direct descendant ('`.`' token).
-    Child(Box<JsonPathQueryNode>),
+    Child(Label, Option<Box<JsonPathQueryNode>>),
     /// Represents recursive descent ('`..`' token).
-    Descendant(Box<JsonPathQueryNode>),
-    /// Represents a label/key to be matched in the input JSON.
-    Label(Label, Option<Box<JsonPathQueryNode>>),
+    Descendant(Label, Option<Box<JsonPathQueryNode>>),
 }
 
 use JsonPathQueryNode::*;
@@ -165,9 +162,8 @@ impl JsonPathQueryNode {
     pub fn child(&self) -> Option<&JsonPathQueryNode> {
         match self {
             Root(node) => node.as_deref(),
-            Child(node) => Some(node),
-            Descendant(node) => Some(node),
-            Label(_, node) => node.as_deref(),
+            Child(_, node) => node.as_deref(),
+            Descendant(_, node) => node.as_deref(),
         }
     }
 }
@@ -205,31 +201,7 @@ impl JsonPathQuery {
             Box::new(Root(Some(node)))
         };
 
-        match root.child() {
-            None => Ok(Self { root }),
-            Some(x) => Self::validate(x)
-                .map_err(|r| r.note(format!("The query was parsed as: `{}`.", root)))
-                .map(|_| Self { root }),
-        }
-    }
-
-    fn validate(node: &JsonPathQueryNode) -> Result<()> {
-        match node {
-            Root(_) => Err(
-                    eyre!("The root expression (`$`) can appear only once at the start of the query.")
-                ).note("The query was successfully parsed, but a root expression is unexpected outside of the first position.")
-                .suggestion("The `$` character represents the root of a document. If you want to match a label with that character inside, use the explicit `['label']` syntax."),
-            Descendant(n) if n.is_descendant() => Err(
-                    eyre!("Descendant expression (`..`) cannot immediately follow another Descendant expression.")
-                ).note("The query was successfully parsed, but a doubled descendant expression is unexpected.")
-                .suggestion("If the invalid period sequence is part of a label, use the explicit `['label']` syntax."),
-            _ => Ok(())
-        }?;
-
-        match node.child() {
-            None => Ok(()),
-            Some(x) => Self::validate(x),
-        }
+        Ok(Self { root })
     }
 }
 
@@ -243,11 +215,14 @@ impl Display for JsonPathQueryNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Root(_) => write!(f, "$"),
-            Child(_) => write!(f, "."),
-            Descendant(_) => write!(f, ".."),
-            Label(label, _) => write!(
+            Child(label, _) => write!(
                 f,
-                "['{}']",
+                ".['{}']",
+                std::str::from_utf8(label.bytes()).unwrap_or("[invalid utf8]")
+            ),
+            Descendant(label, _) => write!(
+                f,
+                "..['{}']",
                 std::str::from_utf8(label.bytes()).unwrap_or("[invalid utf8]")
             ),
         }?;
@@ -272,9 +247,6 @@ pub trait JsonPathQueryNodeType {
     /// Returns `true` iff the type is [`JsonPathQueryNode::Child`].
     fn is_child(&self) -> bool;
 
-    /// Returns `true` iff the type is [`JsonPathQueryNode::Label`].
-    fn is_label(&self) -> bool;
-
     /// If the type is [`JsonPathQueryNode::Label`] returns the label it represents;
     /// otherwise, `None`.
     fn label(&self) -> Option<&Label>;
@@ -286,20 +258,17 @@ impl JsonPathQueryNodeType for JsonPathQueryNode {
     }
 
     fn is_descendant(&self) -> bool {
-        matches!(self, Descendant(_))
+        matches!(self, Descendant(_, _))
     }
 
     fn is_child(&self) -> bool {
-        matches!(self, Child(_))
-    }
-
-    fn is_label(&self) -> bool {
-        matches!(self, Label(_, _))
+        matches!(self, Child(_, _))
     }
 
     fn label(&self) -> Option<&Label> {
         match self {
-            JsonPathQueryNode::Label(label, _) => Some(label),
+            JsonPathQueryNode::Child(label, _) => Some(label),
+            JsonPathQueryNode::Descendant(label, _) => Some(label),
             _ => None,
         }
     }
@@ -320,10 +289,6 @@ impl<T: std::ops::Deref<Target = JsonPathQueryNode>> JsonPathQueryNodeType for O
 
     fn is_child(&self) -> bool {
         self.as_ref().map_or(false, |x| x.is_child())
-    }
-
-    fn is_label(&self) -> bool {
-        self.as_ref().map_or(false, |x| x.is_label())
     }
 
     fn label(&self) -> Option<&Label> {

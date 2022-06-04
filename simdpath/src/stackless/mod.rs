@@ -54,7 +54,7 @@ impl Runner for StacklessRunner<'_> {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Seek {
     Direct,
     Recursive,
@@ -70,20 +70,14 @@ fn query_to_labels(query: &JsonPathQuery) -> Vec<SeekLabel> {
 
     while let Some(node) = node_opt {
         match node {
-            JsonPathQueryNode::Descendant(label_node) => match label_node.as_ref() {
-                JsonPathQueryNode::Label(label, next_node) => {
-                    result.push(SeekLabel(Seek::Recursive, label));
-                    node_opt = next_node.as_deref();
-                }
-                _ => panic! {"Unexpected type of node, expected Label."},
-            },
-            JsonPathQueryNode::Child(label_node) => match label_node.as_ref() {
-                JsonPathQueryNode::Label(label, next_node) => {
-                    result.push(SeekLabel(Seek::Direct, label));
-                    node_opt = next_node.as_deref();
-                }
-                _ => panic! {"Unexpected type of node, expected Label."},
-            },
+            JsonPathQueryNode::Descendant(label, next_node) => {
+                result.push(SeekLabel(Seek::Recursive, label));
+                node_opt = next_node.as_deref();
+            }
+            JsonPathQueryNode::Child(label, next_node) => {
+                result.push(SeekLabel(Seek::Direct, label));
+                node_opt = next_node.as_deref();
+            }
             _ => panic! {"Unexpected type of node, expected Descendant or Child."},
         }
     }
@@ -144,7 +138,7 @@ impl SmallStack {
 
 struct Automaton<'q, 'b> {
     depth: u8,
-    recursive_state: u8,
+    recursive_state: Option<u8>,
     direct_states: SmallVec<[u8; 2]>,
     last_state: u8,
     count: usize,
@@ -157,10 +151,22 @@ fn descendant_only_automaton<'q, 'b>(
     labels: &'q [SeekLabel<'q>],
     bytes: &'b AlignedBytes<alignment::Page>,
 ) -> Automaton<'q, 'b> {
+    let first_label = labels[0];
+    let recursive_state = if first_label.0 == Seek::Recursive {
+        Some(0)
+    } else {
+        None
+    };
+    let direct_states = if first_label.0 == Seek::Direct {
+        smallvec![0]
+    } else {
+        smallvec![]
+    };
+
     Automaton {
         depth: 0,
-        recursive_state: 0,
-        direct_states: smallvec![],
+        recursive_state,
+        direct_states,
         last_state: (labels.len() - 1) as u8,
         count: 0,
         stack: SmallStack::new(),
@@ -208,7 +214,8 @@ impl<'q, 'b> Automaton<'q, 'b> {
                 Structural::Colon(idx) => {
                     debug!(
                         "Colon, label ending with {:?}",
-                        std::str::from_utf8(&self.bytes[idx - 5..idx]).unwrap()
+                        std::str::from_utf8(&self.bytes[(if idx < 8 { 0 } else { idx - 8 })..idx])
+                            .unwrap()
                     );
 
                     let is_next_opening = matches!(next_event, Some(Structural::Opening(_)));
@@ -224,36 +231,38 @@ impl<'q, 'b> Automaton<'q, 'b> {
                         unsafe { self.direct_states.set_len(expanded.unwrap_or(0)) };
                     }
 
-                    if expanded.is_some() {
-                        let label = self.labels[self.recursive_state as usize].1;
-                        if (is_next_opening || self.recursive_state == self.last_state)
-                            && self.is_match(idx, label)
-                        {
-                            if self.recursive_state == self.last_state {
-                                self.count += 1;
-                            } else {
-                                let next_state = self.labels[(self.recursive_state + 1) as usize];
+                    if let Some(recursive_state) = self.recursive_state {
+                        if expanded.is_some() {
+                            let label = self.labels[recursive_state as usize].1;
+                            if (is_next_opening || recursive_state == self.last_state)
+                                && self.is_match(idx, label)
+                            {
+                                if recursive_state == self.last_state {
+                                    self.count += 1;
+                                } else {
+                                    let next_state = self.labels[(recursive_state + 1) as usize];
 
-                                match next_state.0 {
-                                    Seek::Recursive => {
-                                        self.stack.push(StackFrame {
-                                            depth: self.depth,
-                                            label_idx: self.recursive_state,
-                                        });
-                                        self.recursive_state += 1;
-                                        self.direct_states.clear();
-                                    }
-                                    Seek::Direct => {
-                                        self.direct_states.push(self.recursive_state + 1);
+                                    match next_state.0 {
+                                        Seek::Recursive => {
+                                            self.stack.push(StackFrame {
+                                                depth: self.depth,
+                                                label_idx: recursive_state,
+                                            });
+                                            self.recursive_state = Some(recursive_state + 1);
+                                            self.direct_states.clear();
+                                        }
+                                        Seek::Direct => {
+                                            self.direct_states.push(recursive_state + 1);
+                                        }
                                     }
                                 }
                             }
+                        } else {
+                            self.stack.push(StackFrame {
+                                depth: self.depth,
+                                label_idx: recursive_state,
+                            });
                         }
-                    } else {
-                        self.stack.push(StackFrame {
-                            depth: self.depth,
-                            label_idx: self.recursive_state,
-                        });
                     }
                 }
             }
@@ -276,7 +285,7 @@ impl<'q, 'b> Automaton<'q, 'b> {
 
                     match next_state.0 {
                         Seek::Recursive => {
-                            self.recursive_state = direct_state + 1;
+                            self.recursive_state = Some(direct_state + 1);
                             return None;
                         }
                         Seek::Direct => {
@@ -309,7 +318,7 @@ impl<'q, 'b> Automaton<'q, 'b> {
     fn pop_states(&mut self) {
         while let Some(stack_frame) = self.stack.pop_if_at_or_below(self.depth) {
             match self.labels[stack_frame.label_idx as usize].0 {
-                Seek::Recursive => self.recursive_state = stack_frame.label_idx,
+                Seek::Recursive => self.recursive_state = Some(stack_frame.label_idx),
                 Seek::Direct => self.direct_states.push(stack_frame.label_idx),
             }
         }

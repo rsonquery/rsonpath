@@ -1,10 +1,12 @@
 {
     "cSpell.words": [
+        "anychar",
         "automagically",
         "clippy",
         "clmulepi",
         "cmpeq",
         "codegen",
+        "color_eyre",
         "cvtsi",
         "datavalue",
         "dealloc",
@@ -23,6 +25,7 @@
         "nonescaped",
         "nonquoted",
         "nosimd",
+        "owo_colors",
         "Peekable",
         "proptest",
         "regs",
@@ -41,7 +44,7 @@
         "vectorially",
         "WHITESPACES"
     ],
-    "cSpell.language": "en-US",
+    "cSpell.language": "en-GB",
     "lldb.displayFormat": "auto",
     "lldb.showDisassembly": "never",
     "lldb.dereferencePointers": true,

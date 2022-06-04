@@ -173,14 +173,8 @@ impl<'q> StackBasedRunner<'q> {
 
     fn compile_states(&mut self, node: &'q JsonPathQueryNode) -> State<'q> {
         let (is_recursive, label, next_node) = match node {
-            JsonPathQueryNode::Descendant(child) => match child.as_ref() {
-                JsonPathQueryNode::Label(label, next_node) => (true, label, next_node),
-                _ => panic!("invalid query"),
-            },
-            JsonPathQueryNode::Child(child) => match child.as_ref() {
-                JsonPathQueryNode::Label(label, next_node) => (false, label, next_node),
-                _ => panic!("invalid query"),
-            },
+            JsonPathQueryNode::Descendant(label, next_node) => (true, label, next_node),
+            JsonPathQueryNode::Child(label, next_node) => (false, label, next_node),
             _ => panic!("invalid query"),
         };
 

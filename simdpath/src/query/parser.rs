@@ -1,83 +1,73 @@
+use super::errors::ParseErrorReport;
 use crate::debug;
 use crate::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label};
-use color_eyre::{
-    eyre::{eyre, Result, WrapErr},
-    section::Section,
-};
+use color_eyre::eyre::{Result, WrapErr};
 use nom::{
-    branch::*,
-    bytes::complete::*,
-    character::{complete::*, *},
-    combinator::*,
-    multi::*,
-    sequence::*,
-    *,
+    branch::*, bytes::complete::*, character::complete::*, combinator::*, multi::*, sequence::*, *,
 };
 use std::fmt::{self, Display};
 
 #[derive(Debug)]
 enum Token<'a> {
     Root,
-    Child,
-    Descendant,
-    Label(&'a [u8]),
+    Child(&'a str),
+    Descendant(&'a str),
 }
 
 impl Display for Token<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Token::Root => write!(f, "$"),
-            Token::Child => write!(f, "."),
-            Token::Descendant => write!(f, ".."),
-            Token::Label(label) => write!(f, "['{}']", std::str::from_utf8(label).unwrap()),
+            Token::Child(label) => write!(f, "['{label}']"),
+            Token::Descendant(label) => write!(f, "..['{label}']"),
         }
     }
 }
 
 pub(crate) fn parse_json_path_query(query_string: &str) -> Result<JsonPathQuery> {
-    let tokens_result = many0(json_path_query_node())(query_string.as_bytes());
+    let tokens_result = jsonpath()(query_string);
     let finished = tokens_result.finish();
+
     match finished {
-        Ok(([], tokens)) => {
+        Ok(("", (root_token, tokens))) => {
             debug!(
                 "Parsed tokens: {}",
-                tokens
-                    .iter()
-                    .map(|x| format!("({:?})", x))
-                    .collect::<String>()
+                root_token.map_or(String::new(), |x| format!("{}", x))
+                    + &tokens
+                        .iter()
+                        .map(|x| format!("({:?})", x))
+                        .collect::<String>()
             );
             let node = tokens_to_node(&mut tokens.into_iter())?;
             match node {
                 None => JsonPathQuery::new(Box::new(JsonPathQueryNode::Root(None))),
-                Some(node) => JsonPathQuery::new(Box::new(node)),
+                Some(node) if node.is_root() => JsonPathQuery::new(Box::new(node)),
+                Some(node) => {
+                    JsonPathQuery::new(Box::new(JsonPathQueryNode::Root(Some(Box::new(node)))))
+                }
             }
         }
-        Ok((remaining, tokens)) => {
-            let remaining_characters = std::str::from_utf8(remaining).unwrap_or("[invalid utf8]");
-            let parsed_characters = tokens
-                .into_iter()
-                .map(|x| x.to_string())
-                .collect::<String>();
-            let error_character_index = query_string.len() - remaining.len() + 1;
-
-            Err(eyre!(
-                "Unexpected tokens in the query string (position {}): `{}`.",
-                error_character_index,
-                remaining_characters
-            ))
-            .note(format!(
-                "The preceding characters were successfully parsed as `{}`.",
-                parsed_characters
-            ))
-            .suggestion("Check the query syntax. If the error is caused by special characters in a label, use the explicit `['label']` syntax.")
+        _ => {
+            let mut parse_errors = ParseErrorReport::new();
+            let mut continuation = finished.map(|x| x.0);
+            loop {
+                match continuation {
+                    Ok("") => return parse_errors.error(query_string),
+                    Ok(remaining) => {
+                        let error_character_index = query_string.len() - remaining.len();
+                        parse_errors.record_at(error_character_index);
+                        continuation = non_root()(&remaining[1..]).finish().map(|x| x.0);
+                    }
+                    Err(e) => {
+                        return Err(nom::error::Error {
+                            input: e.input.to_owned(),
+                            code: e.code,
+                        })
+                        .wrap_err("Unexpected error parsing the query string.")
+                    }
+                }
+            }
         }
-        Err(e) => Err(nom::error::Error {
-            input: std::str::from_utf8(e.input)
-                .unwrap_or("[invalid utf8]")
-                .to_string(),
-            code: e.code,
-        })
-        .wrap_err("Unexpected error parsing the query string."),
     }
 }
 
@@ -94,87 +84,113 @@ fn tokens_to_node<'a, I: Iterator<Item = Token<'a>>>(
 
     match token.unwrap() {
         Token::Root => Ok(Some(JsonPathQueryNode::Root(child_node))),
-        Token::Child => {
-            let child_node = child_node
-                .ok_or_else(|| {
-                    eyre!("Child expression ('.') must be followed by another expression.")
-                })
-                .note("The query was successfully parsed, but a trailing child expression is unexpected.")
-                .suggestion(
-                    "If the periods are part of a label, try using the explicit `['label']` syntax.",
-                )?;
-            Ok(Some(JsonPathQueryNode::Child(child_node)))
-        }
-        Token::Descendant => {
-            let child_node = child_node
-                .ok_or_else(|| {
-                    eyre!("Descendant expression ('..') must be followed by another expression.")
-                })
-                .note("The query was successfully parsed, but a trailing descendant expression is unexpected.")
-                .suggestion(
-                    "If the periods are part of a label, try using the explicit `['label']` syntax.",
-                )?;
-            Ok(Some(JsonPathQueryNode::Descendant(child_node)))
-        }
-        Token::Label(label) => {
-            let child_node = child_node.map(|x| {
-                if x.is_label() {
-                    Box::new(JsonPathQueryNode::Child(x))
-                } else {
-                    x
-                }
-            });
-
-            Ok(Some(JsonPathQueryNode::Label(
-                Label::new(label),
-                child_node,
-            )))
-        }
+        Token::Child(label) => Ok(Some(JsonPathQueryNode::Child(
+            Label::new(label),
+            child_node,
+        ))),
+        Token::Descendant(label) => Ok(Some(JsonPathQueryNode::Descendant(
+            Label::new(label),
+            child_node,
+        ))),
     }
 }
 
-trait Parser<'a>: FnMut(&'a [u8]) -> IResult<&'a [u8], Token> {}
+trait Parser<'a, Out>: FnMut(&'a str) -> IResult<&'a str, Out> {}
 
-impl<'a, T: FnMut(&'a [u8]) -> IResult<&'a [u8], Token>> Parser<'a> for T {}
+impl<'a, Out, T: FnMut(&'a str) -> IResult<&'a str, Out>> Parser<'a, Out> for T {}
 
-fn json_path_query_node<'a>() -> impl Parser<'a> {
-    alt((
-        complete(json_path_root()),
-        complete(json_path_descendant()), // Must come before child to be unambiguous!
-        complete(json_path_child()),
-        complete(json_path_label()),
-    ))
-}
-
-fn json_path_root<'a>() -> impl Parser<'a> {
-    map(char('$'), |_| Token::Root)
-}
-
-fn json_path_child<'a>() -> impl Parser<'a> {
-    map(tag("."), |_| Token::Child)
-}
-
-fn json_path_descendant<'a>() -> impl Parser<'a> {
-    map(tag(".."), |_| Token::Descendant)
-}
-
-fn json_path_label<'a>() -> impl Parser<'a> {
-    alt((
-        complete(json_path_label_simple()),
-        complete(json_path_label_bracketed()),
-    ))
-}
-
-fn json_path_label_simple<'a>() -> impl Parser<'a> {
-    map(
-        take_while1(|x| is_alphanumeric(x) || x == b'_'),
-        Token::Label,
+fn jsonpath<'a>() -> impl Parser<'a, (Option<Token<'a>>, Vec<Token<'a>>)> {
+    pair(
+        opt(map(char('$'), |_| Token::Root)), // root selector
+        non_root(),
     )
 }
 
-fn json_path_label_bracketed<'a>() -> impl Parser<'a> {
+fn non_root<'a>() -> impl Parser<'a, Vec<Token<'a>>> {
+    many0(alt((child_selector(), descendant_selector())))
+}
+
+fn child_selector<'a>() -> impl Parser<'a, Token<'a>> {
+    map(alt((dot_selector(), index_selector())), Token::Child)
+}
+
+fn dot_selector<'a>() -> impl Parser<'a, &'a str> {
+    preceded(char('.'), label())
+}
+
+fn descendant_selector<'a>() -> impl Parser<'a, Token<'a>> {
     map(
-        preceded(tag("['"), terminated(take_until("']"), tag("']"))),
-        Token::Label,
+        preceded(tag(".."), alt((label(), index_selector()))),
+        Token::Descendant,
     )
+}
+
+fn index_selector<'a>() -> impl Parser<'a, &'a str> {
+    delimited(char('['), quoted_label(), char(']'))
+}
+
+fn label<'a>() -> impl Parser<'a, &'a str> {
+    recognize(pair(label_first(), many0(label_character())))
+}
+
+fn label_first<'a>() -> impl Parser<'a, char> {
+    verify(anychar, |&x| x.is_alpha() || x == '_' || !x.is_ascii())
+}
+
+fn label_character<'a>() -> impl Parser<'a, char> {
+    verify(anychar, |&x| {
+        x.is_alphanumeric() || x == '_' || !x.is_ascii()
+    })
+}
+
+fn quoted_label<'a>() -> impl Parser<'a, &'a str> {
+    alt((
+        delimited(char('\''), single_quoted_label(), char('\'')),
+        delimited(char('"'), double_quoted_label(), char('"')),
+    ))
+}
+
+//cSpell: disable
+fn single_quoted_label<'a>() -> impl Parser<'a, &'a str> {
+    escaped(many0(unescaped()), '\\', one_of(r#"'btnfru/\"#))
+}
+
+fn double_quoted_label<'a>() -> impl Parser<'a, &'a str> {
+    escaped(many0(unescaped()), '\\', one_of(r#""btnfru/\"#))
+}
+
+fn unescaped<'a>() -> impl Parser<'a, char> {
+    verify(anychar, |&x| x != '\'' && x != '"')
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn single_quoted_label_test() {
+        let input = "a";
+
+        let result = single_quoted_label()(input);
+
+        assert_eq!(result, Ok(("", "a")));
+    }
+
+    #[test]
+    fn double_quoted_label_test() {
+        let input = "a";
+
+        let result = double_quoted_label()(input);
+
+        assert_eq!(result, Ok(("", "a")));
+    }
+
+    #[test]
+    fn quoted_label_test() {
+        let input = "'a'";
+
+        let result = quoted_label()(input);
+
+        assert_eq!(result, Ok(("", "a")));
+    }
 }

@@ -14,8 +14,8 @@ repository = "https://gitlab.inria.fr/cpaperma/simdpath"
 
 [dependencies]
 md5 = "0.7.0"
-proc-macro2 = "1.0.30"
-quote = "1.0.9"
+proc-macro2 = "1.0.39"
+quote = "1.0.18"
 
 [dev-dependencies]
 walkdir = "2.3.2"

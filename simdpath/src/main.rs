@@ -1,4 +1,4 @@
-use clap::{App, Arg};
+use clap::{ArgEnum, Parser};
 use color_eyre::eyre::{eyre, Result, WrapErr};
 use log::*;
 use simdpath::engine::{Input, Runner};
@@ -6,44 +6,56 @@ use simdpath::query::JsonPathQuery;
 use simdpath::stack_based::StackBasedRunner;
 use simdpath::stackless::StacklessRunner;
 use simple_logger::SimpleLogger;
-use std::fs;
-
-const VERBOSE: &str = "verbose";
-const FILE: &str = "file";
-const QUERY: &str = "query";
 
 fn main() -> Result<()> {
     color_eyre::install()?;
-    let app = configure_app();
-    let matches = app.get_matches_safe()?;
-    let file_path = matches.value_of(FILE).unwrap();
-    let query_string = matches.value_of(QUERY).unwrap();
-    let verbose = matches.is_present(VERBOSE);
+    let args = Args::parse();
 
-    configure_logger(verbose)?;
+    configure_logger(args.verbose)?;
 
-    let query = parse_query(query_string)?;
-    info!("Executing query: `{}`\n", query);
+    let query = parse_query(&args.query)?;
+    info!("Preparing query: `{}`\n", query);
 
-    let contents = fs::read_to_string(&file_path)?;
+    let contents = get_contents(args.file_path.as_deref())?;
     let input = Input::new(contents);
 
-    let stack_based_runner = StackBasedRunner::compile_query(&query);
-    let stackless_runner = StacklessRunner::compile_query(&query);
+    match args.engine {
+        EngineArg::Main => {
+            let stackless_runner = StacklessRunner::compile_query(&query);
+            info!("Compilation finished, running...");
 
-    info!("Compilation finished, running...");
+            let stackless_count = stackless_runner.count(&input);
+            info!("Stackless count: {}", stackless_count.count);
 
-    let stack_based_count = stack_based_runner.count(&input);
-    info!("Stack based count: {}", stack_based_count.count);
+            println!("{}", stackless_count.count);
+        }
+        EngineArg::Recursive => {
+            let stack_based_runner = StackBasedRunner::compile_query(&query);
+            info!("Compilation finished, running...");
 
-    let stackless_count = stackless_runner.count(&input);
-    info!("Stackless count: {}", stackless_count.count);
+            let stack_based_count = stack_based_runner.count(&input);
+            info!("Stack based count: {}", stack_based_count.count);
 
-    if stack_based_count.count != stackless_count.count {
-        return Err(eyre!("Count mismatch!"));
+            println!("{}", stack_based_count.count);
+        }
+        EngineArg::VerifyBoth => {
+            let stackless_runner = StacklessRunner::compile_query(&query);
+            let stack_based_runner = StackBasedRunner::compile_query(&query);
+            info!("Compilation finished, running...");
+
+            let stackless_count = stackless_runner.count(&input);
+            info!("Stackless count: {}", stackless_count.count);
+
+            let stack_based_count = stack_based_runner.count(&input);
+            info!("Stack based count: {}", stack_based_count.count);
+
+            if stack_based_count.count != stackless_count.count {
+                return Err(eyre!("Count mismatch!"));
+            }
+
+            println!("{}", stack_based_count.count);
+        }
     }
-
-    println!("{}", stackless_count.count);
 
     Ok(())
 }
@@ -52,37 +64,33 @@ fn parse_query(query_string: &str) -> Result<JsonPathQuery> {
     JsonPathQuery::parse(query_string).wrap_err("Could not parse JSONPath query.")
 }
 
-fn configure_app() -> App<'static, 'static> {
-    App::new("SIMD Path")
-        .version("0.1.0")
-        .author("Mateusz Gienieczko <mat@gienieczko.com>")
-        .about("High-performance JSON Path query engine.")
-        .arg(
-            Arg::with_name(VERBOSE)
-                .short("v")
-                .long(VERBOSE)
-                .help("If set runs with verbose debug information."),
-        )
-        .arg(
-            Arg::with_name(FILE)
-                .short("f")
-                .long(FILE)
-                .required(true)
-                .index(1)
-                .takes_value(true)
-                .value_name("JSON_FILE")
-                .help("Input JSON file to  query."),
-        )
-        .arg(
-            Arg::with_name(QUERY)
-                .short("q")
-                .long(QUERY)
-                .required(true)
-                .index(2)
-                .takes_value(true)
-                .value_name("QUERY")
-                .help("JSON Path query to run against the JSON_FILE."),
-        )
+#[derive(Parser, Debug)]
+#[clap(author, version, about)]
+struct Args {
+    /// JSONPath query to run against the input JSON.
+    query: String,
+    /// Input JSON file to query.
+    ///
+    /// If not specified uses the standard input stream.
+    file_path: Option<String>,
+    /// Include verbose debug information.
+    #[clap(short, long)]
+    verbose: bool,
+    /// Engine to use for evaluating the query.
+    #[clap(short, long, arg_enum, default_value_t = EngineArg::Main)]
+    engine: EngineArg,
+}
+
+#[derive(ArgEnum, Debug, Clone, Copy, PartialEq, Eq)]
+enum EngineArg {
+    /// Main SIMD-optimised iterative engine.
+    Main,
+    /// Alternative recursive engine.
+    Recursive,
+    /// Use both engines and verify that their outputs match.
+    ///
+    /// This is for testing purposes only.
+    VerifyBoth,
 }
 
 fn configure_logger(verbose: bool) -> Result<()> {
@@ -94,4 +102,19 @@ fn configure_logger(verbose: bool) -> Result<()> {
         })
         .init()
         .wrap_err("Logger configuration error.")
+}
+
+fn get_contents(file_path: Option<&str>) -> Result<String> {
+    use std::fs;
+    use std::io::{self, Read};
+    match file_path {
+        Some(path) => fs::read_to_string(path).wrap_err("Reading from file failed."),
+        None => {
+            let mut result = String::new();
+            io::stdin()
+                .read_to_string(&mut result)
+                .wrap_err("Reading from stdin failed.")?;
+            Ok(result)
+        }
+    }
 }
