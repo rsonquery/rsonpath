@@ -1,8 +1,8 @@
 [workspace]
 
 members = [
-    "simdpath",
-    "simdpath-codegen"
+    "rsonpath",
+    "rsonpath-codegen"
 ]
 
 [profile.dev]

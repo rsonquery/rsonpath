@@ -1,4 +1,4 @@
-# Simdpath
+# rsonpath
 
 Library for fast execution of JSONPath queries.
 
@@ -13,7 +13,7 @@ make test
 
 ## Install
 
-To install the `simdpath` executable run:
+To install the `rsonpath` executable run:
 
 ```bash
 make install
@@ -26,13 +26,13 @@ Note: it is recommended to install `gnuplot` before generating reports.
 This highly depends on the exact scenario you want to benchmark, so there is no `Makefile`. To run the stack-based vs stackless bench run:
 
 ```bash
-cargo bench --bench simdpath_stack_based_vs_stackless
+cargo bench --bench rsonpath_stack_based_vs_stackless
 ```
 
 If you want to bench the no-SIMD scenario, disable the default `simd_x86` feature flag:
 
 ```bash
-cargo bench --bench simdpath_stack_based_vs_stackless --no-default-features
+cargo bench --bench rsonpath_stack_based_vs_stackless --no-default-features
 ```
 
 For details about benchmarking refer to [Criterion.rs docs](https://github.com/bheisler/criterion.rs).

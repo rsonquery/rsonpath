@@ -789,6 +789,40 @@ dependencies = [
 ]
 
 [[package]]
+name = "rsonpath"
+version = "0.1.0"
+dependencies = [
+ "aligners",
+ "cfg-if 1.0.0",
+ "clap 3.1.18",
+ "color-eyre",
+ "criterion",
+ "eyre",
+ "len-trait",
+ "log",
+ "md5",
+ "memchr",
+ "nom",
+ "proc-macro2",
+ "proptest",
+ "rsonpath-codegen",
+ "simple_logger",
+ "smallvec",
+ "static_assertions",
+ "test-case",
+]
+
+[[package]]
+name = "rsonpath-codegen"
+version = "0.1.0"
+dependencies = [
+ "md5",
+ "proc-macro2",
+ "quote",
+ "walkdir",
+]
+
+[[package]]
 name = "rustc-demangle"
 version = "0.1.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -878,40 +912,6 @@ dependencies = [
  "itoa 0.4.8",
  "ryu",
  "serde",
-]
-
-[[package]]
-name = "simdpath"
-version = "0.1.0"
-dependencies = [
- "aligners",
- "cfg-if 1.0.0",
- "clap 3.1.18",
- "color-eyre",
- "criterion",
- "eyre",
- "len-trait",
- "log",
- "md5",
- "memchr",
- "nom",
- "proc-macro2",
- "proptest",
- "simdpath-codegen",
- "simple_logger",
- "smallvec",
- "static_assertions",
- "test-case",
-]
-
-[[package]]
-name = "simdpath-codegen"
-version = "0.1.0"
-dependencies = [
- "md5",
- "proc-macro2",
- "quote",
- "walkdir",
 ]
 
 [[package]]

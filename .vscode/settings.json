@@ -34,7 +34,7 @@
         "RUSTFLAGS",
         "rustfmt",
         "SIMD",
-        "simdpath",
+        "rsonpath",
         "smallvec",
         "snaks",
         "srli",

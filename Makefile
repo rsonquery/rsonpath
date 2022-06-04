@@ -1,14 +1,14 @@
 CARGO=cargo
 
-make: simdpath
+make: rsonpath
 
-simdpath: check_cargo
-	$(CARGO) build --bin simdpath --release
+rsonpath: check_cargo
+	$(CARGO) build --bin rsonpath --release
 
 .PHONY: bench check_cargo clean clean_benches doc install uninstall test
 
-bench: simdpath
-	$(CARGO) bench --bench simdpath_stack_based_vs_stackless
+bench: rsonpath
+	$(CARGO) bench --bench rsonpath_stack_based_vs_stackless
 
 # Check if cargo is present, if not, use rustup to setup.
 check_cargo:
@@ -26,15 +26,15 @@ clean:
 clean_benches:
 	rm -rf ./target/criterion/*
 
-doc: simdpath
+doc: rsonpath
 	RUSTDOCFLAGS="--cfg docsrs" cargo +nightly doc --open
 
-install: simdpath
-	$(CARGO) install --path ./simdpath
+install: rsonpath
+	$(CARGO) install --path ./rsonpath
 
-test: simdpath
-	cd simdpath
+test: rsonpath
+	cd rsonpath
 	$(CARGO) testall
 
 uninstall:
-	$(CARGO) uninstall simdpath
+	$(CARGO) uninstall rsonpath
