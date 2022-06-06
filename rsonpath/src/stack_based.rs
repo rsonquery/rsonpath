@@ -1,6 +1,6 @@
 //! Reference implementation of a JSONPath query engine with recursive descent.
 
-use crate::bytes::classify::{classify_structural_characters, Structural, StructuralIterator};
+use crate::classify::{classify_structural_characters, Structural, StructuralIterator};
 use crate::debug;
 use crate::engine::{result, Input, Runner};
 use crate::query::{JsonPathQuery, JsonPathQueryNode, Label};

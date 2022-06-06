@@ -7,7 +7,6 @@ description = "Blazing fast JSONPath query engine powered by SIMD."
 readme = "../README.md"
 license = "MIT"
 keywords = ["json", "jsonpath", "query", "simd"]
-build = "build.rs"
 exclude = ["/data"]
 categories = ["command-line-utilities", "text-processing", "database-implementations"]
 repository = "https://gitlab.inria.fr/cpaperma/rsonpath"
@@ -29,11 +28,6 @@ simple_logger = "2.1.0"
 smallvec = { version = "1.8.0", features = ["union"] }
 static_assertions = "1.1.0"
 
-[build-dependencies]
-rsonpath-codegen = { path = "../rsonpath-codegen" }
-md5 = "0.7.0"
-proc-macro2 = "1.0.39"
-
 [dev-dependencies]
 criterion = "0.3.5"
 proptest = "1.0.0"
@@ -45,20 +39,4 @@ simd = []
 
 [[bench]]
 name = "rsonpath_stack_based_vs_stackless"
-harness = false
-
-[[bench]]
-name = "find_byte_benches"
-harness = false
-
-[[bench]]
-name = "find_byte_sequence_benches"
-harness = false
-
-[[bench]]
-name = "depth_benches"
-harness = false
-
-[[bench]]
-name = "find_any_of_sequences_benches"
 harness = false

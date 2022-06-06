@@ -18,14 +18,14 @@ struct CodegenFile<'a> {
 
 fn main() -> Result<(), Box<dyn Error>> {
     let codegen = Codegen {
-        md5_digest: rsonpath_codegen::calculate_codegen_md5(),
+        md5_digest: simd_codegen::calculate_codegen_md5(),
         files: vec![
             CodegenFile {
-                source_token_stream: rsonpath_codegen::bytes::sequences::get_avx2_source(),
+                source_token_stream: simd_codegen::bytes::sequences::get_avx2_source(),
                 file_name: "bytes/sequences/avx2.rs",
             },
             CodegenFile {
-                source_token_stream: rsonpath_codegen::bytes::sequences::get_nosimd_source(),
+                source_token_stream: simd_codegen::bytes::sequences::get_nosimd_source(),
                 file_name: "bytes/sequences/nosimd.rs",
             },
         ],
@@ -42,7 +42,7 @@ fn generate(codegen: Codegen) -> Result<(), Box<dyn Error>> {
 
     for codegen_file in codegen.files {
         let out_dir_root = env::var_os("OUT_DIR").ok_or("OUT_DIR env variable not found")?;
-        let dest_dir = Path::new(&out_dir_root).join("rsonpath-codegen");
+        let dest_dir = Path::new(&out_dir_root).join("simd-codegen");
         let dest = Path::new(&dest_dir).join(codegen_file.file_name);
 
         eprintln!("Reading MD5 digest of '{}'", dest.display());

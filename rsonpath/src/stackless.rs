@@ -8,7 +8,7 @@
 //! This implementation should be more performant than [`stack_based`](super::stack_based)
 //! even on targets that don't support AVX2 SIMD operations.
 
-use crate::bytes::classify::{classify_structural_characters, Structural};
+use crate::classify::{classify_structural_characters, Structural};
 use crate::debug;
 use crate::engine::result::CountResult;
 use crate::engine::{Input, Runner};

@@ -157,7 +157,7 @@ fn get_find_byte_sequence_dispatch_source() -> TokenStream {
 
                 match sequence.len() {
                     0 => panic!("Cannot look for an empty sequence."),
-                    1 => crate::bytes::find_byte(sequence[0], bytes),
+                    1 => crate::find_byte::find_byte_size256(sequence[0], bytes),
                     #(#match_body,)*
                     _ => unsafe { find_long_byte_sequence(sequence, bytes) }
                 }
@@ -212,7 +212,7 @@ pub fn get_nosimd_source() -> TokenStream {
         pub fn find_byte_sequence(sequence: &[u8], bytes: &[u8]) -> Option<usize> {
             match sequence.len() {
                 0 => panic!("Cannot look for an empty sequence."),
-                1 => crate::bytes::find_byte(sequence[0], bytes),
+                1 => crate::find_byte::find_byte_rust_nosimd(sequence[0], bytes),
                 #(#match_body,)*
                 _ => bytes.windows(sequence.len()).position(|x| x == sequence)
             }

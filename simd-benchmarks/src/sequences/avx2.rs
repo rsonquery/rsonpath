@@ -2,5 +2,5 @@
 
 include!(concat!(
     env!("OUT_DIR"),
-    "/rsonpath-codegen/bytes/sequences/avx2.rs"
+    "/simd-codegen/bytes/sequences/avx2.rs"
 ));

@@ -2,7 +2,9 @@
 
 members = [
     "rsonpath",
-    "rsonpath-codegen"
+    "simd-codegen",
+    "simd-benchmarks",
+    "decimal-byte-measurement"
 ]
 
 [profile.dev]
