@@ -1,17 +1,20 @@
 use aligners::{alignment::TwoTo, AlignedBytes};
 use core::time::Duration;
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use decimal_byte_measurement::DecimalByteMeasurement;
 use rand::prelude::*;
 use simd_benchmarks::discrepancy;
 
 const LENGTH: usize = 4 * 1024 * 1024;
+
+type CriterionCtx = Criterion<DecimalByteMeasurement>;
 
 fn setup_aligned_bytes() -> AlignedBytes<TwoTo<6>> {
     let mut rng = StdRng::seed_from_u64(213769420);
     AlignedBytes::new_initialize(LENGTH, move |_| rng.gen())
 }
 
-fn discrepancy_benches(c: &mut Criterion) {
+fn discrepancy_benches(c: &mut CriterionCtx) {
     let mut group = c.benchmark_group("discrepancy");
     group.throughput(Throughput::Bytes(LENGTH as u64));
     group.measurement_time(Duration::from_secs(60));
@@ -63,8 +66,8 @@ fn discrepancy_benches(c: &mut Criterion) {
     group.finish();
 }
 
-fn decimal_byte_measurement() -> Criterion<DecimalByteMeasurement> {
-    Criterion::default().with_measurement(DecimalByteMeasurement(WallTime))
+fn decimal_byte_measurement() -> CriterionCtx {
+    Criterion::default().with_measurement(DecimalByteMeasurement::new())
 }
 
 criterion_group!(

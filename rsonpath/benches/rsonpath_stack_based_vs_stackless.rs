@@ -1,5 +1,6 @@
 use core::time::Duration;
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
+use decimal_byte_measurement::DecimalByteMeasurement;
 use rsonpath::engine::{Input, Runner};
 use rsonpath::query::JsonPathQuery;
 use rsonpath::stack_based::StackBasedRunner;
@@ -7,6 +8,8 @@ use rsonpath::stackless::StacklessRunner;
 use std::fs;
 
 const ROOT_TEST_DIRECTORY: &str = "./data";
+
+type CriterionCtx = Criterion<DecimalByteMeasurement>;
 
 struct BenchmarkOptions<'a> {
     pub path: &'a str,
@@ -22,13 +25,14 @@ fn get_contents(test_path: &str) -> Input {
     Input::new(raw)
 }
 
-fn rsonpath_stack_based_vs_stackless(c: &mut Criterion, options: BenchmarkOptions<'_>) {
+fn rsonpath_stack_based_vs_stackless(c: &mut CriterionCtx, options: BenchmarkOptions<'_>) {
     let contents = get_contents(options.path);
     let query = JsonPathQuery::parse(options.query_string).unwrap();
 
     let mut group = c.benchmark_group(format! {"rsonpath_{}", options.id});
     group.warm_up_time(options.warm_up_time);
     group.measurement_time(options.measurement_time);
+    group.throughput(criterion::Throughput::Bytes(contents.len() as u64));
 
     let stackless = StacklessRunner::compile_query(&query);
     let stack_based = StackBasedRunner::compile_query(&query);
@@ -47,7 +51,11 @@ fn rsonpath_stack_based_vs_stackless(c: &mut Criterion, options: BenchmarkOption
     group.finish();
 }
 
-pub fn wikidata_combined(c: &mut Criterion) {
+fn decimal_byte_measurement() -> CriterionCtx {
+    Criterion::default().with_measurement(DecimalByteMeasurement::new())
+}
+
+pub fn wikidata_combined(c: &mut CriterionCtx) {
     rsonpath_stack_based_vs_stackless(
         c,
         BenchmarkOptions {
@@ -60,7 +68,7 @@ pub fn wikidata_combined(c: &mut Criterion) {
     );
 }
 
-pub fn wikidata_combined_with_whitespace(c: &mut Criterion) {
+pub fn wikidata_combined_with_whitespace(c: &mut CriterionCtx) {
     rsonpath_stack_based_vs_stackless(
         c,
         BenchmarkOptions {
@@ -73,7 +81,7 @@ pub fn wikidata_combined_with_whitespace(c: &mut Criterion) {
     );
 }
 
-pub fn wikidata_person(c: &mut Criterion) {
+pub fn wikidata_person(c: &mut CriterionCtx) {
     rsonpath_stack_based_vs_stackless(
         c,
         BenchmarkOptions {
@@ -86,7 +94,7 @@ pub fn wikidata_person(c: &mut Criterion) {
     );
 }
 
-pub fn wikidata_person_en_value_recursive(c: &mut Criterion) {
+pub fn wikidata_person_en_value_recursive(c: &mut CriterionCtx) {
     rsonpath_stack_based_vs_stackless(
         c,
         BenchmarkOptions {
@@ -99,7 +107,7 @@ pub fn wikidata_person_en_value_recursive(c: &mut Criterion) {
     );
 }
 
-pub fn wikidata_person_en_value_direct(c: &mut Criterion) {
+pub fn wikidata_person_en_value_direct(c: &mut CriterionCtx) {
     rsonpath_stack_based_vs_stackless(
         c,
         BenchmarkOptions {
@@ -112,7 +120,7 @@ pub fn wikidata_person_en_value_direct(c: &mut Criterion) {
     );
 }
 
-pub fn wikidata_profession(c: &mut Criterion) {
+pub fn wikidata_profession(c: &mut CriterionCtx) {
     rsonpath_stack_based_vs_stackless(
         c,
         BenchmarkOptions {
@@ -125,7 +133,7 @@ pub fn wikidata_profession(c: &mut Criterion) {
     );
 }
 
-pub fn wikidata_properties(c: &mut Criterion) {
+pub fn wikidata_properties(c: &mut CriterionCtx) {
     rsonpath_stack_based_vs_stackless(
         c,
         BenchmarkOptions {
@@ -139,14 +147,16 @@ pub fn wikidata_properties(c: &mut Criterion) {
 }
 
 criterion_group!(
-    wikidata_benches,
-    wikidata_combined,
-    wikidata_combined_with_whitespace,
-    wikidata_person,
-    wikidata_person_en_value_recursive,
-    wikidata_person_en_value_direct,
-    wikidata_profession,
-    wikidata_properties,
+    name = wikidata_benches;
+    config = decimal_byte_measurement();
+    targets =
+        wikidata_combined,
+        wikidata_combined_with_whitespace,
+        wikidata_person,
+        wikidata_person_en_value_recursive,
+        wikidata_person_en_value_direct,
+        wikidata_profession,
+        wikidata_properties
 );
 
 criterion_main!(wikidata_benches);
