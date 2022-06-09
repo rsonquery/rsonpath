@@ -7,7 +7,7 @@
 pub mod result;
 
 use aligners::{
-    alignment::{self, Alignment},
+    alignment::{self},
     AlignedBytes,
 };
 use cfg_if::cfg_if;
@@ -30,11 +30,12 @@ impl std::ops::Deref for Input {
 impl Input {
     /// Transmute a buffer into an input.
     ///
-    /// The buffer must know its length, may be extended by auxillary UTF8 characters
+    /// The buffer must know its length, may be extended by auxiliary UTF8 characters
     /// and will be interpreted as a slice of bytes at the end.
     pub fn new<T: Extend<char> + Len + AsRef<[u8]>>(src: T) -> Self {
         cfg_if! {
             if #[cfg(feature = "simd")] {
+                use aligners::alignment::Alignment;
                 let mut contents = src;
                 let rem = contents.len() % alignment::TwoSimdBlocks::size();
                 let pad = if rem == 0 {

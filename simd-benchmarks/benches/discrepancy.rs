@@ -1,8 +1,8 @@
 use aligners::{alignment::TwoTo, AlignedBytes};
 use core::time::Duration;
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
-use paper_benchmarks::discrepancy;
 use rand::prelude::*;
+use simd_benchmarks::discrepancy;
 
 const LENGTH: usize = 4 * 1024 * 1024;
 

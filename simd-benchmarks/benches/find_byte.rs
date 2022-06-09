@@ -2,7 +2,7 @@ use aligners::{alignment::TwoTo, AlignedBytes};
 use core::time::Duration;
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use decimal_byte_measurement::DecimalByteMeasurement;
-use paper_benchmarks::find_byte;
+use simd_benchmarks::find_byte;
 
 const LENGTH: usize = 32 * 1024 * 1024;
 const LETTERS: &str = "abcdefghijklmnopqrstuvwxyz";

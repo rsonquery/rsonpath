@@ -1,6 +1,6 @@
 use core::time::Duration;
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
-use rsonpath::bytes::depth::{self, DepthBlock};
+use simd_benchmarks::depth::{self, DepthBlock};
 use std::fs;
 
 const ROOT_TEST_DIRECTORY: &str = "./data";

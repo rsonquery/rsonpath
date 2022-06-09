@@ -36,7 +36,7 @@ pub trait DepthBlock<'a>: Sized {
     /// This should be constant throughout the lifetime of a `DepthBlock`
     /// and always satisfy:
     /// ```rust
-    /// # use rsonpath::bytes::depth::{DepthBlock, DepthBlockImpl} ;
+    /// # use simd_benchmarks::depth::{DepthBlock, DepthBlockImpl} ;
     /// # let bytes = &[0; 256];
     /// let (depth_block, rem) = DepthBlockImpl::new(bytes);
     /// let expected_len = bytes.len() - rem.len();

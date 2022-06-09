@@ -1,6 +1,6 @@
-//! Code generation for `rsonpath::bytes`.
+//! Code generation for `simd_benchmarks`.
 //!
-//! Used by the `build.rs` script to generate the `rsonpath::bytes::sequences` module
+//! Used by the `build.rs` script to generate the `simd_benchmarks::sequences` module
 //! from [`sequences`].
 
 pub mod sequences;

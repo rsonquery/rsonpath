@@ -9,7 +9,7 @@ use std::collections::VecDeque;
 const MAX_SEQUENCE_LENGTH_FOR_SIMD: usize = 32;
 const MAX_SEQUENCE_LENGTH_FOR_NOSIMD: usize = 64;
 
-/// Get the source for the `rsonpath::bytes::sequences::avx2` module.
+/// Get the source for the `simd_benchmarks::sequences::avx2` module.
 pub fn get_avx2_source() -> TokenStream {
     let find_byte_sequence_dispatch_source = get_find_byte_sequence_dispatch_source();
     let find_byte_sequence_sources = get_find_byte_sequence_sources();
@@ -41,7 +41,7 @@ pub fn get_avx2_source() -> TokenStream {
         /// support AVX2 this will fallback to [`nosimd::find_byte_sequence`].
         /// # Examples
         /// ```
-        /// # use rsonpath::bytes::sequences::find_any_of_sequences;
+        /// # use simd_benchmarks::sequences::find_any_of_sequences;
         /// let bytes = "abcdefgh".as_bytes();
         /// let sequences = ["fg".as_bytes(), "de".as_bytes()];
         /// let result = find_any_of_sequences(&sequences, bytes);
@@ -49,7 +49,7 @@ pub fn get_avx2_source() -> TokenStream {
         /// assert_eq!(result, Some((3, 1)));
         /// ```
         /// ```
-        /// # use rsonpath::bytes::sequences::find_any_of_sequences;
+        /// # use simd_benchmarks::sequences::find_any_of_sequences;
         /// let bytes = "abcdefgh".as_bytes();
         /// let sequences = ["fg".as_bytes(), "ed".as_bytes()];
         /// let result = find_any_of_sequences(&sequences, bytes);
@@ -57,7 +57,7 @@ pub fn get_avx2_source() -> TokenStream {
         /// assert_eq!(result, Some((5, 0)));
         /// ```
         /// ```
-        /// # use rsonpath::bytes::sequences::find_any_of_sequences;
+        /// # use simd_benchmarks::sequences::find_any_of_sequences;
         /// let bytes = "abcdefgh".as_bytes();
         /// let sequences = ["gf".as_bytes(), "ed".as_bytes()];
         /// let result = find_any_of_sequences(&sequences, bytes);
@@ -133,7 +133,7 @@ fn get_find_byte_sequence_dispatch_source() -> TokenStream {
         /// support AVX2 this will fallback to [`nosimd::find_byte_sequence`].
         /// # Examples
         /// ```
-        /// # use rsonpath::bytes::simd::find_byte_sequence;
+        /// # use simd_benchmarks::simd::find_byte_sequence;
         /// let bytes = "abcdefgh".as_bytes();
         /// let result = find_byte_sequence("de".as_bytes(), bytes);
         ///
@@ -141,7 +141,7 @@ fn get_find_byte_sequence_dispatch_source() -> TokenStream {
         /// ```
         ///
         /// ```
-        /// # use rsonpath::bytes::simd::find_byte_sequence;
+        /// # use simd_benchmarks::simd::find_byte_sequence;
         /// let bytes = "abcdefgh".as_bytes();
         /// let result = find_byte_sequence("ed".as_bytes(), bytes);
         ///
@@ -177,7 +177,7 @@ fn get_find_byte_sequence_sources() -> TokenStream {
     }
 }
 
-/// Get the source for the `rsonpath::bytes::sequences::nosimd` module.
+/// Get the source for the `simd_benchmarks::sequences::nosimd` module.
 pub fn get_nosimd_source() -> TokenStream {
     let match_body = (1..MAX_SEQUENCE_LENGTH_FOR_NOSIMD).map(|i| {
         let i = i + 1;
@@ -193,7 +193,7 @@ pub fn get_nosimd_source() -> TokenStream {
         ///
         /// # Examples
         /// ```
-        /// # use rsonpath::bytes::sequences::find_byte_sequence;
+        /// # use simd_benchmarks::sequences::find_byte_sequence;
         /// let bytes = "abcdefgh".as_bytes();
         /// let result = find_byte_sequence("de".as_bytes(), bytes);
         ///
@@ -201,7 +201,7 @@ pub fn get_nosimd_source() -> TokenStream {
         /// ```
         ///
         /// ```
-        /// # use rsonpath::bytes::sequences::find_byte_sequence;
+        /// # use simd_benchmarks::sequences::find_byte_sequence;
         /// let bytes = "abcdefgh".as_bytes();
         /// let result = find_byte_sequence("ed".as_bytes(), bytes);
         ///
@@ -232,7 +232,7 @@ pub fn get_nosimd_source() -> TokenStream {
         ///
         /// # Examples
         /// ```
-        /// # use rsonpath::bytes::sequences::find_any_of_sequences;
+        /// # use simd_benchmarks::sequences::find_any_of_sequences;
         /// let bytes = "abcdefgh".as_bytes();
         /// let sequences = ["fg".as_bytes(), "de".as_bytes()];
         /// let result = find_any_of_sequences(&sequences, bytes);
@@ -240,7 +240,7 @@ pub fn get_nosimd_source() -> TokenStream {
         /// assert_eq!(result, Some((3, 1)));
         /// ```
         /// ```
-        /// # use rsonpath::bytes::sequences::find_any_of_sequences;
+        /// # use simd_benchmarks::sequences::find_any_of_sequences;
         /// let bytes = "abcdefgh".as_bytes();
         /// let sequences = ["fg".as_bytes(), "ed".as_bytes()];
         /// let result = find_any_of_sequences(&sequences, bytes);
@@ -248,7 +248,7 @@ pub fn get_nosimd_source() -> TokenStream {
         /// assert_eq!(result, Some((5, 0)));
         /// ```
         /// ```
-        /// # use rsonpath::bytes::sequences::find_any_of_sequences;
+        /// # use simd_benchmarks::sequences::find_any_of_sequences;
         /// let bytes = "abcdefgh".as_bytes();
         /// let sequences = ["gf".as_bytes(), "ed".as_bytes()];
         /// let result = find_any_of_sequences(&sequences, bytes);

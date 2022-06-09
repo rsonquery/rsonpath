@@ -1,16 +1,14 @@
 use super::*;
-use aligners::{alignment, AlignedSlice};
 use len_trait::Empty;
 
-pub struct SequentialClassifier<'a> {
+pub(crate) struct SequentialClassifier<'a> {
     bytes: &'a [u8],
     idx: usize,
 }
 
 impl<'a> SequentialClassifier<'a> {
     #[inline(always)]
-    #[allow(dead_code)]
-    pub fn new(bytes: &'a [u8]) -> Self {
+    pub(crate) fn new(bytes: &'a [u8]) -> Self {
         Self { bytes, idx: 0 }
     }
 }

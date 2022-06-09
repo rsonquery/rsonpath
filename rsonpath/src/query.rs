@@ -11,23 +11,19 @@
 //! let query = JsonPathQuery::parse(query_string)?;
 //!
 //! // Query structure is a linear sequence of nodes:
-//! // Root '$', descendant '..', label 'person', descendant '..', label 'phoneNumber'.
+//! // Root '$', descendant '..person', descendant '..phoneNumber'.
 //! let root_node = query.root();
 //! let descendant_node1 = root_node.child().unwrap();
-//! let label_node1 = descendant_node1.child().unwrap();
-//! let descendant_node2 = label_node1.child().unwrap();
-//! let label_node2 = descendant_node2.child().unwrap();
+//! let descendant_node2 = descendant_node1.child().unwrap();
 //!
 //! assert!(root_node.is_root());
 //! assert!(descendant_node1.is_descendant());
-//! assert!(label_node1.is_label());
 //! assert!(descendant_node2.is_descendant());
-//! assert!(label_node2.is_label());
 //! // Final node will have a None child.
-//! assert!(label_node2.child().is_none());
+//! assert!(descendant_node2.child().is_none());
 //!
-//! assert_eq!(label_node1.label().unwrap(), "person".as_bytes());
-//! assert_eq!(label_node2.label().unwrap(), "phoneNumber".as_bytes());
+//! assert_eq!(descendant_node1.label().unwrap(), "person".as_bytes());
+//! assert_eq!(descendant_node2.label().unwrap(), "phoneNumber".as_bytes());
 //! # Ok(())
 //! # }
 //! ```
@@ -61,7 +57,7 @@ cfg_if! {
 /// ```
 /// # use rsonpath::query::Label;
 ///
-/// let label = Label::new("needle".as_bytes());
+/// let label = Label::new("needle");
 ///
 /// assert_eq!(label.bytes(), "needle".as_bytes());
 /// assert_eq!(label.bytes_with_quotes(), "\"needle\"".as_bytes());

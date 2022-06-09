@@ -5,7 +5,7 @@
 //!
 //! # Examples
 //! ```rust
-//! use rsonpath::bytes::classify::{Structural, classify_structural_characters};
+//! use rsonpath::classify::{Structural, classify_structural_characters};
 //! use aligners::{alignment, AlignedBytes};
 //!
 //! let json = r#"{"x": [{"y": 42}, {}]}""#;
@@ -33,7 +33,7 @@
 //! assert_eq!(expected, actual);
 //! ```
 //! ```rust
-//! use rsonpath::bytes::classify::{Structural, classify_structural_characters};
+//! use rsonpath::classify::{Structural, classify_structural_characters};
 //! use aligners::{alignment, AlignedBytes};
 //!
 //! let json = r#"{"x": "[\"\"]"}""#;
@@ -84,7 +84,7 @@ impl Structural {
     ///
     /// # Examples
     /// ```rust
-    /// # use rsonpath::bytes::classify::{Structural};
+    /// # use rsonpath::classify::{Structural};
     ///
     /// let structural = Structural::Colon(42);
     /// let offset_structural = structural.offset(10);

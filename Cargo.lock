@@ -581,23 +581,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "paper-benchmarks"
-version = "0.1.0"
-dependencies = [
- "aligners",
- "cfg-if 1.0.0",
- "criterion",
- "decimal-byte-measurement",
- "md5",
- "memchr",
- "memmem",
- "proc-macro2",
- "rand",
- "simd-codegen",
- "test-case",
-]
-
-[[package]]
 name = "plotters"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -919,6 +902,23 @@ dependencies = [
  "itoa 0.4.8",
  "ryu",
  "serde",
+]
+
+[[package]]
+name = "simd-benchmarks"
+version = "0.1.0"
+dependencies = [
+ "aligners",
+ "cfg-if 1.0.0",
+ "criterion",
+ "decimal-byte-measurement",
+ "md5",
+ "memchr",
+ "memmem",
+ "proc-macro2",
+ "rand",
+ "simd-codegen",
+ "test-case",
 ]
 
 [[package]]
