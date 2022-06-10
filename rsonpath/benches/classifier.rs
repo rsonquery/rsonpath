@@ -1,4 +1,4 @@
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use decimal_byte_measurement::DecimalByteMeasurement;
 use rsonpath::classify::{self, Structural};
 use rsonpath::engine::Input;
@@ -17,23 +17,20 @@ fn get_contents(test_path: &str) -> Input {
 fn classifier_benches(c: &mut CriterionCtx, path: &str, id: &str) {
     let contents = get_contents(path);
 
-    let required_capacity =
-        classify::classify_structural_characters(contents.as_ref().relax_alignment()).count();
-
     let mut group = c.benchmark_group(id);
     group.throughput(criterion::Throughput::Bytes(contents.len() as u64));
 
     group.bench_function("classifier", |b| {
         b.iter_batched(
             || {
-                let container: Vec<Structural> = Vec::with_capacity(required_capacity);
                 let iter =
                     classify::classify_structural_characters(contents.as_ref().relax_alignment());
-                (container, iter)
+                iter
             },
-            |(mut container, iter)| {
-                assert!(container.is_empty());
-                container.extend(iter)
+            |iter| {
+                for elem in iter {
+                    black_box(elem);
+                }
             },
             criterion::BatchSize::SmallInput,
         )
