@@ -29,6 +29,7 @@ pub(crate) fn parse_json_path_query(query_string: &str) -> Result<JsonPathQuery>
     let finished = tokens_result.finish();
 
     match finished {
+        #[allow(unused_variables)]
         Ok(("", (root_token, tokens))) => {
             debug!(
                 "Parsed tokens: {}",

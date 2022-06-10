@@ -41,3 +41,7 @@ simd = []
 [[bench]]
 name = "rsonpath_stack_based_vs_stackless"
 harness = false
+
+[[bench]]
+name = "classifier"
+harness = false

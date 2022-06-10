@@ -231,7 +231,7 @@ impl BlockAvx2Classifier {
 
         let within_quotes = _mm_cvtsi128_si64(cumulative_xor) as u64;
         self.update_prev_block_mask(
-            slashes & !ends_of_even_starts & !ends_of_odd_starts,
+            slashes & !(ends_of_even_starts | ends_of_odd_starts),
             within_quotes,
         );
 
