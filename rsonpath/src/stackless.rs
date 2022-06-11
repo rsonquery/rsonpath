@@ -10,7 +10,7 @@
 
 use crate::classify::{classify_structural_characters, Structural};
 use crate::debug;
-use crate::engine::result::CountResult;
+use crate::engine::result::QueryResult;
 use crate::engine::{Input, Runner};
 use crate::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label};
 use aligners::{alignment, AlignedBytes};
@@ -43,14 +43,15 @@ impl StacklessRunner<'_> {
 }
 
 impl Runner for StacklessRunner<'_> {
-    fn count(&self, input: &Input) -> CountResult {
+    fn run<R: QueryResult>(&self, input: &Input) -> R {
         if self.labels.is_empty() {
             return empty_query(input);
         }
 
-        let count = descendant_only_automaton(&self.labels, input).run();
+        let mut result = R::default();
+        descendant_only_automaton(&self.labels, input, &mut result).run();
 
-        CountResult { count }
+        result
     }
 }
 
@@ -85,13 +86,15 @@ fn query_to_labels(query: &JsonPathQuery) -> Vec<SeekLabel> {
     result
 }
 
-fn empty_query(bytes: &AlignedBytes<alignment::Page>) -> CountResult {
+fn empty_query<R: QueryResult>(bytes: &AlignedBytes<alignment::Page>) -> R {
     let mut block_event_source = classify_structural_characters(bytes.relax_alignment());
+    let mut result = R::default();
 
-    match block_event_source.next() {
-        Some(Structural::Opening(_)) => CountResult { count: 1 },
-        _ => CountResult { count: 0 },
+    if let Some(Structural::Opening(idx)) = block_event_source.next() {
+        result.report(idx);
     }
+
+    result
 }
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -136,21 +139,22 @@ impl SmallStack {
     }
 }
 
-struct Automaton<'q, 'b> {
+struct Automaton<'q, 'b, 'r, R: QueryResult> {
     depth: u8,
     recursive_state: Option<u8>,
     direct_states: SmallVec<[u8; 2]>,
     last_state: u8,
-    count: usize,
     stack: SmallStack,
     labels: &'q [SeekLabel<'q>],
     bytes: &'b AlignedBytes<alignment::Page>,
+    result: &'r mut R,
 }
 
-fn descendant_only_automaton<'q, 'b>(
+fn descendant_only_automaton<'q, 'b, 'r, R: QueryResult>(
     labels: &'q [SeekLabel<'q>],
     bytes: &'b AlignedBytes<alignment::Page>,
-) -> Automaton<'q, 'b> {
+    result: &'r mut R,
+) -> Automaton<'q, 'b, 'r, R> {
     let first_label = labels[0];
     let recursive_state = if first_label.0 == Seek::Recursive {
         Some(0)
@@ -168,15 +172,15 @@ fn descendant_only_automaton<'q, 'b>(
         recursive_state,
         direct_states,
         last_state: (labels.len() - 1) as u8,
-        count: 0,
         stack: SmallStack::new(),
         labels,
         bytes,
+        result,
     }
 }
 
-impl<'q, 'b> Automaton<'q, 'b> {
-    fn run(mut self) -> usize {
+impl<'q, 'b, 'r, R: QueryResult> Automaton<'q, 'b, 'r, R> {
+    fn run(mut self) {
         let mut block_event_source =
             classify_structural_characters(self.bytes.relax_alignment()).peekable();
         let mut skip_push_on_opening = false;
@@ -188,7 +192,6 @@ impl<'q, 'b> Automaton<'q, 'b> {
             debug!("Stack = {:?}", self.stack);
             debug!("Direct = {:?}", self.direct_states);
             debug!("Recursive = {:?}", self.recursive_state);
-            debug!("Count = {:?}", self.count);
             debug!("====================");
 
             let next_event = block_event_source.peek();
@@ -238,7 +241,7 @@ impl<'q, 'b> Automaton<'q, 'b> {
                                 && self.is_match(idx, label)
                             {
                                 if recursive_state == self.last_state {
-                                    self.count += 1;
+                                    self.result.report(idx);
                                 } else {
                                     let next_state = self.labels[(recursive_state + 1) as usize];
 
@@ -267,7 +270,6 @@ impl<'q, 'b> Automaton<'q, 'b> {
                 }
             }
         }
-        self.count
     }
 
     fn expand_direct_states(&mut self, idx: usize, is_next_opening: bool) -> Option<usize> {
@@ -279,7 +281,7 @@ impl<'q, 'b> Automaton<'q, 'b> {
             if (is_next_opening || direct_state == self.last_state) && self.is_match(idx, label) {
                 debug!("Match for state {}", direct_state);
                 if direct_state == self.last_state {
-                    self.count += 1;
+                    self.result.report(idx);
                 } else {
                     let next_state = self.labels[(direct_state + 1) as usize];
 

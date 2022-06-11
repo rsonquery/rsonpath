@@ -12,7 +12,8 @@ use aligners::{
 };
 use cfg_if::cfg_if;
 use len_trait::Len;
-use result::CountResult;
+
+use self::result::QueryResult;
 
 /// Input into a query engine.
 pub struct Input {
@@ -64,6 +65,6 @@ impl Input {
 
 /// Trait for an engine that can run its query on a given input.
 pub trait Runner {
-    /// Count the number of values satisfying the query on given [`Input`].
-    fn count(&self, input: &Input) -> CountResult;
+    /// Compute the [`QueryResult`] on given [`Input`].
+    fn run<R: QueryResult>(&self, input: &Input) -> R;
 }

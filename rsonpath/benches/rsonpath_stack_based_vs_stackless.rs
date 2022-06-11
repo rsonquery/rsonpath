@@ -1,6 +1,7 @@
 use core::time::Duration;
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use decimal_byte_measurement::DecimalByteMeasurement;
+use rsonpath::engine::result::CountResult;
 use rsonpath::engine::{Input, Runner};
 use rsonpath::query::JsonPathQuery;
 use rsonpath::stack_based::StackBasedRunner;
@@ -40,12 +41,12 @@ fn rsonpath_stack_based_vs_stackless(c: &mut CriterionCtx, options: BenchmarkOpt
     group.bench_with_input(
         BenchmarkId::new("stackless", options.id),
         &contents,
-        |b, c| b.iter(|| stackless.count(c)),
+        |b, c| b.iter(|| stackless.run::<CountResult>(c)),
     );
     group.bench_with_input(
         BenchmarkId::new("stack-based", options.id),
         &contents,
-        |b, c| b.iter(|| stack_based.count(c)),
+        |b, c| b.iter(|| stack_based.run::<CountResult>(c)),
     );
 
     group.finish();

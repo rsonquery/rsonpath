@@ -2,7 +2,8 @@
 
 use crate::classify::{classify_structural_characters, Structural, StructuralIterator};
 use crate::debug;
-use crate::engine::{result, Input, Runner};
+use crate::engine::result::QueryResult;
+use crate::engine::{Input, Runner};
 use crate::query::{JsonPathQuery, JsonPathQueryNode, Label};
 use aligners::{alignment, AlignedSlice};
 use smallvec::{smallvec, SmallVec};
@@ -19,7 +20,7 @@ use std::rc::{Rc, Weak};
  *  label to match,
  *  list of states on match,
  *  list of states on mismatch
- * ).
+ * ).ww
  * The automaton state is now a list of all pattern matches that we're looking for. The transition tells us
  * with what states to go to from the current state if it's matched and what states to go to if it's not.
  *
@@ -240,55 +241,56 @@ impl<'q> StackBasedRunner<'q> {
 }
 
 impl Runner for StackBasedRunner<'_> {
-    fn count(&self, input: &Input) -> result::CountResult {
+    fn run<R: QueryResult>(&self, input: &Input) -> R {
         let aligned_bytes: &AlignedSlice<alignment::Page> = input;
         let classifier = classify_structural_characters(aligned_bytes.relax_alignment());
-        let mut execution_ctx = ExecutionContext::new(classifier, input);
+        let mut result = R::default();
+        let mut execution_ctx = ExecutionContext::new(classifier, input, &mut result);
         execution_ctx.run(&self.initial_state);
-        result::CountResult {
-            count: execution_ctx.count,
-        }
+        result
     }
 }
 
-struct ExecutionContext<'b, I>
+struct ExecutionContext<'b, 'r, I, R>
 where
     I: StructuralIterator<'b>,
+    R: QueryResult,
 {
     classifier: Peekable<I>,
-    count: usize,
     bytes: &'b [u8],
     #[cfg(debug_assertions)]
     depth: usize,
+    result: &'r mut R,
 }
 
-impl<'b, I> ExecutionContext<'b, I>
+impl<'b, 'r, I, R> ExecutionContext<'b, 'r, I, R>
 where
     I: StructuralIterator<'b>,
+    R: QueryResult,
 {
     #[cfg(debug_assertions)]
-    pub(crate) fn new(classifier: I, bytes: &'b [u8]) -> Self {
+    pub(crate) fn new(classifier: I, bytes: &'b [u8], result: &'r mut R) -> Self {
         Self {
             classifier: classifier.peekable(),
-            count: 0,
             bytes,
             depth: 0,
+            result,
         }
     }
 
     #[cfg(not(debug_assertions))]
-    pub(crate) fn new(classifier: I, bytes: &'b [u8]) -> Self {
+    pub(crate) fn new(classifier: I, bytes: &'b [u8], result: &'r mut R) -> Self {
         Self {
             classifier: classifier.peekable(),
-            count: 0,
             bytes,
+            result,
         }
     }
 
     pub(crate) fn run(&mut self, state: &State) {
-        if let Some(Structural::Opening(_)) = self.classifier.next() {
+        if let Some(Structural::Opening(idx)) = self.classifier.next() {
             match state {
-                State::Accepting => self.count += 1,
+                State::Accepting => self.result.report(idx),
                 State::Internal(state) => {
                     self.increase_depth();
                     let state_rc = state.upgrade().unwrap();
@@ -416,7 +418,7 @@ where
             match &state.transition_on_match {
                 State::Accepting => {
                     debug!("[{}] Accept.", self.depth,);
-                    self.count += 1;
+                    self.result.report(colon_idx);
                     None
                 }
                 State::Internal(next_state) => {

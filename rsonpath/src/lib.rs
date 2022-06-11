@@ -5,7 +5,7 @@
 //!
 //! # Examples
 //! ```rust
-//! use rsonpath::engine::{Input, Runner};
+//! use rsonpath::engine::{Input, Runner, result::CountResult};
 //! use rsonpath::query::JsonPathQuery;
 //! use rsonpath::stackless::StacklessRunner;
 //! # use std::error::Error;
@@ -38,7 +38,7 @@
 //! // Compile the query. The runner can be reused to run the same query on different contents.
 //! let runner = StacklessRunner::compile_query(&query);
 //! // Count the number of occurrences of elements satisfying the query.
-//! let count = runner.count(&input).count;
+//! let count = runner.run::<CountResult>(&input).get();
 //!
 //! assert_eq!(2, count);
 //! # Ok(())

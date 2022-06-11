@@ -25,6 +25,7 @@
         "memchr",
         "movemask",
         "nonescaped",
+        "nonexistent",
         "nonquoted",
         "nosimd",
         "owo_colors",
@@ -46,7 +47,7 @@
         "vectorially",
         "WHITESPACES"
     ],
-    "cSpell.language": "en-GB",
+    "cSpell.language": "en-US",
     "lldb.displayFormat": "auto",
     "lldb.showDisassembly": "never",
     "lldb.dereferencePointers": true,

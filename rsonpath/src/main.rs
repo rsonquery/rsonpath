@@ -1,6 +1,7 @@
 use clap::{ArgEnum, Parser};
 use color_eyre::eyre::{eyre, Result, WrapErr};
 use log::*;
+use rsonpath::engine::result::CountResult;
 use rsonpath::engine::{Input, Runner};
 use rsonpath::query::JsonPathQuery;
 use rsonpath::stack_based::StackBasedRunner;
@@ -24,36 +25,36 @@ fn main() -> Result<()> {
             let stackless_runner = StacklessRunner::compile_query(&query);
             info!("Compilation finished, running...");
 
-            let stackless_count = stackless_runner.count(&input);
-            info!("Stackless count: {}", stackless_count.count);
+            let stackless_count = stackless_runner.run::<CountResult>(&input);
+            info!("Stackless count: {}", stackless_count.get());
 
-            println!("{}", stackless_count.count);
+            println!("{}", stackless_count.get());
         }
         EngineArg::Recursive => {
             let stack_based_runner = StackBasedRunner::compile_query(&query);
             info!("Compilation finished, running...");
 
-            let stack_based_count = stack_based_runner.count(&input);
-            info!("Stack based count: {}", stack_based_count.count);
+            let stack_based_count = stack_based_runner.run::<CountResult>(&input);
+            info!("Stack based count: {}", stack_based_count.get());
 
-            println!("{}", stack_based_count.count);
+            println!("{}", stack_based_count.get());
         }
         EngineArg::VerifyBoth => {
             let stackless_runner = StacklessRunner::compile_query(&query);
             let stack_based_runner = StackBasedRunner::compile_query(&query);
             info!("Compilation finished, running...");
 
-            let stackless_count = stackless_runner.count(&input);
-            info!("Stackless count: {}", stackless_count.count);
+            let stackless_count = stackless_runner.run::<CountResult>(&input);
+            info!("Stackless count: {}", stackless_count.get());
 
-            let stack_based_count = stack_based_runner.count(&input);
-            info!("Stack based count: {}", stack_based_count.count);
+            let stack_based_count = stack_based_runner.run::<CountResult>(&input);
+            info!("Stack based count: {}", stack_based_count.get());
 
-            if stack_based_count.count != stackless_count.count {
+            if stack_based_count.get() != stackless_count.get() {
                 return Err(eyre!("Count mismatch!"));
             }
 
-            println!("{}", stack_based_count.count);
+            println!("{}", stack_based_count.get());
         }
     }
 
@@ -83,7 +84,7 @@ struct Args {
 
 #[derive(ArgEnum, Debug, Clone, Copy, PartialEq, Eq)]
 enum EngineArg {
-    /// Main SIMD-optimised iterative engine.
+    /// Main SIMD-optimized iterative engine.
     Main,
     /// Alternative recursive engine.
     Recursive,
