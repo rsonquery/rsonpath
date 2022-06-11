@@ -1,7 +1,7 @@
 use clap::{ArgEnum, Parser};
 use color_eyre::eyre::{eyre, Result, WrapErr};
 use log::*;
-use rsonpath::engine::result::CountResult;
+use rsonpath::engine::result::{CountResult, IndexResult, QueryResult};
 use rsonpath::engine::{Input, Runner};
 use rsonpath::query::JsonPathQuery;
 use rsonpath::stack_based::StackBasedRunner;
@@ -20,41 +20,48 @@ fn main() -> Result<()> {
     let contents = get_contents(args.file_path.as_deref())?;
     let input = Input::new(contents);
 
-    match args.engine {
+    match args.result {
+        ResultArg::Bytes => run::<IndexResult>(&query, &input, args.engine),
+        ResultArg::Count => run::<CountResult>(&query, &input, args.engine),
+    }
+}
+
+fn run<R: QueryResult>(query: &JsonPathQuery, input: &Input, engine: EngineArg) -> Result<()> {
+    match engine {
         EngineArg::Main => {
-            let stackless_runner = StacklessRunner::compile_query(&query);
+            let stackless_runner = StacklessRunner::compile_query(query);
             info!("Compilation finished, running...");
 
-            let stackless_count = stackless_runner.run::<CountResult>(&input);
-            info!("Stackless count: {}", stackless_count.get());
+            let stackless_result = stackless_runner.run::<R>(input);
+            info!("Stackless: {}", stackless_result);
 
-            println!("{}", stackless_count.get());
+            println!("{}", stackless_result);
         }
         EngineArg::Recursive => {
-            let stack_based_runner = StackBasedRunner::compile_query(&query);
+            let stack_based_runner = StackBasedRunner::compile_query(query);
             info!("Compilation finished, running...");
 
-            let stack_based_count = stack_based_runner.run::<CountResult>(&input);
-            info!("Stack based count: {}", stack_based_count.get());
+            let stack_based_result = stack_based_runner.run::<R>(input);
+            info!("Stack based: {}", stack_based_result);
 
-            println!("{}", stack_based_count.get());
+            println!("{}", stack_based_result);
         }
         EngineArg::VerifyBoth => {
-            let stackless_runner = StacklessRunner::compile_query(&query);
-            let stack_based_runner = StackBasedRunner::compile_query(&query);
+            let stackless_runner = StacklessRunner::compile_query(query);
+            let stack_based_runner = StackBasedRunner::compile_query(query);
             info!("Compilation finished, running...");
 
-            let stackless_count = stackless_runner.run::<CountResult>(&input);
-            info!("Stackless count: {}", stackless_count.get());
+            let stackless_result = stackless_runner.run::<R>(input);
+            info!("Stackless: {}", stackless_result);
 
-            let stack_based_count = stack_based_runner.run::<CountResult>(&input);
-            info!("Stack based count: {}", stack_based_count.get());
+            let stack_based_result = stack_based_runner.run::<R>(input);
+            info!("Stack based: {}", stack_based_result);
 
-            if stack_based_count.get() != stackless_count.get() {
-                return Err(eyre!("Count mismatch!"));
+            if stack_based_result != stackless_result {
+                return Err(eyre!("Result mismatch!"));
             }
 
-            println!("{}", stack_based_count.get());
+            println!("{}", stack_based_result);
         }
     }
 
@@ -80,6 +87,9 @@ struct Args {
     /// Engine to use for evaluating the query.
     #[clap(short, long, arg_enum, default_value_t = EngineArg::Main)]
     engine: EngineArg,
+    ///
+    #[clap(short, long, arg_enum, default_value_t = ResultArg::Bytes)]
+    result: ResultArg,
 }
 
 #[derive(ArgEnum, Debug, Clone, Copy, PartialEq, Eq)]
@@ -94,12 +104,20 @@ enum EngineArg {
     VerifyBoth,
 }
 
+#[derive(ArgEnum, Debug, Clone, Copy, PartialEq, Eq)]
+enum ResultArg {
+    /// Return a list of all bytes at which a match occurred.
+    Bytes,
+    /// Return only the number of matches.
+    Count,
+}
+
 fn configure_logger(verbose: bool) -> Result<()> {
     SimpleLogger::new()
         .with_level(if verbose {
             LevelFilter::Debug
         } else {
-            LevelFilter::Info
+            LevelFilter::Warn
         })
         .init()
         .wrap_err("Logger configuration error.")

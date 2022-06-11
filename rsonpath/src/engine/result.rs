@@ -3,7 +3,7 @@
 use std::fmt::{self, Display};
 
 /// Result that can be reported during query execution.
-pub trait QueryResult: Default {
+pub trait QueryResult: Default + Display + PartialEq {
     /// Report a match of the query.
     fn report(&mut self, index: usize);
 }
