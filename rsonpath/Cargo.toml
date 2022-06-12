@@ -33,13 +33,18 @@ criterion = "0.3.5"
 decimal-byte-measurement = { path = "../decimal-byte-measurement" }
 proptest = "1.0.0"
 test-case = "2.1.0"
+itertools = "0.10.3"
 
 [features]
 default = ["simd"]
 simd = []
 
 [[bench]]
-name = "rsonpath_stack_based_vs_stackless"
+name = "rsonpath_wikidata"
+harness = false
+
+[[bench]]
+name = "rsonpath_benchset"
 harness = false
 
 [[bench]]

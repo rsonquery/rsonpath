@@ -48,6 +48,14 @@
 			"vectorially",
 			"WHITESPACES"
 		],
-		"cSpell.language": "en-US"
+		"cSpell.language": "en-US",
+		"lldb.displayFormat": "auto",
+		"lldb.showDisassembly": "never",
+		"lldb.dereferencePointers": true,
+		"lldb.consoleMode": "commands",
+		"rust-analyzer.cargo.features": [
+			"simd"
+		],
+		"rust-analyzer.cargo.noDefaultFeatures": true
 	}
 }

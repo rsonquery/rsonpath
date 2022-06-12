@@ -42,7 +42,3 @@ harness = false
 [[bench]]
 name = "depth_benches"
 harness = false
-
-[[bench]]
-name = "find_any_of_sequences_benches"
-harness = false
