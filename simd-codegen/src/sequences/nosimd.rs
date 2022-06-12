@@ -3,7 +3,7 @@
 use proc_macro2::TokenStream;
 use quote::quote;
 
-const MAX_SEQUENCE_LENGTH_FOR_NOSIMD: usize = 64;
+const MAX_SEQUENCE_LENGTH_FOR_NOSIMD: usize = 32;
 
 /// Get the source for the `simd_benchmarks::sequences::nosimd` module.
 pub fn get_nosimd_source() -> TokenStream {
