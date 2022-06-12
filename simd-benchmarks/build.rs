@@ -29,10 +29,6 @@ fn main() -> Result<(), Box<dyn Error>> {
                 file_name: "bytes/sequences/avx2.rs",
             },
             CodegenFile {
-                source_token_stream: simd_codegen::sequences::avx512::get_avx512_source(),
-                file_name: "bytes/sequences/avx512.rs",
-            },
-            CodegenFile {
                 source_token_stream: simd_codegen::sequences::nosimd::get_nosimd_source(),
                 file_name: "bytes/sequences/nosimd.rs",
             },

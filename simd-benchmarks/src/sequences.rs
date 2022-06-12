@@ -35,8 +35,6 @@ mod tests {
             let size1 = nosimd::find_byte_sequence(sequence, &aligned);
             let size128 = sse2::find_byte_sequence(sequence, &aligned.relax_alignment());
             let size256 = avx2::find_byte_sequence(sequence, &aligned.relax_alignment());
-            #[cfg(feature = "avx512")]
-            let size512 = avx512::find_byte_sequence(sequence, &aligned);
 
             assert_eq!(Some(0), size1, "size1 failed for sequence of length{}", i);
             assert_eq!(
@@ -49,13 +47,6 @@ mod tests {
                 Some(0),
                 size256,
                 "size256 failed for sequence of length{}",
-                i
-            );
-            #[cfg(feature = "avx512")]
-            assert_eq!(
-                Some(0),
-                size512,
-                "size512 failed for sequence of length{}",
                 i
             );
         }
@@ -79,14 +70,6 @@ mod tests {
     fn avx2_find_byte_sequence_when_sequence_is_empty_panics() {
         let aligned: AlignedBytes<TwoTo<5>> = (&[1, 2, 3, 4, 5, 6, 7, 8]).into();
         avx2::find_byte_sequence(&[], &aligned);
-    }
-
-    #[test]
-    #[should_panic]
-    #[cfg(feature = "avx512")]
-    fn avx512_find_byte_sequence_when_sequence_is_empty_panics() {
-        let aligned: AlignedBytes<TwoTo<6>> = (&[1, 2, 3, 4, 5, 6, 7, 8]).into();
-        avx512::find_byte_sequence(&[], &aligned);
     }
 
     struct TestByteStreamParameters<'a> {
@@ -131,8 +114,6 @@ mod tests {
                 let size1 = nosimd::find_byte_sequence(sequence, &aligned);
                 let size128 = sse2::find_byte_sequence(sequence, &aligned.relax_alignment());
                 let size256 = avx2::find_byte_sequence(sequence, &aligned.relax_alignment());
-                #[cfg(feature = "avx512")]
-                let size512 = avx512::find_byte_sequence(sequence, &aligned);
 
                 assert_eq!(
                     expected, size1,
@@ -147,12 +128,6 @@ mod tests {
                 assert_eq!(
                     expected, size256,
                     "size256 failed for sequence of length {} with starting_index {}",
-                    sequence_length, starting_index
-                );
-                #[cfg(feature = "avx512")]
-                assert_eq!(
-                    expected, size512,
-                    "size512 failed for sequence of length {} with starting_index {}",
                     sequence_length, starting_index
                 );
             }
@@ -176,8 +151,6 @@ mod tests {
             let size1 = nosimd::find_byte_sequence(sequence, &aligned);
             let size128 = sse2::find_byte_sequence(sequence, &aligned.relax_alignment());
             let size256 = avx2::find_byte_sequence(sequence, &aligned.relax_alignment());
-            #[cfg(feature = "avx512")]
-            let size512 = avx512::find_byte_sequence(sequence, &aligned);
 
             assert_eq!(
                 Some(expected),
@@ -195,13 +168,6 @@ mod tests {
                 Some(expected),
                 size256,
                 "size256 failed for sequence of length {}",
-                sequence_length
-            );
-            #[cfg(feature = "avx512")]
-            assert_eq!(
-                Some(expected),
-                size512,
-                "size512 failed for sequence of length {}",
                 sequence_length
             );
         }
@@ -228,8 +194,6 @@ mod tests {
             let size1 = nosimd::find_byte_sequence(sequence.as_bytes(), &aligned);
             let size128 = sse2::find_byte_sequence(sequence.as_bytes(), &aligned.relax_alignment());
             let size256 = avx2::find_byte_sequence(sequence.as_bytes(), &aligned.relax_alignment());
-            #[cfg(feature = "avx512")]
-            let size512 = avx2::find_byte_sequence(sequence.as_bytes(), &aligned);
 
             assert_eq!(
                 expected, size1,
@@ -244,12 +208,6 @@ mod tests {
             assert_eq!(
                 expected, size256,
                 "size256 failed for sequence of length {}",
-                sequence_length
-            );
-            #[cfg(feature = "avx512")]
-            assert_eq!(
-                expected, size512,
-                "size512 failed for sequence of length {}",
                 sequence_length
             );
         }

@@ -36,7 +36,7 @@ name = "find_byte"
 harness = false
 
 [[bench]]
-name = "find_byte_sequence_benches"
+name = "find_byte_sequence"
 harness = false
 
 [[bench]]
