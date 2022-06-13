@@ -3,11 +3,14 @@ use aligners::{
     AlignedBytes, AlignedSlice,
 };
 use core::time::Duration;
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use decimal_byte_measurement::DecimalByteMeasurement;
 use simd_benchmarks::depth::{self, DepthBlock};
 use std::fs;
 
 const ROOT_TEST_DIRECTORY: &str = "../rsonpath/data";
+
+type CriterionCtx = Criterion<DecimalByteMeasurement>;
 
 fn get_contents(test_path: &str) -> String {
     let path = format!("{}/{}", ROOT_TEST_DIRECTORY, test_path);
@@ -49,12 +52,13 @@ fn do_bench<
     count
 }
 
-fn wikidata_combined(c: &mut Criterion) {
+fn wikidata_combined(c: &mut CriterionCtx) {
     let mut group = c.benchmark_group("wikidata_combined");
-    group.measurement_time(Duration::from_secs(30));
 
     let contents = get_contents("wikidata_compressed/wikidata_combined.json");
     let bytes: AlignedBytes<TwoTo<6>> = contents.as_bytes().into();
+    group.measurement_time(Duration::from_secs(30));
+    group.throughput(Throughput::Bytes(bytes.len() as u64));
 
     group.bench_with_input(
         BenchmarkId::new("nosimd", "wikidata_combined"),
@@ -96,8 +100,12 @@ fn wikidata_combined(c: &mut Criterion) {
     group.finish();
 }
 
+fn decimal_byte_measurement() -> CriterionCtx {
+    Criterion::default().with_measurement(DecimalByteMeasurement::new())
+}
+
 criterion_group!(
     name = benches;
-    config = Criterion::default();
+    config = decimal_byte_measurement();
     targets = wikidata_combined);
 criterion_main!(benches);
