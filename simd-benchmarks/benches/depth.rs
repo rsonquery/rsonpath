@@ -89,7 +89,7 @@ fn wikidata_combined(c: &mut Criterion) {
     );
     #[cfg(feature = "avx512")]
     group.bench_with_input(
-        BenchmarkId::new("avx2_lazy", "wikidata_combined"),
+        BenchmarkId::new("avx512_lazy", "wikidata_combined"),
         &(5, &bytes),
         |b, &(d, c)| b.iter(|| do_bench(c, d, depth::avx512::LazyVector::new)),
     );
