@@ -27,7 +27,7 @@ fn setup_string() -> String {
     contents
 }
 
-fn bench_find_byte_sequenceN(c: &mut CriterionCtx, n: usize, measurement_time: Duration) {
+fn bench_find_byte_sequence_n(c: &mut CriterionCtx, n: usize, measurement_time: Duration) {
     let mut group = c.benchmark_group(format!("find_byte_sequence{}_bench", n));
     let contents = setup_string();
     group.throughput(Throughput::Bytes(contents.len() as u64));
@@ -67,39 +67,39 @@ fn bench_find_byte_sequenceN(c: &mut CriterionCtx, n: usize, measurement_time: D
 }
 
 pub fn bench_find_byte_sequence2(c: &mut CriterionCtx) {
-    bench_find_byte_sequenceN(c, 2, Duration::from_secs(15))
+    bench_find_byte_sequence_n(c, 2, Duration::from_secs(15))
 }
 
 pub fn bench_find_byte_sequence3(c: &mut CriterionCtx) {
-    bench_find_byte_sequenceN(c, 3, Duration::from_secs(20))
+    bench_find_byte_sequence_n(c, 3, Duration::from_secs(20))
 }
 
 pub fn bench_find_byte_sequence4(c: &mut CriterionCtx) {
-    bench_find_byte_sequenceN(c, 4, Duration::from_secs(25))
+    bench_find_byte_sequence_n(c, 4, Duration::from_secs(25))
 }
 
 pub fn bench_find_byte_sequence8(c: &mut CriterionCtx) {
-    bench_find_byte_sequenceN(c, 8, Duration::from_secs(30))
+    bench_find_byte_sequence_n(c, 8, Duration::from_secs(30))
 }
 
 pub fn bench_find_byte_sequence15(c: &mut CriterionCtx) {
-    bench_find_byte_sequenceN(c, 15, Duration::from_secs(55))
+    bench_find_byte_sequence_n(c, 15, Duration::from_secs(55))
 }
 
 pub fn bench_find_byte_sequence16(c: &mut CriterionCtx) {
-    bench_find_byte_sequenceN(c, 16, Duration::from_secs(55))
+    bench_find_byte_sequence_n(c, 16, Duration::from_secs(55))
 }
 
 pub fn bench_find_byte_sequence32(c: &mut CriterionCtx) {
-    bench_find_byte_sequenceN(c, 32, Duration::from_secs(90))
+    bench_find_byte_sequence_n(c, 32, Duration::from_secs(90))
 }
 
 pub fn bench_find_byte_sequence33(c: &mut CriterionCtx) {
-    bench_find_byte_sequenceN(c, 33, Duration::from_secs(90))
+    bench_find_byte_sequence_n(c, 33, Duration::from_secs(90))
 }
 
 pub fn bench_find_byte_sequence48(c: &mut CriterionCtx) {
-    bench_find_byte_sequenceN(c, 48, Duration::from_secs(90))
+    bench_find_byte_sequence_n(c, 48, Duration::from_secs(90))
 }
 
 fn decimal_byte_measurement() -> CriterionCtx {

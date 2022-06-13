@@ -33,8 +33,8 @@ mod tests {
             let sequence = &LONG_SEQUENCE[..i];
             let aligned: AlignedBytes<TwoTo<6>> = sequence.into();
             let size1 = nosimd::find_byte_sequence(sequence, &aligned);
-            let size128 = sse2::find_byte_sequence(sequence, &aligned.relax_alignment());
-            let size256 = avx2::find_byte_sequence(sequence, &aligned.relax_alignment());
+            let size128 = sse2::find_byte_sequence(sequence, aligned.relax_alignment());
+            let size256 = avx2::find_byte_sequence(sequence, aligned.relax_alignment());
 
             assert_eq!(Some(0), size1, "size1 failed for sequence of length{}", i);
             assert_eq!(
@@ -112,8 +112,8 @@ mod tests {
 
                 let expected = Some(starting_index);
                 let size1 = nosimd::find_byte_sequence(sequence, &aligned);
-                let size128 = sse2::find_byte_sequence(sequence, &aligned.relax_alignment());
-                let size256 = avx2::find_byte_sequence(sequence, &aligned.relax_alignment());
+                let size128 = sse2::find_byte_sequence(sequence, aligned.relax_alignment());
+                let size256 = avx2::find_byte_sequence(sequence, aligned.relax_alignment());
 
                 assert_eq!(
                     expected, size1,
@@ -149,8 +149,8 @@ mod tests {
             let aligned: AlignedBytes<TwoTo<6>> = bytes.into();
 
             let size1 = nosimd::find_byte_sequence(sequence, &aligned);
-            let size128 = sse2::find_byte_sequence(sequence, &aligned.relax_alignment());
-            let size256 = avx2::find_byte_sequence(sequence, &aligned.relax_alignment());
+            let size128 = sse2::find_byte_sequence(sequence, aligned.relax_alignment());
+            let size256 = avx2::find_byte_sequence(sequence, aligned.relax_alignment());
 
             assert_eq!(
                 Some(expected),
@@ -192,8 +192,8 @@ mod tests {
         for sequence_length in [2, 3, 4, 8, 15, 16, 32, 33, 48] {
             let sequence = &SEQUENCE[..sequence_length];
             let size1 = nosimd::find_byte_sequence(sequence.as_bytes(), &aligned);
-            let size128 = sse2::find_byte_sequence(sequence.as_bytes(), &aligned.relax_alignment());
-            let size256 = avx2::find_byte_sequence(sequence.as_bytes(), &aligned.relax_alignment());
+            let size128 = sse2::find_byte_sequence(sequence.as_bytes(), aligned.relax_alignment());
+            let size256 = avx2::find_byte_sequence(sequence.as_bytes(), aligned.relax_alignment());
 
             assert_eq!(
                 expected, size1,

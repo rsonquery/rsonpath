@@ -40,5 +40,5 @@ name = "find_byte_sequence"
 harness = false
 
 [[bench]]
-name = "depth_benches"
+name = "depth"
 harness = false

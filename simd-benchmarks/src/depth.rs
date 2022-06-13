@@ -1,27 +1,10 @@
 //! JSON depth calculations on byte streams.
 //!
-#![cfg_attr(
-    not(feature = "simd"),
-    doc = "There is only one sequential implementation, [`Vector`]. Other implementations are SIMD based and behind the default `simd` feature."
-)]
-#![cfg_attr(
-    all(
-        feature = "simd",
-        any(target_arch = "x86", target_arch = "x86_64"),
-        target_feature = "avx2",
-    ),
-    doc = "The recommended implementation of [`DepthBlock`] is [`LazyAvx2Vector`]"
-)]
-#![cfg_attr(
-    all(
-        feature = "simd",
-        any(target_arch = "x86", target_arch = "x86_64"),
-        target_feature = "avx2",
-    ),
-    doc = "which is optimized for the usual case where the depth does not change too sharply"
-)]
-#![cfg_attr(feature = "simd", doc = "within a single 32-byte block.")]
-use cfg_if::cfg_if;
+//! There is only one sequential implementation, [`nosimd::Vector`]. Other implementations are SIMD based.
+//! 
+//! The recommended implementation of [`DepthBlock`] is [`avx2::LazyAvx2Vector`]
+//! which is optimized for the usual case where the depth does not change too sharply.
+//! within a single 32-byte block.
 
 /// Common trait for structs that enrich a byte block with JSON depth information.
 #[allow(clippy::len_without_is_empty)]
@@ -77,47 +60,8 @@ pub trait DepthBlock<'a>: Sized {
     }
 }
 
-mod nosimd;
-pub use nosimd::*;
-
-cfg_if! {
-    if #[cfg(doc)] {
-        #[cfg_attr(docsrs, doc(cfg(all(
-            feature = "simd",
-            any(target_arch = "x86", target_arch = "x86_64"),
-            target_feature = "avx2",
-        ))))]
-        mod avx2;
-
-        #[cfg_attr(docsrs, doc(cfg(all(
-            feature = "simd",
-            any(target_arch = "x86", target_arch = "x86_64"),
-            target_feature = "avx2",
-        ))))]
-        #[doc(inline)]
-        pub use avx2::*;
-
-        /// Default [`DepthBlock`] implementation for `simd` disabled.
-        pub type DepthBlockImpl<'a> = Vector<'a>;
-    }
-    else if #[cfg(not(feature = "simd"))] {
-        /// Default [`DepthBlock`] implementation for `simd` disabled.
-        pub type DepthBlockImpl<'a> = Vector<'a>;
-    }
-    else if #[cfg(all(
-        any(target_arch = "x86", target_arch = "x86_64"),
-        target_feature = "avx2",
-    ))] {
-        mod avx2;
-        pub use avx2::*;
-        /// Default [`DepthBlock`] implementation for AVX2 SIMD.
-        pub type DepthBlockImpl = LazyAvx2Vector;
-    }
-    else {
-        compile_error!("Target architecture is not supported by SIMD features of this crate. Disable the default `simd` feature.");
-        unreachable!();
-    }
-}
+pub mod nosimd;
+pub mod avx2;
 
 #[cfg(test)]
 mod tests {
@@ -174,15 +118,9 @@ mod tests {
         assert_eq!(depths.len(), depths_idx);
     }
 
-    #[cfg_attr(
-        all(feature = "simd", target_feature = "avx2"),
-        test_case(Avx2Vector::new; "using simd::Avx2Vector::new"),
-        test_case(LazyAvx2Vector::new; "using simd::LazyAvx2Vector::new"),
-    )]
-    #[cfg_attr(
-        not(feature = "simd"),
-        test_case(Vector::new; "using nosimd::Vector::new")
-    )]
+    #[test_case(avx2::Avx2Vector::new; "using avx2::Avx2Vector::new")]
+    #[test_case(avx2::LazyAvx2Vector::new; "using avx2::LazyAvx2Vector::new")]
+    #[test_case(nosimd::Vector::new; "using nosimd::Vector::new")]
     fn is_depth_greater_or_equal_to_correctness_suite<
         'a,
         F: Fn(&'a [u8]) -> (D, &'a [u8]),
