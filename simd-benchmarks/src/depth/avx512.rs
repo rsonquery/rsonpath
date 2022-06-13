@@ -142,10 +142,10 @@ unsafe fn get_opening_and_closing_masks(bytes: &AlignedSlice<TwoTo<6>>) -> (u64,
     let opening_bracket_mask = _mm512_set1_epi8(b'[' as i8);
     let closing_brace_mask = _mm512_set1_epi8(b'}' as i8);
     let closing_bracket_mask = _mm512_set1_epi8(b']' as i8);
-    let opening_brace_cmp = _mm512_cmpeq_epi8(byte_vector, opening_brace_mask);
-    let opening_bracket_cmp = _mm512_cmpeq_epi8(byte_vector, opening_bracket_mask);
-    let closing_brace_cmp = _mm512_cmpeq_epi8(byte_vector, closing_brace_mask);
-    let closing_bracket_cmp = _mm512_cmpeq_epi8(byte_vector, closing_bracket_mask);
+    let opening_brace_cmp = _mm512_cmpeq_epi8_mask(byte_vector, opening_brace_mask);
+    let opening_bracket_cmp = _mm512_cmpeq_epi8_mask(byte_vector, opening_bracket_mask);
+    let closing_brace_cmp = _mm512_cmpeq_epi8_mask(byte_vector, closing_brace_mask);
+    let closing_bracket_cmp = _mm512_cmpeq_epi8_mask(byte_vector, closing_bracket_mask);
     let opening_cmp = opening_brace_cmp | opening_bracket_cmp;
     let closing_cmp = closing_brace_cmp | closing_bracket_cmp;
     (opening_cmp, closing_cmp)
