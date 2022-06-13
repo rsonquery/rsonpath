@@ -14,7 +14,7 @@ impl<'a> Vector<'a> {
     /// since this implementation works on the entire byte
     /// slice at once.
     #[inline]
-    pub fn new(bytes: &'a AlignedSlice<TwoTo<5>>) -> Self {
+    pub fn new(bytes: &'a [u8]) -> Self {
         let mut vector = Self {
             bytes,
             depth: 0,

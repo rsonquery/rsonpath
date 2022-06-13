@@ -6,24 +6,24 @@ use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 
-const BYTES_IN_AVX2_REGISTER: usize = 256 / 8;
+const BYTES_IN_SSE2_REGISTER: usize = 128 / 8;
 
-/// Works on a 32-byte slice, calculating the depth vectorially
+/// Works on a 16-byte slice, calculating the depth vectorially
 /// at construction.
 #[cfg_attr(
     docsrs,
     doc(cfg(all(
-        target_feature = "avx2",
+        target_feature = "sse2",
         any(target_arch = "x86", target_arch = "x86_64")
     )))
 )]
 pub struct Vector {
-    depth_bytes: [i8; BYTES_IN_AVX2_REGISTER],
+    depth_bytes: [i8; BYTES_IN_SSE2_REGISTER],
     len: usize,
     idx: usize,
 }
 
-/// Works on a 32-byte slice, but uses a heuristic to quickly
+/// Works on a 16-byte slice, but uses a heuristic to quickly
 /// respond to queries and not count the depth exactly unless
 /// needed.
 ///
@@ -34,19 +34,19 @@ pub struct Vector {
 #[cfg_attr(
     docsrs,
     doc(cfg(all(
-        target_feature = "avx2",
+        target_feature = "sse2",
         any(target_arch = "x86", target_arch = "x86_64")
     )))
 )]
 pub struct LazyVector {
-    opening_mask: u32,
-    closing_mask: u32,
+    opening_mask: u16,
+    closing_mask: u16,
     len: usize,
     rev_idx: usize,
 }
 
 impl LazyVector {
-    fn new_sequential(bytes: &AlignedSlice<TwoTo<5>>) -> (Self, &AlignedSlice<TwoTo<5>>) {
+    fn new_sequential(bytes: &AlignedSlice<TwoTo<4>>) -> (Self, &AlignedSlice<TwoTo<4>>) {
         let mut vector = Self {
             opening_mask: 0,
             closing_mask: 0,
@@ -58,16 +58,16 @@ impl LazyVector {
             vector.closing_mask >>= 1;
             match byte {
                 b'{' => {
-                    vector.opening_mask |= 1 << 31;
+                    vector.opening_mask |= 1 << 15;
                 }
                 b'[' => {
-                    vector.opening_mask |= 1 << 31;
+                    vector.opening_mask |= 1 << 15;
                 }
                 b'}' => {
-                    vector.closing_mask |= 1 << 31;
+                    vector.closing_mask |= 1 << 15;
                 }
                 b']' => {
-                    vector.closing_mask |= 1 << 31;
+                    vector.closing_mask |= 1 << 15;
                 }
                 _ => (),
             };
@@ -76,19 +76,19 @@ impl LazyVector {
         (vector, Default::default())
     }
 
-    #[target_feature(enable = "avx2")]
+    #[target_feature(enable = "sse2")]
     #[inline]
-    unsafe fn new_avx2(bytes: &AlignedSlice<TwoTo<5>>) -> (Self, &AlignedSlice<TwoTo<5>>) {
+    unsafe fn new_sse2(bytes: &AlignedSlice<TwoTo<4>>) -> (Self, &AlignedSlice<TwoTo<4>>) {
         let (opening_vector, closing_vector) = get_opening_and_closing_vectors(bytes);
 
-        let opening_mask = _mm256_movemask_epi8(opening_vector) as u32;
-        let closing_mask = _mm256_movemask_epi8(closing_vector) as u32;
+        let opening_mask = _mm_movemask_epi8(opening_vector) as u16;
+        let closing_mask = _mm_movemask_epi8(closing_vector) as u16;
 
         let vector = Self {
             opening_mask,
             closing_mask,
-            len: BYTES_IN_AVX2_REGISTER,
-            rev_idx: BYTES_IN_AVX2_REGISTER - 1,
+            len: BYTES_IN_SSE2_REGISTER,
+            rev_idx: BYTES_IN_SSE2_REGISTER - 1,
         };
 
         (vector, bytes.offset(1))
@@ -97,9 +97,9 @@ impl LazyVector {
 
 impl LazyVector {
     #[inline]
-    pub fn new(bytes: &AlignedSlice<TwoTo<5>>) -> (Self, &AlignedSlice<TwoTo<5>>) {
-        if bytes.len() >= BYTES_IN_AVX2_REGISTER {
-            unsafe { Self::new_avx2(bytes) }
+    pub fn new(bytes: &AlignedSlice<TwoTo<4>>) -> (Self, &AlignedSlice<TwoTo<4>>) {
+        if bytes.len() >= BYTES_IN_SSE2_REGISTER {
+            unsafe { Self::new_sse2(bytes) }
         } else {
             Self::new_sequential(bytes)
         }
@@ -148,10 +148,10 @@ impl<'a> DepthBlock<'a> for LazyVector {
 
 impl Vector {
     #[inline]
-    fn new_sequential(bytes: &AlignedSlice<TwoTo<5>>) -> (Self, &AlignedSlice<TwoTo<5>>) {
+    fn new_sequential(bytes: &AlignedSlice<TwoTo<4>>) -> (Self, &AlignedSlice<TwoTo<4>>) {
         let mut sum: i8 = 0;
         let mut vector = Self {
-            depth_bytes: [0; BYTES_IN_AVX2_REGISTER],
+            depth_bytes: [0; BYTES_IN_SSE2_REGISTER],
             len: bytes.len(),
             idx: 0,
         };
@@ -171,14 +171,14 @@ impl Vector {
     }
 
     #[inline]
-    #[target_feature(enable = "avx2")]
-    unsafe fn new_avx2(bytes: &AlignedSlice<TwoTo<5>>) -> (Self, &AlignedSlice<TwoTo<5>>) {
+    #[target_feature(enable = "sse2")]
+    unsafe fn new_sse2(bytes: &AlignedSlice<TwoTo<4>>) -> (Self, &AlignedSlice<TwoTo<4>>) {
         let (opening_vector, closing_vector) = get_opening_and_closing_vectors(bytes);
         let depth_bytes = calculate_depth_from_vectors(opening_vector, closing_vector);
 
         let vector = Self {
             depth_bytes,
-            len: BYTES_IN_AVX2_REGISTER,
+            len: BYTES_IN_SSE2_REGISTER,
             idx: 0,
         };
         (vector, bytes.offset(1))
@@ -187,9 +187,9 @@ impl Vector {
 
 impl Vector {
     #[inline]
-    pub fn new(bytes: &AlignedSlice<TwoTo<5>>) -> (Self, &AlignedSlice<TwoTo<5>>) {
-        if bytes.len() >= BYTES_IN_AVX2_REGISTER {
-            unsafe { Self::new_avx2(bytes) }
+    pub fn new(bytes: &AlignedSlice<TwoTo<4>>) -> (Self, &AlignedSlice<TwoTo<4>>) {
+        if bytes.len() >= BYTES_IN_SSE2_REGISTER {
+            unsafe { Self::new_sse2(bytes) }
         } else {
             Self::new_sequential(bytes)
         }
@@ -230,30 +230,30 @@ impl<'a> DepthBlock<'a> for Vector {
 }
 
 #[inline]
-#[target_feature(enable = "avx2")]
-unsafe fn get_opening_and_closing_vectors(bytes: &AlignedSlice<TwoTo<5>>) -> (__m256i, __m256i) {
-    debug_assert!(bytes.len() >= BYTES_IN_AVX2_REGISTER);
+#[target_feature(enable = "sse2")]
+unsafe fn get_opening_and_closing_vectors(bytes: &AlignedSlice<TwoTo<4>>) -> (__m128i, __m128i) {
+    debug_assert!(bytes.len() >= BYTES_IN_SSE2_REGISTER);
 
-    let byte_vector = _mm256_load_si256(bytes.as_ptr() as *const __m256i);
-    let opening_brace_mask = _mm256_set1_epi8(b'{' as i8);
-    let opening_bracket_mask = _mm256_set1_epi8(b'[' as i8);
-    let closing_brace_mask = _mm256_set1_epi8(b'}' as i8);
-    let closing_bracket_mask = _mm256_set1_epi8(b']' as i8);
-    let opening_brace_cmp = _mm256_cmpeq_epi8(byte_vector, opening_brace_mask);
-    let opening_bracket_cmp = _mm256_cmpeq_epi8(byte_vector, opening_bracket_mask);
-    let closing_brace_cmp = _mm256_cmpeq_epi8(byte_vector, closing_brace_mask);
-    let closing_bracket_cmp = _mm256_cmpeq_epi8(byte_vector, closing_bracket_mask);
-    let opening_cmp = _mm256_or_si256(opening_brace_cmp, opening_bracket_cmp);
-    let closing_cmp = _mm256_or_si256(closing_brace_cmp, closing_bracket_cmp);
+    let byte_vector = _mm_load_si128(bytes.as_ptr() as *const __m128i);
+    let opening_brace_mask = _mm_set1_epi8(b'{' as i8);
+    let opening_bracket_mask = _mm_set1_epi8(b'[' as i8);
+    let closing_brace_mask = _mm_set1_epi8(b'}' as i8);
+    let closing_bracket_mask = _mm_set1_epi8(b']' as i8);
+    let opening_brace_cmp = _mm_cmpeq_epi8(byte_vector, opening_brace_mask);
+    let opening_bracket_cmp = _mm_cmpeq_epi8(byte_vector, opening_bracket_mask);
+    let closing_brace_cmp = _mm_cmpeq_epi8(byte_vector, closing_brace_mask);
+    let closing_bracket_cmp = _mm_cmpeq_epi8(byte_vector, closing_bracket_mask);
+    let opening_cmp = _mm_or_si128(opening_brace_cmp, opening_bracket_cmp);
+    let closing_cmp = _mm_or_si128(closing_brace_cmp, closing_bracket_cmp);
     (opening_cmp, closing_cmp)
 }
 
 #[inline]
-#[target_feature(enable = "avx2")]
+#[target_feature(enable = "sse2")]
 unsafe fn calculate_depth_from_vectors(
-    opening_vector: __m256i,
-    closing_vector: __m256i,
-) -> [i8; BYTES_IN_AVX2_REGISTER] {
+    opening_vector: __m128i,
+    closing_vector: __m128i,
+) -> [i8; BYTES_IN_SSE2_REGISTER] {
     /* Calculate depth as prefix sums of the closing and opening vectors.
         This is done by calculating prefix sums of length 2, 4, 8, 16
         and finally 32. This can be thought of as creating a binary tree over
@@ -265,21 +265,15 @@ unsafe fn calculate_depth_from_vectors(
         prefix sums, but to combine them we need to extract the total sum from
         the first lane and then add it to the entire second lane.
     */
-    let array = [0; BYTES_IN_AVX2_REGISTER];
-    let vector1 = _mm256_sub_epi8(closing_vector, opening_vector);
-    let vector2 = _mm256_add_epi8(vector1, _mm256_slli_si256::<1>(vector1));
-    let vector4 = _mm256_add_epi8(vector2, _mm256_slli_si256::<2>(vector2));
-    let vector8 = _mm256_add_epi8(vector4, _mm256_slli_si256::<4>(vector4));
-    let vector16 = _mm256_add_epi8(vector8, _mm256_slli_si256::<8>(vector8));
+    let array = [0; BYTES_IN_SSE2_REGISTER];
+    let vector1 = _mm_sub_epi8(closing_vector, opening_vector);
+    let vector2 = _mm_add_epi8(vector1, _mm_slli_si128::<1>(vector1));
+    let vector4 = _mm_add_epi8(vector2, _mm_slli_si128::<2>(vector2));
+    let vector8 = _mm_add_epi8(vector4, _mm_slli_si128::<4>(vector4));
+    let vector16 = _mm_add_epi8(vector8, _mm_slli_si128::<8>(vector8));
 
-    let halfway = _mm256_extract_epi8::<15>(vector16);
-    let halfway_vector = _mm256_set1_epi8(halfway as i8);
-    let halfway_vector_second_lane_only =
-        _mm256_permute2x128_si256::<8>(halfway_vector, halfway_vector);
-
-    let vector32 = _mm256_add_epi8(vector16, halfway_vector_second_lane_only);
-    let array_ptr = array.as_ptr() as *mut __m256i;
-    _mm256_storeu_si256(array_ptr, vector32);
+    let array_ptr = array.as_ptr() as *mut __m128i;
+    _mm_storeu_si128(array_ptr, vector16);
 
     array
 }

@@ -6,8 +6,6 @@
 //! which is optimized for the usual case where the depth does not change too sharply.
 //! within a single 32-byte block.
 
-use aligners::{alignment::TwoTo, AlignedSlice};
-
 /// Common trait for structs that enrich a byte block with JSON depth information.
 #[allow(clippy::len_without_is_empty)]
 pub trait DepthBlock<'a>: Sized {
@@ -16,9 +14,10 @@ pub trait DepthBlock<'a>: Sized {
     /// This should be constant throughout the lifetime of a `DepthBlock`
     /// and always satisfy:
     /// ```rust
-    /// # use simd_benchmarks::depth::{DepthBlock, avx2} ;
-    /// # let bytes = &[0; 256];
-    /// let (depth_block, rem) = avx2::LazyAvx2Vector::new(bytes);
+    /// # use simd_benchmarks::depth::{DepthBlock, avx2};
+    /// # use aligners::{AlignedBytes, alignment::TwoTo};
+    /// # let bytes: AlignedBytes<TwoTo<5>> = [0; 256].into();
+    /// let (depth_block, rem) = avx2::LazyAvx2Vector::new(&bytes);
     /// let expected_len = bytes.len() - rem.len();
     ///
     /// assert_eq!(expected_len, depth_block.len());
@@ -58,16 +57,23 @@ pub trait DepthBlock<'a>: Sized {
 }
 
 pub mod avx2;
+#[cfg(feature = "avx512")]
+pub mod avx512;
 pub mod nosimd;
+pub mod sse2;
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use aligners::AlignedBytes;
+    use aligners::{
+        alignment::{Alignment, One, TwoTo},
+        AlignedBytes, AlignedSlice,
+    };
+
     use test_case::test_case;
 
-    fn is_depth_greater_or_equal_to_correctness<C: for<'a> Ctor<'a>>(
-        bytes: &AlignedSlice<TwoTo<5>>,
+    fn is_depth_greater_or_equal_to_correctness<A: Alignment, C: for<'a> Ctor<'a, A>>(
+        bytes: &AlignedSlice<A>,
         depths: &[isize],
         _ctor: &C,
     ) {
@@ -111,72 +117,110 @@ mod tests {
         assert_eq!(depths.len(), depths_idx);
     }
 
-    trait Ctor<'a> {
+    trait Ctor<'a, A: Alignment> {
         type Item: DepthBlock<'a>;
 
-        fn ctor(slice: &mut &'a AlignedSlice<TwoTo<5>>) -> Self::Item;
+        fn ctor(slice: &mut &'a AlignedSlice<A>) -> Self::Item;
     }
 
     struct NosimdVectorCtor();
-
+    struct Sse2VectorCtor();
+    struct LazySse2VectorCtor();
     struct Avx2VectorCtor();
-
     struct LazyAvx2VectorCtor();
+    #[cfg(feature = "avx512")]
+    struct LazyAvx512VectorCtor();
 
-    impl<'a> Ctor<'a> for NosimdVectorCtor {
+    impl<'a> Ctor<'a, One> for NosimdVectorCtor {
         type Item = nosimd::Vector<'a>;
 
-        fn ctor(slice: &mut &'a AlignedSlice<TwoTo<5>>) -> nosimd::Vector<'a> {
+        fn ctor(slice: &mut &'a AlignedSlice<One>) -> nosimd::Vector<'a> {
             let vector = nosimd::Vector::new(slice);
             *slice = Default::default();
             vector
         }
     }
 
-    impl<'a> Ctor<'a> for Avx2VectorCtor {
-        type Item = avx2::Avx2Vector;
+    impl<'a> Ctor<'a, TwoTo<4>> for Sse2VectorCtor {
+        type Item = sse2::Vector;
 
-        fn ctor(slice: &mut &'a AlignedSlice<TwoTo<5>>) -> avx2::Avx2Vector {
-            let (vector, rem) = avx2::Avx2Vector::new(slice);
+        fn ctor(slice: &mut &'a AlignedSlice<TwoTo<4>>) -> sse2::Vector {
+            let (vector, rem) = sse2::Vector::new(slice);
             *slice = rem;
             vector
         }
     }
 
-    impl<'a> Ctor<'a> for LazyAvx2VectorCtor {
-        type Item = avx2::LazyAvx2Vector;
+    impl<'a> Ctor<'a, TwoTo<4>> for LazySse2VectorCtor {
+        type Item = sse2::LazyVector;
 
-        fn ctor(slice: &mut &'a AlignedSlice<TwoTo<5>>) -> avx2::LazyAvx2Vector {
-            let (vector, rem) = avx2::LazyAvx2Vector::new(slice);
+        fn ctor(slice: &mut &'a AlignedSlice<TwoTo<4>>) -> sse2::LazyVector {
+            let (vector, rem) = sse2::LazyVector::new(slice);
             *slice = rem;
             vector
         }
     }
 
-    #[test_case(Avx2VectorCtor(); "using avx2::Avx2Vector")]
-    #[test_case(LazyAvx2VectorCtor(); "using avx2::LazyAvx2Vector")]
+    impl<'a> Ctor<'a, TwoTo<5>> for Avx2VectorCtor {
+        type Item = avx2::Vector;
+
+        fn ctor(slice: &mut &'a AlignedSlice<TwoTo<5>>) -> avx2::Vector {
+            let (vector, rem) = avx2::Vector::new(slice);
+            *slice = rem;
+            vector
+        }
+    }
+
+    impl<'a> Ctor<'a, TwoTo<5>> for LazyAvx2VectorCtor {
+        type Item = avx2::LazyVector;
+
+        fn ctor(slice: &mut &'a AlignedSlice<TwoTo<5>>) -> avx2::LazyVector {
+            let (vector, rem) = avx2::LazyVector::new(slice);
+            *slice = rem;
+            vector
+        }
+    }
+
+    #[cfg(feature = "avx512")]
+    impl<'a> Ctor<'a, TwoTo<6>> for LazyAvx512VectorCtor {
+        type Item = avx512::LazyVector;
+
+        fn ctor(slice: &mut &'a AlignedSlice<TwoTo<6>>) -> avx512::LazyVector {
+            let (vector, rem) = avx512::LazyVector::new(slice);
+            *slice = rem;
+            vector
+        }
+    }
+
     #[test_case(NosimdVectorCtor(); "using nosimd::Vector")]
-    fn is_depth_greater_or_equal_to_correctness_suite<C: for<'a> Ctor<'a>>(ctor: C) {
+    #[test_case(Sse2VectorCtor(); "using sse2::Vector")]
+    #[test_case(LazySse2VectorCtor(); "using sse2::LazyVector")]
+    #[test_case(Avx2VectorCtor(); "using avx2:Vector")]
+    #[test_case(LazyAvx2VectorCtor(); "using avx2::LazyVector")]
+    #[cfg_attr(feature = "avx512", test_case(LazyAvx512VectorCtor(); "using avx512::LazyVector"))]
+    fn is_depth_greater_or_equal_to_correctness_suite<A: Alignment, C: for<'a> Ctor<'a, A>>(
+        ctor: C,
+    ) {
         let json = r#"{"aaa":[{},{"b":{"c":[1,2,3]}}]}"#;
         let depths = [
             1, 1, 1, 1, 1, 1, 1, 2, 3, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 4, 3,
             2, 1, 0,
         ];
-        let bytes: AlignedBytes<TwoTo<5>> = json.as_bytes().into();
+        let bytes: AlignedBytes<TwoTo<6>> = json.as_bytes().into();
 
-        is_depth_greater_or_equal_to_correctness(&bytes, &depths, &ctor);
+        is_depth_greater_or_equal_to_correctness(bytes.relax_alignment(), &depths, &ctor);
 
         let json = r#"{}"#;
         let depths = [1, 0];
-        let bytes: AlignedBytes<TwoTo<5>> = json.as_bytes().into();
+        let bytes: AlignedBytes<TwoTo<6>> = json.as_bytes().into();
 
-        is_depth_greater_or_equal_to_correctness(&bytes, &depths, &ctor);
+        is_depth_greater_or_equal_to_correctness(bytes.relax_alignment(), &depths, &ctor);
 
         let json = r#""#;
         let depths = [];
-        let bytes: AlignedBytes<TwoTo<5>> = json.as_bytes().into();
+        let bytes: AlignedBytes<TwoTo<6>> = json.as_bytes().into();
 
-        is_depth_greater_or_equal_to_correctness(&bytes, &depths, &ctor);
+        is_depth_greater_or_equal_to_correctness(bytes.relax_alignment(), &depths, &ctor);
 
         let json = r#"{"aaa":[{},{"b":{"c":[1,2,3]}}],"e":{"a":[[],[1,2,3],[{"b":[{}]}]]},"d":42}"#;
         let depths = [
@@ -184,23 +228,8 @@ mod tests {
             2, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 4, 3, 3, 4, 4, 4, 4, 4, 4, 3, 3, 4, 5, 5, 5, 5,
             5, 6, 7, 6, 5, 4, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1, 0,
         ];
-        let bytes: AlignedBytes<TwoTo<5>> = json.as_bytes().into();
+        let bytes: AlignedBytes<TwoTo<6>> = json.as_bytes().into();
 
-        is_depth_greater_or_equal_to_correctness(&bytes, &depths, &ctor);
+        is_depth_greater_or_equal_to_correctness(bytes.relax_alignment(), &depths, &ctor);
     }
-
-    // #[test]
-    // fn is_depth_greater_or_equal_to_avx2_Avx2Vector() {
-    //     is_depth_greater_or_equal_to_correctness_suite::<avx2::Avx2Vector>();
-    // }
-
-    // #[test]
-    // fn is_depth_greater_or_equal_to_avx2_LazyAvx2Vector() {
-    //     is_depth_greater_or_equal_to_correctness_suite::<avx2::LazyAvx2Vector>();
-    // }
-
-    // #[test]
-    // fn is_depth_greater_or_equal_to_nosimd_Vector() {
-    //     is_depth_greater_or_equal_to_correctness_suite::<nosimd::Vector>();
-    // }
 }

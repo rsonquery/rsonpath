@@ -1,3 +1,7 @@
+use aligners::{
+    alignment::{Alignment, TwoTo},
+    AlignedBytes, AlignedSlice,
+};
 use core::time::Duration;
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use simd_benchmarks::depth::{self, DepthBlock};
@@ -10,29 +14,13 @@ fn get_contents(test_path: &str) -> String {
     fs::read_to_string(path).unwrap()
 }
 
-fn do_sequential_bench(bytes: &[u8], depth_base: isize) -> usize {
-    let mut count = 0;
-    let mut depth = 0;
-
-    for byte in bytes {
-        match byte {
-            b'{' => depth += 1,
-            b'[' => depth += 1,
-            b'}' => depth -= 1,
-            b']' => depth -= 1,
-            _ => (),
-        }
-
-        if depth >= depth_base {
-            count += 1;
-        }
-    }
-
-    count
-}
-
-fn do_bench<'a, F: Fn(&'a [u8]) -> (D, &'a [u8]), D: DepthBlock<'a>>(
-    bytes: &'a [u8],
+fn do_bench<
+    'a,
+    A: Alignment,
+    F: Fn(&'a AlignedSlice<A>) -> (D, &'a AlignedSlice<A>),
+    D: DepthBlock<'a>,
+>(
+    bytes: &'a AlignedSlice<A>,
     depth_base: isize,
     build: F,
 ) -> usize {
@@ -58,7 +46,6 @@ fn do_bench<'a, F: Fn(&'a [u8]) -> (D, &'a [u8]), D: DepthBlock<'a>>(
         accumulated_depth += vector.depth_at_end();
     }
 
-    //assert_eq!(69417863, count);
     count
 }
 
@@ -67,21 +54,44 @@ fn wikidata_combined(c: &mut Criterion) {
     group.measurement_time(Duration::from_secs(30));
 
     let contents = get_contents("wikidata_compressed/wikidata_combined.json");
+    let bytes: AlignedBytes<TwoTo<6>> = contents.as_bytes().into();
 
     group.bench_with_input(
         BenchmarkId::new("nosimd", "wikidata_combined"),
-        &(5, &contents),
-        |b, &(d, c)| b.iter(|| do_sequential_bench(c.as_bytes(), d)),
+        &(5, &bytes),
+        |b, &(d, c)| {
+            b.iter(|| {
+                do_bench(c, d, |x| {
+                    (depth::nosimd::Vector::new(x), Default::default())
+                })
+            })
+        },
     );
     group.bench_with_input(
-        BenchmarkId::new("simd", "wikidata_combined"),
-        &(5, &contents),
-        |b, &(d, c)| b.iter(|| do_bench(c.as_bytes(), d, depth::avx2::Avx2Vector::new)),
+        BenchmarkId::new("sse2", "wikidata_combined"),
+        &(5, bytes.relax_alignment()),
+        |b, &(d, c)| b.iter(|| do_bench(c, d, depth::sse2::Vector::new)),
     );
     group.bench_with_input(
-        BenchmarkId::new("simd_lazy", "wikidata_combined"),
-        &(5, &contents),
-        |b, &(d, c)| b.iter(|| do_bench(c.as_bytes(), d, depth::avx2::LazyAvx2Vector::new)),
+        BenchmarkId::new("sse2_lazy", "wikidata_combined"),
+        &(5, bytes.relax_alignment()),
+        |b, &(d, c)| b.iter(|| do_bench(c, d, depth::sse2::LazyVector::new)),
+    );
+    group.bench_with_input(
+        BenchmarkId::new("avx2", "wikidata_combined"),
+        &(5, bytes.relax_alignment()),
+        |b, &(d, c)| b.iter(|| do_bench(c, d, depth::avx2::Vector::new)),
+    );
+    group.bench_with_input(
+        BenchmarkId::new("avx2_lazy", "wikidata_combined"),
+        &(5, bytes.relax_alignment()),
+        |b, &(d, c)| b.iter(|| do_bench(c, d, depth::avx2::LazyVector::new)),
+    );
+    #[cfg(feature = "avx512")]
+    group.bench_with_input(
+        BenchmarkId::new("avx2_lazy", "wikidata_combined"),
+        &(5, &bytes),
+        |b, &(d, c)| b.iter(|| do_bench(c, d, depth::avx512::LazyVector::new)),
     );
     group.finish();
 }
