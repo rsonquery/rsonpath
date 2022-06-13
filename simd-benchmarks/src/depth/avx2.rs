@@ -1,3 +1,5 @@
+use aligners::{alignment::TwoTo, AlignedSlice};
+
 use super::*;
 #[cfg(target_arch = "x86")]
 use core::arch::x86::*;
@@ -46,14 +48,14 @@ pub struct LazyAvx2Vector {
 }
 
 impl LazyAvx2Vector {
-    fn new_sequential(bytes: &[u8]) -> (Self, &[u8]) {
+    fn new_sequential(bytes: &AlignedSlice<TwoTo<5>>) -> (Self, &AlignedSlice<TwoTo<5>>) {
         let mut vector = Self {
             opening_mask: 0,
             closing_mask: 0,
             len: bytes.len(),
             rev_idx: bytes.len() - 1,
         };
-        for byte in bytes {
+        for byte in bytes.iter() {
             vector.opening_mask >>= 1;
             vector.closing_mask >>= 1;
             match byte {
@@ -73,12 +75,12 @@ impl LazyAvx2Vector {
             };
         }
 
-        (vector, &[])
+        (vector, Default::default())
     }
 
     #[target_feature(enable = "avx2")]
     #[inline]
-    unsafe fn new_avx2(bytes: &[u8]) -> (Self, &[u8]) {
+    unsafe fn new_avx2(bytes: &AlignedSlice<TwoTo<5>>) -> (Self, &AlignedSlice<TwoTo<5>>) {
         let (opening_vector, closing_vector) = get_opening_and_closing_vectors(bytes);
 
         let opening_mask = _mm256_movemask_epi8(opening_vector) as u32;
@@ -91,20 +93,22 @@ impl LazyAvx2Vector {
             rev_idx: BYTES_IN_AVX2_REGISTER - 1,
         };
 
-        (vector, &bytes[BYTES_IN_AVX2_REGISTER..])
+        (vector, bytes.offset(1))
     }
 }
 
-impl<'a> DepthBlock<'a> for LazyAvx2Vector {
+impl LazyAvx2Vector {
     #[inline]
-    fn new(bytes: &'a [u8]) -> (Self, &'a [u8]) {
+    pub fn new(bytes: &AlignedSlice<TwoTo<5>>) -> (Self, &AlignedSlice<TwoTo<5>>) {
         if bytes.len() >= BYTES_IN_AVX2_REGISTER {
             unsafe { Self::new_avx2(bytes) }
         } else {
             Self::new_sequential(bytes)
         }
     }
+}
 
+impl<'a> DepthBlock<'a> for LazyAvx2Vector {
     #[inline(always)]
     fn len(&self) -> usize {
         self.len
@@ -146,7 +150,7 @@ impl<'a> DepthBlock<'a> for LazyAvx2Vector {
 
 impl Avx2Vector {
     #[inline]
-    fn new_sequential(bytes: &[u8]) -> (Self, &[u8]) {
+    fn new_sequential(bytes: &AlignedSlice<TwoTo<5>>) -> (Self, &AlignedSlice<TwoTo<5>>) {
         let mut sum: i8 = 0;
         let mut vector = Self {
             depth_bytes: [0; BYTES_IN_AVX2_REGISTER],
@@ -165,12 +169,12 @@ impl Avx2Vector {
             vector.depth_bytes[i] = sum;
         }
 
-        (vector, &[])
+        (vector, Default::default())
     }
 
     #[inline]
     #[target_feature(enable = "avx2")]
-    unsafe fn new_avx2(bytes: &[u8]) -> (Self, &[u8]) {
+    unsafe fn new_avx2(bytes: &AlignedSlice<TwoTo<5>>) -> (Self, &AlignedSlice<TwoTo<5>>) {
         let (opening_vector, closing_vector) = get_opening_and_closing_vectors(bytes);
         let depth_bytes = calculate_depth_from_vectors(opening_vector, closing_vector);
 
@@ -179,20 +183,22 @@ impl Avx2Vector {
             len: BYTES_IN_AVX2_REGISTER,
             idx: 0,
         };
-        (vector, &bytes[BYTES_IN_AVX2_REGISTER..])
+        (vector, bytes.offset(1))
     }
 }
 
-impl<'a> DepthBlock<'a> for Avx2Vector {
+impl Avx2Vector {
     #[inline]
-    fn new(bytes: &'a [u8]) -> (Self, &[u8]) {
+    pub fn new(bytes: &AlignedSlice<TwoTo<5>>) -> (Self, &AlignedSlice<TwoTo<5>>) {
         if bytes.len() >= BYTES_IN_AVX2_REGISTER {
             unsafe { Self::new_avx2(bytes) }
         } else {
             Self::new_sequential(bytes)
         }
     }
+}
 
+impl<'a> DepthBlock<'a> for Avx2Vector {
     #[inline(always)]
     fn len(&self) -> usize {
         self.len
@@ -227,10 +233,10 @@ impl<'a> DepthBlock<'a> for Avx2Vector {
 
 #[inline]
 #[target_feature(enable = "avx2")]
-unsafe fn get_opening_and_closing_vectors(bytes: &[u8]) -> (__m256i, __m256i) {
+unsafe fn get_opening_and_closing_vectors(bytes: &AlignedSlice<TwoTo<5>>) -> (__m256i, __m256i) {
     debug_assert!(bytes.len() >= BYTES_IN_AVX2_REGISTER);
 
-    let byte_vector = _mm256_loadu_si256(bytes.as_ptr() as *const __m256i);
+    let byte_vector = _mm256_load_si256(bytes.as_ptr() as *const __m256i);
     let opening_brace_mask = _mm256_set1_epi8(b'{' as i8);
     let opening_bracket_mask = _mm256_set1_epi8(b'[' as i8);
     let closing_brace_mask = _mm256_set1_epi8(b'}' as i8);

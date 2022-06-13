@@ -9,21 +9,23 @@ pub struct Vector<'a> {
     idx: usize,
 }
 
-impl<'a> DepthBlock<'a> for Vector<'a> {
+impl<'a> Vector<'a> {
     /// The remainder is guaranteed to be an empty slice,
     /// since this implementation works on the entire byte
     /// slice at once.
     #[inline]
-    fn new(bytes: &'a [u8]) -> (Self, &'a [u8]) {
+    pub fn new(bytes: &'a AlignedSlice<TwoTo<5>>) -> Self {
         let mut vector = Self {
             bytes,
             depth: 0,
             idx: 0,
         };
         vector.advance();
-        (vector, &[])
+        vector
     }
+}
 
+impl<'a> DepthBlock<'a> for Vector<'a> {
     #[inline]
     fn len(&self) -> usize {
         self.bytes.len()
