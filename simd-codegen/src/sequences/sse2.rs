@@ -4,7 +4,7 @@ use super::cmp_and_tree::CmpAndTree;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
-const MAX_SEQUENCE_LENGTH_FOR_SIMD: usize = 32;
+const MAX_SEQUENCE_LENGTH_FOR_SIMD: usize = 16;
 
 /// Get the source for the `simd_benchmarks::sequences::sse2` module.
 pub fn get_sse2_source() -> TokenStream {
