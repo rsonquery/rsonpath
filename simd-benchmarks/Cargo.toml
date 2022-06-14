@@ -1,0 +1,44 @@
+[package]
+name = "simd-benchmarks"
+version = "0.1.0"
+edition = "2021"
+build = "build.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+aligners = "0.0.7"
+cfg-if = "1.0.0"
+memchr = "2.5.0"
+memmem = "0.1.1"
+
+[dev-dependencies]
+decimal-byte-measurement = { path = "../decimal-byte-measurement" }
+criterion = "0.3.5"
+test-case = "2.1.0"
+rand = "0.8.5"
+
+[build-dependencies]
+simd-codegen = { path = "../simd-codegen" }
+md5 = "0.7.0"
+proc-macro2 = "1.0.39"
+
+[features]
+default = []
+avx512 = []
+
+[[bench]]
+name = "discrepancy"
+harness = false
+
+[[bench]]
+name = "find_byte"
+harness = false
+
+[[bench]]
+name = "find_byte_sequence"
+harness = false
+
+[[bench]]
+name = "depth"
+harness = false

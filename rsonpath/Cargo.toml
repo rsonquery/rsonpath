@@ -1,0 +1,52 @@
+[package]
+name = "rsonpath"
+version = "0.1.0"
+authors = ["Mateusz Gienieczko <mat@gienieczko.com>"]
+edition = "2021"
+description = "Blazing fast JSONPath query engine powered by SIMD."
+readme = "../README.md"
+license = "MIT"
+keywords = ["json", "jsonpath", "query", "simd"]
+exclude = ["/data"]
+categories = ["command-line-utilities", "text-processing", "database-implementations"]
+repository = "https://gitlab.inria.fr/cpaperma/rsonpath"
+
+[package.metadata.docs.rs]
+rustdoc-args = ["--cfg", "docsrs"]
+
+[dependencies]
+aligners = "0.0.7"
+cfg-if = "1.0.0"
+clap = { version = "3.1.18", features = ["derive"] }
+color-eyre = { version = "0.6.1", default-features = false }
+eyre = "0.6.8"
+len-trait = "0.6.1"
+log = "0.4.17"
+memchr = "2.5.0"
+nom = "7.1.1"
+simple_logger = "2.1.0"
+smallvec = { version = "1.8.0", features = ["union"] }
+static_assertions = "1.1.0"
+
+[dev-dependencies]
+criterion = "0.3.5"
+decimal-byte-measurement = { path = "../decimal-byte-measurement" }
+proptest = "1.0.0"
+test-case = "2.1.0"
+itertools = "0.10.3"
+
+[features]
+default = ["simd"]
+simd = []
+
+[[bench]]
+name = "rsonpath_wikidata"
+harness = false
+
+[[bench]]
+name = "rsonpath_benchset"
+harness = false
+
+[[bench]]
+name = "classifier"
+harness = false

@@ -1,2 +1,3 @@
 /target/*
 /.vscode/*.log
+/simd-benchmarks/plot.svg

@@ -1,8 +1,10 @@
 [workspace]
 
 members = [
-    "simdpath",
-    "simdpath-codegen"
+    "rsonpath",
+    "simd-codegen",
+    "simd-benchmarks",
+    "decimal-byte-measurement"
 ]
 
 [profile.dev]
