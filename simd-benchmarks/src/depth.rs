@@ -17,7 +17,7 @@ pub trait DepthBlock<'a>: Sized {
     /// # use simd_benchmarks::depth::{DepthBlock, avx2};
     /// # use aligners::{AlignedBytes, alignment::TwoTo};
     /// # let bytes: AlignedBytes<TwoTo<5>> = [0; 256].into();
-    /// let (depth_block, rem) = avx2::LazyAvx2Vector::new(&bytes);
+    /// let (depth_block, rem) = avx2::LazyVector::new(&bytes);
     /// let expected_len = bytes.len() - rem.len();
     ///
     /// assert_eq!(expected_len, depth_block.len());
