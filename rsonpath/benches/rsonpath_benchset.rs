@@ -6,7 +6,8 @@ use rsonpath::engine::{Input, Runner};
 use rsonpath::query::JsonPathQuery;
 use rsonpath::stack_based::StackBasedRunner;
 use rsonpath::stackless::StacklessRunner;
-use std::fs;
+use std::fs::{self, File};
+use std::io::Read;
 use std::path::{Path, PathBuf};
 
 const ROOT_BENCHSET_DIRECTORY: &str = "./benches/benchset";
@@ -21,8 +22,11 @@ struct BenchmarkOptions<'a> {
 }
 
 fn get_contents(test_path: &Path) -> Input {
-    let raw = fs::read_to_string(test_path).unwrap();
-    Input::new(raw)
+    let mut f = File::open(test_path).expect("no file found");
+    let metadata = fs::metadata(&test_path).expect("unable to read metadata");
+    let mut buffer = vec![0; metadata.len() as usize];
+    f.read_to_end(&mut buffer).expect("buffer overflow");
+    Input::new_bytes(buffer)
 }
 
 fn rsonpath_stack_based_vs_stackless(c: &mut CriterionCtx, options: BenchmarkOptions<'_>) {
