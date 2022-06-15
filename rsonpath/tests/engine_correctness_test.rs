@@ -28,6 +28,8 @@ macro_rules! count_test_cases {
         #[test_case("basic/child_hell.json", "$..x..a.b.a.b.c" => 6; "child_hell.json $..x..a.b.a.b.c")]
         #[test_case("basic/twitter.json", "$..user..entities..url" => 44; "twitter.json $..user..entities..url (recursive)")]
         #[test_case("basic/twitter.json", "$..user..entities.url" => 18; "twitter.json $..user..entities.url (child)")]
+        #[test_case("basic/twitter_urls.json", "$..entities..urls..url" => 2; "twitter_urls.json $..entities..urls..url")]
+        #[test_case("basic/twitter_urls.json", "$..entities.urls..url" => 2; "twitter_urls.json $..entities.urls..url (child)")]
         #[test_case("basic/escapes.json", r#"$..a..b..['label\\']"# => 1; "escapes.json existing label")]
         #[test_case("basic/escapes.json", r#"$..a..b..['label\']"# => 0; "escapes.json nonexistent label")]
         #[test_case("basic/spaced_colon.json", r#"$..a..b..label"# => 2; "spaced colon")]
@@ -37,6 +39,8 @@ macro_rules! count_test_cases {
         #[test_case("basic_compressed/child_hell.json", "$..x..a.b.a.b.c" => 6; "compressed child_hell.json $..x..a.b.a.b.c")]
         #[test_case("basic_compressed/twitter.json", "$..user..entities..url" => 44; "compressed twitter.json $..user..entities..url (recursive)")]
         #[test_case("basic_compressed/twitter.json", "$..user..entities.url" => 18; "compressed twitter.json $..user..entities.url (child)")]
+        #[test_case("basic_compressed/twitter_urls.json", "$..entities..urls..url" => 2; "compressed twitter_urls.json $..entities..urls..url")]
+        #[test_case("basic_compressed/twitter_urls.json", "$..entities.urls..url" => 2; "compressed twitter_urls.json $..entities.urls..url (child)")]
         #[test_case("basic_compressed/escapes.json", r#"$..a..b..['label\\']"# => 1; "compressed escapes.json existing label")]
         #[test_case("basic_compressed/escapes.json", r#"$..a..b..['label\']"# => 0; "compressed escapes.json nonexistent label")]
         #[test_case(
@@ -133,6 +137,8 @@ macro_rules! indices_test_cases {
             "$..user..entities.url"
                 => vec![5463, 18494, 23336, 89783, 112196, 134218, 201053, 205279, 333128, 352430, 356998, 399783, 475582, 511440, 516536, 728250, 743600, 762795];
             "twitter.json $..user..entities.url (child)")]
+        #[test_case("basic/twitter_urls.json", "$..entities..urls..url" => vec![321, 881]; "twitter_urls.json $..entities..urls..url")]
+        #[test_case("basic/twitter_urls.json", "$..entities.urls..url" => vec![321, 881]; "twitter_urls.json $..entities.urls..url (child)")]
         #[test_case("basic/escapes.json", r#"$..a..b..['label\\']"# => vec![609]; "escapes.json existing label")]
         #[test_case("basic/escapes.json", r#"$..a..b..['label\']"# => Vec::<usize>::new(); "escapes.json nonexistent label")]
         #[test_case("basic/spaced_colon.json", r#"$..a..b..label"# => vec![106, 213]; "spaced colon")]
@@ -150,6 +156,8 @@ macro_rules! indices_test_cases {
             "$..user..entities.url"
                 => vec![3487, 9835, 12717, 52573, 64602, 77996, 119306, 121917, 201072, 212697, 215342, 241825, 288268, 310029, 312971, 445430, 454459, 464575];
             "compressed twitter.json $..user..entities.url (child)")]
+        #[test_case("basic_compressed/twitter_urls.json", "$..entities..urls..url" => vec![145, 326]; "compressed twitter_urls.json $..entities..urls..url")]
+        #[test_case("basic_compressed/twitter_urls.json", "$..entities.urls..url" => vec![145, 326]; "compressed twitter_urls.json $..entities.urls..url (child)")]
         #[test_case("basic_compressed/escapes.json", r#"$..a..b..['label\\']"# => vec![524]; "compressed escapes.json existing label")]
         #[test_case("basic_compressed/escapes.json", r#"$..a..b..['label\']"# => Vec::<usize>::new(); "compressed escapes.json nonexistent label")]
         fn $test_name(test_path: &str, query_string: &str) -> Vec<usize> {

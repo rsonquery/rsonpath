@@ -61,6 +61,38 @@ impl Input {
             }
         }
     }
+
+    /// Transmute a buffer into an input.
+    ///
+    /// The buffer must know its length, may be extended by auxiliary bytes.
+    pub fn new_bytes<T: Extend<u8> + Len + AsRef<[u8]>>(src: T) -> Self {
+        cfg_if! {
+            if #[cfg(feature = "simd")] {
+                use aligners::alignment::Alignment;
+                let mut contents = src;
+                let rem = contents.len() % alignment::TwoSimdBlocks::size();
+                let pad = if rem == 0 {
+                    0
+                } else {
+                    alignment::TwoSimdBlocks::size() - rem
+                };
+
+                let extension = std::iter::repeat(0).take(pad + alignment::TwoSimdBlocks::size());
+                contents.extend(extension);
+
+                debug_assert_eq!(contents.len() % alignment::TwoSimdBlocks::size(), 0);
+
+                Self {
+                    bytes: AlignedBytes::<alignment::Page>::from(contents.as_ref()),
+                }
+            }
+            else {
+                Self {
+                    bytes: AlignedBytes::<alignment::Page>::from(src.as_ref()),
+                }
+            }
+        }
+    }
 }
 
 /// Trait for an engine that can run its query on a given input.
