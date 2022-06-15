@@ -261,10 +261,6 @@ impl<'q, 'b, 'r, R: QueryResult> Automaton<'q, 'b, 'r, R> {
                                 }
                             }
                         } else {
-                            self.stack.push(StackFrame {
-                                depth: self.depth,
-                                label_idx: recursive_state,
-                            });
                         }
                     }
                 }
@@ -287,6 +283,12 @@ impl<'q, 'b, 'r, R: QueryResult> Automaton<'q, 'b, 'r, R> {
 
                     match next_state.0 {
                         Seek::Recursive => {
+                            if let Some(recursive_state) = self.recursive_state {
+                                self.stack.push(StackFrame {
+                                    depth: self.depth,
+                                    label_idx: recursive_state,
+                                });
+                            }
                             self.recursive_state = Some(direct_state + 1);
                             return None;
                         }

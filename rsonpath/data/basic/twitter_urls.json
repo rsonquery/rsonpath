@@ -1,0 +1,45 @@
+[
+    {
+        "user": {
+            "url": "http:\/\/www.roadshowrigoletto.com\/"
+        },
+        "retweeted_status": {
+            "user": {
+                "url": "http:\/\/www.thinkprogress.org"
+            },
+            "entities": {
+                "urls": [
+                    {
+                        "url": "https:\/\/t.co\/B6T1jj2hST"
+                    }
+                ],
+                "media": [
+                    {
+                        "url": "https:\/\/t.co\/blQy8JxViF"
+                    }
+                ]
+            },
+            "extended_entities": {
+                "media": [
+                    {
+                        "url": "https:\/\/t.co\/blQy8JxViF"
+                    }
+                ]
+            }
+        },
+        "entities": {
+            "hashtags": [],
+            "urls": [
+                {
+                    "url": "https:\/\/t.co\/B6T1jj2hST"
+                }
+            ],
+            "media": [
+                {
+                    "url": "https:\/\/t.co\/blQy8JxViF"
+                }
+            ]
+        },
+        "url": "https:\/\/t.co\/blQy8JxViF"
+    }
+]
