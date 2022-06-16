@@ -17,11 +17,6 @@ fn get_contents(test_path: &str) -> Input {
 fn classifier_benches(c: &mut CriterionCtx, path: &str, id: &str) {
     let contents = get_contents(path);
 
-    assert_eq!(
-        0,
-        classify::classify_structural_characters(contents.as_ref().relax_alignment()).count()
-    );
-
     let mut group = c.benchmark_group(id);
     group.throughput(criterion::Throughput::Bytes(contents.len() as u64));
 
