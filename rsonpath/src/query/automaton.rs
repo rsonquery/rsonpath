@@ -13,7 +13,7 @@ pub struct Automaton<'q> {
 
 pub struct TransitionTable<'q> {
     transitions: Vec<(&'q Label, u8)>,
-    fallback_state: Option<u8>,
+    fallback_state: u8,
 }
 
 struct NondeterministicAutomaton<'q> {
@@ -42,10 +42,11 @@ impl<'q> Automaton<'q> {
     }
 
     fn minimize(nfa: NondeterministicAutomaton<'q>) -> Self {
+        let reject_state = nfa.ordered_states.len() as u8;
         let mut current_superstate: BTreeSet<u8> = [0].into();
         let mut superstates = HashMap::new();
         let mut tables = vec![];
-        let mut recursive = None;
+        let mut recursive = reject_state;
         superstates.insert(current_superstate.clone(), 0);
 
         for (i, &state) in nfa.ordered_states.iter().enumerate() {
@@ -57,10 +58,10 @@ impl<'q> Automaton<'q> {
                     debug!("Recursive state {i}");
                     let table = TransitionTable {
                         transitions: [(label, i + 1)].into(),
-                        fallback_state: Some(i),
+                        fallback_state: i,
                     };
                     tables.push(table);
-                    recursive = Some(i);
+                    recursive = i;
                     current_superstate = [i, i + 1].into();
                     superstates.insert(current_superstate.clone(), i + 1);
                 }
@@ -74,8 +75,8 @@ impl<'q> Automaton<'q> {
                                 if let Some(vec) = transitions.get_mut(label) {
                                     debug!("Hit");
                                     vec.insert(substate + 1);
-                                } else if let Some(r) = recursive {
-                                    transitions.insert(label, [r, substate + 1].into());
+                                } else if recursive != reject_state {
+                                    transitions.insert(label, [recursive, substate + 1].into());
                                 } else {
                                     transitions.insert(label, [substate + 1].into());
                                 }
@@ -108,6 +109,11 @@ impl<'q> Automaton<'q> {
             }
         }
 
+        tables.push(TransitionTable {
+            transitions: vec![],
+            fallback_state: reject_state,
+        });
+
         Automaton { states: tables }
     }
 }
@@ -124,9 +130,7 @@ impl<'q> Display for Automaton<'q> {
                     std::str::from_utf8(transition.0).unwrap_or("[invalid utf8]"),
                 )?;
             }
-            if let Some(x) = state.fallback_state {
-                writeln!(f, "  {i} -> {} [label=\"*\"]", x)?;
-            }
+            writeln!(f, "  {i} -> {} [label=\"*\"]", state.fallback_state)?;
         }
         write!(f, "}}")?;
         Ok(())
@@ -190,7 +194,7 @@ impl<'q> Display for NondeterministicAutomaton<'q> {
 }
 
 impl<'q> TransitionTable<'q> {
-    pub fn fallback_state(&self) -> Option<u8> {
+    pub fn fallback_state(&self) -> u8 {
         self.fallback_state
     }
 

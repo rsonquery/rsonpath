@@ -38,7 +38,7 @@ impl StacklessRunner<'_> {
 
 impl Runner for StacklessRunner<'_> {
     fn run<R: QueryResult>(&self, input: &Input) -> R {
-        if self.automaton.states().len() == 1 {
+        if self.automaton.states().len() == 2 {
             return empty_query(input);
         }
 
@@ -47,37 +47,6 @@ impl Runner for StacklessRunner<'_> {
 
         result
     }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum Seek {
-    Direct,
-    Recursive,
-}
-
-#[derive(Clone, Copy, Debug)]
-struct SeekLabel<'a>(Seek, &'a Label);
-
-fn query_to_labels(query: &JsonPathQuery) -> Vec<SeekLabel> {
-    debug_assert!(query.root().is_root());
-    let mut node_opt = query.root().child();
-    let mut result = vec![];
-
-    while let Some(node) = node_opt {
-        match node {
-            JsonPathQueryNode::Descendant(label, next_node) => {
-                result.push(SeekLabel(Seek::Recursive, label));
-                node_opt = next_node.as_deref();
-            }
-            JsonPathQueryNode::Child(label, next_node) => {
-                result.push(SeekLabel(Seek::Direct, label));
-                node_opt = next_node.as_deref();
-            }
-            _ => panic! {"Unexpected type of node, expected Descendant or Child."},
-        }
-    }
-
-    result
 }
 
 fn empty_query<R: QueryResult>(bytes: &AlignedBytes<alignment::Page>) -> R {
@@ -132,7 +101,7 @@ impl SmallStack {
 
 struct Executor<'q, 'b, 'r, R: QueryResult> {
     depth: u8,
-    state: Option<u8>,
+    state: u8,
     stack: SmallStack,
     states: &'q Vec<TransitionTable<'q>>,
     bytes: &'b AlignedBytes<alignment::Page>,
@@ -146,7 +115,7 @@ fn query_automaton<'q, 'b, 'r, R: QueryResult>(
 ) -> Executor<'q, 'b, 'r, R> {
     Executor {
         depth: 1,
-        state: Some(0),
+        state: 0,
         stack: SmallStack::new(),
         states,
         bytes,
@@ -159,14 +128,9 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
         let mut block_event_source =
             classify_structural_characters(self.bytes.relax_alignment()).peekable();
         let mut fallback_active = false;
-        let mut skip_first = true;
-        let last_state = (self.states.len() - 1) as u8;
+        let last_state = (self.states.len() - 2) as u8;
 
         while let Some(event) = block_event_source.next() {
-            if skip_first {
-                skip_first = false;
-                continue;
-            }
             debug!("====================");
             debug!("Event = {:?}", event);
             debug!("Depth = {:?}", self.depth);
@@ -182,60 +146,42 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                     self.depth -= 1;
 
                     if let Some(stack_frame) = self.stack.pop_if_at_or_below(self.depth) {
-                        self.state = Some(stack_frame.state)
+                        self.state = stack_frame.state
                     }
                 }
                 Structural::Opening(_) => {
                     debug!("Opening, increasing depth and pushing stack.");
 
-                    if let Some(state) = self.state {
-                        if fallback_active {
-                            let fallback = self.states[state as usize].fallback_state();
-                            if fallback != Some(state) {
-                                self.stack.push(StackFrame {
-                                    depth: self.depth,
-                                    state,
-                                });
-                                self.state = fallback;
-                            }
-                        } else {
-                            fallback_active = true;
-                        }
+                    if fallback_active {
+                        let fallback = self.states[self.state as usize].fallback_state();
+                        self.transition_to(fallback);
                     }
+                    fallback_active = true;
+
                     self.depth += 1;
                 }
                 Structural::Colon(idx) => {
-                    if let Some(state) = self.state {
-                        debug!(
-                            "Colon, label ending with {:?}",
-                            std::str::from_utf8(
-                                &self.bytes[(if idx < 8 { 0 } else { idx - 8 })..idx]
-                            )
+                    debug!(
+                        "Colon, label ending with {:?}",
+                        std::str::from_utf8(&self.bytes[(if idx < 8 { 0 } else { idx - 8 })..idx])
                             .unwrap()
-                        );
+                    );
 
-                        let is_next_opening = matches!(next_event, Some(Structural::Opening(_)));
+                    let is_next_opening = matches!(next_event, Some(Structural::Opening(_)));
 
-                        for &(label, target) in self.states[state as usize].transitions() {
-                            if is_next_opening {
-                                if self.is_match(idx, label) {
-                                    fallback_active = false;
+                    for &(label, target) in self.states[self.state as usize].transitions() {
+                        if is_next_opening {
+                            if self.is_match(idx, label) {
+                                fallback_active = false;
 
-                                    if target == last_state {
-                                        self.result.report(idx);
-                                    }
-
-                                    if target != state {
-                                        self.stack.push(StackFrame {
-                                            depth: self.depth,
-                                            state,
-                                        });
-                                        self.state = Some(target);
-                                    }
+                                if target == last_state {
+                                    self.result.report(idx);
                                 }
-                            } else if target == last_state && self.is_match(idx, label) {
-                                self.result.report(idx);
+
+                                self.transition_to(target);
                             }
+                        } else if target == last_state && self.is_match(idx, label) {
+                            self.result.report(idx);
                         }
                     }
                 }
@@ -258,5 +204,15 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
         let start_idx = closing_quote_idx + 1 - len;
         let slice = &self.bytes[start_idx..closing_quote_idx + 1];
         label.bytes_with_quotes() == slice && (start_idx == 0 || self.bytes[start_idx - 1] != b'\\')
+    }
+
+    fn transition_to(&mut self, target: u8) {
+        if target != self.state {
+            self.stack.push(StackFrame {
+                depth: self.depth,
+                state: self.state,
+            });
+            self.state = target;
+        }
     }
 }
