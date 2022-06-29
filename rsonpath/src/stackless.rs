@@ -103,13 +103,13 @@ struct Executor<'q, 'b, 'r, R: QueryResult> {
     depth: u8,
     state: u8,
     stack: SmallStack,
-    states: &'q Vec<TransitionTable<'q>>,
+    states: &'b Vec<TransitionTable<'q>>,
     bytes: &'b AlignedBytes<alignment::Page>,
     result: &'r mut R,
 }
 
 fn query_automaton<'q, 'b, 'r, R: QueryResult>(
-    states: &'q Vec<TransitionTable<'q>>,
+    states: &'b Vec<TransitionTable<'q>>,
     bytes: &'b AlignedBytes<alignment::Page>,
     result: &'r mut R,
 ) -> Executor<'q, 'b, 'r, R> {

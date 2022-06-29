@@ -12,7 +12,7 @@ pub struct Automaton<'q> {
 }
 
 pub struct TransitionTable<'q> {
-    transitions: Vec<(&'q Label, u8)>,
+    transitions: SmallVec<[(&'q Label, u8); 2]>,
     fallback_state: u8,
 }
 
@@ -57,7 +57,7 @@ impl<'q> Automaton<'q> {
                 Recursive(label) => {
                     debug!("Recursive state {i}");
                     let table = TransitionTable {
-                        transitions: [(label, i + 1)].into(),
+                        transitions: smallvec![(label, i + 1)],
                         fallback_state: i,
                     };
                     tables.push(table);
@@ -110,7 +110,7 @@ impl<'q> Automaton<'q> {
         }
 
         tables.push(TransitionTable {
-            transitions: vec![],
+            transitions: smallvec![],
             fallback_state: reject_state,
         });
 
@@ -198,7 +198,7 @@ impl<'q> TransitionTable<'q> {
         self.fallback_state
     }
 
-    pub fn transitions(&self) -> &Vec<(&'q Label, u8)> {
+    pub fn transitions(&self) -> &SmallVec<[(&'q Label, u8); 2]> {
         &self.transitions
     }
 }
