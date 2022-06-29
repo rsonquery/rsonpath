@@ -49,7 +49,7 @@ impl Runner for StacklessRunner<'_> {
         }
 
         let mut result = R::default();
-        descendant_only_automaton(&self.labels, input, &mut result).run();
+        query_automaton(&self.labels, input, &mut result).run();
 
         result
     }
@@ -150,7 +150,7 @@ struct Automaton<'q, 'b, 'r, R: QueryResult> {
     result: &'r mut R,
 }
 
-fn descendant_only_automaton<'q, 'b, 'r, R: QueryResult>(
+fn query_automaton<'q, 'b, 'r, R: QueryResult>(
     labels: &'q [SeekLabel<'q>],
     bytes: &'b AlignedBytes<alignment::Page>,
     result: &'r mut R,
@@ -168,7 +168,7 @@ fn descendant_only_automaton<'q, 'b, 'r, R: QueryResult>(
     };
 
     Automaton {
-        depth: 0,
+        depth: 1,
         recursive_state,
         direct_states,
         last_state: (labels.len() - 1) as u8,
@@ -184,8 +184,13 @@ impl<'q, 'b, 'r, R: QueryResult> Automaton<'q, 'b, 'r, R> {
         let mut block_event_source =
             classify_structural_characters(self.bytes.relax_alignment()).peekable();
         let mut skip_push_on_opening = false;
+        let mut skip_first = true;
 
         while let Some(event) = block_event_source.next() {
+            if skip_first {
+                skip_first = false;
+                continue;
+            }
             debug!("====================");
             debug!("Event = {:?}", event);
             debug!("Depth = {:?}", self.depth);
@@ -260,7 +265,6 @@ impl<'q, 'b, 'r, R: QueryResult> Automaton<'q, 'b, 'r, R> {
                                     }
                                 }
                             }
-                        } else {
                         }
                     }
                 }
@@ -305,18 +309,20 @@ impl<'q, 'b, 'r, R: QueryResult> Automaton<'q, 'b, 'r, R> {
     }
 
     fn is_match(&self, idx: usize, label: &Label) -> bool {
-        let len = label.len();
-        if idx < len + 2 {
-            return false;
-        }
+        let len = label.len() + 2;
 
         let mut closing_quote_idx = idx - 1;
         while self.bytes[closing_quote_idx] != b'"' {
             closing_quote_idx -= 1;
         }
-        let opening_quote_idx = closing_quote_idx - len - 1;
-        let slice = &self.bytes[opening_quote_idx..closing_quote_idx + 1];
-        slice == label.bytes_with_quotes()
+
+        if closing_quote_idx + 1 < len {
+            return false;
+        }
+
+        let start_idx = closing_quote_idx + 1 - len;
+        let slice = &self.bytes[start_idx..closing_quote_idx + 1];
+        label.bytes_with_quotes() == slice && (start_idx == 0 || self.bytes[start_idx - 1] != b'\\')
     }
 
     fn pop_states(&mut self) {

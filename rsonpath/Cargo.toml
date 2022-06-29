@@ -24,8 +24,6 @@ len-trait = "0.6.1"
 log = "0.4.17"
 memchr = "2.5.0"
 nom = "7.1.1"
-regex = "1.5.6"
-regex-syntax = "0.6.26"
 simple_logger = "2.1.0"
 smallvec = { version = "1.8.0", features = ["union"] }
 static_assertions = "1.1.0"

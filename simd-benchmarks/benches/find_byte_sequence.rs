@@ -63,6 +63,11 @@ fn bench_find_byte_sequence_n(c: &mut CriterionCtx, n: usize, measurement_time: 
             bench.iter(|| sequences::avx2::find_byte_sequence(s.as_bytes(), c.relax_alignment()))
         },
     );
+    group.bench_with_input(
+        BenchmarkId::new("memchr::memmem::find_bench", contents.len()),
+        &(&SEQUENCE[..n], &bytes),
+        |bench, &(s, c)| bench.iter(|| memchr::memmem::find(s.as_bytes(), c)),
+    );
     group.finish();
 }
 

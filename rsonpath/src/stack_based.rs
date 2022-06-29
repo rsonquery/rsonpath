@@ -398,16 +398,14 @@ where
                 closing_quote_idx -= 1;
             }
 
-            let opening_quote_idx = closing_quote_idx - len - 1;
-            let slice = &self.bytes[opening_quote_idx..closing_quote_idx + 1];
-
-            debug!(
-                "[{}] Inspecting slice: {}",
-                self.depth,
-                std::str::from_utf8(slice).unwrap_or("[invalid utf8]")
-            );
-
-            slice == state.label.bytes_with_quotes()
+            if closing_quote_idx + 1 < len + 2 {
+                false
+            } else {
+                let start_idx = closing_quote_idx + 1 - (len + 2);
+                let slice = &self.bytes[start_idx..closing_quote_idx + 1];
+                state.label.bytes_with_quotes() == slice
+                    && (start_idx == 0 || self.bytes[start_idx - 1] != b'\\')
+            }
         } else {
             false
         };

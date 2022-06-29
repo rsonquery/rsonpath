@@ -153,11 +153,19 @@ fn quoted_label<'a>() -> impl Parser<'a, &'a str> {
 
 //cSpell: disable
 fn single_quoted_label<'a>() -> impl Parser<'a, &'a str> {
-    escaped(many0(unescaped()), '\\', one_of(r#"'btnfru/\"#))
+    escaped(
+        many0(alt((unescaped(), char('"')))),
+        '\\',
+        one_of(r#"'btnfru/\"#),
+    )
 }
 
 fn double_quoted_label<'a>() -> impl Parser<'a, &'a str> {
-    escaped(many0(unescaped()), '\\', one_of(r#""btnfru/\"#))
+    escaped(
+        many0(alt((unescaped(), char('\'')))),
+        '\\',
+        one_of(r#""btnfru/\"#),
+    )
 }
 
 fn unescaped<'a>() -> impl Parser<'a, char> {
