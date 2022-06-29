@@ -12,7 +12,7 @@ pub struct Automaton<'q> {
 }
 
 pub struct TransitionTable<'q> {
-    transitions: HashMap<&'q Label, u8>,
+    transitions: Vec<(&'q Label, u8)>,
     fallback_state: Option<u8>,
 }
 
@@ -34,8 +34,11 @@ impl<'q> Automaton<'q> {
         debug!("NFA: {}", nfa);
         let dfa = Automaton::minimize(nfa);
         debug!("DFA:\n {}", dfa);
-        panic!("stop");
         dfa
+    }
+
+    pub fn states(&self) -> &Vec<TransitionTable<'q>> {
+        &self.states
     }
 
     fn minimize(nfa: NondeterministicAutomaton<'q>) -> Self {
@@ -97,7 +100,7 @@ impl<'q> Automaton<'q> {
                     let translated_transitions =
                         transitions.into_iter().map(|x| (x.0, superstates[&x.1]));
                     let table = TransitionTable {
-                        transitions: HashMap::from_iter(translated_transitions),
+                        transitions: translated_transitions.collect(),
                         fallback_state: recursive,
                     };
                     tables.push(table);
@@ -183,5 +186,15 @@ impl<'q> Display for NondeterministicAutomaton<'q> {
             }
         }
         Ok(())
+    }
+}
+
+impl<'q> TransitionTable<'q> {
+    pub fn fallback_state(&self) -> Option<u8> {
+        self.fallback_state
+    }
+
+    pub fn transitions(&self) -> &Vec<(&'q Label, u8)> {
+        &self.transitions
     }
 }
