@@ -264,7 +264,7 @@ impl<'q> TransitionTable<'q> {
     /// Returns the state to which a fallback transition leads.
     ///
     /// A fallback transition is the catch-all transition triggered
-    /// if none of the [`TransitionTable::transitions`] were triggered.
+    /// if none of the [`transitions`] were triggered.
     pub fn fallback_state(&self) -> State {
         self.fallback_state
     }
@@ -280,7 +280,7 @@ impl<'q> TransitionTable<'q> {
 
 #[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
 struct StateSet {
-    bitmask: u64,
+    bitmask: u128,
 }
 
 impl StateSet {
@@ -310,7 +310,7 @@ impl<const N: usize> From<[u8; N]> for StateSet {
 }
 
 struct StateSetIter {
-    bitmask: u64,
+    bitmask: u128,
 }
 
 impl Iterator for StateSetIter {
@@ -319,7 +319,7 @@ impl Iterator for StateSetIter {
     fn next(&mut self) -> Option<Self::Item> {
         let next_elem = self.bitmask.trailing_zeros();
 
-        if next_elem == 64 {
+        if next_elem == 128 {
             return None;
         }
 
