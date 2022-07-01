@@ -2,7 +2,7 @@
 //!
 //! There is only one sequential implementation, [`nosimd::Vector`]. Other implementations are SIMD based.
 //!
-//! The recommended implementation of [`DepthBlock`] is [`avx2::LazyAvx2Vector`]
+//! The recommended implementation of [`DepthBlock`] is [`avx2::LazyVector`]
 //! which is optimized for the usual case where the depth does not change too sharply.
 //! within a single 32-byte block.
 

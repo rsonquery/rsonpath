@@ -12,8 +12,8 @@ use crate::classify::{classify_structural_characters, Structural};
 use crate::debug;
 use crate::engine::result::QueryResult;
 use crate::engine::{Input, Runner};
-use crate::query::automaton::{Automaton, TransitionTable};
-use crate::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label};
+use crate::query::automaton::{Automaton, State};
+use crate::query::{JsonPathQuery, Label};
 use aligners::{alignment, AlignedBytes};
 use smallvec::{smallvec, SmallVec};
 
@@ -38,12 +38,13 @@ impl StacklessRunner<'_> {
 
 impl Runner for StacklessRunner<'_> {
     fn run<R: QueryResult>(&self, input: &Input) -> R {
-        if self.automaton.states().len() == 2 {
+        if self.automaton.is_empty_query() {
             return empty_query(input);
         }
 
         let mut result = R::default();
-        query_automaton(self.automaton.states(), input, &mut result).run();
+        let executor = query_executor(&self.automaton, input, &mut result);
+        executor.run();
 
         result
     }
@@ -63,12 +64,12 @@ fn empty_query<R: QueryResult>(bytes: &AlignedBytes<alignment::Page>) -> R {
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 struct StackFrame {
     depth: u8,
-    state: u8,
+    state: State,
 }
 
 #[derive(Debug)]
 struct SmallStack {
-    contents: SmallVec<[StackFrame; 64]>,
+    contents: SmallVec<[StackFrame; 32]>,
 }
 
 impl SmallStack {
@@ -101,23 +102,23 @@ impl SmallStack {
 
 struct Executor<'q, 'b, 'r, R: QueryResult> {
     depth: u8,
-    state: u8,
+    state: State,
     stack: SmallStack,
-    states: &'b Vec<TransitionTable<'q>>,
+    automaton: &'b Automaton<'q>,
     bytes: &'b AlignedBytes<alignment::Page>,
     result: &'r mut R,
 }
 
-fn query_automaton<'q, 'b, 'r, R: QueryResult>(
-    states: &'b Vec<TransitionTable<'q>>,
+fn query_executor<'q, 'b, 'r, R: QueryResult>(
+    automaton: &'b Automaton<'q>,
     bytes: &'b AlignedBytes<alignment::Page>,
     result: &'r mut R,
 ) -> Executor<'q, 'b, 'r, R> {
     Executor {
         depth: 1,
-        state: 0,
+        state: automaton.initial_state(),
         stack: SmallStack::new(),
-        states,
+        automaton,
         bytes,
         result,
     }
@@ -128,7 +129,6 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
         let mut block_event_source =
             classify_structural_characters(self.bytes.relax_alignment()).peekable();
         let mut fallback_active = false;
-        let last_state = (self.states.len() - 2) as u8;
 
         while let Some(event) = block_event_source.next() {
             debug!("====================");
@@ -153,7 +153,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                     debug!("Opening, increasing depth and pushing stack.");
 
                     if fallback_active {
-                        let fallback = self.states[self.state as usize].fallback_state();
+                        let fallback = self.automaton[self.state].fallback_state();
                         self.transition_to(fallback);
                     }
                     fallback_active = true;
@@ -169,23 +169,35 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
 
                     let is_next_opening = matches!(next_event, Some(Structural::Opening(_)));
 
-                    for &(label, target) in self.states[self.state as usize].transitions() {
+                    for &(label, target) in self.automaton[self.state].transitions() {
                         if is_next_opening {
                             if self.is_match(idx, label) {
                                 fallback_active = false;
 
-                                if target == last_state {
+                                if self.automaton.is_accepting(target) {
                                     self.result.report(idx);
                                 }
 
                                 self.transition_to(target);
+                                break;
                             }
-                        } else if target == last_state && self.is_match(idx, label) {
+                        } else if self.automaton.is_accepting(target) && self.is_match(idx, label) {
                             self.result.report(idx);
+                            break;
                         }
                     }
                 }
             }
+        }
+    }
+
+    fn transition_to(&mut self, target: State) {
+        if target != self.state {
+            self.stack.push(StackFrame {
+                depth: self.depth,
+                state: self.state,
+            });
+            self.state = target;
         }
     }
 
@@ -204,15 +216,5 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
         let start_idx = closing_quote_idx + 1 - len;
         let slice = &self.bytes[start_idx..closing_quote_idx + 1];
         label.bytes_with_quotes() == slice && (start_idx == 0 || self.bytes[start_idx - 1] != b'\\')
-    }
-
-    fn transition_to(&mut self, target: u8) {
-        if target != self.state {
-            self.stack.push(StackFrame {
-                depth: self.depth,
-                state: self.state,
-            });
-            self.state = target;
-        }
     }
 }

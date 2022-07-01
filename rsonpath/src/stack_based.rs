@@ -4,13 +4,12 @@ use crate::classify::{classify_structural_characters, Structural, StructuralIter
 use crate::debug;
 use crate::engine::result::QueryResult;
 use crate::engine::{Input, Runner};
-use crate::query::automaton::Automaton;
-use crate::query::{JsonPathQuery, JsonPathQueryNode, Label};
+use crate::query::automaton::{Automaton, State};
+use crate::query::{JsonPathQuery, Label};
 use aligners::{alignment, AlignedBytes, AlignedSlice};
-use smallvec::{smallvec, SmallVec};
 use std::iter::Peekable;
-use std::rc::{Rc, Weak};
 
+/// Recursive implementation of the JSONPath query engine.
 pub struct StackBasedRunner<'q> {
     automaton: Automaton<'q>,
 }
@@ -26,7 +25,7 @@ impl<'q> StackBasedRunner<'q> {
 
 impl Runner for StackBasedRunner<'_> {
     fn run<R: QueryResult>(&self, input: &Input) -> R {
-        if self.automaton.states().len() == 2 {
+        if self.automaton.is_empty_query() {
             return empty_query(input);
         }
 
@@ -36,7 +35,7 @@ impl Runner for StackBasedRunner<'_> {
         let mut result = R::default();
         let mut execution_ctx =
             ExecutionContext::new(classifier, &self.automaton, input, &mut result);
-        execution_ctx.run(0);
+        execution_ctx.run(self.automaton.initial_state());
         result
     }
 }
@@ -101,14 +100,14 @@ where
         }
     }
 
-    pub(crate) fn run(&mut self, state: u8) {
+    pub(crate) fn run(&mut self, state: State) {
         debug!("Run state {state}, depth {}", self.depth);
         loop {
             match self.classifier.next() {
                 Some(Structural::Opening(_)) => {
                     debug!("Opening, falling back");
                     self.increase_depth();
-                    self.run(self.automaton.states()[state as usize].fallback_state());
+                    self.run(self.automaton[state].fallback_state());
                 }
                 Some(Structural::Closing(_)) => {
                     debug!("Closing, popping stack");
@@ -118,22 +117,22 @@ where
                 Some(Structural::Colon(idx)) => {
                     let next_event = self.classifier.peek();
                     let is_next_opening = matches!(next_event, Some(Structural::Opening(_)));
-                    for &(label, target) in self.automaton.states()[state as usize].transitions() {
+                    for &(label, target) in self.automaton[state].transitions() {
                         if is_next_opening {
                             if self.is_match(idx, label) {
                                 debug!("Matched transition to {target}");
-                                if target == (self.automaton.states().len() - 2) as u8 {
+                                if self.automaton.is_accepting(target) {
                                     self.result.report(idx);
                                 }
                                 self.classifier.next();
                                 self.increase_depth();
                                 self.run(target);
+                                break;
                             }
-                        } else if target == (self.automaton.states().len() - 2) as u8
-                            && self.is_match(idx, label)
-                        {
+                        } else if self.automaton.is_accepting(target) && self.is_match(idx, label) {
                             debug!("Matched transition to acceptance in {target}");
                             self.result.report(idx);
+                            break;
                         }
                     }
                 }

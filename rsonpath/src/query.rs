@@ -99,6 +99,13 @@ impl Label {
     pub fn bytes_with_quotes(&self) -> &AlignedSlice<LabelAlignment> {
         &self.label_with_quotes
     }
+
+    /// Return a display object with a UTF8 representation of this label.
+    ///
+    /// If the label contains invalid UTF8, the value will always be `"[invalid utf8]"`.
+    pub fn display(&self) -> impl Display + '_ {
+        std::str::from_utf8(&self.label).unwrap_or("[invalid utf8]")
+    }
 }
 
 impl std::ops::Deref for Label {
@@ -220,16 +227,8 @@ impl Display for JsonPathQueryNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Root(_) => write!(f, "$"),
-            Child(label, _) => write!(
-                f,
-                ".['{}']",
-                std::str::from_utf8(label.bytes()).unwrap_or("[invalid utf8]")
-            ),
-            Descendant(label, _) => write!(
-                f,
-                "..['{}']",
-                std::str::from_utf8(label.bytes()).unwrap_or("[invalid utf8]")
-            ),
+            Child(label, _) => write!(f, ".['{}']", label.display()),
+            Descendant(label, _) => write!(f, "..['{}']", label.display()),
         }?;
 
         if let Some(child) = self.child() {

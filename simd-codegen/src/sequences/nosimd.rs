@@ -16,8 +16,7 @@ pub fn get_nosimd_source() -> TokenStream {
         /// Find the first occurrence of a continuous byte sequence in the slice, if it exists.
         ///
         /// This is a sequential, no-SIMD version. For big slices it is recommended to enable
-        /// the default `simd` flag and use the variant exported by [`sequences`](`super`):
-        /// [`find_byte_sequence`](`super::find_byte_sequence`) variant for better performance.
+        /// the default `simd` flag and use one of the SIMD variants for better performance.
         ///
         /// # Examples
         /// ```
