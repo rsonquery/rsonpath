@@ -33,6 +33,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: ${{ matrix.rust }}
+          components: rustfmt
           override: true
           default: true
       - name: Cache restore
@@ -80,7 +81,7 @@ jobs:
       uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
-        components: clippy
+        components: clippy rustfmt
         override: true
         default: true
     - name: Build all features
@@ -109,7 +110,7 @@ jobs:
       uses: actions-rs/toolchain@v1
       with:
         toolchain: nightly
-        components: clippy
+        components: clippy rustfmt
         override: true
         default: true
     - name: Build all features
@@ -136,6 +137,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
+          components: rustfmt
           override: true
           default: true
       - name: cargo doc
