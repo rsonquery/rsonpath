@@ -81,7 +81,7 @@ jobs:
       uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
-        components: clippy rustfmt
+        components: clippy, rustfmt
         override: true
         default: true
     - name: Build all features
@@ -110,7 +110,7 @@ jobs:
       uses: actions-rs/toolchain@v1
       with:
         toolchain: nightly
-        components: clippy rustfmt
+        components: clippy, rustfmt
         override: true
         default: true
     - name: Build all features
