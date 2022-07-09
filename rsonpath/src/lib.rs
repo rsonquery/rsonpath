@@ -143,7 +143,7 @@ macro_rules! debug {
 #[macro_export]
 macro_rules! bin {
     ($name: expr, $e:expr) => {
-        crate::debug!(
+        $crate::debug!(
             "{: >24}: {:064b} ({})",
             $name,
             {
