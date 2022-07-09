@@ -32,6 +32,8 @@ macro_rules! count_test_cases {
         #[test_case("basic/twitter_urls.json", "$..entities.urls..url" => 2; "twitter_urls.json $..entities.urls..url (child)")]
         #[test_case("basic/escapes.json", r#"$..a..b..['label\\']"# => 1; "escapes.json existing label")]
         #[test_case("basic/escapes.json", r#"$..a..b..['label\']"# => 0; "escapes.json nonexistent label")]
+        #[test_case("basic/quote_escape.json", r#"$['x']"# => 1; "quote_escape.json without quote")]
+        #[test_case("basic/quote_escape.json", r#"$['\"x']"# => 1; "quote_escape.json with quote")]
         #[test_case("basic/spaced_colon.json", r#"$..a..b..label"# => 2; "spaced colon")]
         #[test_case("basic_compressed/small_no_list.json", "$..person..phoneNumber..number" => 2; "compressed small_no_list.json $..person..phoneNumber..number")]
         #[test_case("basic_compressed/small.json", "$..person..phoneNumber..number" => 4; "compressed small.json $..person..phoneNumber..number")]
@@ -43,6 +45,8 @@ macro_rules! count_test_cases {
         #[test_case("basic_compressed/twitter_urls.json", "$..entities.urls..url" => 2; "compressed twitter_urls.json $..entities.urls..url (child)")]
         #[test_case("basic_compressed/escapes.json", r#"$..a..b..['label\\']"# => 1; "compressed escapes.json existing label")]
         #[test_case("basic_compressed/escapes.json", r#"$..a..b..['label\']"# => 0; "compressed escapes.json nonexistent label")]
+        #[test_case("basic_compressed/quote_escape.json", r#"$['x']"# => 1; "compressed quote_escape.json without quote")]
+        #[test_case("basic_compressed/quote_escape.json", r#"$['\"x']"# => 1; "compressed quote_escape.json with quote")]
         #[test_case(
             "wikidata/wikidata_person.json", "$..claims..references..hash" => 37736;
             "wikidata_person.json $..claims..references..hash"
@@ -141,6 +145,8 @@ macro_rules! indices_test_cases {
         #[test_case("basic/twitter_urls.json", "$..entities.urls..url" => vec![321, 881]; "twitter_urls.json $..entities.urls..url (child)")]
         #[test_case("basic/escapes.json", r#"$..a..b..['label\\']"# => vec![609]; "escapes.json existing label")]
         #[test_case("basic/escapes.json", r#"$..a..b..['label\']"# => Vec::<usize>::new(); "escapes.json nonexistent label")]
+        #[test_case("basic/quote_escape.json", r#"$['\"x']"# => vec![11]; "quote_escape.json with quote")]
+        #[test_case("basic/quote_escape.json", r#"$['x']"# => vec![24]; "quote_escape.json without quote")]
         #[test_case("basic/spaced_colon.json", r#"$..a..b..label"# => vec![106, 213]; "spaced colon")]
         #[test_case("basic_compressed/small_no_list.json", "$..person..phoneNumber..number" => vec![176, 380]; "compressed small_no_list.json $..person..phoneNumber..number")]
         #[test_case("basic_compressed/small.json", "$..person..phoneNumber..number" => vec![177, 219, 425, 467]; "compressed small.json $..person..phoneNumber..number")]
@@ -160,6 +166,8 @@ macro_rules! indices_test_cases {
         #[test_case("basic_compressed/twitter_urls.json", "$..entities.urls..url" => vec![145, 326]; "compressed twitter_urls.json $..entities.urls..url (child)")]
         #[test_case("basic_compressed/escapes.json", r#"$..a..b..['label\\']"# => vec![524]; "compressed escapes.json existing label")]
         #[test_case("basic_compressed/escapes.json", r#"$..a..b..['label\']"# => Vec::<usize>::new(); "compressed escapes.json nonexistent label")]
+        #[test_case("basic_compressed/quote_escape.json", r#"$['\"x']"# => vec![6]; "compressed quote_escape.json with quote")]
+        #[test_case("basic_compressed/quote_escape.json", r#"$['x']"# => vec![13]; "compressed quote_escape.json without quote")]
         fn $test_name(test_path: &str, query_string: &str) -> Vec<usize> {
             let contents = get_contents(test_path);
             let query = JsonPathQuery::parse(query_string).unwrap();

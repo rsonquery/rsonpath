@@ -27,6 +27,7 @@ nom = "7.1.1"
 simple_logger = "2.1.0"
 smallvec = { version = "1.8.0", features = ["union"] }
 static_assertions = "1.1.0"
+vector-map = "1.0.1"
 
 [dev-dependencies]
 criterion = "0.3.5"
@@ -45,6 +46,10 @@ harness = false
 
 [[bench]]
 name = "rsonpath_benchset"
+harness = false
+
+[[bench]]
+name = "rsonpath_query_compilation"
 harness = false
 
 [[bench]]

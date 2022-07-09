@@ -4,6 +4,7 @@
         "automagically",
         "benchset",
         "benchsets",
+        "bitmask",
         "clippy",
         "clmulepi",
         "cmpeq",
@@ -26,6 +27,7 @@
         "mainsnak",
         "Mateusz",
         "memchr",
+        "memmem",
         "movemask",
         "nonescaped",
         "nonexistent",
@@ -46,6 +48,7 @@
         "srli",
         "stackless",
         "Structurals",
+        "substate",
         "Uninit",
         "vectorially",
         "WHITESPACES"

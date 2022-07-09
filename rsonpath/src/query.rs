@@ -28,8 +28,10 @@
 //! # }
 //! ```
 //!
+pub mod automaton;
 mod errors;
 mod parser;
+
 use aligners::{alignment, AlignedBytes, AlignedSlice};
 use cfg_if::cfg_if;
 use color_eyre::eyre::Result;
@@ -97,6 +99,13 @@ impl Label {
     pub fn bytes_with_quotes(&self) -> &AlignedSlice<LabelAlignment> {
         &self.label_with_quotes
     }
+
+    /// Return a display object with a UTF8 representation of this label.
+    ///
+    /// If the label contains invalid UTF8, the value will always be `"[invalid utf8]"`.
+    pub fn display(&self) -> impl Display + '_ {
+        std::str::from_utf8(&self.label).unwrap_or("[invalid utf8]")
+    }
 }
 
 impl std::ops::Deref for Label {
@@ -136,6 +145,13 @@ impl PartialEq<[u8]> for Label {
 impl PartialEq<&[u8]> for Label {
     fn eq(&self, other: &&[u8]) -> bool {
         &self.label == *other
+    }
+}
+
+impl std::hash::Hash for Label {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        let slice: &[u8] = &self.label;
+        slice.hash(state);
     }
 }
 
@@ -211,16 +227,8 @@ impl Display for JsonPathQueryNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Root(_) => write!(f, "$"),
-            Child(label, _) => write!(
-                f,
-                ".['{}']",
-                std::str::from_utf8(label.bytes()).unwrap_or("[invalid utf8]")
-            ),
-            Descendant(label, _) => write!(
-                f,
-                "..['{}']",
-                std::str::from_utf8(label.bytes()).unwrap_or("[invalid utf8]")
-            ),
+            Child(label, _) => write!(f, ".['{}']", label.display()),
+            Descendant(label, _) => write!(f, "..['{}']", label.display()),
         }?;
 
         if let Some(child) = self.child() {
@@ -243,8 +251,8 @@ pub trait JsonPathQueryNodeType {
     /// Returns `true` iff the type is [`JsonPathQueryNode::Child`].
     fn is_child(&self) -> bool;
 
-    /// If the type is [`JsonPathQueryNode::Label`] returns the label it represents;
-    /// otherwise, `None`.
+    /// If the type is [`JsonPathQueryNode::Descendant`] or [`JsonPathQueryNode::Child`]
+    /// returns the label it represents; otherwise, `None`.
     fn label(&self) -> Option<&Label>;
 }
 
@@ -289,5 +297,47 @@ impl<T: std::ops::Deref<Target = JsonPathQueryNode>> JsonPathQueryNodeType for O
 
     fn label(&self) -> Option<&Label> {
         self.as_ref().and_then(|x| x.label())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::{
+        collections::hash_map::DefaultHasher,
+        hash::{Hash, Hasher},
+    };
+
+    use super::*;
+
+    #[test]
+    fn label_equality() {
+        let label1 = Label::new("dog");
+        let label2 = Label::new("dog");
+
+        assert_eq!(label1, label2);
+    }
+
+    #[test]
+    fn label_inequality() {
+        let label1 = Label::new("dog");
+        let label2 = Label::new("doc");
+
+        assert_ne!(label1, label2);
+    }
+
+    #[test]
+    fn label_hash() {
+        let label1 = Label::new("dog");
+        let label2 = Label::new("dog");
+
+        let mut s1 = DefaultHasher::new();
+        label1.hash(&mut s1);
+        let h1 = s1.finish();
+
+        let mut s2 = DefaultHasher::new();
+        label2.hash(&mut s2);
+        let h2 = s2.finish();
+
+        assert_eq!(h1, h2);
     }
 }
