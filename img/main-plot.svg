@@ -19,6 +19,7 @@
  <defs>
   <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
  </defs>
+ <rect fill="#FFF" width="1080" height="360"/>
  <g id="figure_1">
   <g id="patch_1">
    <path d="M 0 360 
