@@ -59,14 +59,14 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: hack
-          args: build --feature-powerset --skip default
+          args: build --package rsonpath --feature-powerset --skip default
         env:
           RUSTFLAGS: "-C target-feature=+${{ matrix.target_feature }} --deny warnings"
       - name: Test all feature sets
         uses: actions-rs/cargo@v1
         with:
           command: hack
-          args: test --feature-powerset --skip default
+          args: test --package rsonpath --feature-powerset --skip default
         env:
           RUSTFLAGS: "-C target-feature=+${{ matrix.target_feature }} --deny warnings"
 
@@ -88,14 +88,14 @@ jobs:
       uses: actions-rs/cargo@v1
       with:
         command: build
-        args: --all-features
+        args: --package rsonpath --all-features
       env:
         RUSTFLAGS: "-C target-feature=+avx2 --deny warnings"
     - name: Clippy all features
       uses: actions-rs/clippy-check@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        args: --all-features -- --deny warnings
+        args: --package rsonpath --all-features -- --deny warnings
       env:
         RUSTFLAGS: "-C target-feature=+avx2"
 
@@ -144,7 +144,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: doc
-          args: --all-features --no-deps
+          args: --package rsonpath --all-features --no-deps
         env:
           RUSTFLAGS: "-C target-feature=+avx2"
           RUSTDOCFLAGS: "-Dwarnings --cfg docsrs"
