@@ -201,7 +201,7 @@ fn get_find_long_byte_sequence_source() -> TokenStream {
                 let heuristic_match = find_byte_sequence32(&sequence[..32], bytes);
 
                 if let Some(j) = heuristic_match {
-                    if (&bytes[j + 32..]).starts_with(&sequence[32..]) {
+                    if (bytes[j + 32..]).starts_with(&sequence[32..]) {
                         return Some(i + j);
                     }
                     let offset = j / 32 + 1;

@@ -12,7 +12,7 @@ bench: rsonpath
 
 # Check if cargo is present, if not, use rustup to setup.
 check_cargo:
-	$(CARGO) --version || (curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && source ${HOME}/.cargo/env)
+	$(CARGO) --version || ((curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y) && source ${HOME}/.cargo/env)
 
 # Handle the criterion reports directory separately to avoid losing previous benches.
 clean:
