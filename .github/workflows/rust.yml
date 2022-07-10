@@ -1,0 +1,168 @@
+name: Rust
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  test:
+    name: Test matrix
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        rust:
+          - stable
+          - nightly
+        os: 
+          - ubuntu-latest
+          #- macos-latest
+          #- windows-latest
+        target_feature:
+          - avx2
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
+      - name: Rustup ${{ matrix.rust }} toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          components: rustfmt
+          override: true
+          default: true
+      - name: Cache restore
+        id: cache-restore
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ matrix.os }}-${{ matrix.rust }}-${{ matrix.target_feature }}-cargo-${{ hashFiles('**/Cargo.toml') }}
+      - name: Install cargo-hack
+        if: steps.cache-restore.outputs.cache-hit != 'true'
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: cargo-hack
+        env:
+          CARGO_TARGET_DIR: target/
+      - name: Build all feature sets
+        uses: actions-rs/cargo@v1
+        with:
+          command: hack
+          args: build --package rsonpath --feature-powerset --skip default
+        env:
+          RUSTFLAGS: "-C target-feature=+${{ matrix.target_feature }} --deny warnings"
+      - name: Test all feature sets
+        uses: actions-rs/cargo@v1
+        with:
+          command: hack
+          args: test --package rsonpath --feature-powerset --skip default
+        env:
+          RUSTFLAGS: "-C target-feature=+${{ matrix.target_feature }} --deny warnings"
+
+  clippy:
+    permissions:
+      checks: write
+    name: Clippy (stable)
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Rustup stable toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        components: clippy, rustfmt
+        override: true
+        default: true
+    - name: Build all features
+      uses: actions-rs/cargo@v1
+      with:
+        command: build
+        args: --package rsonpath --all-features
+      env:
+        RUSTFLAGS: "-C target-feature=+avx2 --deny warnings"
+    - name: Clippy all features
+      uses: actions-rs/clippy-check@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        args: --package rsonpath --all-features -- --deny warnings
+      env:
+        RUSTFLAGS: "-C target-feature=+avx2"
+
+  clippy-nightly:
+    permissions:
+      checks: write
+    name: Clippy (nightly)
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Rustup nightly toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: nightly
+        components: clippy, rustfmt
+        override: true
+        default: true
+    - name: Build all features
+      uses: actions-rs/cargo@v1
+      with:
+        command: build
+        args: --all-features
+      env:
+        RUSTFLAGS: "-C target-feature=+avx2 --deny warnings"
+    - name: Clippy all features
+      uses: actions-rs/clippy-check@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        args: --all-features -- --deny warnings
+      env:
+        RUSTFLAGS: "-C target-feature=+avx2"
+
+  docs:
+    name: Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Rustup nightly toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          components: rustfmt
+          override: true
+          default: true
+      - name: cargo doc
+        uses: actions-rs/cargo@v1
+        with:
+          command: doc
+          args: --package rsonpath --all-features --no-deps
+        env:
+          RUSTFLAGS: "-C target-feature=+avx2"
+          RUSTDOCFLAGS: "-Dwarnings --cfg docsrs"
+
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Rustup stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: rustfmt
+          override: true
+          default: true
+      - name: Format
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
