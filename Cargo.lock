@@ -29,6 +29,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "aligners"
+version = "0.0.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "709db05e2afb8d8269eb9856e929ddefb30e5b9b48987735d07d2e3335ff87aa"
+dependencies = [
+ "cfg-if 1.0.0",
+ "lazy_static",
+ "page_size",
+]
+
+[[package]]
 name = "atty"
 version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -113,6 +124,12 @@ checksum = "4c24dab4283a142afa2fdca129b80ad2c6284e073930f964c3a1293c225ee39a"
 dependencies = [
  "rustc_version",
 ]
+
+[[package]]
+name = "cast"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "37b2a672a2cb129a2e41c10b1224bb368f9f37a2b16b612598138befd7b37eb5"
 
 [[package]]
 name = "cc"
@@ -219,12 +236,12 @@ dependencies = [
 
 [[package]]
 name = "criterion"
-version = "0.3.5"
+version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1604dafd25fba2fe2d5895a9da139f8dc9b319a5fe5354ca137cbbce4e178d10"
+checksum = "b01d6de93b2b6c65e17c634a26653a29d107b3c98c607c765bf38d041531cd8f"
 dependencies = [
  "atty",
- "cast",
+ "cast 0.3.0",
  "clap 2.34.0",
  "criterion-plot",
  "csv",
@@ -249,7 +266,7 @@ version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d00996de9f2f7559f7f4dc286073197f83e92256a59ed395f9aac01fe717da57"
 dependencies = [
- "cast",
+ "cast 0.2.7",
  "itertools",
 ]
 
@@ -289,12 +306,12 @@ dependencies = [
 
 [[package]]
 name = "crossbeam-utils"
-version = "0.8.5"
+version = "0.8.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d82cfc11ce7f2c3faef78d8a684447b40d503d9681acebed6cb728d45940c4db"
+checksum = "7d82ee10ce34d7bc12c2122495e7593a9c41347ecdd64185af4ecf72cb1a7f83"
 dependencies = [
  "cfg-if 1.0.0",
- "lazy_static",
+ "once_cell",
 ]
 
 [[package]]
@@ -858,7 +875,7 @@ dependencies = [
 name = "rsonpath"
 version = "0.1.0"
 dependencies = [
- "aligners",
+ "aligners 0.0.8",
  "cfg-if 1.0.0",
  "clap 3.1.18",
  "color-eyre",
@@ -974,7 +991,7 @@ dependencies = [
 name = "simd-benchmarks"
 version = "0.1.0"
 dependencies = [
- "aligners",
+ "aligners 0.0.7",
  "cfg-if 1.0.0",
  "criterion",
  "decimal-byte-measurement",
