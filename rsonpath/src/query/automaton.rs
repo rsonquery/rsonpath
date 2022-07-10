@@ -264,7 +264,7 @@ impl<'q> TransitionTable<'q> {
     /// Returns the state to which a fallback transition leads.
     ///
     /// A fallback transition is the catch-all transition triggered
-    /// if none of the [`transitions`] were triggered.
+    /// if none of the transitions were triggered.
     pub fn fallback_state(&self) -> State {
         self.fallback_state
     }
