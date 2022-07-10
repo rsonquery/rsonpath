@@ -22,7 +22,7 @@ jobs:
           - nightly
         os: 
           - ubuntu-latest
-          - macos-latest
+          #- macos-latest
           #- windows-latest
         target_feature:
           - avx2
