@@ -3,13 +3,7 @@ use aligners::{alignment::Eight, alignment::TwoTo, AlignedSlice};
 pub fn discrepancy_size8(a: &[u8], b: &[u8]) -> Option<usize> {
     assert_eq!(a.len(), b.len());
 
-    for i in 0..a.len() {
-        if a[i] != b[i] {
-            return Some(i);
-        }
-    }
-
-    None
+    (0..a.len()).find(|&i| a[i] != b[i])
 }
 
 pub fn discrepancy_size64(a: &AlignedSlice<Eight>, b: &AlignedSlice<Eight>) -> Option<usize> {
