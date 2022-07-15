@@ -1,13 +1,13 @@
 # `rsonpath` &ndash; SIMD-powered JSONPath 🚀
 
 [![Rust](https://github.com/V0ldek/rsonpath/actions/workflows/rust.yml/badge.svg)](https://github.com/V0ldek/rsonpath/actions/workflows/rust.yml)
-<!-- [![docs.rs](https://img.shields.io/docsrs/rsonpath?logo=docs.rs)](https://docs.rs/rsonpath) -->
+[![docs.rs](https://img.shields.io/docsrs/rsonpath?logo=docs.rs)](https://docs.rs/rsonpath)
 
-<!-- [![Crates.io](https://img.shields.io/crates/v/rsonpath?logo=docs.rs)](https://crates.io/crates/rsonpath) -->
+[![Crates.io](https://img.shields.io/crates/v/rsonpath?logo=docs.rs)](https://crates.io/crates/rsonpath)
 [![GitHub Release Date](https://img.shields.io/github/release-date/v0ldek/rsonpath)](https://github.com/V0ldek/rsonpath/releases)
 [![GitHub last commit](https://img.shields.io/github/last-commit/v0ldek/rsonpath?logo=github)](https://github.com/V0ldek/rsonpath/commits/main)
 
-<!-- [![Crates.io](https://img.shields.io/crates/l/rsonpath)](https://choosealicense.com/licenses/mit/) -->
+[![Crates.io](https://img.shields.io/crates/l/rsonpath)](https://choosealicense.com/licenses/mit/)
 
 Experimental JSONPath engine for querying massive streamed datasets.
 
