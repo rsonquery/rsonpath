@@ -6,10 +6,10 @@ edition = "2021"
 description = "Blazing fast JSONPath query engine powered by SIMD."
 readme = "../README.md"
 license = "MIT"
-keywords = ["json", "jsonpath", "query", "simd"]
+keywords = ["json", "jsonpath", "query", "simd", "cli"]
 exclude = ["/data"]
-categories = ["command-line-utilities", "text-processing", "database-implementations"]
-repository = "https://gitlab.inria.fr/cpaperma/rsonpath"
+categories = ["command-line-utilities", "text-processing", "parsing-tools"]
+repository = "https://github.com/V0ldek/rsonpath"
 
 [package.metadata.docs.rs]
 rustdoc-args = ["--cfg", "docsrs"]

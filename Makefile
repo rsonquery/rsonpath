@@ -34,8 +34,8 @@ install: rsonpath
 	$(CARGO) install --path ./rsonpath
 
 test: rsonpath
-	cd rsonpath
-	$(CARGO) testall
+    cargo install cargo-hack
+	$(CARGO) rsontest --package rsonpath
 
 uninstall:
 	$(CARGO) uninstall rsonpath
