@@ -1,0 +1,46 @@
+[package]
+name = "rsonpath-benchmarks"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+eyre = "0.6.8"
+jni = { version = "0.19.0", features = ["invocation", "default"] }
+libc = "0.2.126"
+lazy_static = "1.4.0"
+
+[dev-dependencies]
+criterion = "0.3.6"
+decimal-byte-measurement = { path = "../decimal-byte-measurement" }
+itertools = "0.10.3"
+rsonpath = { path = "../rsonpath" }
+
+[build-dependencies]
+cc = "1.0"
+eyre = "0.6.8"
+
+[[bench]]
+name = "classifier"
+harness = false
+
+[[bench]]
+name = "rsonpath_benchset"
+harness = false
+
+[[bench]]
+name = "rsonpath_query_compilation"
+harness = false
+
+[[bench]]
+name = "rsonpath_vs_jsonski"
+harness = false
+
+[[bench]]
+name = "rsonpath_vs_jsurfer"
+harness = false
+
+[[bench]]
+name = "rsonpath_wikidata"
+harness = false

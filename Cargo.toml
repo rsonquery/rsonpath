@@ -5,7 +5,7 @@ members = [
     "simd-codegen",
     "simd-benchmarks",
     "decimal-byte-measurement",
-    "rust-jsonski"
+    "rsonpath-benchmarks"
 ]
 
 [profile.dev]

@@ -30,33 +30,9 @@ static_assertions = "1.1.0"
 vector-map = "1.0.1"
 
 [dev-dependencies]
-criterion = "0.3.6"
-decimal-byte-measurement = { path = "../decimal-byte-measurement" }
-rust-jsonski = { path = "../rust-jsonski" }
 proptest = "1.0.0"
 test-case = "2.1.0"
-itertools = "0.10.3"
 
 [features]
 default = ["simd"]
 simd = []
-
-[[bench]]
-name = "classifier"
-harness = false
-
-[[bench]]
-name = "rsonpath_benchset"
-harness = false
-
-[[bench]]
-name = "rsonpath_query_compilation"
-harness = false
-
-[[bench]]
-name = "rsonpath_vs_jsonski"
-harness = false
-
-[[bench]]
-name = "rsonpath_wikidata"
-harness = false

@@ -81,6 +81,8 @@ fn generate(codegen: Codegen) -> Result<(), Box<dyn Error>> {
         );
     }
 
+    println!("cargo:rerun-if-changed=../simd-codegen");
+
     Ok(())
 }
 
