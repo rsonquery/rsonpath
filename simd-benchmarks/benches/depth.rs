@@ -3,14 +3,12 @@ use aligners::{
     AlignedBytes, AlignedSlice,
 };
 use core::time::Duration;
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
-use decimal_byte_measurement::DecimalByteMeasurement;
+use criterion::{criterion_group, criterion_main, BenchmarkId, Throughput};
+use criterion_decimal_throughput::{decimal_byte_measurement, Criterion};
 use simd_benchmarks::depth::{self, DepthBlock};
 use std::fs;
 
 const ROOT_TEST_DIRECTORY: &str = "../rsonpath/data";
-
-type CriterionCtx = Criterion<DecimalByteMeasurement>;
 
 fn get_contents(test_path: &str) -> String {
     let path = format!("{}/{}", ROOT_TEST_DIRECTORY, test_path);
@@ -52,7 +50,7 @@ fn do_bench<
     count
 }
 
-fn wikidata_combined(c: &mut CriterionCtx) {
+fn wikidata_combined(c: &mut Criterion) {
     let mut group = c.benchmark_group("wikidata_combined");
 
     let contents = get_contents("wikidata_compressed/wikidata_combined.json");
@@ -98,10 +96,6 @@ fn wikidata_combined(c: &mut CriterionCtx) {
         |b, &(d, c)| b.iter(|| do_bench(c, d, depth::avx512::LazyVector::new)),
     );
     group.finish();
-}
-
-fn decimal_byte_measurement() -> CriterionCtx {
-    Criterion::default().with_measurement(DecimalByteMeasurement::new())
 }
 
 criterion_group!(

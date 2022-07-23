@@ -13,8 +13,8 @@ memchr = "2.5.0"
 memmem = "0.1.1"
 
 [dev-dependencies]
-decimal-byte-measurement = { path = "../decimal-byte-measurement" }
 criterion = "0.3.5"
+criterion-decimal-throughput = "1.0.0"
 test-case = "2.1.0"
 rand = "0.8.5"
 

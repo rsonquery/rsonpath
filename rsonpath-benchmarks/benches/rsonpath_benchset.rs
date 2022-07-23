@@ -1,5 +1,5 @@
-use criterion::{criterion_group, criterion_main, Criterion};
-use decimal_byte_measurement::DecimalByteMeasurement;
+use criterion::{criterion_group, criterion_main};
+use criterion_decimal_throughput::{decimal_byte_measurement, Criterion};
 use itertools::Itertools;
 use rsonpath::engine::result::CountResult;
 use rsonpath::engine::{Input, Runner};
@@ -12,8 +12,6 @@ use std::path::{Path, PathBuf};
 
 const ROOT_BENCHSET_DIRECTORY: &str = "./benches/benchset";
 const QUERIES_FILE_NAME: &str = "queries.txt";
-
-type CriterionCtx = Criterion<DecimalByteMeasurement>;
 
 struct BenchmarkOptions<'a> {
     pub input: &'a Input,
@@ -29,7 +27,7 @@ fn get_contents(test_path: &Path) -> Input {
     Input::new_bytes(buffer)
 }
 
-fn rsonpath_stack_based_vs_stackless(c: &mut CriterionCtx, options: BenchmarkOptions<'_>) {
+fn rsonpath_stack_based_vs_stackless(c: &mut Criterion, options: BenchmarkOptions<'_>) {
     let query = JsonPathQuery::parse(options.query_string).unwrap();
 
     let mut group = c.benchmark_group(format! {"rsonpath_{}", options.id});
@@ -53,7 +51,7 @@ struct BenchmarkSet {
     pub queries_file: PathBuf,
 }
 
-fn run_benchset(c: &mut CriterionCtx, benchset: &BenchmarkSet) {
+fn run_benchset(c: &mut Criterion, benchset: &BenchmarkSet) {
     let input = get_contents(&benchset.json_file);
     let query_strings = std::fs::read_to_string(&benchset.queries_file).unwrap();
     let id_base = benchset.json_file.file_name().unwrap().to_string_lossy();
@@ -71,7 +69,7 @@ fn run_benchset(c: &mut CriterionCtx, benchset: &BenchmarkSet) {
     }
 }
 
-fn benchset(c: &mut CriterionCtx) {
+fn benchset(c: &mut Criterion) {
     use std::fs::read_dir;
 
     let directories: Vec<_> = read_dir(ROOT_BENCHSET_DIRECTORY)
@@ -121,10 +119,6 @@ fn benchset(c: &mut CriterionCtx) {
     for benchset in benchsets {
         run_benchset(c, &benchset);
     }
-}
-
-fn decimal_byte_measurement() -> CriterionCtx {
-    Criterion::default().with_measurement(DecimalByteMeasurement::new())
 }
 
 criterion_group!(

@@ -1,6 +1,6 @@
 use core::time::Duration;
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
-use decimal_byte_measurement::DecimalByteMeasurement;
+use criterion::{criterion_group, criterion_main, BenchmarkId};
+use criterion_decimal_throughput::{decimal_byte_measurement, Criterion};
 use rsonpath::engine::result::CountResult;
 use rsonpath::engine::{Input, Runner};
 use rsonpath::query::JsonPathQuery;
@@ -9,8 +9,6 @@ use rsonpath_benchmarks::rust_jsurfer;
 use std::fs;
 
 const ROOT_TEST_DIRECTORY: &str = "../data";
-
-type CriterionCtx = Criterion<DecimalByteMeasurement>;
 
 struct BenchmarkOptions<'a> {
     pub path: &'a str,
@@ -29,7 +27,7 @@ fn get_contents(test_path: &str) -> Input {
     Input::new(raw)
 }
 
-fn jsurfer_overhead(c: &mut CriterionCtx) {
+fn jsurfer_overhead(c: &mut Criterion) {
     let context = rust_jsurfer::Jvm::attach().expect("failed to attach to Jvm");
     let jsurfer_file = context
         .load_file(&get_path("wikidata_compressed/wikidata_combined.json"))
@@ -51,7 +49,7 @@ fn jsurfer_overhead(c: &mut CriterionCtx) {
     group.finish();
 }
 
-fn rsonpath_vs_jsurfer(c: &mut CriterionCtx, options: BenchmarkOptions<'_>) {
+fn rsonpath_vs_jsurfer(c: &mut Criterion, options: BenchmarkOptions<'_>) {
     let context = rust_jsurfer::Jvm::attach().expect("failed to attach to Jvm");
     let jsurfer_file = context
         .load_file(&get_path(options.path))
@@ -86,11 +84,7 @@ fn rsonpath_vs_jsurfer(c: &mut CriterionCtx, options: BenchmarkOptions<'_>) {
     group.finish();
 }
 
-fn decimal_byte_measurement() -> CriterionCtx {
-    Criterion::default().with_measurement(DecimalByteMeasurement::new())
-}
-
-pub fn wikidata_combined(c: &mut CriterionCtx) {
+pub fn wikidata_combined(c: &mut Criterion) {
     rsonpath_vs_jsurfer(
         c,
         BenchmarkOptions {
@@ -103,7 +97,7 @@ pub fn wikidata_combined(c: &mut CriterionCtx) {
     );
 }
 
-pub fn wikidata_combined_with_whitespace(c: &mut CriterionCtx) {
+pub fn wikidata_combined_with_whitespace(c: &mut Criterion) {
     rsonpath_vs_jsurfer(
         c,
         BenchmarkOptions {
@@ -116,7 +110,7 @@ pub fn wikidata_combined_with_whitespace(c: &mut CriterionCtx) {
     );
 }
 
-pub fn artificial(c: &mut CriterionCtx) {
+pub fn artificial(c: &mut Criterion) {
     rsonpath_vs_jsurfer(
         c,
         BenchmarkOptions {

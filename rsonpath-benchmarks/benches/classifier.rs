@@ -1,12 +1,10 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use decimal_byte_measurement::DecimalByteMeasurement;
+use criterion::{black_box, criterion_group, criterion_main};
+use criterion_decimal_throughput::{decimal_byte_measurement, Criterion};
 use rsonpath::classify::{self};
 use rsonpath::engine::Input;
 use std::fs;
 
 const ROOT_TEST_DIRECTORY: &str = "../data";
-
-type CriterionCtx = Criterion<DecimalByteMeasurement>;
 
 fn get_contents(test_path: &str) -> Input {
     let path = format!("{}/{}", ROOT_TEST_DIRECTORY, test_path);
@@ -14,7 +12,7 @@ fn get_contents(test_path: &str) -> Input {
     Input::new(raw)
 }
 
-fn classifier_benches(c: &mut CriterionCtx, path: &str, id: &str) {
+fn classifier_benches(c: &mut Criterion, path: &str, id: &str) {
     let contents = get_contents(path);
 
     let mut group = c.benchmark_group(id);
@@ -39,18 +37,14 @@ fn classifier_benches(c: &mut CriterionCtx, path: &str, id: &str) {
     group.finish();
 }
 
-fn decimal_byte_measurement() -> CriterionCtx {
-    Criterion::default().with_measurement(DecimalByteMeasurement::new())
-}
-
-pub fn wikidata_compressed(c: &mut CriterionCtx) {
+pub fn wikidata_compressed(c: &mut Criterion) {
     classifier_benches(
         c,
         "wikidata_compressed/wikidata_combined.json",
         "compressed",
     );
 }
-pub fn wikidata_prettified(c: &mut CriterionCtx) {
+pub fn wikidata_prettified(c: &mut Criterion) {
     classifier_benches(
         c,
         "wikidata_prettified/wikidata_combined.json",

@@ -1,6 +1,6 @@
 use core::time::Duration;
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
-use decimal_byte_measurement::DecimalByteMeasurement;
+use criterion::{criterion_group, criterion_main, BenchmarkId};
+use criterion_decimal_throughput::{decimal_byte_measurement, Criterion};
 use rsonpath::engine::result::CountResult;
 use rsonpath::engine::{Input, Runner};
 use rsonpath::query::JsonPathQuery;
@@ -9,8 +9,6 @@ use rsonpath::stackless::StacklessRunner;
 use std::fs;
 
 const ROOT_TEST_DIRECTORY: &str = "../data";
-
-type CriterionCtx = Criterion<DecimalByteMeasurement>;
 
 struct BenchmarkOptions<'a> {
     pub path: &'a str,
@@ -26,7 +24,7 @@ fn get_contents(test_path: &str) -> Input {
     Input::new(raw)
 }
 
-fn rsonpath_stack_based_vs_stackless(c: &mut CriterionCtx, options: BenchmarkOptions<'_>) {
+fn rsonpath_stack_based_vs_stackless(c: &mut Criterion, options: BenchmarkOptions<'_>) {
     let contents = get_contents(options.path);
     let query = JsonPathQuery::parse(options.query_string).unwrap();
 
@@ -52,11 +50,7 @@ fn rsonpath_stack_based_vs_stackless(c: &mut CriterionCtx, options: BenchmarkOpt
     group.finish();
 }
 
-fn decimal_byte_measurement() -> CriterionCtx {
-    Criterion::default().with_measurement(DecimalByteMeasurement::new())
-}
-
-pub fn wikidata_combined(c: &mut CriterionCtx) {
+pub fn wikidata_combined(c: &mut Criterion) {
     rsonpath_stack_based_vs_stackless(
         c,
         BenchmarkOptions {
@@ -69,7 +63,7 @@ pub fn wikidata_combined(c: &mut CriterionCtx) {
     );
 }
 
-pub fn wikidata_combined_with_whitespace(c: &mut CriterionCtx) {
+pub fn wikidata_combined_with_whitespace(c: &mut Criterion) {
     rsonpath_stack_based_vs_stackless(
         c,
         BenchmarkOptions {
@@ -82,7 +76,7 @@ pub fn wikidata_combined_with_whitespace(c: &mut CriterionCtx) {
     );
 }
 
-pub fn wikidata_person(c: &mut CriterionCtx) {
+pub fn wikidata_person(c: &mut Criterion) {
     rsonpath_stack_based_vs_stackless(
         c,
         BenchmarkOptions {
@@ -95,7 +89,7 @@ pub fn wikidata_person(c: &mut CriterionCtx) {
     );
 }
 
-pub fn wikidata_person_en_value_recursive(c: &mut CriterionCtx) {
+pub fn wikidata_person_en_value_recursive(c: &mut Criterion) {
     rsonpath_stack_based_vs_stackless(
         c,
         BenchmarkOptions {
@@ -108,7 +102,7 @@ pub fn wikidata_person_en_value_recursive(c: &mut CriterionCtx) {
     );
 }
 
-pub fn wikidata_person_en_value_direct(c: &mut CriterionCtx) {
+pub fn wikidata_person_en_value_direct(c: &mut Criterion) {
     rsonpath_stack_based_vs_stackless(
         c,
         BenchmarkOptions {
@@ -121,7 +115,7 @@ pub fn wikidata_person_en_value_direct(c: &mut CriterionCtx) {
     );
 }
 
-pub fn wikidata_profession(c: &mut CriterionCtx) {
+pub fn wikidata_profession(c: &mut Criterion) {
     rsonpath_stack_based_vs_stackless(
         c,
         BenchmarkOptions {
@@ -134,7 +128,7 @@ pub fn wikidata_profession(c: &mut CriterionCtx) {
     );
 }
 
-pub fn wikidata_properties(c: &mut CriterionCtx) {
+pub fn wikidata_properties(c: &mut Criterion) {
     rsonpath_stack_based_vs_stackless(
         c,
         BenchmarkOptions {

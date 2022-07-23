@@ -283,6 +283,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "criterion-decimal-throughput"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f19c587a22a975abab5eb17b7f1ed4e8d7e663b88c783eda697fa313217b23a2"
+dependencies = [
+ "criterion",
+]
+
+[[package]]
 name = "criterion-plot"
 version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -356,13 +365,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2b2466559f260f48ad25fe6317b3c8dac77b5bdb5763ac7d9d6103530663bc90"
 dependencies = [
  "memchr",
-]
-
-[[package]]
-name = "decimal-byte-measurement"
-version = "0.1.0"
-dependencies = [
- "criterion",
 ]
 
 [[package]]
@@ -940,7 +942,7 @@ version = "0.1.0"
 dependencies = [
  "cc",
  "criterion",
- "decimal-byte-measurement",
+ "criterion-decimal-throughput",
  "eyre",
  "itertools",
  "jni",
@@ -1048,7 +1050,7 @@ dependencies = [
  "aligners 0.0.7",
  "cfg-if 1.0.0",
  "criterion",
- "decimal-byte-measurement",
+ "criterion-decimal-throughput",
  "md5",
  "memchr",
  "memmem",

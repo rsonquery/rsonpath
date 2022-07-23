@@ -1,6 +1,6 @@
 use core::time::Duration;
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
-use decimal_byte_measurement::DecimalByteMeasurement;
+use criterion::{criterion_group, criterion_main, BenchmarkId};
+use criterion_decimal_throughput::{decimal_byte_measurement, Criterion};
 use rsonpath::engine::result::CountResult;
 use rsonpath::engine::{Input, Runner};
 use rsonpath::query::JsonPathQuery;
@@ -9,8 +9,6 @@ use rsonpath_benchmarks::rust_jsonski;
 use std::fs;
 
 const ROOT_TEST_DIRECTORY: &str = "../data";
-
-type CriterionCtx = Criterion<DecimalByteMeasurement>;
 
 struct BenchmarkOptions<'a> {
     pub path: &'a str,
@@ -32,7 +30,7 @@ fn get_jsonski_record(test_path: &str) -> rust_jsonski::JsonSkiRecord {
     rust_jsonski::load_jsonski_record(&path)
 }
 
-fn rsonpath_vs_jsonski(c: &mut CriterionCtx, options: BenchmarkOptions<'_>) {
+fn rsonpath_vs_jsonski(c: &mut Criterion, options: BenchmarkOptions<'_>) {
     let contents = get_contents(options.path);
     let jsonski_record = get_jsonski_record(options.path);
     let query = JsonPathQuery::parse(options.query_string).unwrap();
@@ -68,11 +66,7 @@ fn rsonpath_vs_jsonski(c: &mut CriterionCtx, options: BenchmarkOptions<'_>) {
     group.finish();
 }
 
-fn decimal_byte_measurement() -> CriterionCtx {
-    Criterion::default().with_measurement(DecimalByteMeasurement::new())
-}
-
-pub fn wikidata_combined(c: &mut CriterionCtx) {
+pub fn wikidata_combined(c: &mut Criterion) {
     rsonpath_vs_jsonski(
         c,
         BenchmarkOptions {
@@ -86,7 +80,7 @@ pub fn wikidata_combined(c: &mut CriterionCtx) {
     );
 }
 
-pub fn wikidata_combined_with_whitespace(c: &mut CriterionCtx) {
+pub fn wikidata_combined_with_whitespace(c: &mut Criterion) {
     rsonpath_vs_jsonski(
         c,
         BenchmarkOptions {
@@ -100,7 +94,7 @@ pub fn wikidata_combined_with_whitespace(c: &mut CriterionCtx) {
     );
 }
 
-pub fn artificial(c: &mut CriterionCtx) {
+pub fn artificial(c: &mut Criterion) {
     rsonpath_vs_jsonski(
         c,
         BenchmarkOptions {
