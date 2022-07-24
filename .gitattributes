@@ -20,3 +20,10 @@ target/docs/* linguist-documentation
 /rsonpath/data/wikidata_prettified/wikidata_profession.json filter=lfs diff=lfs merge=lfs -text
 /rsonpath/data/wikidata_prettified/wikidata_properties.json filter=lfs diff=lfs merge=lfs -text
 /rsonpath/benches/benchset/wikidata_combined/wikidata_combined.json filter=lfs diff=lfs merge=lfs -text
+/data/wikidata/wikidata_combined.json filter=lfs diff=lfs merge=lfs -text
+/data/wikidata_compressed/wikidata_combined.json filter=lfs diff=lfs merge=lfs -text
+/data/wikidata_prettified/wikidata_combined.json filter=lfs diff=lfs merge=lfs -text
+/data/wikidata_prettified/wikidata_person.json filter=lfs diff=lfs merge=lfs -text
+/data/wikidata_prettified/wikidata_profession.json filter=lfs diff=lfs merge=lfs -text
+/data/wikidata_prettified/wikidata_properties.json filter=lfs diff=lfs merge=lfs -text
+/rsonpath-benchmarks/benches/benchset/wikidata_combined/wikidata_combined.json filter=lfs diff=lfs merge=lfs -text

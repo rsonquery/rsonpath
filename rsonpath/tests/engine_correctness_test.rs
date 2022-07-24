@@ -8,7 +8,7 @@ use rsonpath::stackless::StacklessRunner;
 use std::fs;
 use test_case::test_case;
 
-const ROOT_TEST_DIRECTORY: &str = "./data";
+const ROOT_TEST_DIRECTORY: &str = "../data";
 
 fn get_contents(test_path: &str) -> Input {
     let path = format!("{}/{}", ROOT_TEST_DIRECTORY, test_path);

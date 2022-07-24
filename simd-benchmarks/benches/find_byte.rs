@@ -1,13 +1,11 @@
 use aligners::{alignment::TwoTo, AlignedBytes};
 use core::time::Duration;
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
-use decimal_byte_measurement::DecimalByteMeasurement;
+use criterion::{criterion_group, criterion_main, BenchmarkId};
+use criterion_decimal_throughput::{decimal_byte_measurement, Criterion};
 use simd_benchmarks::find_byte;
 
 const LENGTH: usize = 32 * 1024 * 1024;
 const LETTERS: &str = "abcdefghijklmnopqrstuvwxyz";
-
-type CriterionCtx = Criterion<DecimalByteMeasurement>;
 
 fn setup_aligned_bytes() -> AlignedBytes<TwoTo<6>> {
     let mut contents = String::new();
@@ -26,7 +24,7 @@ fn setup_aligned_bytes() -> AlignedBytes<TwoTo<6>> {
     AlignedBytes::new_padded(contents.as_bytes())
 }
 
-fn bench_find_byte(c: &mut CriterionCtx) {
+fn bench_find_byte(c: &mut Criterion) {
     let mut group = c.benchmark_group("find_byte");
     group.measurement_time(Duration::from_secs(30));
     group.throughput(criterion::Throughput::Bytes(LENGTH as u64));
@@ -65,10 +63,6 @@ fn bench_find_byte(c: &mut CriterionCtx) {
         |bench, &(b, c)| bench.iter(|| memchr::memchr(b, c)),
     );
     group.finish();
-}
-
-fn decimal_byte_measurement() -> CriterionCtx {
-    Criterion::default().with_measurement(DecimalByteMeasurement::new())
 }
 
 criterion_group!(

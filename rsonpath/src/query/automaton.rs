@@ -100,6 +100,15 @@ impl<'q> Automaton<'q> {
         State((self.states.len() - 2) as u8)
     }
 
+    /// Returns the rejecting state of the automaton.
+    ///
+    /// The state is defined as the unique state from which there
+    /// exists no accepting run. If the query automaton reaches this state,
+    /// the current subtree is guaranteed to have no matches.
+    pub fn rejecting_state(&self) -> State {
+        State((self.states.len() - 1) as u8)
+    }
+
     /// Returns whether the given state is accepting.
     ///
     /// # Example
@@ -113,6 +122,22 @@ impl<'q> Automaton<'q> {
     /// ```
     pub fn is_accepting(&self, state: State) -> bool {
         state == self.accepting_state()
+    }
+
+    /// Returns whether the given state is rejecting, i.e.
+    /// there exist no accepting runs from it.
+    ///
+    /// # Example
+    /// ```rust
+    /// # use rsonpath::query::*;
+    /// # use rsonpath::query::automaton::*;
+    /// let query = JsonPathQuery::parse("$.a").unwrap();
+    /// let automaton = Automaton::new(&query);
+    ///
+    /// assert!(automaton.is_rejecting(automaton.rejecting_state()));
+    /// ```
+    pub fn is_rejecting(&self, state: State) -> bool {
+        state == self.rejecting_state()
     }
 
     fn minimize(nfa: NondeterministicAutomaton<'q>) -> Self {
