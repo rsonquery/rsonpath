@@ -1,13 +1,13 @@
-use std::ffi::{CString};
 use libc::c_void;
+use std::ffi::CString;
 
 #[derive(Clone, Copy)]
 pub struct JsonSkiRecord {
-    record: *const c_void
+    record: *const c_void,
 }
 
 mod jsonski_extern {
-    use libc::{c_long, c_char, c_void};
+    use libc::{c_char, c_long, c_void};
 
     extern "C" {
         pub(crate) fn loadFile(file_name: *const c_char) -> *const c_void;
@@ -20,16 +20,12 @@ pub fn load_jsonski_record(file_name: &str) -> JsonSkiRecord {
 
     unsafe {
         let record_ptr = jsonski_extern::loadFile(c_file_name.as_ptr());
-        JsonSkiRecord {
-            record: record_ptr
-        }
+        JsonSkiRecord { record: record_ptr }
     }
 }
 
 pub fn call_jsonski(query: &str, record: JsonSkiRecord) -> i64 {
     let c_query = CString::new(query).unwrap();
 
-    unsafe {
-        jsonski_extern::runJsonSki(c_query.as_ptr(), record.record)
-    }
+    unsafe { jsonski_extern::runJsonSki(c_query.as_ptr(), record.record) }
 }
