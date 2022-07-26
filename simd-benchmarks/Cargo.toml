@@ -7,7 +7,7 @@ build = "build.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-aligners = "0.0.7"
+aligners = "0.0.9"
 cfg-if = "1.0.0"
 memchr = "2.5.0"
 memmem = "0.1.1"
