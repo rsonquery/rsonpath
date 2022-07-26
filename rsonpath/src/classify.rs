@@ -15,7 +15,7 @@
 )]
 #![cfg_attr(
     feature = "simd",
-    doc = "let aligned = AlignedBytes::<alignment::TwoSimdBlocks>::new_padded(json.as_bytes());"
+    doc = "let aligned = AlignedBytes::<alignment::Twice<alignment::TwoTo<5>>>::new_padded(json.as_bytes());"
 )]
 //! let expected = vec![
 //!     Structural::Opening(0),
@@ -43,7 +43,7 @@
 )]
 #![cfg_attr(
     feature = "simd",
-    doc = "let aligned = AlignedBytes::<alignment::TwoSimdBlocks>::new_padded(json.as_bytes());"
+    doc = "let aligned = AlignedBytes::<alignment::Twice<alignment::TwoTo<5>>>::new_padded(json.as_bytes());"
 )]
 //! let expected = vec![
 //!     Structural::Opening(0),
@@ -106,32 +106,31 @@ impl Structural {
 /// that hold a reference to the JSON document valid for `'a`.
 pub trait StructuralIterator<'a>: Iterator<Item = Structural> + len_trait::Empty + 'a {}
 
-use aligners::{alignment, AlignedSlice};
-
 cfg_if! {
     if #[cfg(any(doc, not(feature = "simd")))] {
         mod nosimd;
         use nosimd::*;
+        use aligners::AlignedSlice;
+        use crate::BlockAlignment;
 
         /// Walk through the JSON document represented by `bytes` and iterate over all
         /// occurrences of structural characters in it.
         pub fn classify_structural_characters(
-            bytes: &AlignedSlice<alignment::One>,
+            bytes: &AlignedSlice<BlockAlignment>,
         ) -> impl StructuralIterator {
             SequentialClassifier::new(bytes)
         }
     }
-    else if #[cfg(all(
-        any(target_arch = "x86", target_arch = "x86_64"),
-        target_feature = "avx2",
-    ))] {
+    else if #[cfg(simd = "avx2")] {
         mod avx2;
         use avx2::Avx2Classifier;
+        use aligners::{alignment, AlignedSlice};
+        use crate::BlockAlignment;
 
         /// Walk through the JSON document represented by `bytes` and iterate over all
         /// occurrences of structural characters in it.
         pub fn classify_structural_characters(
-            bytes: &AlignedSlice<alignment::TwoSimdBlocks>,
+            bytes: &AlignedSlice<alignment::Twice<BlockAlignment>>,
         ) -> impl StructuralIterator {
             Avx2Classifier::new(bytes)
         }

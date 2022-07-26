@@ -115,6 +115,17 @@ pub mod query;
 pub mod stack_based;
 pub mod stackless;
 
+use cfg_if::cfg_if;
+
+cfg_if! {
+    if #[cfg(simd = "avx2")] {
+        type BlockAlignment = aligners::alignment::TwoTo<5>;
+    }
+    else {
+        type BlockAlignment = aligners::alignment::One;
+    }
+}
+
 /// Macro for debug logging. Evaluates to [`log::debug`], if debug assertions are enabled.
 /// Otherwise it's an empty statement.
 ///

@@ -1,5 +1,6 @@
 use super::*;
-use aligners::{alignment, alignment::Alignment, AlignedBlock, AlignedBlockIterator, AlignedSlice};
+use crate::BlockAlignment;
+use aligners::{alignment::*, AlignedBlock, AlignedBlockIterator, AlignedSlice};
 
 use crate::bin;
 use crate::debug;
@@ -13,13 +14,13 @@ use core::arch::x86_64::*;
 static_assertions::assert_eq_size!(usize, u64);
 
 struct StructuralsBlock<'a> {
-    block: &'a AlignedBlock<alignment::TwoSimdBlocks>,
+    block: &'a AlignedBlock<Twice<BlockAlignment>>,
     structural_mask: u64,
 }
 
 impl<'a> StructuralsBlock<'a> {
     #[inline]
-    fn new(block: &'a AlignedBlock<alignment::TwoSimdBlocks>, structural_mask: u64) -> Self {
+    fn new(block: &'a AlignedBlock<Twice<BlockAlignment>>, structural_mask: u64) -> Self {
         Self {
             block,
             structural_mask,
@@ -69,7 +70,7 @@ impl Empty for StructuralsBlock<'_> {
 }
 
 pub(crate) struct Avx2Classifier<'a> {
-    iter: AlignedBlockIterator<'a, alignment::TwoSimdBlocks>,
+    iter: AlignedBlockIterator<'a, Twice<BlockAlignment>>,
     offset: usize,
     classifier: BlockAvx2Classifier,
     block: Option<StructuralsBlock<'a>>,
@@ -77,7 +78,7 @@ pub(crate) struct Avx2Classifier<'a> {
 
 impl<'a> Avx2Classifier<'a> {
     #[inline]
-    pub(crate) fn new(bytes: &'a AlignedSlice<alignment::TwoSimdBlocks>) -> Self {
+    pub(crate) fn new(bytes: &'a AlignedSlice<Twice<BlockAlignment>>) -> Self {
         Self {
             iter: bytes.iter_blocks(),
             offset: 0,
@@ -92,7 +93,7 @@ impl<'a> Avx2Classifier<'a> {
             match self.iter.next() {
                 Some(block) => {
                     self.block = unsafe { Some(self.classifier.classify(block)) };
-                    self.offset += alignment::TwoSimdBlocks::size();
+                    self.offset += Twice::<BlockAlignment>::size();
                 }
                 None => return false,
             }
@@ -112,8 +113,6 @@ impl Iterator for Avx2Classifier<'_> {
 
     #[inline(always)]
     fn next(&mut self) -> Option<Structural> {
-        use aligners::alignment;
-
         if !self.next_block() {
             return None;
         }
@@ -121,7 +120,7 @@ impl Iterator for Avx2Classifier<'_> {
             .as_mut()
             .unwrap()
             .next()
-            .map(|x| x.offset(self.offset - alignment::TwoSimdBlocks::size()))
+            .map(|x| x.offset(self.offset - Twice::<BlockAlignment>::size()))
     }
 }
 
@@ -202,9 +201,9 @@ impl BlockAvx2Classifier {
     #[inline]
     unsafe fn classify<'a>(
         &mut self,
-        two_blocks: &'a AlignedBlock<alignment::TwoSimdBlocks>,
+        two_blocks: &'a AlignedBlock<Twice<BlockAlignment>>,
     ) -> StructuralsBlock<'a> {
-        let (block1, block2) = two_blocks.blocks();
+        let (block1, block2) = two_blocks.halves();
         let classification1 = self.classify_block(block1);
         let classification2 = self.classify_block(block2);
 
@@ -264,7 +263,7 @@ impl BlockAvx2Classifier {
     #[target_feature(enable = "avx2")]
     #[inline]
     unsafe fn classify_block(&self, block: &[u8]) -> BlockClassification {
-        let byte_vector = _mm256_load_si256(block.as_ptr() as *const __m256i);
+        let byte_vector = _mm256_loadu_si256(block.as_ptr() as *const __m256i);
         let shifted_byte_vector = _mm256_srli_epi16::<4>(byte_vector);
         let upper_nibble_byte_vector =
             _mm256_and_si256(shifted_byte_vector, self.upper_nibble_zeroing_mask);

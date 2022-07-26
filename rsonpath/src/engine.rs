@@ -37,18 +37,19 @@ impl Input {
         cfg_if! {
             if #[cfg(feature = "simd")] {
                 use aligners::alignment::Alignment;
+                type A = alignment::Twice::<crate::BlockAlignment>;
                 let mut contents = src;
-                let rem = contents.len() % alignment::TwoSimdBlocks::size();
+                let rem = contents.len() % A::size();
                 let pad = if rem == 0 {
                     0
                 } else {
-                    alignment::TwoSimdBlocks::size() - rem
+                    A::size() - rem
                 };
 
-                let extension = std::iter::repeat('\0').take(pad + alignment::TwoSimdBlocks::size());
+                let extension = std::iter::repeat('\0').take(pad + A::size());
                 contents.extend(extension);
 
-                debug_assert_eq!(contents.len() % alignment::TwoSimdBlocks::size(), 0);
+                debug_assert_eq!(contents.len() % A::size(), 0);
 
                 Self {
                     bytes: AlignedBytes::<alignment::Page>::from(contents.as_ref()),
@@ -69,18 +70,19 @@ impl Input {
         cfg_if! {
             if #[cfg(feature = "simd")] {
                 use aligners::alignment::Alignment;
+                type A = alignment::Twice::<crate::BlockAlignment>;
                 let mut contents = src;
-                let rem = contents.len() % alignment::TwoSimdBlocks::size();
+                let rem = contents.len() % A::size();
                 let pad = if rem == 0 {
                     0
                 } else {
-                    alignment::TwoSimdBlocks::size() - rem
+                    A::size() - rem
                 };
 
-                let extension = std::iter::repeat(0).take(pad + alignment::TwoSimdBlocks::size());
+                let extension = std::iter::repeat(0).take(pad + A::size());
                 contents.extend(extension);
 
-                debug_assert_eq!(contents.len() % alignment::TwoSimdBlocks::size(), 0);
+                debug_assert_eq!(contents.len() % A::size(), 0);
 
                 Self {
                     bytes: AlignedBytes::<alignment::Page>::from(contents.as_ref()),

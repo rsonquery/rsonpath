@@ -15,7 +15,7 @@ repository = "https://github.com/V0ldek/rsonpath"
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
-aligners = "0.0.8"
+aligners = "0.0.9"
 cfg-if = "1.0.0"
 clap = { version = "3.1.18", features = ["derive"] }
 color-eyre = { version = "0.6.1", default-features = false }
@@ -32,6 +32,9 @@ vector-map = "1.0.1"
 [dev-dependencies]
 proptest = "1.0.0"
 test-case = "2.1.0"
+
+[build-dependencies]
+eyre = "0.6.8"
 
 [features]
 default = ["simd"]
