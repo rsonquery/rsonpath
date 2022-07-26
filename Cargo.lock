@@ -542,12 +542,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2dffe52ecf27772e601905b7522cb4ef790d2cc203488bbd0e2fe85fcb74566d"
 
 [[package]]
-name = "memmem"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a64a92489e2744ce060c349162be1c5f33c6969234104dbd99ddb5feb08b8c15"
-
-[[package]]
 name = "memoffset"
 version = "0.6.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -915,12 +909,10 @@ dependencies = [
  "eyre",
  "len-trait",
  "log",
- "memchr",
  "nom",
  "proptest",
  "simple_logger",
  "smallvec",
- "static_assertions",
  "test-case",
  "vector-map",
 ]
@@ -1042,7 +1034,6 @@ dependencies = [
  "criterion-decimal-throughput",
  "md5",
  "memchr",
- "memmem",
  "proc-macro2",
  "rand 0.8.5",
  "simd-codegen",
@@ -1077,12 +1068,6 @@ name = "smallvec"
 version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f2dd574626839106c320a323308629dcb1acfc96e32a8cba364ddc61ac23ee83"
-
-[[package]]
-name = "static_assertions"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
 
 [[package]]
 name = "strsim"

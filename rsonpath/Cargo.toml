@@ -22,11 +22,9 @@ color-eyre = { version = "0.6.1", default-features = false }
 eyre = "0.6.8"
 len-trait = "0.6.1"
 log = "0.4.17"
-memchr = "2.5.0"
 nom = "7.1.1"
 simple_logger = "2.1.0"
 smallvec = { version = "1.8.0", features = ["union"] }
-static_assertions = "1.1.0"
 vector-map = "1.0.1"
 
 [dev-dependencies]

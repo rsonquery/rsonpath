@@ -99,3 +99,120 @@ For details about benchmarking refer to [Criterion.rs docs](https://github.com/b
 
 This project is the result of [my thesis](/pdf/Fast_execution_of_JSONPath_queries.pdf). You can read it for details on the theoretical
 background on the engine and details of its implementation.
+
+## Dependencies
+
+```bash
+cargo tree --package rsonpath --edges normal
+```
+
+```ini
+rsonpath v0.1.0 (/home/v0ldek/rsonpath/rsonpath)
+├── aligners v0.0.9
+│   ├── cfg-if v1.0.0
+│   ├── lazy_static v1.4.0
+│   └── page_size v0.4.2
+│       └── libc v0.2.126
+├── cfg-if v1.0.0
+├── clap v3.1.18
+│   ├── atty v0.2.14
+│   │   └── libc v0.2.126
+│   ├── bitflags v1.3.2
+│   ├── clap_derive v3.1.18 (proc-macro)
+│   │   ├── heck v0.4.0
+│   │   ├── proc-macro-error v1.0.4
+│   │   │   ├── proc-macro-error-attr v1.0.4 (proc-macro)
+│   │   │   │   ├── proc-macro2 v1.0.39
+│   │   │   │   │   └── unicode-ident v1.0.0
+│   │   │   │   └── quote v1.0.18
+│   │   │   │       └── proc-macro2 v1.0.39 (*)
+│   │   │   │   [build-dependencies]
+│   │   │   │   └── version_check v0.9.3
+│   │   │   ├── proc-macro2 v1.0.39 (*)
+│   │   │   ├── quote v1.0.18 (*)
+│   │   │   └── syn v1.0.75
+│   │   │       ├── proc-macro2 v1.0.39 (*)
+│   │   │       ├── quote v1.0.18 (*)
+│   │   │       └── unicode-xid v0.2.2
+│   │   │   [build-dependencies]
+│   │   │   └── version_check v0.9.3
+│   │   ├── proc-macro2 v1.0.39 (*)
+│   │   ├── quote v1.0.18 (*)
+│   │   └── syn v1.0.75 (*)
+│   ├── clap_lex v0.2.0
+│   │   └── os_str_bytes v6.1.0
+│   ├── indexmap v1.8.2
+│   │   └── hashbrown v0.11.2
+│   │   [build-dependencies]
+│   │   └── autocfg v1.0.1
+│   ├── lazy_static v1.4.0
+│   ├── strsim v0.10.0
+│   ├── termcolor v1.1.3
+│   └── textwrap v0.15.0
+├── color-eyre v0.6.1
+│   ├── backtrace v0.3.65
+│   │   ├── addr2line v0.17.0
+│   │   │   └── gimli v0.26.1
+│   │   ├── cfg-if v1.0.0
+│   │   ├── libc v0.2.126
+│   │   ├── miniz_oxide v0.5.1
+│   │   │   └── adler v1.0.2
+│   │   ├── object v0.28.3
+│   │   │   └── memchr v2.5.0
+│   │   └── rustc-demangle v0.1.21
+│   │   [build-dependencies]
+│   │   └── cc v1.0.73
+│   ├── eyre v0.6.8
+│   │   ├── indenter v0.3.3
+│   │   └── once_cell v1.10.0
+│   ├── indenter v0.3.3
+│   ├── once_cell v1.10.0
+│   └── owo-colors v3.3.0
+├── eyre v0.6.8 (*)
+├── len-trait v0.6.1
+│   └── cfg-if v0.1.10
+├── log v0.4.17
+│   └── cfg-if v1.0.0
+├── memchr v2.5.0
+├── nom v7.1.1
+│   ├── memchr v2.5.0
+│   └── minimal-lexical v0.2.1
+├── simple_logger v2.1.0
+│   ├── colored v2.0.0
+│   │   ├── atty v0.2.14 (*)
+│   │   └── lazy_static v1.4.0
+│   ├── log v0.4.17 (*)
+│   └── time v0.3.9
+│       ├── itoa v1.0.2
+│       ├── libc v0.2.126
+│       ├── num_threads v0.1.6
+│       └── time-macros v0.2.4 (proc-macro)
+├── smallvec v1.8.0
+├── static_assertions v1.1.0
+└── vector-map v1.0.1
+    ├── contracts v0.4.0 (proc-macro)
+    │   ├── proc-macro2 v1.0.39 (*)
+    │   ├── quote v1.0.18 (*)
+    │   └── syn v1.0.75 (*)
+    └── rand v0.7.3
+        ├── getrandom v0.1.16
+        │   ├── cfg-if v1.0.0
+        │   └── libc v0.2.126
+        ├── libc v0.2.126
+        ├── rand_chacha v0.2.2
+        │   ├── ppv-lite86 v0.2.16
+        │   └── rand_core v0.5.1
+        │       └── getrandom v0.1.16 (*)
+        └── rand_core v0.5.1 (*)
+```
+
+### Justification
+
+- `aligners` &ndash; SIMD operations require correct input data alignment, putting those requirements at type level makes our code more robust.
+- `cfg-if` &ndash; used to support SIMD and no-SIMD versions.
+- `clap` &ndash; standard crate to provide the CLI.
+- `color-eyre`, `eyre` &ndash; more accessible error messages for the parser.
+- `log`, `simple-logger` &ndash; diagnostic logs during compilation and execution.
+- `nom` &ndash; for parser implementation.
+- `smallvec` &ndash; crucial for small-stack performance.
+- `vector_map` &ndash; used in the query compiler for better performance.

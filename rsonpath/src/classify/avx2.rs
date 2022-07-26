@@ -11,8 +11,6 @@ use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 
-static_assertions::assert_eq_size!(usize, u64);
-
 struct StructuralsBlock<'a> {
     block: &'a AlignedBlock<Twice<BlockAlignment>>,
     structural_mask: u64,
