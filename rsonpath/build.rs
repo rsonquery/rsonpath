@@ -12,11 +12,11 @@ fn main() -> eyre::Result<()> {
             }
         }
 
-        return Err(eyre::eyre!("Target architecture is not supported by SIMD features of this crate. Disable the default `simd` feature."));
+        Err(eyre::eyre!("Target architecture is not supported by SIMD features of this crate. Disable the default `simd` feature."))
     }
     #[cfg(not(feature = "simd"))]
     {
         println!("cargo:warning=Building rsonpath without SIMD support, expect lower performance.");
-        return Ok(());
+        Ok(())
     }
 }

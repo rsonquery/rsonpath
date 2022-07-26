@@ -106,17 +106,17 @@ impl Structural {
 /// that hold a reference to the JSON document valid for `'a`.
 pub trait StructuralIterator<'a>: Iterator<Item = Structural> + len_trait::Empty + 'a {}
 
-use aligners::{alignment, AlignedSlice};
-
 cfg_if! {
     if #[cfg(any(doc, not(feature = "simd")))] {
         mod nosimd;
         use nosimd::*;
+        use aligners::AlignedSlice;
+        use crate::BlockAlignment;
 
         /// Walk through the JSON document represented by `bytes` and iterate over all
         /// occurrences of structural characters in it.
         pub fn classify_structural_characters(
-            bytes: &AlignedSlice<alignment::One>,
+            bytes: &AlignedSlice<BlockAlignment>,
         ) -> impl StructuralIterator {
             SequentialClassifier::new(bytes)
         }
@@ -124,11 +124,13 @@ cfg_if! {
     else if #[cfg(simd = "avx2")] {
         mod avx2;
         use avx2::Avx2Classifier;
+        use aligners::{alignment, AlignedSlice};
+        use crate::BlockAlignment;
 
         /// Walk through the JSON document represented by `bytes` and iterate over all
         /// occurrences of structural characters in it.
         pub fn classify_structural_characters(
-            bytes: &AlignedSlice<alignment::Twice<alignment::TwoTo<5>>>,
+            bytes: &AlignedSlice<alignment::Twice<BlockAlignment>>,
         ) -> impl StructuralIterator {
             Avx2Classifier::new(bytes)
         }
