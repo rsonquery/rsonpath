@@ -180,14 +180,14 @@ mod tests {
     // We know of no clean way of sharing the code without duplicating.
     #[test]
     fn find_byte_sequence_bench_correctness() {
-        const LENGTH: usize = 16 * 1024 * 1024;
+        const LENGTH: usize = 4 * 1024 * 1024;
         const LETTERS: &str = "abcdefghijklmnopqrstuvwxyz";
         const SEQUENCE: &str = "umaxzlvhjkncfidewpyqrsbgotkfsniubghjlycmqxertwdzpvoa";
 
         let string = setup_string();
         let bytes = string.as_bytes();
         let aligned: AlignedBytes<TwoTo<6>> = bytes.into();
-        let expected = Some(16777228);
+        let expected = Some(4194320);
 
         for sequence_length in [2, 3, 4, 8, 15, 16, 32, 33, 48] {
             let sequence = &SEQUENCE[..sequence_length];
