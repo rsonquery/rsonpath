@@ -30,9 +30,9 @@ dependencies = [
 
 [[package]]
 name = "aligners"
-version = "0.0.8"
+version = "0.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "709db05e2afb8d8269eb9856e929ddefb30e5b9b48987735d07d2e3335ff87aa"
+checksum = "7b505b7255db4dc630cc1a00c67224dee81b0981a07ab612e20d2f602468a72d"
 dependencies = [
  "cfg-if 1.0.0",
  "lazy_static",
@@ -919,7 +919,7 @@ dependencies = [
 name = "rsonpath"
 version = "0.1.0"
 dependencies = [
- "aligners 0.0.8",
+ "aligners 0.0.9",
  "cfg-if 1.0.0",
  "clap 3.1.18",
  "color-eyre",
