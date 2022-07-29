@@ -94,14 +94,28 @@ pub fn wikidata_combined_with_whitespace(c: &mut Criterion) {
     );
 }
 
-pub fn artificial(c: &mut Criterion) {
+pub fn artificial1(c: &mut Criterion) {
     rsonpath_vs_jsonski(
         c,
         BenchmarkOptions {
-            path: "basic/fake1.json",
-            query_string: "$..a.b.c.d",
+            path: "basic_compressed/fake1.json",
+            query_string: "$.a.b.c.d",
             jsonski_query_string: "$[*].a.b.c.d",
-            id: "charles_fake",
+            id: "charles_fake1",
+            warm_up_time: Duration::from_secs(10),
+            measurement_time: Duration::from_secs(40),
+        },
+    )
+}
+
+pub fn artificial2(c: &mut Criterion) {
+    rsonpath_vs_jsonski(
+        c,
+        BenchmarkOptions {
+            path: "basic_compressed/fake2.json",
+            query_string: "$.a999999.b.c.d",
+            jsonski_query_string: "$.a999999.b.c.d",
+            id: "charles_fake2",
             warm_up_time: Duration::from_secs(10),
             measurement_time: Duration::from_secs(40),
         },
@@ -114,7 +128,8 @@ criterion_group!(
     targets =
         wikidata_combined,
         wikidata_combined_with_whitespace,
-        artificial,
+        artificial1,
+        artificial2,
 );
 
 criterion_main!(jsonski_benches);
