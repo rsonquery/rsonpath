@@ -45,21 +45,13 @@ fn rsonpath_vs_jsonski(c: &mut Criterion, options: BenchmarkOptions<'_>) {
     group.bench_with_input(
         BenchmarkId::new("rsonpath", options.id),
         &contents,
-        |b, c| {
-            b.iter(|| {
-                let res = rsonpath.run::<CountResult>(c);
-                assert_eq!(1_000_000, res.get());
-            })
-        },
+        |b, c| b.iter(|| rsonpath.run::<CountResult>(c)),
     );
     group.bench_with_input(
         BenchmarkId::new("jsonski", options.id),
         &(&jsonski_record, options.jsonski_query_string),
         |b, &(r, q)| {
-            b.iter(|| {
-                let res = rust_jsonski::call_jsonski(q, *r);
-                assert_eq!(1_000_000, res);
-            });
+            b.iter(|| rust_jsonski::call_jsonski(q, *r));
         },
     );
 
