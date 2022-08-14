@@ -54,6 +54,7 @@
 //! assert_eq!(expected, actual);
 //! ```
 
+use crate::quotes::QuoteClassifiedIterator;
 use cfg_if::cfg_if;
 
 /// Defines structural characters in JSON documents.
@@ -116,7 +117,7 @@ cfg_if! {
         /// Walk through the JSON document represented by `bytes` and iterate over all
         /// occurrences of structural characters in it.
         pub fn classify_structural_characters(
-            bytes: &AlignedSlice<BlockAlignment>,
+            iter: QuoteClassifiedIterator,
         ) -> impl StructuralIterator {
             SequentialClassifier::new(bytes)
         }
@@ -124,15 +125,13 @@ cfg_if! {
     else if #[cfg(simd = "avx2")] {
         mod avx2;
         use avx2::Avx2Classifier;
-        use aligners::{alignment, AlignedSlice};
-        use crate::BlockAlignment;
 
         /// Walk through the JSON document represented by `bytes` and iterate over all
         /// occurrences of structural characters in it.
-        pub fn classify_structural_characters(
-            bytes: &AlignedSlice<alignment::Twice<BlockAlignment>>,
-        ) -> impl StructuralIterator {
-            Avx2Classifier::new(bytes)
+        pub fn classify_structural_characters<'a, I: QuoteClassifiedIterator<'a>>(
+            iter: I,
+        ) -> impl StructuralIterator<'a> {
+            Avx2Classifier::new(iter)
         }
     }
     else {

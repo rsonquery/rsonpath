@@ -112,6 +112,7 @@
 pub mod classify;
 pub mod engine;
 pub mod query;
+pub mod quotes;
 pub mod stack_based;
 pub mod stackless;
 

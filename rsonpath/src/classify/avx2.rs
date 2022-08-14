@@ -1,9 +1,9 @@
 use super::*;
+use crate::quotes::QuoteClassifiedBlock;
 use crate::BlockAlignment;
-use aligners::{alignment::*, AlignedBlock, AlignedBlockIterator, AlignedSlice};
+use aligners::{alignment::*, AlignedBlock};
 
 use crate::bin;
-use crate::debug;
 use len_trait::Empty;
 
 #[cfg(target_arch = "x86")]
@@ -67,18 +67,18 @@ impl Empty for StructuralsBlock<'_> {
     }
 }
 
-pub(crate) struct Avx2Classifier<'a> {
-    iter: AlignedBlockIterator<'a, Twice<BlockAlignment>>,
+pub(crate) struct Avx2Classifier<'a, I: QuoteClassifiedIterator<'a>> {
+    iter: I,
     offset: usize,
     classifier: BlockAvx2Classifier,
     block: Option<StructuralsBlock<'a>>,
 }
 
-impl<'a> Avx2Classifier<'a> {
+impl<'a, I: QuoteClassifiedIterator<'a>> Avx2Classifier<'a, I> {
     #[inline]
-    pub(crate) fn new(bytes: &'a AlignedSlice<Twice<BlockAlignment>>) -> Self {
+    pub(crate) fn new(iter: I) -> Self {
         Self {
-            iter: bytes.iter_blocks(),
+            iter,
             offset: 0,
             classifier: unsafe { BlockAvx2Classifier::new() },
             block: None,
@@ -106,7 +106,7 @@ impl<'a> Avx2Classifier<'a> {
     }
 }
 
-impl Iterator for Avx2Classifier<'_> {
+impl<'a, I: QuoteClassifiedIterator<'a>> Iterator for Avx2Classifier<'a, I> {
     type Item = Structural;
 
     #[inline(always)]
@@ -122,29 +122,23 @@ impl Iterator for Avx2Classifier<'_> {
     }
 }
 
-impl std::iter::FusedIterator for Avx2Classifier<'_> {}
+impl<'a, I: QuoteClassifiedIterator<'a>> std::iter::FusedIterator for Avx2Classifier<'a, I> {}
 
-impl Empty for Avx2Classifier<'_> {
+impl<'a, I: QuoteClassifiedIterator<'a>> Empty for Avx2Classifier<'a, I> {
     fn is_empty(&self) -> bool {
-        self.current_block_is_spent() && self.iter.len() == 0
+        self.current_block_is_spent() && self.iter.is_empty()
     }
 }
 
-impl<'a> StructuralIterator<'a> for Avx2Classifier<'a> {}
+impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a> for Avx2Classifier<'a, I> {}
 
 struct BlockAvx2Classifier {
-    prev_block_mask: u8,
     lower_nibble_mask: __m256i,
     upper_nibble_mask: __m256i,
     upper_nibble_zeroing_mask: __m256i,
-    quote_mask: __m256i,
-    slash_mask: __m256i,
-    all_ones128: __m128i,
 }
 
 struct BlockClassification {
-    slashes: u32,
-    quotes: u32,
     structural: u32,
 }
 
@@ -163,25 +157,10 @@ impl BlockAvx2Classifier {
     const EVEN: u64 = 0b0101010101010101010101010101010101010101010101010101010101010101u64;
     const ODD: u64 = 0b1010101010101010101010101010101010101010101010101010101010101010u64;
 
-    fn update_prev_block_mask(&mut self, slashes: u64, quotes: u64) {
-        let slash_mask = (((slashes & (1 << 63)) >> 63) as u8) & 0x01;
-        let quote_mask = (((quotes & (1 << 63)) >> 62) as u8) & 0x02;
-        self.prev_block_mask = slash_mask | quote_mask;
-    }
-
-    fn get_prev_slash_mask(&self) -> u64 {
-        (self.prev_block_mask & 0x01) as u64
-    }
-
-    fn get_prev_quote_mask(&self) -> u64 {
-        ((self.prev_block_mask & 0x02) >> 1) as u64
-    }
-
     #[target_feature(enable = "avx2")]
     #[inline]
     unsafe fn new() -> Self {
         Self {
-            prev_block_mask: 0,
             lower_nibble_mask: _mm256_loadu_si256(
                 Self::LOWER_NIBBLE_MASK_ARRAY.as_ptr() as *const __m256i
             ),
@@ -189,9 +168,6 @@ impl BlockAvx2Classifier {
                 Self::UPPER_NIBBLE_MASK_ARRAY.as_ptr() as *const __m256i
             ),
             upper_nibble_zeroing_mask: _mm256_set1_epi8(0x0F),
-            quote_mask: _mm256_set1_epi8(b'"' as i8),
-            slash_mask: _mm256_set1_epi8(b'\\' as i8),
-            all_ones128: _mm_set1_epi8(0xFFu8 as i8),
         }
     }
 
@@ -199,63 +175,21 @@ impl BlockAvx2Classifier {
     #[inline]
     unsafe fn classify<'a>(
         &mut self,
-        two_blocks: &'a AlignedBlock<Twice<BlockAlignment>>,
+        quote_classified_block: QuoteClassifiedBlock<'a>,
     ) -> StructuralsBlock<'a> {
-        let (block1, block2) = two_blocks.halves();
+        let (block1, block2) = quote_classified_block.block.halves();
         let classification1 = self.classify_block(block1);
         let classification2 = self.classify_block(block2);
 
         let structural =
             (classification1.structural as u64) | ((classification2.structural as u64) << 32);
-        let slashes = (classification1.slashes as u64) | ((classification2.slashes as u64) << 32);
-        let quotes = (classification1.quotes as u64) | ((classification2.quotes as u64) << 32);
 
-        let starts = slashes & !(slashes << 1) & !self.get_prev_slash_mask();
-        let even_starts = Self::EVEN & starts;
-        let odd_starts = Self::ODD & starts;
+        let nonquoted_structural = structural & !quote_classified_block.within_quotes_mask;
 
-        let ends_of_even_starts = (even_starts.wrapping_add(slashes)) & !slashes;
-        let ends_of_odd_starts = (odd_starts.wrapping_add(slashes)) & !slashes;
-
-        let escaped = (ends_of_even_starts & Self::ODD)
-            | (ends_of_odd_starts & Self::EVEN)
-            | self.get_prev_slash_mask();
-
-        let nonescaped_quotes = (quotes & !escaped) ^ self.get_prev_quote_mask();
-
-        let nonescaped_quotes_vector = _mm_set_epi64x(0, nonescaped_quotes as i64);
-        let cumulative_xor = _mm_clmulepi64_si128::<0>(nonescaped_quotes_vector, self.all_ones128);
-
-        let within_quotes = _mm_cvtsi128_si64(cumulative_xor) as u64;
-        self.update_prev_block_mask(
-            slashes & !(ends_of_even_starts | ends_of_odd_starts),
-            within_quotes,
-        );
-
-        let nonquoted_structural = structural & !within_quotes;
-
-        debug!(
-            "{: >24}: {}",
-            "block",
-            std::str::from_utf8_unchecked(
-                &two_blocks[..64]
-                    .iter()
-                    .map(|x| if x.is_ascii_whitespace() { b' ' } else { *x })
-                    .collect::<Vec<_>>()
-            )
-        );
         bin!("structural", structural);
-        bin!("slashes", slashes);
-        bin!("quotes", quotes);
-        bin!("prev_slash_bit", self.get_prev_slash_mask());
-        bin!("prev_quote_bit", self.get_prev_quote_mask());
-        bin!("escaped", escaped);
-        bin!("quotes & !escaped", quotes & !escaped);
-        bin!("nonescaped_quotes", nonescaped_quotes);
-        bin!("within_quotes", within_quotes);
         bin!("nonquoted_structural", nonquoted_structural);
 
-        StructuralsBlock::new(two_blocks, nonquoted_structural)
+        StructuralsBlock::new(quote_classified_block.block, nonquoted_structural)
     }
 
     #[target_feature(enable = "avx2")]
@@ -271,16 +205,6 @@ impl BlockAvx2Classifier {
         let structural_vector = _mm256_cmpeq_epi8(lower_nibble_lookup, upper_nibble_lookup);
         let structural = _mm256_movemask_epi8(structural_vector) as u32;
 
-        let slash_cmp = _mm256_cmpeq_epi8(byte_vector, self.slash_mask);
-        let slashes = _mm256_movemask_epi8(slash_cmp) as u32;
-
-        let quote_cmp = _mm256_cmpeq_epi8(byte_vector, self.quote_mask);
-        let quotes = _mm256_movemask_epi8(quote_cmp) as u32;
-
-        BlockClassification {
-            structural,
-            slashes,
-            quotes,
-        }
+        BlockClassification { structural }
     }
 }

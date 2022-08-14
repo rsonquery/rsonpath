@@ -6,6 +6,7 @@ use crate::engine::result::QueryResult;
 use crate::engine::{Input, Runner};
 use crate::query::automaton::{Automaton, State};
 use crate::query::{JsonPathQuery, Label};
+use crate::quotes::classify_quoted_sequences;
 use aligners::{alignment, AlignedBytes, AlignedSlice};
 use std::iter::Peekable;
 
@@ -30,7 +31,8 @@ impl Runner for StackBasedRunner<'_> {
         }
 
         let aligned_bytes: &AlignedSlice<alignment::Page> = input;
-        let mut classifier = classify_structural_characters(aligned_bytes.relax_alignment());
+        let quote_classifier = classify_quoted_sequences(aligned_bytes.relax_alignment());
+        let mut classifier = classify_structural_characters(quote_classifier);
         classifier.next();
         let mut result = R::default();
         let mut execution_ctx =
@@ -41,7 +43,8 @@ impl Runner for StackBasedRunner<'_> {
 }
 
 fn empty_query<R: QueryResult>(bytes: &AlignedBytes<alignment::Page>) -> R {
-    let mut block_event_source = classify_structural_characters(bytes.relax_alignment());
+    let quote_classifier = classify_quoted_sequences(bytes.relax_alignment());
+    let mut block_event_source = classify_structural_characters(quote_classifier);
     let mut result = R::default();
 
     if let Some(Structural::Opening(idx)) = block_event_source.next() {
