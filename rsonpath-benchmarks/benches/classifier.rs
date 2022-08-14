@@ -2,6 +2,7 @@ use criterion::{black_box, criterion_group, criterion_main};
 use criterion_decimal_throughput::{decimal_byte_measurement, Criterion};
 use rsonpath::classify::{self};
 use rsonpath::engine::Input;
+use rsonpath::quotes;
 use std::fs;
 
 const ROOT_TEST_DIRECTORY: &str = "../data";
@@ -21,9 +22,9 @@ fn classifier_benches(c: &mut Criterion, path: &str, id: &str) {
     group.bench_function("classifier", |b| {
         b.iter_batched(
             || {
-                let iter =
-                    classify::classify_structural_characters(contents.as_ref().relax_alignment());
-                iter
+                let quote_iter =
+                    quotes::classify_quoted_sequences(contents.as_ref().relax_alignment());
+                classify::classify_structural_characters(quote_iter)
             },
             |iter| {
                 for elem in iter {
