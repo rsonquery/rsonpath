@@ -29,8 +29,8 @@ The project is actively developed and currently supports only a subset of the JS
 | Index (object member) | `[<label>]`                     | ✔️        | v0.1.0 |   |
 | Index (array index)   | `[<index>]`                     | ❌        | -      |   |
 | Descendant            | `..`                            | ✔️        | v0.1.0 |   |
-| Dot wildcard          | `.*`                            | ❌        | -      |   |
-| Index wildcard        | `[*]`                           | ❌        | -      |   |
+| Child wildcard        | `.*`, `.[*]`                    | ❌        | -      |   |
+| Descendant wildcard   | `..*`, `..[*]`                  | ❌        | -      |   |
 | Slice                 | `[<start>:<end>:<step>]`        | ❌        | -      |   |
 | List                  | `[<sel1>, <sel2>, ..., <selN>]` | ❌        | -      |   |
 | Filter                | `[?(<expr>)]`                   | ❌        | -      |   |
