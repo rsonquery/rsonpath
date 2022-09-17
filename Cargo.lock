@@ -900,7 +900,7 @@ dependencies = [
 
 [[package]]
 name = "rsonpath"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "aligners",
  "cfg-if 1.0.0",
