@@ -8,7 +8,7 @@ readme = "../README.md"
 license = "MIT"
 keywords = ["json", "jsonpath", "query", "simd", "cli"]
 exclude = ["/data"]
-categories = ["command-line-utilities", "text-processing", "parsing-tools"]
+categories = ["command-line-utilities", "text-processing", "parser-implementations"]
 repository = "https://github.com/V0ldek/rsonpath"
 
 [package.metadata.docs.rs]
