@@ -1,6 +1,9 @@
 reports/* linguist-generated
 target/criterion/* linguist-generated
 target/docs/* linguist-documentation
+/rsonpath-benchmarks/implementations/jsonski/* linguist-vendored
+/rsonpath-benchmarks/implementations/jsonski/RustEntryPoint.cpp  -linguist-vendored
+/rsonpath-benchmarks/implementations/jsonski/RustEntryPoint.h  -linguist-vendored
 /simd-benchmarks/plot.ipynb linguist-documentation
 /simdpath-tests/data/wikidata/wikidata_combined.json filter=lfs diff=lfs merge=lfs -text
 /simdpath-tests/data/wikidata_prettified/wikidata_person.json filter=lfs diff=lfs merge=lfs -text

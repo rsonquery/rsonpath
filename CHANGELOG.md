@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.2] - 2022-09-17
+
+### Features
+
+#### Classify commas to prepare for the new wildcard selectors
+
+### Bugfix
+
+### Non-ASCII characters like (¡) breaking SIMD classification
+
 ## [0.1.1] - 2022-07-26
 
 ### Bug Fixes

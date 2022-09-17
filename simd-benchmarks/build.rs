@@ -87,7 +87,7 @@ fn generate(codegen: Codegen) -> Result<(), Box<dyn Error>> {
 }
 
 fn read_file_comment(path: &Path) -> Result<String, Box<dyn Error>> {
-    let file = fs::File::open(&path)?;
+    let file = fs::File::open(path)?;
     let mut buffer = BufReader::new(file);
     let mut first_line = String::new();
 

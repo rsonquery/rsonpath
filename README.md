@@ -29,8 +29,8 @@ The project is actively developed and currently supports only a subset of the JS
 | Index (object member) | `[<label>]`                     | ✔️        | v0.1.0 |   |
 | Index (array index)   | `[<index>]`                     | ❌        | -      |   |
 | Descendant            | `..`                            | ✔️        | v0.1.0 |   |
-| Dot wildcard          | `.*`                            | ❌        | -      |   |
-| Index wildcard        | `[*]`                           | ❌        | -      |   |
+| Child wildcard        | `.*`, `.[*]`                    | ❌        | -      |   |
+| Descendant wildcard   | `..*`, `..[*]`                  | ❌        | -      |   |
 | Slice                 | `[<start>:<end>:<step>]`        | ❌        | -      |   |
 | List                  | `[<sel1>, <sel2>, ..., <selN>]` | ❌        | -      |   |
 | Filter                | `[?(<expr>)]`                   | ❌        | -      |   |
@@ -58,6 +58,28 @@ cargo install rsonpath --no-default-features
 ```
 
 Alternatively, you can download the source code and manually run `make install`.
+
+## Usage
+
+To run a JSONPath query on a file execute:
+
+```bash
+rsonpath '$..a.b' ./file.json
+```
+
+If the file is omitted, the engine reads standard input.
+
+For details, consult `rsonpath --help`.
+
+### Results
+
+The results are presented as an array of indices at which a colon of a matching record was found.
+Alternatively, passing `--result count` returns only the number of matches.
+
+### Engine
+
+By default, the main SIMD engine is used. On machines not supporting SIMD, the recursive implementation
+might be faster in some cases. To change the engine use `--engine recursive`.
 
 ## Build & test
 
