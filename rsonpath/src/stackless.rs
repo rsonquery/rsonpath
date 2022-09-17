@@ -140,6 +140,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
 
             let next_event = block_event_source.peek();
             match event {
+                Structural::Comma(_) => (),
                 Structural::Closing(_) => {
                     debug!("Closing, decreasing depth and popping stack.");
 
