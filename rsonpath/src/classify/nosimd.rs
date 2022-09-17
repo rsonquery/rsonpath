@@ -42,6 +42,7 @@ impl<'a> Iterator for SequentialClassifier<'a> {
                     b']' | b'}' => return Some(Closing(ret_idx)),
                     b'[' | b'{' => return Some(Opening(ret_idx)),
                     b':' => return Some(Colon(ret_idx)),
+                    b',' => return Some(Comma(ret_idx)),
                     _ => (),
                 };
             }

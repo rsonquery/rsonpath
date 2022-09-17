@@ -136,7 +136,8 @@ where
                         }
                     }
                 }
-                _ => break,
+                Some(Structural::Comma(_)) => (),
+                None => break,
             }
         }
     }
