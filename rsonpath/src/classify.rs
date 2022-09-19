@@ -3,20 +3,15 @@
 //! Provides the [`Structural`] struct and [`StructuralIterator`] trait
 //! that allow effectively iterating over structural characters in a JSON document.
 //!
+//! A structural classifier needs ownership over a base [`QuoteClassifiedIterator`](`crate::quotes::QuoteClassifiedIterator`).
+//!
 //! # Examples
 //! ```rust
 //! use rsonpath::classify::{Structural, classify_structural_characters};
 //! use aligners::{alignment, AlignedBytes};
 //!
 //! let json = r#"{"x": [{"y": 42}, {}]}""#;
-#![cfg_attr(
-    not(feature = "simd"),
-    doc = "let aligned = AlignedBytes::<alignment::One>::new_padded(json.as_bytes());"
-)]
-#![cfg_attr(
-    feature = "simd",
-    doc = "let aligned = AlignedBytes::<alignment::Twice<alignment::TwoTo<5>>>::new_padded(json.as_bytes());"
-)]
+//! let aligned = AlignedBytes::<alignment::Twice<rsonpath::BlockAlignment>>::new_padded(json.as_bytes());
 //! let expected = vec![
 //!     Structural::Opening(0),
 //!     Structural::Colon(4),
@@ -30,7 +25,8 @@
 //!     Structural::Closing(20),
 //!     Structural::Closing(21)
 //! ];
-//! let actual = classify_structural_characters(&aligned).collect::<Vec<Structural>>();
+//! let quote_classifier = rsonpath::quotes::classify_quoted_sequences(&aligned);
+//! let actual = classify_structural_characters(quote_classifier).collect::<Vec<Structural>>();
 //! assert_eq!(expected, actual);
 //! ```
 //! ```rust
@@ -38,20 +34,14 @@
 //! use aligners::{alignment, AlignedBytes};
 //!
 //! let json = r#"{"x": "[\"\"]"}""#;
-#![cfg_attr(
-    not(feature = "simd"),
-    doc = "let aligned = AlignedBytes::<alignment::One>::new_padded(json.as_bytes());"
-)]
-#![cfg_attr(
-    feature = "simd",
-    doc = "let aligned = AlignedBytes::<alignment::Twice<alignment::TwoTo<5>>>::new_padded(json.as_bytes());"
-)]
+//! let aligned = AlignedBytes::<alignment::Twice<rsonpath::BlockAlignment>>::new_padded(json.as_bytes());
 //! let expected = vec![
 //!     Structural::Opening(0),
 //!     Structural::Colon(4),
 //!     Structural::Closing(14)
 //! ];
-//! let actual = classify_structural_characters(&aligned).collect::<Vec<Structural>>();
+//! let quote_classifier = rsonpath::quotes::classify_quoted_sequences(&aligned);
+//! let actual = classify_structural_characters(quote_classifier).collect::<Vec<Structural>>();
 //! assert_eq!(expected, actual);
 //! ```
 
@@ -110,21 +100,19 @@ impl Structural {
 
 /// Trait for classifier iterators, i.e. finite iterators of [`Structural`] characters
 /// that hold a reference to the JSON document valid for `'a`.
-pub trait StructuralIterator<'a>: Iterator<Item = Structural> + len_trait::Empty + 'a {}
+pub trait StructuralIterator<'a>: Iterator<Item = Structural> + 'a {}
 
 cfg_if! {
     if #[cfg(any(doc, not(feature = "simd")))] {
         mod nosimd;
         use nosimd::*;
-        use aligners::AlignedSlice;
-        use crate::BlockAlignment;
 
         /// Walk through the JSON document represented by `bytes` and iterate over all
         /// occurrences of structural characters in it.
-        pub fn classify_structural_characters(
-            iter: QuoteClassifiedIterator,
-        ) -> impl StructuralIterator {
-            SequentialClassifier::new(bytes)
+        pub fn classify_structural_characters<'a, I: QuoteClassifiedIterator<'a>>(
+            iter: I,
+        ) -> impl StructuralIterator<'a> {
+            SequentialClassifier::new(iter)
         }
     }
     else if #[cfg(simd = "avx2")] {

@@ -36,7 +36,6 @@ impl<'a> Iterator for Avx2QuoteClassifier<'a> {
                 let mask = unsafe { self.classifier.classify(block) };
                 let classified_block = QuoteClassifiedBlock {
                     block,
-                    offset: self.offset,
                     within_quotes_mask: mask,
                 };
                 self.offset += Twice::<BlockAlignment>::size();

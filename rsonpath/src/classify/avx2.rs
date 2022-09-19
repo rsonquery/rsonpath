@@ -155,9 +155,6 @@ impl BlockAvx2Classifier {
         0xfe, 0xfe,
     ];
 
-    const EVEN: u64 = 0b0101010101010101010101010101010101010101010101010101010101010101u64;
-    const ODD: u64 = 0b1010101010101010101010101010101010101010101010101010101010101010u64;
-
     #[target_feature(enable = "avx2")]
     #[inline]
     unsafe fn new() -> Self {

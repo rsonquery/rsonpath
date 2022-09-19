@@ -7,6 +7,7 @@
 	],
 	"settings": {
 		"cSpell.words": [
+			"bitmasks",
 			"clippy",
 			"clmulepi",
 			"cmpeq",
@@ -35,11 +36,11 @@
 			"proptest",
 			"regs",
 			"repr",
+			"rsonpath",
 			"rustdoc",
 			"RUSTFLAGS",
 			"rustfmt",
 			"SIMD",
-			"rsonpath",
 			"snaks",
 			"srli",
 			"stackless",
