@@ -167,7 +167,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                     debug!(
                         "Colon, label ending with {:?}",
                         std::str::from_utf8(&self.bytes[(if idx < 8 { 0 } else { idx - 8 })..idx])
-                            .unwrap()
+                            .unwrap_or("[invalid utf8]")
                     );
 
                     let is_next_opening = matches!(next_event, Some(Structural::Opening(_)));
