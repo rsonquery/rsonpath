@@ -14,6 +14,7 @@ use crate::engine::result::QueryResult;
 use crate::engine::{Input, Runner};
 use crate::query::automaton::{Automaton, State};
 use crate::query::{JsonPathQuery, Label};
+use crate::quotes::classify_quoted_sequences;
 use aligners::{alignment, AlignedBytes};
 use smallvec::{smallvec, SmallVec};
 
@@ -51,7 +52,8 @@ impl Runner for StacklessRunner<'_> {
 }
 
 fn empty_query<R: QueryResult>(bytes: &AlignedBytes<alignment::Page>) -> R {
-    let mut block_event_source = classify_structural_characters(bytes.relax_alignment());
+    let quote_classifier = classify_quoted_sequences(bytes.relax_alignment());
+    let mut block_event_source = classify_structural_characters(quote_classifier);
     let mut result = R::default();
 
     if let Some(Structural::Opening(idx)) = block_event_source.next() {
@@ -126,8 +128,8 @@ fn query_executor<'q, 'b, 'r, R: QueryResult>(
 
 impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
     fn run(mut self) {
-        let mut block_event_source =
-            classify_structural_characters(self.bytes.relax_alignment()).peekable();
+        let quote_classifier = classify_quoted_sequences(self.bytes.relax_alignment());
+        let mut block_event_source = classify_structural_characters(quote_classifier).peekable();
         let mut fallback_active = false;
 
         while let Some(event) = block_event_source.next() {
@@ -165,7 +167,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                     debug!(
                         "Colon, label ending with {:?}",
                         std::str::from_utf8(&self.bytes[(if idx < 8 { 0 } else { idx - 8 })..idx])
-                            .unwrap()
+                            .unwrap_or("[invalid utf8]")
                     );
 
                     let is_next_opening = matches!(next_event, Some(Structural::Opening(_)));

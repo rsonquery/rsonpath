@@ -15,7 +15,7 @@ jobs:
     name: Test matrix
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         rust:
           - stable
@@ -29,6 +29,8 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v3
+      - name: Checkout LFS
+        uses: nschloe/action-cached-lfs-checkout@v1.1.2
       - name: Rustup ${{ matrix.rust }} toolchain
         uses: actions-rs/toolchain@v1
         with:

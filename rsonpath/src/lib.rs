@@ -112,6 +112,7 @@
 pub mod classify;
 pub mod engine;
 pub mod query;
+pub mod quotes;
 pub mod stack_based;
 pub mod stackless;
 
@@ -119,10 +120,14 @@ use cfg_if::cfg_if;
 
 cfg_if! {
     if #[cfg(simd = "avx2")] {
-        type BlockAlignment = aligners::alignment::TwoTo<5>;
+        /// Default alignment required out of input blocks for the purpose
+        /// of classification with [`quotes`](crate::quotes) and [`classify`](crate::classify).
+        pub type BlockAlignment = aligners::alignment::TwoTo<5>;
     }
     else {
-        type BlockAlignment = aligners::alignment::One;
+        /// Default alignment required out of input blocks for the purpose
+        /// of classification with [`quotes`](crate::quotes) and [`classify`](crate::classify).
+        pub type BlockAlignment = aligners::alignment::One;
     }
 }
 

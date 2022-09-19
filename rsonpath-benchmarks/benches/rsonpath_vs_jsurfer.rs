@@ -114,7 +114,7 @@ pub fn artificial(c: &mut Criterion) {
     rsonpath_vs_jsurfer(
         c,
         BenchmarkOptions {
-            path: "basic/fake1.json",
+            path: "basic_compressed/fake1.json",
             query_string: "$..a.b.c.d",
             id: "charles_fake",
             warm_up_time: Duration::from_secs(10),

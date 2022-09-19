@@ -47,6 +47,7 @@ macro_rules! count_test_cases {
         #[test_case("basic_compressed/escapes.json", r#"$..a..b..['label\']"# => 0; "compressed escapes.json nonexistent label")]
         #[test_case("basic_compressed/quote_escape.json", r#"$['x']"# => 1; "compressed quote_escape.json without quote")]
         #[test_case("basic_compressed/quote_escape.json", r#"$['\"x']"# => 1; "compressed quote_escape.json with quote")]
+        #[test_case("basic_compressed/fake2.json", r#"$.a999999.b.c.d"# => 1; "compressed fake2.json")]
         #[test_case(
             "wikidata/wikidata_person.json", "$..claims..references..hash" => 37736;
             "wikidata_person.json $..claims..references..hash"
@@ -110,6 +111,10 @@ macro_rules! count_test_cases {
         #[test_case(
             "wikidata/wikidata_properties.json", "$..en.value" => 1760;
             "wikidata_properties.json $..en.value (child)"
+        )]
+        #[test_case(
+            "wikidata/wikidata_combined.json", "$.key..P7103.claims.P31..references..snaks.P4656..hash" => 1;
+            "wikidata_combined.json $.key..P7103.claims.P31..references..snaks.P4656..hash"
         )]
         fn $test_name(test_path: &str, query_string: &str) -> usize {
             let contents = get_contents(test_path);
