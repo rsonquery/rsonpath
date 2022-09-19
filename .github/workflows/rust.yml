@@ -15,7 +15,7 @@ jobs:
     name: Test matrix
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         rust:
           - stable
