@@ -83,7 +83,7 @@ impl BlockAvx2Classifier {
 
     /// Set the inter-block state based on slash overflow and the quotes mask.
     fn update_prev_block_mask(&mut self, set_slash_mask: bool, quotes: u64) {
-        let slash_mask = if set_slash_mask { 0x01 } else { 0 };
+        let slash_mask = u8::from(set_slash_mask);
         let quote_mask = (((quotes & (1 << 63)) >> 62) as u8) & 0x02;
         self.prev_block_mask = slash_mask | quote_mask;
     }
@@ -164,19 +164,19 @@ impl BlockAvx2Classifier {
         let even_starts = Self::EVEN & starts;
 
         /* Step I.3.
-         * 
+         *
          * Recall that in binary arithmetic an addition of two ones at the same place
          * causes a carry - the result bit is set to zero, and the one is carried forward to the next place.
          * To find an end of a contiguous sequence of ones we can use an "add-carry trick" - by adding a number
          * with a bit set exactly at the start of the sequence and adding it to the original mask we cause a carry
          * that propagates up until the end of the sequence.
-         * 
-         * This can overflow, so we use `wrapping_add` to ignore that. In case of the slashes starting at even 
-         * positions we want to explicitly check for that overflow - if it occurs, it means that all the bits 
+         *
+         * This can overflow, so we use `wrapping_add` to ignore that. In case of the slashes starting at even
+         * positions we want to explicitly check for that overflow - if it occurs, it means that all the bits
          * from some even position `i` up to the position `0` were lit, and thus the backslash at position `0`
-         * is _not_ escaped (since there was an even number of backslashes preceding it). 
+         * is _not_ escaped (since there was an even number of backslashes preceding it).
          * We should therefore set the `prev_slash` mask if and only if an overflow occurs here.
-         * 
+         *
          * Visualization for 8-byte-long blocks:
          *                    | prev bl.|curr bl. |
          *  bitmask index     | 76543210 76543210 |
@@ -200,11 +200,11 @@ impl BlockAvx2Classifier {
         let ends_of_even_starts = even_starts_carry & !slashes;
 
         /* Step I.4.
-         * 
+         *
          * Find the characters preceded by a contiguous sequence of backslashes of odd length.
          * Note that the `escaped` mask is completely arbitrary for the backslash characters themselves,
          * but that is irrelevant to any further processing steps.
-         * 
+         *
          * Visualization for 8-byte-long blocks:
          *                      | prev bl.|curr bl. |
          *  bitmask index       | 76543210 76543210 |
@@ -219,9 +219,9 @@ impl BlockAvx2Classifier {
             | self.get_prev_slash_mask();
 
         /* Step II.2.
-         * 
+         *
          * Select only unescaped quotes.
-         * 
+         *
          * We also check whether the last character of the previous block was a starting quote
          * and flip the first bit if it was. Assume that is the case - then there are two possibilities:
          *  1. The first character of the current block was a quote.
@@ -235,18 +235,18 @@ impl BlockAvx2Classifier {
 
         /*
          * Step II.3.
-         * 
+         *
          * The clmul operation's semantics when given a 128-bit vector `a` as the first operand and
          * an all-ones 128-bit vector `b` as the second operand are the same as a cumulative XOR.
          * Therefore, a lit bit of `nonescaped_quotes` will be "spread" up until a pairing lit bit
          * occurs in the mask, which exactly corresponds to marking all characters after a quote
          * up until the pairing closing quote is found.
-         * 
+         *
          * We only use the lower 64 bits of the vector, so we first copy the mask with `_mm_set_epi64x`
          * and then extract the 64-bit result with `_mm_cvtsi128_si64`.
-         * 
+         *
          * Again, note that the quoted classification for the delimiting quotes themselves can be arbitrary.
-         * 
+         *
          * Visualization for 8-byte-long blocks:
          *                      | prev bl.|curr bl. |
          *  bitmask index       | 76543210 76543210 |
