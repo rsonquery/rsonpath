@@ -152,6 +152,8 @@ impl<'a> DepthBlock<'a> for Vector<'a> {
         if self.rev_idx == 0 {
             return false;
         }
+        self.opening_mask &= !(1 << self.rev_idx);
+        self.closing_mask &= !(1 << self.rev_idx);
         self.rev_idx -= 1;
         true
     }
@@ -161,6 +163,25 @@ impl<'a> DepthBlock<'a> for Vector<'a> {
         let j = std::cmp::min(i, self.rev_idx);
         self.rev_idx -= j;
         j
+    }
+
+    #[inline]
+    fn advance_to_next_depth_change(&mut self) -> bool {
+        let next_opening = self.opening_mask.leading_zeros() as usize;
+        let next_closing = self.closing_mask.leading_zeros() as usize;
+
+        if next_opening == 64 && next_closing == 64 {
+            return false;
+        }
+
+        if next_opening < next_closing {
+            self.rev_idx = self.quote_classified.len() - 1 - next_opening;
+        }
+        else {
+            self.rev_idx = self.quote_classified.len() - 1 - next_closing;
+        }
+
+        self.advance()
     }
 
     #[inline]

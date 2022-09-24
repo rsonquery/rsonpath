@@ -141,7 +141,7 @@ where
             debug!("Fetched vector, current depth is {current_depth}");
             debug!("Estimate: {}", vector.estimate_lowest_possible_depth());
 
-            while vector.estimate_lowest_possible_depth() <= 0 && vector.advance() {
+            while vector.estimate_lowest_possible_depth() <= 0 && vector.advance_to_next_depth_change() {
                 if !vector.is_depth_greater_or_equal_to(1) {
                     debug!("Encountered depth 0, breaking.");
                     break 'outer;
