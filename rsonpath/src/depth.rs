@@ -6,7 +6,7 @@
 //! which is optimized for the usual case where the depth does not change too sharply.
 //! within a single 32-byte block.
 
-use crate::quotes::QuoteClassifiedIterator;
+use crate::quotes::{QuoteClassifiedIterator, ResumeClassifierState};
 
 /// Common trait for structs that enrich a byte block with JSON depth information.
 #[allow(clippy::len_without_is_empty)]
@@ -15,7 +15,7 @@ pub trait DepthBlock<'a>: Sized {
     ///
     /// This should be constant throughout the lifetime of a `DepthBlock`
     /// and always satisfy:
-    /// 
+    ///
     /// # use rsonpath::depth::{DepthBlock, avx2};
     /// # use aligners::{AlignedBytes, alignment::TwoTo};
     /// # let bytes: AlignedBytes<TwoTo<5>> = [0; 256].into();
@@ -23,7 +23,7 @@ pub trait DepthBlock<'a>: Sized {
     /// let expected_len = bytes.len() - rem.len();
     ///
     /// assert_eq!(expected_len, depth_block.len());
-    /// 
+    ///
     fn len(&self) -> usize;
 
     /// Set the depth the block considers as initial.
@@ -44,7 +44,7 @@ pub trait DepthBlock<'a>: Sized {
     fn is_depth_greater_or_equal_to(&self, depth: isize) -> bool;
 
     /// A lower bound on the depth that can be reached when advancing.
-    /// 
+    ///
     /// It is guaranteed that [`is_depth_greater_or_equal_to`](`DepthBlock::is_depth_greater_or_equal_to`)
     /// will always return `false` when given this depth, but it is not guaranteed to be a depth that
     /// is actually achievable within the block. In particular, an implementation always returning
@@ -52,9 +52,8 @@ pub trait DepthBlock<'a>: Sized {
     /// not reliably checking the actual minimal depth within the block.
     fn estimate_lowest_possible_depth(&self) -> isize;
 
-    /// Returns exact depth at the end of the decorated slice,
-    /// consuming the block.
-    fn depth_at_end(self) -> isize;
+    /// Returns exact depth at the end of the decorated slice.
+    fn depth_at_end(&self) -> isize;
 
     /// Advance by `i` positions in the decorated slice.
     /// Returns the number of positions by which the block advanced.
@@ -73,16 +72,26 @@ pub trait DepthBlock<'a>: Sized {
 
 /// Trait for depth iterators, i.e. finite iterators returning depth information
 /// about JSON documents.
-pub trait DepthIterator<'a>: Iterator<Item = Self::Block> + 'a {
+pub trait DepthIterator<'a, I: QuoteClassifiedIterator<'a>>:
+    Iterator<Item = Self::Block> + 'a
+{
     /// Type of the [`DepthBlock`] implementation used by this iterator.
     type Block: DepthBlock<'a>;
+
+    fn resume(state: ResumeClassifierState<'a, I>) -> (Option<Self::Block>, Self);
+
+    fn stop(self, block: Self::Block) -> ResumeClassifierState<'a, I>;
 }
 
 mod nosimd;
 
 /// Enrich quote classified blocks with depth information.
-pub fn classify_depth<'a, I: QuoteClassifiedIterator<'a>>(iter: I) -> impl DepthIterator<'a> {
+pub fn classify_depth<'a, I: QuoteClassifiedIterator<'a>>(iter: I) -> impl DepthIterator<'a, I> {
     nosimd::VectorIterator::new(iter)
+}
+
+pub fn resume_depth_classification<'a, I: QuoteClassifiedIterator<'a>>(state: ResumeClassifierState<'a, I>) -> (Option<impl DepthBlock<'a>>, impl DepthIterator<'a, I>) {
+    nosimd::VectorIterator::resume(state)
 }
 
 #[cfg(test)]
@@ -106,7 +115,7 @@ mod tests {
         5, 6, 7, 6, 5, 4, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1, 0,]; "long json")]
     fn depth_at_each_step(input: &str, depths: &[isize]) {
         assert_eq!(input.len(), depths.len(), "Invalid test data.");
-        
+
         let bytes = AlignedBytes::new_padded(input.as_bytes());
         let quote_iter = classify_quoted_sequences(&bytes);
         let depth_iter = classify_depth(quote_iter);

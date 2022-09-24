@@ -6,9 +6,10 @@ use crate::engine::result::QueryResult;
 use crate::engine::{Input, Runner};
 use crate::query::automaton::{Automaton, State};
 use crate::query::{JsonPathQuery, Label};
-use crate::quotes::classify_quoted_sequences;
+use crate::quotes::{classify_quoted_sequences, QuoteClassifiedIterator};
 use aligners::{alignment, AlignedBytes, AlignedSlice};
 use std::iter::Peekable;
+use std::marker::PhantomData;
 
 /// Recursive implementation of the JSONPath query engine.
 pub struct StackBasedRunner<'q> {
@@ -54,9 +55,10 @@ fn empty_query<R: QueryResult>(bytes: &AlignedBytes<alignment::Page>) -> R {
     result
 }
 
-struct ExecutionContext<'q, 'b, 'r, I, R>
+struct ExecutionContext<'q, 'b, 'r, Q, I, R>
 where
-    I: StructuralIterator<'b>,
+    Q: QuoteClassifiedIterator<'b>,
+    I: StructuralIterator<'b, Q>,
     R: QueryResult,
 {
     classifier: Peekable<I>,
@@ -65,11 +67,13 @@ where
     #[cfg(debug_assertions)]
     depth: usize,
     result: &'r mut R,
+    phantom: PhantomData<Q>
 }
 
-impl<'q, 'b, 'r, I, R> ExecutionContext<'q, 'b, 'r, I, R>
+impl<'q, 'b, 'r, Q, I, R> ExecutionContext<'q, 'b, 'r, Q, I, R>
 where
-    I: StructuralIterator<'b>,
+    Q: QuoteClassifiedIterator<'b>,
+    I: StructuralIterator<'b, Q>,
     R: QueryResult,
 {
     #[cfg(debug_assertions)]
@@ -85,6 +89,7 @@ where
             bytes,
             depth: 1,
             result,
+            phantom: PhantomData
         }
     }
 
@@ -100,6 +105,7 @@ where
             automaton,
             bytes,
             result,
+            phantom: PhantomData
         }
     }
 

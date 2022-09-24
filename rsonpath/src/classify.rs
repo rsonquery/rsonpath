@@ -45,7 +45,7 @@
 //! assert_eq!(expected, actual);
 //! ```
 
-use crate::quotes::QuoteClassifiedIterator;
+use crate::quotes::{QuoteClassifiedIterator, ResumeClassifierState};
 use cfg_if::cfg_if;
 
 /// Defines structural characters in JSON documents.
@@ -100,7 +100,13 @@ impl Structural {
 
 /// Trait for classifier iterators, i.e. finite iterators of [`Structural`] characters
 /// that hold a reference to the JSON document valid for `'a`.
-pub trait StructuralIterator<'a>: Iterator<Item = Structural> + 'a {}
+pub trait StructuralIterator<'a, I: QuoteClassifiedIterator<'a>>:
+    Iterator<Item = Structural> + 'a
+{
+    fn stop(self) -> ResumeClassifierState<'a, I>;
+
+    fn resume(state: ResumeClassifierState<'a, I>) -> Self;
+}
 
 cfg_if! {
     if #[cfg(any(doc, not(feature = "simd")))] {
@@ -111,8 +117,14 @@ cfg_if! {
         /// occurrences of structural characters in it.
         pub fn classify_structural_characters<'a, I: QuoteClassifiedIterator<'a>>(
             iter: I,
-        ) -> impl StructuralIterator<'a> {
+        ) -> impl StructuralIterator<'a, I> {
             SequentialClassifier::new(iter)
+        }
+
+        pub fn resume_structural_classification<'a, I: QuoteClassifiedIterator<'a>>(
+            state: ResumeClassifierState<'a, I>
+        ) -> impl StructuralIterator<'a, I> {
+            SequentialClassifier::resume(state)
         }
     }
     else if #[cfg(simd = "avx2")] {
@@ -123,11 +135,52 @@ cfg_if! {
         /// occurrences of structural characters in it.
         pub fn classify_structural_characters<'a, I: QuoteClassifiedIterator<'a>>(
             iter: I,
-        ) -> impl StructuralIterator<'a> {
+        ) -> impl StructuralIterator<'a, I> {
             Avx2Classifier::new(iter)
+        }
+
+        pub fn resume_structural_classification<'a, I: QuoteClassifiedIterator<'a>>(
+            state: ResumeClassifierState<'a, I>
+        ) -> impl StructuralIterator<'a, I> {
+            Avx2Classifier::resume(state)
         }
     }
     else {
         compile_error!("Target architecture is not supported by SIMD features of this crate. Disable the default `simd` feature.");
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::quotes::classify_quoted_sequences;
+
+    use super::*;
+    use aligners::AlignedBytes;
+
+    #[test]
+    fn resumption() {
+        use Structural::*;
+
+        let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
+        let bytes = AlignedBytes::new_padded(json.as_bytes());
+        let quotes = classify_quoted_sequences(&bytes);
+
+        let mut classifier = classify_structural_characters(quotes);
+        
+        assert_eq!(Some(Opening(0)), classifier.next());
+        assert_eq!(Some(Colon(4)), classifier.next());
+        assert_eq!(Some(Opening(6)), classifier.next());
+        assert_eq!(Some(Comma(9)), classifier.next());
+        assert_eq!(Some(Comma(13)), classifier.next());
+
+        let resume_state = classifier.stop();
+
+        let mut resumed_classifier = resume_structural_classification(resume_state);
+
+        assert_eq!(Some(Opening(15)), resumed_classifier.next());
+        assert_eq!(Some(Colon(20)), resumed_classifier.next());
+        assert_eq!(Some(Opening(22)), resumed_classifier.next());
+        assert_eq!(Some(Colon(27)), resumed_classifier.next());
+        assert_eq!(Some(Comma(30)), resumed_classifier.next());
     }
 }

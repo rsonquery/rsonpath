@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::quotes::QuoteClassifiedBlock;
+use crate::quotes::{QuoteClassifiedBlock, ResumeClassifierBlockState};
 
 use super::*;
 
@@ -27,8 +27,33 @@ impl<'a, I: QuoteClassifiedIterator<'a>> Iterator for VectorIterator<'a, I> {
     }
 }
 
-impl<'a, I: QuoteClassifiedIterator<'a>> DepthIterator<'a> for VectorIterator<'a, I> {
+impl<'a, I: QuoteClassifiedIterator<'a>> DepthIterator<'a, I> for VectorIterator<'a, I> {
     type Block = Vector<'a>;
+
+    fn stop(self, block: Self::Block) -> ResumeClassifierState<'a, I> {
+        let block_state = if block.idx >= block.quote_classified.len() {
+            None
+        } else {
+            Some(ResumeClassifierBlockState {
+                block: block.quote_classified,
+                idx: block.idx,
+            })
+        };
+
+        ResumeClassifierState {
+            iter: self.iter,
+            block: block_state,
+        }
+    }
+
+    fn resume(state: ResumeClassifierState<'a, I>) -> (Option<Self::Block>, Self) {
+        let first_block = state.block.map(|b| Vector::new_from(b.block, b.idx));
+
+        (first_block, VectorIterator {
+            iter: state.iter,
+            phantom: PhantomData
+        })
+    }
 }
 
 /// Decorates a byte slice with JSON depth information.
@@ -46,13 +71,44 @@ impl<'a> Vector<'a> {
     /// slice at once.
     #[inline]
     pub(crate) fn new(bytes: QuoteClassifiedBlock<'a>) -> Self {
+        Self::new_from(bytes, 0)
+    }
+
+    #[inline]
+    fn new_from(bytes: QuoteClassifiedBlock<'a>, idx: usize) -> Self {
         let mut vector = Self {
             quote_classified: bytes,
             depth: 0,
-            idx: 0,
+            idx,
         };
         vector.advance();
-        vector
+        vector    
+    }
+
+    #[inline]
+    fn map_depths<F: FnMut(isize)>(&self, mut f: F) {
+        let mut current = self.depth;
+        f(current);
+        let mut offset = 0;
+
+        while self.idx + offset < self.quote_classified.len() {
+            let character = self.quote_classified.block[self.idx];
+            let idx_mask = 1u64 << self.idx;
+            let is_quoted = (self.quote_classified.within_quotes_mask & idx_mask) == idx_mask;
+
+            if !is_quoted {
+                current += match character {
+                    b'{' => 1,
+                    b'[' => 1,
+                    b'}' => -1,
+                    b']' => -1,
+                    _ => 0,
+                };
+            }
+
+            f(current);
+            offset += 1;
+        }
     }
 }
 
@@ -92,9 +148,11 @@ impl<'a> DepthBlock<'a> for Vector<'a> {
     }
 
     #[inline]
-    fn depth_at_end(mut self) -> isize {
-        while self.advance() {}
-        self.depth
+    fn depth_at_end(&self) -> isize {
+        let mut current = 0;
+        self.map_depths(|x| current = x);
+
+        current
     }
 
     #[inline]
@@ -103,30 +161,9 @@ impl<'a> DepthBlock<'a> for Vector<'a> {
     }
 
     fn estimate_lowest_possible_depth(&self) -> isize {
-        let mut current = self.depth;
-        let mut lowest = self.depth;
-        let mut offset = 0;
+        let mut lowest = 0;
+        self.map_depths(|x| lowest = std::cmp::min(lowest, x));
 
-        while self.idx + offset < self.quote_classified.len() {
-            let character = self.quote_classified.block[self.idx];
-            let idx_mask = 1u64 << self.idx;
-            let is_quoted = (self.quote_classified.within_quotes_mask & idx_mask) == idx_mask;
-    
-            if !is_quoted {
-                current += match character {
-                    b'{' => 1,
-                    b'[' => 1,
-                    b'}' => -1,
-                    b']' => -1,
-                    _ => 0,
-                };
-
-                lowest = std::cmp::min(lowest, current);
-            }
-
-            offset += 1;
-        }
-        
         lowest
     }
 }

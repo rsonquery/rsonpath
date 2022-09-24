@@ -40,6 +40,17 @@ impl<'a> QuoteClassifiedBlock<'a> {
 pub trait QuoteClassifiedIterator<'a>:
     Iterator<Item = QuoteClassifiedBlock<'a>> + len_trait::Empty + 'a
 {
+    fn offset(&self) -> usize;
+}
+
+pub struct ResumeClassifierState<'a, I: QuoteClassifiedIterator<'a>> {
+    pub iter: I,
+    pub block: Option<ResumeClassifierBlockState<'a>>,
+}
+
+pub struct ResumeClassifierBlockState<'a> {
+    pub block: QuoteClassifiedBlock<'a>,
+    pub idx: usize
 }
 
 cfg_if! {

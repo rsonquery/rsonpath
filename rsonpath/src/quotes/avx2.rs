@@ -1,6 +1,6 @@
 use super::*;
 use crate::BlockAlignment;
-use aligners::{alignment::*, AlignedBlock, AlignedBlockIterator, AlignedSlice};
+use aligners::{AlignedBlock, AlignedBlockIterator, AlignedSlice};
 
 use crate::bin;
 use crate::debug;
@@ -11,7 +11,7 @@ use core::arch::x86::*;
 use core::arch::x86_64::*;
 pub(crate) struct Avx2QuoteClassifier<'a> {
     iter: AlignedBlockIterator<'a, Twice<BlockAlignment>>,
-    offset: usize,
+    offset: Option<usize>,
     classifier: BlockAvx2Classifier,
 }
 
@@ -20,7 +20,7 @@ impl<'a> Avx2QuoteClassifier<'a> {
     pub(crate) fn new(bytes: &'a AlignedSlice<Twice<BlockAlignment>>) -> Self {
         Self {
             iter: bytes.iter_blocks(),
-            offset: 0,
+            offset: None,
             classifier: unsafe { BlockAvx2Classifier::new() },
         }
     }
@@ -33,12 +33,18 @@ impl<'a> Iterator for Avx2QuoteClassifier<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         match self.iter.next() {
             Some(block) => {
+                if let Some(offset) = self.offset {
+                    self.offset = Some(offset + block.len());
+                }
+                else {
+                    self.offset = Some(0);
+                }
+
                 let mask = unsafe { self.classifier.classify(block) };
                 let classified_block = QuoteClassifiedBlock {
                     block,
                     within_quotes_mask: mask,
                 };
-                self.offset += Twice::<BlockAlignment>::size();
                 Some(classified_block)
             }
             None => None,
@@ -54,7 +60,11 @@ impl len_trait::Empty for Avx2QuoteClassifier<'_> {
     }
 }
 
-impl<'a> QuoteClassifiedIterator<'a> for Avx2QuoteClassifier<'a> {}
+impl<'a> QuoteClassifiedIterator<'a> for Avx2QuoteClassifier<'a> {
+    fn offset(&self) -> usize {
+        self.offset.unwrap_or(0)
+    }
+}
 
 struct BlockAvx2Classifier {
     /// Compressed information about the state from the previous block.
