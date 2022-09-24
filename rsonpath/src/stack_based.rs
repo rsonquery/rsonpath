@@ -8,7 +8,6 @@ use crate::query::automaton::{Automaton, State};
 use crate::query::{JsonPathQuery, Label};
 use crate::quotes::{classify_quoted_sequences, QuoteClassifiedIterator};
 use aligners::{alignment, AlignedBytes, AlignedSlice};
-use std::iter::Peekable;
 use std::marker::PhantomData;
 
 /// Recursive implementation of the JSONPath query engine.
@@ -61,7 +60,7 @@ where
     I: StructuralIterator<'b, Q>,
     R: QueryResult,
 {
-    classifier: Peekable<I>,
+    classifier: I,
     automaton: &'b Automaton<'q>,
     bytes: &'b [u8],
     #[cfg(debug_assertions)]
@@ -84,7 +83,7 @@ where
         result: &'r mut R,
     ) -> Self {
         Self {
-            classifier: classifier.peekable(),
+            classifier,
             automaton,
             bytes,
             depth: 1,
@@ -101,7 +100,7 @@ where
         result: &'r mut R,
     ) -> Self {
         Self {
-            classifier: classifier.peekable(),
+            classifier,
             automaton,
             bytes,
             result,
@@ -111,12 +110,17 @@ where
 
     pub(crate) fn run(&mut self, state: State) {
         debug!("Run state {state}, depth {}", self.depth);
+        let mut next_event = None;
         loop {
-            match self.classifier.next() {
+            if next_event.is_none() {
+                next_event = self.classifier.next();
+            }
+            match next_event {
                 Some(Structural::Opening(_)) => {
                     debug!("Opening, falling back");
                     self.increase_depth();
                     self.run(self.automaton[state].fallback_state());
+                    next_event = None;
                 }
                 Some(Structural::Closing(_)) => {
                     debug!("Closing, popping stack");
@@ -124,7 +128,7 @@ where
                     break;
                 }
                 Some(Structural::Colon(idx)) => {
-                    let next_event = self.classifier.peek();
+                    next_event = self.classifier.next();
                     let is_next_opening = matches!(next_event, Some(Structural::Opening(_)));
                     for &(label, target) in self.automaton[state].transitions() {
                         if is_next_opening {
@@ -133,9 +137,9 @@ where
                                 if self.automaton.is_accepting(target) {
                                     self.result.report(idx);
                                 }
-                                self.classifier.next();
                                 self.increase_depth();
                                 self.run(target);
+                                next_event = None;
                                 break;
                             }
                         } else if self.automaton.is_accepting(target) && self.is_match(idx, label) {
@@ -145,7 +149,7 @@ where
                         }
                     }
                 }
-                Some(Structural::Comma(_)) => (),
+                Some(Structural::Comma(_)) => next_event = None,
                 None => break,
             }
         }

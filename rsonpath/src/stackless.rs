@@ -129,10 +129,11 @@ fn query_executor<'q, 'b, 'r, R: QueryResult>(
 impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
     fn run(mut self) {
         let quote_classifier = classify_quoted_sequences(self.bytes.relax_alignment());
-        let mut block_event_source = classify_structural_characters(quote_classifier).peekable();
+        let mut block_event_source = classify_structural_characters(quote_classifier);
         let mut fallback_active = false;
+        let mut next_event = block_event_source.next();
 
-        while let Some(event) = block_event_source.next() {
+        while let Some(event) = next_event {
             debug!("====================");
             debug!("Event = {:?}", event);
             debug!("Depth = {:?}", self.depth);
@@ -140,7 +141,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
             debug!("State = {:?}", self.state);
             debug!("====================");
 
-            let next_event = block_event_source.peek();
+            next_event = block_event_source.next();
             match event {
                 Structural::Comma(_) => (),
                 Structural::Closing(_) => {
