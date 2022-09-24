@@ -58,6 +58,34 @@ fn rsonpath_vs_jsonski(c: &mut Criterion, options: BenchmarkOptions<'_>) {
     group.finish();
 }
 
+pub fn the_twitter_query(c: &mut Criterion) {
+    rsonpath_vs_jsonski(
+        c,
+        BenchmarkOptions {
+            path: "basic/twitter.json",
+            query_string: "$.search_metadata.count",
+            jsonski_query_string: "$.search_metadata.count",
+            id: "the_twitter_query",
+            warm_up_time: Duration::from_secs(5),
+            measurement_time: Duration::from_secs(10),
+        },
+    );
+}
+
+pub fn the_twitter_query_compressed(c: &mut Criterion) {
+    rsonpath_vs_jsonski(
+        c,
+        BenchmarkOptions {
+            path: "basic_compressed/twitter.json",
+            query_string: "$.search_metadata.count",
+            jsonski_query_string: "$.search_metadata.count",
+            id: "the_twitter_query_compressed",
+            warm_up_time: Duration::from_secs(5),
+            measurement_time: Duration::from_secs(10),
+        },
+    );
+}
+
 pub fn wikidata_combined(c: &mut Criterion) {
     rsonpath_vs_jsonski(
         c,
@@ -118,6 +146,8 @@ criterion_group!(
     name = jsonski_benches;
     config = decimal_byte_measurement();
     targets =
+        the_twitter_query,
+        the_twitter_query_compressed,
         wikidata_combined,
         wikidata_combined_with_whitespace,
         artificial1,
