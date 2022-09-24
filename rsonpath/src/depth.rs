@@ -7,6 +7,7 @@
 //! within a single 32-byte block.
 
 use crate::quotes::{QuoteClassifiedIterator, ResumeClassifierState};
+use cfg_if::cfg_if;
 
 /// Common trait for structs that enrich a byte block with JSON depth information.
 #[allow(clippy::len_without_is_empty)]
@@ -80,20 +81,42 @@ pub trait DepthIterator<'a, I: QuoteClassifiedIterator<'a>>:
 
     fn resume(state: ResumeClassifierState<'a, I>) -> (Option<Self::Block>, Self);
 
-    fn stop(self, block: Self::Block) -> ResumeClassifierState<'a, I>;
+    fn stop(self, block: Option<Self::Block>) -> ResumeClassifierState<'a, I>;
 }
 
-mod nosimd;
+cfg_if! {
+    if #[cfg(any(doc, not(feature = "simd")))] {
+        pub mod nosimd;
 
-/// Enrich quote classified blocks with depth information.
-pub fn classify_depth<'a, I: QuoteClassifiedIterator<'a>>(iter: I) -> impl DepthIterator<'a, I> {
-    nosimd::VectorIterator::new(iter)
+        /// Enrich quote classified blocks with depth information.
+        pub fn classify_depth<'a, I: QuoteClassifiedIterator<'a>>(iter: I) -> impl DepthIterator<'a, I> {
+            nosimd::VectorIterator::new(iter)
+        }
+        
+        pub fn resume_depth_classification<'a, I: QuoteClassifiedIterator<'a>>(
+            state: ResumeClassifierState<'a, I>,
+        ) -> (Option<nosimd::Vector>, nosimd::VectorIterator<'a, I>) {
+            nosimd::VectorIterator::resume(state)
+        }
+    }
+    else if #[cfg(simd = "avx2")] {
+        pub mod avx2;
+
+        /// Enrich quote classified blocks with depth information.
+        pub fn classify_depth<'a, I: QuoteClassifiedIterator<'a>>(iter: I) -> impl DepthIterator<'a, I> {
+            avx2::VectorIterator::new(iter)
+        }
+        
+        pub fn resume_depth_classification<'a, I: QuoteClassifiedIterator<'a>>(
+            state: ResumeClassifierState<'a, I>,
+        ) -> (Option<avx2::Vector>, avx2::VectorIterator<'a, I>) {
+            avx2::VectorIterator::resume(state)
+        }
+    }
+    else {
+        compile_error!("Target architecture is not supported by SIMD features of this crate. Disable the default `simd` feature.");
+    }
 }
-
-pub fn resume_depth_classification<'a, I: QuoteClassifiedIterator<'a>>(state: ResumeClassifierState<'a, I>) -> (Option<impl DepthBlock<'a>>, impl DepthIterator<'a, I>) {
-    nosimd::VectorIterator::resume(state)
-}
-
 #[cfg(test)]
 mod tests {
     use crate::quotes::classify_quoted_sequences;

@@ -1,10 +1,8 @@
+use super::*;
+use crate::quotes::{QuoteClassifiedBlock, ResumeClassifierBlockState};
 use std::marker::PhantomData;
 
-use crate::quotes::{QuoteClassifiedBlock, ResumeClassifierBlockState};
-
-use super::*;
-
-pub(crate) struct VectorIterator<'a, I: QuoteClassifiedIterator<'a>> {
+pub struct VectorIterator<'a, I: QuoteClassifiedIterator<'a>> {
     iter: I,
     phantom: PhantomData<&'a I>,
 }
@@ -30,15 +28,17 @@ impl<'a, I: QuoteClassifiedIterator<'a>> Iterator for VectorIterator<'a, I> {
 impl<'a, I: QuoteClassifiedIterator<'a>> DepthIterator<'a, I> for VectorIterator<'a, I> {
     type Block = Vector<'a>;
 
-    fn stop(self, block: Self::Block) -> ResumeClassifierState<'a, I> {
-        let block_state = if block.idx >= block.quote_classified.len() {
-            None
-        } else {
-            Some(ResumeClassifierBlockState {
-                block: block.quote_classified,
-                idx: block.idx,
-            })
-        };
+    fn stop(self, block: Option<Self::Block>) -> ResumeClassifierState<'a, I> {
+        let block_state = block.and_then(|b| {
+            if b.idx >= b.quote_classified.len() {
+                None
+            } else {
+                Some(ResumeClassifierBlockState {
+                    block: b.quote_classified,
+                    idx: b.idx,
+                })
+            }
+        });
 
         ResumeClassifierState {
             iter: self.iter,
@@ -49,26 +49,26 @@ impl<'a, I: QuoteClassifiedIterator<'a>> DepthIterator<'a, I> for VectorIterator
     fn resume(state: ResumeClassifierState<'a, I>) -> (Option<Self::Block>, Self) {
         let first_block = state.block.map(|b| Vector::new_from(b.block, b.idx));
 
-        (first_block, VectorIterator {
-            iter: state.iter,
-            phantom: PhantomData
-        })
+        (
+            first_block,
+            VectorIterator {
+                iter: state.iter,
+                phantom: PhantomData,
+            },
+        )
     }
 }
 
 /// Decorates a byte slice with JSON depth information.
 ///
 /// This struct works on the entire slice and calculates the depth sequentially.
-pub(crate) struct Vector<'a> {
+pub struct Vector<'a> {
     quote_classified: QuoteClassifiedBlock<'a>,
     depth: isize,
     idx: usize,
 }
 
 impl<'a> Vector<'a> {
-    /// The remainder is guaranteed to be an empty slice,
-    /// since this implementation works on the entire byte
-    /// slice at once.
     #[inline]
     pub(crate) fn new(bytes: QuoteClassifiedBlock<'a>) -> Self {
         Self::new_from(bytes, 0)
@@ -82,7 +82,7 @@ impl<'a> Vector<'a> {
             idx,
         };
         vector.advance();
-        vector    
+        vector
     }
 
     #[inline]

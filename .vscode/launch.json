@@ -22,8 +22,8 @@
                 }
             },
             "args": [
-                "./rsonpath/data/basic/child.json",
-                "$..a..b.c..d",
+                "$.a.b",
+                "./data/basic/skipping.json",
                 "-v"
             ],
             "cwd": "${workspaceFolder}"

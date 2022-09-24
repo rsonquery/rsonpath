@@ -1,5 +1,6 @@
 //! Reference implementation of a JSONPath query engine with recursive descent.
 
+use crate::classify::ClassifierWithSkipping;
 use crate::classify::{classify_structural_characters, Structural, StructuralIterator};
 use crate::debug;
 use crate::engine::result::QueryResult;
@@ -60,13 +61,13 @@ where
     I: StructuralIterator<'b, Q>,
     R: QueryResult,
 {
-    classifier: I,
+    classifier: ClassifierWithSkipping<'b, Q, I>,
     automaton: &'b Automaton<'q>,
     bytes: &'b [u8],
     #[cfg(debug_assertions)]
     depth: usize,
     result: &'r mut R,
-    phantom: PhantomData<Q>
+    phantom: PhantomData<Q>,
 }
 
 impl<'q, 'b, 'r, Q, I, R> ExecutionContext<'q, 'b, 'r, Q, I, R>
@@ -83,12 +84,12 @@ where
         result: &'r mut R,
     ) -> Self {
         Self {
-            classifier,
+            classifier: ClassifierWithSkipping::new(classifier),
             automaton,
             bytes,
             depth: 1,
             result,
-            phantom: PhantomData
+            phantom: PhantomData,
         }
     }
 
@@ -100,11 +101,11 @@ where
         result: &'r mut R,
     ) -> Self {
         Self {
-            classifier,
+            classifier: ClassifierWithSkipping::new(classifier),
             automaton,
             bytes,
             result,
-            phantom: PhantomData
+            phantom: PhantomData,
         }
     }
 
@@ -115,11 +116,18 @@ where
             if next_event.is_none() {
                 next_event = self.classifier.next();
             }
+            debug!("Event: {next_event:?}");
             match next_event {
                 Some(Structural::Opening(_)) => {
                     debug!("Opening, falling back");
                     self.increase_depth();
-                    self.run(self.automaton[state].fallback_state());
+                    let next_state = self.automaton[state].fallback_state();
+
+                    if self.automaton.is_rejecting(next_state) {
+                        self.classifier.skip();
+                    } else {
+                        self.run(next_state);
+                    }
                     next_event = None;
                 }
                 Some(Structural::Closing(_)) => {
