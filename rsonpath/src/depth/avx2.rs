@@ -195,15 +195,9 @@ impl<'a> DepthBlock<'a> for Vector<'a> {
 #[target_feature(enable = "avx2")]
 unsafe fn get_opening_and_closing_vectors(bytes: &AlignedSlice<TwoTo<5>>) -> (__m256i, __m256i) {
     let byte_vector = _mm256_load_si256(bytes.as_ptr() as *const __m256i);
-    let opening_brace_mask = _mm256_set1_epi8(b'{' as i8);
-    let opening_bracket_mask = _mm256_set1_epi8(b'[' as i8);
-    let closing_brace_mask = _mm256_set1_epi8(b'}' as i8);
-    let closing_bracket_mask = _mm256_set1_epi8(b']' as i8);
+    let opening_brace_mask = _mm256_set1_epi8(b'[' as i8);
+    let closing_brace_mask = _mm256_set1_epi8(b']' as i8);
     let opening_brace_cmp = _mm256_cmpeq_epi8(byte_vector, opening_brace_mask);
-    let opening_bracket_cmp = _mm256_cmpeq_epi8(byte_vector, opening_bracket_mask);
     let closing_brace_cmp = _mm256_cmpeq_epi8(byte_vector, closing_brace_mask);
-    let closing_bracket_cmp = _mm256_cmpeq_epi8(byte_vector, closing_bracket_mask);
-    let opening_cmp = _mm256_or_si256(opening_brace_cmp, opening_bracket_cmp);
-    let closing_cmp = _mm256_or_si256(closing_brace_cmp, closing_bracket_cmp);
-    (opening_cmp, closing_cmp)
+    (opening_brace_cmp, closing_brace_cmp)
 }
