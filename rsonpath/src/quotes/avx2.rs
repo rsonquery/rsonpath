@@ -314,6 +314,7 @@ mod tests {
     #[test_case(r#""number": 42, "string": "something" "# => Some(0b001111111111000111111100000001111111))]
     #[test_case(r#"abc\"abc\""# => Some(0b0000000000))]
     #[test_case(r#"abc\\"abc\\""# => Some(0b011111100000))]
+    #[test_case(r#"{"aaa":[{},{"b":{"c":[1,2,3]}}],"e":{"a":[[],[1,2,3],"# => Some(0b00000000000000110001100000000000001100011000000011110))]
     fn single_block(str: &str) -> Option<u64> {
         let bytes: AlignedBytes<Twice<BlockAlignment>> = AlignedBytes::new_padded(str.as_bytes());
         let mut classifier = Avx2QuoteClassifier::new(&bytes);

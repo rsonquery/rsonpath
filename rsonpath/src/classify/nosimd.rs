@@ -22,7 +22,7 @@ impl<'a> Iterator for Block<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         while self.idx < self.quote_classified.block.len() {
             let character = self.quote_classified.block[self.idx];
-            let idx_mask = 1u64 << (self.quote_classified.block.len() - self.idx - 1);
+            let idx_mask = 1u64 << self.idx;
             let is_quoted = (self.quote_classified.within_quotes_mask & idx_mask) == idx_mask;
 
             self.idx += 1;

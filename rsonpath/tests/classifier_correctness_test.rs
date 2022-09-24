@@ -71,6 +71,57 @@ fn reverse_exclamation_point() {
     assert_eq!(expected, result);
 }
 
+#[test]
+fn block_boundary() {
+    use Structural::*;
+
+    let wtf = r##",,#;0a#0,#a#0#0aa ;a0 0a,"A"#a~A#0a~A##a0|a0#0aaa~ 0#;A|~|"a"A-|;#0 Aa,,"0","A"A0,,,,,,,,,,,,,,,"a",AA;#|#|a;AAA;a A~;aA;A##A#~a ,,,,,,0^A-AA0aa;- ~0,,,#;A;aA#A#0 a-, a;0aaa0|a 0aA -A#a,,,,"\\","##;
+    let expected: &[Structural] = &[
+        Comma(0),
+        Comma(1),
+        Comma(8),
+        Comma(24),
+        Comma(70),
+        Comma(71),
+        Comma(75),
+        Comma(81),
+        Comma(82),
+        Comma(83),  
+        Comma(84),
+        Comma(85),
+        Comma(86),
+        Comma(87),
+        Comma(88),
+        Comma(89),
+        Comma(90),
+        Comma(91),
+        Comma(92),
+        Comma(93),
+        Comma(94),
+        Comma(95),
+        Comma(99),
+        Comma(129),
+        Comma(130),
+        Comma(131),
+        Comma(132),
+        Comma(133),
+        Comma(134),
+        Comma(149),
+        Comma(150),
+        Comma(151),
+        Comma(165),
+        Comma(185),
+        Comma(186),
+        Comma(187),
+        Comma(188),
+        Comma(193),
+    ];
+
+    let result = classify_string(wtf);
+
+    assert_eq!(expected, result);
+}
+
 mod prop_test {
     use super::{classify_string, Structural};
     use proptest::{self, collection, prelude::*};

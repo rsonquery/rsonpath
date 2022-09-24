@@ -27,10 +27,9 @@ impl<'a> Iterator for SequentialQuoteClassifier<'a> {
         match self.iter.next() {
             Some(block) => {
                 let mut mask = 0u64;
+                let mut idx_mask = 1;
 
                 for character in block.iter().copied() {
-                    mask <<= 1;
-
                     if !self.escaped && character == b'"' {
                         self.in_quotes = !self.in_quotes;
                     }
@@ -42,8 +41,10 @@ impl<'a> Iterator for SequentialQuoteClassifier<'a> {
                     }
 
                     if self.in_quotes {
-                        mask |= 1;
+                        mask |= idx_mask;
                     }
+
+                    idx_mask <<= 1;
                 }
 
                 Some(QuoteClassifiedBlock {
