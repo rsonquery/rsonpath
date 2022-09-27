@@ -1,5 +1,5 @@
 [build]
-rustflags = "-C target-feature=+avx2"
+rustflags = "-C target-feature=+avx2,+pclmulqdq"
 
 [alias]
 rsontest = "hack test -p rsonpath --feature-powerset --skip default"

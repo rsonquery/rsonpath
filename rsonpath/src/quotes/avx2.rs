@@ -121,6 +121,7 @@ impl BlockAvx2Classifier {
     }
 
     #[target_feature(enable = "avx2")]
+    #[target_feature(enable = "pclmulqdq")]
     #[inline]
     unsafe fn classify(&mut self, two_blocks: &AlignedBlock<Twice<BlockAlignment>>) -> u64 {
         /* For a 64-bit architecture, we classify two adjacent 32-byte blocks and combine their masks
