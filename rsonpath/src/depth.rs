@@ -1,11 +1,4 @@
 //! JSON depth calculations on byte streams.
-//!
-//! There is only one sequential implementation, [`nosimd::Vector`]. Other implementations are SIMD based.
-//!
-//! The recommended implementation of [`DepthBlock`] is [`avx2::LazyVector`]
-//! which is optimized for the usual case where the depth does not change too sharply.
-//! within a single 32-byte block.
-
 use crate::quotes::{QuoteClassifiedIterator, ResumeClassifierState};
 use cfg_if::cfg_if;
 
@@ -57,6 +50,7 @@ pub trait DepthBlock<'a>: Sized {
     /// Returns exact depth at the end of the decorated slice.
     fn depth_at_end(&self) -> isize;
 
+    /// Advance to the next position at which depth may decrease.
     fn advance_to_next_depth_decrease(&mut self) -> bool;
 
     /// Advance by `i` positions in the decorated slice.
@@ -82,11 +76,16 @@ pub trait DepthIterator<'a, I: QuoteClassifiedIterator<'a>>:
     /// Type of the [`DepthBlock`] implementation used by this iterator.
     type Block: DepthBlock<'a>;
 
+    /// Stop classification and return a state object that can be used to resume
+    /// a classifier from the place in which the current one was stopped.
     fn resume(state: ResumeClassifierState<'a, I>, opening: u8) -> (Option<Self::Block>, Self);
 
+    /// Resume classification from a state retrieved by a previous
+    /// [`DepthIterator::stop`] or [`StructuralIterator::stop`](`crate::classify::StructuralIterator::stop`) invocation.
     fn stop(self, block: Option<Self::Block>) -> ResumeClassifierState<'a, I>;
 }
 
+/// The result of resuming a [`DepthIterator`] &ndash; the first block and the rest of the iterator.
 pub struct DepthIteratorResumeOutcome<'a, I: QuoteClassifiedIterator<'a>, D: DepthIterator<'a, I>>(
     pub Option<D::Block>,
     pub D,
@@ -102,6 +101,8 @@ cfg_if! {
             nosimd::VectorIterator::new(iter)
         }
 
+        /// Resume classification using a state retrieved from a previously
+        /// used classifier via the `stop` function.
         #[inline(always)]
         pub fn resume_depth_classification<'a, I: QuoteClassifiedIterator<'a>>(
             state: ResumeClassifierState<'a, I>, opening: u8
@@ -119,6 +120,8 @@ cfg_if! {
             avx2::VectorIterator::new(iter, opening)
         }
 
+        /// Resume classification using a state retrieved from a previously
+        /// used classifier via the `stop` function.
         #[inline(always)]
         pub fn resume_depth_classification<'a, I: QuoteClassifiedIterator<'a>>(
             state: ResumeClassifierState<'a, I>, opening: u8

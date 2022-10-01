@@ -188,8 +188,12 @@ where
 pub trait StructuralIterator<'a, I: QuoteClassifiedIterator<'a>>:
     Iterator<Item = Structural> + 'a
 {
+    /// Stop classification and return a state object that can be used to resume
+    /// a classifier from the place in which the current one was stopped.
     fn stop(self) -> ResumeClassifierState<'a, I>;
 
+    /// Resume classification from a state retrieved by a previous
+    /// [`StructuralIterator::stop`] or [`DepthIterator::stop`] invocation.
     fn resume(state: ResumeClassifierState<'a, I>) -> Self;
 }
 
@@ -206,6 +210,8 @@ cfg_if! {
             SequentialClassifier::new(iter)
         }
 
+        /// Resume classification using a state retrieved from a previously
+        /// used classifier via the `stop` function.
         pub fn resume_structural_classification<'a, I: QuoteClassifiedIterator<'a>>(
             state: ResumeClassifierState<'a, I>
         ) -> impl StructuralIterator<'a, I> {
@@ -224,6 +230,8 @@ cfg_if! {
             Avx2Classifier::new(iter)
         }
 
+        /// Resume classification using a state retrieved from a previously
+        /// used classifier via the `stop` function.
         pub fn resume_structural_classification<'a, I: QuoteClassifiedIterator<'a>>(
             state: ResumeClassifierState<'a, I>
         ) -> impl StructuralIterator<'a, I> {
