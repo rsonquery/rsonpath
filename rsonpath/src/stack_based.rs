@@ -118,13 +118,17 @@ where
             }
             debug!("Event: {next_event:?}");
             match next_event {
-                Some(Structural::Opening(_)) => {
+                Some(Structural::Opening(idx)) => {
                     debug!("Opening, falling back");
                     self.increase_depth();
                     let next_state = self.automaton[state].fallback_state();
 
                     if self.automaton.is_rejecting(next_state) {
-                        self.classifier.skip();
+                        if self.bytes[idx] == b'{' {
+                            self.classifier.skip_object();
+                        } else {
+                            self.classifier.skip_list();
+                        }
                     } else {
                         self.run(next_state);
                     }

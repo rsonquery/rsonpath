@@ -64,5 +64,8 @@
         "simd"
     ],
     "rust-analyzer.cargo.noDefaultFeatures": true,
-    "rust-analyzer.cargo.allFeatures": false
+    "rust-analyzer.cargo.allFeatures": false,
+    "files.associations": {
+        "iostream": "cpp"
+    }
 }

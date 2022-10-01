@@ -22,8 +22,8 @@
                 }
             },
             "args": [
-                "$.a.b",
-                "./data/basic/skipping.json",
+                "$.a4.b.c.d",
+                "./data/basic_compressed/fake3.json",
                 "-v"
             ],
             "cwd": "${workspaceFolder}"
@@ -40,7 +40,7 @@
                     "test",
                     "--no-run",
                     "--lib",
-                    "--package=rsonpath"
+                    "--package=rsonpath",
                 ]
             },
             "args": [],

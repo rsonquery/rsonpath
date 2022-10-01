@@ -161,7 +161,7 @@ impl<'a> DepthBlock<'a> for Vector<'a> {
     }
 
     #[inline]
-    fn set_starting_depth(&mut self, depth: isize) {
+    fn add_depth(&mut self, depth: isize) {
         self.depth += depth;
     }
 

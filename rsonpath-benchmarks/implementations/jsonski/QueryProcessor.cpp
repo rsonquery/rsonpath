@@ -23,6 +23,7 @@
 using namespace std;
 
 QueryProcessor::QueryProcessor(string query) {
+    this->qa = QueryAutomaton();
     JSONPathParser::updateQueryAutomaton(query, this->qa);
     this->mNumMatches = 0;
     this->mText = new char[MAX_TEXT_LENGTH];
@@ -60,7 +61,7 @@ void QueryProcessor::init() {
 QueryProcessor::~QueryProcessor()
 {
     if (mText) {
-        free(mText);
+        delete[] mText;
         mText = NULL;
     }
 }

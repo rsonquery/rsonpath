@@ -32,15 +32,16 @@ fn get_jsonski_record(test_path: &str) -> rust_jsonski::JsonSkiRecord {
 
 fn rsonpath_vs_jsonski(c: &mut Criterion, options: BenchmarkOptions<'_>) {
     let contents = get_contents(options.path);
-    let jsonski_record = get_jsonski_record(options.path);
-    let query = JsonPathQuery::parse(options.query_string).unwrap();
-
     let mut group = c.benchmark_group(format! {"rsonpath_vs_jsonski_{}", options.id});
     group.warm_up_time(options.warm_up_time);
     group.measurement_time(options.measurement_time);
     group.throughput(criterion::Throughput::Bytes(contents.len() as u64));
 
-    let rsonpath = StacklessRunner::compile_query(&query);
+    let rsonpath_query = JsonPathQuery::parse(options.query_string).unwrap();
+    let rsonpath = StacklessRunner::compile_query(&rsonpath_query);
+
+    let jsonski_query = rust_jsonski::create_jsonski_query(options.jsonski_query_string);
+    let jsonski_record = get_jsonski_record(options.path);
 
     group.bench_with_input(
         BenchmarkId::new("rsonpath", options.id),
@@ -49,9 +50,9 @@ fn rsonpath_vs_jsonski(c: &mut Criterion, options: BenchmarkOptions<'_>) {
     );
     group.bench_with_input(
         BenchmarkId::new("jsonski", options.id),
-        &(&jsonski_record, options.jsonski_query_string),
+        &(&jsonski_record, &jsonski_query),
         |b, &(r, q)| {
-            b.iter(|| rust_jsonski::call_jsonski(q, *r));
+            b.iter(|| rust_jsonski::call_jsonski(q, r));
         },
     );
 

@@ -3,7 +3,7 @@
 #include "QueryProcessor.h"
 #include <iostream>
 
-void *loadFile(char *file_path)
+Record *loadFile(char *file_path)
 {
     Record *rec = RecordLoader::loadSingleRecord(file_path);
 
@@ -21,4 +21,9 @@ long runJsonSki(char *query, Record *record)
     QueryProcessor processor(query);
 
     return processor.runQuery(record);
+}
+
+void dropFile(Record *record)
+{
+    delete record;
 }

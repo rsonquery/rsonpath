@@ -27,9 +27,10 @@ pub trait DepthBlock<'a>: Sized {
     ///
     fn len(&self) -> usize;
 
-    /// Set the depth the block considers as initial.
-    /// All depth calculations will be done with this amount added.
-    fn set_starting_depth(&mut self, depth: isize);
+    /// Add depth to the block.
+    /// This is usually done at the start of a block to carry any accumulated
+    /// depth over.
+    fn add_depth(&mut self, depth: isize);
 
     /// Advance to the next position in the decorated slice.
     /// Returns `true` if the position changed, `false` if
@@ -86,33 +87,72 @@ pub trait DepthIterator<'a, I: QuoteClassifiedIterator<'a>>:
     fn stop(self, block: Option<Self::Block>) -> ResumeClassifierState<'a, I>;
 }
 
+pub struct DepthIteratorResumeOutcome<'a, I: QuoteClassifiedIterator<'a>, D: DepthIterator<'a, I>>(
+    pub Option<D::Block>,
+    pub D,
+);
+
 cfg_if! {
     if #[cfg(any(doc, not(feature = "simd")))] {
-        pub mod nosimd;
+        mod nosimd;
 
         /// Enrich quote classified blocks with depth information.
-        pub fn classify_depth<'a, I: QuoteClassifiedIterator<'a>>(iter: I) -> impl DepthIterator<'a, I> {
+        #[inline(always)]
+        pub fn classify_object_depth<'a, I: QuoteClassifiedIterator<'a>>(iter: I) -> impl DepthIterator<'a, I> {
             nosimd::VectorIterator::new(iter)
         }
-        
-        pub fn resume_depth_classification<'a, I: QuoteClassifiedIterator<'a>>(
-            state: ResumeClassifierState<'a, I>,
-        ) -> (Option<nosimd::Vector>, nosimd::VectorIterator<'a, I>) {
-            nosimd::VectorIterator::resume(state)
+
+        /// Enrich quote classified blocks with depth information.
+        #[inline(always)]
+        pub fn classify_list_depth<'a, I: QuoteClassifiedIterator<'a>>(iter: I) -> impl DepthIterator<'a, I> {
+            nosimd::VectorIterator::new(iter)
+        }
+
+        #[inline(always)]
+        pub fn resume_object_depth_classification<'a, I: QuoteClassifiedIterator<'a>>(
+            state: ResumeClassifierState<'a, I>
+        ) -> DepthIteratorResumeOutcome<'a, I, impl DepthIterator<'a, I>> {
+            let (first_block, iter) = nosimd::VectorIterator::resume(state);
+            DepthIteratorResumeOutcome(first_block, iter)
+        }
+
+        #[inline(always)]
+        pub fn resume_list_depth_classification<'a, I: QuoteClassifiedIterator<'a>>(
+            state: ResumeClassifierState<'a, I>
+        ) -> DepthIteratorResumeOutcome<'a, I, impl DepthIterator<'a, I>> {
+            let (first_block, iter) = nosimd::VectorIterator::resume(state);
+            DepthIteratorResumeOutcome(first_block, iter)
         }
     }
     else if #[cfg(simd = "avx2")] {
-        pub mod avx2;
+        mod avx2;
 
         /// Enrich quote classified blocks with depth information.
-        pub fn classify_depth<'a, I: QuoteClassifiedIterator<'a>>(iter: I) -> impl DepthIterator<'a, I> {
-            avx2::VectorIterator::new(iter)
+        #[inline(always)]
+        pub fn classify_object_depth<'a, I: QuoteClassifiedIterator<'a>>(iter: I) -> impl DepthIterator<'a, I> {
+            avx2::VectorIterator::<I, avx2::BraceDelimiterClassifier>::new(iter)
         }
-        
-        pub fn resume_depth_classification<'a, I: QuoteClassifiedIterator<'a>>(
-            state: ResumeClassifierState<'a, I>,
-        ) -> (Option<avx2::Vector>, avx2::VectorIterator<'a, I>) {
-            avx2::VectorIterator::resume(state)
+
+        /// Enrich quote classified blocks with depth information.
+        #[inline(always)]
+        pub fn classify_list_depth<'a, I: QuoteClassifiedIterator<'a>>(iter: I) -> impl DepthIterator<'a, I> {
+            avx2::VectorIterator::<I, avx2::BracketDelimiterClassifier>::new(iter)
+        }
+
+        #[inline(always)]
+        pub fn resume_object_depth_classification<'a, I: QuoteClassifiedIterator<'a>>(
+            state: ResumeClassifierState<'a, I>
+        ) -> DepthIteratorResumeOutcome<'a, I, impl DepthIterator<'a, I>> {
+            let (first_block, iter) = avx2::VectorIterator::<I, avx2::BraceDelimiterClassifier>::resume(state);
+            DepthIteratorResumeOutcome(first_block, iter)
+        }
+
+        #[inline(always)]
+        pub fn resume_list_depth_classification<'a, I: QuoteClassifiedIterator<'a>>(
+            state: ResumeClassifierState<'a, I>
+        ) -> DepthIteratorResumeOutcome<'a, I, impl DepthIterator<'a, I>> {
+            let (first_block, iter) = avx2::VectorIterator::<I, avx2::BracketDelimiterClassifier>::resume(state);
+            DepthIteratorResumeOutcome(first_block, iter)
         }
     }
     else {
@@ -130,11 +170,11 @@ mod tests {
     #[test_case("", &[]; "empty")]
     #[test_case("{}", &[1, 0]; "just braces")]
     #[test_case("abcdefghijklmnopqrstuvwxyz", &[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; "no structural")]
-    #[test_case(r#"{"aaa":[{},{"b":{"c":[1,2,3]}}]}"#, &[
+    #[test_case(r#"{"aaa":{{},{"b":{"c":{1,2,3}}}}}"#, &[
         1, 1, 1, 1, 1, 1, 1, 2, 3, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 4, 3,
         2, 1, 0,
     ]; "simple json")]
-    #[test_case(r#"{"aaa":[{},{"b":{"c":[1,2,3]}}],"e":{"a":[[],[1,2,3],[{"b":[{}]}]]},"d":42}"#, &[
+    #[test_case(r#"{"aaa":{{},{"b":{"c":{1,2,3}}}},"e":{"a":{{},{1,2,3},{{"b":{{}}}}}},"d":42}"#, &[
         1, 1, 1, 1, 1, 1, 1, 2, 3, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 4, 3,
         2, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 4, 3, 3, 4, 4, 4, 4, 4, 4, 3, 3, 4, 5, 5, 5, 5,
         5, 6, 7, 6, 5, 4, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1, 0,]; "long json")]
@@ -143,12 +183,12 @@ mod tests {
 
         let bytes = AlignedBytes::new_padded(input.as_bytes());
         let quote_iter = classify_quoted_sequences(&bytes);
-        let depth_iter = classify_depth(quote_iter);
+        let depth_iter = classify_object_depth(quote_iter);
         let mut depths_idx = 0;
         let mut accumulated_depth = 0;
 
         for mut vector in depth_iter {
-            vector.set_starting_depth(accumulated_depth);
+            vector.add_depth(accumulated_depth);
             loop {
                 let depth = if depths.len() <= depths_idx {
                     depths.last().copied().unwrap_or(0)
