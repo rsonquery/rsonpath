@@ -156,7 +156,7 @@ impl<'a> DepthBlock<'a> for Vector<'a> {
     }
 
     #[inline]
-    fn advance_to_next_depth_change(&mut self) -> bool {
+    fn advance_to_next_depth_decrease(&mut self) -> bool {
         self.advance()
     }
 

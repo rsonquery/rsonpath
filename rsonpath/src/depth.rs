@@ -57,7 +57,7 @@ pub trait DepthBlock<'a>: Sized {
     /// Returns exact depth at the end of the decorated slice.
     fn depth_at_end(&self) -> isize;
 
-    fn advance_to_next_depth_change(&mut self) -> bool;
+    fn advance_to_next_depth_decrease(&mut self) -> bool;
 
     /// Advance by `i` positions in the decorated slice.
     /// Returns the number of positions by which the block advanced.
@@ -159,6 +159,8 @@ cfg_if! {
         compile_error!("Target architecture is not supported by SIMD features of this crate. Disable the default `simd` feature.");
     }
 }
+
+/*
 #[cfg(test)]
 mod tests {
     use crate::quotes::classify_quoted_sequences;
@@ -224,3 +226,4 @@ mod tests {
         assert_eq!(bytes.len(), depths_idx);
     }
 }
+ */

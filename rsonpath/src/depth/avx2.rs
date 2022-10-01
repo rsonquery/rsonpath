@@ -29,6 +29,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>, C: DelimiterClassifier> Iterator
 {
     type Item = Vector<'a, C>;
 
+    #[inline(always)]
     fn next(&mut self) -> Option<Self::Item> {
         let quote_classified = self.iter.next();
         quote_classified.map(Vector::new)
@@ -95,7 +96,7 @@ pub(crate) struct Vector<'a, C: DelimiterClassifier> {
     closing_mask: u64,
     len: usize,
     idx: usize,
-    depth_offset: isize,
+    depth: isize,
     phantom: PhantomData<&'a C>,
 }
 
@@ -107,9 +108,7 @@ impl<'a, C: DelimiterClassifier> Vector<'a, C> {
 
     #[inline]
     fn new_from(bytes: QuoteClassifiedBlock<'a>, idx: usize) -> Self {
-        let mut vector = unsafe { Self::new_avx2(bytes, idx) };
-        vector.advance();
-        vector
+        unsafe { Self::new_avx2(bytes, idx) }
     }
 
     #[target_feature(enable = "avx2")]
@@ -140,7 +139,7 @@ impl<'a, C: DelimiterClassifier> Vector<'a, C> {
             quote_classified: bytes,
             opening_mask,
             closing_mask,
-            depth_offset: 0,
+            depth: 0,
             len,
             idx: start_idx,
             phantom: PhantomData,
@@ -160,9 +159,9 @@ impl<'a, C: DelimiterClassifier> DepthBlock<'a> for Vector<'a, C> {
             return false;
         }
         if (self.opening_mask & (1 << self.idx)) != 0 {
-            self.depth_offset += 1;
+            self.depth += 1;
         } else if (self.closing_mask & (1 << self.idx)) != 0 {
-            self.depth_offset -= 1;
+            self.depth -= 1;
         }
 
         self.opening_mask &= !(1 << self.idx);
@@ -172,44 +171,42 @@ impl<'a, C: DelimiterClassifier> DepthBlock<'a> for Vector<'a, C> {
     }
 
     #[inline]
-    fn advance_to_next_depth_change(&mut self) -> bool {
-        let next_opening = self.opening_mask.trailing_zeros() as usize;
+    fn advance_to_next_depth_decrease(&mut self) -> bool {
         let next_closing = self.closing_mask.trailing_zeros() as usize;
 
-        if next_opening == 64 && next_closing == 64 {
+        if next_closing == 64 {
             return false;
         }
 
-        if next_opening < next_closing {
-            self.depth_offset += 1;
-            self.opening_mask &= !(1 << next_opening);
-            self.idx = next_opening + 1;
-        } else {
-            self.depth_offset -= 1;
-            self.closing_mask &= !(1 << next_closing);
-            self.idx = next_closing + 1;
-        }
+        let remainder_mask = 0xFFFFFFFFFFFFFFFFu64 << next_closing;
+
+        let delta = ((self.opening_mask & !remainder_mask).count_ones() as i32) - 1;
+
+        self.depth += delta as isize;
+        self.opening_mask &= remainder_mask;
+        self.closing_mask &= remainder_mask ^ (1 << next_closing);
+        self.idx = next_closing;
 
         true
     }
 
     #[inline]
     fn is_depth_greater_or_equal_to(&self, depth: isize) -> bool {
-        self.depth_offset >= depth
+        self.depth >= depth
     }
 
     #[inline(always)]
     fn depth_at_end(&self) -> isize {
         ((self.opening_mask.count_ones() as i32) - (self.closing_mask.count_ones() as i32)) as isize
-            + self.depth_offset
+            + self.depth
     }
 
     fn add_depth(&mut self, depth: isize) {
-        self.depth_offset += depth;
+        self.depth += depth;
     }
 
     fn estimate_lowest_possible_depth(&self) -> isize {
-        self.depth_offset - (self.closing_mask.count_ones() as isize)
+        self.depth - (self.closing_mask.count_ones() as isize)
     }
 }
 
