@@ -87,34 +87,6 @@ pub fn the_twitter_query_compressed(c: &mut Criterion) {
     );
 }
 
-pub fn wikidata_combined(c: &mut Criterion) {
-    rsonpath_vs_jsonski(
-        c,
-        BenchmarkOptions {
-            path: "wikidata_compressed/wikidata_combined.json",
-            query_string: "$.key..P7103.claims.P31..references..snaks.P4656..hash",
-            jsonski_query_string: "$.key[*].P7103.claims.P31[*].references[*].snaks.P4656[*].hash",
-            id: "wikidata_combined",
-            warm_up_time: Duration::from_secs(10),
-            measurement_time: Duration::from_secs(40),
-        },
-    );
-}
-
-pub fn wikidata_combined_with_whitespace(c: &mut Criterion) {
-    rsonpath_vs_jsonski(
-        c,
-        BenchmarkOptions {
-            path: "wikidata_prettified/wikidata_combined.json",
-            query_string: "$.key..P7103.claims.P31..references..snaks.P4656..hash",
-            jsonski_query_string: "$.key[*].P7103.claims.P31[*].references[*].snaks.P4656[*].hash",
-            id: "wikidata_combined_with_whitespace",
-            warm_up_time: Duration::from_secs(10),
-            measurement_time: Duration::from_secs(40),
-        },
-    );
-}
-
 pub fn artificial1(c: &mut Criterion) {
     rsonpath_vs_jsonski(
         c,
@@ -149,8 +121,6 @@ criterion_group!(
     targets =
         the_twitter_query,
         the_twitter_query_compressed,
-        wikidata_combined,
-        wikidata_combined_with_whitespace,
         artificial1,
         artificial2,
 );
