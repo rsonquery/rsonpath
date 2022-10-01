@@ -46,7 +46,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> DepthIterator<'a, I> for VectorIterator
         }
     }
 
-    fn resume(state: ResumeClassifierState<'a, I>) -> (Option<Self::Block>, Self) {
+    fn resume(state: ResumeClassifierState<'a, I>, _opening: u8) -> (Option<Self::Block>, Self) {
         let first_block = state.block.map(|b| Vector::new_from(b.block, b.idx));
 
         (

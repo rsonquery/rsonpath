@@ -49,10 +49,7 @@ use std::marker::PhantomData;
 
 use crate::{
     debug,
-    depth::{
-        resume_list_depth_classification, resume_object_depth_classification, DepthBlock,
-        DepthIterator, DepthIteratorResumeOutcome,
-    },
+    depth::{resume_depth_classification, DepthBlock, DepthIterator, DepthIteratorResumeOutcome},
     quotes::{QuoteClassifiedIterator, ResumeClassifierState},
 };
 use cfg_if::cfg_if;
@@ -128,48 +125,13 @@ where
         }
     }
 
-    pub(crate) fn skip_object(&mut self) {
+    pub(crate) fn skip(&mut self, opening: u8) {
         debug!("Skipping");
 
         let classifier = unsafe { self.classifier.take().unwrap_unchecked() };
         let resume_state = classifier.stop();
         let DepthIteratorResumeOutcome(first_vector, mut depth_classifier) =
-            resume_object_depth_classification(resume_state);
-
-        let mut current_vector = first_vector.or_else(|| depth_classifier.next());
-        let mut current_depth = 1;
-
-        'outer: while let Some(ref mut vector) = current_vector {
-            vector.add_depth(current_depth);
-
-            debug!("Fetched vector, current depth is {current_depth}");
-            debug!("Estimate: {}", vector.estimate_lowest_possible_depth());
-
-            while vector.estimate_lowest_possible_depth() <= 0
-                && vector.advance_to_next_depth_decrease()
-            {
-                if !vector.is_depth_greater_or_equal_to(1) {
-                    debug!("Encountered depth 0, breaking.");
-                    break 'outer;
-                }
-            }
-
-            current_depth = vector.depth_at_end();
-            current_vector = depth_classifier.next();
-        }
-
-        debug!("Skipping complete, resuming structural classification.");
-        let resume_state = depth_classifier.stop(current_vector);
-        self.classifier = Some(I::resume(resume_state));
-    }
-
-    pub(crate) fn skip_list(&mut self) {
-        debug!("Skipping");
-
-        let classifier = unsafe { self.classifier.take().unwrap_unchecked() };
-        let resume_state = classifier.stop();
-        let DepthIteratorResumeOutcome(first_vector, mut depth_classifier) =
-            resume_list_depth_classification(resume_state);
+            resume_depth_classification(resume_state, opening);
 
         let mut current_vector = first_vector.or_else(|| depth_classifier.next());
         let mut current_depth = 1;

@@ -82,7 +82,7 @@ pub trait DepthIterator<'a, I: QuoteClassifiedIterator<'a>>:
     /// Type of the [`DepthBlock`] implementation used by this iterator.
     type Block: DepthBlock<'a>;
 
-    fn resume(state: ResumeClassifierState<'a, I>) -> (Option<Self::Block>, Self);
+    fn resume(state: ResumeClassifierState<'a, I>, opening: u8) -> (Option<Self::Block>, Self);
 
     fn stop(self, block: Option<Self::Block>) -> ResumeClassifierState<'a, I>;
 }
@@ -98,29 +98,15 @@ cfg_if! {
 
         /// Enrich quote classified blocks with depth information.
         #[inline(always)]
-        pub fn classify_object_depth<'a, I: QuoteClassifiedIterator<'a>>(iter: I) -> impl DepthIterator<'a, I> {
-            nosimd::VectorIterator::new(iter)
-        }
-
-        /// Enrich quote classified blocks with depth information.
-        #[inline(always)]
-        pub fn classify_list_depth<'a, I: QuoteClassifiedIterator<'a>>(iter: I) -> impl DepthIterator<'a, I> {
+        pub fn classify_depth<'a, I: QuoteClassifiedIterator<'a>>(iter: I, _opening: u8) -> impl DepthIterator<'a, I> {
             nosimd::VectorIterator::new(iter)
         }
 
         #[inline(always)]
-        pub fn resume_object_depth_classification<'a, I: QuoteClassifiedIterator<'a>>(
-            state: ResumeClassifierState<'a, I>
+        pub fn resume_depth_classification<'a, I: QuoteClassifiedIterator<'a>>(
+            state: ResumeClassifierState<'a, I>, opening: u8
         ) -> DepthIteratorResumeOutcome<'a, I, impl DepthIterator<'a, I>> {
-            let (first_block, iter) = nosimd::VectorIterator::resume(state);
-            DepthIteratorResumeOutcome(first_block, iter)
-        }
-
-        #[inline(always)]
-        pub fn resume_list_depth_classification<'a, I: QuoteClassifiedIterator<'a>>(
-            state: ResumeClassifierState<'a, I>
-        ) -> DepthIteratorResumeOutcome<'a, I, impl DepthIterator<'a, I>> {
-            let (first_block, iter) = nosimd::VectorIterator::resume(state);
+            let (first_block, iter) = nosimd::VectorIterator::resume(state, opening);
             DepthIteratorResumeOutcome(first_block, iter)
         }
     }
@@ -129,29 +115,15 @@ cfg_if! {
 
         /// Enrich quote classified blocks with depth information.
         #[inline(always)]
-        pub fn classify_object_depth<'a, I: QuoteClassifiedIterator<'a>>(iter: I) -> impl DepthIterator<'a, I> {
-            avx2::VectorIterator::<I, avx2::BraceDelimiterClassifier>::new(iter)
-        }
-
-        /// Enrich quote classified blocks with depth information.
-        #[inline(always)]
-        pub fn classify_list_depth<'a, I: QuoteClassifiedIterator<'a>>(iter: I) -> impl DepthIterator<'a, I> {
-            avx2::VectorIterator::<I, avx2::BracketDelimiterClassifier>::new(iter)
+        pub fn classify_depth<'a, I: QuoteClassifiedIterator<'a>>(iter: I, opening: u8) -> impl DepthIterator<'a, I> {
+            avx2::VectorIterator::new(iter, opening)
         }
 
         #[inline(always)]
-        pub fn resume_object_depth_classification<'a, I: QuoteClassifiedIterator<'a>>(
-            state: ResumeClassifierState<'a, I>
+        pub fn resume_depth_classification<'a, I: QuoteClassifiedIterator<'a>>(
+            state: ResumeClassifierState<'a, I>, opening: u8
         ) -> DepthIteratorResumeOutcome<'a, I, impl DepthIterator<'a, I>> {
-            let (first_block, iter) = avx2::VectorIterator::<I, avx2::BraceDelimiterClassifier>::resume(state);
-            DepthIteratorResumeOutcome(first_block, iter)
-        }
-
-        #[inline(always)]
-        pub fn resume_list_depth_classification<'a, I: QuoteClassifiedIterator<'a>>(
-            state: ResumeClassifierState<'a, I>
-        ) -> DepthIteratorResumeOutcome<'a, I, impl DepthIterator<'a, I>> {
-            let (first_block, iter) = avx2::VectorIterator::<I, avx2::BracketDelimiterClassifier>::resume(state);
+            let (first_block, iter) = avx2::VectorIterator::resume(state, opening);
             DepthIteratorResumeOutcome(first_block, iter)
         }
     }

@@ -124,11 +124,7 @@ where
                     let next_state = self.automaton[state].fallback_state();
 
                     if self.automaton.is_rejecting(next_state) {
-                        if self.bytes[idx] == b'{' {
-                            self.classifier.skip_object();
-                        } else {
-                            self.classifier.skip_list();
-                        }
+                        self.classifier.skip(self.bytes[idx]);
                     } else {
                         self.run(next_state);
                     }

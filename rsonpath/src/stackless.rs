@@ -154,7 +154,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                         self.state = stack_frame.state
                     }
                 }
-                Structural::Opening(idx) if self.bytes[idx] == b'{' => {
+                Structural::Opening(idx) => {
                     debug!("Opening, increasing depth and pushing stack.");
                     self.depth += 1;
 
@@ -162,24 +162,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                         let fallback = self.automaton[self.state].fallback_state();
 
                         if self.automaton.is_rejecting(fallback) {
-                            classifier.skip_object();
-                            self.depth -= 1;
-                            next_event = classifier.next();
-                        } else {
-                            self.transition_to(fallback);
-                        }
-                    }
-                    fallback_active = true;
-                }
-                Structural::Opening(_) => {
-                    debug!("Opening, increasing depth and pushing stack.");
-                    self.depth += 1;
-
-                    if fallback_active {
-                        let fallback = self.automaton[self.state].fallback_state();
-
-                        if self.automaton.is_rejecting(fallback) {
-                            classifier.skip_list();
+                            classifier.skip(self.bytes[idx]);
                             self.depth -= 1;
                             next_event = classifier.next();
                         } else {
