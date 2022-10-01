@@ -35,8 +35,7 @@ impl<'a> Iterator for Avx2QuoteClassifier<'a> {
             Some(block) => {
                 if let Some(offset) = self.offset {
                     self.offset = Some(offset + block.len());
-                }
-                else {
+                } else {
                     self.offset = Some(0);
                 }
 
@@ -152,82 +151,89 @@ impl BlockAvx2Classifier {
         let slashes = (classification1.slashes as u64) | ((classification2.slashes as u64) << 32);
         let quotes = (classification1.quotes as u64) | ((classification2.quotes as u64) << 32);
 
-        /* Step I.2.
-         *
-         * A character is a start of the sequence iff it is not preceded by a backslash.
-         * We also check whether the last character of the previous block was an unescaped backslash
-         * to correctly classify the first character in the block.
-         *
-         * Visualization for 8-byte-long blocks:
-         *                  | prev bl.|curr bl. |
-         *  bitmask index   | 76543210 76543210 |
-         *  input           | \x\\\\x\ \x\\\x\\ |
-         *  slashes         | 10111101 10111011 |
-         *  slashes << 1    | 01011110 01011101 |
-         *  prev_slash      | 00000000 10000000 |
-         *  starts          | 10100001 00100010 |
-         *  even_starts     | 00000001 00000000 |
-         *  odd_starts      | 10100000 00100010 |
-         */
+        let (escaped, set_prev_slash_mask) = if slashes == 0 {
+            // If there are no slashes in the input steps I.2, I.3, I.4 can be skipped.
+            (self.get_prev_slash_mask(), false)
+        } else {
+            /* Step I.2.
+             *
+             * A character is a start of the sequence iff it is not preceded by a backslash.
+             * We also check whether the last character of the previous block was an unescaped backslash
+             * to correctly classify the first character in the block.
+             *
+             * Visualization for 8-byte-long blocks:
+             *                  | prev bl.|curr bl. |
+             *  bitmask index   | 76543210 76543210 |
+             *  input           | \x\\\\x\ \x\\\x\\ |
+             *  slashes         | 10111101 10111011 |
+             *  slashes << 1    | 01011110 01011101 |
+             *  prev_slash      | 00000000 10000000 |
+             *  starts          | 10100001 00100010 |
+             *  even_starts     | 00000001 00000000 |
+             *  odd_starts      | 10100000 00100010 |
+             */
 
-        let starts = slashes & !(slashes << 1) & !self.get_prev_slash_mask();
-        let odd_starts = Self::ODD & starts;
-        let even_starts = Self::EVEN & starts;
+            let starts = slashes & !(slashes << 1) & !self.get_prev_slash_mask();
+            let odd_starts = Self::ODD & starts;
+            let even_starts = Self::EVEN & starts;
 
-        /* Step I.3.
-         *
-         * Recall that in binary arithmetic an addition of two ones at the same place
-         * causes a carry - the result bit is set to zero, and the one is carried forward to the next place.
-         * To find an end of a contiguous sequence of ones we can use an "add-carry trick" - by adding a number
-         * with a bit set exactly at the start of the sequence and adding it to the original mask we cause a carry
-         * that propagates up until the end of the sequence.
-         *
-         * This can overflow, so we use `wrapping_add` to ignore that. In case of the slashes starting at even
-         * positions we want to explicitly check for that overflow - if it occurs, it means that all the bits
-         * from some even position `i` up to the position `0` were lit, and thus the backslash at position `0`
-         * is _not_ escaped (since there was an even number of backslashes preceding it).
-         * We should therefore set the `prev_slash` mask if and only if an overflow occurs here.
-         *
-         * Visualization for 8-byte-long blocks:
-         *                    | prev bl.|curr bl. |
-         *  bitmask index     | 76543210 76543210 |
-         *  input             | \x\\\\x\ \x\\\x\\ |
-         *  slashes           | 10111101 10111011 |
-         *  even_starts       | 00000001 00000000 |
-         *  even_starts_carry | 10111100 10111011 | <-- Overflow occurs!
-         *  slashes           | 10111101 10111011 |
-         *  odd_starts        | 10100000 00100010 |
-         *  odd_starts_carry  | 01000011 10000100 | <-- Overflow occurs, but is inconsequential.
-         */
+            /* Step I.3.
+             *
+             * Recall that in binary arithmetic an addition of two ones at the same place
+             * causes a carry - the result bit is set to zero, and the one is carried forward to the next place.
+             * To find an end of a contiguous sequence of ones we can use an "add-carry trick" - by adding a number
+             * with a bit set exactly at the start of the sequence and adding it to the original mask we cause a carry
+             * that propagates up until the end of the sequence.
+             *
+             * This can overflow, so we use `wrapping_add` to ignore that. In case of the slashes starting at even
+             * positions we want to explicitly check for that overflow - if it occurs, it means that all the bits
+             * from some even position `i` up to the position `0` were lit, and thus the backslash at position `0`
+             * is _not_ escaped (since there was an even number of backslashes preceding it).
+             * We should therefore set the `prev_slash` mask if and only if an overflow occurs here.
+             *
+             * Visualization for 8-byte-long blocks:
+             *                    | prev bl.|curr bl. |
+             *  bitmask index     | 76543210 76543210 |
+             *  input             | \x\\\\x\ \x\\\x\\ |
+             *  slashes           | 10111101 10111011 |
+             *  even_starts       | 00000001 00000000 |
+             *  even_starts_carry | 10111100 10111011 | <-- Overflow occurs!
+             *  slashes           | 10111101 10111011 |
+             *  odd_starts        | 10100000 00100010 |
+             *  odd_starts_carry  | 01000011 10000100 | <-- Overflow occurs, but is inconsequential.
+             */
 
-        let odd_starts_carry = odd_starts.wrapping_add(slashes);
-        let (even_starts_carry, set_prev_slash_mask) = even_starts.overflowing_add(slashes);
+            let odd_starts_carry = odd_starts.wrapping_add(slashes);
+            let (even_starts_carry, set_prev_slash_mask) = even_starts.overflowing_add(slashes);
 
-        // We need to exclude `slashes`, as the ones from the opposite-parity positions
-        // cause noise in the mask. Note in the above how `even_starts_carry` contains
-        // almost all bits copied over from slashes that did not cause a carry, but
-        // in actuality the only "end of an even start" is the one lost to overflow.
-        let ends_of_odd_starts = odd_starts_carry & !slashes;
-        let ends_of_even_starts = even_starts_carry & !slashes;
+            // We need to exclude `slashes`, as the ones from the opposite-parity positions
+            // cause noise in the mask. Note in the above how `even_starts_carry` contains
+            // almost all bits copied over from slashes that did not cause a carry, but
+            // in actuality the only "end of an even start" is the one lost to overflow.
+            let ends_of_odd_starts = odd_starts_carry & !slashes;
+            let ends_of_even_starts = even_starts_carry & !slashes;
 
-        /* Step I.4.
-         *
-         * Find the characters preceded by a contiguous sequence of backslashes of odd length.
-         * Note that the `escaped` mask is completely arbitrary for the backslash characters themselves,
-         * but that is irrelevant to any further processing steps.
-         *
-         * Visualization for 8-byte-long blocks:
-         *                      | prev bl.|curr bl. |
-         *  bitmask index       | 76543210 76543210 |
-         *  input               | \x\\\\x\ \x\\\x\\ |
-         *  ends_of_odd_starts  | 01000010 00000100 |
-         *  ends_of_even_starts | 00000001 00000000 |
-         *  prev_slash          | 00000000 10000000 |
-         *  escaped             | 01000000 10000100 |
-         */
-        let escaped = (ends_of_odd_starts & Self::EVEN)
-            | (ends_of_even_starts & Self::ODD)
-            | self.get_prev_slash_mask();
+            /* Step I.4.
+             *
+             * Find the characters preceded by a contiguous sequence of backslashes of odd length.
+             * Note that the `escaped` mask is completely arbitrary for the backslash characters themselves,
+             * but that is irrelevant to any further processing steps.
+             *
+             * Visualization for 8-byte-long blocks:
+             *                      | prev bl.|curr bl. |
+             *  bitmask index       | 76543210 76543210 |
+             *  input               | \x\\\\x\ \x\\\x\\ |
+             *  ends_of_odd_starts  | 01000010 00000100 |
+             *  ends_of_even_starts | 00000001 00000000 |
+             *  prev_slash          | 00000000 10000000 |
+             *  escaped             | 01000000 10000100 |
+             */
+            let escaped = (ends_of_odd_starts & Self::EVEN)
+                | (ends_of_even_starts & Self::ODD)
+                | self.get_prev_slash_mask();
+
+            (escaped, set_prev_slash_mask)
+        };
 
         /* Step II.2.
          *

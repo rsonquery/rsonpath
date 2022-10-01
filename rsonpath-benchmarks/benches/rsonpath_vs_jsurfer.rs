@@ -84,6 +84,32 @@ fn rsonpath_vs_jsurfer(c: &mut Criterion, options: BenchmarkOptions<'_>) {
     group.finish();
 }
 
+pub fn the_twitter_query(c: &mut Criterion) {
+    rsonpath_vs_jsurfer(
+        c,
+        BenchmarkOptions {
+            path: "basic/twitter.json",
+            query_string: "$.search_metadata.count",
+            id: "the_twitter_query",
+            warm_up_time: Duration::from_secs(5),
+            measurement_time: Duration::from_secs(10),
+        },
+    );
+}
+
+pub fn the_twitter_query_compressed(c: &mut Criterion) {
+    rsonpath_vs_jsurfer(
+        c,
+        BenchmarkOptions {
+            path: "basic_compressed/twitter.json",
+            query_string: "$.search_metadata.count",
+            id: "the_twitter_query_compressed",
+            warm_up_time: Duration::from_secs(5),
+            measurement_time: Duration::from_secs(10),
+        },
+    );
+}
+
 pub fn wikidata_combined(c: &mut Criterion) {
     rsonpath_vs_jsurfer(
         c,
@@ -110,12 +136,25 @@ pub fn wikidata_combined_with_whitespace(c: &mut Criterion) {
     );
 }
 
-pub fn artificial(c: &mut Criterion) {
+pub fn artificial1(c: &mut Criterion) {
     rsonpath_vs_jsurfer(
         c,
         BenchmarkOptions {
             path: "basic_compressed/fake1.json",
-            query_string: "$..a.b.c.d",
+            query_string: "$.a.b.c.d",
+            id: "charles_fake",
+            warm_up_time: Duration::from_secs(10),
+            measurement_time: Duration::from_secs(40),
+        },
+    )
+}
+
+pub fn artificial2(c: &mut Criterion) {
+    rsonpath_vs_jsurfer(
+        c,
+        BenchmarkOptions {
+            path: "basic_compressed/fake2.json",
+            query_string: "$.a999999.b.c.d",
             id: "charles_fake",
             warm_up_time: Duration::from_secs(10),
             measurement_time: Duration::from_secs(40),
@@ -128,9 +167,12 @@ criterion_group!(
     config = decimal_byte_measurement();
     targets =
         jsurfer_overhead,
+        the_twitter_query,
+        the_twitter_query_compressed,
         wikidata_combined,
         wikidata_combined_with_whitespace,
-        artificial
+        artificial1,
+        artificial2,
 );
 
 criterion_main!(jsonski_benches);
