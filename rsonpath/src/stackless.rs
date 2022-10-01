@@ -132,9 +132,9 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
         let mut classifier =
             ClassifierWithSkipping::new(classify_structural_characters(quote_classifier));
         let mut fallback_active = false;
-        let mut next_event = classifier.next();
+        let mut next_event = None;
 
-        while let Some(event) = next_event {
+        while let Some(event) = next_event.or_else(|| classifier.next()) {
             debug!("====================");
             debug!("Event = {:?}", event);
             debug!("Depth = {:?}", self.depth);
@@ -164,7 +164,6 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                         if self.automaton.is_rejecting(fallback) {
                             classifier.skip(self.bytes[idx]);
                             self.depth -= 1;
-                            next_event = classifier.next();
                         } else {
                             self.transition_to(fallback);
                         }
