@@ -153,28 +153,6 @@ impl<'a> Vector<'a> {
 }
 
 impl<'a> DepthBlock<'a> for Vector<'a> {
-    #[inline(always)]
-    fn len(&self) -> usize {
-        self.quote_classified.len()
-    }
-
-    #[inline]
-    fn advance(&mut self) -> bool {
-        if self.idx == self.quote_classified.len() {
-            return false;
-        }
-        if (self.opening_mask & (1 << self.idx)) != 0 {
-            self.depth += 1;
-        } else if (self.closing_mask & (1 << self.idx)) != 0 {
-            self.depth -= 1;
-        }
-
-        self.opening_mask &= !(1 << self.idx);
-        self.closing_mask &= !(1 << self.idx);
-        self.idx += 1;
-        true
-    }
-
     #[inline]
     fn advance_to_next_depth_decrease(&mut self) -> bool {
         let next_closing = self.closing_mask.trailing_zeros() as usize;
@@ -196,8 +174,8 @@ impl<'a> DepthBlock<'a> for Vector<'a> {
     }
 
     #[inline]
-    fn is_depth_greater_or_equal_to(&self, depth: isize) -> bool {
-        self.depth >= depth
+    fn get_depth(&self) -> isize {
+        self.depth
     }
 
     #[inline(always)]

@@ -145,7 +145,7 @@ where
             while vector.estimate_lowest_possible_depth() <= 0
                 && vector.advance_to_next_depth_decrease()
             {
-                if !vector.is_depth_greater_or_equal_to(1) {
+                if vector.get_depth() == 0 {
                     debug!("Encountered depth 0, breaking.");
                     break 'outer;
                 }

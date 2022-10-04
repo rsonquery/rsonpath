@@ -31,6 +31,7 @@
         "memchr",
         "memmem",
         "movemask",
+        "ndash",
         "nonescaped",
         "nonexistent",
         "nonquoted",

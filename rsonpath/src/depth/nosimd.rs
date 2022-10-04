@@ -2,15 +2,17 @@ use super::*;
 use crate::quotes::{QuoteClassifiedBlock, ResumeClassifierBlockState};
 use std::marker::PhantomData;
 
-pub struct VectorIterator<'a, I: QuoteClassifiedIterator<'a>> {
+pub(crate) struct VectorIterator<'a, I: QuoteClassifiedIterator<'a>> {
     iter: I,
+    opening: u8,
     phantom: PhantomData<&'a I>,
 }
 
 impl<'a, I: QuoteClassifiedIterator<'a>> VectorIterator<'a, I> {
-    pub(crate) fn new(iter: I) -> Self {
+    pub(crate) fn new(iter: I, opening: u8) -> Self {
         Self {
             iter,
+            opening,
             phantom: PhantomData,
         }
     }
@@ -21,7 +23,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> Iterator for VectorIterator<'a, I> {
 
     fn next(&mut self) -> Option<Self::Item> {
         let quote_classified = self.iter.next();
-        quote_classified.map(Vector::new)
+        quote_classified.map(|b| Vector::new(b, self.opening))
     }
 }
 
@@ -46,43 +48,43 @@ impl<'a, I: QuoteClassifiedIterator<'a>> DepthIterator<'a, I> for VectorIterator
         }
     }
 
-    fn resume(state: ResumeClassifierState<'a, I>, _opening: u8) -> (Option<Self::Block>, Self) {
-        let first_block = state.block.map(|b| Vector::new_from(b.block, b.idx));
+    fn resume(state: ResumeClassifierState<'a, I>, opening: u8) -> (Option<Self::Block>, Self) {
+        let first_block = state
+            .block
+            .map(|b| Vector::new_from(b.block, opening, b.idx));
 
         (
             first_block,
             VectorIterator {
                 iter: state.iter,
+                opening,
                 phantom: PhantomData,
             },
         )
     }
 }
 
-/// Decorates a byte slice with JSON depth information.
-///
-/// This struct works on the entire slice and calculates the depth sequentially.
-pub struct Vector<'a> {
+pub(crate) struct Vector<'a> {
     quote_classified: QuoteClassifiedBlock<'a>,
     depth: isize,
     idx: usize,
+    opening: u8,
 }
 
 impl<'a> Vector<'a> {
     #[inline]
-    pub(crate) fn new(bytes: QuoteClassifiedBlock<'a>) -> Self {
-        Self::new_from(bytes, 0)
+    pub(crate) fn new(bytes: QuoteClassifiedBlock<'a>, opening: u8) -> Self {
+        Self::new_from(bytes, opening, 0)
     }
 
     #[inline]
-    fn new_from(bytes: QuoteClassifiedBlock<'a>, idx: usize) -> Self {
-        let mut vector = Self {
+    fn new_from(bytes: QuoteClassifiedBlock<'a>, opening: u8, idx: usize) -> Self {
+        Self {
             quote_classified: bytes,
             depth: 0,
             idx,
-        };
-        vector.advance();
-        vector
+            opening,
+        }
     }
 
     #[inline]
@@ -114,37 +116,8 @@ impl<'a> Vector<'a> {
 
 impl<'a> DepthBlock<'a> for Vector<'a> {
     #[inline]
-    fn len(&self) -> usize {
-        self.quote_classified.len()
-    }
-
-    #[inline]
-    fn advance(&mut self) -> bool {
-        if self.idx >= self.quote_classified.len() {
-            return false;
-        }
-
-        let character = self.quote_classified.block[self.idx];
-        let idx_mask = 1u64 << self.idx;
-        let is_quoted = (self.quote_classified.within_quotes_mask & idx_mask) == idx_mask;
-
-        if !is_quoted {
-            self.depth += match character {
-                b'{' => 1,
-                b'[' => 1,
-                b'}' => -1,
-                b']' => -1,
-                _ => 0,
-            };
-        }
-        self.idx += 1;
-
-        true
-    }
-
-    #[inline]
-    fn is_depth_greater_or_equal_to(&self, depth: isize) -> bool {
-        self.depth >= depth
+    fn get_depth(&self) -> isize {
+        self.depth
     }
 
     #[inline]
@@ -157,7 +130,20 @@ impl<'a> DepthBlock<'a> for Vector<'a> {
 
     #[inline]
     fn advance_to_next_depth_decrease(&mut self) -> bool {
-        self.advance()
+        let closing = self.opening + 2;
+        while self.idx < self.quote_classified.len() {
+            let character = self.quote_classified.block[self.idx];
+            self.idx += 1;
+
+            if character == self.opening {
+                self.depth += 1;
+            } else if character == closing {
+                self.depth -= 1;
+                return true;
+            }
+        }
+
+        false
     }
 
     #[inline]
