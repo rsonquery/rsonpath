@@ -5,6 +5,7 @@
         "benchset",
         "benchsets",
         "bitmask",
+        "bitmasks",
         "clippy",
         "clmulepi",
         "cmpeq",
@@ -30,6 +31,7 @@
         "memchr",
         "memmem",
         "movemask",
+        "ndash",
         "nonescaped",
         "nonexistent",
         "nonquoted",
@@ -63,5 +65,8 @@
         "simd"
     ],
     "rust-analyzer.cargo.noDefaultFeatures": true,
-    "rust-analyzer.cargo.allFeatures": false
+    "rust-analyzer.cargo.allFeatures": false,
+    "files.associations": {
+        "iostream": "cpp"
+    }
 }

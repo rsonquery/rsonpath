@@ -110,6 +110,7 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
 pub mod classify;
+pub mod depth;
 pub mod engine;
 pub mod query;
 pub mod quotes;

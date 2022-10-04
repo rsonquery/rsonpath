@@ -40,6 +40,25 @@ impl<'a> QuoteClassifiedBlock<'a> {
 pub trait QuoteClassifiedIterator<'a>:
     Iterator<Item = QuoteClassifiedBlock<'a>> + len_trait::Empty + 'a
 {
+    /// Get the total offset in bytes from the beginning of input.
+    fn offset(&self) -> usize;
+}
+
+/// State allowing resumption of a classifier from a particular place
+/// in the input along with the stopped [`QuoteClassifiedIterator`].
+pub struct ResumeClassifierState<'a, I: QuoteClassifiedIterator<'a>> {
+    /// The stopped iterator.
+    pub iter: I,
+    /// The block at which classification was stopped.
+    pub block: Option<ResumeClassifierBlockState<'a>>,
+}
+
+/// State of the block at which classification was stopped.
+pub struct ResumeClassifierBlockState<'a> {
+    /// Quote classified information about the block.
+    pub block: QuoteClassifiedBlock<'a>,
+    /// The index at which classification was stopped.
+    pub idx: usize,
 }
 
 cfg_if! {

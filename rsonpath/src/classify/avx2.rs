@@ -1,7 +1,5 @@
 use super::*;
-use crate::quotes::QuoteClassifiedBlock;
-use crate::BlockAlignment;
-use aligners::{alignment::*, AlignedBlock};
+use crate::quotes::{QuoteClassifiedBlock, ResumeClassifierBlockState};
 
 use crate::bin;
 use len_trait::Empty;
@@ -12,16 +10,26 @@ use core::arch::x86::*;
 use core::arch::x86_64::*;
 
 struct StructuralsBlock<'a> {
-    block: &'a AlignedBlock<Twice<BlockAlignment>>,
+    quote_classified: QuoteClassifiedBlock<'a>,
     structural_mask: u64,
 }
 
 impl<'a> StructuralsBlock<'a> {
     #[inline]
-    fn new(block: &'a AlignedBlock<Twice<BlockAlignment>>, structural_mask: u64) -> Self {
+    fn new(block: QuoteClassifiedBlock<'a>, structural_mask: u64) -> Self {
         Self {
-            block,
+            quote_classified: block,
             structural_mask,
+        }
+    }
+
+    #[inline]
+    fn get_idx(&self) -> Option<u32> {
+        let next_character_idx = self.structural_mask.trailing_zeros();
+        if next_character_idx == 64 {
+            None
+        } else {
+            Some(next_character_idx)
         }
     }
 }
@@ -32,25 +40,24 @@ impl Iterator for StructuralsBlock<'_> {
     #[inline]
     fn next(&mut self) -> Option<Structural> {
         use Structural::*;
-        let next_character_idx = self.structural_mask.trailing_zeros();
 
-        if next_character_idx == 64 {
-            return None;
+        if let Some(next_character_idx) = self.get_idx() {
+            let bit_mask = 1 << next_character_idx;
+
+            self.structural_mask ^= bit_mask;
+
+            let idx = next_character_idx as usize;
+            let character = match self.quote_classified.block[idx] {
+                b':' => Colon(idx),
+                b'[' | b'{' => Opening(idx),
+                b',' => Comma(idx),
+                _ => Closing(idx),
+            };
+
+            Some(character)
+        } else {
+            None
         }
-
-        let bit_mask = 1 << next_character_idx;
-
-        self.structural_mask ^= bit_mask;
-
-        let idx = next_character_idx as usize;
-        let character = match self.block[idx] {
-            b':' => Colon(idx),
-            b'[' | b'{' => Opening(idx),
-            b',' => Comma(idx),
-            _ => Closing(idx),
-        };
-
-        Some(character)
     }
 }
 
@@ -70,7 +77,6 @@ impl Empty for StructuralsBlock<'_> {
 
 pub(crate) struct Avx2Classifier<'a, I: QuoteClassifiedIterator<'a>> {
     iter: I,
-    offset: usize,
     classifier: BlockAvx2Classifier,
     block: Option<StructuralsBlock<'a>>,
 }
@@ -80,7 +86,6 @@ impl<'a, I: QuoteClassifiedIterator<'a>> Avx2Classifier<'a, I> {
     pub(crate) fn new(iter: I) -> Self {
         Self {
             iter,
-            offset: 0,
             classifier: unsafe { BlockAvx2Classifier::new() },
             block: None,
         }
@@ -92,7 +97,6 @@ impl<'a, I: QuoteClassifiedIterator<'a>> Avx2Classifier<'a, I> {
             match self.iter.next() {
                 Some(block) => {
                     self.block = unsafe { Some(self.classifier.classify(block)) };
-                    self.offset += Twice::<BlockAlignment>::size();
                 }
                 None => return false,
             }
@@ -119,7 +123,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> Iterator for Avx2Classifier<'a, I> {
             .as_mut()
             .unwrap()
             .next()
-            .map(|x| x.offset(self.offset - Twice::<BlockAlignment>::size()))
+            .map(|x| x.offset(self.iter.offset()))
     }
 }
 
@@ -131,7 +135,38 @@ impl<'a, I: QuoteClassifiedIterator<'a>> Empty for Avx2Classifier<'a, I> {
     }
 }
 
-impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a> for Avx2Classifier<'a, I> {}
+impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a, I> for Avx2Classifier<'a, I> {
+    fn stop(self) -> ResumeClassifierState<'a, I> {
+        let block = self.block.and_then(|b| {
+            b.get_idx().map(|idx| ResumeClassifierBlockState {
+                block: b.quote_classified,
+                idx: idx as usize,
+            })
+        });
+
+        ResumeClassifierState {
+            iter: self.iter,
+            block,
+        }
+    }
+
+    fn resume(state: ResumeClassifierState<'a, I>) -> Self {
+        let mut classifier = unsafe { BlockAvx2Classifier::new() };
+        let block = state.block.map(|b| {
+            let mut block = unsafe { classifier.classify(b.block) };
+            let idx_mask = 0xFFFFFFFFFFFFFFFF << b.idx;
+            block.structural_mask &= idx_mask;
+
+            block
+        });
+
+        Self {
+            iter: state.iter,
+            block,
+            classifier,
+        }
+    }
+}
 
 struct BlockAvx2Classifier {
     lower_nibble_mask: __m256i,
@@ -187,7 +222,7 @@ impl BlockAvx2Classifier {
         bin!("structural", structural);
         bin!("nonquoted_structural", nonquoted_structural);
 
-        StructuralsBlock::new(quote_classified_block.block, nonquoted_structural)
+        StructuralsBlock::new(quote_classified_block, nonquoted_structural)
     }
 
     #[target_feature(enable = "avx2")]

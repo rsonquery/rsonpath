@@ -22,8 +22,8 @@
                 }
             },
             "args": [
-                "./rsonpath/data/basic/child.json",
-                "$..a..b.c..d",
+                "$.a4.b.c.d",
+                "./data/basic_compressed/fake3.json",
                 "-v"
             ],
             "cwd": "${workspaceFolder}"
@@ -40,7 +40,7 @@
                     "test",
                     "--no-run",
                     "--lib",
-                    "--package=rsonpath"
+                    "--package=rsonpath",
                 ]
             },
             "args": [],

@@ -6,6 +6,7 @@ pub(crate) struct SequentialQuoteClassifier<'a> {
     iter: AlignedBlockIterator<'a, alignment::Twice<BlockAlignment>>,
     escaped: bool,
     in_quotes: bool,
+    offset: Option<usize>,
 }
 
 impl<'a> SequentialQuoteClassifier<'a> {
@@ -15,6 +16,7 @@ impl<'a> SequentialQuoteClassifier<'a> {
             iter: bytes.iter_blocks(),
             escaped: false,
             in_quotes: false,
+            offset: None,
         }
     }
 }
@@ -27,10 +29,15 @@ impl<'a> Iterator for SequentialQuoteClassifier<'a> {
         match self.iter.next() {
             Some(block) => {
                 let mut mask = 0u64;
+                let mut idx_mask = 1;
+
+                if let Some(offset) = self.offset {
+                    self.offset = Some(offset + block.len());
+                } else {
+                    self.offset = Some(0);
+                }
 
                 for character in block.iter().copied() {
-                    mask <<= 1;
-
                     if !self.escaped && character == b'"' {
                         self.in_quotes = !self.in_quotes;
                     }
@@ -42,8 +49,10 @@ impl<'a> Iterator for SequentialQuoteClassifier<'a> {
                     }
 
                     if self.in_quotes {
-                        mask |= 1;
+                        mask |= idx_mask;
                     }
+
+                    idx_mask <<= 1;
                 }
 
                 Some(QuoteClassifiedBlock {
@@ -64,4 +73,8 @@ impl<'a> Empty for SequentialQuoteClassifier<'a> {
     }
 }
 
-impl<'a> QuoteClassifiedIterator<'a> for SequentialQuoteClassifier<'a> {}
+impl<'a> QuoteClassifiedIterator<'a> for SequentialQuoteClassifier<'a> {
+    fn offset(&self) -> usize {
+        self.offset.unwrap_or(0)
+    }
+}

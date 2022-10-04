@@ -8,7 +8,7 @@
 //! This implementation should be more performant than [`stack_based`](super::stack_based)
 //! even on targets that don't support AVX2 SIMD operations.
 
-use crate::classify::{classify_structural_characters, Structural};
+use crate::classify::{classify_structural_characters, ClassifierWithSkipping, Structural};
 use crate::debug;
 use crate::engine::result::QueryResult;
 use crate::engine::{Input, Runner};
@@ -129,10 +129,12 @@ fn query_executor<'q, 'b, 'r, R: QueryResult>(
 impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
     fn run(mut self) {
         let quote_classifier = classify_quoted_sequences(self.bytes.relax_alignment());
-        let mut block_event_source = classify_structural_characters(quote_classifier).peekable();
+        let mut classifier =
+            ClassifierWithSkipping::new(classify_structural_characters(quote_classifier));
         let mut fallback_active = false;
+        let mut next_event = None;
 
-        while let Some(event) = block_event_source.next() {
+        while let Some(event) = next_event.or_else(|| classifier.next()) {
             debug!("====================");
             debug!("Event = {:?}", event);
             debug!("Depth = {:?}", self.depth);
@@ -140,7 +142,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
             debug!("State = {:?}", self.state);
             debug!("====================");
 
-            let next_event = block_event_source.peek();
+            next_event = classifier.next();
             match event {
                 Structural::Comma(_) => (),
                 Structural::Closing(_) => {
@@ -152,16 +154,21 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                         self.state = stack_frame.state
                     }
                 }
-                Structural::Opening(_) => {
+                Structural::Opening(idx) => {
                     debug!("Opening, increasing depth and pushing stack.");
+                    self.depth += 1;
 
                     if fallback_active {
                         let fallback = self.automaton[self.state].fallback_state();
-                        self.transition_to(fallback);
+
+                        if self.automaton.is_rejecting(fallback) {
+                            classifier.skip(self.bytes[idx]);
+                            self.depth -= 1;
+                        } else {
+                            self.transition_to(fallback);
+                        }
                     }
                     fallback_active = true;
-
-                    self.depth += 1;
                 }
                 Structural::Colon(idx) => {
                     debug!(

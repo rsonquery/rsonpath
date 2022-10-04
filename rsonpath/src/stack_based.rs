@@ -1,14 +1,15 @@
 //! Reference implementation of a JSONPath query engine with recursive descent.
 
+use crate::classify::ClassifierWithSkipping;
 use crate::classify::{classify_structural_characters, Structural, StructuralIterator};
 use crate::debug;
 use crate::engine::result::QueryResult;
 use crate::engine::{Input, Runner};
 use crate::query::automaton::{Automaton, State};
 use crate::query::{JsonPathQuery, Label};
-use crate::quotes::classify_quoted_sequences;
+use crate::quotes::{classify_quoted_sequences, QuoteClassifiedIterator};
 use aligners::{alignment, AlignedBytes, AlignedSlice};
-use std::iter::Peekable;
+use std::marker::PhantomData;
 
 /// Recursive implementation of the JSONPath query engine.
 pub struct StackBasedRunner<'q> {
@@ -54,22 +55,25 @@ fn empty_query<R: QueryResult>(bytes: &AlignedBytes<alignment::Page>) -> R {
     result
 }
 
-struct ExecutionContext<'q, 'b, 'r, I, R>
+struct ExecutionContext<'q, 'b, 'r, Q, I, R>
 where
-    I: StructuralIterator<'b>,
+    Q: QuoteClassifiedIterator<'b>,
+    I: StructuralIterator<'b, Q>,
     R: QueryResult,
 {
-    classifier: Peekable<I>,
+    classifier: ClassifierWithSkipping<'b, Q, I>,
     automaton: &'b Automaton<'q>,
     bytes: &'b [u8],
     #[cfg(debug_assertions)]
     depth: usize,
     result: &'r mut R,
+    phantom: PhantomData<Q>,
 }
 
-impl<'q, 'b, 'r, I, R> ExecutionContext<'q, 'b, 'r, I, R>
+impl<'q, 'b, 'r, Q, I, R> ExecutionContext<'q, 'b, 'r, Q, I, R>
 where
-    I: StructuralIterator<'b>,
+    Q: QuoteClassifiedIterator<'b>,
+    I: StructuralIterator<'b, Q>,
     R: QueryResult,
 {
     #[cfg(debug_assertions)]
@@ -80,11 +84,12 @@ where
         result: &'r mut R,
     ) -> Self {
         Self {
-            classifier: classifier.peekable(),
+            classifier: ClassifierWithSkipping::new(classifier),
             automaton,
             bytes,
             depth: 1,
             result,
+            phantom: PhantomData,
         }
     }
 
@@ -96,21 +101,34 @@ where
         result: &'r mut R,
     ) -> Self {
         Self {
-            classifier: classifier.peekable(),
+            classifier: ClassifierWithSkipping::new(classifier),
             automaton,
             bytes,
             result,
+            phantom: PhantomData,
         }
     }
 
     pub(crate) fn run(&mut self, state: State) {
         debug!("Run state {state}, depth {}", self.depth);
+        let mut next_event = None;
         loop {
-            match self.classifier.next() {
-                Some(Structural::Opening(_)) => {
+            if next_event.is_none() {
+                next_event = self.classifier.next();
+            }
+            debug!("Event: {next_event:?}");
+            match next_event {
+                Some(Structural::Opening(idx)) => {
                     debug!("Opening, falling back");
                     self.increase_depth();
-                    self.run(self.automaton[state].fallback_state());
+                    let next_state = self.automaton[state].fallback_state();
+
+                    if self.automaton.is_rejecting(next_state) {
+                        self.classifier.skip(self.bytes[idx]);
+                    } else {
+                        self.run(next_state);
+                    }
+                    next_event = None;
                 }
                 Some(Structural::Closing(_)) => {
                     debug!("Closing, popping stack");
@@ -118,7 +136,7 @@ where
                     break;
                 }
                 Some(Structural::Colon(idx)) => {
-                    let next_event = self.classifier.peek();
+                    next_event = self.classifier.next();
                     let is_next_opening = matches!(next_event, Some(Structural::Opening(_)));
                     for &(label, target) in self.automaton[state].transitions() {
                         if is_next_opening {
@@ -127,9 +145,9 @@ where
                                 if self.automaton.is_accepting(target) {
                                     self.result.report(idx);
                                 }
-                                self.classifier.next();
                                 self.increase_depth();
                                 self.run(target);
+                                next_event = None;
                                 break;
                             }
                         } else if self.automaton.is_accepting(target) && self.is_match(idx, label) {
@@ -139,7 +157,7 @@ where
                         }
                     }
                 }
-                Some(Structural::Comma(_)) => (),
+                Some(Structural::Comma(_)) => next_event = None,
                 None => break,
             }
         }

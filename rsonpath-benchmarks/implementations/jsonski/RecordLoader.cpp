@@ -14,7 +14,7 @@ Record* RecordLoader::loadSingleRecord(char* file_path) {
     size = ftell(fp);
     rewind(fp);
     void* p;
-    if (posix_memalign(&p, 64, (size + MAX_PAD)*sizeof(char)) != 0) {
+    if (posix_memalign(&p, 64, (size + MAX_PAD + 1)*sizeof(char)) != 0) {
         cout<<"Fail to allocate memory space for input record."<<endl;
     }
     char* record_text = (char*) p;

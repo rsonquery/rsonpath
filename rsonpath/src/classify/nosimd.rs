@@ -1,6 +1,5 @@
 use super::*;
-use crate::quotes::QuoteClassifiedBlock;
-use std::iter::Peekable;
+use crate::quotes::{QuoteClassifiedBlock, ResumeClassifierBlockState, ResumeClassifierState};
 
 struct Block<'a> {
     quote_classified: QuoteClassifiedBlock<'a>,
@@ -22,7 +21,7 @@ impl<'a> Iterator for Block<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         while self.idx < self.quote_classified.block.len() {
             let character = self.quote_classified.block[self.idx];
-            let idx_mask = 1u64 << (self.quote_classified.block.len() - self.idx - 1);
+            let idx_mask = 1u64 << self.idx;
             let is_quoted = (self.quote_classified.within_quotes_mask & idx_mask) == idx_mask;
 
             self.idx += 1;
@@ -44,40 +43,13 @@ impl<'a> Iterator for Block<'a> {
 
 pub(crate) struct SequentialClassifier<'a, I: QuoteClassifiedIterator<'a>> {
     iter: I,
-    block: Option<Peekable<Block<'a>>>,
-    offset: usize,
+    block: Option<Block<'a>>,
 }
 
 impl<'a, I: QuoteClassifiedIterator<'a>> SequentialClassifier<'a, I> {
     #[inline(always)]
     pub(crate) fn new(iter: I) -> Self {
-        Self {
-            iter,
-            block: None,
-            offset: 0,
-        }
-    }
-
-    #[inline(always)]
-    fn next_block(&mut self) -> bool {
-        while self.current_block_is_spent() {
-            match self.iter.next() {
-                Some(block) => {
-                    if self.block.is_some() {
-                        self.offset += block.len();
-                    }
-                    self.block = Some(Block::new(block).peekable());
-                }
-                None => return false,
-            }
-        }
-
-        true
-    }
-
-    #[inline(always)]
-    fn current_block_is_spent(&mut self) -> bool {
-        self.block.as_mut().map_or(true, |x| x.peek().is_none())
+        Self { iter, block: None }
     }
 }
 
@@ -86,17 +58,44 @@ impl<'a, I: QuoteClassifiedIterator<'a>> Iterator for SequentialClassifier<'a, I
 
     #[inline(always)]
     fn next(&mut self) -> Option<Structural> {
-        if !self.next_block() {
-            return None;
+        let mut item = self.block.as_mut().and_then(|b| b.next());
+
+        while item == None {
+            match self.iter.next() {
+                Some(block) => {
+                    let mut block = Block::new(block);
+                    item = block.next();
+                    self.block = Some(block);
+                }
+                None => return None,
+            }
         }
-        self.block
-            .as_mut()
-            .unwrap()
-            .next()
-            .map(|x| x.offset(self.offset))
+
+        item.map(|x| x.offset(self.iter.offset()))
     }
 }
 
 impl<'a, I: QuoteClassifiedIterator<'a>> std::iter::FusedIterator for SequentialClassifier<'a, I> {}
 
-impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a> for SequentialClassifier<'a, I> {}
+impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a, I> for SequentialClassifier<'a, I> {
+    fn stop(self) -> ResumeClassifierState<'a, I> {
+        let block = self.block.map(|b| ResumeClassifierBlockState {
+            block: b.quote_classified,
+            idx: b.idx,
+        });
+        ResumeClassifierState {
+            iter: self.iter,
+            block,
+        }
+    }
+
+    fn resume(state: ResumeClassifierState<'a, I>) -> Self {
+        Self {
+            iter: state.iter,
+            block: state.block.map(|b| Block {
+                quote_classified: b.block,
+                idx: b.idx,
+            }),
+        }
+    }
+}
