@@ -30,6 +30,7 @@ impl<'a> Iterator for Block<'a> {
                 match character {
                     b':' => return Some(Colon(self.idx - 1)),
                     b'[' | b'{' => return Some(Opening(self.idx - 1)),
+                    #[cfg(feature = "commas")]
                     b',' => return Some(Comma(self.idx - 1)),
                     b']' | b'}' => return Some(Closing(self.idx - 1)),
                     _ => (),

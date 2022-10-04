@@ -144,6 +144,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
 
             next_event = classifier.next();
             match event {
+                #[cfg(feature = "commas")]
                 Structural::Comma(_) => (),
                 Structural::Closing(_) => {
                     debug!("Closing, decreasing depth and popping stack.");
