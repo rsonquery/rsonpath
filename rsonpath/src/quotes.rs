@@ -58,7 +58,7 @@ pub struct ResumeClassifierBlockState<'a> {
     /// Quote classified information about the block.
     pub block: QuoteClassifiedBlock<'a>,
     /// The index at which classification was stopped.
-    pub idx: usize
+    pub idx: usize,
 }
 
 cfg_if! {

@@ -1,5 +1,5 @@
 use super::*;
-use crate::quotes::{QuoteClassifiedBlock, ResumeClassifierState, ResumeClassifierBlockState};
+use crate::quotes::{QuoteClassifiedBlock, ResumeClassifierBlockState, ResumeClassifierState};
 
 struct Block<'a> {
     quote_classified: QuoteClassifiedBlock<'a>,
@@ -43,16 +43,13 @@ impl<'a> Iterator for Block<'a> {
 
 pub(crate) struct SequentialClassifier<'a, I: QuoteClassifiedIterator<'a>> {
     iter: I,
-    block: Option<Block<'a>>
+    block: Option<Block<'a>>,
 }
 
 impl<'a, I: QuoteClassifiedIterator<'a>> SequentialClassifier<'a, I> {
     #[inline(always)]
     pub(crate) fn new(iter: I) -> Self {
-        Self {
-            iter,
-            block: None
-        }
+        Self { iter, block: None }
     }
 }
 
@@ -70,7 +67,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> Iterator for SequentialClassifier<'a, I
                     item = block.next();
                     self.block = Some(block);
                 }
-                None => return None
+                None => return None,
             }
         }
 
@@ -84,21 +81,21 @@ impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a, I> for Sequentia
     fn stop(self) -> ResumeClassifierState<'a, I> {
         let block = self.block.map(|b| ResumeClassifierBlockState {
             block: b.quote_classified,
-            idx: b.idx
+            idx: b.idx,
         });
         ResumeClassifierState {
             iter: self.iter,
-            block
+            block,
         }
     }
 
     fn resume(state: ResumeClassifierState<'a, I>) -> Self {
         Self {
             iter: state.iter,
-            block: state.block.map(|b| Block { 
+            block: state.block.map(|b| Block {
                 quote_classified: b.block,
-                idx: b.idx
-            })
+                idx: b.idx,
+            }),
         }
     }
 }

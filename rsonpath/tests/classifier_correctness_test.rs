@@ -86,7 +86,7 @@ fn block_boundary() {
         Comma(75),
         Comma(81),
         Comma(82),
-        Comma(83),  
+        Comma(83),
         Comma(84),
         Comma(85),
         Comma(86),

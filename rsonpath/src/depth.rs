@@ -15,8 +15,8 @@ pub trait DepthBlock<'a>: Sized {
 
     /// A lower bound on the depth that can be reached when advancing.
     ///
-    /// It is guaranteed that [`is_depth_greater_or_equal_to`](`DepthBlock::is_depth_greater_or_equal_to`)
-    /// will always return `false` when given this depth, but it is not guaranteed to be a depth that
+    /// It is guaranteed that [`get_depth`](`DepthBlock::get_depth`)
+    /// will always return something greater or equal to this return value, but it is not guaranteed to be a depth that
     /// is actually achievable within the block. In particular, an implementation always returning
     /// [`isize::MIN`] is a correct implementation. This is meant to be a tool for performance improvements,
     /// not reliably checking the actual minimal depth within the block.
