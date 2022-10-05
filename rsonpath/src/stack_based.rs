@@ -157,6 +157,7 @@ where
                         }
                     }
                 }
+                #[cfg(feature = "commas")]
                 Some(Structural::Comma(_)) => next_event = None,
                 None => break,
             }

@@ -17,6 +17,9 @@ criterion-decimal-throughput = "1.0.0"
 itertools = "0.10.3"
 rsonpath = { path = "../rsonpath" }
 
+[features]
+commas = ["rsonpath/commas"]
+
 [build-dependencies]
 cc = "1.0"
 eyre = "0.6.8"
