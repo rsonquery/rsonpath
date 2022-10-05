@@ -47,3 +47,7 @@ harness = false
 [[bench]]
 name = "rsonpath_wikidata"
 harness = false
+
+[[bench]]
+name = "openfood"
+harness = false
