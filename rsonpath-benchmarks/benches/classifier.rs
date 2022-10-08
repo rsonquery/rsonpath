@@ -1,6 +1,5 @@
-use criterion::{black_box, criterion_group, criterion_main};
-use criterion_decimal_throughput::{decimal_byte_measurement, Criterion};
-use rsonpath::classify::{self};
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use rsonpath::classify;
 use rsonpath::engine::Input;
 use rsonpath::quotes;
 use std::fs;
@@ -17,7 +16,7 @@ fn classifier_benches(c: &mut Criterion, path: &str, id: &str) {
     let contents = get_contents(path);
 
     let mut group = c.benchmark_group(id);
-    group.throughput(criterion::Throughput::Bytes(contents.len() as u64));
+    group.throughput(criterion::Throughput::BytesDecimal(contents.len() as u64));
 
     group.bench_function("classifier", |b| {
         b.iter_batched(
@@ -53,10 +52,6 @@ pub fn wikidata_prettified(c: &mut Criterion) {
     );
 }
 
-criterion_group!(
-    name = wikidata_benches;
-    config = decimal_byte_measurement();
-    targets = wikidata_compressed, wikidata_prettified
-);
+criterion_group!(wikidata_benches, wikidata_compressed, wikidata_prettified);
 
 criterion_main!(wikidata_benches);
