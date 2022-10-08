@@ -1,17 +1,16 @@
 use core::time::Duration;
-use criterion::{criterion_group, criterion_main, BenchmarkId};
-use criterion_decimal_throughput::{decimal_byte_measurement, Criterion};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use rsonpath::engine::result::CountResult;
 use rsonpath::engine::{Input, Runner};
 use rsonpath::query::JsonPathQuery;
 use rsonpath::stackless::StacklessRunner;
-use rsonpath_benchmarks::rust_jsurfer;
 use rsonpath_benchmarks::rust_jsonski;
+use rsonpath_benchmarks::rust_jsurfer;
 
 use std::fs;
 
 const ROOT_TEST_DIRECTORY: &str = "../data";
-const CROSSREF_DATA_PATH : &str = "../data/crossref/crossref.json";
+const CROSSREF_DATA_PATH: &str = "../data/crossref/crossref.json";
 fn get_jsonski_record(test_path: &str) -> rust_jsonski::JsonSkiRecord {
     let path = format!("{}/{}", ROOT_TEST_DIRECTORY, test_path);
     rust_jsonski::load_jsonski_record(&path)
@@ -48,7 +47,7 @@ fn crossref(c: &mut Criterion, options: BenchmarkOptions<'_>) {
     let mut group = c.benchmark_group(format! {"crossref_{}", options.id});
     group.warm_up_time(options.warm_up_time);
     group.measurement_time(options.measurement_time);
-    group.throughput(criterion::Throughput::Bytes(contents.len() as u64));
+    group.throughput(criterion::Throughput::BytesDecimal(contents.len() as u64));
 
     let rsonpath = StacklessRunner::compile_query(&query);
 
@@ -66,13 +65,13 @@ fn crossref(c: &mut Criterion, options: BenchmarkOptions<'_>) {
     );
     if !options.jsonski_query_string.is_empty() {
         let jsonski_query = rust_jsonski::create_jsonski_query(options.jsonski_query_string);
-        let jsonski_record = get_jsonski_record(CROSSREF_DATA_PATH); 
+        let jsonski_record = get_jsonski_record(CROSSREF_DATA_PATH);
         group.bench_with_input(
             BenchmarkId::new("jsonski", options.id),
             &(&jsonski_record, &jsonski_query),
-                |b, &(r, q)| {
-                    b.iter(|| rust_jsonski::call_jsonski(q, r));
-                },
+            |b, &(r, q)| {
+                b.iter(|| rust_jsonski::call_jsonski(q, r));
+            },
         );
     }
     group.finish();
@@ -101,12 +100,6 @@ pub fn title(c: &mut Criterion) {
         },
     )
 }
-criterion_group!(
-    name = crossref_benches;
-    config = decimal_byte_measurement();
-    targets =
-        title,
-        doi,
-);
+criterion_group!(crossref_benches, title, doi);
 
 criterion_main!(crossref_benches);
