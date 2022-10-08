@@ -1,5 +1,4 @@
-use criterion::{criterion_group, criterion_main};
-use criterion_decimal_throughput::{decimal_byte_measurement, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion};
 use itertools::Itertools;
 use rsonpath::engine::result::CountResult;
 use rsonpath::engine::{Input, Runner};
@@ -31,7 +30,9 @@ fn rsonpath_stack_based_vs_stackless(c: &mut Criterion, options: BenchmarkOption
     let query = JsonPathQuery::parse(options.query_string).unwrap();
 
     let mut group = c.benchmark_group(format! {"rsonpath_{}", options.id});
-    group.throughput(criterion::Throughput::Bytes(options.input.len() as u64));
+    group.throughput(criterion::Throughput::BytesDecimal(
+        options.input.len() as u64
+    ));
 
     let stackless = StacklessRunner::compile_query(&query);
     let stack_based = StackBasedRunner::compile_query(&query);
@@ -121,10 +122,6 @@ fn benchset(c: &mut Criterion) {
     }
 }
 
-criterion_group!(
-    name = benchset_benches;
-    config = decimal_byte_measurement();
-    targets = benchset
-);
+criterion_group!(benchset_benches, benchset);
 
 criterion_main!(benchset_benches);
