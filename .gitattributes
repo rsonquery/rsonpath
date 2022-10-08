@@ -1,4 +1,5 @@
 * eol=lf
+/pdf/* -text
 reports/* linguist-generated
 target/criterion/* linguist-generated
 target/docs/* linguist-documentation
