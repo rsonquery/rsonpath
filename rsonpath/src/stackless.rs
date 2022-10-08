@@ -148,8 +148,9 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                 let needle = label.bytes_with_quotes();
                 let bytes: &[u8] = self.bytes;
                 let mut idx = 0;
+                let finder = memmem::Finder::new(needle);
 
-                while let Some(starting_quote_idx) = memmem::find(&bytes[idx..], needle) {
+                while let Some(starting_quote_idx) = finder.find(&bytes[idx..]) {
                     idx += starting_quote_idx;
                     debug!("Needle found at {idx}");
 
@@ -182,12 +183,10 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                             quote_classifier = self.run_on_subtree(quote_classifier);
                             debug!("Quote classified up to {}", quote_classifier.get_idx());
                             idx = quote_classifier.get_idx();
-                        }
-                        else {
+                        } else {
                             idx += 1;
                         }
-                    }
-                    else {
+                    } else {
                         idx += 1;
                     }
                 }
