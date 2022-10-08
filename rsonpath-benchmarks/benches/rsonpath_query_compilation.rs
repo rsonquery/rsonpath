@@ -1,5 +1,4 @@
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId};
-use criterion_decimal_throughput::{decimal_byte_measurement, Criterion};
+use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use rsonpath::query::JsonPathQuery;
 use rsonpath::stackless::StacklessRunner;
 
@@ -44,9 +43,8 @@ pub fn many_components(c: &mut Criterion) {
 }
 
 criterion_group!(
-    name = query_benches;
-    config = decimal_byte_measurement();
-    targets = descendant_only,
+    query_benches,
+    descendant_only,
     small,
     child_only,
     paper_query,

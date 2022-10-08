@@ -1,6 +1,5 @@
 use core::time::Duration;
-use criterion::{criterion_group, criterion_main, BenchmarkId};
-use criterion_decimal_throughput::{decimal_byte_measurement, Criterion};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use rsonpath::engine::result::CountResult;
 use rsonpath::engine::{Input, Runner};
 use rsonpath::query::JsonPathQuery;
@@ -64,7 +63,7 @@ fn rsonpath_vs_jsurfer(c: &mut Criterion, options: BenchmarkOptions<'_>) {
     let mut group = c.benchmark_group(format! {"rsonpath_vs_jsurfer_{}", options.id});
     group.warm_up_time(options.warm_up_time);
     group.measurement_time(options.measurement_time);
-    group.throughput(criterion::Throughput::Bytes(contents.len() as u64));
+    group.throughput(criterion::Throughput::BytesDecimal(contents.len() as u64));
 
     let rsonpath = StacklessRunner::compile_query(&query);
 
@@ -163,16 +162,14 @@ pub fn artificial2(c: &mut Criterion) {
 }
 
 criterion_group!(
-    name = jsonski_benches;
-    config = decimal_byte_measurement();
-    targets =
-        jsurfer_overhead,
-        the_twitter_query,
-        the_twitter_query_compressed,
-        wikidata_combined,
-        wikidata_combined_with_whitespace,
-        artificial1,
-        artificial2,
+    jsonski_benches,
+    jsurfer_overhead,
+    the_twitter_query,
+    the_twitter_query_compressed,
+    wikidata_combined,
+    wikidata_combined_with_whitespace,
+    artificial1,
+    artificial2,
 );
 
 criterion_main!(jsonski_benches);
