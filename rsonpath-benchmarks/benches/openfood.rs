@@ -51,7 +51,7 @@ fn openfood(c: &mut Criterion, options: BenchmarkOptions<'_>) {
     group.throughput(criterion::Throughput::Bytes(contents.len() as u64));
 
     let rsonpath = StacklessRunner::compile_query(&query);
-    if options.jsonski_query_string != "" {
+    if !options.jsonski_query_string.is_empty() {
         let jsonski_query = rust_jsonski::create_jsonski_query(options.jsonski_query_string);
         let jsonski_record = get_jsonski_record(DATA_PATH);
         group.bench_with_input(

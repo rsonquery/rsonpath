@@ -64,7 +64,7 @@ fn crossref(c: &mut Criterion, options: BenchmarkOptions<'_>) {
             b.iter(|| q.run(f).unwrap());
         },
     );
-    if options.jsonski_query_string != "" {
+    if !options.jsonski_query_string.is_empty() {
         let jsonski_query = rust_jsonski::create_jsonski_query(options.jsonski_query_string);
         let jsonski_record = get_jsonski_record(CROSSREF_DATA_PATH); 
         group.bench_with_input(
