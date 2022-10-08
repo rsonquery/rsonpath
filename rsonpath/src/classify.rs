@@ -162,6 +162,10 @@ where
         let resume_state = depth_classifier.stop(current_vector);
         self.classifier = Some(I::resume(resume_state));
     }
+    
+    pub(crate) fn stop(mut self) -> ResumeClassifierState<'b, Q> {
+        unsafe { self.classifier.take().unwrap_unchecked() }.stop()
+    }
 }
 
 impl<'b, Q, I> std::ops::Deref for ClassifierWithSkipping<'b, Q, I>

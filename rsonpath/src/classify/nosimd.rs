@@ -72,7 +72,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> Iterator for SequentialClassifier<'a, I
             }
         }
 
-        item.map(|x| x.offset(self.iter.offset()))
+        item.map(|x| x.offset(self.iter.get_offset()))
     }
 }
 

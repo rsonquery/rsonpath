@@ -1,5 +1,6 @@
 use super::*;
 use crate::BlockAlignment;
+use aligners::alignment::Alignment;
 use aligners::{AlignedBlock, AlignedBlockIterator, AlignedSlice};
 
 use crate::bin;
@@ -60,8 +61,32 @@ impl len_trait::Empty for Avx2QuoteClassifier<'_> {
 }
 
 impl<'a> QuoteClassifiedIterator<'a> for Avx2QuoteClassifier<'a> {
-    fn offset(&self) -> usize {
+    fn block_size() -> usize {
+        Twice::<BlockAlignment>::size()
+    }
+
+    fn get_offset(&self) -> usize {
         self.offset.unwrap_or(0)
+    }
+
+    fn offset(&mut self, count: isize) {
+        debug_assert!(count >= 0);
+        debug!("Offsetting by {count}");
+
+        if count == 0 {
+            return;
+        }
+
+        self.iter.offset(count);
+
+        self.offset = Some(match self.offset {
+            None => (count as usize - 1) * Self::block_size(),
+            Some(offset) => offset + (count as usize) * Self::block_size(),
+        });
+    }
+
+    fn flip_quotes_bit(&mut self) {
+        self.classifier.flip_prev_quote_mask();
     }
 }
 
@@ -95,6 +120,11 @@ impl BlockAvx2Classifier {
         let slash_mask = u8::from(set_slash_mask);
         let quote_mask = (((quotes & (1 << 63)) >> 62) as u8) & 0x02;
         self.prev_block_mask = slash_mask | quote_mask;
+    }
+
+    /// Flip the inter-block state bit representing the quote state.
+    fn flip_prev_quote_mask(&mut self) {
+        self.prev_block_mask ^= 0x02;
     }
 
     /// Returns 0x01 if the last character of the previous block was an unescaped escape character,

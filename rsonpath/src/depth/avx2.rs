@@ -61,9 +61,13 @@ impl<'a, I: QuoteClassifiedIterator<'a> + 'a> DepthIterator<'a, I> for VectorIte
 
     fn resume(state: ResumeClassifierState<'a, I>, opening: u8) -> (Option<Self::Block>, Self) {
         let classifier = DelimiterClassifierImpl::new(opening);
-        let first_block = state
-            .block
-            .map(|b| Vector::new_from(b.block, &classifier, b.idx));
+        let first_block = state.block.and_then(|b| {
+            if b.idx == 64 {
+                None
+            } else {
+                Some(Vector::new_from(b.block, &classifier, b.idx))
+            }
+        });
 
         (
             first_block,

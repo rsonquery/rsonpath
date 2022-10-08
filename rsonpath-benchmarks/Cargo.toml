@@ -14,6 +14,8 @@ lazy_static = "1.4.0"
 [dev-dependencies]
 criterion = "0.4.0"
 itertools = "0.10.3"
+regex = "1.6.0"
+memchr = "2.5.0"
 rsonpath = { path = "../rsonpath" }
 
 [features]
@@ -25,6 +27,14 @@ eyre = "0.6.8"
 
 [[bench]]
 name = "classifier"
+harness = false
+
+[[bench]]
+name = "crossref"
+harness = false
+
+[[bench]]
+name = "head_skipping_sanity"
 harness = false
 
 [[bench]]

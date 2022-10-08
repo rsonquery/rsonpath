@@ -24,13 +24,8 @@ impl<'a> StructuralsBlock<'a> {
     }
 
     #[inline]
-    fn get_idx(&self) -> Option<u32> {
-        let next_character_idx = self.structural_mask.trailing_zeros();
-        if next_character_idx == 64 {
-            None
-        } else {
-            Some(next_character_idx)
-        }
+    fn get_idx(&self) -> u32 {
+        self.structural_mask.trailing_zeros()
     }
 }
 
@@ -41,12 +36,12 @@ impl Iterator for StructuralsBlock<'_> {
     fn next(&mut self) -> Option<Structural> {
         use Structural::*;
 
-        if let Some(next_character_idx) = self.get_idx() {
-            let bit_mask = 1 << next_character_idx;
+        let idx = self.get_idx() as usize;
+        if idx < 64 {
+            let bit_mask = 1 << idx;
 
             self.structural_mask ^= bit_mask;
 
-            let idx = next_character_idx as usize;
             let character = match self.quote_classified.block[idx] {
                 b':' => Colon(idx),
                 b'[' | b'{' => Opening(idx),
@@ -124,7 +119,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> Iterator for Avx2Classifier<'a, I> {
             .as_mut()
             .unwrap()
             .next()
-            .map(|x| x.offset(self.iter.offset()))
+            .map(|x| x.offset(self.iter.get_offset()))
     }
 }
 
@@ -138,11 +133,9 @@ impl<'a, I: QuoteClassifiedIterator<'a>> Empty for Avx2Classifier<'a, I> {
 
 impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a, I> for Avx2Classifier<'a, I> {
     fn stop(self) -> ResumeClassifierState<'a, I> {
-        let block = self.block.and_then(|b| {
-            b.get_idx().map(|idx| ResumeClassifierBlockState {
-                block: b.quote_classified,
-                idx: idx as usize,
-            })
+        let block = self.block.map(|b| ResumeClassifierBlockState {
+            idx: b.get_idx() as usize,
+            block: b.quote_classified,
         });
 
         ResumeClassifierState {

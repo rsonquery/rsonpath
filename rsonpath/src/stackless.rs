@@ -8,13 +8,17 @@
 //! This implementation should be more performant than [`stack_based`](super::stack_based)
 //! even on targets that don't support AVX2 SIMD operations.
 
-use crate::classify::{classify_structural_characters, ClassifierWithSkipping, Structural};
-use crate::debug;
+use crate::classify::{
+    classify_structural_characters, resume_structural_classification, ClassifierWithSkipping,
+    Structural,
+};
 use crate::engine::result::QueryResult;
 use crate::engine::{Input, Runner};
 use crate::query::automaton::{Automaton, State};
 use crate::query::{JsonPathQuery, Label};
-use crate::quotes::classify_quoted_sequences;
+use crate::quotes::{classify_quoted_sequences, QuoteClassifiedIterator, ResumeClassifierState};
+use crate::{debug, BlockAlignment};
+use aligners::alignment::Twice;
 use aligners::{alignment, AlignedBytes};
 use smallvec::{smallvec, SmallVec};
 
@@ -117,7 +121,7 @@ fn query_executor<'q, 'b, 'r, R: QueryResult>(
     result: &'r mut R,
 ) -> Executor<'q, 'b, 'r, R> {
     Executor {
-        depth: 1,
+        depth: 0,
         state: automaton.initial_state(),
         stack: SmallStack::new(),
         automaton,
@@ -128,9 +132,77 @@ fn query_executor<'q, 'b, 'r, R: QueryResult>(
 
 impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
     fn run(mut self) {
-        let quote_classifier = classify_quoted_sequences(self.bytes.relax_alignment());
+        use memchr::memmem;
+
+        let mut quote_classifier = ResumeClassifierState {
+            iter: classify_quoted_sequences(self.bytes.relax_alignment()),
+            block: None,
+        };
+        let initial_state = self.automaton.initial_state();
+
+        if self.automaton[initial_state].fallback_state() == initial_state {
+            if let Some(&(label, target_state)) =
+                self.automaton[initial_state].transitions().first()
+            {
+                debug!("Automaton starts with a descendant search, using memmem heuristic.");
+                let needle = label.bytes_with_quotes();
+                let bytes: &[u8] = self.bytes;
+                let mut idx = 0;
+
+                while let Some(starting_quote_idx) = memmem::find(&bytes[idx..], needle) {
+                    idx += starting_quote_idx;
+                    debug!("Needle found at {idx}");
+
+                    if idx != 0 && bytes[idx - 1] != b'\\' {
+                        let mut colon_idx = idx + needle.len();
+
+                        while colon_idx < bytes.len() && bytes[colon_idx].is_ascii_whitespace() {
+                            colon_idx += 1;
+                        }
+
+                        if colon_idx < bytes.len() && bytes[colon_idx] == b':' {
+                            debug!("Actual match with colon at {colon_idx}");
+                            let distance = colon_idx - quote_classifier.get_idx();
+                            debug!("Distance skipped: {distance}");
+                            quote_classifier.offset_bytes(distance as isize);
+
+                            // Check if the colon is marked as within quotes.
+                            // If yes, that is an error of state propagation through skipped blocks.
+                            // Flip the quote mask.
+                            if let Some(block) = quote_classifier.block.as_mut() {
+                                if (block.block.within_quotes_mask & (1u64 << block.idx)) != 0 {
+                                    debug!("Mask needs flipping!");
+                                    block.block.within_quotes_mask =
+                                        !block.block.within_quotes_mask;
+                                    quote_classifier.iter.flip_quotes_bit();
+                                }
+                            }
+
+                            self.state = target_state;
+                            quote_classifier = self.run_on_subtree(quote_classifier);
+                            debug!("Quote classified up to {}", quote_classifier.get_idx());
+                            idx = quote_classifier.get_idx();
+                        }
+                        else {
+                            idx += 1;
+                        }
+                    }
+                    else {
+                        idx += 1;
+                    }
+                }
+            }
+        } else {
+            self.run_on_subtree(quote_classifier);
+        }
+    }
+
+    fn run_on_subtree<I: QuoteClassifiedIterator<'b>>(
+        &mut self,
+        quote_classifier: ResumeClassifierState<'b, I>,
+    ) -> ResumeClassifierState<'b, I> {
         let mut classifier =
-            ClassifierWithSkipping::new(classify_structural_characters(quote_classifier));
+            ClassifierWithSkipping::new(resume_structural_classification(quote_classifier));
         let mut fallback_active = false;
         let mut next_event = None;
 
@@ -142,7 +214,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
             debug!("State = {:?}", self.state);
             debug!("====================");
 
-            next_event = classifier.next();
+            next_event = None;
             match event {
                 #[cfg(feature = "commas")]
                 Structural::Comma(_) => (),
@@ -153,6 +225,10 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
 
                     if let Some(stack_frame) = self.stack.pop_if_at_or_below(self.depth) {
                         self.state = stack_frame.state
+                    }
+
+                    if self.depth == 0 {
+                        break;
                     }
                 }
                 Structural::Opening(idx) => {
@@ -178,6 +254,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                             .unwrap_or("[invalid utf8]")
                     );
 
+                    next_event = classifier.next();
                     let is_next_opening = matches!(next_event, Some(Structural::Opening(_)));
 
                     for &(label, target) in self.automaton[self.state].transitions() {
@@ -200,6 +277,8 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                 }
             }
         }
+
+        classifier.stop()
     }
 
     fn transition_to(&mut self, target: State) {
