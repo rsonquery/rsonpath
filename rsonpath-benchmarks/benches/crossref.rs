@@ -4,13 +4,13 @@ use rsonpath::engine::result::CountResult;
 use rsonpath::engine::{Input, Runner};
 use rsonpath::query::JsonPathQuery;
 use rsonpath::stackless::StacklessRunner;
-use rsonpath_benchmarks::rust_jsonski;
 use rsonpath_benchmarks::rust_jsurfer;
+use rsonpath_benchmarks::rust_jsonski;
 
 use std::fs;
 
 const ROOT_TEST_DIRECTORY: &str = "../data";
-const CROSSREF_DATA_PATH: &str = "../data/crossref/crossref.json";
+const CROSSREF_DATA_PATH : &str = "../data/crossref/crossref.json";
 fn get_jsonski_record(test_path: &str) -> rust_jsonski::JsonSkiRecord {
     let path = format!("{}/{}", ROOT_TEST_DIRECTORY, test_path);
     rust_jsonski::load_jsonski_record(&path)
@@ -93,7 +93,7 @@ pub fn title(c: &mut Criterion) {
         c,
         BenchmarkOptions {
             query_string: "$..title",
-            jsonski_query_string: "",
+            jsonski_query_string: "$[*].message.items[*].title",
             id: "title",
             warm_up_time: Duration::from_secs(10),
             measurement_time: Duration::from_secs(40),
@@ -101,5 +101,4 @@ pub fn title(c: &mut Criterion) {
     )
 }
 criterion_group!(crossref_benches, title, doi);
-
 criterion_main!(crossref_benches);

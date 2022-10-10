@@ -30,10 +30,6 @@ name = "classifier"
 harness = false
 
 [[bench]]
-name = "crossref"
-harness = false
-
-[[bench]]
 name = "head_skipping_sanity"
 harness = false
 
@@ -59,4 +55,8 @@ harness = false
 
 [[bench]]
 name = "openfood"
+harness = false
+
+[[bench]]
+name = "crossref"
 harness = false

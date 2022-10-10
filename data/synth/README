@@ -1,0 +1,17 @@
+Write a json synthetic file on stdout.
+
+The file contains "a" and "b" label nested in a random way to produce
+a rather deep document.
+
+The one use in the benchmark can be generate with the following
+command:
+
+```python
+python generate.py > fake.json
+```
+
+Some parameters can be pass to the command line:
+
+```python
+python generate.py [depth [seed]]
+```

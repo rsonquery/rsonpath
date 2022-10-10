@@ -32,3 +32,5 @@ target/docs/* linguist-documentation
 /data/wikidata_prettified/wikidata_profession.json filter=lfs diff=lfs merge=lfs -text
 /data/wikidata_prettified/wikidata_properties.json filter=lfs diff=lfs merge=lfs -text
 /rsonpath-benchmarks/benches/benchset/wikidata_combined/wikidata_combined.json filter=lfs diff=lfs merge=lfs -text
+data/synth/fake.json filter=lfs diff=lfs merge=lfs -text
+data/crossref/crossref.json filter=lfs diff=lfs merge=lfs -text
