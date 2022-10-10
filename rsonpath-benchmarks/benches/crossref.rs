@@ -94,7 +94,7 @@ pub fn title(c: &mut Criterion) {
         c,
         BenchmarkOptions {
             query_string: "$..title",
-            jsonski_query_string: "",
+            jsonski_query_string: "$.[*].message.items[*].title",
             id: "title",
             warm_up_time: Duration::from_secs(10),
             measurement_time: Duration::from_secs(40),
