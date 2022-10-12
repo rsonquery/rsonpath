@@ -25,19 +25,3 @@ proc-macro2 = "1.0.39"
 [features]
 default = []
 avx512 = []
-
-[[bench]]
-name = "discrepancy"
-harness = false
-
-[[bench]]
-name = "find_byte"
-harness = false
-
-[[bench]]
-name = "find_byte_sequence"
-harness = false
-
-[[bench]]
-name = "depth"
-harness = false
