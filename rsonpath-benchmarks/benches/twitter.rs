@@ -45,7 +45,7 @@ fn twitter(c: &mut Criterion, options: BenchmarkOptions<'_>) {
     let contents = get_contents(TWITTER_DATA_PATH);
     let query = JsonPathQuery::parse(options.query_string).unwrap();
 
-    let mut group = c.benchmark_group(format! {"crossref_{}", options.id});
+    let mut group = c.benchmark_group(format! {"twitter_{}", options.id});
     group.warm_up_time(options.warm_up_time);
     group.measurement_time(options.measurement_time);
     group.throughput(criterion::Throughput::BytesDecimal(contents.len() as u64));
@@ -107,7 +107,7 @@ pub fn metadata_3(c: &mut Criterion) {
         BenchmarkOptions {
             query_string: "$..count",
             jsonski_query_string: "",
-            id: "metadata_2",
+            id: "metadata_3",
             warm_up_time: Duration::from_secs(10),
             measurement_time: Duration::from_secs(40),
         },

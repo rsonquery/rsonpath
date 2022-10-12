@@ -2,6 +2,7 @@ import os
 import pathlib
 import json
 import sys
+import pandas as pd
 
 rootpath = pathlib.Path(__file__).parent.parent
 
@@ -23,7 +24,7 @@ def collect_exps(path=None):
                 t["mean"]["point_estimate"],
                 t["mean"]["standard_error"]
             ],
-            "medan": [
+            "median": [
                 t["median"]["point_estimate"],
                 t["median"]["standard_error"]
             ]
@@ -47,4 +48,30 @@ if __name__ == "__main__":
         path = pathlib.Path(sys.argv[1])
         if not path.is_dir():
             raise ValueError("Expect a path to a directory in input")
-    print(json.dumps(get_exp_data(path=path)))
+    d = get_exp_data(path=path)
+    d2 = {}
+    for e,v in d.items():
+        if "rsonpath" not in v:
+            continue
+        d2[e] = h = {}
+        for x in v:
+            h[x] = v[x]["throughput"]["BytesDecimal"]/v[x]["estimates"]["median"][0]
+
+    df = pd.DataFrame(d2).transpose()
+    ax = df.plot(kind="barh", ylabel="GB/s", rot=27)
+    fig = ax.get_figure()
+    fig.set_figwidth(18)
+    fig.set_figheight(10)
+    fig.savefig("plot.png")
+    queries = {}
+    for e,v in d.items():
+        if "rsonpath" not in v:
+            continue
+        queries[e] = h = {}
+        for x in v:
+            h[x] = v[x]["value_str"]
+
+    for x,v in queries.items():
+        print(x)
+        for e, q in v.items():
+            print(f"\t{e}:{q}")
