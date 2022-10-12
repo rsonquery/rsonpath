@@ -48,7 +48,7 @@ fn wikipedia_bench(c: &mut Criterion, options: BenchmarkOptions<'_>) {
     group.measurement_time(options.measurement_time);
     group.throughput(criterion::Throughput::BytesDecimal(contents.len() as u64));    
     group.bench_with_input(
-        BenchmarkId::new("stackless", options.id),
+        BenchmarkId::new("stackless", options.query_string),
         &contents,
         |b, c| b.iter(|| stackless.run::<CountResult>(c)),
     );
@@ -59,7 +59,7 @@ fn wikipedia_bench(c: &mut Criterion, options: BenchmarkOptions<'_>) {
         let jsonski_record = get_jsonski_record(&get_path(options.path));
 
         group.bench_with_input(
-            BenchmarkId::new("jsonski", options.id),
+            BenchmarkId::new("jsonski",options.jsonski_query_string),
             &(&jsonski_record, &jsonski_query),
             |b, &(r, q)| {
                 b.iter(|| rust_jsonski::call_jsonski(q, r));
@@ -75,7 +75,7 @@ fn wikipedia_bench(c: &mut Criterion, options: BenchmarkOptions<'_>) {
         .compile_query(options.query_string)
         .expect("failed to compile query via jsurfer");
     group.bench_with_input(
-        BenchmarkId::new("jsurfer", options.id),
+        BenchmarkId::new("jsurfer", options.query_string),
         &(&jsurfer_file, &jsurfer_query),
         |b, &(f, q)| {
             b.iter(|| q.run(f).unwrap());
@@ -105,7 +105,7 @@ pub fn wikidata_combined_with_whitespace(c: &mut Criterion) {
             path: "wikidata_prettified/wikidata_combined.json",
             query_string: "$..claims..references..hash",
             jsonski_query_string: "",
-            id: "wikidata_combined_with_whitespace",
+            id: "wikidata_combined",
             warm_up_time: Duration::from_secs(10),
             measurement_time: Duration::from_secs(40),
         },
@@ -133,7 +133,7 @@ pub fn wikidata_person_en_value_recursive(c: &mut Criterion) {
             path: "wikidata_compressed/wikidata_person.json",
             query_string: "$..en..value",
             jsonski_query_string: "",
-            id: "wikidata_person_en_value_recursive",
+            id: "wikidata_person",
             warm_up_time: Duration::from_secs(3),
             measurement_time: Duration::from_secs(5),
         },
@@ -147,7 +147,7 @@ pub fn wikidata_person_en_value_direct(c: &mut Criterion) {
             path: "wikidata_compressed/wikidata_person.json",
             query_string: "$..en.value",
             jsonski_query_string: "",
-            id: "wikidata_person_en_value_direct",
+            id: "wikidata_person",
             warm_up_time: Duration::from_secs(3),
             measurement_time: Duration::from_secs(5),
         },
