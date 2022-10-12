@@ -68,7 +68,7 @@ fn crossref(c: &mut Criterion, options: BenchmarkOptions<'_>) {
         let jsonski_query = rust_jsonski::create_jsonski_query(options.jsonski_query_string);
         let jsonski_record = get_jsonski_record(CROSSREF_DATA_PATH);
         group.bench_with_input(
-            BenchmarkId::new("jsonski", options.jsonski_query_string)
+            BenchmarkId::new("jsonski", options.jsonski_query_string),
             &(&jsonski_record, &jsonski_query),
             |b, &(r, q)| {
                 b.iter(|| rust_jsonski::call_jsonski(q, r));
