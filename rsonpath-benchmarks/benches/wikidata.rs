@@ -75,7 +75,7 @@ fn wikipedia_bench(c: &mut Criterion, options: BenchmarkOptions<'_>) {
         .compile_query(options.query_string)
         .expect("failed to compile query via jsurfer");
     group.bench_with_input(
-        BenchmarkId::new("jsurfer_execution", options.id),
+        BenchmarkId::new("jsurfer", options.id),
         &(&jsurfer_file, &jsurfer_query),
         |b, &(f, q)| {
             b.iter(|| q.run(f).unwrap());

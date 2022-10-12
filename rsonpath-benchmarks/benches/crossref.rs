@@ -58,7 +58,7 @@ fn crossref(c: &mut Criterion, options: BenchmarkOptions<'_>) {
         |b, c| b.iter(|| rsonpath.run::<CountResult>(c)),
     );
     group.bench_with_input(
-        BenchmarkId::new("jsurfer_execution", options.id),
+        BenchmarkId::new("jsurfer", options.id),
         &(&jsurfer_file, &jsurfer_query),
         |b, &(f, q)| {
             b.iter(|| q.run(f).unwrap());
