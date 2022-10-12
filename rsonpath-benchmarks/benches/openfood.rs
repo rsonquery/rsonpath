@@ -56,6 +56,7 @@ fn openfood(c: &mut Criterion, options: BenchmarkOptions<'_>) {
         &contents,
         |b, c| b.iter(|| rsonpath.run::<CountResult>(c)),
     );
+    
     if !options.jsonski_query_string.is_empty() {
         let jsonski_query = rust_jsonski::create_jsonski_query(options.jsonski_query_string);
         let jsonski_record = get_jsonski_record(DATA_PATH);
@@ -67,7 +68,6 @@ fn openfood(c: &mut Criterion, options: BenchmarkOptions<'_>) {
             },
         );
     }
-
 
     group.bench_with_input(
         BenchmarkId::new("jsurfer_execution", options.id),
@@ -106,7 +106,7 @@ pub fn specific_ingredients(c: &mut Criterion) {
     openfood(
         c,
         BenchmarkOptions {
-            query_string: "$..specific_ingrediens..ingredient",
+            query_string: "$..specific_ingredients..ingredient",
             jsonski_query_string: "$.products[*].specific_ingredients[*].ingredient",
             id: "added_counties_tags",
             warm_up_time: Duration::from_secs(10),
