@@ -43,13 +43,19 @@ fn openfood(c: &mut Criterion, options: BenchmarkOptions<'_>) {
 
     let contents = get_contents(DATA_PATH);
     let query = JsonPathQuery::parse(options.query_string).unwrap();
-
+    println!("rsonpath/jsurfer Query: {}", options.query_string);
+    println!("Jsonski Query: {}", options.jsonski_query_string);
     let mut group = c.benchmark_group(format! {"openfood_{}", options.id});
     group.warm_up_time(options.warm_up_time);
     group.measurement_time(options.measurement_time);
     group.throughput(criterion::Throughput::BytesDecimal(contents.len() as u64));
 
     let rsonpath = StacklessRunner::compile_query(&query);
+    group.bench_with_input(
+        BenchmarkId::new("rsonpath", options.id),
+        &contents,
+        |b, c| b.iter(|| rsonpath.run::<CountResult>(c)),
+    );
     if !options.jsonski_query_string.is_empty() {
         let jsonski_query = rust_jsonski::create_jsonski_query(options.jsonski_query_string);
         let jsonski_record = get_jsonski_record(DATA_PATH);
@@ -62,11 +68,7 @@ fn openfood(c: &mut Criterion, options: BenchmarkOptions<'_>) {
         );
     }
 
-    group.bench_with_input(
-        BenchmarkId::new("rsonpath", options.id),
-        &contents,
-        |b, c| b.iter(|| rsonpath.run::<CountResult>(c)),
-    );
+
     group.bench_with_input(
         BenchmarkId::new("jsurfer_execution", options.id),
         &(&jsurfer_file, &jsurfer_query),
@@ -100,6 +102,19 @@ pub fn added_countries_tags(c: &mut Criterion) {
         },
     )
 }
-criterion_group!(openfood_benches, added_countries_tags, vitamins_tags,);
+pub fn specific_ingredients(c: &mut Criterion) {
+    openfood(
+        c,
+        BenchmarkOptions {
+            query_string: "$..specific_ingrediens..ingredient",
+            jsonski_query_string: "$.products[*].specific_ingredients[*].ingredient",
+            id: "added_counties_tags",
+            warm_up_time: Duration::from_secs(10),
+            measurement_time: Duration::from_secs(40),
+        },
+    )
+}
+
+criterion_group!(openfood_benches, specific_ingredients, added_countries_tags, vitamins_tags,);
 
 criterion_main!(openfood_benches);
