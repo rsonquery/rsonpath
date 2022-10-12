@@ -40,7 +40,8 @@ fn crossref(c: &mut Criterion, options: BenchmarkOptions<'_>) {
     let jsurfer_query = context
         .compile_query(options.query_string)
         .expect("failed to compile query via jsurfer");
-
+    println!("rsonpath/jsurfer Query: {}", options.query_string);
+    println!("JsonSki Query: {}", options.jsonski_query_string);
     let contents = get_contents(CROSSREF_DATA_PATH);
     let query = JsonPathQuery::parse(options.query_string).unwrap();
 
@@ -100,5 +101,31 @@ pub fn title(c: &mut Criterion) {
         },
     )
 }
-criterion_group!(crossref_benches, title, doi);
+pub fn orcid(c: &mut Criterion) {
+    crossref(
+        c,
+        BenchmarkOptions {
+            query_string: "$..author..ORCID",
+            jsonski_query_string: "$[*].message.items[*].author[*].ORCID",
+            id: "orcid",
+            warm_up_time: Duration::from_secs(10),
+            measurement_time: Duration::from_secs(40),
+        },
+    )
+}
+
+pub fn affiliation(c: &mut Criterion) {
+    crossref(
+        c,
+        BenchmarkOptions {
+            query_string: "$..affiliation..name",
+            jsonski_query_string: "$[*].message.items[*].author[*].affiliation[*].name",
+            id: "affiliation",
+            warm_up_time: Duration::from_secs(10),
+            measurement_time: Duration::from_secs(40),
+        },
+    )
+}
+
+criterion_group!(crossref_benches, affiliation, orcid, title, doi);
 criterion_main!(crossref_benches);
