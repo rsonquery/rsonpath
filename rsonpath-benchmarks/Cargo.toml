@@ -60,3 +60,7 @@ harness = false
 [[bench]]
 name = "crossref"
 harness = false
+
+[[bench]]
+name = "wikidata"
+harness = false

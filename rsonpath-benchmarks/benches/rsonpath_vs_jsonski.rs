@@ -72,6 +72,33 @@ pub fn the_twitter_query(c: &mut Criterion) {
     );
 }
 
+pub fn the_twitter_query_2(c: &mut Criterion) {
+    rsonpath_vs_jsonski(
+        c,
+        BenchmarkOptions {
+            path: "basic/twitter.json",
+            query_string: "$..count",
+            jsonski_query_string: "$.search_metadata.count",
+            id: "the_twitter_query_2",
+            warm_up_time: Duration::from_secs(5),
+            measurement_time: Duration::from_secs(10),
+        },
+    );
+}
+pub fn the_twitter_query_3(c: &mut Criterion) {
+    rsonpath_vs_jsonski(
+        c,
+        BenchmarkOptions {
+            path: "basic/twitter.json",
+            query_string: "$..search_metadata.count",
+            jsonski_query_string: "$.search_metadata.count",
+            id: "the_twitter_query_3",
+            warm_up_time: Duration::from_secs(5),
+            measurement_time: Duration::from_secs(10),
+        },
+    );
+}
+
 pub fn the_twitter_query_compressed(c: &mut Criterion) {
     rsonpath_vs_jsonski(
         c,
@@ -117,6 +144,8 @@ pub fn artificial2(c: &mut Criterion) {
 criterion_group!(
     jsonski_benches,
     the_twitter_query,
+    the_twitter_query_2,
+    the_twitter_query_3,
     the_twitter_query_compressed,
     artificial1,
     artificial2,
