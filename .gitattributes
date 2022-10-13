@@ -34,3 +34,5 @@ target/docs/* linguist-documentation
 /rsonpath-benchmarks/benches/benchset/wikidata_combined/wikidata_combined.json filter=lfs diff=lfs merge=lfs -text
 data/synth/fake.json filter=lfs diff=lfs merge=lfs -text
 data/crossref/crossref.json filter=lfs diff=lfs merge=lfs -text
+data/ast/ast.json filter=lfs diff=lfs merge=lfs -text
+data/ast/parse_date.c filter=lfs diff=lfs merge=lfs -text
