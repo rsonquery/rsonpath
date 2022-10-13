@@ -70,8 +70,8 @@ if __name__ == "__main__":
         queries[e] = h = {}
         for x in v:
             h[x] = v[x]["value_str"]
-
-    for x,v in queries.items():
+    
+    for x,v in sorted(queries.items(), key=lambda e:e[0]):
         print(x)
         for e, q in v.items():
             print(f"\t{e}:{q}")
