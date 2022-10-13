@@ -5,6 +5,7 @@ import sys
 import pandas as pd
 
 rootpath = pathlib.Path(__file__).parent.parent
+print(rootpath)
 
 def collect_exps(path=None):
     path = pathlib.Path(rootpath, "target", "criterion") if path is None else path
@@ -12,11 +13,11 @@ def collect_exps(path=None):
     L = list(filter(lambda e:"benchmark.json" in e[2] and "new" in e[0], L))
     exps = []
     for upath, _, docs in L:
-        p = pathlib.Path(path, upath, "benchmark.json")
+        p = pathlib.Path(upath, "benchmark.json")
         with open(p) as f:
             d = json.load(f)
             exps.append(d)
-        p = pathlib.Path(path, upath, "estimates.json")
+        p = pathlib.Path(upath, "estimates.json")
         with open(p) as f:
             t = json.load(f)
             d["estimates"] = {
@@ -58,6 +59,7 @@ if __name__ == "__main__":
             h[x] = v[x]["throughput"]["BytesDecimal"]/v[x]["estimates"]["median"][0]
 
     df = pd.DataFrame(d2).transpose()
+    df = df.sort_index()
     ax = df.plot(kind="barh", ylabel="GB/s", rot=27)
     fig = ax.get_figure()
     fig.set_figwidth(18)
