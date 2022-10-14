@@ -40,3 +40,7 @@ harness = false
 [[bench]]
 name = "twitter"
 harness = false
+
+[[bench]]
+name = "ast"
+harness = false

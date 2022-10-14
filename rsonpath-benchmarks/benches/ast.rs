@@ -77,18 +77,43 @@ fn ast(c: &mut Criterion, options: BenchmarkOptions<'_>) {
     }
     group.finish();
 }
-pub fn metadata_1(c: &mut Criterion) {
+pub fn decl_name(c: &mut Criterion) {
     ast(
         c,
         BenchmarkOptions {
-            query_string: "$.",
-            jsonski_query_string: "$.",
-            id: "",
+            query_string: "$..decl.name",
+            jsonski_query_string: "",
+            id: "decl_name",
+            warm_up_time: Duration::from_secs(10),
+            measurement_time: Duration::from_secs(40),
+        },
+    )
+}
+pub fn included_from(c: &mut Criterion) {
+    ast(
+        c,
+        BenchmarkOptions {
+            query_string: "$..loc.includedFrom.file",
+            jsonski_query_string: "",
+            id: "includedFrom",
             warm_up_time: Duration::from_secs(10),
             measurement_time: Duration::from_secs(40),
         },
     )
 }
 
-criterion_group!(ast_benches, );
+pub fn nested_inner(c: &mut Criterion) {
+    ast(
+        c,
+        BenchmarkOptions {
+            query_string: "$..inner..inner..type.qualType",
+            jsonski_query_string: "",
+            id: "includedFrom",
+            warm_up_time: Duration::from_secs(10),
+            measurement_time: Duration::from_secs(40),
+        },
+    )
+}
+
+criterion_group!(ast_benches, decl_name, nested_inner);
 criterion_main!(ast_benches);
