@@ -7,7 +7,7 @@ use nom::{
 };
 use std::fmt::{self, Display};
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 enum Token<'a> {
     Root,
     Child(&'a str),

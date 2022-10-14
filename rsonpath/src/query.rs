@@ -64,10 +64,30 @@ cfg_if! {
 /// assert_eq!(label.bytes(), "needle".as_bytes());
 /// assert_eq!(label.bytes_with_quotes(), "\"needle\"".as_bytes());
 /// ```
-#[derive(Debug)]
 pub struct Label {
     label: AlignedBytes<LabelAlignment>,
     label_with_quotes: AlignedBytes<LabelAlignment>,
+}
+
+impl std::fmt::Debug for Label {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        write!(
+            f,
+            r#"{}"#,
+            std::str::from_utf8(&self.label_with_quotes).unwrap_or("[invalid utf8]")
+        )
+    }
+}
+
+impl Clone for Label {
+    fn clone(&self) -> Self {
+        let label_clone = AlignedBytes::from(self.label.as_ref());
+        let quoted_clone = AlignedBytes::from(self.label_with_quotes.as_ref());
+        Label {
+            label: label_clone,
+            label_with_quotes: quoted_clone,
+        }
+    }
 }
 
 impl Label {
@@ -178,6 +198,12 @@ impl JsonPathQueryNode {
             Descendant(_, node) => node.as_deref(),
         }
     }
+
+    /// Create an iterator over nodes of the query in sequence,
+    /// starting from the root.
+    pub fn iter(&self) -> JsonPathQueryIterator {
+        JsonPathQueryIterator { node: Some(self) }
+    }
 }
 
 /// JSONPath query structure represented by the root link of the
@@ -185,6 +211,25 @@ impl JsonPathQueryNode {
 #[derive(Debug)]
 pub struct JsonPathQuery {
     root: Box<JsonPathQueryNode>,
+}
+
+/// Iterator over query nodes traversing the parent-child relation.
+pub struct JsonPathQueryIterator<'a> {
+    node: Option<&'a JsonPathQueryNode>,
+}
+
+impl<'a> Iterator for JsonPathQueryIterator<'a> {
+    type Item = &'a JsonPathQueryNode;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let result = self.node;
+
+        if let Some(node) = result {
+            self.node = node.child()
+        }
+
+        result
+    }
 }
 
 impl JsonPathQuery {
