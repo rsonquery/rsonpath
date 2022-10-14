@@ -4,20 +4,95 @@ use std::{fmt::Display, ops::Index};
 
 use super::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label};
 use crate::debug;
-use smallvec::{smallvec, SmallVec};
-use vector_map::VecMap;
+use smallvec::SmallVec;
 
-/// A state of an [`Automaton`].
+mod minimizer;
+mod superstate;
+
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) struct NondeterministicAutomaton<'q> {
+    ordered_states: Vec<NfaState<'q>>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum NfaState<'q> {
+    Direct(&'q Label),
+    Recursive(&'q Label),
+    Accepting,
+}
+use NfaState::*;
+
+/// State of an [`NondeterministicAutomaton`]. Thin wrapper over a state's
+/// identifier to distinguish NFA states from DFA states ([`State`]).
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+pub(crate) struct NfaStateId(u8);
+
+impl NfaStateId {
+    pub(crate) fn next(&self) -> NfaStateId {
+        NfaStateId(self.0 + 1)
+    }
+}
+
+impl Display for NfaStateId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "NFA({})", self.0)
+    }
+}
+
+impl From<u8> for NfaStateId {
+    fn from(i: u8) -> Self {
+        NfaStateId(i)
+    }
+}
+
+impl<'q> NondeterministicAutomaton<'q> {
+    fn new(query: &'q JsonPathQuery) -> Self {
+        debug_assert!(query.root().is_root());
+
+        let mut states: Vec<NfaState> = query
+            .root()
+            .iter()
+            .flat_map(|node| match node {
+                JsonPathQueryNode::Root(_) => None,
+                JsonPathQueryNode::Descendant(label, _) => Some(Recursive(label)),
+                JsonPathQueryNode::Child(label, _) => Some(Direct(label)),
+            })
+            .collect();
+
+        states.push(Accepting);
+
+        NondeterministicAutomaton {
+            ordered_states: states,
+        }
+    }
+}
+
+impl<'q> Index<NfaStateId> for NondeterministicAutomaton<'q> {
+    type Output = NfaState<'q>;
+
+    fn index(&self, index: NfaStateId) -> &Self::Output {
+        &self.ordered_states[index.0 as usize]
+    }
+}
+
+/// State of an [`Automaton`]. Thin wrapper over a state's identifier.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub struct State(u8);
 
 impl Display for State {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "({})", self.0)
+        write!(f, "DFA({})", self.0)
+    }
+}
+
+impl From<u8> for State {
+    fn from(i: u8) -> Self {
+        State(i)
     }
 }
 
 /// A minimal, deterministic automaton representing a JSONPath query.
+#[derive(Debug, PartialEq, Eq)]
 pub struct Automaton<'q> {
     states: Vec<TransitionTable<'q>>,
 }
@@ -26,22 +101,28 @@ pub struct Automaton<'q> {
 ///
 /// Contains transitions triggered by matching labels, and a fallback transition
 /// triggered when none of the label transitions match.
+#[derive(Debug)]
 pub struct TransitionTable<'q> {
     transitions: SmallVec<[(&'q Label, State); 2]>,
     fallback_state: State,
 }
 
-struct NondeterministicAutomaton<'q> {
-    ordered_states: Vec<NfaState<'q>>,
+impl<'q> PartialEq for TransitionTable<'q> {
+    fn eq(&self, other: &Self) -> bool {
+        self.fallback_state == other.fallback_state
+            && self.transitions.len() == other.transitions.len()
+            && self
+                .transitions
+                .iter()
+                .all(|x| other.transitions.contains(x))
+            && other
+                .transitions
+                .iter()
+                .all(|x| self.transitions.contains(x))
+    }
 }
 
-#[derive(Clone, Copy)]
-enum NfaState<'q> {
-    Direct(&'q Label),
-    Recursive(&'q Label),
-    Accepting,
-}
-use NfaState::*;
+impl<'q> Eq for TransitionTable<'q> {}
 
 impl<'q> Index<State> for Automaton<'q> {
     type Output = TransitionTable<'q>;
@@ -85,11 +166,20 @@ impl<'q> Automaton<'q> {
         self.states.len() == 2
     }
 
+    /// Returns the rejecting state of the automaton.
+    ///
+    /// The state is defined as the unique state from which there
+    /// exists no accepting run. If the query automaton reaches this state,
+    /// the current subtree is guaranteed to have no matches.
+    pub fn rejecting_state(&self) -> State {
+        State(0)
+    }
+
     /// Returns the initial state of the automaton.
     ///
     /// Query execution should start from this state.
     pub fn initial_state(&self) -> State {
-        State(0)
+        State(1)
     }
 
     /// Returns the accepting state of the automaton.
@@ -97,15 +187,6 @@ impl<'q> Automaton<'q> {
     /// Query execution should treat transitioning into this state
     /// as a match.
     pub fn accepting_state(&self) -> State {
-        State((self.states.len() - 2) as u8)
-    }
-
-    /// Returns the rejecting state of the automaton.
-    ///
-    /// The state is defined as the unique state from which there
-    /// exists no accepting run. If the query automaton reaches this state,
-    /// the current subtree is guaranteed to have no matches.
-    pub fn rejecting_state(&self) -> State {
         State((self.states.len() - 1) as u8)
     }
 
@@ -141,80 +222,25 @@ impl<'q> Automaton<'q> {
     }
 
     fn minimize(nfa: NondeterministicAutomaton<'q>) -> Self {
-        let reject_state = nfa.ordered_states.len() as u8;
-        let mut current_superstate: StateSet = [0].into();
-        let mut superstates = VecMap::new();
-        let mut tables = vec![];
-        let mut recursive = reject_state;
-        superstates.insert(current_superstate, 0);
+        minimizer::minimize(nfa)
+    }
+}
 
-        for (i, &state) in nfa.ordered_states.iter().enumerate() {
-            let i = i as u8;
-            debug_assert!(current_superstate.contains(i));
-            debug!("In superstate {:?}", current_superstate);
-            match state {
-                Recursive(label) => {
-                    debug!("Recursive state {i}");
-                    let table = TransitionTable {
-                        transitions: smallvec![(label, State(i + 1))],
-                        fallback_state: State(i),
-                    };
-                    tables.push(table);
-                    recursive = i;
-                    current_superstate = [i, i + 1].into();
-                    superstates.insert(current_superstate, i + 1);
-                }
-                _ => {
-                    let mut transitions: VecMap<&Label, StateSet> = VecMap::new();
+impl<'q> TransitionTable<'q> {
+    /// Returns the state to which a fallback transition leads.
+    ///
+    /// A fallback transition is the catch-all transition triggered
+    /// if none of the transitions were triggered.
+    pub fn fallback_state(&self) -> State {
+        self.fallback_state
+    }
 
-                    for substate in current_superstate.iter() {
-                        debug!("Expanding state {substate}");
-                        match nfa.ordered_states[substate as usize] {
-                            Recursive(label) | Direct(label) => {
-                                if let Some(set) = transitions.get_mut(&label) {
-                                    debug!("Hit");
-                                    set.insert(substate + 1);
-                                } else if recursive != reject_state {
-                                    transitions.insert(label, [recursive, substate + 1].into());
-                                } else {
-                                    transitions.insert(label, [substate + 1].into());
-                                }
-                                debug!(
-                                    "Updated transition via {}, now to {:?}",
-                                    label.display(),
-                                    transitions[&label]
-                                );
-                            }
-                            _ => (),
-                        }
-                    }
-
-                    debug!("Transitions: {:?}", transitions);
-
-                    current_superstate = if let Direct(label) = state {
-                        transitions[&label]
-                    } else {
-                        StateSet::default()
-                    };
-                    superstates.insert(current_superstate, i + 1);
-                    let translated_transitions = transitions
-                        .into_iter()
-                        .map(|x| (x.0, State(superstates[&x.1])));
-                    let table = TransitionTable {
-                        transitions: translated_transitions.collect(),
-                        fallback_state: State(recursive),
-                    };
-                    tables.push(table);
-                }
-            }
-        }
-
-        tables.push(TransitionTable {
-            transitions: smallvec![],
-            fallback_state: State(reject_state),
-        });
-
-        Automaton { states: tables }
+    /// Returns the collection of labelled transitions from this state.
+    ///
+    /// A transition is triggered if the [`Label`] is matched and leads
+    /// to the contained [`State`].
+    pub fn transitions(&self) -> &SmallVec<[(&'q Label, State); 2]> {
+        &self.transitions
     }
 }
 
@@ -226,39 +252,14 @@ impl<'q> Display for Automaton<'q> {
                 writeln!(
                     f,
                     "  {i} -> {} [label=\"{}\"]",
-                    transition.1,
+                    transition.1 .0,
                     transition.0.display(),
                 )?;
             }
-            writeln!(f, "  {i} -> {} [label=\"*\"]", state.fallback_state)?;
+            writeln!(f, "  {i} -> {} [label=\"*\"]", state.fallback_state.0)?;
         }
         write!(f, "}}")?;
         Ok(())
-    }
-}
-
-impl<'q> NondeterministicAutomaton<'q> {
-    fn new(query: &'q JsonPathQuery) -> Self {
-        debug_assert!(query.root().is_root());
-        let mut node_opt = query.root().child();
-        let mut ordered_states = vec![];
-
-        while let Some(node) = node_opt {
-            match node {
-                JsonPathQueryNode::Descendant(label, next_node) => {
-                    ordered_states.push(Recursive(label));
-                    node_opt = next_node.as_deref();
-                }
-                JsonPathQueryNode::Child(label, next_node) => {
-                    ordered_states.push(Direct(label));
-                    node_opt = next_node.as_deref();
-                }
-                _ => panic! {"Unexpected type of node, expected Descendant or Child."},
-            }
-        }
-        ordered_states.push(Accepting);
-
-        NondeterministicAutomaton { ordered_states }
     }
 }
 
@@ -285,72 +286,75 @@ impl<'q> Display for NondeterministicAutomaton<'q> {
     }
 }
 
-impl<'q> TransitionTable<'q> {
-    /// Returns the state to which a fallback transition leads.
-    ///
-    /// A fallback transition is the catch-all transition triggered
-    /// if none of the transitions were triggered.
-    pub fn fallback_state(&self) -> State {
-        self.fallback_state
-    }
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use smallvec::smallvec;
 
-    /// Returns the collection of labelled transitions from this state.
-    ///
-    /// A transition is triggered if the [`Label`] is matched and leads
-    /// to the contained [`State`].
-    pub fn transitions(&self) -> &SmallVec<[(&'q Label, State); 2]> {
-        &self.transitions
-    }
-}
+    #[test]
+    fn child_and_descendant_test() {
+        // Query = $.x..a.b.a.b.c..d
+        let label_a = Label::new("a");
+        let label_b = Label::new("b");
+        let label_c = Label::new("c");
+        let label_d = Label::new("d");
+        let label_x = Label::new("x");
 
-#[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
-struct StateSet {
-    bitmask: u128,
-}
+        let nfa = NondeterministicAutomaton {
+            ordered_states: vec![
+                NfaState::Direct(&label_x),
+                NfaState::Recursive(&label_a),
+                NfaState::Direct(&label_b),
+                NfaState::Direct(&label_a),
+                NfaState::Direct(&label_b),
+                NfaState::Direct(&label_c),
+                NfaState::Recursive(&label_d),
+                NfaState::Accepting,
+            ],
+        };
 
-impl StateSet {
-    fn insert(&mut self, elem: u8) {
-        self.bitmask |= 1 << elem;
-    }
+        let result = Automaton::minimize(nfa);
+        let expected = Automaton {
+            states: vec![
+                TransitionTable {
+                    transitions: smallvec![],
+                    fallback_state: State(0),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label_x, State(2))],
+                    fallback_state: State(0),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label_a, State(3))],
+                    fallback_state: State(2),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label_a, State(3)), (&label_b, State(4))],
+                    fallback_state: State(2),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label_a, State(5))],
+                    fallback_state: State(2),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label_a, State(3)), (&label_b, State(6))],
+                    fallback_state: State(2),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label_a, State(5)), (&label_c, State(7))],
+                    fallback_state: State(2),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label_d, State(8))],
+                    fallback_state: State(7),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label_d, State(8))],
+                    fallback_state: State(7),
+                },
+            ],
+        };
 
-    fn contains(&self, elem: u8) -> bool {
-        (self.bitmask & (1 << elem)) != 0
-    }
-
-    fn iter(&self) -> StateSetIter {
-        StateSetIter {
-            bitmask: self.bitmask,
-        }
-    }
-}
-
-impl<const N: usize> From<[u8; N]> for StateSet {
-    fn from(arr: [u8; N]) -> Self {
-        let mut result = Self::default();
-        for elem in arr {
-            result.insert(elem);
-        }
-        result
-    }
-}
-
-struct StateSetIter {
-    bitmask: u128,
-}
-
-impl Iterator for StateSetIter {
-    type Item = u8;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let next_elem = self.bitmask.trailing_zeros();
-
-        if next_elem == 128 {
-            return None;
-        }
-
-        let elem_mask = 1 << next_elem;
-        self.bitmask ^= elem_mask;
-
-        Some(next_elem as u8)
+        assert_eq!(result, expected);
     }
 }
