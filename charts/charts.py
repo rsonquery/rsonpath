@@ -2,8 +2,11 @@ import os
 import pathlib
 import json
 import sys
-import pandas as pd
+import matplotlib
+import matplotlib.pyplot as plot
+import numpy as np
 
+print(matplotlib.__version__)
 rootpath = pathlib.Path(__file__).parent.parent
 
 def collect_exps(path=None):
@@ -55,14 +58,42 @@ if __name__ == "__main__":
             continue
         d2[e] = h = {}
         for x in v:
-            h[x] = v[x]["throughput"]["BytesDecimal"]/v[x]["estimates"]["median"][0]
+            size = v[x]["throughput"]["BytesDecimal"]
+            stdev = v[x]["estimates"]["median"][1]
+            median = v[x]["estimates"]["median"][0]
+            h[x] = size/median #(size/(median+stdev), size/median, size/(median-stdev))
+    exps = list(sorted(d2))
+    exps_short = [f"Q{i}" for i in range(len(exps))]
 
-    df = pd.DataFrame(d2).transpose()
-    ax = df.plot(kind="barh", ylabel="GB/s", rot=27)
-    fig = ax.get_figure()
-    fig.set_figwidth(18)
-    fig.set_figheight(10)
-    fig.savefig("plot.png")
+    jsurfer = np.array([d2[e].get("jsurfer", 0) for e in exps])
+    rsonpath = np.array([d2[e].get("rsonpath", 0) for e in exps])
+    jsonski = np.array([d2[e].get("jsonski", 0) for e in exps])
+
+    pos = np.array(range(len(exps)))
+    fig, (ax0, ax1) = plot.subplots(1, 2, gridspec_kw={'width_ratios':[1, 2.5]})
+    bar = ax0.bar(exps_short, jsurfer, label="jsurfer")
+    ax0.set_title("jsurfer")
+    ax0.set_ylabel("GB/s")
+    ax0.bar_label(bar, [f"{e:0.2f}" for e in jsurfer])
+
+    bar = ax1.bar(pos, rsonpath/jsurfer, label="rsonpath", tick_label=exps_short)
+    ax1.bar_label(bar, [f"{e:0.1f}" for e in rsonpath])
+    jsonski2 = jsonski/jsurfer
+    pos2, jsonski2 = zip(*filter(lambda e:e[1] > 0, zip(pos, jsonski2)))
+    jsonski2 = np.array(jsonski2)
+    pos2 = np.array(pos2)
+
+    bar = ax1.bar(pos2+0.44, jsonski2, label="jsonski")
+    ax1.bar_label(bar, [f"{e:0.1f}" for e in filter(bool, jsonski)])
+    ax1.set_title("rsonpath vs jsonski")
+    ax1.set_ylabel("Jsurfer ratio")
+    ax1.yaxis.set_label_position("right")
+    ax1.yaxis.tick_right()
+    ax1.legend()
+    fig.tight_layout()
+    fig.set_size_inches(15, 5)
+    plot.savefig("plot.png")
+
     queries = {}
     for e,v in d.items():
         if "rsonpath" not in v:
@@ -71,6 +102,9 @@ if __name__ == "__main__":
         for x in v:
             h[x] = v[x]["value_str"]
 
+    for i in range(len(exps)):
+        print(f"Q{i}: {queries[x]}")
+    sys.exit(0)
     for x,v in queries.items():
         print(x)
         for e, q in v.items():
