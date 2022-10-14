@@ -47,6 +47,7 @@ def get_exp_data(path=None):
     return groups
 
 if __name__ == "__main__":
+    matplotlib.style.use("seaborn")
     path = None
     if len(sys.argv) > 1:
         path = pathlib.Path(sys.argv[1])
@@ -69,30 +70,33 @@ if __name__ == "__main__":
     jsurfer = np.array([d2[e].get("jsurfer", 0) for e in exps])
     rsonpath = np.array([d2[e].get("rsonpath", 0) for e in exps])
     jsonski = np.array([d2[e].get("jsonski", 0) for e in exps])
+    width = 0.6
+    ratio = 1.8 
 
     pos = np.array(range(len(exps)))
-    fig, (ax0, ax1) = plot.subplots(1, 2, gridspec_kw={'width_ratios':[1, 2.5]})
-    bar = ax0.bar(exps_short, jsurfer, label="jsurfer")
-    ax0.set_title("jsurfer")
+    fig, (ax0, ax1) = plot.subplots(1, 2, gridspec_kw={'width_ratios':[1, ratio]})
+    bar = ax0.bar(exps_short, jsurfer, width=width, label="jsurfer", color="tab:gray")
+    ax0.legend()
     ax0.set_ylabel("GB/s")
-    ax0.bar_label(bar, [f"{e:0.2f}" for e in jsurfer])
+    #ax0.bar_label(bar, [f"{e:0.2f}" for e in jsurfer])
+    
+    width = width/ratio
 
-    bar = ax1.bar(pos, rsonpath/jsurfer, label="rsonpath", tick_label=exps_short)
-    ax1.bar_label(bar, [f"{e:0.1f}" for e in rsonpath])
-    jsonski2 = jsonski/jsurfer
-    pos2, jsonski2 = zip(*filter(lambda e:e[1] > 0, zip(pos, jsonski2)))
+    bar = ax1.bar(pos-width/2-0.05, rsonpath, label="rsonpath", width=width, color="tab:blue")
+    ax1.set_xticks(pos)
+    ax1.set_xticklabels(exps_short)
+    ax1.bar_label(bar, [f"{e:0.1f}" for e in rsonpath/jsurfer])
+    pos2, jsonski2 = zip(*filter(lambda e:e[1] > 0, zip(pos, jsonski)))
     jsonski2 = np.array(jsonski2)
     pos2 = np.array(pos2)
 
-    bar = ax1.bar(pos2+0.44, jsonski2, label="jsonski")
-    ax1.bar_label(bar, [f"{e:0.1f}" for e in filter(bool, jsonski)])
-    ax1.set_title("rsonpath vs jsonski")
-    ax1.set_ylabel("Jsurfer ratio")
-    ax1.yaxis.set_label_position("right")
-    ax1.yaxis.tick_right()
+    bar = ax1.bar(pos2+width/2+0.05, jsonski2, label="jsonski", width=width, color="tab:red")
+    ax1.bar_label(bar, [f"{e:0.1f}" for e in filter(bool, jsonski/jsurfer)])
+    ax1.set_ylabel("GB/s")
     ax1.legend()
     fig.tight_layout()
-    fig.set_size_inches(15, 5)
+    fig.set_size_inches(20, 5)
+    plot.subplots_adjust(wspace=0.1, left=0.04)
     plot.savefig("plot.png")
 
     queries = {}
