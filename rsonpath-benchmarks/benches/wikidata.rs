@@ -3,11 +3,10 @@ use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use rsonpath::engine::result::CountResult;
 use rsonpath::engine::{Input, Runner};
 use rsonpath::query::JsonPathQuery;
-use rsonpath::stack_based::StackBasedRunner;
 use rsonpath::stackless::StacklessRunner;
-use std::fs;
-use rsonpath_benchmarks::rust_jsurfer;
 use rsonpath_benchmarks::rust_jsonski;
+use rsonpath_benchmarks::rust_jsurfer;
+use std::fs;
 
 const ROOT_TEST_DIRECTORY: &str = "../data";
 
@@ -33,8 +32,6 @@ fn get_contents(test_path: &str) -> Input {
 }
 
 fn wikipedia_bench(c: &mut Criterion, options: BenchmarkOptions<'_>) {
-    
-    
     println!("rsonpath/jsurfer Query: {}", options.query_string);
     println!("Jsonski Query: {}", options.jsonski_query_string);
 
@@ -46,7 +43,7 @@ fn wikipedia_bench(c: &mut Criterion, options: BenchmarkOptions<'_>) {
     let mut group = c.benchmark_group(format! {"rsonpath_{}", options.id});
     group.warm_up_time(options.warm_up_time);
     group.measurement_time(options.measurement_time);
-    group.throughput(criterion::Throughput::BytesDecimal(contents.len() as u64));    
+    group.throughput(criterion::Throughput::BytesDecimal(contents.len() as u64));
     group.bench_with_input(
         BenchmarkId::new("stackless", options.id),
         &contents,

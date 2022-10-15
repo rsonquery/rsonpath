@@ -1,6 +1,6 @@
 use super::*;
 use aligners::alignment::Alignment;
-use aligners::{AlignedBlock, AlignedBlockIterator, AlignedSlice};
+use aligners::{AlignedBlockIterator, AlignedSlice};
 use len_trait::Empty;
 
 pub(crate) struct SequentialQuoteClassifier<'a> {
