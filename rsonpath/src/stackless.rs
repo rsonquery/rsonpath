@@ -12,13 +12,12 @@ use crate::classify::{
     classify_structural_characters, resume_structural_classification, ClassifierWithSkipping,
     Structural,
 };
+use crate::debug;
 use crate::engine::result::QueryResult;
 use crate::engine::{Input, Runner};
 use crate::query::automaton::{Automaton, State};
 use crate::query::{JsonPathQuery, Label};
 use crate::quotes::{classify_quoted_sequences, QuoteClassifiedIterator, ResumeClassifierState};
-use crate::{debug, BlockAlignment};
-use aligners::alignment::Twice;
 use aligners::{alignment, AlignedBytes};
 use smallvec::{smallvec, SmallVec};
 
