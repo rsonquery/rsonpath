@@ -81,12 +81,15 @@ impl<'a> QuoteClassifiedIterator<'a> for SequentialQuoteClassifier<'a> {
 
     fn get_offset(&self) -> usize {
         self.offset.unwrap_or(0)
-    }    
+    }
 
     fn offset(&mut self, count: isize) {
         debug_assert!(count > 0);
         self.iter.offset(count);
-        self.offset = Some(self.get_offset() + (count as usize * Self::block_size()));
+        self.offset = Some(match self.offset {
+            None => (count as usize - 1) * Self::block_size(),
+            Some(offset) => offset + (count as usize) * Self::block_size(),
+        });
     }
 
     fn flip_quotes_bit(&mut self) {
