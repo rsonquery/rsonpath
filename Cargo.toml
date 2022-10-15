@@ -1,10 +1,7 @@
 [workspace]
 
 members = [
-    "rsonpath",
-    "simd-codegen",
-    "simd-benchmarks",
-    "rsonpath-benchmarks"
+    "rsonpath"
 ]
 
 [profile.dev]

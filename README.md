@@ -92,30 +92,7 @@ make test
 
 ## Benchmarks
 
-Note: it is recommended to install `gnuplot` before generating reports.
-
-This highly depends on the exact scenario you want to benchmark. The main benchmark is the
-Wikidata dataset benchmarking recursive and stackless, which can be ran with either
-
-```bash
-make bench
-```
-
-or
-
-```bash
-cargo bench --bench rsonpath_wikidata
-```
-
-If you want to bench the no-SIMD scenario, disable the default `simd` feature flag:
-
-```bash
-cargo bench --bench rsonpath_wikidata --no-default-features
-```
-
-You can find other benches in `./rsonpath/benches`.
-
-For details about benchmarking refer to [Criterion.rs docs](https://github.com/bheisler/criterion.rs).
+Benchmarks for `rsonpath` are located in a [separate repository](https://github.com/v0ldek/rsonpath-benchmarks).
 
 ## Background
 
