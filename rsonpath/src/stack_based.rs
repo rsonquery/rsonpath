@@ -1,6 +1,6 @@
 //! Reference implementation of a JSONPath query engine with recursive descent.
 
-use crate::classify::ClassifierWithSkipping;
+use crate::classify::fast_forward::FastForwardingClassifier;
 use crate::classify::{classify_structural_characters, Structural, StructuralIterator};
 use crate::debug;
 use crate::engine::result::QueryResult;
@@ -61,7 +61,7 @@ where
     I: StructuralIterator<'b, Q>,
     R: QueryResult,
 {
-    classifier: ClassifierWithSkipping<'b, Q, I>,
+    classifier: FastForwardingClassifier<'b, Q, I>,
     automaton: &'b Automaton<'q>,
     bytes: &'b [u8],
     #[cfg(debug_assertions)]
@@ -84,7 +84,7 @@ where
         result: &'r mut R,
     ) -> Self {
         Self {
-            classifier: ClassifierWithSkipping::new(classifier),
+            classifier: FastForwardingClassifier::new(classifier),
             automaton,
             bytes,
             depth: 1,
@@ -101,7 +101,7 @@ where
         result: &'r mut R,
     ) -> Self {
         Self {
-            classifier: ClassifierWithSkipping::new(classifier),
+            classifier: FastForwardingClassifier::new(classifier),
             automaton,
             bytes,
             result,
@@ -124,7 +124,7 @@ where
                     let next_state = self.automaton[state].fallback_state();
 
                     if self.automaton.is_rejecting(next_state) {
-                        self.classifier.skip(self.bytes[idx]);
+                        self.classifier.fast_forward_to_end(self.bytes[idx]);
                     } else {
                         self.run(next_state);
                     }
@@ -165,7 +165,7 @@ where
     }
 
     fn is_match(&self, idx: usize, label: &Label) -> bool {
-        let len = label.len() + 2;
+        let len = label.bytes_with_quotes().len();
 
         let mut closing_quote_idx = idx - 1;
         while self.bytes[closing_quote_idx] != b'"' {

@@ -29,11 +29,21 @@ impl<'a> Iterator for SequentialQuoteClassifier<'a> {
     fn next(&mut self) -> Option<QuoteClassifiedBlock<'a>> {
         match self.iter.next() {
             Some(block) => {
+                debug!(
+                    "{: >24}: {}",
+                    "block",
+                    std::str::from_utf8(
+                        &block
+                            .iter()
+                            .map(|x| if x.is_ascii_whitespace() { b' ' } else { *x })
+                            .collect::<Vec<_>>()
+                    ).unwrap()
+                );
                 let mut mask = 0u64;
                 let mut idx_mask = 1;
 
                 if let Some(offset) = self.offset {
-                    self.offset = Some(offset + block.len());
+                    self.offset = Some(offset + alignment::Twice::<BlockAlignment>::size());
                 } else {
                     self.offset = Some(0);
                 }
@@ -84,7 +94,10 @@ impl<'a> QuoteClassifiedIterator<'a> for SequentialQuoteClassifier<'a> {
     }
 
     fn offset(&mut self, count: isize) {
-        debug_assert!(count > 0);
+        if count == 0 {
+            return;
+        }
+
         self.iter.offset(count);
         self.offset = Some(match self.offset {
             None => (count as usize - 1) * Self::block_size(),

@@ -9,8 +9,8 @@
 //! even on targets that don't support AVX2 SIMD operations.
 
 use crate::classify::{
-    classify_structural_characters, resume_structural_classification, ClassifierWithSkipping,
-    Structural,
+    classify_structural_characters, fast_forward::FastForwardingClassifier,
+    resume_structural_classification, Structural,
 };
 use crate::debug;
 use crate::engine::result::QueryResult;
@@ -200,7 +200,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
         quote_classifier: ResumeClassifierState<'b, I>,
     ) -> ResumeClassifierState<'b, I> {
         let mut classifier =
-            ClassifierWithSkipping::new(resume_structural_classification(quote_classifier));
+            FastForwardingClassifier::new(resume_structural_classification(quote_classifier));
         let mut fallback_active = false;
         let mut next_event = None;
 
@@ -231,19 +231,37 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                 }
                 Structural::Opening(idx) => {
                     debug!("Opening, increasing depth and pushing stack.");
-                    self.depth += 1;
 
                     if fallback_active {
                         let fallback = self.automaton[self.state].fallback_state();
 
                         if self.automaton.is_rejecting(fallback) {
-                            classifier.skip(self.bytes[idx]);
-                            self.depth -= 1;
+                            classifier.fast_forward_to_end(self.bytes[idx]);
                         } else {
+                            self.depth += 1;
                             self.transition_to(fallback);
                         }
+                    } else if self.automaton[self.state].fallback_state() == self.state
+                        && self.automaton[self.state].transitions().len() == 1
+                    {
+                        let (label, target) = self.automaton[self.state].transitions()[0];
+
+                        if let Some(result) =
+                            classifier.fast_forward_to_label(label, self.bytes, self.bytes[idx])
+                        {
+                            debug!("Fast forward successful, result: {:?}", result);
+                            self.depth += result.depth_increase as u8;
+                            if self.automaton.is_accepting(target) {
+                                self.result.report(result.idx);
+                            }
+                            self.transition_to(target);
+                        } else {
+                            fallback_active = true;
+                        }
+                    } else {
+                        self.depth += 1;
+                        fallback_active = true;
                     }
-                    fallback_active = true;
                 }
                 Structural::Colon(idx) => {
                     debug!(
@@ -290,7 +308,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
     }
 
     fn is_match(&self, idx: usize, label: &Label) -> bool {
-        let len = label.len() + 2;
+        let len = label.bytes_with_quotes().len();
 
         let mut closing_quote_idx = idx - 1;
         while self.bytes[closing_quote_idx] != b'"' {

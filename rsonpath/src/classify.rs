@@ -45,14 +45,11 @@
 //! assert_eq!(expected, actual);
 //! ```
 
-use std::marker::PhantomData;
-
-use crate::{
-    debug,
-    depth::{resume_depth_classification, DepthBlock, DepthIterator, DepthIteratorResumeOutcome},
-    quotes::{QuoteClassifiedIterator, ResumeClassifierState},
-};
+use crate::quotes::{QuoteClassifiedIterator, ResumeClassifierState};
 use cfg_if::cfg_if;
+
+pub mod depth;
+pub mod fast_forward;
 
 /// Defines structural characters in JSON documents.
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
@@ -104,89 +101,6 @@ impl Structural {
             #[cfg(feature = "commas")]
             Comma(idx) => Comma(idx + amount),
         }
-    }
-}
-
-pub(crate) struct ClassifierWithSkipping<'b, Q, I>
-where
-    Q: QuoteClassifiedIterator<'b>,
-    I: StructuralIterator<'b, Q>,
-{
-    classifier: Option<I>,
-    phantom: PhantomData<&'b Q>,
-}
-
-impl<'b, Q, I> ClassifierWithSkipping<'b, Q, I>
-where
-    Q: QuoteClassifiedIterator<'b>,
-    I: StructuralIterator<'b, Q>,
-{
-    pub(crate) fn new(classifier: I) -> Self {
-        Self {
-            classifier: Some(classifier),
-            phantom: PhantomData,
-        }
-    }
-
-    pub(crate) fn skip(&mut self, opening: u8) {
-        debug!("Skipping");
-
-        let classifier = unsafe { self.classifier.take().unwrap_unchecked() };
-        let resume_state = classifier.stop();
-        let DepthIteratorResumeOutcome(first_vector, mut depth_classifier) =
-            resume_depth_classification(resume_state, opening);
-
-        let mut current_vector = first_vector.or_else(|| depth_classifier.next());
-        let mut current_depth = 1;
-
-        'outer: while let Some(ref mut vector) = current_vector {
-            vector.add_depth(current_depth);
-
-            debug!("Fetched vector, current depth is {current_depth}");
-            debug!("Estimate: {}", vector.estimate_lowest_possible_depth());
-
-            while vector.estimate_lowest_possible_depth() <= 0
-                && vector.advance_to_next_depth_decrease()
-            {
-                if vector.get_depth() == 0 {
-                    debug!("Encountered depth 0, breaking.");
-                    break 'outer;
-                }
-            }
-
-            current_depth = vector.depth_at_end();
-            current_vector = depth_classifier.next();
-        }
-
-        debug!("Skipping complete, resuming structural classification.");
-        let resume_state = depth_classifier.stop(current_vector);
-        self.classifier = Some(I::resume(resume_state));
-    }
-    
-    pub(crate) fn stop(mut self) -> ResumeClassifierState<'b, Q> {
-        unsafe { self.classifier.take().unwrap_unchecked() }.stop()
-    }
-}
-
-impl<'b, Q, I> std::ops::Deref for ClassifierWithSkipping<'b, Q, I>
-where
-    Q: QuoteClassifiedIterator<'b>,
-    I: StructuralIterator<'b, Q>,
-{
-    type Target = I;
-
-    fn deref(&self) -> &Self::Target {
-        unsafe { self.classifier.as_ref().unwrap_unchecked() }
-    }
-}
-
-impl<'b, Q, I> std::ops::DerefMut for ClassifierWithSkipping<'b, Q, I>
-where
-    Q: QuoteClassifiedIterator<'b>,
-    I: StructuralIterator<'b, Q>,
-{
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        unsafe { self.classifier.as_mut().unwrap_unchecked() }
     }
 }
 

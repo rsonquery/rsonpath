@@ -32,6 +32,7 @@ pub mod automaton;
 mod errors;
 mod parser;
 
+use crate::memchr::memmem::rare_bytes::RareBytes;
 use aligners::{alignment, AlignedBytes, AlignedSlice};
 use cfg_if::cfg_if;
 use color_eyre::eyre::Result;
@@ -67,6 +68,7 @@ cfg_if! {
 pub struct Label {
     label: AlignedBytes<LabelAlignment>,
     label_with_quotes: AlignedBytes<LabelAlignment>,
+    rare_bytes: RareBytes,
 }
 
 impl std::fmt::Debug for Label {
@@ -86,6 +88,7 @@ impl Clone for Label {
         Label {
             label: label_clone,
             label_with_quotes: quoted_clone,
+            rare_bytes: self.rare_bytes,
         }
     }
 }
@@ -103,9 +106,12 @@ impl Label {
         with_quotes[1..bytes.len() + 1].copy_from_slice(bytes);
         with_quotes[bytes.len() + 1] = b'"';
 
+        let rare_bytes = RareBytes::for_needle(&with_quotes);
+
         Self {
             label: without_quotes,
             label_with_quotes: with_quotes,
+            rare_bytes,
         }
     }
 
@@ -126,13 +132,10 @@ impl Label {
     pub fn display(&self) -> impl Display + '_ {
         std::str::from_utf8(&self.label).unwrap_or("[invalid utf8]")
     }
-}
 
-impl std::ops::Deref for Label {
-    type Target = AlignedSlice<LabelAlignment>;
-
-    fn deref(&self) -> &Self::Target {
-        self.bytes()
+    /// Return metadata about rarest bytes occuring in the label.
+    pub fn rare_bytes(&self) -> RareBytes {
+        self.rare_bytes
     }
 }
 

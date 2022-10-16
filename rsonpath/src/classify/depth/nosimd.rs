@@ -89,23 +89,23 @@ impl<'a> Vector<'a> {
 
     #[inline]
     fn map_depths<F: FnMut(isize)>(&self, mut f: F) {
+        let closing = self.opening + 2;
         let mut current = self.depth;
         f(current);
         let mut offset = 0;
 
         while self.idx + offset < self.quote_classified.len() {
-            let character = self.quote_classified.block[self.idx];
-            let idx_mask = 1u64 << self.idx;
+            let idx = self.idx + offset;
+            let character = self.quote_classified.block[idx];
+            let idx_mask = 1u64 << idx;
             let is_quoted = (self.quote_classified.within_quotes_mask & idx_mask) == idx_mask;
 
             if !is_quoted {
-                current += match character {
-                    b'{' => 1,
-                    b'[' => 1,
-                    b'}' => -1,
-                    b']' => -1,
-                    _ => 0,
-                };
+                if character == self.opening {
+                    current += 1;
+                } else if character == closing {
+                    current -= 1;
+                }
             }
 
             f(current);
@@ -133,13 +133,17 @@ impl<'a> DepthBlock<'a> for Vector<'a> {
         let closing = self.opening + 2;
         while self.idx < self.quote_classified.len() {
             let character = self.quote_classified.block[self.idx];
+            let idx_mask = 1u64 << self.idx;
+            let is_quoted = (self.quote_classified.within_quotes_mask & idx_mask) == idx_mask;
             self.idx += 1;
 
-            if character == self.opening {
-                self.depth += 1;
-            } else if character == closing {
-                self.depth -= 1;
-                return true;
+            if !is_quoted {
+                if character == self.opening {
+                    self.depth += 1;
+                } else if character == closing {
+                    self.depth -= 1;
+                    return true;
+                }
             }
         }
 
@@ -152,7 +156,7 @@ impl<'a> DepthBlock<'a> for Vector<'a> {
     }
 
     fn estimate_lowest_possible_depth(&self) -> isize {
-        let mut lowest = 0;
+        let mut lowest = isize::MAX;
         self.map_depths(|x| lowest = std::cmp::min(lowest, x));
 
         lowest

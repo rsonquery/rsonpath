@@ -9,12 +9,13 @@
             "request": "launch",
             "name": "Debug executable 'rsonpath'",
             "env": {
-                "RUSTFLAGS": "-C target-feature=+avx2"
+                "RUSTFLAGS": "-C target-cpu=native"
             },
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=rsonpath"
+                    "--bin=rsonpath",
+                    "--no-default-features"
                 ],
                 "filter": {
                     "name": "rsonpath",
@@ -22,8 +23,8 @@
                 }
             },
             "args": [
-                "$.a4.b.c.d",
-                "./data/basic_compressed/fake3.json",
+                "$..a..b.c..d",
+                "./data/basic_compressed/child.json",
                 "-v"
             ],
             "cwd": "${workspaceFolder}"

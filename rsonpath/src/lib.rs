@@ -98,8 +98,8 @@
 //! $..label_1..label_2..[...]..label_n
 //! ```
 
-#![warn(missing_docs)]
-#![warn(rustdoc::missing_crate_level_docs)]
+//#![warn(missing_docs)]
+//#![warn(rustdoc::missing_crate_level_docs)]
 #![warn(
     explicit_outlives_requirements,
     unreachable_pub,
@@ -110,8 +110,8 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
 pub mod classify;
-pub mod depth;
 pub mod engine;
+pub mod memchr;
 pub mod query;
 pub mod quotes;
 pub mod stack_based;
@@ -128,7 +128,7 @@ cfg_if! {
     else {
         /// Default alignment required out of input blocks for the purpose
         /// of classification with [`quotes`](crate::quotes) and [`classify`](crate::classify).
-        pub type BlockAlignment = aligners::alignment::One;
+        pub type BlockAlignment = aligners::alignment::TwoTo<5>;
     }
 }
 

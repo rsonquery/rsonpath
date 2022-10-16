@@ -15,6 +15,7 @@ use crate::{debug, BlockAlignment};
 ///
 /// There is no guarantee on how the boundary quote characters are classified,
 /// their bits might be lit or not lit depending on the implementation.
+#[derive(Clone, Copy)]
 pub struct QuoteClassifiedBlock<'a> {
     /// The block that was classified.
     pub block: &'a AlignedBlock<Twice<BlockAlignment>>,

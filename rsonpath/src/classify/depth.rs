@@ -2,6 +2,8 @@
 use crate::quotes::{QuoteClassifiedIterator, ResumeClassifierState};
 use cfg_if::cfg_if;
 
+pub mod seek;
+
 /// Common trait for structs that enrich a byte block with JSON depth information.
 #[allow(clippy::len_without_is_empty)]
 pub trait DepthBlock<'a>: Sized {
@@ -37,12 +39,12 @@ pub trait DepthIterator<'a, I: QuoteClassifiedIterator<'a>>:
     /// Type of the [`DepthBlock`] implementation used by this iterator.
     type Block: DepthBlock<'a>;
 
-    /// Stop classification and return a state object that can be used to resume
-    /// a classifier from the place in which the current one was stopped.
-    fn resume(state: ResumeClassifierState<'a, I>, opening: u8) -> (Option<Self::Block>, Self);
-
     /// Resume classification from a state retrieved by a previous
     /// [`DepthIterator::stop`] or [`StructuralIterator::stop`](`crate::classify::StructuralIterator::stop`) invocation.
+    fn resume(state: ResumeClassifierState<'a, I>, opening: u8) -> (Option<Self::Block>, Self);
+
+    /// Stop classification and return a state object that can be used to resume
+    /// a classifier from the place in which the current one was stopped.
     fn stop(self, block: Option<Self::Block>) -> ResumeClassifierState<'a, I>;
 }
 
