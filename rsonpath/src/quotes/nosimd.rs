@@ -84,7 +84,10 @@ impl<'a> QuoteClassifiedIterator<'a> for SequentialQuoteClassifier<'a> {
     }
 
     fn offset(&mut self, count: isize) {
-        debug_assert!(count > 0);
+        if count == 0 {
+            return;
+        }
+
         self.iter.offset(count);
         self.offset = Some(match self.offset {
             None => (count as usize - 1) * Self::block_size(),

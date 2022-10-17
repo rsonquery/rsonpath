@@ -178,6 +178,8 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                                 }
                             }
 
+                            quote_classifier.offset_bytes(1);
+
                             self.state = target_state;
                             quote_classifier = self.run_on_subtree(quote_classifier);
                             debug!("Quote classified up to {}", quote_classifier.get_idx());
