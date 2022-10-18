@@ -157,4 +157,8 @@ impl<'a> DepthBlock<'a> for Vector<'a> {
 
         lowest
     }
+
+    fn remaining_depth_increase(&self) -> isize {
+        todo!()
+    }
 }

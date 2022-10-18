@@ -145,16 +145,20 @@ where
             debug!("Fetched vector, current depth is {current_depth}");
             debug!("Estimate: {}", vector.estimate_lowest_possible_depth());
 
-            while vector.estimate_lowest_possible_depth() <= 0
-                && vector.advance_to_next_depth_decrease()
-            {
-                if vector.get_depth() == 0 {
-                    debug!("Encountered depth 0, breaking.");
-                    break 'outer;
+            if vector.estimate_lowest_possible_depth() <= 0 {
+                while vector.advance_to_next_depth_decrease()
+                {
+                    if vector.get_depth() == 0 {
+                        debug!("Encountered depth 0, breaking.");
+                        break 'outer;
+                    }
                 }
+                current_depth = vector.get_depth() + vector.remaining_depth_increase();
+            }
+            else {
+                current_depth = vector.depth_at_end();
             }
 
-            current_depth = vector.depth_at_end();
             current_vector = depth_classifier.next();
         }
 

@@ -25,6 +25,9 @@ pub trait DepthBlock<'a>: Sized {
     /// Returns exact depth at the end of the decorated slice.
     fn depth_at_end(&self) -> isize;
 
+    /// Returns how many depth increases there are in the remainder of the vector.
+    fn remaining_depth_increase(&self) -> isize;
+
     /// Advance to the next position at which depth may decrease.
     fn advance_to_next_depth_decrease(&mut self) -> bool;
 }
