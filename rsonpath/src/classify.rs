@@ -153,17 +153,15 @@ where
                         break 'outer;
                     }
                 }
-                current_depth = vector.get_depth() + vector.remaining_depth_increase();
-            }
-            else {
-                current_depth = vector.depth_at_end();
             }
 
+            current_depth = vector.depth_at_end();
             current_vector = depth_classifier.next();
         }
 
         debug!("Skipping complete, resuming structural classification.");
         let resume_state = depth_classifier.stop(current_vector);
+        debug!("Finished at {}", resume_state.get_idx());
         self.classifier = Some(I::resume(resume_state));
     }
     

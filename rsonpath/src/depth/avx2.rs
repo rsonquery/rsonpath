@@ -202,10 +202,6 @@ impl<'a> DepthBlock<'a> for Vector<'a> {
         (((self.opening_count as i32) - (self.closing_mask.count_ones() as i32)) + self.depth) as isize
     }
 
-    fn remaining_depth_increase(&self) -> isize {
-        self.opening_count as isize
-    }
-
     #[inline(always)]
     fn add_depth(&mut self, depth: isize) {
         self.depth += depth as i32;
