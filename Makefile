@@ -8,7 +8,7 @@ rsonpath: check_cargo
 .PHONY: bench check_cargo clean clean_benches doc install uninstall test
 
 bench: rsonpath
-	$(CARGO) bench --bench rsonpath_wikidata
+	$(CARGO) bench --bench rsonpath_benchset
 
 # Check if cargo is present, if not, use rustup to setup.
 check_cargo:
@@ -28,7 +28,7 @@ clean_benches:
 	rm -rf ./target/criterion/*
 
 doc: rsonpath
-	RUSTDOCFLAGS="--cfg docsrs" cargo +nightly doc --open
+	RUSTDOCFLAGS="--cfg docsrs" cargo +nightly doc --open --package rsonpath
 
 install: rsonpath
 	$(CARGO) install --path ./rsonpath

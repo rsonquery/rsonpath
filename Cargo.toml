@@ -1,7 +1,8 @@
 [workspace]
 
 members = [
-    "rsonpath"
+    "rsonpath",
+    "rsonpath-benchmarks"
 ]
 
 [profile.dev]
