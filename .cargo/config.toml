@@ -1,5 +1,5 @@
 [build]
-rustflags = "-C target-feature=+avx2,+pclmulqdq"
+rustflags = "-C target-cpu=native"
 
 [alias]
 rsontest = "hack test -p rsonpath --feature-powerset --skip default"

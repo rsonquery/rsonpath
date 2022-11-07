@@ -1,5 +1,6 @@
 use super::*;
-use aligners::AlignedBlockIterator;
+use aligners::alignment::Alignment;
+use aligners::{AlignedBlockIterator, AlignedSlice};
 use len_trait::Empty;
 
 pub(crate) struct SequentialQuoteClassifier<'a> {
@@ -32,7 +33,7 @@ impl<'a> Iterator for SequentialQuoteClassifier<'a> {
                 let mut idx_mask = 1;
 
                 if let Some(offset) = self.offset {
-                    self.offset = Some(offset + block.len());
+                    self.offset = Some(offset + Self::block_size());
                 } else {
                     self.offset = Some(0);
                 }
@@ -74,7 +75,27 @@ impl<'a> Empty for SequentialQuoteClassifier<'a> {
 }
 
 impl<'a> QuoteClassifiedIterator<'a> for SequentialQuoteClassifier<'a> {
-    fn offset(&self) -> usize {
+    fn block_size() -> usize {
+        Twice::<BlockAlignment>::size()
+    }
+
+    fn get_offset(&self) -> usize {
         self.offset.unwrap_or(0)
+    }
+
+    fn offset(&mut self, count: isize) {
+        if count == 0 {
+            return;
+        }
+
+        self.iter.offset(count);
+        self.offset = Some(match self.offset {
+            None => (count as usize - 1) * Self::block_size(),
+            Some(offset) => offset + (count as usize) * Self::block_size(),
+        });
+    }
+
+    fn flip_quotes_bit(&mut self) {
+        self.in_quotes = !self.in_quotes;
     }
 }

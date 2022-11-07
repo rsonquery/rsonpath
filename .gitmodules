@@ -1,0 +1,3 @@
+[submodule "rsonpath-benchmarks"]
+	path = rsonpath-benchmarks
+	url = git@github.com:V0ldek/rsonpath-benchmarks.git

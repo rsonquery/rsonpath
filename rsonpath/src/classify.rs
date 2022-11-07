@@ -19,7 +19,7 @@
 //!     Structural::Opening(7),
 //!     Structural::Colon(11),
 //!     Structural::Closing(15),
-//!     Structural::Comma(16),
+#![cfg_attr(feature = "commas", doc = "Structural::Comma(16),")]
 //!     Structural::Opening(18),
 //!     Structural::Closing(19),
 //!     Structural::Closing(20),
@@ -63,6 +63,7 @@ pub enum Structural {
     Colon(usize),
     /// Represents either the opening brace '}' or opening bracket ']'.
     Opening(usize),
+    #[cfg(feature = "commas")]
     /// Represents the comma ',' character.
     Comma(usize),
 }
@@ -77,6 +78,7 @@ impl Structural {
             Closing(idx) => idx,
             Colon(idx) => idx,
             Opening(idx) => idx,
+            #[cfg(feature = "commas")]
             Comma(idx) => idx,
         }
     }
@@ -99,6 +101,7 @@ impl Structural {
             Closing(idx) => Closing(idx + amount),
             Colon(idx) => Colon(idx + amount),
             Opening(idx) => Opening(idx + amount),
+            #[cfg(feature = "commas")]
             Comma(idx) => Comma(idx + amount),
         }
     }
@@ -142,12 +145,12 @@ where
             debug!("Fetched vector, current depth is {current_depth}");
             debug!("Estimate: {}", vector.estimate_lowest_possible_depth());
 
-            while vector.estimate_lowest_possible_depth() <= 0
-                && vector.advance_to_next_depth_decrease()
-            {
-                if vector.get_depth() == 0 {
-                    debug!("Encountered depth 0, breaking.");
-                    break 'outer;
+            if vector.estimate_lowest_possible_depth() <= 0 {
+                while vector.advance_to_next_depth_decrease() {
+                    if vector.get_depth() == 0 {
+                        debug!("Encountered depth 0, breaking.");
+                        break 'outer;
+                    }
                 }
             }
 
@@ -157,7 +160,12 @@ where
 
         debug!("Skipping complete, resuming structural classification.");
         let resume_state = depth_classifier.stop(current_vector);
+        debug!("Finished at {}", resume_state.get_idx());
         self.classifier = Some(I::resume(resume_state));
+    }
+
+    pub(crate) fn stop(mut self) -> ResumeClassifierState<'b, Q> {
+        unsafe { self.classifier.take().unwrap_unchecked() }.stop()
     }
 }
 
@@ -263,7 +271,9 @@ mod tests {
         assert_eq!(Some(Opening(0)), classifier.next());
         assert_eq!(Some(Colon(4)), classifier.next());
         assert_eq!(Some(Opening(6)), classifier.next());
+        #[cfg(feature = "commas")]
         assert_eq!(Some(Comma(9)), classifier.next());
+        #[cfg(feature = "commas")]
         assert_eq!(Some(Comma(13)), classifier.next());
 
         let resume_state = classifier.stop();
@@ -274,6 +284,7 @@ mod tests {
         assert_eq!(Some(Colon(20)), resumed_classifier.next());
         assert_eq!(Some(Opening(22)), resumed_classifier.next());
         assert_eq!(Some(Colon(27)), resumed_classifier.next());
+        #[cfg(feature = "commas")]
         assert_eq!(Some(Comma(30)), resumed_classifier.next());
     }
 }

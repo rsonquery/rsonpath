@@ -1,2 +1,0 @@
-$..claims..references..hash
-$..claims..mainsnak..value

@@ -5,7 +5,7 @@
 use aligners::{alignment::Twice, AlignedBlock, AlignedSlice};
 use cfg_if::cfg_if;
 
-use crate::BlockAlignment;
+use crate::{debug, BlockAlignment};
 
 /// Input block with a bitmask signifying which characters are within quotes.
 ///
@@ -40,8 +40,21 @@ impl<'a> QuoteClassifiedBlock<'a> {
 pub trait QuoteClassifiedIterator<'a>:
     Iterator<Item = QuoteClassifiedBlock<'a>> + len_trait::Empty + 'a
 {
+    /// Get size of a single quote classified block returned by this iterator.
+    fn block_size() -> usize;
+
     /// Get the total offset in bytes from the beginning of input.
-    fn offset(&self) -> usize;
+    fn get_offset(&self) -> usize;
+
+    /// Move the iterator `count` blocks forward.
+    /// Effectively skips `count * Twice<BlockAlignment>::size()` bytes.
+    fn offset(&mut self, count: isize);
+
+    /// Flip the bit representing whether the last block ended with a nonescaped quote.
+    ///
+    /// This should be done only in very specific circumstances where the previous-block
+    /// state could have been damaged due to stopping and resuming the classification at a later point.
+    fn flip_quotes_bit(&mut self);
 }
 
 /// State allowing resumption of a classifier from a particular place
@@ -51,6 +64,49 @@ pub struct ResumeClassifierState<'a, I: QuoteClassifiedIterator<'a>> {
     pub iter: I,
     /// The block at which classification was stopped.
     pub block: Option<ResumeClassifierBlockState<'a>>,
+}
+
+impl<'a, I: QuoteClassifiedIterator<'a>> ResumeClassifierState<'a, I> {
+    /// Get the index in the original bytes input at which classification has stopped.
+    pub fn get_idx(&self) -> usize {
+        debug!(
+            "iter offset: {}, block idx: {:?}",
+            self.iter.get_offset(),
+            self.block.as_ref().map(|b| b.idx)
+        );
+
+        self.iter.get_offset() + self.block.as_ref().map_or(0, |b| b.idx)
+    }
+
+    /// Move the state forward by `count` bytes.
+    pub fn offset_bytes(&mut self, count: isize) {
+        debug_assert!(count > 0);
+        let count = count as usize;
+        let remaining_in_block = self.block.as_ref().map_or(0, |b| b.block.len() - b.idx);
+
+        if remaining_in_block > count {
+            self.block.as_mut().unwrap().idx += count;
+        } else {
+            let blocks_to_advance = (count - remaining_in_block) / I::block_size();
+
+            let remainder = (self.block.as_ref().map_or(0, |b| b.idx) + count
+                - blocks_to_advance * I::block_size())
+                % I::block_size();
+
+            self.iter.offset(blocks_to_advance as isize);
+            let next_block = self.iter.next();
+
+            self.block = next_block.map(|b| ResumeClassifierBlockState {
+                block: b,
+                idx: remainder,
+            });
+        }
+
+        debug!(
+            "offset_bytes({count}) results in idx moved to {}",
+            self.get_idx()
+        );
+    }
 }
 
 /// State of the block at which classification was stopped.

@@ -128,7 +128,7 @@ cfg_if! {
     else {
         /// Default alignment required out of input blocks for the purpose
         /// of classification with [`quotes`](crate::quotes) and [`classify`](crate::classify).
-        pub type BlockAlignment = aligners::alignment::One;
+        pub type BlockAlignment = aligners::alignment::TwoTo<5>;
     }
 }
 

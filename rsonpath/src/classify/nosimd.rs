@@ -30,6 +30,7 @@ impl<'a> Iterator for Block<'a> {
                 match character {
                     b':' => return Some(Colon(self.idx - 1)),
                     b'[' | b'{' => return Some(Opening(self.idx - 1)),
+                    #[cfg(feature = "commas")]
                     b',' => return Some(Comma(self.idx - 1)),
                     b']' | b'}' => return Some(Closing(self.idx - 1)),
                     _ => (),
@@ -71,7 +72,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> Iterator for SequentialClassifier<'a, I
             }
         }
 
-        item.map(|x| x.offset(self.iter.offset()))
+        item.map(|x| x.offset(self.iter.get_offset()))
     }
 }
 

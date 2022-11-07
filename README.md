@@ -92,30 +92,8 @@ make test
 
 ## Benchmarks
 
-Note: it is recommended to install `gnuplot` before generating reports.
-
-This highly depends on the exact scenario you want to benchmark. The main benchmark is the
-Wikidata dataset benchmarking recursive and stackless, which can be ran with either
-
-```bash
-make bench
-```
-
-or
-
-```bash
-cargo bench --bench rsonpath_wikidata
-```
-
-If you want to bench the no-SIMD scenario, disable the default `simd` feature flag:
-
-```bash
-cargo bench --bench rsonpath_wikidata --no-default-features
-```
-
-You can find other benches in `./rsonpath/benches`.
-
-For details about benchmarking refer to [Criterion.rs docs](https://github.com/bheisler/criterion.rs).
+Benchmarks for `rsonpath` are located in a [separate repository](https://github.com/v0ldek/rsonpath-benchmarks),
+included as a [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules) in this main repository.
 
 ## Background
 
@@ -129,8 +107,8 @@ cargo tree --package rsonpath --edges normal
 ```
 
 ```ini
-rsonpath v0.1.0 (/home/v0ldek/rsonpath/rsonpath)
-├── aligners v0.0.9
+rsonpath v0.1.2
+├── aligners v0.0.10
 │   ├── cfg-if v1.0.0
 │   ├── lazy_static v1.4.0
 │   └── page_size v0.4.2
@@ -148,16 +126,12 @@ rsonpath v0.1.0 (/home/v0ldek/rsonpath/rsonpath)
 │   │   │   │   │   └── unicode-ident v1.0.0
 │   │   │   │   └── quote v1.0.18
 │   │   │   │       └── proc-macro2 v1.0.39 (*)
-│   │   │   │   [build-dependencies]
-│   │   │   │   └── version_check v0.9.3
 │   │   │   ├── proc-macro2 v1.0.39 (*)
 │   │   │   ├── quote v1.0.18 (*)
 │   │   │   └── syn v1.0.75
 │   │   │       ├── proc-macro2 v1.0.39 (*)
 │   │   │       ├── quote v1.0.18 (*)
 │   │   │       └── unicode-xid v0.2.2
-│   │   │   [build-dependencies]
-│   │   │   └── version_check v0.9.3
 │   │   ├── proc-macro2 v1.0.39 (*)
 │   │   ├── quote v1.0.18 (*)
 │   │   └── syn v1.0.75 (*)
@@ -165,8 +139,6 @@ rsonpath v0.1.0 (/home/v0ldek/rsonpath/rsonpath)
 │   │   └── os_str_bytes v6.1.0
 │   ├── indexmap v1.8.2
 │   │   └── hashbrown v0.11.2
-│   │   [build-dependencies]
-│   │   └── autocfg v1.0.1
 │   ├── lazy_static v1.4.0
 │   ├── strsim v0.10.0
 │   ├── termcolor v1.1.3
@@ -182,8 +154,6 @@ rsonpath v0.1.0 (/home/v0ldek/rsonpath/rsonpath)
 │   │   ├── object v0.28.3
 │   │   │   └── memchr v2.5.0
 │   │   └── rustc-demangle v0.1.21
-│   │   [build-dependencies]
-│   │   └── cc v1.0.73
 │   ├── eyre v0.6.8
 │   │   ├── indenter v0.3.3
 │   │   └── once_cell v1.10.0
@@ -210,7 +180,6 @@ rsonpath v0.1.0 (/home/v0ldek/rsonpath/rsonpath)
 │       ├── num_threads v0.1.6
 │       └── time-macros v0.2.4 (proc-macro)
 ├── smallvec v1.8.0
-├── static_assertions v1.1.0
 └── vector-map v1.0.1
     ├── contracts v0.4.0 (proc-macro)
     │   ├── proc-macro2 v1.0.39 (*)

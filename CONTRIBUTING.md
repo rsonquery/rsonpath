@@ -50,7 +50,19 @@ or the shorthand
 cargo rsontest --package rsonpath
 ```
 
-**Note:** this requires your machine to support AVX2, as it is the default set in `.cargo/config.toml`.
+**Note:** this requires your machine to support one of the SIMD implementations (currently only AVX2).
+If it doesn't, you won't be able to run the full test suite, and you're forced to use the package with
+`--no-default-features`.
+
+#### Benchmarks
+
+If you wish to run our benchmarks, you must first initialize the benchmark submodule:
+
+```ini
+git submodule update --init
+```
+
+After that, consult the README file of the `rsonpath-benchmarks` project in `/rsonpath-benchmarks/README.md`.
 
 ### Guidelines
 
@@ -63,7 +75,7 @@ cargo rsontest --package rsonpath
 
 Your commit messages should look like this:
 
-```
+```ini
 type: short description of changes
 
 More detailed description of my change.

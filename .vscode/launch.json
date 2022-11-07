@@ -49,24 +49,6 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in library 'rsonpath-codegen'",
-            "env": {
-                "RUSTFLAGS": "-C target-feature=+avx2"
-            },
-            "cargo": {
-                "args": [
-                    "test",
-                    "--no-run",
-                    "--lib",
-                    "--package=rsonpath-codegen"
-                ]
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}/rsonpath-codegen"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
             "name": "Debug unit tests in executable 'rsonpath'",
             "env": {
                 "RUSTFLAGS": "-C target-feature=+avx2"

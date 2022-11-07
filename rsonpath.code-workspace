@@ -55,6 +55,7 @@
 		"lldb.dereferencePointers": true,
 		"lldb.consoleMode": "commands",
 		"rust-analyzer.cargo.features": [
+			"simd"
 		],
 		"rust-analyzer.cargo.noDefaultFeatures": true,
 		"rust-analyzer.cargo.allFeatures": false
