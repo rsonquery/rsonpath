@@ -1,6 +1,6 @@
 use aligners::{alignment::TwoTo, AlignedSlice};
 
-use crate::debug;
+use crate::{debug, bin};
 use crate::quotes::{QuoteClassifiedBlock, ResumeClassifierBlockState};
 
 use super::*;
@@ -99,9 +99,10 @@ impl<'a, I: QuoteClassifiedIterator<'a> + 'a> DepthIterator<'a, I> for VectorIte
 pub(crate) struct Vector<'a> {
     quote_classified: QuoteClassifiedBlock<'a>,
     opening_mask: u64,
+    opening_count: u32,
     closing_mask: u64,
     idx: usize,
-    depth: isize,
+    depth: i32,
 }
 
 impl<'a> Vector<'a> {
@@ -150,14 +151,15 @@ impl<'a> Vector<'a> {
             quote_classified: bytes,
             opening_mask,
             closing_mask,
+            opening_count: opening_mask.count_ones(),
             depth: 0,
-            idx: start_idx,
+            idx: 0,
         }
     }
 }
 
 impl<'a> DepthBlock<'a> for Vector<'a> {
-    #[inline]
+    #[inline(always)]
     fn advance_to_next_depth_decrease(&mut self) -> bool {
         let next_closing = self.closing_mask.trailing_zeros() as usize;
 
@@ -165,35 +167,49 @@ impl<'a> DepthBlock<'a> for Vector<'a> {
             return false;
         }
 
-        let remainder_mask = 0xFFFFFFFFFFFFFFFFu64 << next_closing;
+        bin!("opening_mask", self.opening_mask);
+        bin!("closing_mask", self.closing_mask);
 
-        let delta = ((self.opening_mask & !remainder_mask).count_ones() as i32) - 1;
+        self.opening_mask >>= next_closing;
+        self.closing_mask >>= next_closing;
+        self.opening_mask >>= 1;
+        self.closing_mask >>= 1;
 
-        self.depth += delta as isize;
-        self.opening_mask &= remainder_mask;
-        self.closing_mask &= remainder_mask ^ (1 << next_closing);
-        self.idx = next_closing;
+        bin!("new opening_mask", self.opening_mask);
+        bin!("new closing_mask", self.closing_mask);
+
+        let new_opening_count = self.opening_mask.count_ones() as i32;
+        let delta = (self.opening_count as i32) - new_opening_count - 1;
+        self.opening_count = new_opening_count as u32;
+
+        debug!("next_closing: {next_closing}");
+        debug!("new_opening_count: {new_opening_count}");
+        debug!("delta: {delta}");
+
+        self.depth += delta;
+        self.idx += next_closing + 1;
 
         true
     }
 
-    #[inline]
+    #[inline(always)]
     fn get_depth(&self) -> isize {
-        self.depth
+        self.depth as isize
     }
 
     #[inline(always)]
     fn depth_at_end(&self) -> isize {
-        ((self.opening_mask.count_ones() as i32) - (self.closing_mask.count_ones() as i32)) as isize
-            + self.depth
+        (((self.opening_count as i32) - (self.closing_mask.count_ones() as i32)) + self.depth) as isize
     }
 
+    #[inline(always)]
     fn add_depth(&mut self, depth: isize) {
-        self.depth += depth;
+        self.depth += depth as i32;
     }
 
+    #[inline(always)]
     fn estimate_lowest_possible_depth(&self) -> isize {
-        self.depth - (self.closing_mask.count_ones() as isize)
+        (self.depth - (self.closing_mask.count_ones() as i32)) as isize
     }
 }
 

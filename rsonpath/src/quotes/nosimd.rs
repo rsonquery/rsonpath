@@ -43,7 +43,7 @@ impl<'a> Iterator for SequentialQuoteClassifier<'a> {
                 let mut idx_mask = 1;
 
                 if let Some(offset) = self.offset {
-                    self.offset = Some(offset + alignment::Twice::<BlockAlignment>::size());
+                    self.offset = Some(offset + Self::block_size());
                 } else {
                     self.offset = Some(0);
                 }

@@ -1,7 +1,0 @@
-This piece of code is randomly chosen in Software Heritage popular piece of code. It is selected
-by the size of its AST.
-
-To generate the AST the command is:
-
-
-`clang -Xclang -ast-dump=json -fsyntax-only parse_date.c > ast.json`

@@ -1,7 +1,0 @@
-Data extracted from [openfood fact API](https://wiki.openfoodfacts.org/Open_Food_Facts_Search_API_Version_2)
-
-To extract it from the endpoint run
-
-```
-curl "https://world.openfoodfacts.org/cgi/search.pl?action=process&tagtype_0=categories&tag_contains_0=contains&tag_0=cheeses&tagtype_1=labels&&json=1" > /tmp/openfood.json```
-

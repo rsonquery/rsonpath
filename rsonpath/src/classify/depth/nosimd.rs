@@ -1,4 +1,5 @@
 use super::*;
+use crate::debug;
 use crate::quotes::{QuoteClassifiedBlock, ResumeClassifierBlockState};
 use std::marker::PhantomData;
 
@@ -32,6 +33,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> DepthIterator<'a, I> for VectorIterator
 
     fn stop(self, block: Option<Self::Block>) -> ResumeClassifierState<'a, I> {
         let block_state = block.and_then(|b| {
+            debug!("Depth iterator stopping at index {}", b.idx);
             if b.idx >= b.quote_classified.len() {
                 None
             } else {
@@ -95,21 +97,31 @@ impl<'a> Vector<'a> {
         let mut offset = 0;
 
         while self.idx + offset < self.quote_classified.len() {
-            let idx = self.idx + offset;
-            let character = self.quote_classified.block[idx];
-            let idx_mask = 1u64 << idx;
-            let is_quoted = (self.quote_classified.within_quotes_mask & idx_mask) == idx_mask;
-
-            if !is_quoted {
-                if character == self.opening {
-                    current += 1;
-                } else if character == closing {
-                    current -= 1;
-                }
+            if let Some(character) = self.get_char(self.idx + offset) {
+                current += match character {
+                    b'{' => 1,
+                    b'[' => 1,
+                    b'}' => -1,
+                    b']' => -1,
+                    _ => 0,
+                };
             }
 
             f(current);
             offset += 1;
+        }
+    }
+
+    #[inline(always)]
+    fn get_char(&self, idx: usize) -> Option<u8> {
+        let idx_mask = 1u64 << idx;
+        let is_quoted = (self.quote_classified.within_quotes_mask & idx_mask) == idx_mask;
+
+        if is_quoted {
+            None
+        } else {
+            let character = self.quote_classified.block[idx];
+            Some(character)
         }
     }
 }
@@ -132,18 +144,14 @@ impl<'a> DepthBlock<'a> for Vector<'a> {
     fn advance_to_next_depth_decrease(&mut self) -> bool {
         let closing = self.opening + 2;
         while self.idx < self.quote_classified.len() {
-            let character = self.quote_classified.block[self.idx];
-            let idx_mask = 1u64 << self.idx;
-            let is_quoted = (self.quote_classified.within_quotes_mask & idx_mask) == idx_mask;
+            let character = self.get_char(self.idx);
             self.idx += 1;
 
-            if !is_quoted {
-                if character == self.opening {
-                    self.depth += 1;
-                } else if character == closing {
-                    self.depth -= 1;
-                    return true;
-                }
+            if character == Some(self.opening) {
+                self.depth += 1;
+            } else if character == Some(closing) {
+                self.depth -= 1;
+                return true;
             }
         }
 

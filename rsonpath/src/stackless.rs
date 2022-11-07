@@ -112,6 +112,7 @@ struct Executor<'q, 'b, 'r, R: QueryResult> {
     automaton: &'b Automaton<'q>,
     bytes: &'b AlignedBytes<alignment::Page>,
     result: &'r mut R,
+    next_event: Option<Structural>
 }
 
 fn query_executor<'q, 'b, 'r, R: QueryResult>(
@@ -126,6 +127,7 @@ fn query_executor<'q, 'b, 'r, R: QueryResult>(
         automaton,
         bytes,
         result,
+        next_event: None
     }
 }
 
@@ -178,7 +180,13 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                                 }
                             }
 
+                            quote_classifier.offset_bytes(1);
+
                             self.state = target_state;
+
+                            if self.automaton.is_accepting(self.state) {
+                                self.result.report(colon_idx);
+                            }
                             quote_classifier = self.run_on_subtree(quote_classifier);
                             debug!("Quote classified up to {}", quote_classifier.get_idx());
                             idx = quote_classifier.get_idx();
@@ -202,9 +210,9 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
         let mut classifier =
             FastForwardingClassifier::new(resume_structural_classification(quote_classifier));
         let mut fallback_active = false;
-        let mut next_event = None;
+        let mut start = true;
 
-        while let Some(event) = next_event.or_else(|| classifier.next()) {
+        while let Some(event) = self.next_event.or_else(|| classifier.next()) {
             debug!("====================");
             debug!("Event = {:?}", event);
             debug!("Depth = {:?}", self.depth);
@@ -212,7 +220,15 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
             debug!("State = {:?}", self.state);
             debug!("====================");
 
-            next_event = None;
+            if start && !matches!(event, Structural::Opening(_)) {
+                self.next_event = Some(event);
+                break;
+            }
+            else {
+                start = false;
+            }
+
+            self.next_event = None;
             match event {
                 #[cfg(feature = "commas")]
                 Structural::Comma(_) => (),
@@ -270,8 +286,8 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                             .unwrap_or("[invalid utf8]")
                     );
 
-                    next_event = classifier.next();
-                    let is_next_opening = matches!(next_event, Some(Structural::Opening(_)));
+                    self.next_event = classifier.next();
+                    let is_next_opening = matches!(self.next_event, Some(Structural::Opening(_)));
 
                     for &(label, target) in self.automaton[self.state].transitions() {
                         if is_next_opening {

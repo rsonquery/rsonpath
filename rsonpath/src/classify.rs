@@ -104,6 +104,91 @@ impl Structural {
     }
 }
 
+pub(crate) struct ClassifierWithSkipping<'b, Q, I>
+where
+    Q: QuoteClassifiedIterator<'b>,
+    I: StructuralIterator<'b, Q>,
+{
+    classifier: Option<I>,
+    phantom: PhantomData<&'b Q>,
+}
+
+impl<'b, Q, I> ClassifierWithSkipping<'b, Q, I>
+where
+    Q: QuoteClassifiedIterator<'b>,
+    I: StructuralIterator<'b, Q>,
+{
+    pub(crate) fn new(classifier: I) -> Self {
+        Self {
+            classifier: Some(classifier),
+            phantom: PhantomData,
+        }
+    }
+
+    pub(crate) fn skip(&mut self, opening: u8) {
+        debug!("Skipping");
+
+        let classifier = unsafe { self.classifier.take().unwrap_unchecked() };
+        let resume_state = classifier.stop();
+        let DepthIteratorResumeOutcome(first_vector, mut depth_classifier) =
+            resume_depth_classification(resume_state, opening);
+
+        let mut current_vector = first_vector.or_else(|| depth_classifier.next());
+        let mut current_depth = 1;
+
+        'outer: while let Some(ref mut vector) = current_vector {
+            vector.add_depth(current_depth);
+
+            debug!("Fetched vector, current depth is {current_depth}");
+            debug!("Estimate: {}", vector.estimate_lowest_possible_depth());
+
+            if vector.estimate_lowest_possible_depth() <= 0 {
+                while vector.advance_to_next_depth_decrease()
+                {
+                    if vector.get_depth() == 0 {
+                        debug!("Encountered depth 0, breaking.");
+                        break 'outer;
+                    }
+                }
+            }
+
+            current_depth = vector.depth_at_end();
+            current_vector = depth_classifier.next();
+        }
+
+        debug!("Skipping complete, resuming structural classification.");
+        let resume_state = depth_classifier.stop(current_vector);
+        debug!("Finished at {}", resume_state.get_idx());
+        self.classifier = Some(I::resume(resume_state));
+    }
+    
+    pub(crate) fn stop(mut self) -> ResumeClassifierState<'b, Q> {
+        unsafe { self.classifier.take().unwrap_unchecked() }.stop()
+    }
+}
+
+impl<'b, Q, I> std::ops::Deref for ClassifierWithSkipping<'b, Q, I>
+where
+    Q: QuoteClassifiedIterator<'b>,
+    I: StructuralIterator<'b, Q>,
+{
+    type Target = I;
+
+    fn deref(&self) -> &Self::Target {
+        unsafe { self.classifier.as_ref().unwrap_unchecked() }
+    }
+}
+
+impl<'b, Q, I> std::ops::DerefMut for ClassifierWithSkipping<'b, Q, I>
+where
+    Q: QuoteClassifiedIterator<'b>,
+    I: StructuralIterator<'b, Q>,
+{
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        unsafe { self.classifier.as_mut().unwrap_unchecked() }
+    }
+}
+
 /// Trait for classifier iterators, i.e. finite iterators of [`Structural`] characters
 /// that hold a reference to the JSON document valid for `'a`.
 pub trait StructuralIterator<'a, I: QuoteClassifiedIterator<'a>>:
