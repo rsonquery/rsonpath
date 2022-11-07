@@ -1,7 +1,7 @@
 use aligners::{alignment::TwoTo, AlignedSlice};
 
-use crate::{debug, bin};
 use crate::quotes::{QuoteClassifiedBlock, ResumeClassifierBlockState};
+use crate::{bin, debug};
 
 use super::*;
 #[cfg(target_arch = "x86")]
@@ -199,7 +199,8 @@ impl<'a> DepthBlock<'a> for Vector<'a> {
 
     #[inline(always)]
     fn depth_at_end(&self) -> isize {
-        (((self.opening_count as i32) - (self.closing_mask.count_ones() as i32)) + self.depth) as isize
+        (((self.opening_count as i32) - (self.closing_mask.count_ones() as i32)) + self.depth)
+            as isize
     }
 
     #[inline(always)]

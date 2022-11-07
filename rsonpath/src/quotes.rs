@@ -88,7 +88,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> ResumeClassifierState<'a, I> {
             self.block.as_mut().unwrap().idx += count;
         } else {
             let blocks_to_advance = (count - remaining_in_block) / I::block_size();
-            
+
             let remainder = (self.block.as_ref().map_or(0, |b| b.idx) + count
                 - blocks_to_advance * I::block_size())
                 % I::block_size();

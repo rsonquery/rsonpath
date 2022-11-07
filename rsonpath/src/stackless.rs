@@ -112,7 +112,7 @@ struct Executor<'q, 'b, 'r, R: QueryResult> {
     automaton: &'b Automaton<'q>,
     bytes: &'b AlignedBytes<alignment::Page>,
     result: &'r mut R,
-    next_event: Option<Structural>
+    next_event: Option<Structural>,
 }
 
 fn query_executor<'q, 'b, 'r, R: QueryResult>(
@@ -127,7 +127,7 @@ fn query_executor<'q, 'b, 'r, R: QueryResult>(
         automaton,
         bytes,
         result,
-        next_event: None
+        next_event: None,
     }
 }
 
@@ -223,8 +223,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
             if start && !matches!(event, Structural::Opening(_)) {
                 self.next_event = Some(event);
                 break;
-            }
-            else {
+            } else {
                 start = false;
             }
 

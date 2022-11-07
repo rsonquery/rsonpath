@@ -146,8 +146,7 @@ where
             debug!("Estimate: {}", vector.estimate_lowest_possible_depth());
 
             if vector.estimate_lowest_possible_depth() <= 0 {
-                while vector.advance_to_next_depth_decrease()
-                {
+                while vector.advance_to_next_depth_decrease() {
                     if vector.get_depth() == 0 {
                         debug!("Encountered depth 0, breaking.");
                         break 'outer;
@@ -164,7 +163,7 @@ where
         debug!("Finished at {}", resume_state.get_idx());
         self.classifier = Some(I::resume(resume_state));
     }
-    
+
     pub(crate) fn stop(mut self) -> ResumeClassifierState<'b, Q> {
         unsafe { self.classifier.take().unwrap_unchecked() }.stop()
     }
