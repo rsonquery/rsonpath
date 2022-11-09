@@ -95,6 +95,8 @@ make test
 Benchmarks for `rsonpath` are located in a [separate repository](https://github.com/v0ldek/rsonpath-benchmarks),
 included as a [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules) in this main repository.
 
+Easiest way to run all the benchmarks is `make bench`. For details, look at the README in the submodule.
+
 ## Background
 
 This project is the result of [my thesis](/pdf/Fast_execution_of_JSONPath_queries.pdf). You can read it for details on the theoretical

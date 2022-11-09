@@ -85,6 +85,120 @@
             },
             "args": [],
             "cwd": "${workspaceFolder}/rsonpath"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug benchmark 'openfood'",
+            "cargo": {
+                "args": [
+                    "bench",
+                    "--no-run",
+                    "--bench=openfood",
+                    "--package=rsonpath-benchmarks"
+                ],
+                "filter": {
+                    "name": "openfood",
+                    "kind": "bench"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug benchmark 'crossref'",
+            "cargo": {
+                "args": [
+                    "bench",
+                    "--no-run",
+                    "--bench=crossref",
+                    "--package=rsonpath-benchmarks"
+                ],
+                "filter": {
+                    "name": "crossref",
+                    "kind": "bench"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug benchmark 'twitter'",
+            "cargo": {
+                "args": [
+                    "bench",
+                    "--no-run",
+                    "--bench=twitter",
+                    "--package=rsonpath-benchmarks"
+                ],
+                "filter": {
+                    "name": "twitter",
+                    "kind": "bench"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug benchmark 'ast'",
+            "cargo": {
+                "args": [
+                    "bench",
+                    "--no-run",
+                    "--bench=ast",
+                    "--package=rsonpath-benchmarks"
+                ],
+                "filter": {
+                    "name": "ast",
+                    "kind": "bench"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug benchmark 'rsonpath_query_compilation'",
+            "cargo": {
+                "args": [
+                    "bench",
+                    "--no-run",
+                    "--bench=rsonpath_query_compilation",
+                    "--package=rsonpath-benchmarks"
+                ],
+                "filter": {
+                    "name": "rsonpath_query_compilation",
+                    "kind": "bench"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug benchmark 'classifier'",
+            "cargo": {
+                "args": [
+                    "bench",
+                    "--no-run",
+                    "--bench=classifier",
+                    "--package=rsonpath-benchmarks"
+                ],
+                "filter": {
+                    "name": "classifier",
+                    "kind": "bench"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
         }
     ]
 }

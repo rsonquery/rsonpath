@@ -8,7 +8,7 @@ rsonpath: check_cargo
 .PHONY: bench check_cargo clean clean_benches doc install uninstall test
 
 bench: rsonpath
-	$(CARGO) bench --bench rsonpath_benchset
+	$(CARGO) bench --config 'patch.crates-io.rsonpath.path = "./rsonpath"'
 
 # Check if cargo is present, if not, use rustup to setup.
 check_cargo:
