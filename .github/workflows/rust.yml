@@ -90,6 +90,17 @@ jobs:
         components: clippy, rustfmt
         override: true
         default: true
+    - name: Cache restore
+      id: cache-restore
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ubuntu-latest-stable-avx2-cargo-${{ hashFiles('**/Cargo.toml') }}
     - name: Build all features
       uses: actions-rs/cargo@v1
       with:
@@ -121,6 +132,17 @@ jobs:
         components: clippy, rustfmt
         override: true
         default: true
+    - name: Cache restore
+      id: cache-restore
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ubuntu-latest-stable-avx2-cargo-${{ hashFiles('**/Cargo.toml') }}
     - name: Build all features
       uses: actions-rs/cargo@v1
       with:
@@ -150,6 +172,17 @@ jobs:
           components: rustfmt
           override: true
           default: true
+      - name: Cache restore
+        id: cache-restore
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ubuntu-latest-stable-avx2-cargo-${{ hashFiles('**/Cargo.toml') }}
       - name: cargo doc
         uses: actions-rs/cargo@v1
         with:
