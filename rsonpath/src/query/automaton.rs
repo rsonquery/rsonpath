@@ -143,9 +143,7 @@ impl<'q> Automaton<'q> {
     pub fn new(query: &'q JsonPathQuery) -> Self {
         let nfa = NondeterministicAutomaton::new(query);
         debug!("NFA: {}", nfa);
-        let dfa = Automaton::minimize(nfa);
-        debug!("DFA:\n {}", dfa);
-        dfa
+        Automaton::minimize(nfa)
     }
 
     /// Returns whether this automaton represents an empty JSONPath query ('$').

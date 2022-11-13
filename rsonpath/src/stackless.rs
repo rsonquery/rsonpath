@@ -37,7 +37,7 @@ impl StacklessRunner<'_> {
     #[inline(always)]
     pub fn compile_query(query: &JsonPathQuery) -> StacklessRunner<'_> {
         let automaton = Automaton::new(query);
-
+        debug!("DFA:\n {}", automaton);
         StacklessRunner { automaton }
     }
 }

@@ -28,7 +28,7 @@ impl Superstate {
         let elem_mask = 1_u128.wrapping_shl(elem);
         let remainder = self.bitmask ^ elem_mask;
 
-        (remainder == 0).then(|| NfaStateId(elem as u8))
+        (remainder == 0).then_some(NfaStateId(elem as u8))
     }
 
     /// Removes all elements smaller than `cutoff` from the set.

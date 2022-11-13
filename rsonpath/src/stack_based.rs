@@ -22,7 +22,7 @@ impl<'q> StackBasedRunner<'q> {
     #[inline(always)]
     pub fn compile_query(query: &'q JsonPathQuery) -> Self {
         let automaton = Automaton::new(query);
-
+        debug!("DFA:\n {}", automaton);
         StackBasedRunner { automaton }
     }
 }
@@ -56,6 +56,24 @@ fn empty_query<R: QueryResult>(bytes: &AlignedBytes<alignment::Page>) -> R {
     }
 
     result
+}
+
+macro_rules! decrease_depth {
+    ($x:expr) => {
+        #[cfg(debug_assertions)]
+        {
+            $x.depth -= 1;
+        }
+    };
+}
+
+macro_rules! increase_depth {
+    ($x:expr) => {
+        #[cfg(debug_assertions)]
+        {
+            $x.depth -= 1;
+        }
+    };
 }
 
 struct ExecutionContext<'q, 'b, 'r, Q, I, R>
@@ -123,7 +141,7 @@ where
             match next_event {
                 Some(Structural::Opening(idx)) => {
                     debug!("Opening, falling back");
-                    self.increase_depth();
+                    increase_depth!(self);
                     let next_state = self.automaton[state].fallback_state();
 
                     if self.automaton.is_rejecting(next_state) {
@@ -135,7 +153,7 @@ where
                 }
                 Some(Structural::Closing(_)) => {
                     debug!("Closing, popping stack");
-                    self.decrease_depth();
+                    decrease_depth!(self);
                     break;
                 }
                 Some(Structural::Colon(idx)) => {
@@ -148,7 +166,7 @@ where
                                 if self.automaton.is_accepting(target) {
                                     self.result.report(idx);
                                 }
-                                self.increase_depth();
+                                increase_depth!(self);
                                 self.run(target);
                                 next_event = None;
                                 break;
@@ -183,24 +201,4 @@ where
         let slice = &self.bytes[start_idx..closing_quote_idx + 1];
         label.bytes_with_quotes() == slice && (start_idx == 0 || self.bytes[start_idx - 1] != b'\\')
     }
-
-    #[inline(always)]
-    #[cfg(debug_assertions)]
-    fn increase_depth(&mut self) {
-        self.depth += 1;
-    }
-
-    #[inline(always)]
-    #[cfg(not(debug_assertions))]
-    fn increase_depth(&mut self) {}
-
-    #[inline(always)]
-    #[cfg(debug_assertions)]
-    fn decrease_depth(&mut self) {
-        self.depth -= 1;
-    }
-
-    #[inline(always)]
-    #[cfg(not(debug_assertions))]
-    fn decrease_depth(&mut self) {}
 }
