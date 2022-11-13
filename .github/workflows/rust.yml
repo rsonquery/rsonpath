@@ -100,7 +100,7 @@ jobs:
           ~/.cargo/registry/cache/
           ~/.cargo/git/db/
           target/
-        key: ubuntu-latest-stable-avx2-cargo-${{ hashFiles('**/Cargo.toml') }}
+        key: ubuntu-latest-stable-avx2-cargo-${{ hashFiles('**/Cargo.toml') }}-clippy
     - name: Build all features
       uses: actions-rs/cargo@v1
       with:
@@ -142,7 +142,7 @@ jobs:
           ~/.cargo/registry/cache/
           ~/.cargo/git/db/
           target/
-        key: ubuntu-latest-stable-avx2-cargo-${{ hashFiles('**/Cargo.toml') }}
+        key: ubuntu-latest-nightly-avx2-cargo-${{ hashFiles('**/Cargo.toml') }}-clippy
     - name: Build all features
       uses: actions-rs/cargo@v1
       with:
@@ -182,7 +182,7 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ubuntu-latest-stable-avx2-cargo-${{ hashFiles('**/Cargo.toml') }}
+          key: ubuntu-latest-nightly-avx2-cargo-${{ hashFiles('**/Cargo.toml') }}-doc
       - name: cargo doc
         uses: actions-rs/cargo@v1
         with:
