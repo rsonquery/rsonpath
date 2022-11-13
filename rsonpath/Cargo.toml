@@ -8,7 +8,11 @@ readme = "../README.md"
 license = "MIT"
 keywords = ["json", "jsonpath", "query", "simd", "cli"]
 exclude = ["/data"]
-categories = ["command-line-utilities", "text-processing", "parser-implementations"]
+categories = [
+    "command-line-utilities",
+    "text-processing",
+    "parser-implementations",
+]
 repository = "https://github.com/V0ldek/rsonpath"
 
 [package.metadata.docs.rs]
@@ -26,6 +30,7 @@ memchr = "2.5.0"
 nom = "7.1.1"
 simple_logger = "2.1.0"
 smallvec = { version = "1.8.0", features = ["union"] }
+thiserror = "1.0.37"
 vector-map = "1.0.1"
 
 [dev-dependencies]

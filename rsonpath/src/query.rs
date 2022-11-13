@@ -29,12 +29,11 @@
 //! ```
 //!
 pub mod automaton;
-mod errors;
+pub mod errors;
 mod parser;
 
 use aligners::{alignment, AlignedBytes, AlignedSlice};
 use cfg_if::cfg_if;
-use color_eyre::eyre::Result;
 use log::*;
 use std::fmt::{self, Display};
 
@@ -205,6 +204,8 @@ pub enum JsonPathQueryNode {
 
 use JsonPathQueryNode::*;
 
+use self::errors::QueryError;
+
 impl JsonPathQueryNode {
     /// Retrieve the child of the node or `None` if it is the last one
     /// on the list.
@@ -265,7 +266,7 @@ impl JsonPathQuery {
 
     /// Parse a query string into a [`JsonPathQuery`].
     #[inline(always)]
-    pub fn parse(query_string: &str) -> Result<Self> {
+    pub fn parse(query_string: &str) -> Result<Self, QueryError> {
         self::parser::parse_json_path_query(query_string)
     }
 
@@ -274,7 +275,8 @@ impl JsonPathQuery {
     /// If node is not the [`JsonPathQueryNode::Root`] variant it will be
     /// automatically wrapped into a [`JsonPathQueryNode::Root`] node.
     #[inline]
-    pub fn new(node: Box<JsonPathQueryNode>) -> Result<Self> {
+    #[must_use]
+    pub fn new(node: Box<JsonPathQueryNode>) -> Self {
         let root = if node.is_root() {
             node
         } else {
@@ -282,7 +284,7 @@ impl JsonPathQuery {
             Box::new(Root(Some(node)))
         };
 
-        Ok(Self { root })
+        Self { root }
     }
 }
 

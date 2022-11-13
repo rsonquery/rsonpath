@@ -923,6 +923,7 @@ dependencies = [
  "simple_logger",
  "smallvec",
  "test-case",
+ "thiserror",
  "vector-map",
 ]
 

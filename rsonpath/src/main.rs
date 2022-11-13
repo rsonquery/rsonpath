@@ -1,5 +1,6 @@
 use clap::{ArgEnum, Parser};
 use color_eyre::eyre::{eyre, Result, WrapErr};
+use color_eyre::{Help, SectionExt};
 use log::*;
 use rsonpath::engine::result::{CountResult, IndexResult, QueryResult};
 use rsonpath::engine::{Input, Runner};
@@ -69,7 +70,60 @@ fn run<R: QueryResult>(query: &JsonPathQuery, input: &Input, engine: EngineArg) 
 }
 
 fn parse_query(query_string: &str) -> Result<JsonPathQuery> {
-    JsonPathQuery::parse(query_string).wrap_err("Could not parse JSONPath query.")
+    use rsonpath::query::errors::QueryError;
+    match JsonPathQuery::parse(query_string) {
+        Ok(query) => Ok(query),
+        Err(e) => {
+            if let QueryError::ParseError { report } = e {
+                let mut eyre = Err(eyre!("Could not parse JSONPath query."));
+                eyre = eyre.note(format!("for query string {}", query_string));
+
+                for error in report.errors() {
+                    use color_eyre::owo_colors::OwoColorize;
+                    use std::cmp;
+                    const MAX_DISPLAY_LENGTH: usize = 80;
+
+                    let display_start_idx = if error.start_idx > MAX_DISPLAY_LENGTH {
+                        error.start_idx - MAX_DISPLAY_LENGTH
+                    } else {
+                        0
+                    };
+                    let display_length = cmp::min(
+                        error.len + MAX_DISPLAY_LENGTH,
+                        query_string.len() - display_start_idx,
+                    );
+                    let error_slice = &query_string[error.start_idx..error.start_idx + error.len];
+                    let slice =
+                        &query_string[display_start_idx..display_start_idx + display_length];
+                    let error_idx = error.start_idx - display_start_idx;
+
+                    let underline: String = std::iter::repeat(' ')
+                        .take(error_idx)
+                        .chain(std::iter::repeat('^').take(error.len))
+                        .collect();
+                    let display_string = format!(
+                        "{}\n{}",
+                        slice,
+                        (underline + " invalid tokens").bright_red()
+                    );
+
+                    eyre = eyre.section(display_string.header("Parse error:"));
+
+                    if error.start_idx == 0 {
+                        eyre = eyre.suggestion("Queries should start with the root selector `$`.");
+                    }
+
+                    if error_slice.contains('$') {
+                        eyre = eyre.suggestion("The `$` character is reserved for the root selector and may appear only at the start.");
+                    }
+                }
+
+                eyre
+            } else {
+                Err(e).wrap_err("Could not parse JSONPath query.")
+            }
+        }
+    }
 }
 
 #[derive(Parser, Debug)]

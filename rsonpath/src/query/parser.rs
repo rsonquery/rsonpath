@@ -1,7 +1,6 @@
-use super::errors::ParseErrorReport;
+use super::errors::{ParseErrorReport, QueryError};
 use crate::debug;
 use crate::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label};
-use color_eyre::eyre::{Result, WrapErr};
 use nom::{
     branch::*, bytes::complete::*, character::complete::*, combinator::*, multi::*, sequence::*, *,
 };
@@ -24,7 +23,7 @@ impl Display for Token<'_> {
     }
 }
 
-pub(crate) fn parse_json_path_query(query_string: &str) -> Result<JsonPathQuery> {
+pub(crate) fn parse_json_path_query(query_string: &str) -> Result<JsonPathQuery, QueryError> {
     let tokens_result = jsonpath()(query_string);
     let finished = tokens_result.finish();
 
@@ -40,31 +39,31 @@ pub(crate) fn parse_json_path_query(query_string: &str) -> Result<JsonPathQuery>
                         .collect::<String>()
             );
             let node = tokens_to_node(&mut tokens.into_iter())?;
-            match node {
+            Ok(match node {
                 None => JsonPathQuery::new(Box::new(JsonPathQueryNode::Root(None))),
                 Some(node) if node.is_root() => JsonPathQuery::new(Box::new(node)),
                 Some(node) => {
                     JsonPathQuery::new(Box::new(JsonPathQueryNode::Root(Some(Box::new(node)))))
                 }
-            }
+            })
         }
         _ => {
             let mut parse_errors = ParseErrorReport::new();
             let mut continuation = finished.map(|x| x.0);
             loop {
                 match continuation {
-                    Ok("") => return parse_errors.error(query_string),
+                    Ok("") => {
+                        return Err(QueryError::ParseError {
+                            report: parse_errors,
+                        })
+                    }
                     Ok(remaining) => {
                         let error_character_index = query_string.len() - remaining.len();
                         parse_errors.record_at(error_character_index);
                         continuation = non_root()(&remaining[1..]).finish().map(|x| x.0);
                     }
                     Err(e) => {
-                        return Err(nom::error::Error {
-                            input: e.input.to_owned(),
-                            code: e.code,
-                        })
-                        .wrap_err("Unexpected error parsing the query string.")
+                        return Err(nom::error::Error::new(query_string.to_owned(), e.code).into())
                     }
                 }
             }
@@ -74,7 +73,7 @@ pub(crate) fn parse_json_path_query(query_string: &str) -> Result<JsonPathQuery>
 
 fn tokens_to_node<'a, I: Iterator<Item = Token<'a>>>(
     tokens: &mut I,
-) -> Result<Option<JsonPathQueryNode>> {
+) -> Result<Option<JsonPathQueryNode>, QueryError> {
     let token = tokens.next();
 
     if token.is_none() {
