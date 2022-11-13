@@ -100,19 +100,19 @@ jobs:
           ~/.cargo/registry/cache/
           ~/.cargo/git/db/
           target/
-        key: ubuntu-latest-stable-avx2-cargo-${{ hashFiles('**/Cargo.toml') }}
+        key: ubuntu-latest-stable-avx2-cargo-${{ hashFiles('**/Cargo.toml') }}-clippy
     - name: Build all features
       uses: actions-rs/cargo@v1
       with:
         command: build
-        args: --package rsonpath --all-features
+        args: --package rsonpath --all-features --release
       env:
         RUSTFLAGS: "-C target-feature=+avx2 --deny warnings"
     - name: Clippy all features
       uses: actions-rs/clippy-check@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        args: --package rsonpath --all-features -- --deny warnings
+        args: --package rsonpath --all-features --release -- --deny warnings
       env:
         RUSTFLAGS: "-C target-feature=+avx2"
 
@@ -142,19 +142,19 @@ jobs:
           ~/.cargo/registry/cache/
           ~/.cargo/git/db/
           target/
-        key: ubuntu-latest-stable-avx2-cargo-${{ hashFiles('**/Cargo.toml') }}
+        key: ubuntu-latest-nightly-avx2-cargo-${{ hashFiles('**/Cargo.toml') }}-clippy
     - name: Build all features
       uses: actions-rs/cargo@v1
       with:
         command: build
-        args: --package rsonpath --all-features
+        args: --package rsonpath --all-features --release
       env:
         RUSTFLAGS: "-C target-feature=+avx2 --deny warnings"
     - name: Clippy all features
       uses: actions-rs/clippy-check@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        args: --package rsonpath --all-features -- --deny warnings
+        args: --package rsonpath --all-features --release -- --deny warnings
       env:
         RUSTFLAGS: "-C target-feature=+avx2"
 
@@ -182,7 +182,7 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ubuntu-latest-stable-avx2-cargo-${{ hashFiles('**/Cargo.toml') }}
+          key: ubuntu-latest-nightly-avx2-cargo-${{ hashFiles('**/Cargo.toml') }}-doc
       - name: cargo doc
         uses: actions-rs/cargo@v1
         with:

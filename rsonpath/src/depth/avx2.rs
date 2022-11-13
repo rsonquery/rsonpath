@@ -1,14 +1,28 @@
-use aligners::{alignment::TwoTo, AlignedSlice};
+//! This module can only be included if the code is compiled with AVX2 support
+//! and on x86/x86_64 architecture for safety.
+
+cfg_if::cfg_if! {
+    if #[cfg(not(all(
+        any(target_arch = "x86", target_arch = "x86_64"),
+        target_feature = "avx2")
+    ))] {
+        compile_error!{
+            "internal error: AVX2 code included on unsupported target; \
+            please report this issue at https://github.com/V0ldek/rsonpath/"
+        }
+    }
+}
 
 use crate::quotes::{QuoteClassifiedBlock, ResumeClassifierBlockState};
 use crate::{bin, debug};
+use aligners::{alignment::TwoTo, AlignedSlice};
+use std::marker::PhantomData;
 
 use super::*;
 #[cfg(target_arch = "x86")]
 use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
-use std::marker::PhantomData;
 
 pub(crate) struct VectorIterator<'a, I: QuoteClassifiedIterator<'a>> {
     iter: I,
@@ -117,6 +131,7 @@ impl<'a> Vector<'a> {
         classifier: &DelimiterClassifierImpl,
         idx: usize,
     ) -> Self {
+        // SAFETY: target_feature invariant
         unsafe { Self::new_avx2(bytes, classifier, idx) }
     }
 
@@ -127,7 +142,7 @@ impl<'a> Vector<'a> {
         classifier: &DelimiterClassifierImpl,
         start_idx: usize,
     ) -> Self {
-        let idx_mask = 0xFFFFFFFFFFFFFFFFu64 << start_idx;
+        let idx_mask = 0xFFFF_FFFF_FFFF_FFFF_u64 << start_idx;
         let (first_block, second_block) = bytes.block.halves();
         let (first_opening_vector, first_closing_vector) =
             classifier.get_opening_and_closing_vectors(first_block);
@@ -140,9 +155,9 @@ impl<'a> Vector<'a> {
         let second_closing_mask = _mm256_movemask_epi8(second_closing_vector) as u32;
 
         let combined_opening_mask =
-            (first_opening_mask as u64) | ((second_opening_mask as u64) << 32);
+            u64::from(first_opening_mask) | (u64::from(second_opening_mask) << 32);
         let combined_closing_mask =
-            (first_closing_mask as u64) | ((second_closing_mask as u64) << 32);
+            u64::from(first_closing_mask) | (u64::from(second_closing_mask) << 32);
 
         let opening_mask = combined_opening_mask & (!bytes.within_quotes_mask) & idx_mask;
         let closing_mask = combined_closing_mask & (!bytes.within_quotes_mask) & idx_mask;
@@ -224,6 +239,7 @@ impl DelimiterClassifierImpl {
     fn new(opening: u8) -> Self {
         let closing = opening + 2;
 
+        // SAFETY: target_feature invariant
         unsafe {
             let opening_mask = _mm256_set1_epi8(opening as i8);
             let closing_mask = _mm256_set1_epi8(closing as i8);
@@ -240,8 +256,9 @@ impl DelimiterClassifierImpl {
         &self,
         bytes: &AlignedSlice<TwoTo<5>>,
     ) -> (__m256i, __m256i) {
+        // SAFETY: target_feature invariant
         unsafe {
-            let byte_vector = _mm256_load_si256(bytes.as_ptr() as *const __m256i);
+            let byte_vector = _mm256_load_si256(bytes.as_ptr().cast::<__m256i>());
             let opening_brace_cmp = _mm256_cmpeq_epi8(byte_vector, self.opening_mask);
             let closing_brace_cmp = _mm256_cmpeq_epi8(byte_vector, self.closing_mask);
             (opening_brace_cmp, closing_brace_cmp)

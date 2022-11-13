@@ -24,11 +24,15 @@ pub struct QuoteClassifiedBlock<'a> {
 
 impl<'a> QuoteClassifiedBlock<'a> {
     /// Returns the length of the classified block.
+    #[must_use]
+    #[inline(always)]
     pub fn len(&self) -> usize {
         self.block.len()
     }
 
     /// Whether the classified block is empty.
+    #[must_use]
+    #[inline(always)]
     pub fn is_empty(&self) -> bool {
         self.block.is_empty()
     }
@@ -68,6 +72,7 @@ pub struct ResumeClassifierState<'a, I: QuoteClassifiedIterator<'a>> {
 
 impl<'a, I: QuoteClassifiedIterator<'a>> ResumeClassifierState<'a, I> {
     /// Get the index in the original bytes input at which classification has stopped.
+    #[inline(always)]
     pub fn get_idx(&self) -> usize {
         debug!(
             "iter offset: {}, block idx: {:?}",
@@ -79,6 +84,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> ResumeClassifierState<'a, I> {
     }
 
     /// Move the state forward by `count` bytes.
+    #[inline]
     pub fn offset_bytes(&mut self, count: isize) {
         debug_assert!(count > 0);
         let count = count as usize;
@@ -139,6 +145,7 @@ cfg_if! {
 
         /// Walk through the JSON document represented by `bytes`
         /// and classify quoted sequences.
+        #[must_use]
         #[inline(always)]
         pub fn classify_quoted_sequences(
             bytes: &AlignedSlice<alignment::Twice<BlockAlignment>>,

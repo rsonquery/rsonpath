@@ -28,8 +28,8 @@ use NfaState::*;
 pub(crate) struct NfaStateId(u8);
 
 impl NfaStateId {
-    pub(crate) fn next(&self) -> NfaStateId {
-        NfaStateId(self.0 + 1)
+    pub(crate) fn next(&self) -> Self {
+        Self(self.0 + 1)
     }
 }
 
@@ -41,7 +41,7 @@ impl Display for NfaStateId {
 
 impl From<u8> for NfaStateId {
     fn from(i: u8) -> Self {
-        NfaStateId(i)
+        Self(i)
     }
 }
 
@@ -52,7 +52,7 @@ impl<'q> NondeterministicAutomaton<'q> {
         let mut states: Vec<NfaState> = query
             .root()
             .iter()
-            .flat_map(|node| match node {
+            .filter_map(|node| match node {
                 JsonPathQueryNode::Root(_) => None,
                 JsonPathQueryNode::Descendant(label, _) => Some(Recursive(label)),
                 JsonPathQueryNode::Child(label, _) => Some(Direct(label)),
@@ -80,14 +80,16 @@ impl<'q> Index<NfaStateId> for NondeterministicAutomaton<'q> {
 pub struct State(u8);
 
 impl Display for State {
+    #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "DFA({})", self.0)
     }
 }
 
 impl From<u8> for State {
+    #[inline(always)]
     fn from(i: u8) -> Self {
-        State(i)
+        Self(i)
     }
 }
 
@@ -108,6 +110,7 @@ pub struct TransitionTable<'q> {
 }
 
 impl<'q> PartialEq for TransitionTable<'q> {
+    #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.fallback_state == other.fallback_state
             && self.transitions.len() == other.transitions.len()
@@ -127,6 +130,7 @@ impl<'q> Eq for TransitionTable<'q> {}
 impl<'q> Index<State> for Automaton<'q> {
     type Output = TransitionTable<'q>;
 
+    #[inline(always)]
     fn index(&self, index: State) -> &Self::Output {
         &self.states[index.0 as usize]
     }
@@ -134,12 +138,12 @@ impl<'q> Index<State> for Automaton<'q> {
 
 impl<'q> Automaton<'q> {
     /// Convert a [`JsonPathQuery`] into a minimal deterministic automaton.
+    #[must_use]
+    #[inline]
     pub fn new(query: &'q JsonPathQuery) -> Self {
         let nfa = NondeterministicAutomaton::new(query);
         debug!("NFA: {}", nfa);
-        let dfa = Automaton::minimize(nfa);
-        debug!("DFA:\n {}", dfa);
-        dfa
+        Automaton::minimize(nfa)
     }
 
     /// Returns whether this automaton represents an empty JSONPath query ('$').
@@ -162,6 +166,8 @@ impl<'q> Automaton<'q> {
     ///
     /// assert!(!automaton.is_empty_query());
     /// ```
+    #[must_use]
+    #[inline(always)]
     pub fn is_empty_query(&self) -> bool {
         self.states.len() == 2
     }
@@ -171,6 +177,11 @@ impl<'q> Automaton<'q> {
     /// The state is defined as the unique state from which there
     /// exists no accepting run. If the query automaton reaches this state,
     /// the current subtree is guaranteed to have no matches.
+    #[must_use]
+    #[inline(always)]
+    #[allow(clippy::unused_self)] /* This is for stability. If the implementation changes so that
+                                   * this is not always a 0 we don't want to have to change callsites.
+                                   */
     pub fn rejecting_state(&self) -> State {
         State(0)
     }
@@ -178,6 +189,11 @@ impl<'q> Automaton<'q> {
     /// Returns the initial state of the automaton.
     ///
     /// Query execution should start from this state.
+    #[must_use]
+    #[inline(always)]
+    #[allow(clippy::unused_self)] /* This is for stability. If the implementation changes so that
+                                   * this is not always a 1 we don't want to have to change callsites.
+                                   */
     pub fn initial_state(&self) -> State {
         State(1)
     }
@@ -186,6 +202,8 @@ impl<'q> Automaton<'q> {
     ///
     /// Query execution should treat transitioning into this state
     /// as a match.
+    #[must_use]
+    #[inline(always)]
     pub fn accepting_state(&self) -> State {
         State((self.states.len() - 1) as u8)
     }
@@ -201,6 +219,8 @@ impl<'q> Automaton<'q> {
     ///
     /// assert!(automaton.is_accepting(automaton.accepting_state()));
     /// ```
+    #[must_use]
+    #[inline(always)]
     pub fn is_accepting(&self, state: State) -> bool {
         state == self.accepting_state()
     }
@@ -217,6 +237,8 @@ impl<'q> Automaton<'q> {
     ///
     /// assert!(automaton.is_rejecting(automaton.rejecting_state()));
     /// ```
+    #[must_use]
+    #[inline(always)]
     pub fn is_rejecting(&self, state: State) -> bool {
         state == self.rejecting_state()
     }
@@ -231,6 +253,8 @@ impl<'q> TransitionTable<'q> {
     ///
     /// A fallback transition is the catch-all transition triggered
     /// if none of the transitions were triggered.
+    #[must_use]
+    #[inline(always)]
     pub fn fallback_state(&self) -> State {
         self.fallback_state
     }
@@ -239,12 +263,15 @@ impl<'q> TransitionTable<'q> {
     ///
     /// A transition is triggered if the [`Label`] is matched and leads
     /// to the contained [`State`].
+    #[must_use]
+    #[inline(always)]
     pub fn transitions(&self) -> &SmallVec<[(&'q Label, State); 2]> {
         &self.transitions
     }
 }
 
 impl<'q> Display for Automaton<'q> {
+    #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "digraph {{")?;
         for (i, state) in self.states.iter().enumerate() {
@@ -267,7 +294,7 @@ impl<'q> Display for NondeterministicAutomaton<'q> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut dir = 1;
         let mut rec = 1;
-        for state in self.ordered_states.iter() {
+        for state in &self.ordered_states {
             match state {
                 Direct(label) => {
                     write!(f, "d{dir} --{}-> ", label.display())?;

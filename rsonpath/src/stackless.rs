@@ -33,14 +33,17 @@ impl StacklessRunner<'_> {
     /// Compile a query into a [`StacklessRunner`].
     ///
     /// Compilation time is proportional to the length of the query.
+    #[must_use]
+    #[inline(always)]
     pub fn compile_query(query: &JsonPathQuery) -> StacklessRunner<'_> {
         let automaton = Automaton::new(query);
-
+        debug!("DFA:\n {}", automaton);
         StacklessRunner { automaton }
     }
 }
 
 impl Runner for StacklessRunner<'_> {
+    #[inline]
     fn run<R: QueryResult>(&self, input: &Input) -> R {
         if self.automaton.is_empty_query() {
             return empty_query(input);
@@ -172,7 +175,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                             // If yes, that is an error of state propagation through skipped blocks.
                             // Flip the quote mask.
                             if let Some(block) = quote_classifier.block.as_mut() {
-                                if (block.block.within_quotes_mask & (1u64 << block.idx)) != 0 {
+                                if (block.block.within_quotes_mask & (1_u64 << block.idx)) != 0 {
                                     debug!("Mask needs flipping!");
                                     block.block.within_quotes_mask =
                                         !block.block.within_quotes_mask;

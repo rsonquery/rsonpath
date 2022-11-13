@@ -25,19 +25,15 @@ impl Superstate {
     /// Otherwise, returns `None`.
     pub(crate) fn singleton(&self) -> Option<NfaStateId> {
         let elem = self.bitmask.trailing_zeros();
-        let elem_mask = 1u128.wrapping_shl(elem);
+        let elem_mask = 1_u128.wrapping_shl(elem);
         let remainder = self.bitmask ^ elem_mask;
 
-        if remainder == 0 {
-            Some(NfaStateId(elem as u8))
-        } else {
-            None
-        }
+        (remainder == 0).then_some(NfaStateId(elem as u8))
     }
 
     /// Removes all elements smaller than `cutoff` from the set.
     pub(crate) fn remove_all_before(&mut self, cutoff: NfaStateId) {
-        let mask: u128 = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF << cutoff.0;
+        let mask: u128 = 0xFFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF << cutoff.0;
         self.bitmask &= mask;
     }
 }
@@ -61,6 +57,7 @@ impl PartialEq<BTreeSet<NfaStateId>> for Superstate {
 }
 
 impl PartialEq<Superstate> for BTreeSet<NfaStateId> {
+    #[inline(always)]
     fn eq(&self, other: &Superstate) -> bool {
         other.eq(self)
     }
@@ -111,7 +108,7 @@ mod tests {
     use proptest::{collection, proptest, strategy::Strategy};
 
     fn any_state() -> impl proptest::strategy::Strategy<Value = NfaStateId> {
-        (0u8..=127).prop_map_into()
+        (0_u8..=127).prop_map_into()
     }
 
     proptest! {

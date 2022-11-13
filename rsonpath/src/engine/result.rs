@@ -16,6 +16,7 @@ pub struct CountResult {
 
 impl CountResult {
     /// Number of values matched by the executed query.
+    #[must_use]
     #[inline(always)]
     pub fn get(&self) -> usize {
         self.count
@@ -23,6 +24,7 @@ impl CountResult {
 }
 
 impl Display for CountResult {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.count)
     }
@@ -44,6 +46,7 @@ pub struct IndexResult {
 
 impl IndexResult {
     /// Get indices of colons constituting matches of the query.
+    #[must_use]
     #[inline(always)]
     pub fn get(&self) -> &[usize] {
         &self.indices
@@ -51,12 +54,14 @@ impl IndexResult {
 }
 
 impl From<IndexResult> for Vec<usize> {
+    #[inline(always)]
     fn from(result: IndexResult) -> Self {
         result.indices
     }
 }
 
 impl Display for IndexResult {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self.indices)
     }

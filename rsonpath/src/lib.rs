@@ -98,8 +98,8 @@
 //! $..label_1..label_2..[...]..label_n
 //! ```
 
-#![warn(missing_docs)]
-#![warn(rustdoc::missing_crate_level_docs)]
+#![cfg_attr(release, warn(missing_docs))]
+#![cfg_attr(release, warn(rustdoc::missing_crate_level_docs))]
 #![warn(
     explicit_outlives_requirements,
     unreachable_pub,
@@ -107,6 +107,52 @@
     unused_import_braces,
     unused_lifetimes
 )]
+#![warn(
+    clippy::allow_attributes_without_reason,
+    clippy::cargo_common_metadata,
+    clippy::cast_lossless,
+    clippy::cloned_instead_of_copied,
+    clippy::empty_drop,
+    clippy::empty_line_after_outer_attr,
+    clippy::equatable_if_let,
+    clippy::expl_impl_clone_on_copy,
+    clippy::explicit_deref_methods,
+    clippy::explicit_into_iter_loop,
+    clippy::explicit_iter_loop,
+    clippy::fallible_impl_from,
+    clippy::flat_map_option,
+    clippy::if_then_some_else_none,
+    clippy::inconsistent_struct_constructor,
+    clippy::large_digit_groups,
+    clippy::let_underscore_must_use,
+    clippy::manual_ok_or,
+    clippy::map_err_ignore,
+    clippy::map_unwrap_or,
+    clippy::match_same_arms,
+    clippy::match_wildcard_for_single_variants,
+    clippy::missing_inline_in_public_items,
+    clippy::mod_module_files,
+    clippy::must_use_candidate,
+    clippy::needless_continue,
+    clippy::needless_for_each,
+    clippy::needless_pass_by_value,
+    clippy::ptr_as_ptr,
+    clippy::redundant_closure_for_method_calls,
+    clippy::ref_binding_to_reference,
+    clippy::ref_option_ref,
+    clippy::rest_pat_in_fully_bound_structs,
+    clippy::undocumented_unsafe_blocks,
+    clippy::unneeded_field_pattern,
+    clippy::unseparated_literal_suffix,
+    clippy::unreadable_literal,
+    clippy::unused_self,
+    clippy::use_self
+)]
+#![cfg_attr(release, warn(
+    clippy::print_stderr,
+    clippy::print_stdout
+    clippy::todo
+))]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
 pub mod classify;
@@ -164,7 +210,7 @@ macro_rules! bin {
             "{: >24}: {:064b} ({})",
             $name,
             {
-                let mut res = 0u64;
+                let mut res = 0_u64;
                 for i in 0..64 {
                     let bit = (($e) & (1 << i)) >> i;
                     res |= bit << (63 - i);
