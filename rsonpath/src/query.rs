@@ -83,7 +83,7 @@ impl Clone for Label {
     fn clone(&self) -> Self {
         let label_clone = AlignedBytes::from(self.label.as_ref());
         let quoted_clone = AlignedBytes::from(self.label_with_quotes.as_ref());
-        Label {
+        Self {
             label: label_clone,
             label_with_quotes: quoted_clone,
         }
@@ -136,8 +136,8 @@ impl std::ops::Deref for Label {
     }
 }
 
-impl PartialEq<Label> for Label {
-    fn eq(&self, other: &Label) -> bool {
+impl PartialEq<Self> for Label {
+    fn eq(&self, other: &Self) -> bool {
         self.label == other.label
     }
 }
@@ -191,11 +191,9 @@ use JsonPathQueryNode::*;
 impl JsonPathQueryNode {
     /// Retrieve the child of the node or `None` if it is the last one
     /// on the list.
-    pub fn child(&self) -> Option<&JsonPathQueryNode> {
+    pub fn child(&self) -> Option<&Self> {
         match self {
-            Root(node) => node.as_deref(),
-            Child(_, node) => node.as_deref(),
-            Descendant(_, node) => node.as_deref(),
+            Root(node) | Child(_, node) | Descendant(_, node) => node.as_deref(),
         }
     }
 
@@ -242,7 +240,7 @@ impl JsonPathQuery {
     }
 
     /// Parse a query string into a [`JsonPathQuery`].
-    pub fn parse(query_string: &str) -> Result<JsonPathQuery> {
+    pub fn parse(query_string: &str) -> Result<Self> {
         self::parser::parse_json_path_query(query_string)
     }
 
@@ -250,7 +248,7 @@ impl JsonPathQuery {
     ///
     /// If node is not the [`JsonPathQueryNode::Root`] variant it will be
     /// automatically wrapped into a [`JsonPathQueryNode::Root`] node.
-    pub fn new(node: Box<JsonPathQueryNode>) -> Result<JsonPathQuery> {
+    pub fn new(node: Box<JsonPathQueryNode>) -> Result<Self> {
         let root = if node.is_root() {
             node
         } else {
@@ -316,9 +314,8 @@ impl JsonPathQueryNodeType for JsonPathQueryNode {
 
     fn label(&self) -> Option<&Label> {
         match self {
-            JsonPathQueryNode::Child(label, _) => Some(label),
-            JsonPathQueryNode::Descendant(label, _) => Some(label),
-            _ => None,
+            Child(label, _) | Descendant(label, _) => Some(label),
+            Root(_) => None,
         }
     }
 }

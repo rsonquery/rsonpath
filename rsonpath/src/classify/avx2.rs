@@ -1,7 +1,21 @@
-use super::*;
-use crate::quotes::{QuoteClassifiedBlock, ResumeClassifierBlockState};
+//! This module can only be included if the code is compiled with AVX2 support
+//! and on x86/x86_64 architecture for safety.
 
+cfg_if::cfg_if! {
+    if #[cfg(not(all(
+        any(target_arch = "x86", target_arch = "x86_64"),
+        target_feature = "avx2")
+    ))] {
+        compile_error!(
+            "internal error: AVX2 code included on unsupported target; \
+            please report this issue at https://github.com/V0ldek/rsonpath/"
+        )
+    }
+}
+
+use super::*;
 use crate::bin;
+use crate::quotes::{QuoteClassifiedBlock, ResumeClassifierBlockState};
 use len_trait::Empty;
 
 #[cfg(target_arch = "x86")]
@@ -37,23 +51,19 @@ impl Iterator for StructuralsBlock<'_> {
         use Structural::*;
 
         let idx = self.get_idx() as usize;
-        if idx < 64 {
+        (idx < 64).then(|| {
             let bit_mask = 1 << idx;
 
             self.structural_mask ^= bit_mask;
 
-            let character = match self.quote_classified.block[idx] {
+            match self.quote_classified.block[idx] {
                 b':' => Colon(idx),
                 b'[' | b'{' => Opening(idx),
                 #[cfg(feature = "commas")]
                 b',' => Comma(idx),
                 _ => Closing(idx),
-            };
-
-            Some(character)
-        } else {
-            None
-        }
+            }
+        })
     }
 }
 
@@ -82,6 +92,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> Avx2Classifier<'a, I> {
     pub(crate) fn new(iter: I) -> Self {
         Self {
             iter,
+            // SAFETY: target_feature invariant
             classifier: unsafe { BlockAvx2Classifier::new() },
             block: None,
         }
@@ -92,6 +103,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> Avx2Classifier<'a, I> {
         while self.current_block_is_spent() {
             match self.iter.next() {
                 Some(block) => {
+                    // SAFETY: target_feature invariant
                     self.block = unsafe { Some(self.classifier.classify(block)) };
                 }
                 None => return false,
@@ -145,10 +157,12 @@ impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a, I> for Avx2Class
     }
 
     fn resume(state: ResumeClassifierState<'a, I>) -> Self {
+        // SAFETY: target_feature invariant
         let mut classifier = unsafe { BlockAvx2Classifier::new() };
         let block = state.block.map(|b| {
+            // SAFETY: target_feature invariant
             let mut block = unsafe { classifier.classify(b.block) };
-            let idx_mask = 0xFFFFFFFFFFFFFFFF << b.idx;
+            let idx_mask = 0xFFFF_FFFF_FFFF_FFFF << b.idx;
             block.structural_mask &= idx_mask;
 
             block
@@ -205,10 +219,10 @@ impl BlockAvx2Classifier {
     unsafe fn new() -> Self {
         Self {
             lower_nibble_mask: _mm256_loadu_si256(
-                Self::LOWER_NIBBLE_MASK_ARRAY.as_ptr() as *const __m256i
+                Self::LOWER_NIBBLE_MASK_ARRAY.as_ptr().cast::<__m256i>()
             ),
             upper_nibble_mask: _mm256_loadu_si256(
-                Self::UPPER_NIBBLE_MASK_ARRAY.as_ptr() as *const __m256i
+                Self::UPPER_NIBBLE_MASK_ARRAY.as_ptr().cast::<__m256i>()
             ),
             upper_nibble_zeroing_mask: _mm256_set1_epi8(0x0F),
         }
@@ -225,7 +239,7 @@ impl BlockAvx2Classifier {
         let classification2 = self.classify_block(block2);
 
         let structural =
-            (classification1.structural as u64) | ((classification2.structural as u64) << 32);
+            u64::from(classification1.structural) | (u64::from(classification2.structural) << 32);
 
         let nonquoted_structural = structural & !quote_classified_block.within_quotes_mask;
 
@@ -238,7 +252,7 @@ impl BlockAvx2Classifier {
     #[target_feature(enable = "avx2")]
     #[inline]
     unsafe fn classify_block(&self, block: &[u8]) -> BlockClassification {
-        let byte_vector = _mm256_loadu_si256(block.as_ptr() as *const __m256i);
+        let byte_vector = _mm256_loadu_si256(block.as_ptr().cast::<__m256i>());
         let shifted_byte_vector = _mm256_srli_epi16::<4>(byte_vector);
         let upper_nibble_byte_vector =
             _mm256_and_si256(shifted_byte_vector, self.upper_nibble_zeroing_mask);

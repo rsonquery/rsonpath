@@ -65,7 +65,7 @@ impl<'q> Minimizer<'q> {
         // Rejecting state has no outgoing transitions except for a self-loop.
         self.dfa_states.push(TransitionTable {
             transitions: smallvec![],
-            fallback_state: self.rejecting_state(),
+            fallback_state: Self::rejecting_state(),
         });
 
         // Initial superstate is {0}.
@@ -81,7 +81,7 @@ impl<'q> Minimizer<'q> {
         }
     }
 
-    fn rejecting_state(&self) -> DfaStateId {
+    fn rejecting_state() -> DfaStateId {
         DfaStateId(0)
     }
 
@@ -123,7 +123,7 @@ impl<'q> Minimizer<'q> {
             transitions: translated_transitions,
             fallback_state: current_checkpoint
                 .map(|x| [x].into())
-                .map_or(self.rejecting_state(), |x: Superstate| self.superstates[&x]),
+                .map_or(Self::rejecting_state(), |x: Superstate| self.superstates[&x]),
         });
     }
 

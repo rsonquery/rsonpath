@@ -131,7 +131,7 @@ where
     pub(crate) fn skip(&mut self, opening: u8) {
         debug!("Skipping");
 
-        let classifier = unsafe { self.classifier.take().unwrap_unchecked() };
+        let classifier = self.classifier.take().unwrap();
         let resume_state = classifier.stop();
         let DepthIteratorResumeOutcome(first_vector, mut depth_classifier) =
             resume_depth_classification(resume_state, opening);
@@ -165,7 +165,7 @@ where
     }
 
     pub(crate) fn stop(mut self) -> ResumeClassifierState<'b, Q> {
-        unsafe { self.classifier.take().unwrap_unchecked() }.stop()
+        self.classifier.take().unwrap().stop()
     }
 }
 
@@ -177,7 +177,7 @@ where
     type Target = I;
 
     fn deref(&self) -> &Self::Target {
-        unsafe { self.classifier.as_ref().unwrap_unchecked() }
+        self.classifier.as_ref().unwrap()
     }
 }
 
@@ -187,7 +187,7 @@ where
     I: StructuralIterator<'b, Q>,
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        unsafe { self.classifier.as_mut().unwrap_unchecked() }
+        self.classifier.as_mut().unwrap()
     }
 }
 

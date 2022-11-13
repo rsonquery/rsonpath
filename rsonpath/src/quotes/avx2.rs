@@ -1,8 +1,22 @@
+//! This module can only be included if the code is compiled with AVX2 support
+//! and on x86/x86_64 architecture for safety.
+
+cfg_if::cfg_if! {
+    if #[cfg(not(all(
+        any(target_arch = "x86", target_arch = "x86_64"),
+        target_feature = "avx2")
+    ))] {
+        compile_error!(
+            "internal error: AVX2 code included on unsupported target; \
+            please report this issue at https://github.com/V0ldek/rsonpath/"
+        )
+    }
+}
+
 use super::*;
 use crate::BlockAlignment;
 use aligners::alignment::Alignment;
 use aligners::{AlignedBlock, AlignedBlockIterator, AlignedSlice};
-
 use crate::bin;
 use crate::debug;
 
@@ -10,6 +24,7 @@ use crate::debug;
 use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
+
 pub(crate) struct Avx2QuoteClassifier<'a> {
     iter: AlignedBlockIterator<'a, Twice<BlockAlignment>>,
     offset: Option<usize>,
@@ -22,6 +37,7 @@ impl<'a> Avx2QuoteClassifier<'a> {
         Self {
             iter: bytes.iter_blocks(),
             offset: None,
+            // SAFETY: target_feature invariant
             classifier: unsafe { BlockAvx2Classifier::new() },
         }
     }
@@ -40,6 +56,7 @@ impl<'a> Iterator for Avx2QuoteClassifier<'a> {
                     self.offset = Some(0);
                 }
 
+                // SAFETY: target_feature invariant
                 let mask = unsafe { self.classifier.classify(block) };
                 let classified_block = QuoteClassifiedBlock {
                     block,
@@ -111,9 +128,11 @@ struct BlockClassification {
 
 impl BlockAvx2Classifier {
     /// Bitmask selecting bits on even positions when indexing from zero.
-    const ODD: u64 = 0b0101010101010101010101010101010101010101010101010101010101010101u64;
+    const ODD: u64 =
+        0b0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_u64;
     /// Bitmask selecting bits on odd positions when indexing from zero.
-    const EVEN: u64 = 0b1010101010101010101010101010101010101010101010101010101010101010u64;
+    const EVEN: u64 =
+        0b1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_u64;
 
     /// Set the inter-block state based on slash overflow and the quotes mask.
     fn update_prev_block_mask(&mut self, set_slash_mask: bool, quotes: u64) {
@@ -130,12 +149,12 @@ impl BlockAvx2Classifier {
     /// Returns 0x01 if the last character of the previous block was an unescaped escape character,
     /// zero otherwise.
     fn get_prev_slash_mask(&self) -> u64 {
-        (self.prev_block_mask & 0x01) as u64
+        u64::from(self.prev_block_mask & 0x01)
     }
 
     /// Returns 0x01 if the last character of the previous block was an unescaped quote, zero otherwise.
     fn get_prev_quote_mask(&self) -> u64 {
-        ((self.prev_block_mask & 0x02) >> 1) as u64
+        u64::from((self.prev_block_mask & 0x02) >> 1)
     }
 
     #[target_feature(enable = "avx2")]
@@ -145,7 +164,7 @@ impl BlockAvx2Classifier {
             prev_block_mask: 0,
             quote_mask: _mm256_set1_epi8(b'"' as i8),
             slash_mask: _mm256_set1_epi8(b'\\' as i8),
-            all_ones128: _mm_set1_epi8(0xFFu8 as i8),
+            all_ones128: _mm_set1_epi8(0xFF_u8 as i8),
         }
     }
 
@@ -178,8 +197,8 @@ impl BlockAvx2Classifier {
 
         // Masks are combined by shifting the latter block's 32-bit masks left by 32 bits.
         // From now on when we refer to a "block" we mean the combined 64 bytes of the input.
-        let slashes = (classification1.slashes as u64) | ((classification2.slashes as u64) << 32);
-        let quotes = (classification1.quotes as u64) | ((classification2.quotes as u64) << 32);
+        let slashes = u64::from(classification1.slashes) | (u64::from(classification2.slashes) << 32);
+        let quotes = u64::from(classification1.quotes) | (u64::from(classification2.quotes) << 32);
 
         let (escaped, set_prev_slash_mask) = if slashes == 0 {
             // If there are no slashes in the input steps I.2, I.3, I.4 can be skipped.
@@ -334,7 +353,7 @@ impl BlockAvx2Classifier {
     #[target_feature(enable = "avx2")]
     #[inline]
     unsafe fn classify_block(&self, block: &[u8]) -> BlockClassification {
-        let byte_vector = _mm256_loadu_si256(block.as_ptr() as *const __m256i);
+        let byte_vector = _mm256_loadu_si256(block.as_ptr().cast::<__m256i>());
 
         let slash_cmp = _mm256_cmpeq_epi8(byte_vector, self.slash_mask);
         let slashes = _mm256_movemask_epi8(slash_cmp) as u32;
@@ -357,11 +376,11 @@ mod tests {
 
     #[test_case("" => None)]
     #[test_case("abcd" => Some(0))]
-    #[test_case(r#""abcd""# => Some(0b011111))]
-    #[test_case(r#""number": 42, "string": "something" "# => Some(0b001111111111000111111100000001111111))]
-    #[test_case(r#"abc\"abc\""# => Some(0b0000000000))]
-    #[test_case(r#"abc\\"abc\\""# => Some(0b011111100000))]
-    #[test_case(r#"{"aaa":[{},{"b":{"c":[1,2,3]}}],"e":{"a":[[],[1,2,3],"# => Some(0b00000000000000110001100000000000001100011000000011110))]
+    #[test_case(r#""abcd""# => Some(0b01_1111))]
+    #[test_case(r#""number": 42, "string": "something" "# => Some(0b0011_1111_1111_0001_1111_1100_0000_0111_1111))]
+    #[test_case(r#"abc\"abc\""# => Some(0b00_0000_0000))]
+    #[test_case(r#"abc\\"abc\\""# => Some(0b0111_1110_0000))]
+    #[test_case(r#"{"aaa":[{},{"b":{"c":[1,2,3]}}],"e":{"a":[[],[1,2,3],"# => Some(0b0_0000_0000_0000_0110_0011_0000_0000_0000_0110_0011_0000_0001_1110))]
     fn single_block(str: &str) -> Option<u64> {
         let bytes: AlignedBytes<Twice<BlockAlignment>> = AlignedBytes::new_padded(str.as_bytes());
         let mut classifier = Avx2QuoteClassifier::new(&bytes);
