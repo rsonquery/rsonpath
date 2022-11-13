@@ -16,6 +16,7 @@ pub struct CountResult {
 
 impl CountResult {
     /// Number of values matched by the executed query.
+    #[must_use]
     #[inline(always)]
     pub fn get(&self) -> usize {
         self.count
@@ -44,6 +45,7 @@ pub struct IndexResult {
 
 impl IndexResult {
     /// Get indices of colons constituting matches of the query.
+    #[must_use]
     #[inline(always)]
     pub fn get(&self) -> &[usize] {
         &self.indices

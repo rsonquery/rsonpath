@@ -18,6 +18,7 @@ pub struct StackBasedRunner<'q> {
 
 impl<'q> StackBasedRunner<'q> {
     /// Compile a query into a [`StackBasedRunner`].
+    #[must_use]
     pub fn compile_query(query: &'q JsonPathQuery) -> Self {
         let automaton = Automaton::new(query);
 

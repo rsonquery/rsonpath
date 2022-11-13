@@ -92,6 +92,7 @@ impl Clone for Label {
 
 impl Label {
     /// Create a new label from UTF8 input.
+    #[must_use]
     pub fn new(label: &str) -> Self {
         let bytes = label.as_bytes();
         let without_quotes = AlignedBytes::<LabelAlignment>::from(bytes);
@@ -110,12 +111,14 @@ impl Label {
     }
 
     /// Return the raw bytes of the label, guaranteed to be block-aligned.
+    #[must_use]
     pub fn bytes(&self) -> &AlignedSlice<LabelAlignment> {
         &self.label
     }
 
     /// Return the bytes representing the label with a leading and trailing
     /// double quote symbol `"`, guaranteed to be block-aligned.
+    #[must_use]
     pub fn bytes_with_quotes(&self) -> &AlignedSlice<LabelAlignment> {
         &self.label_with_quotes
     }
@@ -123,6 +126,7 @@ impl Label {
     /// Return a display object with a UTF8 representation of this label.
     ///
     /// If the label contains invalid UTF8, the value will always be `"[invalid utf8]"`.
+    #[must_use]
     pub fn display(&self) -> impl Display + '_ {
         std::str::from_utf8(&self.label).unwrap_or("[invalid utf8]")
     }
@@ -191,6 +195,7 @@ use JsonPathQueryNode::*;
 impl JsonPathQueryNode {
     /// Retrieve the child of the node or `None` if it is the last one
     /// on the list.
+    #[must_use]
     pub fn child(&self) -> Option<&Self> {
         match self {
             Root(node) | Child(_, node) | Descendant(_, node) => node.as_deref(),
@@ -199,6 +204,7 @@ impl JsonPathQueryNode {
 
     /// Create an iterator over nodes of the query in sequence,
     /// starting from the root.
+    #[must_use]
     pub fn iter(&self) -> JsonPathQueryIterator {
         JsonPathQueryIterator { node: Some(self) }
     }
@@ -235,6 +241,7 @@ impl JsonPathQuery {
     ///
     /// It is guaranteed that the root is the [`JsonPathQueryNode::Root`]
     /// variant and always exists.
+    #[must_use]
     pub fn root(&self) -> &JsonPathQueryNode {
         self.root.as_ref()
     }

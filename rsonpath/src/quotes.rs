@@ -24,11 +24,13 @@ pub struct QuoteClassifiedBlock<'a> {
 
 impl<'a> QuoteClassifiedBlock<'a> {
     /// Returns the length of the classified block.
+    #[must_use]
     pub fn len(&self) -> usize {
         self.block.len()
     }
 
     /// Whether the classified block is empty.
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.block.is_empty()
     }
@@ -139,6 +141,7 @@ cfg_if! {
 
         /// Walk through the JSON document represented by `bytes`
         /// and classify quoted sequences.
+        #[must_use]
         #[inline(always)]
         pub fn classify_quoted_sequences(
             bytes: &AlignedSlice<alignment::Twice<BlockAlignment>>,

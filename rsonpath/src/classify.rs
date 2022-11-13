@@ -73,6 +73,7 @@ impl Structural {
     /// Returns the index of the character in the document,
     /// i.e. which byte it is counting from 0.
     #[inline(always)]
+    #[must_use]
     pub fn idx(self) -> usize {
         match self {
             Closing(idx) => idx,
@@ -96,6 +97,7 @@ impl Structural {
     /// assert_eq!(offset_structural.idx(), 52);
     /// ```
     #[inline(always)]
+    #[must_use]
     pub fn offset(self, amount: usize) -> Self {
         match self {
             Closing(idx) => Closing(idx + amount),

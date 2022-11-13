@@ -131,6 +131,7 @@
     clippy::match_same_arms,
     clippy::match_wildcard_for_single_variants,
     clippy::mod_module_files,
+    clippy::must_use_candidate,
     clippy::needless_continue,
     clippy::needless_for_each,
     clippy::needless_pass_by_value,

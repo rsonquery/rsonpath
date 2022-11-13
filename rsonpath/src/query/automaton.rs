@@ -134,6 +134,7 @@ impl<'q> Index<State> for Automaton<'q> {
 
 impl<'q> Automaton<'q> {
     /// Convert a [`JsonPathQuery`] into a minimal deterministic automaton.
+    #[must_use]
     pub fn new(query: &'q JsonPathQuery) -> Self {
         let nfa = NondeterministicAutomaton::new(query);
         debug!("NFA: {}", nfa);
@@ -162,6 +163,7 @@ impl<'q> Automaton<'q> {
     ///
     /// assert!(!automaton.is_empty_query());
     /// ```
+    #[must_use]
     pub fn is_empty_query(&self) -> bool {
         self.states.len() == 2
     }
@@ -171,6 +173,7 @@ impl<'q> Automaton<'q> {
     /// The state is defined as the unique state from which there
     /// exists no accepting run. If the query automaton reaches this state,
     /// the current subtree is guaranteed to have no matches.
+    #[must_use]
     #[allow(clippy::unused_self)] /* This is for stability. If the implementation changes so that
                                    * this is not always a 0 we don't want to have to change callsites.
                                    */
@@ -181,6 +184,7 @@ impl<'q> Automaton<'q> {
     /// Returns the initial state of the automaton.
     ///
     /// Query execution should start from this state.
+    #[must_use]
     #[allow(clippy::unused_self)] /* This is for stability. If the implementation changes so that
                                    * this is not always a 1 we don't want to have to change callsites.
                                    */
@@ -192,6 +196,7 @@ impl<'q> Automaton<'q> {
     ///
     /// Query execution should treat transitioning into this state
     /// as a match.
+    #[must_use]
     pub fn accepting_state(&self) -> State {
         State((self.states.len() - 1) as u8)
     }
@@ -207,6 +212,7 @@ impl<'q> Automaton<'q> {
     ///
     /// assert!(automaton.is_accepting(automaton.accepting_state()));
     /// ```
+    #[must_use]
     pub fn is_accepting(&self, state: State) -> bool {
         state == self.accepting_state()
     }
@@ -223,6 +229,7 @@ impl<'q> Automaton<'q> {
     ///
     /// assert!(automaton.is_rejecting(automaton.rejecting_state()));
     /// ```
+    #[must_use]
     pub fn is_rejecting(&self, state: State) -> bool {
         state == self.rejecting_state()
     }
@@ -237,6 +244,7 @@ impl<'q> TransitionTable<'q> {
     ///
     /// A fallback transition is the catch-all transition triggered
     /// if none of the transitions were triggered.
+    #[must_use]
     pub fn fallback_state(&self) -> State {
         self.fallback_state
     }
@@ -245,6 +253,7 @@ impl<'q> TransitionTable<'q> {
     ///
     /// A transition is triggered if the [`Label`] is matched and leads
     /// to the contained [`State`].
+    #[must_use]
     pub fn transitions(&self) -> &SmallVec<[(&'q Label, State); 2]> {
         &self.transitions
     }
