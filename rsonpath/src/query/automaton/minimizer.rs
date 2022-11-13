@@ -123,7 +123,9 @@ impl<'q> Minimizer<'q> {
             transitions: translated_transitions,
             fallback_state: current_checkpoint
                 .map(|x| [x].into())
-                .map_or(Self::rejecting_state(), |x: Superstate| self.superstates[&x]),
+                .map_or(Self::rejecting_state(), |x: Superstate| {
+                    self.superstates[&x]
+                }),
         });
     }
 

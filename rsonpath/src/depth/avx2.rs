@@ -6,10 +6,10 @@ cfg_if::cfg_if! {
         any(target_arch = "x86", target_arch = "x86_64"),
         target_feature = "avx2")
     ))] {
-        compile_error!(
+        compile_error!{
             "internal error: AVX2 code included on unsupported target; \
             please report this issue at https://github.com/V0ldek/rsonpath/"
-        )
+        }
     }
 }
 

@@ -6,10 +6,10 @@ cfg_if::cfg_if! {
         any(target_arch = "x86", target_arch = "x86_64"),
         target_feature = "avx2")
     ))] {
-        compile_error!(
+        compile_error!{
             "internal error: AVX2 code included on unsupported target; \
             please report this issue at https://github.com/V0ldek/rsonpath/"
-        )
+        }
     }
 }
 
@@ -219,10 +219,10 @@ impl BlockAvx2Classifier {
     unsafe fn new() -> Self {
         Self {
             lower_nibble_mask: _mm256_loadu_si256(
-                Self::LOWER_NIBBLE_MASK_ARRAY.as_ptr().cast::<__m256i>()
+                Self::LOWER_NIBBLE_MASK_ARRAY.as_ptr().cast::<__m256i>(),
             ),
             upper_nibble_mask: _mm256_loadu_si256(
-                Self::UPPER_NIBBLE_MASK_ARRAY.as_ptr().cast::<__m256i>()
+                Self::UPPER_NIBBLE_MASK_ARRAY.as_ptr().cast::<__m256i>(),
             ),
             upper_nibble_zeroing_mask: _mm256_set1_epi8(0x0F),
         }

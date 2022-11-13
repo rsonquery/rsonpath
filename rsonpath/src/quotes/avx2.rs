@@ -6,19 +6,19 @@ cfg_if::cfg_if! {
         any(target_arch = "x86", target_arch = "x86_64"),
         target_feature = "avx2")
     ))] {
-        compile_error!(
+        compile_error!{
             "internal error: AVX2 code included on unsupported target; \
             please report this issue at https://github.com/V0ldek/rsonpath/"
-        )
+        }
     }
 }
 
 use super::*;
+use crate::bin;
+use crate::debug;
 use crate::BlockAlignment;
 use aligners::alignment::Alignment;
 use aligners::{AlignedBlock, AlignedBlockIterator, AlignedSlice};
-use crate::bin;
-use crate::debug;
 
 #[cfg(target_arch = "x86")]
 use core::arch::x86::*;
@@ -197,7 +197,8 @@ impl BlockAvx2Classifier {
 
         // Masks are combined by shifting the latter block's 32-bit masks left by 32 bits.
         // From now on when we refer to a "block" we mean the combined 64 bytes of the input.
-        let slashes = u64::from(classification1.slashes) | (u64::from(classification2.slashes) << 32);
+        let slashes =
+            u64::from(classification1.slashes) | (u64::from(classification2.slashes) << 32);
         let quotes = u64::from(classification1.quotes) | (u64::from(classification2.quotes) << 32);
 
         let (escaped, set_prev_slash_mask) = if slashes == 0 {

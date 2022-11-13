@@ -105,7 +105,7 @@
     unreachable_pub,
     semicolon_in_expressions_from_macros,
     unused_import_braces,
-    unused_lifetimes,
+    unused_lifetimes
 )]
 #![warn(
     clippy::allow_attributes_without_reason,
@@ -142,11 +142,11 @@
     clippy::ref_option_ref,
     clippy::rest_pat_in_fully_bound_structs,
     clippy::undocumented_unsafe_blocks,
-    clippy::unneeded_field_pattern ,
+    clippy::unneeded_field_pattern,
     clippy::unseparated_literal_suffix,
     clippy::unreadable_literal,
     clippy::unused_self,
-    clippy::use_self,
+    clippy::use_self
 )]
 #![cfg_attr(release, warn(
     clippy::print_stderr,
