@@ -70,6 +70,7 @@ pub struct Label {
 }
 
 impl std::fmt::Debug for Label {
+    #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
         write!(
             f,
@@ -80,6 +81,7 @@ impl std::fmt::Debug for Label {
 }
 
 impl Clone for Label {
+    #[inline]
     fn clone(&self) -> Self {
         let label_clone = AlignedBytes::from(self.label.as_ref());
         let quoted_clone = AlignedBytes::from(self.label_with_quotes.as_ref());
@@ -93,6 +95,7 @@ impl Clone for Label {
 impl Label {
     /// Create a new label from UTF8 input.
     #[must_use]
+    #[inline]
     pub fn new(label: &str) -> Self {
         let bytes = label.as_bytes();
         let without_quotes = AlignedBytes::<LabelAlignment>::from(bytes);
@@ -112,6 +115,7 @@ impl Label {
 
     /// Return the raw bytes of the label, guaranteed to be block-aligned.
     #[must_use]
+    #[inline(always)]
     pub fn bytes(&self) -> &AlignedSlice<LabelAlignment> {
         &self.label
     }
@@ -119,6 +123,7 @@ impl Label {
     /// Return the bytes representing the label with a leading and trailing
     /// double quote symbol `"`, guaranteed to be block-aligned.
     #[must_use]
+    #[inline(always)]
     pub fn bytes_with_quotes(&self) -> &AlignedSlice<LabelAlignment> {
         &self.label_with_quotes
     }
@@ -127,6 +132,7 @@ impl Label {
     ///
     /// If the label contains invalid UTF8, the value will always be `"[invalid utf8]"`.
     #[must_use]
+    #[inline(always)]
     pub fn display(&self) -> impl Display + '_ {
         std::str::from_utf8(&self.label).unwrap_or("[invalid utf8]")
     }
@@ -135,12 +141,14 @@ impl Label {
 impl std::ops::Deref for Label {
     type Target = AlignedSlice<LabelAlignment>;
 
+    #[inline(always)]
     fn deref(&self) -> &Self::Target {
         self.bytes()
     }
 }
 
 impl PartialEq<Self> for Label {
+    #[inline(always)]
     fn eq(&self, other: &Self) -> bool {
         self.label == other.label
     }
@@ -149,30 +157,35 @@ impl PartialEq<Self> for Label {
 impl Eq for Label {}
 
 impl PartialEq<Label> for [u8] {
+    #[inline(always)]
     fn eq(&self, other: &Label) -> bool {
         self == &other.label
     }
 }
 
 impl PartialEq<Label> for &[u8] {
+    #[inline(always)]
     fn eq(&self, other: &Label) -> bool {
         *self == &other.label
     }
 }
 
 impl PartialEq<[u8]> for Label {
+    #[inline(always)]
     fn eq(&self, other: &[u8]) -> bool {
         &self.label == other
     }
 }
 
 impl PartialEq<&[u8]> for Label {
+    #[inline(always)]
     fn eq(&self, other: &&[u8]) -> bool {
         &self.label == *other
     }
 }
 
 impl std::hash::Hash for Label {
+    #[inline(always)]
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         let slice: &[u8] = &self.label;
         slice.hash(state);
@@ -196,6 +209,7 @@ impl JsonPathQueryNode {
     /// Retrieve the child of the node or `None` if it is the last one
     /// on the list.
     #[must_use]
+    #[inline(always)]
     pub fn child(&self) -> Option<&Self> {
         match self {
             Root(node) | Child(_, node) | Descendant(_, node) => node.as_deref(),
@@ -205,6 +219,7 @@ impl JsonPathQueryNode {
     /// Create an iterator over nodes of the query in sequence,
     /// starting from the root.
     #[must_use]
+    #[inline(always)]
     pub fn iter(&self) -> JsonPathQueryIterator {
         JsonPathQueryIterator { node: Some(self) }
     }
@@ -225,6 +240,7 @@ pub struct JsonPathQueryIterator<'a> {
 impl<'a> Iterator for JsonPathQueryIterator<'a> {
     type Item = &'a JsonPathQueryNode;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         let result = self.node;
 
@@ -242,11 +258,13 @@ impl JsonPathQuery {
     /// It is guaranteed that the root is the [`JsonPathQueryNode::Root`]
     /// variant and always exists.
     #[must_use]
+    #[inline(always)]
     pub fn root(&self) -> &JsonPathQueryNode {
         self.root.as_ref()
     }
 
     /// Parse a query string into a [`JsonPathQuery`].
+    #[inline(always)]
     pub fn parse(query_string: &str) -> Result<Self> {
         self::parser::parse_json_path_query(query_string)
     }
@@ -255,6 +273,7 @@ impl JsonPathQuery {
     ///
     /// If node is not the [`JsonPathQueryNode::Root`] variant it will be
     /// automatically wrapped into a [`JsonPathQueryNode::Root`] node.
+    #[inline]
     pub fn new(node: Box<JsonPathQueryNode>) -> Result<Self> {
         let root = if node.is_root() {
             node
@@ -268,12 +287,14 @@ impl JsonPathQuery {
 }
 
 impl Display for JsonPathQuery {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.root.as_ref())
     }
 }
 
 impl Display for JsonPathQueryNode {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Root(_) => write!(f, "$"),
@@ -307,18 +328,22 @@ pub trait JsonPathQueryNodeType {
 }
 
 impl JsonPathQueryNodeType for JsonPathQueryNode {
+    #[inline(always)]
     fn is_root(&self) -> bool {
         matches!(self, Root(_))
     }
 
+    #[inline(always)]
     fn is_descendant(&self) -> bool {
         matches!(self, Descendant(_, _))
     }
 
+    #[inline(always)]
     fn is_child(&self) -> bool {
         matches!(self, Child(_, _))
     }
 
+    #[inline(always)]
     fn label(&self) -> Option<&Label> {
         match self {
             Child(label, _) | Descendant(label, _) => Some(label),
@@ -332,18 +357,22 @@ impl JsonPathQueryNodeType for JsonPathQueryNode {
 /// If the value is `None` automatically returns `false` or `None` on all calls in
 /// the natural manner.
 impl<T: std::ops::Deref<Target = JsonPathQueryNode>> JsonPathQueryNodeType for Option<T> {
+    #[inline(always)]
     fn is_root(&self) -> bool {
         self.as_ref().map_or(false, |x| x.is_root())
     }
 
+    #[inline(always)]
     fn is_descendant(&self) -> bool {
         self.as_ref().map_or(false, |x| x.is_descendant())
     }
 
+    #[inline(always)]
     fn is_child(&self) -> bool {
         self.as_ref().map_or(false, |x| x.is_child())
     }
 
+    #[inline(always)]
     fn label(&self) -> Option<&Label> {
         self.as_ref().and_then(|x| x.label())
     }

@@ -34,6 +34,7 @@ impl StacklessRunner<'_> {
     ///
     /// Compilation time is proportional to the length of the query.
     #[must_use]
+    #[inline(always)]
     pub fn compile_query(query: &JsonPathQuery) -> StacklessRunner<'_> {
         let automaton = Automaton::new(query);
 
@@ -42,6 +43,7 @@ impl StacklessRunner<'_> {
 }
 
 impl Runner for StacklessRunner<'_> {
+    #[inline]
     fn run<R: QueryResult>(&self, input: &Input) -> R {
         if self.automaton.is_empty_query() {
             return empty_query(input);

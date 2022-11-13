@@ -23,6 +23,7 @@ pub struct Input {
 impl std::ops::Deref for Input {
     type Target = AlignedBytes<alignment::Page>;
 
+    #[inline(always)]
     fn deref(&self) -> &Self::Target {
         &self.bytes
     }
@@ -33,6 +34,7 @@ impl Input {
     ///
     /// The buffer must know its length, may be extended by auxiliary UTF8 characters
     /// and will be interpreted as a slice of bytes at the end.
+    #[inline]
     pub fn new<T: Extend<char> + Len + AsRef<[u8]>>(src: T) -> Self {
         cfg_if! {
             if #[cfg(feature = "simd")] {
@@ -66,6 +68,7 @@ impl Input {
     /// Transmute a buffer into an input.
     ///
     /// The buffer must know its length, may be extended by auxiliary bytes.
+    #[inline]
     pub fn new_bytes<T: Extend<u8> + Len + AsRef<[u8]>>(src: T) -> Self {
         cfg_if! {
             if #[cfg(feature = "simd")] {

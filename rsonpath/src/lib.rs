@@ -130,6 +130,7 @@
     clippy::map_unwrap_or,
     clippy::match_same_arms,
     clippy::match_wildcard_for_single_variants,
+    clippy::missing_inline_in_public_items,
     clippy::mod_module_files,
     clippy::must_use_candidate,
     clippy::needless_continue,

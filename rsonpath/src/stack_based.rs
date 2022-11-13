@@ -19,6 +19,7 @@ pub struct StackBasedRunner<'q> {
 impl<'q> StackBasedRunner<'q> {
     /// Compile a query into a [`StackBasedRunner`].
     #[must_use]
+    #[inline(always)]
     pub fn compile_query(query: &'q JsonPathQuery) -> Self {
         let automaton = Automaton::new(query);
 
@@ -27,6 +28,7 @@ impl<'q> StackBasedRunner<'q> {
 }
 
 impl Runner for StackBasedRunner<'_> {
+    #[inline]
     fn run<R: QueryResult>(&self, input: &Input) -> R {
         if self.automaton.is_empty_query() {
             return empty_query(input);

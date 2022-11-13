@@ -57,6 +57,7 @@ impl PartialEq<BTreeSet<NfaStateId>> for Superstate {
 }
 
 impl PartialEq<Superstate> for BTreeSet<NfaStateId> {
+    #[inline(always)]
     fn eq(&self, other: &Superstate) -> bool {
         other.eq(self)
     }

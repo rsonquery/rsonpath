@@ -24,6 +24,7 @@ impl CountResult {
 }
 
 impl Display for CountResult {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.count)
     }
@@ -53,12 +54,14 @@ impl IndexResult {
 }
 
 impl From<IndexResult> for Vec<usize> {
+    #[inline(always)]
     fn from(result: IndexResult) -> Self {
         result.indices
     }
 }
 
 impl Display for IndexResult {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self.indices)
     }
