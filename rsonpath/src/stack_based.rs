@@ -71,7 +71,7 @@ macro_rules! increase_depth {
     ($x:expr) => {
         #[cfg(debug_assertions)]
         {
-            $x.depth -= 1;
+            $x.depth += 1;
         }
     };
 }
