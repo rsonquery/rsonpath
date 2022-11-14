@@ -1,0 +1,62 @@
+{
+	"folders": [
+		{
+			"name": "rsonpath-benchmarks",
+			"path": "."
+		}
+	],
+	"settings": {
+		"cSpell.words": [
+			"bitmasks",
+			"clippy",
+			"clmulepi",
+			"cmpeq",
+			"codegen",
+			"color_eyre",
+			"cvtsi",
+			"datavalue",
+			"dealloc",
+			"Deque",
+			"docsrs",
+			"ebnf",
+			"Gienieczko",
+			"Goessner",
+			"Hasher",
+			"jsonpath",
+			"loadu",
+			"mainsnak",
+			"Mateusz",
+			"memchr",
+			"movemask",
+			"nonescaped",
+			"nonquoted",
+			"nosimd",
+			"owo_colors",
+			"Peekable",
+			"proptest",
+			"regs",
+			"repr",
+			"rsonpath",
+			"rustdoc",
+			"RUSTFLAGS",
+			"rustfmt",
+			"SIMD",
+			"snaks",
+			"srli",
+			"stackless",
+			"Structurals",
+			"Uninit",
+			"vectorially",
+			"WHITESPACES"
+		],
+		"cSpell.language": "en-US",
+		"lldb.displayFormat": "auto",
+		"lldb.showDisassembly": "never",
+		"lldb.dereferencePointers": true,
+		"lldb.consoleMode": "commands",
+		"rust-analyzer.cargo.features": [
+		],
+		"rust-analyzer.cargo.noDefaultFeatures": true,
+		"rust-analyzer.cargo.allFeatures": false
+	}
+}
