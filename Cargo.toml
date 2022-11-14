@@ -1,8 +1,8 @@
 [workspace]
 
 members = [
-    "rsonpath",
-    "rsonpath-benchmarks"
+    "crates/rsonpath",
+    "crates/rsonpath-benchmarks"
 ]
 
 [profile.dev]

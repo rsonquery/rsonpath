@@ -1,0 +1,4 @@
+* eol=lf
+*.json filter=lfs diff=lfs merge=lfs -text
+/implementations/jsonski/* linguist-vendored
+/data/ast/parse_date.c linguist-vendored
