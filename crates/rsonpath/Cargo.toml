@@ -19,7 +19,7 @@ repository = "https://github.com/V0ldek/rsonpath"
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
-clap = { version = "3.1.18", features = ["derive"] }
+clap = { version = "4.0.25", features = ["derive", "wrap_help"] }
 color-eyre = { version = "0.6.1", default-features = false }
 eyre = "0.6.8"
 log = "0.4.17"

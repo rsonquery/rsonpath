@@ -1,4 +1,4 @@
-use clap::{ArgEnum, Parser};
+use clap::{ValueEnum, Parser};
 use color_eyre::eyre::{eyre, Result, WrapErr};
 use color_eyre::{Help, SectionExt};
 use log::*;
@@ -139,14 +139,14 @@ struct Args {
     #[clap(short, long)]
     verbose: bool,
     /// Engine to use for evaluating the query.
-    #[clap(short, long, arg_enum, default_value_t = EngineArg::Main)]
+    #[clap(short, long, value_enum, default_value_t = EngineArg::Main)]
     engine: EngineArg,
     ///
-    #[clap(short, long, arg_enum, default_value_t = ResultArg::Bytes)]
+    #[clap(short, long, value_enum, default_value_t = ResultArg::Bytes)]
     result: ResultArg,
 }
 
-#[derive(ArgEnum, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
 enum EngineArg {
     /// Main SIMD-optimized iterative engine.
     Main,
@@ -158,7 +158,7 @@ enum EngineArg {
     VerifyBoth,
 }
 
-#[derive(ArgEnum, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
 enum ResultArg {
     /// Return a list of all bytes at which a match occurred.
     Bytes,
