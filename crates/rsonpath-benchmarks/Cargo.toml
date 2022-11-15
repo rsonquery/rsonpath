@@ -21,7 +21,7 @@ cfg-if = "1.0.0"
 criterion = "0.4.0"
 eyre = "0.6.8"
 jni = { version = "0.19.0", features = ["invocation", "default"] }
-libc = "0.2.126"
+libc = "0.2.137"
 lazy_static = "1.4.0"
 ouroboros = "0.15.5"
 rsonpath = { package = "rsonpath-lib", path = "../rsonpath-lib", default-features = false }
@@ -32,7 +32,7 @@ default = ["simd"]
 simd = ["rsonpath/simd"]
 
 [build-dependencies]
-cc = "1.0"
+cc = "1.0.76"
 eyre = "0.6.8"
 
 

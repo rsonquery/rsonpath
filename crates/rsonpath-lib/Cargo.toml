@@ -24,13 +24,13 @@ len-trait = "0.6.1"
 log = "0.4.17"
 memchr = "2.5.0"
 nom = "7.1.1"
-smallvec = { version = "1.8.0", features = ["union"] }
+smallvec = { version = "1.10.0", features = ["union"] }
 thiserror = "1.0.37"
 vector-map = "1.0.1"
 
 [dev-dependencies]
 proptest = "1.0.0"
-test-case = "2.1.0"
+test-case = "2.2.2"
 
 [build-dependencies]
 eyre = "0.6.8"
