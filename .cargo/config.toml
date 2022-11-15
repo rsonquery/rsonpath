@@ -2,4 +2,4 @@
 rustflags = "-C target-cpu=native"
 
 [alias]
-rsontest = "hack test -p rsonpath --feature-powerset --skip default"
+rsontest = "hack test -p rsonpath-lib --feature-powerset --skip default"

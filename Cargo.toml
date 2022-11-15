@@ -2,7 +2,8 @@
 
 members = [
     "crates/rsonpath",
-    "crates/rsonpath-benchmarks"
+    "crates/rsonpath-benchmarks",
+    "crates/rsonpath-lib"
 ]
 
 [profile.dev]

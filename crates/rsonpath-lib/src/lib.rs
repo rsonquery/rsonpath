@@ -5,9 +5,9 @@
 //!
 //! # Examples
 //! ```rust
-//! use rsonpath::engine::{Input, Runner, result::CountResult};
-//! use rsonpath::query::JsonPathQuery;
-//! use rsonpath::stackless::StacklessRunner;
+//! use rsonpath_lib::engine::{Input, Runner, result::CountResult};
+//! use rsonpath_lib::query::JsonPathQuery;
+//! use rsonpath_lib::stackless::StacklessRunner;
 //! # use std::error::Error;
 //!
 //! # fn main() -> Result<(), Box<dyn Error>> {

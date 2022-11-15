@@ -7,11 +7,11 @@
 //!
 //! # Examples
 //! ```rust
-//! use rsonpath::classify::{Structural, classify_structural_characters};
+//! use rsonpath_lib::classify::{Structural, classify_structural_characters};
 //! use aligners::{alignment, AlignedBytes};
 //!
 //! let json = r#"{"x": [{"y": 42}, {}]}""#;
-//! let aligned = AlignedBytes::<alignment::Twice<rsonpath::BlockAlignment>>::new_padded(json.as_bytes());
+//! let aligned = AlignedBytes::<alignment::Twice<rsonpath_lib::BlockAlignment>>::new_padded(json.as_bytes());
 //! let expected = vec![
 //!     Structural::Opening(0),
 //!     Structural::Colon(4),
@@ -25,22 +25,22 @@
 //!     Structural::Closing(20),
 //!     Structural::Closing(21)
 //! ];
-//! let quote_classifier = rsonpath::quotes::classify_quoted_sequences(&aligned);
+//! let quote_classifier = rsonpath_lib::quotes::classify_quoted_sequences(&aligned);
 //! let actual = classify_structural_characters(quote_classifier).collect::<Vec<Structural>>();
 //! assert_eq!(expected, actual);
 //! ```
 //! ```rust
-//! use rsonpath::classify::{Structural, classify_structural_characters};
+//! use rsonpath_lib::classify::{Structural, classify_structural_characters};
 //! use aligners::{alignment, AlignedBytes};
 //!
 //! let json = r#"{"x": "[\"\"]"}""#;
-//! let aligned = AlignedBytes::<alignment::Twice<rsonpath::BlockAlignment>>::new_padded(json.as_bytes());
+//! let aligned = AlignedBytes::<alignment::Twice<rsonpath_lib::BlockAlignment>>::new_padded(json.as_bytes());
 //! let expected = vec![
 //!     Structural::Opening(0),
 //!     Structural::Colon(4),
 //!     Structural::Closing(14)
 //! ];
-//! let quote_classifier = rsonpath::quotes::classify_quoted_sequences(&aligned);
+//! let quote_classifier = rsonpath_lib::quotes::classify_quoted_sequences(&aligned);
 //! let actual = classify_structural_characters(quote_classifier).collect::<Vec<Structural>>();
 //! assert_eq!(expected, actual);
 //! ```
@@ -88,7 +88,7 @@ impl Structural {
     ///
     /// # Examples
     /// ```rust
-    /// # use rsonpath::classify::{Structural};
+    /// # use rsonpath_lib::classify::{Structural};
     ///
     /// let structural = Structural::Colon(42);
     /// let offset_structural = structural.offset(10);

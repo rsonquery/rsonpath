@@ -1,15 +1,14 @@
 [package]
-name = "rsonpath"
+name = "rsonpath-lib"
 version = "0.1.2"
 authors = ["Mateusz Gienieczko <mat@gienieczko.com>"]
 edition = "2021"
 description = "Blazing fast JSONPath query engine powered by SIMD."
 readme = "../../README.md"
 license = "MIT"
-keywords = ["json", "jsonpath", "query", "simd", "cli"]
-exclude = ["/data"]
+keywords = ["json", "jsonpath", "query", "simd"]
+exclude = ["/tests", "/proptest-regressions"]
 categories = [
-    "command-line-utilities",
     "text-processing",
     "parser-implementations",
 ]
@@ -19,12 +18,22 @@ repository = "https://github.com/V0ldek/rsonpath"
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
-clap = { version = "3.1.18", features = ["derive"] }
-color-eyre = { version = "0.6.1", default-features = false }
-eyre = "0.6.8"
+aligners = "0.0.10"
+cfg-if = "1.0.0"
+len-trait = "0.6.1"
 log = "0.4.17"
-rsonpath-lib = { path = "../rsonpath-lib" }
-simple_logger = "2.1.0"
+memchr = "2.5.0"
+nom = "7.1.1"
+smallvec = { version = "1.8.0", features = ["union"] }
+thiserror = "1.0.37"
+vector-map = "1.0.1"
+
+[dev-dependencies]
+proptest = "1.0.0"
+test-case = "2.1.0"
+
+[build-dependencies]
+eyre = "0.6.8"
 
 [features]
 default = ["simd"]

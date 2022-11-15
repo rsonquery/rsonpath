@@ -2,11 +2,11 @@ use clap::{ArgEnum, Parser};
 use color_eyre::eyre::{eyre, Result, WrapErr};
 use color_eyre::{Help, SectionExt};
 use log::*;
-use rsonpath::engine::result::{CountResult, IndexResult, QueryResult};
-use rsonpath::engine::{Input, Runner};
-use rsonpath::query::JsonPathQuery;
-use rsonpath::stack_based::StackBasedRunner;
-use rsonpath::stackless::StacklessRunner;
+use rsonpath_lib::engine::result::{CountResult, IndexResult, QueryResult};
+use rsonpath_lib::engine::{Input, Runner};
+use rsonpath_lib::query::JsonPathQuery;
+use rsonpath_lib::stack_based::StackBasedRunner;
+use rsonpath_lib::stackless::StacklessRunner;
 use simple_logger::SimpleLogger;
 
 fn main() -> Result<()> {
@@ -70,7 +70,7 @@ fn run<R: QueryResult>(query: &JsonPathQuery, input: &Input, engine: EngineArg) 
 }
 
 fn parse_query(query_string: &str) -> Result<JsonPathQuery> {
-    use rsonpath::query::errors::QueryError;
+    use rsonpath_lib::query::errors::QueryError;
     match JsonPathQuery::parse(query_string) {
         Ok(query) => Ok(query),
         Err(e) => {

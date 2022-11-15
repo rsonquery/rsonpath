@@ -63,14 +63,14 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: hack
-          args: build --package rsonpath --feature-powerset --skip default
+          args: build --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default
         env:
           RUSTFLAGS: "-C target-feature=+${{ matrix.target_feature }} --deny warnings"
       - name: Test all feature sets
         uses: actions-rs/cargo@v1
         with:
           command: hack
-          args: test --package rsonpath --feature-powerset --skip default
+          args: test --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default
         env:
           RUSTFLAGS: "-C target-feature=+${{ matrix.target_feature }} --deny warnings"
 
@@ -105,14 +105,14 @@ jobs:
       uses: actions-rs/cargo@v1
       with:
         command: build
-        args: --package rsonpath --all-features --release
+        args: --workspace --exclude rsonpath-benchmarks --all-features --release
       env:
         RUSTFLAGS: "-C target-feature=+avx2 --deny warnings"
     - name: Clippy all features
       uses: actions-rs/clippy-check@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        args: --package rsonpath --all-features --release -- --deny warnings
+        args: --workspace --exclude rsonpath-benchmarks --all-features --release -- --deny warnings
       env:
         RUSTFLAGS: "-C target-feature=+avx2"
 
@@ -147,14 +147,14 @@ jobs:
       uses: actions-rs/cargo@v1
       with:
         command: build
-        args: --package rsonpath --all-features --release
+        args: --workspace --exclude rsonpath-benchmarks --all-features --release
       env:
         RUSTFLAGS: "-C target-feature=+avx2 --deny warnings"
     - name: Clippy all features
       uses: actions-rs/clippy-check@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        args: --package rsonpath --all-features --release -- --deny warnings
+        args: --workspace --exclude rsonpath-benchmarks --all-features --release -- --deny warnings
       env:
         RUSTFLAGS: "-C target-feature=+avx2"
 
@@ -187,7 +187,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: doc
-          args: --package rsonpath --all-features --no-deps
+          args: --package rsonpath-lib --all-features --no-deps
         env:
           RUSTFLAGS: "-C target-feature=+avx2"
           RUSTDOCFLAGS: "-Dwarnings --cfg docsrs"
@@ -210,4 +210,4 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: fmt
-          args: --package rsonpath -- --check
+          args: --package rsonpath rsonpath-lib -- --check
