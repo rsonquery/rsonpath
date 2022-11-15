@@ -2,13 +2,16 @@ CARGO=cargo
 
 make: rsonpath
 
-rsonpath: check_cargo
+rsonpath: rsonpath_lib check_cargo
 	$(CARGO) build --bin rsonpath --release
+
+rsonpath_lib: check_cargo
+	$(CARGO) build --package rsonpath-lib --release
 
 .PHONY: bench check_cargo clean clean_benches doc install uninstall test
 
-bench: rsonpath
-	$(CARGO) bench --config 'patch.crates-io.rsonpath.path = "./rsonpath"'
+bench: rsonpath_lib
+	$(CARGO) bench --config 'patch.crates-io.rsonpath-lib.path = "./crates/rsonpath-lib"'
 
 # Check if cargo is present, if not, use rustup to setup.
 check_cargo:
@@ -27,15 +30,15 @@ clean:
 clean_benches:
 	rm -rf ./target/criterion/*
 
-doc: rsonpath
-	RUSTDOCFLAGS="--cfg docsrs" cargo +nightly doc --open --package rsonpath
+doc: rsonpath_lib
+	RUSTDOCFLAGS="--cfg docsrs" cargo +nightly doc --open --package rsonpath-lib
 
 install: rsonpath
 	$(CARGO) install --path ./rsonpath
 
-test: rsonpath
+test: rsonpath_lib
 	cargo install cargo-hack
-	$(CARGO) rsontest --package rsonpath
+	$(CARGO) rsontest
 
 uninstall:
 	$(CARGO) uninstall rsonpath

@@ -1,10 +1,10 @@
-use rsonpath::engine::{
+use rsonpath_lib::engine::{
     result::{CountResult, IndexResult},
     Input, Runner,
 };
-use rsonpath::query::JsonPathQuery;
-use rsonpath::stack_based::StackBasedRunner;
-use rsonpath::stackless::StacklessRunner;
+use rsonpath_lib::query::JsonPathQuery;
+use rsonpath_lib::stack_based::StackBasedRunner;
+use rsonpath_lib::stackless::StacklessRunner;
 use std::fs;
 use test_case::test_case;
 

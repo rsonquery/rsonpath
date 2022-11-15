@@ -1,7 +1,7 @@
 use aligners::AlignedBytes;
-use rsonpath::classify::classify_structural_characters;
-use rsonpath::classify::Structural;
-use rsonpath::quotes::classify_quoted_sequences;
+use rsonpath_lib::classify::classify_structural_characters;
+use rsonpath_lib::classify::Structural;
+use rsonpath_lib::quotes::classify_quoted_sequences;
 
 fn classify_string(json: &str) -> Vec<Structural> {
     let bytes = AlignedBytes::new_padded(json.as_bytes());
