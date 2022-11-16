@@ -16,7 +16,6 @@ cfg_if::cfg_if! {
 use super::*;
 use crate::bin;
 use crate::quotes::{QuoteClassifiedBlock, ResumeClassifierBlockState};
-use len_trait::Empty;
 
 #[cfg(target_arch = "x86")]
 use core::arch::x86::*;
@@ -29,7 +28,7 @@ struct StructuralsBlock<'a> {
 }
 
 impl<'a> StructuralsBlock<'a> {
-    #[inline]
+    #[inline(always)]
     fn new(block: QuoteClassifiedBlock<'a>, structural_mask: u64) -> Self {
         Self {
             quote_classified: block,
@@ -37,7 +36,12 @@ impl<'a> StructuralsBlock<'a> {
         }
     }
 
-    #[inline]
+    #[inline(always)]
+    fn is_empty(&self) -> bool {
+        self.structural_mask == 0
+    }
+
+    #[inline(always)]
     fn get_idx(&self) -> u32 {
         self.structural_mask.trailing_zeros()
     }
@@ -75,12 +79,6 @@ impl ExactSizeIterator for StructuralsBlock<'_> {
     }
 }
 
-impl Empty for StructuralsBlock<'_> {
-    fn is_empty(&self) -> bool {
-        self.structural_mask == 0
-    }
-}
-
 pub(crate) struct Avx2Classifier<'a, I: QuoteClassifiedIterator<'a>> {
     iter: I,
     classifier: BlockAvx2Classifier,
@@ -115,7 +113,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> Avx2Classifier<'a, I> {
 
     #[inline(always)]
     fn current_block_is_spent(&self) -> bool {
-        self.block.as_ref().map_or(true, Empty::is_empty)
+        self.block.as_ref().map_or(true, StructuralsBlock::is_empty)
     }
 }
 
@@ -136,12 +134,6 @@ impl<'a, I: QuoteClassifiedIterator<'a>> Iterator for Avx2Classifier<'a, I> {
 }
 
 impl<'a, I: QuoteClassifiedIterator<'a>> std::iter::FusedIterator for Avx2Classifier<'a, I> {}
-
-impl<'a, I: QuoteClassifiedIterator<'a>> Empty for Avx2Classifier<'a, I> {
-    fn is_empty(&self) -> bool {
-        self.current_block_is_spent() && self.iter.is_empty()
-    }
-}
 
 impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a, I> for Avx2Classifier<'a, I> {
     fn stop(self) -> ResumeClassifierState<'a, I> {

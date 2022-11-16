@@ -11,7 +11,6 @@ use aligners::{
     AlignedBytes,
 };
 use cfg_if::cfg_if;
-use len_trait::Len;
 
 use self::result::QueryResult;
 
@@ -35,13 +34,13 @@ impl Input {
     /// The buffer must know its length, may be extended by auxiliary UTF8 characters
     /// and will be interpreted as a slice of bytes at the end.
     #[inline]
-    pub fn new<T: Extend<char> + Len + AsRef<[u8]>>(src: T) -> Self {
+    pub fn new<T: Extend<char> + AsRef<[u8]>>(src: T) -> Self {
         cfg_if! {
             if #[cfg(feature = "simd")] {
                 use aligners::alignment::Alignment;
                 type A = alignment::Twice::<crate::BlockAlignment>;
                 let mut contents = src;
-                let rem = contents.len() % A::size();
+                let rem = contents.as_ref().len() % A::size();
                 let pad = if rem == 0 {
                     0
                 } else {
@@ -51,7 +50,7 @@ impl Input {
                 let extension = std::iter::repeat('\0').take(pad + A::size());
                 contents.extend(extension);
 
-                debug_assert_eq!(contents.len() % A::size(), 0);
+                debug_assert_eq!(contents.as_ref().len() % A::size(), 0);
 
                 Self {
                     bytes: AlignedBytes::<alignment::Page>::from(contents.as_ref()),
@@ -69,13 +68,13 @@ impl Input {
     ///
     /// The buffer must know its length, may be extended by auxiliary bytes.
     #[inline]
-    pub fn new_bytes<T: Extend<u8> + Len + AsRef<[u8]>>(src: T) -> Self {
+    pub fn new_bytes<T: Extend<u8> + AsRef<[u8]>>(src: T) -> Self {
         cfg_if! {
             if #[cfg(feature = "simd")] {
                 use aligners::alignment::Alignment;
                 type A = alignment::Twice::<crate::BlockAlignment>;
                 let mut contents = src;
-                let rem = contents.len() % A::size();
+                let rem = contents.as_ref().len() % A::size();
                 let pad = if rem == 0 {
                     0
                 } else {
@@ -85,7 +84,7 @@ impl Input {
                 let extension = std::iter::repeat(0).take(pad + A::size());
                 contents.extend(extension);
 
-                debug_assert_eq!(contents.len() % A::size(), 0);
+                debug_assert_eq!(contents.as_ref().len() % A::size(), 0);
 
                 Self {
                     bytes: AlignedBytes::<alignment::Page>::from(contents.as_ref()),

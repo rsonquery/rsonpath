@@ -104,53 +104,98 @@ background on the engine and details of its implementation.
 
 ## Dependencies
 
+Showing direct dependencies, for full graph see below.
+
+```bash
+cargo tree --package rsonpath --edges normal --depth 1
+```
+
+```ini
+rsonpath v0.1.2 (/home/mat/rsonpath/crates/rsonpath)
+├── clap v4.0.25
+├── color-eyre v0.6.2
+├── eyre v0.6.8
+├── log v0.4.17
+├── rsonpath-lib v0.1.2
+└── simple_logger v4.0.0
+```
+
+```bash
+cargo tree --package rsonpath-lib --edges normal --depth 1
+```
+
+```ini
+rsonpath-lib v0.1.2 (/home/mat/rsonpath/crates/rsonpath-lib)
+├── aligners v0.0.10
+├── cfg-if v1.0.0
+├── log v0.4.17
+├── memchr v2.5.0
+├── nom v7.1.1
+├── smallvec v1.10.0
+├── thiserror v1.0.37
+└── vector-map v1.0.1
+```
+
+### Justification
+
+- `clap` &ndash; standard crate to provide the CLI.
+- `color-eyre`, `eyre` &ndash; more accessible error messages for the parser.
+- `log`, `simple-logger` &ndash; diagnostic logs during compilation and execution.
+
+- `aligners` &ndash; SIMD operations require correct input data alignment, putting those requirements at type level makes our code more robust.
+- `cfg-if` &ndash; used to support SIMD and no-SIMD versions.
+- `memchr` &ndash; rapid, SIMDified substring search for fast-forwarding to labels.
+- `nom` &ndash; for parser implementation.
+- `smallvec` &ndash; crucial for small-stack performance.
+- `thiserror` &ndash; idiomatic `Error` implementations.
+- `vector_map` &ndash; used in the query compiler for measurably better performance.
+
+## Full dependency tree
+
 ```bash
 cargo tree --package rsonpath --edges normal
 ```
 
 ```ini
-rsonpath v0.1.2
-├── aligners v0.0.10
-│   ├── cfg-if v1.0.0
-│   ├── lazy_static v1.4.0
-│   └── page_size v0.4.2
-│       └── libc v0.2.126
-├── cfg-if v1.0.0
-├── clap v3.1.18
+rsonpath v0.1.2 (/home/mat/rsonpath/crates/rsonpath)
+├── clap v4.0.25
 │   ├── atty v0.2.14
-│   │   └── libc v0.2.126
+│   │   └── libc v0.2.137
 │   ├── bitflags v1.3.2
-│   ├── clap_derive v3.1.18 (proc-macro)
+│   ├── clap_derive v4.0.21 (proc-macro)
 │   │   ├── heck v0.4.0
 │   │   ├── proc-macro-error v1.0.4
 │   │   │   ├── proc-macro-error-attr v1.0.4 (proc-macro)
-│   │   │   │   ├── proc-macro2 v1.0.39
+│   │   │   │   ├── proc-macro2 v1.0.47
 │   │   │   │   │   └── unicode-ident v1.0.0
 │   │   │   │   └── quote v1.0.18
-│   │   │   │       └── proc-macro2 v1.0.39 (*)
-│   │   │   ├── proc-macro2 v1.0.39 (*)
+│   │   │   │       └── proc-macro2 v1.0.47 (*)
+│   │   │   ├── proc-macro2 v1.0.47 (*)
 │   │   │   ├── quote v1.0.18 (*)
 │   │   │   └── syn v1.0.75
-│   │   │       ├── proc-macro2 v1.0.39 (*)
+│   │   │       ├── proc-macro2 v1.0.47 (*)
 │   │   │       ├── quote v1.0.18 (*)
 │   │   │       └── unicode-xid v0.2.2
-│   │   ├── proc-macro2 v1.0.39 (*)
+│   │   ├── proc-macro2 v1.0.47 (*)
 │   │   ├── quote v1.0.18 (*)
 │   │   └── syn v1.0.75 (*)
-│   ├── clap_lex v0.2.0
+│   ├── clap_lex v0.3.0
 │   │   └── os_str_bytes v6.1.0
-│   ├── indexmap v1.8.2
-│   │   └── hashbrown v0.11.2
-│   ├── lazy_static v1.4.0
+│   ├── once_cell v1.16.0
 │   ├── strsim v0.10.0
 │   ├── termcolor v1.1.3
-│   └── textwrap v0.15.0
-├── color-eyre v0.6.1
+│   └── terminal_size v0.2.2
+│       └── rustix v0.35.13
+│           ├── bitflags v1.3.2
+│           ├── io-lifetimes v0.7.5
+│           ├── libc v0.2.137
+│           └── linux-raw-sys v0.0.46
+├── color-eyre v0.6.2
 │   ├── backtrace v0.3.65
 │   │   ├── addr2line v0.17.0
 │   │   │   └── gimli v0.26.1
 │   │   ├── cfg-if v1.0.0
-│   │   ├── libc v0.2.126
+│   │   ├── libc v0.2.137
 │   │   ├── miniz_oxide v0.5.1
 │   │   │   └── adler v1.0.2
 │   │   ├── object v0.28.3
@@ -158,54 +203,56 @@ rsonpath v0.1.2
 │   │   └── rustc-demangle v0.1.21
 │   ├── eyre v0.6.8
 │   │   ├── indenter v0.3.3
-│   │   └── once_cell v1.10.0
+│   │   └── once_cell v1.16.0
 │   ├── indenter v0.3.3
-│   ├── once_cell v1.10.0
+│   ├── once_cell v1.16.0
 │   └── owo-colors v3.3.0
 ├── eyre v0.6.8 (*)
-├── len-trait v0.6.1
-│   └── cfg-if v0.1.10
 ├── log v0.4.17
 │   └── cfg-if v1.0.0
-├── memchr v2.5.0
-├── nom v7.1.1
-│   ├── memchr v2.5.0
-│   └── minimal-lexical v0.2.1
-├── simple_logger v2.1.0
-│   ├── colored v2.0.0
-│   │   ├── atty v0.2.14 (*)
-│   │   └── lazy_static v1.4.0
+├── rsonpath-lib v0.1.2 (/home/mat/rsonpath/crates/rsonpath-lib)
+│   ├── aligners v0.0.10
+│   │   ├── cfg-if v1.0.0
+│   │   ├── lazy_static v1.4.0
+│   │   └── page_size v0.4.2
+│   │       └── libc v0.2.137
+│   ├── cfg-if v1.0.0
 │   ├── log v0.4.17 (*)
-│   └── time v0.3.9
-│       ├── itoa v1.0.2
-│       ├── libc v0.2.126
-│       ├── num_threads v0.1.6
-│       └── time-macros v0.2.4 (proc-macro)
-├── smallvec v1.8.0
-└── vector-map v1.0.1
-    ├── contracts v0.4.0 (proc-macro)
-    │   ├── proc-macro2 v1.0.39 (*)
-    │   ├── quote v1.0.18 (*)
-    │   └── syn v1.0.75 (*)
-    └── rand v0.7.3
-        ├── getrandom v0.1.16
-        │   ├── cfg-if v1.0.0
-        │   └── libc v0.2.126
-        ├── libc v0.2.126
-        ├── rand_chacha v0.2.2
-        │   ├── ppv-lite86 v0.2.16
-        │   └── rand_core v0.5.1
-        │       └── getrandom v0.1.16 (*)
-        └── rand_core v0.5.1 (*)
+│   ├── memchr v2.5.0
+│   ├── nom v7.1.1
+│   │   ├── memchr v2.5.0
+│   │   └── minimal-lexical v0.2.1
+│   ├── smallvec v1.10.0
+│   ├── thiserror v1.0.37
+│   │   └── thiserror-impl v1.0.37 (proc-macro)
+│   │       ├── proc-macro2 v1.0.47 (*)
+│   │       ├── quote v1.0.18 (*)
+│   │       └── syn v1.0.75 (*)
+│   └── vector-map v1.0.1
+│       ├── contracts v0.4.0 (proc-macro)
+│       │   ├── proc-macro2 v1.0.47 (*)
+│       │   ├── quote v1.0.18 (*)
+│       │   └── syn v1.0.75 (*)
+│       └── rand v0.7.3
+│           ├── getrandom v0.1.16
+│           │   ├── cfg-if v1.0.0
+│           │   └── libc v0.2.137
+│           ├── libc v0.2.137
+│           ├── rand_chacha v0.2.2
+│           │   ├── ppv-lite86 v0.2.16
+│           │   └── rand_core v0.5.1
+│           │       └── getrandom v0.1.16 (*)
+│           └── rand_core v0.5.1 (*)
+└── simple_logger v4.0.0
+    ├── colored v2.0.0
+    │   ├── atty v0.2.14 (*)
+    │   └── lazy_static v1.4.0
+    ├── log v0.4.17 (*)
+    └── time v0.3.17
+        ├── itoa v1.0.2
+        ├── libc v0.2.137
+        ├── num_threads v0.1.6
+        ├── time-core v0.1.0
+        └── time-macros v0.2.6 (proc-macro)
+            └── time-core v0.1.0
 ```
-
-### Justification
-
-- `aligners` &ndash; SIMD operations require correct input data alignment, putting those requirements at type level makes our code more robust.
-- `cfg-if` &ndash; used to support SIMD and no-SIMD versions.
-- `clap` &ndash; standard crate to provide the CLI.
-- `color-eyre`, `eyre` &ndash; more accessible error messages for the parser.
-- `log`, `simple-logger` &ndash; diagnostic logs during compilation and execution.
-- `nom` &ndash; for parser implementation.
-- `smallvec` &ndash; crucial for small-stack performance.
-- `vector_map` &ndash; used in the query compiler for better performance.
