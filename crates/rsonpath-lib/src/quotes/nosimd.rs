@@ -1,7 +1,6 @@
 use super::*;
 use aligners::alignment::Alignment;
 use aligners::{AlignedBlockIterator, AlignedSlice};
-use len_trait::Empty;
 
 pub(crate) struct SequentialQuoteClassifier<'a> {
     iter: AlignedBlockIterator<'a, alignment::Twice<BlockAlignment>>,
@@ -68,15 +67,13 @@ impl<'a> Iterator for SequentialQuoteClassifier<'a> {
 
 impl<'a> std::iter::FusedIterator for SequentialQuoteClassifier<'a> {}
 
-impl<'a> Empty for SequentialQuoteClassifier<'a> {
-    fn is_empty(&self) -> bool {
-        self.iter.len() == 0
-    }
-}
-
 impl<'a> QuoteClassifiedIterator<'a> for SequentialQuoteClassifier<'a> {
     fn block_size() -> usize {
         Twice::<BlockAlignment>::size()
+    }
+    
+    fn is_empty(&self) -> bool {
+        self.iter.len() == 0
     }
 
     fn get_offset(&self) -> usize {
