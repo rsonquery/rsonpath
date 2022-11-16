@@ -71,15 +71,13 @@ impl<'a> Iterator for Avx2QuoteClassifier<'a> {
 
 impl std::iter::FusedIterator for Avx2QuoteClassifier<'_> {}
 
-impl len_trait::Empty for Avx2QuoteClassifier<'_> {
-    fn is_empty(&self) -> bool {
-        self.iter.len() == 0
-    }
-}
-
 impl<'a> QuoteClassifiedIterator<'a> for Avx2QuoteClassifier<'a> {
     fn block_size() -> usize {
         Twice::<BlockAlignment>::size()
+    }
+
+    fn is_empty(&self) -> bool {
+        self.iter.len() == 0
     }
 
     fn get_offset(&self) -> usize {

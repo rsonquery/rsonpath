@@ -20,7 +20,6 @@ rustdoc-args = ["--cfg", "docsrs"]
 [dependencies]
 aligners = "0.0.10"
 cfg-if = "1.0.0"
-len-trait = "0.6.1"
 log = "0.4.17"
 memchr = "2.5.0"
 nom = "7.1.1"
