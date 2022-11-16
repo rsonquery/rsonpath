@@ -41,9 +41,7 @@ impl<'a> QuoteClassifiedBlock<'a> {
 /// Trait for quote classifier iterators, i.e. finite iterators
 /// enriching blocks of input with quote bitmasks.
 /// Iterator is allowed to hold a reference to the JSON document valid for `'a`.
-pub trait QuoteClassifiedIterator<'a>:
-    Iterator<Item = QuoteClassifiedBlock<'a>> + 'a
-{
+pub trait QuoteClassifiedIterator<'a>: Iterator<Item = QuoteClassifiedBlock<'a>> + 'a {
     /// Get size of a single quote classified block returned by this iterator.
     fn block_size() -> usize;
 

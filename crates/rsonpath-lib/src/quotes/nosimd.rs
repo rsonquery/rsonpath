@@ -71,7 +71,7 @@ impl<'a> QuoteClassifiedIterator<'a> for SequentialQuoteClassifier<'a> {
     fn block_size() -> usize {
         Twice::<BlockAlignment>::size()
     }
-    
+
     fn is_empty(&self) -> bool {
         self.iter.len() == 0
     }
