@@ -1,0 +1,59 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      level:
+        description: 'Version bump level'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+        - patch
+        - minor
+        - major 
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build
+      run: cargo build 
+    - name: Rustup stable toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        components: rustfmt
+        override: true
+        default: true
+    - name: Cache restore
+      id: cache-restore
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: cargo-${{ hashFiles('**/Cargo.toml') }}-release\
+    - name: Build release
+      uses: actions-rs/cargo@v1
+      with:
+        command: build
+        args: --package rsonpath --release
+      env:
+        RUSTFLAGS: "-C target-feature=+avx2,+pclmulqdq --deny warnings"
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v3.1.1
+      with:
+        name: rsonpath
+        # A file, directory or wildcard pattern that describes what to upload
+        path: target/release/rsonpath
+        if-no-files-found: error
