@@ -106,5 +106,5 @@ jobs:
       uses: actions/upload-artifact@v3.1.1
       with:
         name: rsonpath-${{ matrix.triple }}-${{ matrix.artifact-suffix }}
-        path: target/release/rsonpath
+        path: target/release/rsonpath.exe
         if-no-files-found: error
