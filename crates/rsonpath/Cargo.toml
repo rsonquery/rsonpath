@@ -23,7 +23,7 @@ clap = { version = "4.0.25", features = ["derive", "wrap_help"] }
 color-eyre = { version = "0.6.2", default-features = false }
 eyre = "0.6.8"
 log = "0.4.17"
-rsonpath-lib = { path = "../rsonpath-lib" }
+rsonpath-lib = { path = "../rsonpath-lib", default-features = false }
 simple_logger = "4.0.0"
 
 [features]
