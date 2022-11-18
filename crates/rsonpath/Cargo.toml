@@ -28,5 +28,5 @@ simple_logger = "4.0.0"
 
 [features]
 default = ["simd"]
-simd = []
-commas = []
+simd = ["rsonpath-lib/simd"]
+commas = ["rsonpath-lib/commas"]
