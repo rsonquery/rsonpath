@@ -119,7 +119,7 @@ jobs:
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
-        files: release/*
+        files: release/**/*
         fail_on_unmatched_files: true
         generate_release_notes: true
         prerelease: ${{ endsWith(steps.metadata.outputs.version, 'rc') || endsWith(steps.metadata.outputs.version, 'alpha') || endsWith(steps.metadata.outputs.version, 'beta') }}
