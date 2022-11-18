@@ -77,18 +77,12 @@ jobs:
         key: ${{ matrix.os }}-${{ matrix.triple }}-${{ matrix.artifact-suffix }}-cargo-${{ hashFiles('**/Cargo.toml') }}-release
     - name: Build release without simd
       if: matrix.target-features == ''
-      uses: actions-rs/cargo@v1
-      with:
-        command: build
-        args: --package rsonpath --release --no-default-features
+      run: cargo build --package rsonpath --release --no-default-features
       env:
         RUSTFLAGS: "--deny warnings"
     - name: Build release with target-feature=${{ matrix.target-features }}
       if: matrix.target-features != ''
-      uses: actions-rs/cargo@v1
-      with:
-        command: build
-        args: --package rsonpath --release
+      run: cargo build --package rsonpath --release
       env:
         RUSTFLAGS: "-C target-feature=${{ matrix.target-features }} --deny warnings"
     - name: Upload the binary as artifact
