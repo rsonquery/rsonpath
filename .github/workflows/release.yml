@@ -25,10 +25,10 @@ jobs:
       fail-fast: true
       matrix:
         include:
-          - os: ubuntu-latest
-            triple: aarch64-unknown-linux-gnu
-            target-features: ''
-            artifact-suffix: 'nosimd'
+          #- os: ubuntu-latest
+          #  triple: aarch64-unknown-linux-gnu
+          #  target-features: ''
+          #  artifact-suffix: 'nosimd'
           - os: ubuntu-latest
             triple: i686-unknown-linux-gnu
             target-features: '+avx2,+pclmulqdq'
