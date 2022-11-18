@@ -51,7 +51,9 @@ jobs:
             simd-features: '[avx2, pclmulqdq]'
     steps:
     - id: vars
-      run: echo ${{ format('target-features=+{0}', join(fromJSON(matrix.simd-features), ',+')) }} >> $GITHUB_OUTPUT
+      name: Set target feature variables
+      run: echo ${{ format('target-features=+{0}', join(fromJSON(matrix.simd-features), ',+')) }} >> $GITHUB_OUTPUT &&
+           echo ${{ format('artifact-suffix={0}', join(fromJSON(matrix.simd-features), '-')) }} >> $GITHUB_OUTPUT
     - uses: actions/checkout@v3
     - name: Rustup ${{ matrix.triple }} toolchain
       uses: actions-rs/toolchain@v1
@@ -91,7 +93,7 @@ jobs:
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v3.1.1
       with:
-        name: rsonpath-${{ matrix.triple }}-${{ matrix.simd_feature }}
+        name: rsonpath-${{ matrix.triple }}-${{ steps.vars.outputs.artifact-suffix }}
         # A file, directory or wildcard pattern that describes what to upload
         path: target/release/rsonpath
         if-no-files-found: error
