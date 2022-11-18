@@ -27,33 +27,37 @@ jobs:
         include:
           - os: ubuntu-latest
             triple: aarch64-unknown-linux-gnu
-            simd-features: '[]'
+            target-features: ''
+            artifact-suffix: 'nosimd'
           - os: ubuntu-latest
             triple: i686-unknown-linux-gnu
-            simd-features: '[avx2, pclmulqdq]'
+            target-features: '+avx2,+pclmulqdq'
+            artifact-suffix: 'avx2-pclmulqdq'
           - os: ubuntu-latest
             triple: x86_64-unknown-linux-gnu
-            simd-features: '[avx2, pclmulqdq]'
+            target-features: '+avx2,+pclmulqdq'
+            artifact-suffix: 'avx2-pclmulqdq'
           - os: macos-latest
             triple: x86_64-apple-darwin
-            simd-features: '[avx2, pclmulqdq]'
+            target-features: '+avx2,+pclmulqdq'
+            artifact-suffix: 'avx2-pclmulqdq'
           - os: windows-latest
             triple: i686-pc-windows-gnu
-            simd-features: '[avx2, pclmulqdq]'
+            target-features: '+avx2,+pclmulqdq'
+            artifact-suffix: 'avx2-pclmulqdq'
           - os: windows-latest
             triple: i686-pc-windows-msvc
-            simd-features: '[avx2, pclmulqdq]'
+            target-features: '+avx2,+pclmulqdq'
+            artifact-suffix: 'avx2-pclmulqdq'
           - os: windows-latest
             triple: x86_64-pc-windows-gnu
-            simd-features: '[avx2, pclmulqdq]'
+            target-features: '+avx2,+pclmulqdq'
+            artifact-suffix: 'avx2-pclmulqdq'
           - os: windows-latest
             triple: x86_64-pc-windows-msvc
-            simd-features: '[avx2, pclmulqdq]'
+            target-features: '+avx2,+pclmulqdq'
+            artifact-suffix: 'avx2-pclmulqdq'
     steps:
-    - id: vars
-      name: Set target feature variables
-      run: echo ${{ format('target-features=+{0}', join(fromJSON(matrix.simd-features), ',+')) }} >> $GITHUB_OUTPUT &&
-           echo ${{ format('artifact-suffix={0}', join(fromJSON(matrix.simd-features), '-')) }} >> $GITHUB_OUTPUT
     - uses: actions/checkout@v3
     - name: Rustup ${{ matrix.triple }} toolchain
       uses: actions-rs/toolchain@v1
@@ -73,27 +77,27 @@ jobs:
           ~/.cargo/registry/cache/
           ~/.cargo/git/db/
           target/
-        key: ${{ matrix.os }}-${{ matrix.triple }}-${{ matrix.simd_feature }}-cargo-${{ hashFiles('**/Cargo.toml') }}-release
+        key: ${{ matrix.os }}-${{ matrix.triple }}-${{ matrix.artifact-suffix }}-cargo-${{ hashFiles('**/Cargo.toml') }}-release
     - name: Build release without simd
-      if: matrix.simd_feature == '[]'
+      if: matrix.target-features == ''
       uses: actions-rs/cargo@v1
       with:
         command: build
         args: --package rsonpath --release --no-default-features
       env:
         RUSTFLAGS: "--deny warnings"
-    - name: Build release with target-feature=${{ steps.vars.outputs.target-features }}
-      if: matrix.simd_feature != '[]'
+    - name: Build release with target-feature=${{ matrix.target-features }}
+      if: matrix.target-features != ''
       uses: actions-rs/cargo@v1
       with:
         command: build
         args: --package rsonpath --release
       env:
-        RUSTFLAGS: "-C target-feature=${{ matrix.simd_feature }} --deny warnings"
+        RUSTFLAGS: "-C target-feature=${{ matrix.target-features }} --deny warnings"
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v3.1.1
       with:
-        name: rsonpath-${{ matrix.triple }}-${{ steps.vars.outputs.artifact-suffix }}
+        name: rsonpath-${{ matrix.triple }}-${{ matrix.artifact-suffix }}
         # A file, directory or wildcard pattern that describes what to upload
         path: target/release/rsonpath
         if-no-files-found: error
