@@ -12,13 +12,15 @@ on:
         - patch
         - minor
         - major 
+  push:
+    tags:
+      - v**
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
   build:
-
     name: Build matrix
     runs-on: ${{ matrix.os }}
     strategy:
@@ -59,6 +61,8 @@ jobs:
             artifact-suffix: 'avx2-pclmulqdq'
     steps:
     - uses: actions/checkout@v3
+    - id: metadata
+      run: echo 'version=$(git describe --tags --abbrev=0)\n' > $GITHUB_OUTPUT
     - name: Install Rust toolchain
       uses: dtolnay/rust-toolchain@stable
       with:
@@ -89,13 +93,33 @@ jobs:
       if: matrix.os != 'windows-latest'
       uses: actions/upload-artifact@v3.1.1
       with:
-        name: rsonpath-${{ matrix.triple }}-${{ matrix.artifact-suffix }}
+        name: rsonpath-${{ matrix.triple }}-${{ matrix.artifact-suffix }}-${{ steps.metadata.outputs.version }}
         path: target/release/rsonpath
         if-no-files-found: error    
     - name: Upload the exe as artifact
       if: matrix.os == 'windows-latest'
       uses: actions/upload-artifact@v3.1.1
       with:
-        name: rsonpath-${{ matrix.triple }}-${{ matrix.artifact-suffix }}
+        name: rsonpath-${{ matrix.triple }}-${{ matrix.artifact-suffix }}-${{ steps.metadata.outputs.version }}
         path: target/release/rsonpath.exe
         if-no-files-found: error
+    
+  github-release:
+    name: Release on GitHub
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - id: metadata
+      run: echo 'version=$(git describe --tags --abbrev=0)\n' > $GITHUB_OUTPUT
+    - name: Download artifacts from build
+      uses: actions/download-artifact@v3.0.1
+      with:
+        path: release/
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: release/*
+        fail_on_unmatched_files: true
+        generate_release_notes: true
+        prerelease: ${{ endsWith(steps.metadata.outputs.version, 'rc') || endsWith(steps.metadata.outputs.version, 'alpha') || endsWith(steps.metadata.outputs.version, 'beta') }}
+        draft: true
