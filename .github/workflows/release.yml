@@ -59,14 +59,11 @@ jobs:
             artifact-suffix: 'avx2-pclmulqdq'
     steps:
     - uses: actions/checkout@v3
-    - name: Rustup ${{ matrix.triple }} toolchain
-      uses: actions-rs/toolchain@v1
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@v1
       with:
         toolchain: stable
         target: ${{ matrix.triple }}
-        components: rustfmt
-        override: true
-        default: true
     - name: Cache restore
       id: cache-restore
       uses: actions/cache@v3
