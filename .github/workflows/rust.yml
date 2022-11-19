@@ -17,29 +17,54 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        rust:
+        toolchain:
           - stable
           - nightly
-        os: 
-          - ubuntu-latest
-          - windows-latest
-          #- macos-latest
-        target_feature:
-          - avx2
+        triple:
+          - aarch64-unknown-linux-gnu
+          - i686-unknown-linux-gnu
+          - x86_64-unknown-linux-gnu
+          - x86_64-apple-darwin
+          - i686-pc-windows-gnu
+          - i686-pc-windows-msvc
+          - x86_64-pc-windows-gnu
+          - x86_64-pc-windows-msvc
+        include:
+          - os: ubuntu-latest
+            triple: aarch64-unknown-linux-gnu
+            target-features: ''
+          - os: ubuntu-latest
+            triple: i686-unknown-linux-gnu
+            target-features: +avx2,+pclmulqdq
+          - os: ubuntu-latest
+            triple: x86_64-unknown-linux-gnu
+            target-features: +avx2,+pclmulqdq
+          - os: macos-latest
+            triple: x86_64-apple-darwin
+            target-features: ''
+          - os: windows-latest
+            triple: i686-pc-windows-gnu
+            target-features: +avx2,+pclmulqdq
+          - os: windows-latest
+            triple: i686-pc-windows-msvc
+            target-features: +avx2,+pclmulqdq
+          - os: windows-latest
+            triple: x86_64-pc-windows-gnu
+            target-features: +avx2,+pclmulqdq
+          - os: windows-latest
+            triple: x86_64-pc-windows-msvc
+            target-features: +avx2,+pclmulqdq
     steps:
       - name: Checkout sources
         uses: actions/checkout@v3
         with:
           submodules: true
-      - name: Checkout LFS
-        uses: nschloe/action-cached-lfs-checkout@v1.1.2
-      - name: Rustup ${{ matrix.rust }} toolchain
-        uses: actions-rs/toolchain@v1
+      - name: Install Rust toolchain (${{ matrix.toolchain }})
+        uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: ${{ matrix.rust }}
-          components: rustfmt
-          override: true
-          default: true
+          toolchain: ${{ matrix.toolchain }}
+      - name: Override toolchain
+        run: rustup override set ${{ matrix.toolchain }}
       - name: Cache restore
         id: cache-restore
         uses: actions/cache@v3
@@ -50,46 +75,55 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ matrix.os }}-${{ matrix.rust }}-${{ matrix.target_feature }}-cargo-${{ hashFiles('**/Cargo.toml') }}
+          key: ${{ matrix.toolchain }}-${{ matrix.triple }}-${{ matrix.target_features }}-cargo-${{ hashFiles('**/Cargo.toml') }}
       - name: Install cargo-hack
         if: steps.cache-restore.outputs.cache-hit != 'true'
-        uses: actions-rs/cargo@v1
-        with:
-          command: install
-          args: cargo-hack
+        run: cargo install cargo-hack
         env:
           CARGO_TARGET_DIR: target/
-      - name: Build all feature sets
-        uses: actions-rs/cargo@v1
-        with:
-          command: hack
-          args: build --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default
+      - name: Build all feature sets with target-feature=${{ matrix.target-features }}
+        if: matrix.target-features != ''
+        run: cargo hack build --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default
         env:
-          RUSTFLAGS: "-C target-feature=+${{ matrix.target_feature }} --deny warnings"
-      - name: Test all feature sets
-        uses: actions-rs/cargo@v1
-        with:
-          command: hack
-          args: test --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default
+          RUSTFLAGS: "-C target-feature=${{ matrix.target-features }} --deny warnings"
+      - name: Build without simd
+        if: matrix.target-features == ''
+        run: cargo hack build --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --exclude-features simd
         env:
-          RUSTFLAGS: "-C target-feature=+${{ matrix.target_feature }} --deny warnings"
+          RUSTFLAGS: "--deny warnings"
+      - name: Test all feature sets with target-feature=${{ matrix.target-features }}
+        if: matrix.target-features != ''
+        run: cargo hack test --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default
+        env:
+          RUSTFLAGS: "-C target-feature=${{ matrix.target-features }} --deny warnings"
+      - name: Test without simd
+        if: matrix.target-features == ''
+        run: cargo hack test --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --exclude-features simd
+        env:
+          RUSTFLAGS: "--deny warnings"
 
   clippy:
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain:
+          - stable
+          - nightly
     permissions:
       checks: write
-    name: Clippy (stable)
+    name: Clippy (${{ matrix.toolchain }})
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
       with:
-        submodules: true
-    - name: Rustup stable toolchain
-      uses: actions-rs/toolchain@v1
+        submodules: true      
+    - name: Install Rust toolchain (${{ matrix.toolchain }})
+      uses: dtolnay/rust-toolchain@master
       with:
-        toolchain: stable
+        toolchain: ${{ matrix.toolchain }}
         components: clippy, rustfmt
-        override: true
-        default: true
+    - name: Override toolchain
+      run: rustup override set ${{ matrix.toolchain }}
     - name: Cache restore
       id: cache-restore
       uses: actions/cache@v3
@@ -100,12 +134,9 @@ jobs:
           ~/.cargo/registry/cache/
           ~/.cargo/git/db/
           target/
-        key: ubuntu-latest-stable-avx2-cargo-${{ hashFiles('**/Cargo.toml') }}-clippy
+        key: ubuntu-latest-${{ matrix.toolchain }}-cargo-${{ hashFiles('**/Cargo.toml') }}-clippy
     - name: Build all features
-      uses: actions-rs/cargo@v1
-      with:
-        command: build
-        args: --workspace --exclude rsonpath-benchmarks --all-features --release
+      run: cargo build --workspace --exclude rsonpath-benchmarks --all-features --release
       env:
         RUSTFLAGS: "-C target-feature=+avx2 --deny warnings"
     - name: Clippy all features
@@ -114,49 +145,16 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         args: --workspace --exclude rsonpath-benchmarks --all-features --release -- --deny warnings
       env:
-        RUSTFLAGS: "-C target-feature=+avx2"
-
-  clippy-nightly:
-    permissions:
-      checks: write
-    name: Clippy (nightly)
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-      with:
-        submodules: true
-    - name: Rustup nightly toolchain
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: nightly
-        components: clippy, rustfmt
-        override: true
-        default: true
-    - name: Cache restore
-      id: cache-restore
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cargo/bin/
-          ~/.cargo/registry/index/
-          ~/.cargo/registry/cache/
-          ~/.cargo/git/db/
-          target/
-        key: ubuntu-latest-nightly-avx2-cargo-${{ hashFiles('**/Cargo.toml') }}-clippy
-    - name: Build all features
-      uses: actions-rs/cargo@v1
-      with:
-        command: build
-        args: --workspace --exclude rsonpath-benchmarks --all-features --release
+        RUSTFLAGS: "-C target-feature=+avx2"    
+    - name: Build without simd
+      run: cargo build --workspace --exclude rsonpath-benchmarks --no-default-features --release
       env:
-        RUSTFLAGS: "-C target-feature=+avx2 --deny warnings"
-    - name: Clippy all features
+        RUSTFLAGS: "--deny warnings"
+    - name: Clippy without simd
       uses: actions-rs/clippy-check@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        args: --workspace --exclude rsonpath-benchmarks --all-features --release -- --deny warnings
-      env:
-        RUSTFLAGS: "-C target-feature=+avx2"
+        args: --workspace --exclude rsonpath-benchmarks --no-default-features --release -- --deny warnings
 
   docs:
     name: Documentation
@@ -165,13 +163,13 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
-      - name: Rustup nightly toolchain
-        uses: actions-rs/toolchain@v1
+      - name: Install Rust toolchain (nightly)
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly
-          components: rustfmt
-          override: true
-          default: true
+          components: clippy, rustfmt
+      - name: Override toolchain
+        run: rustup override set nightly
       - name: Cache restore
         id: cache-restore
         uses: actions/cache@v3
@@ -184,10 +182,7 @@ jobs:
             target/
           key: ubuntu-latest-nightly-avx2-cargo-${{ hashFiles('**/Cargo.toml') }}-doc
       - name: cargo doc
-        uses: actions-rs/cargo@v1
-        with:
-          command: doc
-          args: --package rsonpath-lib --all-features --no-deps
+        run: cargo doc --package rsonpath-lib --all-features --no-deps
         env:
           RUSTFLAGS: "-C target-feature=+avx2"
           RUSTDOCFLAGS: "-Dwarnings --cfg docsrs"
@@ -199,15 +194,12 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
-      - name: Rustup stable toolchain
-        uses: actions-rs/toolchain@v1
+      - name: Install Rust toolchain (stable)
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-          components: rustfmt
-          override: true
-          default: true
+          components: clippy, rustfmt    
+      - name: Override toolchain
+        run: rustup override set stable
       - name: Format
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --package rsonpath rsonpath-lib -- --check
+        run: cargo fmt --package rsonpath rsonpath-lib -- --check

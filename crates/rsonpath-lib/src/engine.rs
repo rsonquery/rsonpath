@@ -33,13 +33,14 @@ impl Input {
     ///
     /// The buffer must know its length, may be extended by auxiliary UTF8 characters
     /// and will be interpreted as a slice of bytes at the end.
+    #[must_use]
     #[inline]
-    pub fn new<T: Extend<char> + AsRef<[u8]>>(src: T) -> Self {
+    pub fn new<T: Extend<char> + AsRef<[u8]>>(src: &mut T) -> Self {
         cfg_if! {
             if #[cfg(feature = "simd")] {
                 use aligners::alignment::Alignment;
                 type A = alignment::Twice::<crate::BlockAlignment>;
-                let mut contents = src;
+                let contents = src;
                 let rem = contents.as_ref().len() % A::size();
                 let pad = if rem == 0 {
                     0
@@ -68,12 +69,12 @@ impl Input {
     ///
     /// The buffer must know its length, may be extended by auxiliary bytes.
     #[inline]
-    pub fn new_bytes<T: Extend<u8> + AsRef<[u8]>>(src: T) -> Self {
+    pub fn new_bytes<T: Extend<u8> + AsRef<[u8]>>(src: &mut T) -> Self {
         cfg_if! {
             if #[cfg(feature = "simd")] {
                 use aligners::alignment::Alignment;
                 type A = alignment::Twice::<crate::BlockAlignment>;
-                let mut contents = src;
+                let contents = src;
                 let rem = contents.as_ref().len() % A::size();
                 let pad = if rem == 0 {
                     0

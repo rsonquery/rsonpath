@@ -1,64 +1,91 @@
 name: Release
 
 on:
-  workflow_dispatch:
-    inputs:
-      level:
-        description: 'Version bump level'
-        required: true
-        default: 'patch'
-        type: choice
-        options:
-        - patch
-        - minor
-        - major 
+  push:
+    tags:
+      - v**
 
 env:
   CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
 
 jobs:
   build:
-
     name: Build matrix
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: true
       matrix:
-        os:
-          - ubuntu-latest
-          - macos-latest
-          - windows-latest
-        simd_feature:
-          - no
-          - +avx2,+pclmulqdq
         include:
           - os: ubuntu-latest
             triple: aarch64-unknown-linux-gnu
-            simd_feature: no
+            target-features: ''
+            artifact-suffix: nosimd
           - os: ubuntu-latest
             triple: i686-unknown-linux-gnu
+            target-features: +avx2,+pclmulqdq
+            artifact-suffix: avx2-pclmulqdq
+          - os: ubuntu-latest
+            triple: i686-unknown-linux-gnu
+            target-features: ''
+            artifact-suffix: nosimd
           - os: ubuntu-latest
             triple: x86_64-unknown-linux-gnu
+            target-features: +avx2,+pclmulqdq
+            artifact-suffix: avx2-pclmulqdq
+          - os: ubuntu-latest
+            triple: x86_64-unknown-linux-gnu
+            target-features: ''
+            artifact-suffix: nosimd
           - os: macos-latest
             triple: x86_64-apple-darwin
+            target-features: ''
+            artifact-suffix: nosimd
           - os: windows-latest
             triple: i686-pc-windows-gnu
+            target-features: +avx2,+pclmulqdq
+            artifact-suffix: avx2-pclmulqdq
+          - os: windows-latest
+            triple: i686-pc-windows-gnu
+            target-features: ''
+            artifact-suffix: nosimd
           - os: windows-latest
             triple: i686-pc-windows-msvc
+            target-features: +avx2,+pclmulqdq
+            artifact-suffix: avx2-pclmulqdq
+          - os: windows-latest
+            triple: i686-pc-windows-msvc
+            target-features: ''
+            artifact-suffix: nosimd
           - os: windows-latest
             triple: x86_64-pc-windows-gnu
+            target-features: +avx2,+pclmulqdq
+            artifact-suffix: avx2-pclmulqdq
+          - os: windows-latest
+            triple: x86_64-pc-windows-gnu
+            target-features: ''
+            artifact-suffix: nosimd
           - os: windows-latest
             triple: x86_64-pc-windows-msvc
+            target-features: +avx2,+pclmulqdq
+            artifact-suffix: avx2-pclmulqdq
+          - os: windows-latest
+            triple: x86_64-pc-windows-msvc
+            target-features: ''
+            artifact-suffix: nosimd
     steps:
-    - uses: actions/checkout@v3
-    - name: Rustup ${{ matrix.triple }} toolchain
-      uses: actions-rs/toolchain@v1
+    - name: Checkout source
+      uses: actions/checkout@v3
+    - name: Get version from git tag
+      id: metadata
+      run: echo "version=$(git describe --tags --always --abbrev=0)" > $GITHUB_OUTPUT
+    - name: Install Rust toolchain (stable)
+      uses: dtolnay/rust-toolchain@stable
       with:
         toolchain: stable
         target: ${{ matrix.triple }}
-        components: rustfmt
-        override: true
-        default: true
+    - name: Override toolchain
+      run: rustup override set stable
     - name: Cache restore
       id: cache-restore
       uses: actions/cache@v3
@@ -69,27 +96,75 @@ jobs:
           ~/.cargo/registry/cache/
           ~/.cargo/git/db/
           target/
-        key: ${{ matrix.os }}-${{ matrix.triple }}-${{ matrix.simd_feature }}-cargo-${{ hashFiles('**/Cargo.toml') }}-release
+        key: ${{ matrix.os }}-${{ matrix.triple }}-${{ matrix.artifact-suffix }}-cargo-${{ hashFiles('**/Cargo.toml') }}-release
     - name: Build release without simd
-      if: matrix.simd_feature == 'no'
-      uses: actions-rs/cargo@v1
-      with:
-        command: build
-        args: --package rsonpath --release --no-default-features
+      if: matrix.target-features == ''
+      run: cargo build --package rsonpath --release --no-default-features
       env:
         RUSTFLAGS: "--deny warnings"
-    - name: Build release with target-feature=${{ matrix.simd_feature }}
-      if: matrix.simd_feature != 'no'
-      uses: actions-rs/cargo@v1
-      with:
-        command: build
-        args: --package rsonpath --release
+    - name: Build release with target-feature=${{ matrix.target-features }}
+      if: matrix.target-features != ''
+      run: cargo build --package rsonpath --release
       env:
-        RUSTFLAGS: "-C target-feature=${{ matrix.simd_feature }} --deny warnings"
-    - name: Upload a Build Artifact
+        RUSTFLAGS: "-C target-feature=${{ matrix.target-features }} --deny warnings"
+    - name: Rename binary (Unix)
+      if: matrix.os != 'windows-latest'
+      run: mv target/release/rsonpath target/release/rsonpath-${{ matrix.triple }}-${{ matrix.artifact-suffix }}
+    - name: Rename binary (Windows)
+      if: matrix.os == 'windows-latest'
+      run: mv target/release/rsonpath.exe target/release/rsonpath-${{ matrix.triple }}-${{ matrix.artifact-suffix }}.exe
+    - name: Upload the binary as artifact
       uses: actions/upload-artifact@v3.1.1
       with:
-        name: rsonpath-${{ matrix.triple }}-${{ matrix.simd_feature }}
-        # A file, directory or wildcard pattern that describes what to upload
-        path: target/release/rsonpath
+        name: rsonpath-${{ matrix.triple }}-${{ matrix.artifact-suffix }}-${{ steps.metadata.outputs.version }}
+        path: target/release/rsonpath-${{ matrix.triple }}-${{ matrix.artifact-suffix }}*
         if-no-files-found: error
+    
+  github-release:
+    name: Release on GitHub
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - name: Checkout entire git history
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0 # all history for all branches and tags
+    - name: Get version from git tag
+      id: metadata
+      run: echo "version=$(git describe --tags --always --abbrev=0)\n" > $GITHUB_OUTPUT
+    - name: Install Rust toolchain (stable)
+      uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: stable
+    - name: Override toolchain
+      run: rustup override set stable
+    - name: Cache restore
+      id: cache-restore
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ubuntu-latest-stable-cargo-release-cliff-0.9.2
+    - name: Install git-cliff
+      if: steps.cache-restore.outputs.cache-hit != 'true'
+      run: cargo install git-cliff --version 0.9.2
+      env:
+        CARGO_TARGET_DIR: target/
+    - name: Generate git-cliff changelog
+      run: git cliff --latest --tag ${{ steps.metadata.outputs.version }} > CHANGELOG.md
+    - name: Download artifacts from build
+      uses: actions/download-artifact@v3.0.1
+      with:
+        path: release/
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        body_path: CHANGELOG.md
+        files: release/**/*
+        fail_on_unmatched_files: true
+        prerelease: ${{ endsWith(steps.metadata.outputs.version, 'rc') || endsWith(steps.metadata.outputs.version, 'alpha') || endsWith(steps.metadata.outputs.version, 'beta') }}
+        draft: true

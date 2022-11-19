@@ -132,6 +132,7 @@ cfg_if! {
 
         /// Walk through the JSON document represented by `bytes`
         /// and classify quoted sequences.
+        #[must_use]
         #[inline(always)]
         pub fn classify_quoted_sequences(
             bytes: &AlignedSlice<alignment::Twice<BlockAlignment>>,

@@ -17,21 +17,19 @@ body = """
 {% for group, commits in commits | group_by(attribute="group") %}
     ### {{ group | trim_start_matches(pat="1") | trim_start_matches(pat="2") | trim_start_matches(pat="3") | trim_start_matches(pat="4") | trim_start_matches(pat="5") | upper_first }}
     {% for commit in commits %}
-        #### {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message | upper_first }}.
-        {% if commit.body %}\
-            {% for message in commit.body | split(pat="\n") %}\
-                {% if message %}\
-                    - {{ message | trim | trim_start_matches(pat="-") }}
-                {% endif %}\
-            {% endfor %}\
-        {% endif %}\
-        {% if commit.links %}
-            <tiny>Related: \
-            {% for link in commit.links %}\
-                [{{ link.text }}]({{ link.href }}) \
-            {% endfor %}\
-            </tiny>
-        {% endif %}\
+        - {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message | upper_first }}.
+            {% if commit.links %}\
+                ( \
+                {% for link in commit.links %}\
+                    [{{ link.text }}]({{ link.href }}) \
+                {% endfor %})
+            {% endif %}\
+            {% if commit.body %}\
+                {% for message in commit.body | split(pat="\n\n") %}\
+                  {% if message %}  - {{ message | trim | trim_start_matches(pat="-") | trim_start_matches(pat="*") }}
+                  {% endif %}\
+                {% endfor %}\
+            {% endif %}\
     {% endfor %}
 {% endfor %}\n
 """
@@ -54,7 +52,10 @@ commit_parsers = [
     { message = "^perf", group = "3Performance"},
     { message = "^test", group = "4Reliability"},
     { message = "^ci", group = "4Reliability"},
+    { message = "^dep", group = "5Dependencies"},
     { message = "^deps", group = "5Dependencies"},
+    { message = "^docs", group = "5Documentation"},
+    { message = "^doc", group = "5Documentation"},
 ]
 # filter out the commits that are not matched by commit parsers
 filter_commits = true
@@ -65,7 +66,7 @@ skip_tags = "v0.1.0-beta.1"
 # regex for ignoring tags
 ignore_tags = ""
 # sort the tags chronologically
-date_order = false
+date_order = true
 # sort the commits inside sections by oldest/newest order
 sort_commits = "oldest"
 # An array of link parsers for extracting external references, and turning them into URLs, using regex.

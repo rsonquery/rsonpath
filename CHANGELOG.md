@@ -6,29 +6,42 @@ All notable changes to this project will be documented in this file.
 
 ### Features
 
-#### Classify commas to prepare for the new wildcard selectors
+- Classify commas to prepare for the new wildcard selectors
 
-### Bugfix
+### Bug Fixes
 
-### Non-ASCII characters like (¡) breaking SIMD classification
+- Non-ASCII characters like (¡) breaking SIMD classification.
+
+### Documentation
+
+- Include usage in README.md.
 
 ## [0.1.1] - 2022-07-26
 
 ### Bug Fixes
 
-#### Supported simd is now autodetected
+- Supported simd is now autodetected
 
-Instead of relying on the target_feature compiler flag the build script now autodetects whether AVX2 is supported and compiles the correct version.
+  - Instead of relying on the target_feature compiler flag
+the build script now autodetects whether AVX2
+is supported and compiles the correct version.
 
 ### Dependencies
 
-#### Update to use `criterion_decimal_throughput`
+- Update to use `criterion_decimal_throughput`.
 
-#### Equalise `aligners` versions (`0.0.9` across the project)
+- Equalise `aligners` versions (`0.0.9` across the project).
 
-#### Remove unnecessary dependencies
+- Remove unnecessary dependencies.
 
-Removed `memchr` and `static_assertions`.
+  - Removed `memchr` and `static_assertions`.
+
+### Documentation
+
+- Changelog, code of conduct, contributing (#2).
+( [#2](https://github.com/V0ldek/rsonpath/issues/2) )
+
+- Badges for crates.io.
 
 ## [0.1.0] - 2022-07-15
 

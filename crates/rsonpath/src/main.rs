@@ -18,8 +18,8 @@ fn main() -> Result<()> {
     let query = parse_query(&args.query)?;
     info!("Preparing query: `{}`\n", query);
 
-    let contents = get_contents(args.file_path.as_deref())?;
-    let input = Input::new(contents);
+    let mut contents = get_contents(args.file_path.as_deref())?;
+    let input = Input::new(&mut contents);
 
     match args.result {
         ResultArg::Bytes => run::<IndexResult>(&query, &input, args.engine),

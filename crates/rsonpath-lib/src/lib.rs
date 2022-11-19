@@ -32,9 +32,9 @@
 //! }
 //! "#;
 //! // Remove whitespace from the JSON - limitation of the current version.
-//! let stripped_contents = contents.chars().filter(|c| !c.is_whitespace()).collect::<String>();
+//! let mut stripped_contents = contents.chars().filter(|c| !c.is_whitespace()).collect::<String>();
 //! // Convert the contents to the Input type required by the Runners.
-//! let input = Input::new(stripped_contents);
+//! let input = Input::new(&mut stripped_contents);
 //! // Compile the query. The runner can be reused to run the same query on different contents.
 //! let runner = StacklessRunner::compile_query(&query);
 //! // Count the number of occurrences of elements satisfying the query.

@@ -12,8 +12,8 @@ const ROOT_TEST_DIRECTORY: &str = "./tests/data";
 
 fn get_contents(test_path: &str) -> Input {
     let path = format!("{}/{}", ROOT_TEST_DIRECTORY, test_path);
-    let raw = fs::read_to_string(path).unwrap();
-    Input::new(raw)
+    let mut raw = fs::read_to_string(path).unwrap();
+    Input::new(&mut raw)
 }
 
 macro_rules! count_test_cases {

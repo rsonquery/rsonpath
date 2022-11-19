@@ -28,7 +28,7 @@ impl<'a> Iterator for SequentialQuoteClassifier<'a> {
     fn next(&mut self) -> Option<QuoteClassifiedBlock<'a>> {
         match self.iter.next() {
             Some(block) => {
-                let mut mask = 0u64;
+                let mut mask = 0_u64;
                 let mut idx_mask = 1;
 
                 if let Some(offset) = self.offset {

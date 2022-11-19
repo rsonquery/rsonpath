@@ -98,10 +98,8 @@ impl<'a> Vector<'a> {
         while self.idx + offset < self.quote_classified.len() {
             if let Some(character) = self.get_char(self.idx + offset) {
                 current += match character {
-                    b'{' => 1,
-                    b'[' => 1,
-                    b'}' => -1,
-                    b']' => -1,
+                    b'{' | b'[' => 1,
+                    b'}' | b']' => -1,
                     _ => 0,
                 };
             }
@@ -113,7 +111,7 @@ impl<'a> Vector<'a> {
 
     #[inline(always)]
     fn get_char(&self, idx: usize) -> Option<u8> {
-        let idx_mask = 1u64 << idx;
+        let idx_mask = 1_u64 << idx;
         let is_quoted = (self.quote_classified.within_quotes_mask & idx_mask) == idx_mask;
 
         if is_quoted {
