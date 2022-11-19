@@ -110,6 +110,28 @@ jobs:
     - uses: actions/checkout@v3
     - id: metadata
       run: echo "version=$(git describe --tags --always --abbrev=0)\n" > $GITHUB_OUTPUT
+    - name: rustup toolchain install
+      uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: stable
+    - name: Cache restore
+      id: cache-restore
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ubuntu-latest-stable-cargo-${{ hashFiles('**/Cargo.toml') }}-release-cliff
+    - name: Install git-cliff
+      if: steps.cache-restore.outputs.cache-hit != 'true'
+      run: cargo install git-cliff
+      env:
+        CARGO_TARGET_DIR: target/
+    - name: Generate git-cliff changelog
+      run: git cliff --unreleased --tag ${{ steps.metadata.outputs.version }} > CHANGELOG.md
     - name: Download artifacts from build
       uses: actions/download-artifact@v3.0.1
       with:
@@ -117,8 +139,8 @@ jobs:
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
+        body_path: CHANGELOG.md
         files: release/**/*
         fail_on_unmatched_files: true
-        generate_release_notes: true
         prerelease: ${{ endsWith(steps.metadata.outputs.version, 'rc') || endsWith(steps.metadata.outputs.version, 'alpha') || endsWith(steps.metadata.outputs.version, 'beta') }}
         draft: true
