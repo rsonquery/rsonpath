@@ -25,34 +25,64 @@ jobs:
             target-features: '+avx2,+pclmulqdq'
             artifact-suffix: 'avx2-pclmulqdq'
           - os: ubuntu-latest
+            triple: i686-unknown-linux-gnu
+            target-features: ''
+            artifact-suffix: 'nosimd'
+          - os: ubuntu-latest
             triple: x86_64-unknown-linux-gnu
             target-features: '+avx2,+pclmulqdq'
             artifact-suffix: 'avx2-pclmulqdq'
+          - os: ubuntu-latest
+            triple: x86_64-unknown-linux-gnu
+            target-features: ''
+            artifact-suffix: 'nosimd'
           - os: macos-latest
             triple: x86_64-apple-darwin
             target-features: '+avx2,+pclmulqdq'
             artifact-suffix: 'avx2-pclmulqdq'
+          - os: macos-latest
+            triple: x86_64-apple-darwin
+            target-features: ''
+            artifact-suffix: 'nosimd'
           - os: windows-latest
             triple: i686-pc-windows-gnu
             target-features: '+avx2,+pclmulqdq'
             artifact-suffix: 'avx2-pclmulqdq'
           - os: windows-latest
+            triple: i686-pc-windows-gnu
+            target-features: ''
+            artifact-suffix: 'nosimd'
+          - os: windows-latest
             triple: i686-pc-windows-msvc
             target-features: '+avx2,+pclmulqdq'
             artifact-suffix: 'avx2-pclmulqdq'
+          - os: windows-latest
+            triple: i686-pc-windows-msvc
+            target-features: ''
+            artifact-suffix: 'nosimd'
           - os: windows-latest
             triple: x86_64-pc-windows-gnu
             target-features: '+avx2,+pclmulqdq'
             artifact-suffix: 'avx2-pclmulqdq'
           - os: windows-latest
+            triple: x86_64-pc-windows-gnu
+            target-features: ''
+            artifact-suffix: 'nosimd'
+          - os: windows-latest
             triple: x86_64-pc-windows-msvc
             target-features: '+avx2,+pclmulqdq'
             artifact-suffix: 'avx2-pclmulqdq'
+          - os: windows-latest
+            triple: x86_64-pc-windows-msvc
+            target-features: ''
+            artifact-suffix: 'nosimd'
     steps:
-    - uses: actions/checkout@v3
-    - id: metadata
+    - name: Checkout source
+      uses: actions/checkout@v3
+    - name: Get version from git tag
+      id: metadata
       run: echo "version=$(git describe --tags --always --abbrev=0)" > $GITHUB_OUTPUT
-    - name: Install Rust toolchain
+    - name: Install Rust toolchain (stable)
       uses: dtolnay/rust-toolchain@stable
       with:
         toolchain: stable
@@ -96,12 +126,14 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout entire git history
+      uses: actions/checkout@v3
       with:
         fetch-depth: 0 # all history for all branches and tags
-    - id: metadata
+    - name: Get version from git tag
+      id: metadata
       run: echo "version=$(git describe --tags --always --abbrev=0)\n" > $GITHUB_OUTPUT
-    - name: rustup toolchain install
+    - name: Install Rust toolchain (stable)
       uses: dtolnay/rust-toolchain@master
       with:
         toolchain: stable
@@ -127,7 +159,7 @@ jobs:
       uses: actions/download-artifact@v3.0.1
       with:
         path: release/
-    - name: Release
+    - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
       with:
         body_path: CHANGELOG.md
@@ -135,32 +167,3 @@ jobs:
         fail_on_unmatched_files: true
         prerelease: ${{ endsWith(steps.metadata.outputs.version, 'rc') || endsWith(steps.metadata.outputs.version, 'alpha') || endsWith(steps.metadata.outputs.version, 'beta') }}
         draft: true
-
-  crates-io-release:
-    name: Release on crates.io
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-    - uses: actions/checkout@v3
-    - name: rustup toolchain install
-      uses: dtolnay/rust-toolchain@master
-      with:
-        toolchain: stable
-    - name: Cache restore
-      id: cache-restore
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cargo/bin/
-          ~/.cargo/registry/index/
-          ~/.cargo/registry/cache/
-          ~/.cargo/git/db/
-          target/
-        key: ubuntu-latest-stable-cargo-release-cargo-release-0.23.0
-    - name: Install cargo-release
-      if: steps.cache-restore.outputs.cache-hit != 'true'
-      run: cargo install cargo-release --version 0.23.0
-      env:
-        CARGO_TARGET_DIR: target/
-    - name: Run cargo release
-      run: cargo release --no-tag --no-push --exclude rsonpath-benchmarks
