@@ -41,7 +41,7 @@ jobs:
             target-features: +avx2,+pclmulqdq
           - os: macos-latest
             triple: x86_64-apple-darwin
-            target-features: +avx2,+pclmulqdq
+            target-features: ''
           - os: windows-latest
             triple: i686-pc-windows-gnu
             target-features: +avx2,+pclmulqdq
