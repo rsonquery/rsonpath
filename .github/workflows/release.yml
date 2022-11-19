@@ -1,17 +1,6 @@
 name: Release
 
 on:
-  workflow_dispatch:
-    inputs:
-      level:
-        description: 'Version bump level'
-        required: true
-        default: 'patch'
-        type: choice
-        options:
-        - patch
-        - minor
-        - major 
   push:
     tags:
       - v**
@@ -146,3 +135,32 @@ jobs:
         fail_on_unmatched_files: true
         prerelease: ${{ endsWith(steps.metadata.outputs.version, 'rc') || endsWith(steps.metadata.outputs.version, 'alpha') || endsWith(steps.metadata.outputs.version, 'beta') }}
         draft: true
+
+  crates-io-release:
+    name: Release on crates.io
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - uses: actions/checkout@v3
+    - name: rustup toolchain install
+      uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: stable
+    - name: Cache restore
+      id: cache-restore
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ubuntu-latest-stable-cargo-release-cargo-release-0.23.0
+    - name: Install cargo-release
+      if: steps.cache-restore.outputs.cache-hit != 'true'
+      run: cargo install cargo-release --version 0.23.0
+      env:
+        CARGO_TARGET_DIR: target/
+    - name: Run cargo release
+      run: cargo release --no-tag --no-push --exclude rsonpath-benchmarks
