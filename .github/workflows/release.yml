@@ -108,6 +108,8 @@ jobs:
     needs: build
     steps:
     - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0 # all history for all branches and tags
     - id: metadata
       run: echo "version=$(git describe --tags --always --abbrev=0)\n" > $GITHUB_OUTPUT
     - name: rustup toolchain install
@@ -131,7 +133,7 @@ jobs:
       env:
         CARGO_TARGET_DIR: target/
     - name: Generate git-cliff changelog
-      run: git cliff --unreleased --tag ${{ steps.metadata.outputs.version }} > CHANGELOG.md
+      run: git cliff --latest --tag ${{ steps.metadata.outputs.version }} > CHANGELOG.md
     - name: Download artifacts from build
       uses: actions/download-artifact@v3.0.1
       with:
