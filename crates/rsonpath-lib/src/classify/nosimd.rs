@@ -21,7 +21,7 @@ impl<'a> Iterator for Block<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         while self.idx < self.quote_classified.block.len() {
             let character = self.quote_classified.block[self.idx];
-            let idx_mask = 1u64 << self.idx;
+            let idx_mask = 1_u64 << self.idx;
             let is_quoted = (self.quote_classified.within_quotes_mask & idx_mask) == idx_mask;
 
             self.idx += 1;
@@ -59,9 +59,9 @@ impl<'a, I: QuoteClassifiedIterator<'a>> Iterator for SequentialClassifier<'a, I
 
     #[inline(always)]
     fn next(&mut self) -> Option<Structural> {
-        let mut item = self.block.as_mut().and_then(|b| b.next());
+        let mut item = self.block.as_mut().and_then(Iterator::next);
 
-        while item == None {
+        while item.is_none() {
             match self.iter.next() {
                 Some(block) => {
                     let mut block = Block::new(block);

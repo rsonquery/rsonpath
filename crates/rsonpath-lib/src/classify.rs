@@ -214,6 +214,7 @@ cfg_if! {
 
         /// Walk through the JSON document represented by `bytes` and iterate over all
         /// occurrences of structural characters in it.
+        #[inline(always)]
         pub fn classify_structural_characters<'a, I: QuoteClassifiedIterator<'a>>(
             iter: I,
         ) -> impl StructuralIterator<'a, I> {
@@ -222,6 +223,7 @@ cfg_if! {
 
         /// Resume classification using a state retrieved from a previously
         /// used classifier via the `stop` function.
+        #[inline(always)]
         pub fn resume_structural_classification<'a, I: QuoteClassifiedIterator<'a>>(
             state: ResumeClassifierState<'a, I>
         ) -> impl StructuralIterator<'a, I> {

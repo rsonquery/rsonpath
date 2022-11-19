@@ -35,25 +35,25 @@ jobs:
             target-features: ''
           - os: ubuntu-latest
             triple: i686-unknown-linux-gnu
-            target-features: '+avx2,+pclmulqdq'
+            target-features: +avx2,+pclmulqdq
           - os: ubuntu-latest
             triple: x86_64-unknown-linux-gnu
-            target-features: '+avx2,+pclmulqdq'
+            target-features: +avx2,+pclmulqdq
           - os: macos-latest
             triple: x86_64-apple-darwin
-            target-features: '+avx2,+pclmulqdq'
+            target-features: +avx2,+pclmulqdq
           - os: windows-latest
             triple: i686-pc-windows-gnu
-            target-features: '+avx2,+pclmulqdq'
+            target-features: +avx2,+pclmulqdq
           - os: windows-latest
             triple: i686-pc-windows-msvc
-            target-features: '+avx2,+pclmulqdq'
+            target-features: +avx2,+pclmulqdq
           - os: windows-latest
             triple: x86_64-pc-windows-gnu
-            target-features: '+avx2,+pclmulqdq'
+            target-features: +avx2,+pclmulqdq
           - os: windows-latest
             triple: x86_64-pc-windows-msvc
-            target-features: '+avx2,+pclmulqdq'
+            target-features: +avx2,+pclmulqdq
     steps:
       - name: Checkout sources
         uses: actions/checkout@v3
