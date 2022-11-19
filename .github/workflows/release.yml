@@ -124,10 +124,10 @@ jobs:
           ~/.cargo/registry/cache/
           ~/.cargo/git/db/
           target/
-        key: ubuntu-latest-stable-cargo-${{ hashFiles('**/Cargo.toml') }}-release-cliff
+        key: ubuntu-latest-stable-cargo-release-cliff-0.9.2
     - name: Install git-cliff
       if: steps.cache-restore.outputs.cache-hit != 'true'
-      run: cargo install git-cliff
+      run: cargo install git-cliff --version 0.9.2
       env:
         CARGO_TARGET_DIR: target/
     - name: Generate git-cliff changelog
