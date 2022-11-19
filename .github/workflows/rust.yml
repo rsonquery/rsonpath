@@ -81,21 +81,21 @@ jobs:
         run: cargo install cargo-hack
         env:
           CARGO_TARGET_DIR: target/
-      - name: Build all feature sets
+      - name: Build all feature sets with target-feature=${{ matrix.target-features }}
         if: matrix.target-features != ''
         run: cargo hack build --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default
         env:
-          RUSTFLAGS: "-C target-feature=${{ matrix.target_features }} --deny warnings"
+          RUSTFLAGS: "-C target-feature=${{ matrix.target-features }} --deny warnings"
       - name: Build without simd
         if: matrix.target-features == ''
         run: cargo hack build --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --exclude-features simd
         env:
           RUSTFLAGS: "--deny warnings"
-      - name: Test all feature sets
+      - name: Test all feature sets with target-feature=${{ matrix.target-features }}
         if: matrix.target-features != ''
         run: cargo hack test --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default
         env:
-          RUSTFLAGS: "-C target-feature=${{ matrix.target_features }} --deny warnings"
+          RUSTFLAGS: "-C target-feature=${{ matrix.target-features }} --deny warnings"
       - name: Test without simd
         if: matrix.target-features == ''
         run: cargo hack test --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --exclude-features simd
