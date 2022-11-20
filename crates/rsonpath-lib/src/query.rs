@@ -28,6 +28,17 @@
 //! # }
 //! ```
 //!
+
+#![warn(
+    clippy::exit,
+    clippy::expect_used,
+    clippy::missing_errors_doc,
+    clippy::missing_panics_doc,
+    clippy::panic,
+    clippy::panic_in_result_fn,
+    clippy::unwrap_used
+)]
+
 pub mod automaton;
 pub mod errors;
 mod parser;
@@ -265,6 +276,12 @@ impl JsonPathQuery {
     }
 
     /// Parse a query string into a [`JsonPathQuery`].
+    ///
+    /// # Errors
+    ///
+    /// Will return a [`QueryError`] if the `query_string` does
+    /// not conform to the JSONPath grammar. See its documentation
+    /// for details.
     #[inline(always)]
     pub fn parse(query_string: &str) -> Result<Self, QueryError> {
         self::parser::parse_json_path_query(query_string)

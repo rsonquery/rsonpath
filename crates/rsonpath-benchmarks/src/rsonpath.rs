@@ -35,8 +35,8 @@ impl Implementation for Rsonpath {
     }
 
     fn load_file(&self, file_path: &str) -> Result<Self::File, Self::Error> {
-        let contents = fs::read_to_string(file_path).expect("Reading from file failed.");
-        let input = Self::File::new(contents);
+        let mut contents = fs::read_to_string(file_path).expect("Reading from file failed.");
+        let input = Self::File::new(&mut contents);
 
         Ok(input)
     }

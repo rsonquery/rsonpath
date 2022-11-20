@@ -1,4 +1,4 @@
-use eyre::{eyre, Result};
+use eyre::{eyre, Context, Result};
 use std::process::Command;
 use std::{error::Error, fs};
 
@@ -41,6 +41,11 @@ fn setup_jsonski() -> Result<(), Box<dyn Error>> {
 }
 
 fn setup_jsurfer() -> Result<()> {
+    let java_home = std::env::var("JAVA_HOME").wrap_err(
+        "JAVA_HOME environment variable not found. \
+        Set it to the path to your local installation of the JDK.",
+    )?;
+
     let gradlew_status = Command::new("./gradlew")
         .arg("shadowJar")
         .current_dir("./implementations/jsurferShim")
@@ -53,7 +58,6 @@ fn setup_jsurfer() -> Result<()> {
         ));
     }
 
-    let java_home = std::env::var("JAVA_HOME")?;
     let jar_absolute_path =
         std::path::Path::new("./implementations/jsurferShim/lib/jsurferShim.jar").canonicalize()?;
 

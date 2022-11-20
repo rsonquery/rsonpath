@@ -52,6 +52,7 @@ commit_parsers = [
     { message = "^perf", group = "3Performance"},
     { message = "^test", group = "4Reliability"},
     { message = "^ci", group = "4Reliability"},
+    { message = "^lib", group = "4Reliability"},
     { message = "^dep", group = "5Dependencies"},
     { message = "^deps", group = "5Dependencies"},
     { message = "^docs", group = "5Documentation"},

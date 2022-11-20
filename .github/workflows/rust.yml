@@ -182,7 +182,7 @@ jobs:
             target/
           key: ubuntu-latest-nightly-avx2-cargo-${{ hashFiles('**/Cargo.toml') }}-doc
       - name: cargo doc
-        run: cargo doc --package rsonpath-lib --all-features --no-deps
+        run: cargo doc --package rsonpath-lib --all-features --no-deps --release
         env:
           RUSTFLAGS: "-C target-feature=+avx2"
           RUSTDOCFLAGS: "-Dwarnings --cfg docsrs"
