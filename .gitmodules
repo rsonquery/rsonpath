@@ -1,3 +1,0 @@
-[submodule "rsonpath-benchmarks"]
-	path = crates/rsonpath-benchmarks
-	url = git@github.com:V0ldek/rsonpath-benchmarks.git
