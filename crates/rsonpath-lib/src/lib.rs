@@ -98,8 +98,13 @@
 //! $..label_1..label_2..[...]..label_n
 //! ```
 
-#![cfg_attr(not(debug_assertions), warn(missing_docs))]
+// Documentation lints, enabled only on --release.
+#![cfg_attr(
+    not(debug_assertions),
+    warn(missing_docs, clippy::missing_errors_doc, clippy::missing_panics_doc,)
+)]
 #![cfg_attr(not(debug_assertions), warn(rustdoc::missing_crate_level_docs))]
+// Generic pedantic lints.
 #![warn(
     explicit_outlives_requirements,
     semicolon_in_expressions_from_macros,
@@ -107,6 +112,7 @@
     unused_import_braces,
     unused_lifetimes
 )]
+// Clippy pedantic lints.
 #![warn(
     clippy::allow_attributes_without_reason,
     clippy::cargo_common_metadata,
@@ -148,6 +154,15 @@
     clippy::unused_self,
     clippy::use_self
 )]
+// Panic-free lints.
+#![warn(
+    clippy::exit,
+    clippy::expect_used,
+    clippy::panic,
+    clippy::panic_in_result_fn,
+    clippy::unwrap_used
+)]
+// IO hygene, only on --release.
 #![cfg_attr(
     not(debug_assertions),
     warn(clippy::print_stderr, clippy::print_stdout, clippy::todo)
