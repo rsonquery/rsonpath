@@ -98,12 +98,12 @@
 //! $..label_1..label_2..[...]..label_n
 //! ```
 
-#![cfg_attr(release, warn(missing_docs))]
-#![cfg_attr(release, warn(rustdoc::missing_crate_level_docs))]
+#![cfg_attr(not(debug_assertions), warn(missing_docs))]
+#![cfg_attr(not(debug_assertions), warn(rustdoc::missing_crate_level_docs))]
 #![warn(
     explicit_outlives_requirements,
-    unreachable_pub,
     semicolon_in_expressions_from_macros,
+    unreachable_pub,
     unused_import_braces,
     unused_lifetimes
 )]
@@ -148,11 +148,10 @@
     clippy::unused_self,
     clippy::use_self
 )]
-#![cfg_attr(release, warn(
-    clippy::print_stderr,
-    clippy::print_stdout
-    clippy::todo
-))]
+#![cfg_attr(
+    not(debug_assertions),
+    warn(clippy::print_stderr, clippy::print_stdout, clippy::todo)
+)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
 pub mod classify;

@@ -74,24 +74,22 @@ pub(crate) fn parse_json_path_query(query_string: &str) -> Result<JsonPathQuery,
 fn tokens_to_node<'a, I: Iterator<Item = Token<'a>>>(
     tokens: &mut I,
 ) -> Result<Option<JsonPathQueryNode>, QueryError> {
-    let token = tokens.next();
-
-    if token.is_none() {
-        return Ok(None);
-    }
-
-    let child_node = tokens_to_node(tokens)?.map(Box::new);
-
-    match token.unwrap() {
-        Token::Root => Ok(Some(JsonPathQueryNode::Root(child_node))),
-        Token::Child(label) => Ok(Some(JsonPathQueryNode::Child(
-            Label::new(label),
-            child_node,
-        ))),
-        Token::Descendant(label) => Ok(Some(JsonPathQueryNode::Descendant(
-            Label::new(label),
-            child_node,
-        ))),
+    match tokens.next() {
+        Some(token) => {
+            let child_node = tokens_to_node(tokens)?.map(Box::new);
+            match token {
+                Token::Root => Ok(Some(JsonPathQueryNode::Root(child_node))),
+                Token::Child(label) => Ok(Some(JsonPathQueryNode::Child(
+                    Label::new(label),
+                    child_node,
+                ))),
+                Token::Descendant(label) => Ok(Some(JsonPathQueryNode::Descendant(
+                    Label::new(label),
+                    child_node,
+                ))),
+            }
+        }
+        _ => Ok(None),
     }
 }
 

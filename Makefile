@@ -8,7 +8,7 @@ rsonpath: rsonpath_lib check_cargo
 rsonpath_lib: check_cargo
 	$(CARGO) build --package rsonpath-lib --release
 
-.PHONY: bench check_cargo clean clean_benches doc install uninstall test
+.PHONY: bench check_cargo clean clean_benches doc install test uninstall verify verify-clippy verify-doc verify-fmt
 
 bench: rsonpath_lib
 	$(CARGO) bench --config 'patch.crates-io.rsonpath-lib.path = "./crates/rsonpath-lib"'
@@ -17,6 +17,8 @@ bench: rsonpath_lib
 check_cargo:
 	$(CARGO) --version || (curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y)
 	. ${HOME}/.cargo/env
+	rustup install stable
+	rustup install nightly
 
 # Handle the criterion reports directory separately to avoid losing previous benches.
 clean:
@@ -42,3 +44,16 @@ test: rsonpath_lib
 
 uninstall:
 	$(CARGO) uninstall rsonpath
+
+verify: rsonpath verify-clippy verify-doc verify-fmt test
+
+verify-clippy: rsonpath
+	cargo clippy --workspace --exclude rsonpath-benchmarks --no-default-features --release -- --deny warnings
+	cargo clippy --workspace --exclude rsonpath-benchmarks --all-features --release -- --deny warnings
+
+verify-doc: rsonpath
+	RUSTDOCFLAGS='-Dwarnings --cfg docsrs' cargo +nightly doc --package rsonpath-lib --no-default-features --no-deps
+	RUSTDOCFLAGS='-Dwarnings --cfg docsrs' cargo +nightly doc --package rsonpath-lib --all-features --no-deps
+
+verify-fmt:
+	cargo fmt --package rsonpath rsonpath-lib -- --check
