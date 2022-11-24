@@ -40,5 +40,6 @@ jobs:
         repo: ${{ github.event.repository.name }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Output
-      run: "echo 'data: ${{ steps.get-ids.outputs.data }}'"
+    - name: Get existing labels array
+      id: issue-data
+      run: "echo 'labels=${{ fromJSON(steps.get-ids.outputs.data).repository.issue.labels.nodes.*.id }}'"
