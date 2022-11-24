@@ -1,7 +1,5 @@
 name: New Issue
-on:
-  issues:
-    types: [opened]
+on: workflow_dispatch
 
 jobs:
   label:
@@ -23,7 +21,7 @@ jobs:
                   id
                   name
                 }
-                issue(number: ${{ github.event.issue.number }}) {
+                issue(number: 53) {
                   id
                   labels(first: 100) {
                     nodes {
