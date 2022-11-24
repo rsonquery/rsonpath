@@ -24,7 +24,6 @@ jobs:
               repository(owner:$owner,name:$repo) {
                 label(name: "acceptance: triage") {
                   id
-                  name
                 }
                 issue(number: 53) {
                   id
@@ -40,6 +39,11 @@ jobs:
         repo: ${{ github.event.repository.name }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Get existing labels array
+    - name: Parse data
       id: issue-data
-      run: "echo 'labels=${{ toJSON(fromJSON(steps.get-ids.outputs.data).repository.issue.labels.nodes.*.id) }}'"
+      run: |
+        "echo 'labels=${{ toJSON(fromJSON(steps.get-ids.outputs.data).repository.issue.labels.nodes.*.id) }}' >> $GITHUB_OUTPUT"
+        "echo 'triage-id=${{ fromJSON(steps.get-ids.outputs.data).repository.issue.label.id) }}' >> $GITHUB_OUTPUT"
+        "echo 'issue-id=${{ fromJSON(steps.get-ids.outputs.data).repository.issue.id) }}' >> $GITHUB_OUTPUT"
+      
+    
