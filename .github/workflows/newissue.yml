@@ -1,5 +1,7 @@
 name: New Issue
-on: workflow_dispatch
+on:
+  issues:
+    types: [opened, reopened]
 
 jobs:
   label:
