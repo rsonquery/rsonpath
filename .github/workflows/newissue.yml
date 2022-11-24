@@ -2,6 +2,7 @@ name: New Issue
 on:
   issues:
     types: [opened, reopened]
+  workflow_dispatch:
 
 jobs:
   label:
@@ -12,6 +13,8 @@ jobs:
       issues: write
 
     steps:
+    - name: Output event
+      run: "echo '${{ github.event }}'"
     - name: GitHub GraphQL API Query
       id: get-ids
       uses: octokit/graphql-action@v2.2.1
@@ -23,7 +26,7 @@ jobs:
                   id
                   name
                 }
-                issue(number: 53) {
+                issue(number: ${{ github.event.issue.number }}) {
                   id
                   labels(first: 100) {
                     nodes {
