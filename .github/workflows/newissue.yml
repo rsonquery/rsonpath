@@ -43,7 +43,7 @@ jobs:
       id: issue-data
       run: |
         "echo 'labels=${{ toJSON(fromJSON(steps.get-ids.outputs.data).repository.issue.labels.nodes.*.id) }}' >> $GITHUB_OUTPUT"
-        "echo 'triage-id=${{ fromJSON(steps.get-ids.outputs.data).repository.issue.label.id) }}' >> $GITHUB_OUTPUT"
-        "echo 'issue-id=${{ fromJSON(steps.get-ids.outputs.data).repository.issue.id) }}' >> $GITHUB_OUTPUT"
+        "echo 'triage-id=${{ fromJSON(steps.get-ids.outputs.data).repository.issue.label.id }}' >> $GITHUB_OUTPUT"
+        "echo 'issue-id=${{ fromJSON(steps.get-ids.outputs.data).repository.issue.id }}' >> $GITHUB_OUTPUT"
       
     
