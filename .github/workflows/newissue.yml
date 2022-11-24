@@ -42,4 +42,4 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Get existing labels array
       id: issue-data
-      run: "echo 'labels=${{ fromJSON(steps.get-ids.outputs.data).repository.issue.labels.nodes.*.id }}'"
+      run: "echo 'labels=${{ intoJSON(fromJSON(steps.get-ids.outputs.data).repository.issue.labels.nodes.*.id) }}'"
