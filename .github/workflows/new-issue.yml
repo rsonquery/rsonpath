@@ -1,0 +1,21 @@
+name: New Issue
+on:
+  issues:
+    types: [opened, reopened]
+
+jobs:
+  label:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+    - uses: V0ldek/modify-label@v1.0.0
+      id: add-label
+      with:
+        action: add
+        issue-number: ${{ github.event.issue.number }}
+        label-id: 'LA_kwDOHodxeM8AAAABA8dlvA'
+        token: ${{ secrets.GITHUB_TOKEN }}
