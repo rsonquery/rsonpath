@@ -2,8 +2,8 @@
 name: Feature request
 about: Suggest an idea for this project
 title: ''
-labels: enhancement, triage
-assignees: V0ldek
+labels: 'type: feature'
+assignees: ''
 
 ---
 
