@@ -1,0 +1,25 @@
+name: Closed Issue
+on:
+  issues:
+    types: [closed]
+
+jobs:
+  label:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+    - uses: V0ldek/modify-label@v1.0.0
+      with:
+        action: remove
+        issue-number: ${{ github.event.issue.number }}
+        label-id: 'LA_kwDOHodxeM8AAAABA8dlvA'
+        token: ${{ secrets.GITHUB_TOKEN }}
+    - uses: V0ldek/modify-label@v1.0.0
+      with:
+        action: remove
+        issue-number: ${{ github.event.issue.number }}
+        label-id: 'LA_kwDOHodxeM8AAAABA8dh3A'
+        token: ${{ secrets.GITHUB_TOKEN }}
