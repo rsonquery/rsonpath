@@ -19,3 +19,16 @@ jobs:
         issue-number: ${{ github.event.issue.number }}
         label-id: 'LA_kwDOHodxeM8AAAABA8dlvA'
         token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Issue comment tag
+      uses: devops-actions/issue-comment-tag@v0.1.4
+      with:
+        # The tag of the team to mention in the issue comment
+        team: V0ldek
+        # The issue number to create a new comment in
+        issue: ${{ github.event.issue.number }}
+        # The owner for the repo to create a new comment in
+        owner: ${{ github.event.repository.owner.name }}
+        # The repo to create a new comment in
+        repo: ${{ github.event.repository.name }}
+        # The GitHub token to use to create a new comment with. Use `secrets.GITHUB_TOKEN` to inject it
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
