@@ -27,7 +27,7 @@ jobs:
         # The issue number to create a new comment in
         issue: ${{ github.event.issue.number }}
         # The owner for the repo to create a new comment in
-        owner: ${{ github.event.repository.owner.name }}
+        owner: ${{ github.event.repository.owner.login }}
         # The repo to create a new comment in
         repo: ${{ github.event.repository.name }}
         # The GitHub token to use to create a new comment with. Use `secrets.GITHUB_TOKEN` to inject it
