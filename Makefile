@@ -2,13 +2,18 @@ CARGO=cargo
 
 make: rsonpath
 
-rsonpath: rsonpath_lib check_cargo
+rsonpath: check_cargo rsonpath_lib
 	$(CARGO) build --bin rsonpath --release
 
 rsonpath_lib: check_cargo
 	$(CARGO) build --package rsonpath-lib --release
 
-.PHONY: bench check_cargo clean clean_benches doc install test uninstall verify verify-clippy verify-doc verify-fmt
+rsonpath_bench: check_cargo rsonpath_lib
+	$(CARGO) build --package rsonpath-benchmarks --release
+
+.PHONY: all bench check_cargo clean clean_benches doc install test uninstall verify verify-clippy verify-doc verify-fmt
+
+all: rsonpath_lib rsonpath rsonpath_bench
 
 bench: rsonpath_lib
 	$(CARGO) bench --config 'patch.crates-io.rsonpath-lib.path = "./crates/rsonpath-lib"'
@@ -48,8 +53,8 @@ uninstall:
 verify: rsonpath verify-clippy verify-doc verify-fmt test
 
 verify-clippy: rsonpath
-	cargo clippy --workspace --exclude rsonpath-benchmarks --no-default-features --release -- --deny warnings
-	cargo clippy --workspace --exclude rsonpath-benchmarks --all-features --release -- --deny warnings
+	cargo +nightly clippy --workspace --exclude rsonpath-benchmarks --no-default-features --release -- --deny warnings
+	cargo +nightly clippy --workspace --exclude rsonpath-benchmarks --all-features --release -- --deny warnings
 
 verify-doc: rsonpath
 	RUSTDOCFLAGS='-Dwarnings --cfg docsrs' cargo +nightly doc --package rsonpath-lib --no-default-features --no-deps

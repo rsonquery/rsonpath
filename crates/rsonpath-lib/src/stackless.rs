@@ -13,6 +13,8 @@ use crate::classify::{
     Structural,
 };
 use crate::debug;
+use crate::engine::depth::Depth;
+use crate::engine::error::EngineError;
 use crate::engine::result::QueryResult;
 use crate::engine::{Input, Runner};
 use crate::query::automaton::{Automaton, State};
@@ -44,16 +46,16 @@ impl StacklessRunner<'_> {
 
 impl Runner for StacklessRunner<'_> {
     #[inline]
-    fn run<R: QueryResult>(&self, input: &Input) -> R {
+    fn run<R: QueryResult>(&self, input: &Input) -> Result<R, EngineError> {
         if self.automaton.is_empty_query() {
-            return empty_query(input);
+            return Ok(empty_query(input));
         }
 
         let mut result = R::default();
         let executor = query_executor(&self.automaton, input, &mut result);
-        executor.run();
+        executor.run()?;
 
-        result
+        Ok(result)
     }
 }
 
@@ -109,7 +111,7 @@ impl SmallStack {
 }
 
 struct Executor<'q, 'b, 'r, R: QueryResult> {
-    depth: u8,
+    depth: Depth,
     state: State,
     stack: SmallStack,
     automaton: &'b Automaton<'q>,
@@ -124,7 +126,7 @@ fn query_executor<'q, 'b, 'r, R: QueryResult>(
     result: &'r mut R,
 ) -> Executor<'q, 'b, 'r, R> {
     Executor {
-        depth: 0,
+        depth: Depth::default(),
         state: automaton.initial_state(),
         stack: SmallStack::new(),
         automaton,
@@ -135,7 +137,7 @@ fn query_executor<'q, 'b, 'r, R: QueryResult>(
 }
 
 impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
-    fn run(mut self) {
+    fn run(mut self) -> Result<(), EngineError> {
         use memchr::memmem;
 
         let mut quote_classifier = ResumeClassifierState {
@@ -190,7 +192,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                             if self.automaton.is_accepting(self.state) {
                                 self.result.report(colon_idx);
                             }
-                            quote_classifier = self.run_on_subtree(quote_classifier);
+                            quote_classifier = self.run_on_subtree(quote_classifier)?;
                             debug!("Quote classified up to {}", quote_classifier.get_idx());
                             idx = quote_classifier.get_idx();
                         } else {
@@ -202,14 +204,16 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                 }
             }
         } else {
-            self.run_on_subtree(quote_classifier);
+            self.run_on_subtree(quote_classifier)?;
         }
+
+        Ok(())
     }
 
     fn run_on_subtree<I: QuoteClassifiedIterator<'b>>(
         &mut self,
         quote_classifier: ResumeClassifierState<'b, I>,
-    ) -> ResumeClassifierState<'b, I> {
+    ) -> Result<ResumeClassifierState<'b, I>, EngineError> {
         let mut classifier =
             ClassifierWithSkipping::new(resume_structural_classification(quote_classifier));
         let mut fallback_active = false;
@@ -237,26 +241,26 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                 Structural::Closing(_) => {
                     debug!("Closing, decreasing depth and popping stack.");
 
-                    self.depth -= 1;
+                    self.depth.decrement()?;
 
-                    if let Some(stack_frame) = self.stack.pop_if_at_or_below(self.depth) {
+                    if let Some(stack_frame) = self.stack.pop_if_at_or_below(*self.depth) {
                         self.state = stack_frame.state
                     }
 
-                    if self.depth == 0 {
+                    if self.depth == Depth::ZERO {
                         break;
                     }
                 }
                 Structural::Opening(idx) => {
                     debug!("Opening, increasing depth and pushing stack.");
-                    self.depth += 1;
+                    self.depth.increment()?;
 
                     if fallback_active {
                         let fallback = self.automaton[self.state].fallback_state();
 
                         if self.automaton.is_rejecting(fallback) {
                             classifier.skip(self.bytes[idx]);
-                            self.depth -= 1;
+                            self.depth.decrement()?;
                         } else {
                             self.transition_to(fallback);
                         }
@@ -275,7 +279,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
 
                     for &(label, target) in self.automaton[self.state].transitions() {
                         if is_next_opening {
-                            if self.is_match(idx, label) {
+                            if self.is_match(idx, label)? {
                                 fallback_active = false;
 
                                 if self.automaton.is_accepting(target) {
@@ -285,7 +289,9 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                                 self.transition_to(target);
                                 break;
                             }
-                        } else if self.automaton.is_accepting(target) && self.is_match(idx, label) {
+                        } else if self.automaton.is_accepting(target)
+                            && self.is_match(idx, label)?
+                        {
                             self.result.report(idx);
                             break;
                         }
@@ -294,33 +300,39 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
             }
         }
 
-        classifier.stop()
+        Ok(classifier.stop())
     }
 
     fn transition_to(&mut self, target: State) {
         if target != self.state {
             self.stack.push(StackFrame {
-                depth: self.depth,
+                depth: *self.depth,
                 state: self.state,
             });
             self.state = target;
         }
     }
 
-    fn is_match(&self, idx: usize, label: &Label) -> bool {
+    fn is_match(&self, idx: usize, label: &Label) -> Result<bool, EngineError> {
         let len = label.len() + 2;
 
         let mut closing_quote_idx = idx - 1;
         while self.bytes[closing_quote_idx] != b'"' {
+            if closing_quote_idx == 0 {
+                return Err(EngineError::MalformedLabelQuotes(idx));
+            }
+
             closing_quote_idx -= 1;
         }
 
         if closing_quote_idx + 1 < len {
-            return false;
+            return Ok(false);
         }
 
         let start_idx = closing_quote_idx + 1 - len;
         let slice = &self.bytes[start_idx..closing_quote_idx + 1];
-        label.bytes_with_quotes() == slice && (start_idx == 0 || self.bytes[start_idx - 1] != b'\\')
+
+        Ok(label.bytes_with_quotes() == slice
+            && (start_idx == 0 || self.bytes[start_idx - 1] != b'\\'))
     }
 }

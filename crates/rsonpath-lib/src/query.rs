@@ -29,16 +29,6 @@
 //! ```
 //!
 
-#![warn(
-    clippy::exit,
-    clippy::expect_used,
-    clippy::missing_errors_doc,
-    clippy::missing_panics_doc,
-    clippy::panic,
-    clippy::panic_in_result_fn,
-    clippy::unwrap_used
-)]
-
 pub mod automaton;
 pub mod errors;
 mod parser;
@@ -322,7 +312,7 @@ impl Display for JsonPathQueryNode {
         }?;
 
         if let Some(child) = self.child() {
-            write!(f, "{}", child)
+            write!(f, "{child}")
         } else {
             Ok(())
         }

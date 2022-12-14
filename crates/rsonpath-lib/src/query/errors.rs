@@ -67,7 +67,7 @@ impl Display for ParseErrorReport {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for error in self.errors() {
-            writeln!(f, "{}\n", error)?;
+            writeln!(f, "{error}\n")?;
         }
 
         Ok(())

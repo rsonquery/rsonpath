@@ -97,21 +97,6 @@ impl<'a, I: QuoteClassifiedIterator<'a>> Avx2Classifier<'a, I> {
     }
 
     #[inline(always)]
-    fn next_block(&mut self) -> bool {
-        while self.current_block_is_spent() {
-            match self.iter.next() {
-                Some(block) => {
-                    // SAFETY: target_feature invariant
-                    self.block = unsafe { Some(self.classifier.classify(block)) };
-                }
-                None => return false,
-            }
-        }
-
-        true
-    }
-
-    #[inline(always)]
     fn current_block_is_spent(&self) -> bool {
         self.block.as_ref().map_or(true, StructuralsBlock::is_empty)
     }
@@ -122,14 +107,22 @@ impl<'a, I: QuoteClassifiedIterator<'a>> Iterator for Avx2Classifier<'a, I> {
 
     #[inline(always)]
     fn next(&mut self) -> Option<Structural> {
-        if !self.next_block() {
-            return None;
+        while self.current_block_is_spent() {
+            match self.iter.next() {
+                Some(block) => {
+                    // SAFETY: target_feature invariant
+                    self.block = unsafe { Some(self.classifier.classify(block)) };
+                }
+                None => {
+                    self.block = None;
+                    break;
+                }
+            }
         }
+
         self.block
             .as_mut()
-            .unwrap()
-            .next()
-            .map(|x| x.offset(self.iter.get_offset()))
+            .and_then(|b| b.next().map(|x| x.offset(self.iter.get_offset())))
     }
 }
 

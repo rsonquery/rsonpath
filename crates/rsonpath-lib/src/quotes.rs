@@ -89,24 +89,28 @@ impl<'a, I: QuoteClassifiedIterator<'a>> ResumeClassifierState<'a, I> {
     pub fn offset_bytes(&mut self, count: isize) {
         debug_assert!(count > 0);
         let count = count as usize;
+
         let remaining_in_block = self.block.as_ref().map_or(0, |b| b.block.len() - b.idx);
 
-        if remaining_in_block > count {
-            self.block.as_mut().unwrap().idx += count;
-        } else {
-            let blocks_to_advance = (count - remaining_in_block) / I::block_size();
+        match self.block.as_mut() {
+            Some(b) if b.block.len() - b.idx > count => {
+                b.idx += count;
+            }
+            _ => {
+                let blocks_to_advance = (count - remaining_in_block) / I::block_size();
 
-            let remainder = (self.block.as_ref().map_or(0, |b| b.idx) + count
-                - blocks_to_advance * I::block_size())
-                % I::block_size();
+                let remainder = (self.block.as_ref().map_or(0, |b| b.idx) + count
+                    - blocks_to_advance * I::block_size())
+                    % I::block_size();
 
-            self.iter.offset(blocks_to_advance as isize);
-            let next_block = self.iter.next();
+                self.iter.offset(blocks_to_advance as isize);
+                let next_block = self.iter.next();
 
-            self.block = next_block.map(|b| ResumeClassifierBlockState {
-                block: b,
-                idx: remainder,
-            });
+                self.block = next_block.map(|b| ResumeClassifierBlockState {
+                    block: b,
+                    idx: remainder,
+                });
+            }
         }
 
         debug!(
