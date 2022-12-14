@@ -38,7 +38,7 @@
 //! // Compile the query. The runner can be reused to run the same query on different contents.
 //! let runner = StacklessRunner::compile_query(&query);
 //! // Count the number of occurrences of elements satisfying the query.
-//! let count = runner.run::<CountResult>(&input).get();
+//! let count = runner.run::<CountResult>(&input)?.get();
 //!
 //! assert_eq!(2, count);
 //! # Ok(())

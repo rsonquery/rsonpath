@@ -33,7 +33,9 @@ fn run<R: QueryResult>(query: &JsonPathQuery, input: &Input, engine: EngineArg) 
             let stackless_runner = StacklessRunner::compile_query(query);
             info!("Compilation finished, running...");
 
-            let stackless_result = stackless_runner.run::<R>(input);
+            let stackless_result = stackless_runner
+                .run::<R>(input)
+                .wrap_err("Error in the main engine.")?;
             info!("Stackless: {}", stackless_result);
 
             println!("{}", stackless_result);
@@ -42,7 +44,9 @@ fn run<R: QueryResult>(query: &JsonPathQuery, input: &Input, engine: EngineArg) 
             let stack_based_runner = StackBasedRunner::compile_query(query);
             info!("Compilation finished, running...");
 
-            let stack_based_result = stack_based_runner.run::<R>(input);
+            let stack_based_result = stack_based_runner
+                .run::<R>(input)
+                .wrap_err("Error in the recursive engine.")?;
             info!("Stack based: {}", stack_based_result);
 
             println!("{}", stack_based_result);
@@ -52,10 +56,14 @@ fn run<R: QueryResult>(query: &JsonPathQuery, input: &Input, engine: EngineArg) 
             let stack_based_runner = StackBasedRunner::compile_query(query);
             info!("Compilation finished, running...");
 
-            let stackless_result = stackless_runner.run::<R>(input);
+            let stackless_result = stackless_runner
+                .run::<R>(input)
+                .wrap_err("Error in the main engine.")?;
             info!("Stackless: {}", stackless_result);
 
-            let stack_based_result = stack_based_runner.run::<R>(input);
+            let stack_based_result = stack_based_runner
+                .run::<R>(input)
+                .wrap_err("Error in the recursive engine.")?;
             info!("Stack based: {}", stack_based_result);
 
             if stack_based_result != stackless_result {

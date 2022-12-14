@@ -4,6 +4,8 @@
 //! query results from input bytes. Result types are defined in the [result]
 //! module.
 
+pub mod depth;
+pub mod error;
 pub mod result;
 
 use aligners::{
@@ -12,7 +14,7 @@ use aligners::{
 };
 use cfg_if::cfg_if;
 
-use self::result::QueryResult;
+use self::{error::EngineError, result::QueryResult};
 
 /// Input into a query engine.
 pub struct Input {
@@ -103,5 +105,13 @@ impl Input {
 /// Trait for an engine that can run its query on a given input.
 pub trait Runner {
     /// Compute the [`QueryResult`] on given [`Input`].
-    fn run<R: QueryResult>(&self, input: &Input) -> R;
+    ///
+    /// # Errors
+    /// An appropriate [`EngineError`] is returned if the JSON input is malformed
+    /// and the syntax error is detected.
+    ///
+    /// **Please note** that detecting malformed JSONs is not guaranteed.
+    /// Some glaring errors like mismatched braces or double quotes are raised,
+    /// but in general the result of an engine run on an invalid JSON is undefined.
+    fn run<R: QueryResult>(&self, input: &Input) -> Result<R, EngineError>;
 }

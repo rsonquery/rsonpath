@@ -3,6 +3,7 @@
 use crate::classify::ClassifierWithSkipping;
 use crate::classify::{classify_structural_characters, Structural, StructuralIterator};
 use crate::debug;
+use crate::engine::error::EngineError;
 use crate::engine::result::QueryResult;
 use crate::engine::{Input, Runner};
 use crate::query::automaton::{Automaton, State};
@@ -29,7 +30,7 @@ impl<'q> StackBasedRunner<'q> {
 
 impl Runner for StackBasedRunner<'_> {
     #[inline]
-    fn run<R: QueryResult>(&self, input: &Input) -> R {
+    fn run<R: QueryResult>(&self, input: &Input) -> Result<R, EngineError> {
         if self.automaton.is_empty_query() {
             return empty_query(input);
         }
@@ -41,12 +42,12 @@ impl Runner for StackBasedRunner<'_> {
         let mut result = R::default();
         let mut execution_ctx =
             ExecutionContext::new(classifier, &self.automaton, input, &mut result);
-        execution_ctx.run(self.automaton.initial_state());
-        result
+        execution_ctx.run(self.automaton.initial_state())?;
+        Ok(result)
     }
 }
 
-fn empty_query<R: QueryResult>(bytes: &AlignedBytes<alignment::Page>) -> R {
+fn empty_query<R: QueryResult>(bytes: &AlignedBytes<alignment::Page>) -> Result<R, EngineError> {
     let quote_classifier = classify_quoted_sequences(bytes.relax_alignment());
     let mut block_event_source = classify_structural_characters(quote_classifier);
     let mut result = R::default();
@@ -55,7 +56,7 @@ fn empty_query<R: QueryResult>(bytes: &AlignedBytes<alignment::Page>) -> R {
         result.report(idx);
     }
 
-    result
+    Ok(result)
 }
 
 macro_rules! decrease_depth {
@@ -130,7 +131,7 @@ where
         }
     }
 
-    pub(crate) fn run(&mut self, state: State) {
+    pub(crate) fn run(&mut self, state: State) -> Result<(), EngineError> {
         debug!("Run state {state}, depth {}", self.depth);
         let mut next_event = None;
         loop {
@@ -147,7 +148,7 @@ where
                     if self.automaton.is_rejecting(next_state) {
                         self.classifier.skip(self.bytes[idx]);
                     } else {
-                        self.run(next_state);
+                        self.run(next_state)?;
                     }
                     next_event = None;
                 }
@@ -161,17 +162,19 @@ where
                     let is_next_opening = matches!(next_event, Some(Structural::Opening(_)));
                     for &(label, target) in self.automaton[state].transitions() {
                         if is_next_opening {
-                            if self.is_match(idx, label) {
+                            if self.is_match(idx, label)? {
                                 debug!("Matched transition to {target}");
                                 if self.automaton.is_accepting(target) {
                                     self.result.report(idx);
                                 }
                                 increase_depth!(self);
-                                self.run(target);
+                                self.run(target)?;
                                 next_event = None;
                                 break;
                             }
-                        } else if self.automaton.is_accepting(target) && self.is_match(idx, label) {
+                        } else if self.automaton.is_accepting(target)
+                            && self.is_match(idx, label)?
+                        {
                             debug!("Matched transition to acceptance in {target}");
                             self.result.report(idx);
                             break;
@@ -183,22 +186,30 @@ where
                 None => break,
             }
         }
+
+        Ok(())
     }
 
-    fn is_match(&self, idx: usize, label: &Label) -> bool {
+    fn is_match(&self, idx: usize, label: &Label) -> Result<bool, EngineError> {
         let len = label.len() + 2;
 
         let mut closing_quote_idx = idx - 1;
         while self.bytes[closing_quote_idx] != b'"' {
+            if closing_quote_idx == 0 {
+                return Err(EngineError::MalformedLabelQuotes(idx));
+            }
+
             closing_quote_idx -= 1;
         }
 
         if closing_quote_idx + 1 < len {
-            return false;
+            return Ok(false);
         }
 
         let start_idx = closing_quote_idx + 1 - len;
         let slice = &self.bytes[start_idx..closing_quote_idx + 1];
-        label.bytes_with_quotes() == slice && (start_idx == 0 || self.bytes[start_idx - 1] != b'\\')
+
+        Ok(label.bytes_with_quotes() == slice
+            && (start_idx == 0 || self.bytes[start_idx - 1] != b'\\'))
     }
 }
