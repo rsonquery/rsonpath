@@ -32,10 +32,10 @@ pub(crate) fn parse_json_path_query(query_string: &str) -> Result<JsonPathQuery,
         Ok(("", (root_token, tokens))) => {
             debug!(
                 "Parsed tokens: {}",
-                root_token.map_or(String::new(), |x| format!("{}", x))
+                root_token.map_or(String::new(), |x| format!("{x}"))
                     + &tokens
                         .iter()
-                        .map(|x| format!("({:?})", x))
+                        .map(|x| format!("({x:?})"))
                         .collect::<String>()
             );
             let node = tokens_to_node(&mut tokens.into_iter())?;

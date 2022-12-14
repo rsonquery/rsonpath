@@ -16,7 +16,7 @@ fn main() -> Result<()> {
     configure_logger(args.verbose)?;
 
     let query = parse_query(&args.query)?;
-    info!("Preparing query: `{}`\n", query);
+    info!("Preparing query: `{query}`\n");
 
     let mut contents = get_contents(args.file_path.as_deref())?;
     let input = Input::new(&mut contents);
@@ -36,9 +36,9 @@ fn run<R: QueryResult>(query: &JsonPathQuery, input: &Input, engine: EngineArg) 
             let stackless_result = stackless_runner
                 .run::<R>(input)
                 .wrap_err("Error in the main engine.")?;
-            info!("Stackless: {}", stackless_result);
+            info!("Stackless: {stackless_result}");
 
-            println!("{}", stackless_result);
+            println!("{stackless_result}");
         }
         EngineArg::Recursive => {
             let stack_based_runner = StackBasedRunner::compile_query(query);
@@ -47,9 +47,9 @@ fn run<R: QueryResult>(query: &JsonPathQuery, input: &Input, engine: EngineArg) 
             let stack_based_result = stack_based_runner
                 .run::<R>(input)
                 .wrap_err("Error in the recursive engine.")?;
-            info!("Stack based: {}", stack_based_result);
+            info!("Stack based: {stack_based_result}");
 
-            println!("{}", stack_based_result);
+            println!("{stack_based_result}");
         }
         EngineArg::VerifyBoth => {
             let stackless_runner = StacklessRunner::compile_query(query);
@@ -59,18 +59,18 @@ fn run<R: QueryResult>(query: &JsonPathQuery, input: &Input, engine: EngineArg) 
             let stackless_result = stackless_runner
                 .run::<R>(input)
                 .wrap_err("Error in the main engine.")?;
-            info!("Stackless: {}", stackless_result);
+            info!("Stackless: {stackless_result}");
 
             let stack_based_result = stack_based_runner
                 .run::<R>(input)
                 .wrap_err("Error in the recursive engine.")?;
-            info!("Stack based: {}", stack_based_result);
+            info!("Stack based: {stack_based_result}");
 
             if stack_based_result != stackless_result {
                 return Err(eyre!("Result mismatch!"));
             }
 
-            println!("{}", stack_based_result);
+            println!("{stack_based_result}");
         }
     }
 
@@ -84,7 +84,7 @@ fn parse_query(query_string: &str) -> Result<JsonPathQuery> {
         Err(e) => {
             if let QueryError::ParseError { report } = e {
                 let mut eyre = Err(eyre!("Could not parse JSONPath query."));
-                eyre = eyre.note(format!("for query string {}", query_string));
+                eyre = eyre.note(format!("for query string {query_string}"));
 
                 for error in report.errors() {
                     use color_eyre::owo_colors::OwoColorize;

@@ -53,8 +53,8 @@ uninstall:
 verify: rsonpath verify-clippy verify-doc verify-fmt test
 
 verify-clippy: rsonpath
-	cargo clippy --workspace --exclude rsonpath-benchmarks --no-default-features --release -- --deny warnings
-	cargo clippy --workspace --exclude rsonpath-benchmarks --all-features --release -- --deny warnings
+	cargo +nightly clippy --workspace --exclude rsonpath-benchmarks --no-default-features --release -- --deny warnings
+	cargo +nightly clippy --workspace --exclude rsonpath-benchmarks --all-features --release -- --deny warnings
 
 verify-doc: rsonpath
 	RUSTDOCFLAGS='-Dwarnings --cfg docsrs' cargo +nightly doc --package rsonpath-lib --no-default-features --no-deps

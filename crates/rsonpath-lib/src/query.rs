@@ -312,7 +312,7 @@ impl Display for JsonPathQueryNode {
         }?;
 
         if let Some(child) = self.child() {
-            write!(f, "{}", child)
+            write!(f, "{child}")
         } else {
             Ok(())
         }
