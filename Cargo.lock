@@ -985,18 +985,6 @@ checksum = "e3a8614ee435691de62bcffcf4a66d91b3594bf1428a5722e79103249a095690"
 [[package]]
 name = "rsonpath"
 version = "0.1.2"
-dependencies = [
- "clap 4.0.25",
- "color-eyre",
- "eyre",
- "log",
- "rsonpath-lib",
- "simple_logger 4.0.0",
-]
-
-[[package]]
-name = "rsonpath"
-version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a9b2aa66579c799f0d2b925ca11865cdecd3138fff01e75c0bd5b0151017b26f"
 dependencies = [
@@ -1014,8 +1002,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "rsonpath"
+version = "0.2.0"
+dependencies = [
+ "clap 4.0.25",
+ "color-eyre",
+ "eyre",
+ "log",
+ "rsonpath-lib 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "simple_logger 4.0.0",
+]
+
+[[package]]
 name = "rsonpath-benchmarks"
-version = "0.1.2"
+version = "0.2.0"
 dependencies = [
  "cc",
  "cfg-if 1.0.0",
@@ -1028,13 +1028,13 @@ dependencies = [
  "memchr",
  "ouroboros",
  "regex",
- "rsonpath 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rsonpath 0.1.2",
  "thiserror",
 ]
 
 [[package]]
 name = "rsonpath-lib"
-version = "0.1.2"
+version = "0.2.0"
 dependencies = [
  "aligners 0.0.10",
  "cfg-if 1.0.0",
@@ -1046,6 +1046,24 @@ dependencies = [
  "replace_with",
  "smallvec",
  "test-case",
+ "thiserror",
+ "vector-map",
+]
+
+[[package]]
+name = "rsonpath-lib"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "65518d0e6caf20548f8af5d15c1c7e537b71a46eb8d586079ba0336d4a39638a"
+dependencies = [
+ "aligners 0.0.10",
+ "cfg-if 1.0.0",
+ "eyre",
+ "log",
+ "memchr",
+ "nom",
+ "replace_with",
+ "smallvec",
  "thiserror",
  "vector-map",
 ]

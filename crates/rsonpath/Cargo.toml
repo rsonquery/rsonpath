@@ -1,6 +1,6 @@
 [package]
 name = "rsonpath"
-version = "0.1.2"
+version = "0.2.0"
 authors = ["Mateusz Gienieczko <mat@gienieczko.com>"]
 edition = "2021"
 description = "Blazing fast JSONPath CLI application powered by SIMD."
@@ -22,10 +22,13 @@ clap = { version = "4.0.25", features = ["derive", "wrap_help"] }
 color-eyre = { version = "0.6.2", default-features = false }
 eyre = "0.6.8"
 log = "0.4.17"
-rsonpath-lib = { path = "../rsonpath-lib", default-features = false }
+rsonpath-lib = { version = "0.2.0", default-features = false }
 simple_logger = "4.0.0"
 
 [features]
 default = ["simd"]
 simd = ["rsonpath-lib/simd"]
 commas = ["rsonpath-lib/commas"]
+
+[patch.crates-io]
+rsonpath-lib = { path = "../rsonpath-lib", default-features = false }
