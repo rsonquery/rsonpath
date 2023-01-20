@@ -1,7 +1,7 @@
 # `rsonpath` &ndash; SIMD-powered JSONPath 🚀
 
 [![Rust](https://github.com/V0ldek/rsonpath/actions/workflows/rust.yml/badge.svg)](https://github.com/V0ldek/rsonpath/actions/workflows/rust.yml)
-[![docs.rs](https://img.shields.io/docsrs/rsonpath?logo=docs.rs)](https://docs.rs/rsonpath)
+[![docs.rs](https://img.shields.io/docsrs/rsonpath-lib?logo=docs.rs)](https://docs.rs/crate/rsonpath-lib/0.2.0)
 
 [![Crates.io](https://img.shields.io/crates/v/rsonpath?logo=docs.rs)](https://crates.io/crates/rsonpath)
 [![GitHub Release Date](https://img.shields.io/github/release-date/v0ldek/rsonpath)](https://github.com/V0ldek/rsonpath/releases)
@@ -111,12 +111,12 @@ cargo tree --package rsonpath --edges normal --depth 1
 ```
 
 ```ini
-rsonpath v0.1.2 (/home/mat/rsonpath/crates/rsonpath)
+rsonpath v0.2.0 (/home/v0ldek/rsonpath/crates/rsonpath)
 ├── clap v4.0.25
 ├── color-eyre v0.6.2
 ├── eyre v0.6.8
 ├── log v0.4.17
-├── rsonpath-lib v0.1.2
+├── rsonpath-lib v0.2.0
 └── simple_logger v4.0.0
 ```
 
@@ -125,12 +125,13 @@ cargo tree --package rsonpath-lib --edges normal --depth 1
 ```
 
 ```ini
-rsonpath-lib v0.1.2 (/home/mat/rsonpath/crates/rsonpath-lib)
+rsonpath-lib v0.2.0 (/home/v0ldek/rsonpath/crates/rsonpath-lib)
 ├── aligners v0.0.10
 ├── cfg-if v1.0.0
 ├── log v0.4.17
 ├── memchr v2.5.0
 ├── nom v7.1.1
+├── replace_with v0.1.7
 ├── smallvec v1.10.0
 ├── thiserror v1.0.37
 └── vector-map v1.0.1
@@ -146,6 +147,7 @@ rsonpath-lib v0.1.2 (/home/mat/rsonpath/crates/rsonpath-lib)
 - `cfg-if` &ndash; used to support SIMD and no-SIMD versions.
 - `memchr` &ndash; rapid, SIMDified substring search for fast-forwarding to labels.
 - `nom` &ndash; for parser implementation.
+- `replace_with` &ndash; for safe handling of internal classifier state when switching classifiers.
 - `smallvec` &ndash; crucial for small-stack performance.
 - `thiserror` &ndash; idiomatic `Error` implementations.
 - `vector_map` &ndash; used in the query compiler for measurably better performance.
@@ -157,7 +159,7 @@ cargo tree --package rsonpath --edges normal
 ```
 
 ```ini
-rsonpath v0.1.2 (/home/mat/rsonpath/crates/rsonpath)
+rsonpath v0.2.0
 ├── clap v4.0.25
 │   ├── atty v0.2.14
 │   │   └── libc v0.2.137
@@ -210,7 +212,7 @@ rsonpath v0.1.2 (/home/mat/rsonpath/crates/rsonpath)
 ├── eyre v0.6.8 (*)
 ├── log v0.4.17
 │   └── cfg-if v1.0.0
-├── rsonpath-lib v0.1.2 (/home/mat/rsonpath/crates/rsonpath-lib)
+├── rsonpath-lib v0.2.0
 │   ├── aligners v0.0.10
 │   │   ├── cfg-if v1.0.0
 │   │   ├── lazy_static v1.4.0
@@ -222,6 +224,7 @@ rsonpath v0.1.2 (/home/mat/rsonpath/crates/rsonpath)
 │   ├── nom v7.1.1
 │   │   ├── memchr v2.5.0
 │   │   └── minimal-lexical v0.2.1
+│   ├── replace_with v0.1.7
 │   ├── smallvec v1.10.0
 │   ├── thiserror v1.0.37
 │   │   └── thiserror-impl v1.0.37 (proc-macro)
