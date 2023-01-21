@@ -29,6 +29,3 @@ simple_logger = "4.0.0"
 default = ["simd"]
 simd = ["rsonpath-lib/simd"]
 commas = ["rsonpath-lib/commas"]
-
-[patch.crates-io]
-rsonpath-lib = { path = "../rsonpath-lib", default-features = false }
