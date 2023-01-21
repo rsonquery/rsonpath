@@ -57,7 +57,8 @@ To install SIMD-less `rsonpath`, run:
 cargo install rsonpath --no-default-features
 ```
 
-Alternatively, you can download the source code and manually run `make install`.
+Alternatively, you can download the source code and manually run `just install` (requires [`just`](https://github.com/casey/just))
+or `cargo install --path ./crates/rsonpath`.
 
 ## Usage
 
@@ -83,11 +84,12 @@ might be faster in some cases. To change the engine use `--engine recursive`.
 
 ## Build & test
 
-Use the included `Makefile`. It will automatically install Rust for you using the `rustup` tool if it detects there is no Cargo in your environment.
+The dev workflow utilizes [`just`](https://github.com/casey/just).
+Use the included `Justfile`. It will automatically install Rust for you using the `rustup` tool if it detects there is no Cargo in your environment.
 
 ```bash
-make
-make test
+just build
+just test
 ```
 
 ## Benchmarks
@@ -95,7 +97,7 @@ make test
 Benchmarks for `rsonpath` are located in a [separate repository](https://github.com/v0ldek/rsonpath-benchmarks),
 included as a [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules) in this main repository.
 
-Easiest way to run all the benchmarks is `make bench`. For details, look at the README in the submodule.
+Easiest way to run all the benchmarks is `just bench`. For details, look at the README in the submodule.
 
 ## Background
 

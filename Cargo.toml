@@ -11,3 +11,6 @@ lto = false
 
 [profile.release]
 lto = "thin"
+
+[patch.crates-io]
+rsonpath-lib = { path = "./crates/rsonpath-lib" }
