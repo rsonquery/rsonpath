@@ -1,5 +1,5 @@
 [private]
-default: build-bin
+default: (build-all "release")
 
 # === INIT ===
 
@@ -8,11 +8,11 @@ init: check-cargo hooks-init checkout-benchmarks
 
 # Check if cargo is installed and install it from rustup if not.
 [private]
-check-cargo:
-    @cargo --version || \
+@check-cargo:
+    cargo --version || \
       (echo "Installing rustup from https://sh.rustup.rs" && \
        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y)
-    @. ${HOME}/.cargo/env
+    . ${HOME}/.cargo/env
     rustup install stable
     rustup install nightly
 
@@ -20,6 +20,9 @@ check-cargo:
 [private]
 @hooks-init:
     echo "#!/bin/sh\n\njust hook-pre-commit" > ./.git/hooks/pre-commit
+    echo "#!/bin/sh\n\njust hook-post-checkout" > ./.git/hooks/post-checkout
+    chmod u+x ./.git/hooks/pre-commit
+    chmod u+x ./.git/hooks/post-checkout
 
 # Checkout and populate the benchmarks repository, excluding datasets.
 [private]
@@ -29,67 +32,117 @@ checkout-benchmarks:
 
 # === BUILD ===
 
+alias b := build-bin
+
+# alias for build-all release
+build: (build-all "release")
+
 # Build the rsonpath binary.
-build-bin: build-lib
-    cargo build --bin rsonpath --release
+build-bin profile="dev": (build-lib profile)
+    cargo build --bin rsonpath --profile {{profile}}
 
 # Build the rsonpath-lib library.
-build-lib: check-cargo 
-    cargo build --package rsonpath-lib --release
+build-lib profile="dev":
+    cargo build --package rsonpath-lib --profile {{profile}}
 
 # Build the rsonpath-benchmarks harness.
-build-bench: build-lib
-    cargo build --package rsonpath-benchmarks --release
+build-bench profile="dev": (build-lib profile)
+    cargo build --package rsonpath-benchmarks --profile {{profile}}
 
 # Build all rsonpath parts, the binary, library, and benches.
-build-all: build-lib build-bin build-bench
+build-all profile="dev": (build-lib profile) (build-bin profile) (build-bench profile)
 
 # Build and open the library documentation.
-doc: build-lib
+doc:
 	RUSTDOCFLAGS="--cfg docsrs" cargo +nightly doc --open --package rsonpath-lib
+
+# === RUN ===
+
+alias r := run-debug
+
+# Run the CLI in debug profile. ARGS are passed to the rsonpath executable.
+[no-exit-message]
+run-debug *ARGS: (build-bin "dev")
+    ./target/debug/rsonpath {{ARGS}}
+
+# Run the CLI in release profile. ARGS are passed to the rsonpath executable.
+[no-exit-message]
+run *ARGS: (build-bin "release")
+    ./target/release/rsonpath {{ARGS}}
 
 # === TEST ===
 
 # Run all tests.
-test: build-bin
-    cargo install cargo-hack
+
+alias t := test-unit
+alias test := test-full
+alias doctest := test-doc
+
+# Run the quick unit tests of the library with all features.
+test-unit:
+    cargo rsontest --lib
+
+# Run all tests, including real dataset tests, on the feature powerset of the project.
+test-full:
+    -cargo install cargo-hack
     cargo rsontest
+
+# Run doctests on the library.
+test-doc:
+    -cargo install cargo-hack
+    cargo rsontest --doc
 
 # === INSTALL ===
 
 # Install the rsonpath binary from current source.
-install: build-bin
-    cargo install --path ./rsonpath
+install: (build-bin "release")
+    cargo install --path ./crates/rsonpath
 
 # Uninstall the rsonpath binary.
-uninstall: check-cargo 
+uninstall:
 	cargo uninstall rsonpath
 
-# === VERIFICATION ===
+# === VERIFICATION/LINTING ===
+
+alias v := verify-quick
+alias verify := verify-full
 
 # Run all lints and checks required.
-verify: build-all verify-clippy verify-doc verify-fmt test
+verify-full: build-all verify-clippy verify-doc verify-fmt test-full
+
+# Run a quick formatting and compilation check.
+verify-quick: verify-fmt verify-check
+
+# Run cargo check on non-benchmark packages.
+verify-check:
+	cargo check --workspace --exclude rsonpath-benchmarks --all-features
 
 # Run clippy lints on all packages.
-verify-clippy: build-all
+verify-clippy: (build-all "release")
 	cargo +nightly clippy --workspace --no-default-features --release -- --deny warnings
 	cargo +nightly clippy --workspace --all-features --release -- --deny warnings
 
 # Verify that documentation successfully builds for rsonpath-lib.
-verify-doc: build-bin
+verify-doc: (build-bin "release")
 	RUSTDOCFLAGS='-Dwarnings --cfg docsrs' cargo +nightly doc --package rsonpath-lib --no-default-features --no-deps
 	RUSTDOCFLAGS='-Dwarnings --cfg docsrs' cargo +nightly doc --package rsonpath-lib --all-features --no-deps
 
 # Verify formatting rules are not violated.
-verify-fmt: build-all
+verify-fmt:
 	cargo fmt -- --check
+
+# === BENCHES ===
+
+# Run *all* benches (very long!).
+bench: (build-all "release")
+    cargo bench
 
 # === CLEAN ===
 
 tmpdir := `mktemp -d -t criterion-reports-tmp-XXXXXXXX`
 
 # Clean all build artifacts without deleting benchmark results.
-clean: check-cargo
+clean:
     -cp -r ./target/criterion/* {{tmpdir}}/
     cargo clean
     mkdir -p ./target/criterion
@@ -101,20 +154,55 @@ clean-benches:
 	-rm -rf ./target/criterion/*
 
 # Clean all artifacts, including benchmark results.
-clean-all: clean clean-benches
+clean-all:
+    cargo clean
+
+# === GIT ===
+
+# Commit (add all first) both rsonpath and the benchmarks with a given message.
+commit msg:
+    cd ./crates/rsonpath-benchmarks
+    git commit -am '{{msg}}'
+    cd ../..
+    git commit -am '{{msg}}'
 
 # === HOOKS ===
 
 [private]
-@hook-pre-commit: verify-clippy verify-fmt
+@hook-pre-commit: assert-benchmarks-committed verify-fmt verify-check
 
 [private]
-@hook-pre-push: assert-benchmarks-committed
-
-dirty-submodules: `git diff HEAD ./crates/rsonpath-benchmarks | grep "^+Subproject commit [a-f0-9]*-dirty$" --count`
+@hook-post-checkout: checkout-benchmarks
 
 [private]
-@assert-benchmarks-committed:
-    if {{dirty-submodules}} != "0" {
-        error("Cannot push")
-    }
+assert-benchmarks-committed:
+    #!/bin/sh
+    count=$(git diff HEAD ./crates/rsonpath-benchmarks | grep "^+Subproject commit [a-f0-9]*-dirty$" --count)
+    if [ $count -ne 0 ]
+    then
+        echo "\033[31;1mCannot commit when rsonpath-benchmarks submodule is dirty, as this can lead to unexpected behaviour.
+    First commit the changes in rsonpath-benchmarks by cd-ing into ./crates/rsonpath-benchmarks.\033[0"
+        exit 1
+    fi
+
+# === RELEASE ===
+
+[private]
+release-patch ver:
+    #!/usr/bin/env nu
+    let ver = "{{ver}}";
+    let crates = ["rsonpath", "rsonpath-lib", "rsonpath-benchmarks"];
+    $crates | each { |cr|
+        let path = $"./crates/($cr)/Cargo.toml";
+        sed -i $'s/^version = "[^"]*"/version = "($ver)"/;s/^rsonpath-lib = { version = "[^"]*"/rsonpath-lib = { version = "($ver)"/' $path;
+    };
+
+# Perform release dry run for the given version.
+release-dry ver:
+    just release-patch {{ver}}
+    cargo release --sign-tag --sign-commit --exclude rsonpath-benchmarks
+
+# Actually execute a release for the given version.
+release-execute ver:
+    just release-patch {{ver}}
+    cargo release --sign-tag --sign-commit --exclude rsonpath-benchmarks --execute
