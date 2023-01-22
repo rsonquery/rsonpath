@@ -162,15 +162,20 @@ clean-all:
 # Commit (add all first) both rsonpath and the benchmarks with a given message.
 [no-exit-message]
 commit msg:
-    cd ./crates/rsonpath-benchmarks
-    -git commit -am '{{msg}}'
-    cd ../..
-    -git commit -am '{{msg}}'
+    -cd ./crates/rsonpath-benchmarks && git add --all && git commit -m '{{msg}}'
+    -git add --all && git commit -am '{{msg}}'
 
 # === HOOKS ===
 
+tmpdiff := `mktemp -t pre-commit-hook-diff-XXXXXXXX.$$`
+
 [private]
-@hook-pre-commit: assert-benchmarks-committed verify-fmt verify-check
+hook-pre-commit: 
+    just assert-benchmarks-committed
+    git diff --full-index --binary > {{tmpdiff}}
+    git stash -q --keep-index
+    (just verify-fmt && just verify-check); \
+    git apply --whitespace=nowarn < {{tmpdiff}} && git stash drop -q; rm {{tmpdiff}}
 
 [private]
 @hook-post-checkout: checkout-benchmarks
@@ -182,7 +187,7 @@ assert-benchmarks-committed:
     if [ $count -ne 0 ]
     then
         echo "\033[31;1mCannot commit when rsonpath-benchmarks submodule is dirty, as this can lead to unexpected behaviour.
-    First commit the changes in rsonpath-benchmarks by cd-ing into ./crates/rsonpath-benchmarks.\033[0"
+    First commit the changes in rsonpath-benchmarks by cd-ing into ./crates/rsonpath-benchmarks, or use just commit.\033[0"
         exit 1
     fi
 

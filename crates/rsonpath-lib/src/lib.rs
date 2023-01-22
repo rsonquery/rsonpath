@@ -36,7 +36,7 @@
 //! // Convert the contents to the Input type required by the Runners.
 //! let input = Input::new(&mut stripped_contents);
 //! // Compile the query. The runner can be reused to run the same query on different contents.
-//! let runner = StacklessRunner::compile_query(&query);
+//! let runner = StacklessRunner::compile_query(&query)?;
 //! // Count the number of occurrences of elements satisfying the query.
 //! let count = runner.run::<CountResult>(&input)?.get();
 //!
@@ -172,6 +172,7 @@
 pub mod classify;
 pub mod depth;
 pub mod engine;
+pub mod error;
 pub mod query;
 pub mod quotes;
 pub mod stack_based;
@@ -219,7 +220,7 @@ macro_rules! debug {
 /// Debug log the given u64 expression by its full 64-bit binary string representation.
 #[macro_export]
 macro_rules! bin {
-    ($name: expr, $e:expr) => {
+    ($name:expr, $e:expr) => {
         $crate::debug!(
             "{: >24}: {:064b} ({})",
             $name,

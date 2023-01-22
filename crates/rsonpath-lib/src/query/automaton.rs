@@ -2,8 +2,8 @@
 
 use std::{fmt::Display, ops::Index};
 
-use super::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label};
-use crate::debug;
+use super::{error::CompilerError, JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label};
+use crate::{debug, error::UnsupportedFeatureError};
 use smallvec::SmallVec;
 
 mod minimizer;
@@ -46,24 +46,28 @@ impl From<u8> for NfaStateId {
 }
 
 impl<'q> NondeterministicAutomaton<'q> {
-    fn new(query: &'q JsonPathQuery) -> Self {
+    fn new(query: &'q JsonPathQuery) -> Result<Self, CompilerError> {
         debug_assert!(query.root().is_root());
 
-        let mut states: Vec<NfaState> = query
+        let states_result: Result<Vec<NfaState>, CompilerError> = query
             .root()
             .iter()
             .filter_map(|node| match node {
                 JsonPathQueryNode::Root(_) => None,
-                JsonPathQueryNode::Descendant(label, _) => Some(Recursive(label)),
-                JsonPathQueryNode::Child(label, _) => Some(Direct(label)),
+                JsonPathQueryNode::Descendant(label, _) => Some(Ok(Recursive(label))),
+                JsonPathQueryNode::Child(label, _) => Some(Ok(Direct(label))),
+                JsonPathQueryNode::AnyChild(_) => Some(Err(
+                    UnsupportedFeatureError::wildcard_child_selector().into(),
+                )),
             })
             .collect();
+        let mut states = states_result?;
 
         states.push(Accepting);
 
-        NondeterministicAutomaton {
+        Ok(NondeterministicAutomaton {
             ordered_states: states,
-        }
+        })
     }
 }
 
@@ -138,12 +142,15 @@ impl<'q> Index<State> for Automaton<'q> {
 
 impl<'q> Automaton<'q> {
     /// Convert a [`JsonPathQuery`] into a minimal deterministic automaton.
-    #[must_use]
+    ///
+    /// # Errors
+    /// [`CompilerError::NotSupportedError`] raised if the query contains elements
+    /// not yet supported by the compiler.
     #[inline]
-    pub fn new(query: &'q JsonPathQuery) -> Self {
-        let nfa = NondeterministicAutomaton::new(query);
+    pub fn new(query: &'q JsonPathQuery) -> Result<Self, CompilerError> {
+        let nfa = NondeterministicAutomaton::new(query)?;
         debug!("NFA: {}", nfa);
-        Automaton::minimize(nfa)
+        Ok(Automaton::minimize(nfa))
     }
 
     /// Returns whether this automaton represents an empty JSONPath query ('$').
@@ -153,7 +160,7 @@ impl<'q> Automaton<'q> {
     /// # use rsonpath_lib::query::*;
     /// # use rsonpath_lib::query::automaton::*;
     /// let query = JsonPathQuery::parse("$").unwrap();
-    /// let automaton = Automaton::new(&query);
+    /// let automaton = Automaton::new(&query).unwrap();
     ///
     /// assert!(automaton.is_empty_query());
     /// ```
@@ -162,7 +169,7 @@ impl<'q> Automaton<'q> {
     /// # use rsonpath_lib::query::*;
     /// # use rsonpath_lib::query::automaton::*;
     /// let query = JsonPathQuery::parse("$.a").unwrap();
-    /// let automaton = Automaton::new(&query);
+    /// let automaton = Automaton::new(&query).unwrap();
     ///
     /// assert!(!automaton.is_empty_query());
     /// ```
@@ -215,7 +222,7 @@ impl<'q> Automaton<'q> {
     /// # use rsonpath_lib::query::*;
     /// # use rsonpath_lib::query::automaton::*;
     /// let query = JsonPathQuery::parse("$.a").unwrap();
-    /// let automaton = Automaton::new(&query);
+    /// let automaton = Automaton::new(&query).unwrap();
     ///
     /// assert!(automaton.is_accepting(automaton.accepting_state()));
     /// ```
@@ -233,7 +240,7 @@ impl<'q> Automaton<'q> {
     /// # use rsonpath_lib::query::*;
     /// # use rsonpath_lib::query::automaton::*;
     /// let query = JsonPathQuery::parse("$.a").unwrap();
-    /// let automaton = Automaton::new(&query);
+    /// let automaton = Automaton::new(&query).unwrap();
     ///
     /// assert!(automaton.is_rejecting(automaton.rejecting_state()));
     /// ```

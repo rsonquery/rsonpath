@@ -1,4 +1,4 @@
-use super::errors::{ParseErrorReport, QueryError};
+use super::error::{ParseErrorReport, ParserError};
 use crate::debug;
 use crate::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label};
 use nom::{
@@ -10,6 +10,7 @@ use std::fmt::{self, Display};
 enum Token<'a> {
     Root,
     Child(&'a str),
+    WildcardChild(),
     Descendant(&'a str),
 }
 
@@ -18,12 +19,13 @@ impl Display for Token<'_> {
         match self {
             Token::Root => write!(f, "$"),
             Token::Child(label) => write!(f, "['{label}']"),
+            Token::WildcardChild() => write!(f, "[*]"),
             Token::Descendant(label) => write!(f, "..['{label}']"),
         }
     }
 }
 
-pub(crate) fn parse_json_path_query(query_string: &str) -> Result<JsonPathQuery, QueryError> {
+pub(crate) fn parse_json_path_query(query_string: &str) -> Result<JsonPathQuery, ParserError> {
     let tokens_result = jsonpath()(query_string);
     let finished = tokens_result.finish();
 
@@ -53,7 +55,7 @@ pub(crate) fn parse_json_path_query(query_string: &str) -> Result<JsonPathQuery,
             loop {
                 match continuation {
                     Ok("") => {
-                        return Err(QueryError::ParseError {
+                        return Err(ParserError::SyntaxError {
                             report: parse_errors,
                         })
                     }
@@ -73,7 +75,7 @@ pub(crate) fn parse_json_path_query(query_string: &str) -> Result<JsonPathQuery,
 
 fn tokens_to_node<'a, I: Iterator<Item = Token<'a>>>(
     tokens: &mut I,
-) -> Result<Option<JsonPathQueryNode>, QueryError> {
+) -> Result<Option<JsonPathQueryNode>, ParserError> {
     match tokens.next() {
         Some(token) => {
             let child_node = tokens_to_node(tokens)?.map(Box::new);
@@ -83,6 +85,7 @@ fn tokens_to_node<'a, I: Iterator<Item = Token<'a>>>(
                     Label::new(label),
                     child_node,
                 ))),
+                Token::WildcardChild() => Ok(Some(JsonPathQueryNode::AnyChild(child_node))),
                 Token::Descendant(label) => Ok(Some(JsonPathQueryNode::Descendant(
                     Label::new(label),
                     child_node,
@@ -105,7 +108,18 @@ fn jsonpath<'a>() -> impl Parser<'a, (Option<Token<'a>>, Vec<Token<'a>>)> {
 }
 
 fn non_root<'a>() -> impl Parser<'a, Vec<Token<'a>>> {
-    many0(alt((child_selector(), descendant_selector())))
+    many0(alt((
+        wildcard_child_selector(),
+        child_selector(),
+        descendant_selector(),
+    )))
+}
+
+fn wildcard_child_selector<'a>() -> impl Parser<'a, Token<'a>> {
+    map(
+        alt((dot_wildcard_selector(), index_wildcard_selector())),
+        |_| Token::WildcardChild(),
+    )
 }
 
 fn child_selector<'a>() -> impl Parser<'a, Token<'a>> {
@@ -114,6 +128,10 @@ fn child_selector<'a>() -> impl Parser<'a, Token<'a>> {
 
 fn dot_selector<'a>() -> impl Parser<'a, &'a str> {
     preceded(char('.'), label())
+}
+
+fn dot_wildcard_selector<'a>() -> impl Parser<'a, char> {
+    preceded(char('.'), char('*'))
 }
 
 fn descendant_selector<'a>() -> impl Parser<'a, Token<'a>> {
@@ -125,6 +143,10 @@ fn descendant_selector<'a>() -> impl Parser<'a, Token<'a>> {
 
 fn index_selector<'a>() -> impl Parser<'a, &'a str> {
     delimited(char('['), quoted_label(), char(']'))
+}
+
+fn index_wildcard_selector<'a>() -> impl Parser<'a, char> {
+    delimited(char('['), char('*'), char(']'))
 }
 
 fn label<'a>() -> impl Parser<'a, &'a str> {
@@ -172,6 +194,7 @@ fn unescaped<'a>() -> impl Parser<'a, char> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::query::builder::JsonPathQueryBuilder;
 
     #[test]
     fn single_quoted_label_test() {
@@ -198,5 +221,33 @@ mod tests {
         let result = quoted_label()(input);
 
         assert_eq!(result, Ok(("", "a")));
+    }
+
+    #[test]
+    fn wildcard_child_selector_test() {
+        let input = "$.*.a.*";
+        let expected_query = JsonPathQueryBuilder::new()
+            .any_child()
+            .child(Label::new("a"))
+            .any_child()
+            .into();
+
+        let result = parse_json_path_query(input).expect("expected Ok");
+
+        assert_eq!(result, expected_query);
+    }
+
+    #[test]
+    fn indexed_wildcard_child_selector_test() {
+        let input = r#"$[*]['*']["*"]"#;
+        let expected_query = JsonPathQueryBuilder::new()
+            .any_child()
+            .child(Label::new("*"))
+            .child(Label::new("*"))
+            .into();
+
+        let result = parse_json_path_query(input).expect("expected Ok");
+
+        assert_eq!(result, expected_query);
     }
 }

@@ -18,6 +18,7 @@ use crate::engine::error::EngineError;
 use crate::engine::result::QueryResult;
 use crate::engine::{Input, Runner};
 use crate::query::automaton::{Automaton, State};
+use crate::query::error::CompilerError;
 use crate::query::{JsonPathQuery, Label};
 use crate::quotes::{classify_quoted_sequences, QuoteClassifiedIterator, ResumeClassifierState};
 use aligners::{alignment, AlignedBytes};
@@ -35,12 +36,15 @@ impl StacklessRunner<'_> {
     /// Compile a query into a [`StacklessRunner`].
     ///
     /// Compilation time is proportional to the length of the query.
-    #[must_use]
+    ///
+    /// # Errors
+    /// [`CompilerError`] may be raised by the [`Automaton`] when compiling the query.
+    #[must_use = "compiling the query only creates an engine instance that should be used"]
     #[inline(always)]
-    pub fn compile_query(query: &JsonPathQuery) -> StacklessRunner<'_> {
-        let automaton = Automaton::new(query);
+    pub fn compile_query(query: &JsonPathQuery) -> Result<StacklessRunner<'_>, CompilerError> {
+        let automaton = Automaton::new(query)?;
         debug!("DFA:\n {}", automaton);
-        StacklessRunner { automaton }
+        Ok(StacklessRunner { automaton })
     }
 }
 

@@ -126,7 +126,7 @@ macro_rules! count_test_cases {
         fn $test_name(test_path: &str, query_string: &str) -> usize {
             let contents = get_contents(test_path);
             let query = JsonPathQuery::parse(query_string).unwrap();
-            let result = $impl::compile_query(&query).run::<CountResult>(&contents).unwrap();
+            let result = $impl::compile_query(&query).unwrap().run::<CountResult>(&contents).unwrap();
 
             result.get()
         }
@@ -189,7 +189,7 @@ macro_rules! indices_test_cases {
         fn $test_name(test_path: &str, query_string: &str) -> Vec<usize> {
             let contents = get_contents(test_path);
             let query = JsonPathQuery::parse(query_string).unwrap();
-            let result = $impl::compile_query(&query).run::<IndexResult>(&contents).unwrap();
+            let result = $impl::compile_query(&query).unwrap().run::<IndexResult>(&contents).unwrap();
 
             result.into()
         }

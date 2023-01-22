@@ -30,7 +30,8 @@
 //!
 
 pub mod automaton;
-pub mod errors;
+pub mod builder;
+pub mod error;
 mod parser;
 
 use aligners::{alignment, AlignedBytes, AlignedSlice};
@@ -193,19 +194,21 @@ impl std::hash::Hash for Label {
 }
 
 /// Linked list structure of a JSONPath query.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum JsonPathQueryNode {
     /// The first link in the list representing the root '`$`' character.
     Root(Option<Box<JsonPathQueryNode>>),
-    /// Represents direct descendant ('`.`' token).
+    /// Represents direct descendant with a label ('`.`' token).
     Child(Label, Option<Box<JsonPathQueryNode>>),
+    /// Represents direct descendant with a wildcard ('`.*`' tokens).
+    AnyChild(Option<Box<JsonPathQueryNode>>),
     /// Represents recursive descent ('`..`' token).
     Descendant(Label, Option<Box<JsonPathQueryNode>>),
 }
 
 use JsonPathQueryNode::*;
 
-use self::errors::QueryError;
+use self::error::ParserError;
 
 impl JsonPathQueryNode {
     /// Retrieve the child of the node or `None` if it is the last one
@@ -214,7 +217,7 @@ impl JsonPathQueryNode {
     #[inline(always)]
     pub fn child(&self) -> Option<&Self> {
         match self {
-            Root(node) | Child(_, node) | Descendant(_, node) => node.as_deref(),
+            Root(node) | Child(_, node) | AnyChild(node) | Descendant(_, node) => node.as_deref(),
         }
     }
 
@@ -229,7 +232,7 @@ impl JsonPathQueryNode {
 
 /// JSONPath query structure represented by the root link of the
 /// [`JsonPathQueryNode`] list.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct JsonPathQuery {
     root: Box<JsonPathQueryNode>,
 }
@@ -269,11 +272,11 @@ impl JsonPathQuery {
     ///
     /// # Errors
     ///
-    /// Will return a [`QueryError`] if the `query_string` does
+    /// Will return a [`ParserError`] if the `query_string` does
     /// not conform to the JSONPath grammar. See its documentation
     /// for details.
     #[inline(always)]
-    pub fn parse(query_string: &str) -> Result<Self, QueryError> {
+    pub fn parse(query_string: &str) -> Result<Self, ParserError> {
         self::parser::parse_json_path_query(query_string)
     }
 
@@ -307,7 +310,8 @@ impl Display for JsonPathQueryNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Root(_) => write!(f, "$"),
-            Child(label, _) => write!(f, ".['{}']", label.display()),
+            Child(label, _) => write!(f, "['{}']", label.display()),
+            AnyChild(_) => write!(f, "[*]"),
             Descendant(label, _) => write!(f, "..['{}']", label.display()),
         }?;
 
@@ -356,7 +360,7 @@ impl JsonPathQueryNodeType for JsonPathQueryNode {
     fn label(&self) -> Option<&Label> {
         match self {
             Child(label, _) | Descendant(label, _) => Some(label),
-            Root(_) => None,
+            Root(_) | AnyChild(_) => None,
         }
     }
 }
