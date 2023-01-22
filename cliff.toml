@@ -17,13 +17,13 @@ body = """
 {% for group, commits in commits | group_by(attribute="group") %}
     ### {{ group | trim_start_matches(pat="1") | trim_start_matches(pat="2") | trim_start_matches(pat="3") | trim_start_matches(pat="4") | trim_start_matches(pat="5") | upper_first }}
     {% for commit in commits %}
-        - {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message | upper_first }}.
+        - {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message | upper_first }}. \
             {% if commit.links %}\
                 (\
                 {% for link in commit.links %}\
                     [{{ link.text }}]({{ link.href }})\
                 {% endfor %})
-            {% endif %}\
+            {% endif %}
             {% if commit.body %}\
                 {% for message in commit.body | split(pat="\n\n") %}\
                   {% if message %}  - {{ message | trim | trim_start_matches(pat="-") | trim_start_matches(pat="*") }}
