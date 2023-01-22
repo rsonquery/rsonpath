@@ -31,7 +31,7 @@
 
 pub mod automaton;
 pub mod builder;
-pub mod errors;
+pub mod error;
 mod parser;
 
 use aligners::{alignment, AlignedBytes, AlignedSlice};
@@ -208,7 +208,7 @@ pub enum JsonPathQueryNode {
 
 use JsonPathQueryNode::*;
 
-use self::errors::QueryError;
+use self::error::ParserError;
 
 impl JsonPathQueryNode {
     /// Retrieve the child of the node or `None` if it is the last one
@@ -276,7 +276,7 @@ impl JsonPathQuery {
     /// not conform to the JSONPath grammar. See its documentation
     /// for details.
     #[inline(always)]
-    pub fn parse(query_string: &str) -> Result<Self, QueryError> {
+    pub fn parse(query_string: &str) -> Result<Self, ParserError> {
         self::parser::parse_json_path_query(query_string)
     }
 

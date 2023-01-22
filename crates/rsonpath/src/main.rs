@@ -30,7 +30,8 @@ fn main() -> Result<()> {
 fn run<R: QueryResult>(query: &JsonPathQuery, input: &Input, engine: EngineArg) -> Result<()> {
     match engine {
         EngineArg::Main => {
-            let stackless_runner = StacklessRunner::compile_query(query);
+            let stackless_runner =
+                StacklessRunner::compile_query(query).wrap_err("Error compiling the query.")?;
             info!("Compilation finished, running...");
 
             let stackless_result = stackless_runner
@@ -41,7 +42,8 @@ fn run<R: QueryResult>(query: &JsonPathQuery, input: &Input, engine: EngineArg) 
             println!("{stackless_result}");
         }
         EngineArg::Recursive => {
-            let stack_based_runner = StackBasedRunner::compile_query(query);
+            let stack_based_runner =
+                StackBasedRunner::compile_query(query).wrap_err("Error compiling the query.")?;
             info!("Compilation finished, running...");
 
             let stack_based_result = stack_based_runner
@@ -52,8 +54,10 @@ fn run<R: QueryResult>(query: &JsonPathQuery, input: &Input, engine: EngineArg) 
             println!("{stack_based_result}");
         }
         EngineArg::VerifyBoth => {
-            let stackless_runner = StacklessRunner::compile_query(query);
-            let stack_based_runner = StackBasedRunner::compile_query(query);
+            let stackless_runner =
+                StacklessRunner::compile_query(query).wrap_err("Error compiling the query.")?;
+            let stack_based_runner =
+                StackBasedRunner::compile_query(query).wrap_err("Error compiling the query.")?;
             info!("Compilation finished, running...");
 
             let stackless_result = stackless_runner
@@ -78,11 +82,11 @@ fn run<R: QueryResult>(query: &JsonPathQuery, input: &Input, engine: EngineArg) 
 }
 
 fn parse_query(query_string: &str) -> Result<JsonPathQuery> {
-    use rsonpath_lib::query::errors::QueryError;
+    use rsonpath_lib::query::error::ParserError;
     match JsonPathQuery::parse(query_string) {
         Ok(query) => Ok(query),
         Err(e) => {
-            if let QueryError::ParseError { report } = e {
+            if let ParserError::ParseError { report } = e {
                 let mut eyre = Err(eyre!("Could not parse JSONPath query."));
                 eyre = eyre.note(format!("for query string {query_string}"));
 

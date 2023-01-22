@@ -1,4 +1,4 @@
-use super::errors::{ParseErrorReport, QueryError};
+use super::error::{ParseErrorReport, ParserError};
 use crate::debug;
 use crate::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label};
 use nom::{
@@ -25,7 +25,7 @@ impl Display for Token<'_> {
     }
 }
 
-pub(crate) fn parse_json_path_query(query_string: &str) -> Result<JsonPathQuery, QueryError> {
+pub(crate) fn parse_json_path_query(query_string: &str) -> Result<JsonPathQuery, ParserError> {
     let tokens_result = jsonpath()(query_string);
     let finished = tokens_result.finish();
 
@@ -55,7 +55,7 @@ pub(crate) fn parse_json_path_query(query_string: &str) -> Result<JsonPathQuery,
             loop {
                 match continuation {
                     Ok("") => {
-                        return Err(QueryError::ParseError {
+                        return Err(ParserError::ParseError {
                             report: parse_errors,
                         })
                     }
@@ -75,7 +75,7 @@ pub(crate) fn parse_json_path_query(query_string: &str) -> Result<JsonPathQuery,
 
 fn tokens_to_node<'a, I: Iterator<Item = Token<'a>>>(
     tokens: &mut I,
-) -> Result<Option<JsonPathQueryNode>, QueryError> {
+) -> Result<Option<JsonPathQueryNode>, ParserError> {
     match tokens.next() {
         Some(token) => {
             let child_node = tokens_to_node(tokens)?.map(Box::new);

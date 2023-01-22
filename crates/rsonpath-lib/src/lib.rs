@@ -172,6 +172,7 @@
 pub mod classify;
 pub mod depth;
 pub mod engine;
+pub mod error;
 pub mod query;
 pub mod quotes;
 pub mod stack_based;
@@ -219,7 +220,7 @@ macro_rules! debug {
 /// Debug log the given u64 expression by its full 64-bit binary string representation.
 #[macro_export]
 macro_rules! bin {
-    ($name: expr, $e:expr) => {
+    ($name:expr, $e:expr) => {
         $crate::debug!(
             "{: >24}: {:064b} ({})",
             $name,

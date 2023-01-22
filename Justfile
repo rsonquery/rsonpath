@@ -189,7 +189,7 @@ assert-benchmarks-committed:
     if [ $count -ne 0 ]
     then
         echo "\033[31;1mCannot commit when rsonpath-benchmarks submodule is dirty, as this can lead to unexpected behaviour.
-    First commit the changes in rsonpath-benchmarks by cd-ing into ./crates/rsonpath-benchmarks.\033[0"
+    First commit the changes in rsonpath-benchmarks by cd-ing into ./crates/rsonpath-benchmarks, or use just commit.\033[0"
         exit 1
     fi
 

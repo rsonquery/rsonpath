@@ -16,7 +16,7 @@ pub enum EngineError {
         "Maximum depth of {0} exceeded. \
         Larger depths are currently unsupported. \
         If this feature is important to you, \
-        please raise an issue at https://github.com/V0ldek/rsonpath/issues/new?template=feature_request.md"
+        please raise an issue at {}", crate::error::FEATURE_REQUEST_URL
     )]
     DepthAboveLimit(usize),
     /// An error occurred when trying to parse a label terminated by a particular colon character.

@@ -24,7 +24,7 @@ pub struct JsonPathQueryBuilder {
 
 impl JsonPathQueryBuilder {
     /// Initialize an empty builder.
-    /// 
+    ///
     /// # Examples
     /// ```
     /// # use rsonpath_lib::query::{JsonPathQuery, JsonPathQueryNode, Label, builder::JsonPathQueryBuilder};
