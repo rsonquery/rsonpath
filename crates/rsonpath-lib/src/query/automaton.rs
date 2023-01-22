@@ -56,6 +56,7 @@ impl<'q> NondeterministicAutomaton<'q> {
                 JsonPathQueryNode::Root(_) => None,
                 JsonPathQueryNode::Descendant(label, _) => Some(Recursive(label)),
                 JsonPathQueryNode::Child(label, _) => Some(Direct(label)),
+                JsonPathQueryNode::AnyChild(_) => todo!(),
             })
             .collect();
 
