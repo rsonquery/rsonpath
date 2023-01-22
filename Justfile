@@ -169,8 +169,15 @@ commit msg:
 
 # === HOOKS ===
 
+tmpdiff := `mktemp -t pre-commit-hook-diff-XXXXXXXX.$$`
+
 [private]
-@hook-pre-commit: assert-benchmarks-committed verify-fmt verify-check
+hook-pre-commit: 
+    just assert-benchmarks-committed
+    git diff --full-index --binary > {{tmpdiff}}
+    git stash -q --keep-index
+    (just verify-fmt && just verify-check); \
+    git apply --whitespace=nowarn < {{tmpdiff}} && git stash drop -q; rm {{tmpdiff}}
 
 [private]
 @hook-post-checkout: checkout-benchmarks
