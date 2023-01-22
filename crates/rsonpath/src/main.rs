@@ -86,7 +86,7 @@ fn parse_query(query_string: &str) -> Result<JsonPathQuery> {
     match JsonPathQuery::parse(query_string) {
         Ok(query) => Ok(query),
         Err(e) => {
-            if let ParserError::ParseError { report } = e {
+            if let ParserError::SyntaxError { report } = e {
                 let mut eyre = Err(eyre!("Could not parse JSONPath query."));
                 eyre = eyre.note(format!("for query string {query_string}"));
 

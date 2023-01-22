@@ -160,7 +160,7 @@ impl<'q> Automaton<'q> {
     /// # use rsonpath_lib::query::*;
     /// # use rsonpath_lib::query::automaton::*;
     /// let query = JsonPathQuery::parse("$").unwrap();
-    /// let automaton = Automaton::new(&query);
+    /// let automaton = Automaton::new(&query).unwrap();
     ///
     /// assert!(automaton.is_empty_query());
     /// ```
@@ -169,7 +169,7 @@ impl<'q> Automaton<'q> {
     /// # use rsonpath_lib::query::*;
     /// # use rsonpath_lib::query::automaton::*;
     /// let query = JsonPathQuery::parse("$.a").unwrap();
-    /// let automaton = Automaton::new(&query);
+    /// let automaton = Automaton::new(&query).unwrap();
     ///
     /// assert!(!automaton.is_empty_query());
     /// ```
@@ -222,7 +222,7 @@ impl<'q> Automaton<'q> {
     /// # use rsonpath_lib::query::*;
     /// # use rsonpath_lib::query::automaton::*;
     /// let query = JsonPathQuery::parse("$.a").unwrap();
-    /// let automaton = Automaton::new(&query);
+    /// let automaton = Automaton::new(&query).unwrap();
     ///
     /// assert!(automaton.is_accepting(automaton.accepting_state()));
     /// ```
@@ -240,7 +240,7 @@ impl<'q> Automaton<'q> {
     /// # use rsonpath_lib::query::*;
     /// # use rsonpath_lib::query::automaton::*;
     /// let query = JsonPathQuery::parse("$.a").unwrap();
-    /// let automaton = Automaton::new(&query);
+    /// let automaton = Automaton::new(&query).unwrap();
     ///
     /// assert!(automaton.is_rejecting(automaton.rejecting_state()));
     /// ```

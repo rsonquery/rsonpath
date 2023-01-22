@@ -55,7 +55,7 @@ pub(crate) fn parse_json_path_query(query_string: &str) -> Result<JsonPathQuery,
             loop {
                 match continuation {
                     Ok("") => {
-                        return Err(ParserError::ParseError {
+                        return Err(ParserError::SyntaxError {
                             report: parse_errors,
                         })
                     }

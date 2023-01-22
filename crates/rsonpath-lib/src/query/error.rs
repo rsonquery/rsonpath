@@ -9,7 +9,7 @@
 //!
 //! ```rust
 //! use rsonpath_lib::query::JsonPathQuery;
-//! use rsonpath_lib::query::errors::QueryError;
+//! use rsonpath_lib::query::error::ParserError;
 //!
 //! let query_str =
 //!     "$.prop..invalid$chars.this_is_fine";
@@ -20,7 +20,7 @@
 //! let result = JsonPathQuery::parse(query_str);
 //!
 //! match result {
-//!     Err(QueryError::ParseError { report }) => {
+//!     Err(ParserError::SyntaxError { report }) => {
 //!         assert_eq!(report.errors().count(), 1);
 //!         let parse_error = report.errors().next().unwrap();
 //!         assert_eq!(parse_error.start_idx, 15);
@@ -42,7 +42,7 @@ use thiserror::Error;
 pub enum ParserError {
     /// Parsing error that occurred due to invalid input.
     #[error("one or more parsing errors occurred:\n{}", .report)]
-    ParseError {
+    SyntaxError {
         /// Error report.
         report: ParseErrorReport,
     },

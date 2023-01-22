@@ -272,7 +272,7 @@ impl JsonPathQuery {
     ///
     /// # Errors
     ///
-    /// Will return a [`QueryError`] if the `query_string` does
+    /// Will return a [`ParserError`] if the `query_string` does
     /// not conform to the JSONPath grammar. See its documentation
     /// for details.
     #[inline(always)]

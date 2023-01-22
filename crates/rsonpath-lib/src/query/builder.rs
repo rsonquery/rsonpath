@@ -31,7 +31,7 @@ impl JsonPathQueryBuilder {
     /// let builder = JsonPathQueryBuilder::new();
     /// let query: JsonPathQuery = builder.into();
     ///
-    /// assert_eq!(query.root(), JsonPathQueryNode::Root(None));
+    /// assert_eq!(*query.root(), JsonPathQueryNode::Root(None));
     /// ```
     #[must_use]
     #[inline(always)]
