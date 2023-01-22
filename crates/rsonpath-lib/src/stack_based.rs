@@ -20,7 +20,7 @@ pub struct StackBasedRunner<'q> {
 
 impl<'q> StackBasedRunner<'q> {
     /// Compile a query into a [`StackBasedRunner`].
-    /// 
+    ///
     /// # Errors
     /// [`CompilerError`] may be raised by the [`Automaton`] when compiling the query.
     #[must_use = "compiling the query only creates an engine instance that should be used"]

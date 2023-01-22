@@ -142,7 +142,7 @@ impl<'q> Index<State> for Automaton<'q> {
 
 impl<'q> Automaton<'q> {
     /// Convert a [`JsonPathQuery`] into a minimal deterministic automaton.
-    /// 
+    ///
     /// # Errors
     /// [`CompilerError::NotSupportedError`] raised if the query contains elements
     /// not yet supported by the compiler.
