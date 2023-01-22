@@ -30,6 +30,7 @@
 //!
 
 pub mod automaton;
+pub mod builder;
 pub mod errors;
 mod parser;
 
