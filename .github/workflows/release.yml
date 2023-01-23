@@ -160,7 +160,7 @@ jobs:
     - name: Generate git-cliff changelog
       run: git cliff --latest --tag ${{ steps.metadata.outputs.version }} > CHANGELOG.md
     - name: Download artifacts from build
-      uses: actions/download-artifact@v3.0.1
+      uses: actions/download-artifact@v3.0.2
       with:
         path: release/
     - name: Create GitHub Release
