@@ -12,7 +12,8 @@ updates:
       time: "20:00"
     assignees:
       - "V0ldek"
-    prefix: "dep:"
+    commit-message:
+      prefix: "dep:"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -20,4 +21,5 @@ updates:
       time: "20:02"
     assignees:
       - "V0ldek"
-    prefix: "chore(ci):"
+    commit-message:
+      prefix: "chore(ci):"
