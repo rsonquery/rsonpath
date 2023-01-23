@@ -34,13 +34,44 @@ pub struct Automaton<'q> {
     states: Vec<TransitionTable<'q>>,
 }
 
+/// A single transition of an [`Automaton`].
+#[derive(Debug, PartialEq, Eq)]
+pub enum Transition<'q> {
+    /// A labelled transition: go to state `.1` if label `.0` is matched.
+    Labelled(&'q Label, State),
+    /// A wildcard transition: go to state `.0` unconditionally.
+    Wildcard(State),
+}
+
+impl<'q> Transition<'q> {
+    /// Get the label of the transition, if applicable.
+    /// Returns `None` for wildcard transitions.
+    #[must_use]
+    #[inline(always)]
+    pub fn label(&self) -> Option<&'q Label> {
+        match self {
+            Transition::Labelled(label, _) => Some(label),
+            Transition::Wildcard(_) => None,
+        }
+    }
+
+    /// Get the target state of the transition.
+    #[must_use]
+    #[inline(always)]
+    pub fn target(&self) -> State {
+        match self {
+            Transition::Labelled(_, state) | Transition::Wildcard(state) => *state,
+        }
+    }
+}
+
 /// A transition table of a single [`State`] of an [`Automaton`].
 ///
 /// Contains transitions triggered by matching labels, and a fallback transition
 /// triggered when none of the label transitions match.
 #[derive(Debug)]
 pub struct TransitionTable<'q> {
-    transitions: SmallVec<[(&'q Label, State); 2]>,
+    transitions: SmallVec<[Transition<'q>; 2]>,
     fallback_state: State,
 }
 
@@ -203,7 +234,7 @@ impl<'q> TransitionTable<'q> {
     /// to the contained [`State`].
     #[must_use]
     #[inline(always)]
-    pub fn transitions(&self) -> &SmallVec<[(&'q Label, State); 2]> {
+    pub fn transitions(&self) -> &SmallVec<[Transition<'q>; 2]> {
         &self.transitions
     }
 }
@@ -214,12 +245,14 @@ impl<'q> Display for Automaton<'q> {
         writeln!(f, "digraph {{")?;
         for (i, state) in self.states.iter().enumerate() {
             for transition in state.transitions.iter() {
-                writeln!(
-                    f,
-                    "  {i} -> {} [label=\"{}\"]",
-                    transition.1 .0,
-                    transition.0.display(),
-                )?;
+                match transition {
+                    Transition::Labelled(label, state) => {
+                        writeln!(f, "  {i} -> {} [label=\"{}\"]", state.0, label.display(),)?
+                    }
+                    Transition::Wildcard(state) => {
+                        writeln!(f, "  {i} -> {} [label=\"*\"]", state.0,)?
+                    }
+                }
             }
             writeln!(f, "  {i} -> {} [label=\"*\"]", state.fallback_state.0)?;
         }
@@ -264,35 +297,44 @@ mod tests {
                     fallback_state: State(0),
                 },
                 TransitionTable {
-                    transitions: smallvec![(&label_x, State(2))],
+                    transitions: smallvec![Transition::Labelled(&label_x, State(2))],
                     fallback_state: State(0),
                 },
                 TransitionTable {
-                    transitions: smallvec![(&label_a, State(3))],
+                    transitions: smallvec![Transition::Labelled(&label_a, State(3))],
                     fallback_state: State(2),
                 },
                 TransitionTable {
-                    transitions: smallvec![(&label_a, State(3)), (&label_b, State(4))],
+                    transitions: smallvec![
+                        Transition::Labelled(&label_a, State(3)),
+                        Transition::Labelled(&label_b, State(4))
+                    ],
                     fallback_state: State(2),
                 },
                 TransitionTable {
-                    transitions: smallvec![(&label_a, State(5))],
+                    transitions: smallvec![Transition::Labelled(&label_a, State(5))],
                     fallback_state: State(2),
                 },
                 TransitionTable {
-                    transitions: smallvec![(&label_a, State(3)), (&label_b, State(6))],
+                    transitions: smallvec![
+                        Transition::Labelled(&label_a, State(3)),
+                        Transition::Labelled(&label_b, State(6))
+                    ],
                     fallback_state: State(2),
                 },
                 TransitionTable {
-                    transitions: smallvec![(&label_a, State(5)), (&label_c, State(7))],
+                    transitions: smallvec![
+                        Transition::Labelled(&label_a, State(5)),
+                        Transition::Labelled(&label_c, State(7))
+                    ],
                     fallback_state: State(2),
                 },
                 TransitionTable {
-                    transitions: smallvec![(&label_d, State(8))],
+                    transitions: smallvec![Transition::Labelled(&label_d, State(8))],
                     fallback_state: State(7),
                 },
                 TransitionTable {
-                    transitions: smallvec![(&label_d, State(8))],
+                    transitions: smallvec![Transition::Labelled(&label_d, State(8))],
                     fallback_state: State(7),
                 },
             ],

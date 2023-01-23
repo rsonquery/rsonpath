@@ -34,6 +34,9 @@ pub enum EngineError {
         there are no matching double quote characters."
     )]
     MalformedLabelQuotes(usize),
+    /// Engine iler error that occurred due to a known limitation.
+    #[error(transparent)]
+    NotSupported(#[from] crate::error::UnsupportedFeatureError),
 }
 
 /// Errors in internal depth tracking of execution engines.

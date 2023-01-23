@@ -3,6 +3,7 @@ use super::small_set::{SmallSet, SmallSet256};
 use super::Label;
 use super::{Automaton, NondeterministicAutomaton, State as DfaStateId, TransitionTable};
 use crate::debug;
+use crate::query::automaton::Transition;
 use crate::query::error::CompilerError;
 use smallvec::smallvec;
 use vector_map::VecMap;
@@ -117,7 +118,7 @@ impl<'q> Minimizer<'q> {
         // Translate the transitions to the data model expected by TransitionTable.
         let translated_transitions = transitions
             .into_iter()
-            .map(|(label, state)| (label, self.superstates[&state]))
+            .map(|(label, state)| Transition::Labelled(label, self.superstates[&state]))
             .collect();
         debug!("Translated transitions: {translated_transitions:?}");
 
