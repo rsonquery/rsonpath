@@ -1,83 +1,14 @@
 //! Automaton representations of a JSONPath query.
 
-use std::{fmt::Display, ops::Index};
-
-use super::{error::CompilerError, JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label};
-use crate::{debug, error::UnsupportedFeatureError};
-use smallvec::SmallVec;
-
 mod minimizer;
+mod nfa;
 mod small_set;
 
-#[derive(Debug, PartialEq, Eq)]
-pub(crate) struct NondeterministicAutomaton<'q> {
-    ordered_states: Vec<NfaState<'q>>,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(crate) enum NfaState<'q> {
-    Direct(&'q Label),
-    Recursive(&'q Label),
-    Accepting,
-}
-use NfaState::*;
-
-/// State of an [`NondeterministicAutomaton`]. Thin wrapper over a state's
-/// identifier to distinguish NFA states from DFA states ([`State`]).
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
-pub(crate) struct NfaStateId(u8);
-
-impl NfaStateId {
-    pub(crate) fn next(&self) -> Self {
-        Self(self.0 + 1)
-    }
-}
-
-impl Display for NfaStateId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "NFA({})", self.0)
-    }
-}
-
-impl From<u8> for NfaStateId {
-    fn from(i: u8) -> Self {
-        Self(i)
-    }
-}
-
-impl<'q> NondeterministicAutomaton<'q> {
-    fn new(query: &'q JsonPathQuery) -> Result<Self, CompilerError> {
-        debug_assert!(query.root().is_root());
-
-        let states_result: Result<Vec<NfaState>, CompilerError> = query
-            .root()
-            .iter()
-            .filter_map(|node| match node {
-                JsonPathQueryNode::Root(_) => None,
-                JsonPathQueryNode::Descendant(label, _) => Some(Ok(Recursive(label))),
-                JsonPathQueryNode::Child(label, _) => Some(Ok(Direct(label))),
-                JsonPathQueryNode::AnyChild(_) => Some(Err(
-                    UnsupportedFeatureError::wildcard_child_selector().into(),
-                )),
-            })
-            .collect();
-        let mut states = states_result?;
-
-        states.push(Accepting);
-
-        Ok(NondeterministicAutomaton {
-            ordered_states: states,
-        })
-    }
-}
-
-impl<'q> Index<NfaStateId> for NondeterministicAutomaton<'q> {
-    type Output = NfaState<'q>;
-
-    fn index(&self, index: NfaStateId) -> &Self::Output {
-        &self.ordered_states[index.0 as usize]
-    }
-}
+use super::{error::CompilerError, JsonPathQuery, Label};
+use crate::debug;
+use nfa::NondeterministicAutomaton;
+use smallvec::SmallVec;
+use std::{fmt::Display, ops::Index};
 
 /// State of an [`Automaton`]. Thin wrapper over a state's identifier.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
@@ -297,32 +228,10 @@ impl<'q> Display for Automaton<'q> {
     }
 }
 
-impl<'q> Display for NondeterministicAutomaton<'q> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut dir = 1;
-        let mut rec = 1;
-        for state in &self.ordered_states {
-            match state {
-                Direct(label) => {
-                    write!(f, "d{dir} --{}-> ", label.display())?;
-                    dir += 1;
-                }
-                Recursive(label) => {
-                    write!(f, "r{rec} --{}-> ", label.display())?;
-                    rec += 1;
-                }
-                Accepting => {
-                    write!(f, "acc")?;
-                }
-            }
-        }
-        Ok(())
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use nfa::NfaState;
     use smallvec::smallvec;
 
     #[test]

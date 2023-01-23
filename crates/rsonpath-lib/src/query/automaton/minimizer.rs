@@ -1,9 +1,7 @@
+use super::nfa::{NfaState, NfaStateId};
 use super::small_set::{SmallSet, SmallSet256};
 use super::Label;
-use super::{
-    Automaton, NfaState::*, NfaStateId, NondeterministicAutomaton, State as DfaStateId,
-    TransitionTable,
-};
+use super::{Automaton, NondeterministicAutomaton, State as DfaStateId, TransitionTable};
 use crate::debug;
 use crate::query::error::CompilerError;
 use smallvec::smallvec;
@@ -153,7 +151,7 @@ impl<'q> Minimizer<'q> {
     /// return the Recursive NFA state it represents. Otherwise, return `None`.
     fn as_checkpoint(&self, superstate: SmallSet256) -> Option<NfaStateId> {
         if let Some(single_state) = superstate.singleton().map(NfaStateId) {
-            if matches!(self.nfa[single_state], Recursive(_)) {
+            if matches!(self.nfa[single_state], NfaState::Recursive(_)) {
                 return Some(single_state);
             }
         }
@@ -174,7 +172,7 @@ impl<'q> Minimizer<'q> {
                 // Direct states simply have a single transition to the next state in the NFA.
                 // Recursive transitions also have a self-loop, but that is handled by the
                 // checkpoints mechanism - here we only handle the forward transition.
-                Direct(label) | Recursive(label) => {
+                NfaState::Direct(label) | NfaState::Recursive(label) => {
                     debug!(
                         "Considering transition {nfa_state} --{label:?}-> {}",
                         nfa_state.next()
@@ -187,7 +185,7 @@ impl<'q> Minimizer<'q> {
                         transitions.insert(label, [nfa_state.next().0].into());
                     }
                 }
-                Accepting => (),
+                NfaState::Accepting => (),
             }
         }
 
@@ -224,7 +222,7 @@ impl<'q> Minimizer<'q> {
         let furthest_checkpoint = superstate
             .iter()
             .map(NfaStateId)
-            .filter(|&x| matches!(self.nfa[x], Recursive(_)))
+            .filter(|&x| matches!(self.nfa[x], NfaState::Recursive(_)))
             .max();
 
         if let Some(cutoff) = furthest_checkpoint {
