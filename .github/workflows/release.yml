@@ -116,7 +116,7 @@ jobs:
       if: matrix.os == 'windows-latest'
       run: mv target/release/rsonpath.exe target/release/rsonpath-${{ matrix.triple }}-${{ matrix.artifact-suffix }}.exe
     - name: Upload the binary as artifact
-      uses: actions/upload-artifact@v3.1.1
+      uses: actions/upload-artifact@v3.1.2
       with:
         name: rsonpath-${{ matrix.triple }}-${{ matrix.artifact-suffix }}-${{ steps.metadata.outputs.version }}
         path: target/release/rsonpath-${{ matrix.triple }}-${{ matrix.artifact-suffix }}*
