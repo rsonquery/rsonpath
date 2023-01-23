@@ -4,6 +4,7 @@ use color_eyre::{Help, SectionExt};
 use log::*;
 use rsonpath_lib::engine::result::{CountResult, IndexResult, QueryResult};
 use rsonpath_lib::engine::{Input, Runner};
+use rsonpath_lib::query::automaton::Automaton;
 use rsonpath_lib::query::JsonPathQuery;
 use rsonpath_lib::stack_based::StackBasedRunner;
 use rsonpath_lib::stackless::StacklessRunner;
@@ -18,6 +19,10 @@ fn main() -> Result<()> {
     let query = parse_query(&args.query)?;
     info!("Preparing query: `{query}`\n");
 
+    if args.compile {
+        return compile(&query);
+    }
+
     let mut contents = get_contents(args.file_path.as_deref())?;
     let input = Input::new(&mut contents);
 
@@ -25,6 +30,13 @@ fn main() -> Result<()> {
         ResultArg::Bytes => run::<IndexResult>(&query, &input, args.engine),
         ResultArg::Count => run::<CountResult>(&query, &input, args.engine),
     }
+}
+
+fn compile(query: &JsonPathQuery) -> Result<()> {
+    let automaton = Automaton::new(query).wrap_err("Error compiling the query.")?;
+    info!("Automaton: {automaton}");
+    println!("{automaton}");
+    Ok(())
 }
 
 fn run<R: QueryResult>(query: &JsonPathQuery, input: &Input, engine: EngineArg) -> Result<()> {
@@ -153,7 +165,14 @@ struct Args {
     /// Engine to use for evaluating the query.
     #[clap(short, long, value_enum, default_value_t = EngineArg::Main)]
     engine: EngineArg,
+    /// Only compile the query and output the automaton, do not run the engine.
     ///
+    /// Cannot be used with --engine or FILE_PATH.
+    #[clap(short, long)]
+    #[arg(conflicts_with = "engine")]
+    #[arg(conflicts_with = "file_path")]
+    compile: bool,
+    /// Result reporting mode.
     #[clap(short, long, value_enum, default_value_t = ResultArg::Bytes)]
     result: ResultArg,
 }

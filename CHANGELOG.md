@@ -6,11 +6,11 @@ All notable changes to this project will be documented in this file.
 
 ### Features
 
-- Librification ( [#41](https://github.com/V0ldek/rsonpath/issues/41) )
+- Librification ([#41](https://github.com/V0ldek/rsonpath/issues/41))
   - Project split into two crates: binary `rsonpath` and library `rsonpath-lib`
 
 - Separate quote from structural classifiers.
-( [#17](https://github.com/V0ldek/rsonpath/issues/17) )
+([#17](https://github.com/V0ldek/rsonpath/issues/17))
 
 - Implemented flexible classifiers.
 
@@ -31,7 +31,7 @@ All notable changes to this project will be documented in this file.
 - Update for benchmarks integration.
 
 - Update workflows and create Release workflow.
-( [#44](https://github.com/V0ldek/rsonpath/issues/44) )
+([#44](https://github.com/V0ldek/rsonpath/issues/44))
   - Created a `release` workflow that automatically build the crate on supported targets and creates a GitHub Release with appropriate artifacts.
 
 Updated the `rust` workflow to run tests for all configurations supported in `release`, and properly run clippy on both SIMD and no-SIMD versions of the code.
@@ -50,11 +50,11 @@ List of supported targets at this point:
 | x86_64-pc-windows-msvc    | Yes          | Yes, avx2+pclmulqdq |
 
 - `query` module is now panic-free.
-( [#38](https://github.com/V0ldek/rsonpath/issues/38) )
+([#38](https://github.com/V0ldek/rsonpath/issues/38) )
   - All errors are now reported via `QueryError`.
 
 - Panic-free classifiers and engines.
-( [#39](https://github.com/V0ldek/rsonpath/issues/39) [#40](https://github.com/V0ldek/rsonpath/issues/40) [#31](https://github.com/V0ldek/rsonpath/issues/31) )
+([#39](https://github.com/V0ldek/rsonpath/issues/39) [#40](https://github.com/V0ldek/rsonpath/issues/40) [#31](https://github.com/V0ldek/rsonpath/issues/31))
   - Detectable errors now use proper error types instead of panics.
 Added lints to prevent adding more panics or undocumented errors.
 
@@ -71,7 +71,7 @@ Added lints to prevent adding more panics or undocumented errors.
 - Bump a bunch of minor versions.
 
 - Removed `len_trait` dependency (#46).
-( [#46](https://github.com/V0ldek/rsonpath/issues/46) )
+([#46](https://github.com/V0ldek/rsonpath/issues/46))
 
 ## [0.1.2] - 2022-09-17
 
@@ -110,7 +110,7 @@ is supported and compiles the correct version.
 ### Documentation
 
 - Changelog, code of conduct, contributing (#2).
-( [#2](https://github.com/V0ldek/rsonpath/issues/2) )
+([#2](https://github.com/V0ldek/rsonpath/issues/2))
 
 - Badges for crates.io.
 
