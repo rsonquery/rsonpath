@@ -10,6 +10,26 @@ env:
   RUST_BACKTRACE: 1
 
 jobs:
+  check-install:
+    name: Check cargo install succeeds
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@v3
+    - name: Remove config
+      run: rm -rf ./.cargo
+    - name: Install Rust toolchain (stable)
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: stable
+        target: ${{ matrix.triple }}
+    - name: Override toolchain
+      run: rustup override set stable
+    - name: Install
+      run: cargo install --bin rsonpath --path ./crates/rsonpath
+      env:
+        RUSTFLAGS: "--deny warnings"
+  
   build:
     name: Build matrix
     runs-on: ${{ matrix.os }}
@@ -125,7 +145,7 @@ jobs:
   github-release:
     name: Release on GitHub
     runs-on: ubuntu-latest
-    needs: build
+    needs: [build, check-install]
     steps:
     - name: Checkout entire git history
       uses: actions/checkout@v3
