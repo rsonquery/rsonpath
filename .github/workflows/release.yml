@@ -16,6 +16,8 @@ jobs:
     steps:
     - name: Checkout source
       uses: actions/checkout@v3
+      with:
+        submodules: true
     - name: Remove config
       run: rm -rf ./.cargo
     - name: Install Rust toolchain (stable)
