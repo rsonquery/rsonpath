@@ -17,7 +17,6 @@ use crate::engine::depth::Depth;
 use crate::engine::error::EngineError;
 use crate::engine::result::QueryResult;
 use crate::engine::{Engine, Input};
-use crate::error::UnsupportedFeatureError;
 use crate::query::automaton::{Automaton, State};
 use crate::query::error::CompilerError;
 use crate::query::{JsonPathQuery, Label};
@@ -156,15 +155,9 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
         let initial_state = self.automaton.initial_state();
 
         if self.automaton[initial_state].fallback_state() == initial_state {
-            if let Some(transition) = self.automaton[initial_state].transitions().first() {
-                let (&label, &target_state) = match transition {
-                    crate::query::automaton::Transition::Labelled(label, state) => (label, state),
-                    crate::query::automaton::Transition::Wildcard(_) => {
-                        return Err(EngineError::NotSupported(
-                            UnsupportedFeatureError::wildcard_child_selector(),
-                        ))
-                    }
-                };
+            if let Some(&(label, target_state)) =
+                self.automaton[initial_state].transitions().first()
+            {
                 debug!("Automaton starts with a descendant search, using memmem heuristic.");
                 let needle = label.bytes_with_quotes();
                 let bytes: &[u8] = self.bytes;
@@ -302,17 +295,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                     self.next_event = classifier.next();
                     let is_next_opening = matches!(self.next_event, Some(Structural::Opening(_)));
 
-                    for transition in self.automaton[self.state].transitions() {
-                        let (&label, &target) = match transition {
-                            crate::query::automaton::Transition::Labelled(label, state) => {
-                                (label, state)
-                            }
-                            crate::query::automaton::Transition::Wildcard(_) => {
-                                return Err(EngineError::NotSupported(
-                                    UnsupportedFeatureError::wildcard_child_selector(),
-                                ))
-                            }
-                        };
+                    for &(label, target) in self.automaton[self.state].transitions() {
                         if is_next_opening {
                             if self.is_match(idx, label)? {
                                 fallback_active = false;

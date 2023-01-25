@@ -6,7 +6,6 @@ use crate::debug;
 use crate::engine::error::EngineError;
 use crate::engine::result::QueryResult;
 use crate::engine::{Compiler, Engine, Input};
-use crate::error::UnsupportedFeatureError;
 use crate::query::automaton::{Automaton, State};
 use crate::query::error::CompilerError;
 use crate::query::{JsonPathQuery, Label};
@@ -167,17 +166,7 @@ where
                 Some(Structural::Colon(idx)) => {
                     next_event = self.classifier.next();
                     let is_next_opening = matches!(next_event, Some(Structural::Opening(_)));
-                    for transition in self.automaton[state].transitions() {
-                        let (&label, &target) = match transition {
-                            crate::query::automaton::Transition::Labelled(label, state) => {
-                                (label, state)
-                            }
-                            crate::query::automaton::Transition::Wildcard(_) => {
-                                return Err(EngineError::NotSupported(
-                                    UnsupportedFeatureError::wildcard_child_selector(),
-                                ))
-                            }
-                        };
+                    for &(label, target) in self.automaton[state].transitions() {
                         if is_next_opening {
                             if self.is_match(idx, label)? {
                                 debug!("Matched transition to {target}");

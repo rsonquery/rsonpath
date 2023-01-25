@@ -1,4 +1,3 @@
-use crate::error::UnsupportedFeatureError;
 use crate::query::{
     error::CompilerError, JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label,
 };
@@ -11,11 +10,26 @@ pub(crate) struct NondeterministicAutomaton<'q> {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum NfaState<'q> {
-    Direct(&'q Label),
-    Recursive(&'q Label),
+    Direct(Transition<'q>),
+    Recursive(Transition<'q>),
     Accepting,
 }
 use NfaState::*;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum Transition<'q> {
+    Labelled(&'q Label),
+    Wildcard,
+}
+
+impl<'q> Display for Transition<'q> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Transition::Labelled(label) => write!(f, "{}", label.display()),
+            Transition::Wildcard => write!(f, "*"),
+        }
+    }
+}
 
 /// State of an [`NondeterministicAutomaton`]. Thin wrapper over a state's
 /// identifier to distinguish NFA states from DFA states ([`State`]).
@@ -49,11 +63,11 @@ impl<'q> NondeterministicAutomaton<'q> {
             .iter()
             .filter_map(|node| match node {
                 JsonPathQueryNode::Root(_) => None,
-                JsonPathQueryNode::Descendant(label, _) => Some(Ok(Recursive(label))),
-                JsonPathQueryNode::Child(label, _) => Some(Ok(Direct(label))),
-                JsonPathQueryNode::AnyChild(_) => Some(Err(
-                    UnsupportedFeatureError::wildcard_child_selector().into(),
-                )),
+                JsonPathQueryNode::Descendant(label, _) => {
+                    Some(Ok(Recursive(Transition::Labelled(label))))
+                }
+                JsonPathQueryNode::Child(label, _) => Some(Ok(Direct(Transition::Labelled(label)))),
+                JsonPathQueryNode::AnyChild(_) => Some(Ok(Direct(Transition::Wildcard))),
             })
             .collect();
         let mut states = states_result?;
@@ -76,21 +90,43 @@ impl<'q> Index<NfaStateId> for NondeterministicAutomaton<'q> {
 
 impl<'q> Display for NondeterministicAutomaton<'q> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut dir = 1;
-        let mut rec = 1;
-        for state in &self.ordered_states {
+        // This is the format for https://paperman.name/semigroup/
+        // for easy debugging of minimisation.
+        let all_labels: Vec<_> =
+            self.ordered_states
+                .iter()
+                .filter_map(|s| match s {
+                    Direct(Transition::Labelled(label))
+                    | Recursive(Transition::Labelled(label)) => Some(*label),
+                    _ => None,
+                })
+                .collect();
+
+        for (i, state) in self.ordered_states.iter().enumerate() {
             match state {
-                Direct(label) => {
-                    write!(f, "d{dir} --{}-> ", label.display())?;
-                    dir += 1;
+                Direct(Transition::Labelled(label)) => {
+                    writeln!(f, "s{i}.{} -> s{};", label.display(), i + 1)?;
                 }
-                Recursive(label) => {
-                    write!(f, "r{rec} --{}-> ", label.display())?;
-                    rec += 1;
+                Direct(Transition::Wildcard) => {
+                    for label in &all_labels {
+                        writeln!(f, "s{i}.{} -> s{};", label.display(), i + 1)?;
+                    }
+                    writeln!(f, "s{i}.X -> s{};", i + 1)?;
                 }
-                Accepting => {
-                    write!(f, "acc")?;
+                Recursive(Transition::Labelled(label)) => {
+                    writeln!(f, "s{i}.{} -> s{i}, s{};", label.display(), i + 1)?;
+                    for label in all_labels.iter().filter(|&l| l != label) {
+                        writeln!(f, "s{i}.{} -> s{i};", label.display())?;
+                    }
+                    writeln!(f, "s{i}.X -> s{i};")?;
                 }
+                Recursive(Transition::Wildcard) => {
+                    for label in &all_labels {
+                        writeln!(f, "s{i}.{} -> s{i}, s{};", label.display(), i + 1)?;
+                    }
+                    writeln!(f, "s{i}.X -> s{i}, s{};", i + 1)?;
+                }
+                Accepting => (),
             }
         }
         Ok(())
