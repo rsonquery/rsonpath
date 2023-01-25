@@ -193,6 +193,20 @@ assert-benchmarks-committed:
 
 # === RELEASE ===
 
+# Perform release dry run for the given version.
+release-dry ver:
+    just release-patch {{ver}}
+    just release-readme
+    just commit 'release v{{ver}}'
+    cargo release --sign-tag --sign-commit --exclude rsonpath-benchmarks
+
+# Actually execute a release for the given version.
+release-execute ver:
+    just release-patch {{ver}}
+    just release-readme
+    just commit 'release v{{ver}}'
+    cargo release --sign-tag --sign-commit --exclude rsonpath-benchmarks --execute
+
 [private]
 release-patch ver:
     #!/usr/bin/env nu
@@ -203,12 +217,19 @@ release-patch ver:
         sed -i $'s/^version = "[^"]*"/version = "($ver)"/;s/^rsonpath-lib = { version = "[^"]*"/rsonpath-lib = { version = "($ver)"/' $path;
     };
 
-# Perform release dry run for the given version.
-release-dry ver:
-    just release-patch {{ver}}
-    cargo release --sign-tag --sign-commit --exclude rsonpath-benchmarks
+rsonpath-deps := `cargo tree --package rsonpath --edges normal --depth 1`
+rsonpath-lib-deps := `cargo tree --package rsonpath-lib --edges normal --depth 1`
+rsonpath-full-deps := `cargo tree --package rsonpath --edges normal`
 
-# Actually execute a release for the given version.
-release-execute ver:
-    just release-patch {{ver}}
-    cargo release --sign-tag --sign-commit --exclude rsonpath-benchmarks --execute
+[private]
+release-readme:
+    #!/usr/bin/env nu
+    let params = [
+        ["{{rsonpath-deps}}", "rsonpath"],
+        ["{{rsonpath-lib-deps}}", "rsonpath-lib"],
+        ["{{rsonpath-full-deps}}", "rsonpath-full"]
+    ];
+    $params | each {|x|
+        let deps = ($x.0 | str replace '\n' '\n' --all | str replace '/' '\/' --all);
+        sed -z -i $'s/<!-- ($x.1) dependencies start -->\n```ini\n.*```\n<!-- ($x.1) dependencies end -->/<!-- ($x.1) dependencies start -->\n```ini\n($deps)\n```\n<!-- ($x.1) dependencies end -->/' ./README.md
+    };

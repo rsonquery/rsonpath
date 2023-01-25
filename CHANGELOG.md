@@ -2,7 +2,39 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.2.0]
+## [0.2.1] - 2023-01-25
+
+### Features
+
+- Wildcard child selector parser support.
+([#6](https://github.com/V0ldek/rsonpath/issues/6))
+  - Both shorthand `.*` and full `[*]` forms are recognised.
+
+- Compile-only CLI flag.
+([#76](https://github.com/V0ldek/rsonpath/issues/76))
+  - Specifying `--compile` or `-c` will cause rsonpath to compile the query and output its automaton, without running the engine.
+This option is mutually exclusive with `--engine` or providing an input path.
+
+
+### Bug Fixes
+
+- Compile error on `cargo install rsonpath`. ([#86](https://github.com/V0ldek/rsonpath/issues/86))
+
+
+### Reliability
+
+- Added install check to release CI/CD. ([#86](https://github.com/V0ldek/rsonpath/issues/86))
+  - This will catch issues with the simplest `cargo install rsonpath` invocation before release to avoid these issues in the future.
+
+
+### Dependencies
+
+- Bump cc from 1.0.76 to 1.0.78.
+([#82](https://github.com/V0ldek/rsonpath/issues/82))
+- Bump nom from 7.1.1 to 7.1.3.
+([#85](https://github.com/V0ldek/rsonpath/issues/85))
+
+## [0.2.0] - 2023-01-15
 
 ### Features
 

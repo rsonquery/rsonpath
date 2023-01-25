@@ -1,7 +1,7 @@
 # `rsonpath` &ndash; SIMD-powered JSONPath 🚀
 
 [![Rust](https://github.com/V0ldek/rsonpath/actions/workflows/rust.yml/badge.svg)](https://github.com/V0ldek/rsonpath/actions/workflows/rust.yml)
-[![docs.rs](https://img.shields.io/docsrs/rsonpath-lib?logo=docs.rs)](https://docs.rs/crate/rsonpath-lib/0.2.0)
+[![docs.rs](https://img.shields.io/docsrs/rsonpath-lib?logo=docs.rs)](https://docs.rs/crate/rsonpath-lib/latest)
 
 [![Crates.io](https://img.shields.io/crates/v/rsonpath?logo=docs.rs)](https://crates.io/crates/rsonpath)
 [![GitHub Release Date](https://img.shields.io/github/release-date/v0ldek/rsonpath)](https://github.com/V0ldek/rsonpath/releases)
@@ -112,32 +112,36 @@ Showing direct dependencies, for full graph see below.
 cargo tree --package rsonpath --edges normal --depth 1
 ```
 
+<!-- rsonpath dependencies start -->
 ```ini
-rsonpath v0.2.0 (/home/v0ldek/rsonpath/crates/rsonpath)
+rsonpath v0.2.1 (/home/mgienieczko/rsonpath/crates/rsonpath)
 ├── clap v4.0.25
 ├── color-eyre v0.6.2
 ├── eyre v0.6.8
 ├── log v0.4.17
-├── rsonpath-lib v0.2.0
+├── rsonpath-lib v0.2.1 (/home/mgienieczko/rsonpath/crates/rsonpath-lib)
 └── simple_logger v4.0.0
 ```
+<!-- rsonpath dependencies end -->
 
 ```bash
 cargo tree --package rsonpath-lib --edges normal --depth 1
 ```
 
+<!-- rsonpath-lib dependencies start -->
 ```ini
-rsonpath-lib v0.2.0 (/home/v0ldek/rsonpath/crates/rsonpath-lib)
+rsonpath-lib v0.2.1 (/home/mgienieczko/rsonpath/crates/rsonpath-lib)
 ├── aligners v0.0.10
 ├── cfg-if v1.0.0
 ├── log v0.4.17
 ├── memchr v2.5.0
-├── nom v7.1.1
+├── nom v7.1.3
 ├── replace_with v0.1.7
 ├── smallvec v1.10.0
-├── thiserror v1.0.37
+├── thiserror v1.0.38
 └── vector-map v1.0.1
 ```
+<!-- rsonpath-lib dependencies end -->
 
 ### Justification
 
@@ -160,11 +164,12 @@ rsonpath-lib v0.2.0 (/home/v0ldek/rsonpath/crates/rsonpath-lib)
 cargo tree --package rsonpath --edges normal
 ```
 
+<!-- rsonpath-full dependencies start -->
 ```ini
-rsonpath v0.2.0
+rsonpath v0.2.1 (/home/mgienieczko/rsonpath/crates/rsonpath)
 ├── clap v4.0.25
 │   ├── atty v0.2.14
-│   │   └── libc v0.2.137
+│   │   └── libc v0.2.139
 │   ├── bitflags v1.3.2
 │   ├── clap_derive v4.0.21 (proc-macro)
 │   │   ├── heck v0.4.0
@@ -192,14 +197,14 @@ rsonpath v0.2.0
 │       └── rustix v0.35.13
 │           ├── bitflags v1.3.2
 │           ├── io-lifetimes v0.7.5
-│           ├── libc v0.2.137
+│           ├── libc v0.2.139
 │           └── linux-raw-sys v0.0.46
 ├── color-eyre v0.6.2
 │   ├── backtrace v0.3.65
 │   │   ├── addr2line v0.17.0
 │   │   │   └── gimli v0.26.1
 │   │   ├── cfg-if v1.0.0
-│   │   ├── libc v0.2.137
+│   │   ├── libc v0.2.139
 │   │   ├── miniz_oxide v0.5.1
 │   │   │   └── adler v1.0.2
 │   │   ├── object v0.28.3
@@ -214,22 +219,22 @@ rsonpath v0.2.0
 ├── eyre v0.6.8 (*)
 ├── log v0.4.17
 │   └── cfg-if v1.0.0
-├── rsonpath-lib v0.2.0
+├── rsonpath-lib v0.2.1 (/home/mgienieczko/rsonpath/crates/rsonpath-lib)
 │   ├── aligners v0.0.10
 │   │   ├── cfg-if v1.0.0
 │   │   ├── lazy_static v1.4.0
 │   │   └── page_size v0.4.2
-│   │       └── libc v0.2.137
+│   │       └── libc v0.2.139
 │   ├── cfg-if v1.0.0
 │   ├── log v0.4.17 (*)
 │   ├── memchr v2.5.0
-│   ├── nom v7.1.1
+│   ├── nom v7.1.3
 │   │   ├── memchr v2.5.0
 │   │   └── minimal-lexical v0.2.1
 │   ├── replace_with v0.1.7
 │   ├── smallvec v1.10.0
-│   ├── thiserror v1.0.37
-│   │   └── thiserror-impl v1.0.37 (proc-macro)
+│   ├── thiserror v1.0.38
+│   │   └── thiserror-impl v1.0.38 (proc-macro)
 │   │       ├── proc-macro2 v1.0.47 (*)
 │   │       ├── quote v1.0.18 (*)
 │   │       └── syn v1.0.75 (*)
@@ -241,8 +246,8 @@ rsonpath v0.2.0
 │       └── rand v0.7.3
 │           ├── getrandom v0.1.16
 │           │   ├── cfg-if v1.0.0
-│           │   └── libc v0.2.137
-│           ├── libc v0.2.137
+│           │   └── libc v0.2.139
+│           ├── libc v0.2.139
 │           ├── rand_chacha v0.2.2
 │           │   ├── ppv-lite86 v0.2.16
 │           │   └── rand_core v0.5.1
@@ -255,9 +260,10 @@ rsonpath v0.2.0
     ├── log v0.4.17 (*)
     └── time v0.3.17
         ├── itoa v1.0.2
-        ├── libc v0.2.137
+        ├── libc v0.2.139
         ├── num_threads v0.1.6
         ├── time-core v0.1.0
         └── time-macros v0.2.6 (proc-macro)
             └── time-core v0.1.0
 ```
+<!-- rsonpath-full dependencies end -->
