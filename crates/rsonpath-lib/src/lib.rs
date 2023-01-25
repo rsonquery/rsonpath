@@ -154,13 +154,19 @@
     clippy::unused_self,
     clippy::use_self
 )]
-// Panic-free lints.
+// Panic-free lint.
 #![warn(
     clippy::exit,
-    clippy::expect_used,
-    clippy::panic,
-    clippy::panic_in_result_fn,
-    clippy::unwrap_used
+)]
+// Panic-free lints (disabled for tests).
+#![cfg_attr(
+    not(test),
+    warn(
+        clippy::expect_used,
+        clippy::panic,
+        clippy::panic_in_result_fn,
+        clippy::unwrap_used
+    )
 )]
 // IO hygene, only on --release.
 #![cfg_attr(
