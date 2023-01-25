@@ -4,11 +4,11 @@
 cfg_if::cfg_if! {
     if #[cfg(not(all(
         any(target_arch = "x86", target_arch = "x86_64"),
-        target_feature = "avx2")
+        simd = "avx2")
     ))] {
         compile_error!{
             "internal error: AVX2 code included on unsupported target; \
-            please report this issue at https://github.com/V0ldek/rsonpath/"
+            please report this issue at https://github.com/V0ldek/rsonpath/issues/new?template=bug_report.md"
         }
     }
 }
