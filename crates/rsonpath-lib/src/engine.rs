@@ -18,6 +18,8 @@ use aligners::{
 };
 use cfg_if::cfg_if;
 
+use crate::query::{error::CompilerError, JsonPathQuery};
+
 use self::{error::EngineError, result::QueryResult};
 
 /// Input into a query engine.
@@ -117,5 +119,20 @@ pub trait Engine {
     /// **Please note** that detecting malformed JSONs is not guaranteed.
     /// Some glaring errors like mismatched braces or double quotes are raised,
     /// but in general the result of an engine run on an invalid JSON is undefined.
+    /// It _is_ guaranteed that the computation terminates and does not panic.
     fn run<R: QueryResult>(&self, input: &Input) -> Result<R, EngineError>;
+}
+
+/// Trait for an engine that can be created by compiling a [`JsonPathQuery`].
+pub trait Compiler {
+    /// Concrete type of the [`Engines`](`Engine`) created,
+    /// parameterized with the lifetime of the input query.
+    type E<'q>: Engine + 'q;
+
+    /// Compile a [`JsonPathQuery`] into an [`Engine`].
+    ///
+    /// # Errors
+    /// An appropriate [`CompilerError`] is returned if the compiler
+    /// cannot handle the query.
+    fn compile_query(query: &JsonPathQuery) -> Result<Self::E<'_>, CompilerError>;
 }

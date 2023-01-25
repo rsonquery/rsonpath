@@ -5,7 +5,7 @@ use crate::classify::{classify_structural_characters, Structural, StructuralIter
 use crate::debug;
 use crate::engine::error::EngineError;
 use crate::engine::result::QueryResult;
-use crate::engine::{Engine, Input};
+use crate::engine::{Compiler, Engine, Input};
 use crate::query::automaton::{Automaton, State};
 use crate::query::error::CompilerError;
 use crate::query::{JsonPathQuery, Label};
@@ -18,14 +18,16 @@ pub struct RecursiveEngine<'q> {
     automaton: Automaton<'q>,
 }
 
-impl<'q> RecursiveEngine<'q> {
+impl Compiler for RecursiveEngine<'_> {
+    type E<'q> = RecursiveEngine<'q>;
+
     /// Compile a query into a [`RecursiveEngine`].
     ///
     /// # Errors
     /// [`CompilerError`] may be raised by the [`Automaton`] when compiling the query.
     #[must_use = "compiling the query only creates an engine instance that should be used"]
     #[inline(always)]
-    pub fn compile_query(query: &'q JsonPathQuery) -> Result<Self, CompilerError> {
+    fn compile_query(query: &JsonPathQuery) -> Result<RecursiveEngine, CompilerError> {
         let automaton = Automaton::new(query)?;
         debug!("DFA:\n {}", automaton);
         Ok(RecursiveEngine { automaton })

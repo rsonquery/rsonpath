@@ -24,6 +24,8 @@ use crate::quotes::{classify_quoted_sequences, QuoteClassifiedIterator, ResumeCl
 use aligners::{alignment, AlignedBytes};
 use smallvec::{smallvec, SmallVec};
 
+use super::Compiler;
+
 /// Main engine for a fixed JSONPath query.
 ///
 /// The engine is stateless, meaning that it can be executed
@@ -32,7 +34,9 @@ pub struct MainEngine<'q> {
     automaton: Automaton<'q>,
 }
 
-impl MainEngine<'_> {
+impl Compiler for MainEngine<'_> {
+    type E<'q> = MainEngine<'q>;
+
     /// Compile a query into a [`MainEngine`].
     ///
     /// Compilation time is proportional to the length of the query.
@@ -41,7 +45,7 @@ impl MainEngine<'_> {
     /// [`CompilerError`] may be raised by the [`Automaton`] when compiling the query.
     #[must_use = "compiling the query only creates an engine instance that should be used"]
     #[inline(always)]
-    pub fn compile_query(query: &JsonPathQuery) -> Result<MainEngine<'_>, CompilerError> {
+    fn compile_query(query: &JsonPathQuery) -> Result<MainEngine, CompilerError> {
         let automaton = Automaton::new(query)?;
         debug!("DFA:\n {}", automaton);
         Ok(MainEngine { automaton })
