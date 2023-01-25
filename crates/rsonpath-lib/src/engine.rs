@@ -1,12 +1,16 @@
 //! Base traits for different implementations of JSONPath execution engines.
 //!
-//! Defines the [`Runner`] trait that provides different ways of retrieving
+//! Defines the [`Engine`] trait that provides different ways of retrieving
 //! query results from input bytes. Result types are defined in the [result]
 //! module.
 
 pub mod depth;
 pub mod error;
+pub mod main;
+pub mod recursive;
 pub mod result;
+
+pub use main::MainEngine as RsonpathEngine;
 
 use aligners::{
     alignment::{self},
@@ -103,7 +107,7 @@ impl Input {
 }
 
 /// Trait for an engine that can run its query on a given input.
-pub trait Runner {
+pub trait Engine {
     /// Compute the [`QueryResult`] on given [`Input`].
     ///
     /// # Errors

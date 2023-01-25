@@ -1,10 +1,10 @@
+use rsonpath_lib::engine::main::MainEngine;
+use rsonpath_lib::engine::recursive::RecursiveEngine;
 use rsonpath_lib::engine::{
     result::{CountResult, IndexResult},
-    Input, Runner,
+    Engine, Input,
 };
 use rsonpath_lib::query::JsonPathQuery;
-use rsonpath_lib::stack_based::StackBasedRunner;
-use rsonpath_lib::stackless::StacklessRunner;
 use std::fs;
 use test_case::test_case;
 
@@ -196,7 +196,7 @@ macro_rules! indices_test_cases {
     };
 }
 
-count_test_cases!(rsonpath_count_stackless, StacklessRunner);
-count_test_cases!(rsonpath_count_stack_based, StackBasedRunner);
-indices_test_cases!(rsonpath_indices_stackless, StacklessRunner);
-indices_test_cases!(rsonpath_indices_stack_based, StackBasedRunner);
+count_test_cases!(rsonpath_count_main, MainEngine);
+count_test_cases!(rsonpath_count_recursive, RecursiveEngine);
+indices_test_cases!(rsonpath_indices_main, MainEngine);
+indices_test_cases!(rsonpath_indices_recursive, RecursiveEngine);

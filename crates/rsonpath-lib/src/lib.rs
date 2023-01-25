@@ -5,9 +5,9 @@
 //!
 //! # Examples
 //! ```rust
-//! use rsonpath_lib::engine::{Input, Runner, result::CountResult};
+//! use rsonpath_lib::engine::{Input, Engine, result::CountResult};
 //! use rsonpath_lib::query::JsonPathQuery;
-//! use rsonpath_lib::stackless::StacklessRunner;
+//! use rsonpath_lib::engine::RsonpathEngine;
 //! # use std::error::Error;
 //!
 //! # fn main() -> Result<(), Box<dyn Error>> {
@@ -33,12 +33,12 @@
 //! "#;
 //! // Remove whitespace from the JSON - limitation of the current version.
 //! let mut stripped_contents = contents.chars().filter(|c| !c.is_whitespace()).collect::<String>();
-//! // Convert the contents to the Input type required by the Runners.
+//! // Convert the contents to the Input type required by the Engines.
 //! let input = Input::new(&mut stripped_contents);
-//! // Compile the query. The runner can be reused to run the same query on different contents.
-//! let runner = StacklessRunner::compile_query(&query)?;
+//! // Compile the query. The engine can be reused to run the same query on different contents.
+//! let engine = RsonpathEngine::compile_query(&query)?;
 //! // Count the number of occurrences of elements satisfying the query.
-//! let count = runner.run::<CountResult>(&input)?.get();
+//! let count = engine.run::<CountResult>(&input)?.get();
 //!
 //! assert_eq!(2, count);
 //! # Ok(())
@@ -155,9 +155,7 @@
     clippy::use_self
 )]
 // Panic-free lint.
-#![warn(
-    clippy::exit,
-)]
+#![warn(clippy::exit)]
 // Panic-free lints (disabled for tests).
 #![cfg_attr(
     not(test),
@@ -181,9 +179,6 @@ pub mod engine;
 pub mod error;
 pub mod query;
 pub mod quotes;
-pub mod stack_based;
-pub mod stackless;
-
 use cfg_if::cfg_if;
 
 cfg_if! {

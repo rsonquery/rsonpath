@@ -2,12 +2,12 @@ use clap::{Parser, ValueEnum};
 use color_eyre::eyre::{eyre, Result, WrapErr};
 use color_eyre::{Help, SectionExt};
 use log::*;
+use rsonpath_lib::engine::main::MainEngine;
+use rsonpath_lib::engine::recursive::RecursiveEngine;
 use rsonpath_lib::engine::result::{CountResult, IndexResult, QueryResult};
-use rsonpath_lib::engine::{Input, Runner};
+use rsonpath_lib::engine::{Engine, Input};
 use rsonpath_lib::query::automaton::Automaton;
 use rsonpath_lib::query::JsonPathQuery;
-use rsonpath_lib::stack_based::StackBasedRunner;
-use rsonpath_lib::stackless::StacklessRunner;
 use simple_logger::SimpleLogger;
 
 fn main() -> Result<()> {
@@ -42,51 +42,51 @@ fn compile(query: &JsonPathQuery) -> Result<()> {
 fn run<R: QueryResult>(query: &JsonPathQuery, input: &Input, engine: EngineArg) -> Result<()> {
     match engine {
         EngineArg::Main => {
-            let stackless_runner =
-                StacklessRunner::compile_query(query).wrap_err("Error compiling the query.")?;
+            let main_engine =
+                MainEngine::compile_query(query).wrap_err("Error compiling the query.")?;
             info!("Compilation finished, running...");
 
-            let stackless_result = stackless_runner
+            let main_result = main_engine
                 .run::<R>(input)
                 .wrap_err("Error in the main engine.")?;
-            info!("Stackless: {stackless_result}");
+            info!("Main: {main_result}");
 
-            println!("{stackless_result}");
+            println!("{main_result}");
         }
         EngineArg::Recursive => {
-            let stack_based_runner =
-                StackBasedRunner::compile_query(query).wrap_err("Error compiling the query.")?;
+            let recursive_engine =
+                RecursiveEngine::compile_query(query).wrap_err("Error compiling the query.")?;
             info!("Compilation finished, running...");
 
-            let stack_based_result = stack_based_runner
+            let recursive_result = recursive_engine
                 .run::<R>(input)
                 .wrap_err("Error in the recursive engine.")?;
-            info!("Stack based: {stack_based_result}");
+            info!("Recursive: {recursive_result}");
 
-            println!("{stack_based_result}");
+            println!("{recursive_result}");
         }
         EngineArg::VerifyBoth => {
-            let stackless_runner =
-                StacklessRunner::compile_query(query).wrap_err("Error compiling the query.")?;
-            let stack_based_runner =
-                StackBasedRunner::compile_query(query).wrap_err("Error compiling the query.")?;
+            let main_engine =
+                MainEngine::compile_query(query).wrap_err("Error compiling the query.")?;
+            let recursive_engine =
+                RecursiveEngine::compile_query(query).wrap_err("Error compiling the query.")?;
             info!("Compilation finished, running...");
 
-            let stackless_result = stackless_runner
+            let main_result = main_engine
                 .run::<R>(input)
                 .wrap_err("Error in the main engine.")?;
-            info!("Stackless: {stackless_result}");
+            info!("Main: {main_result}");
 
-            let stack_based_result = stack_based_runner
+            let recursive_result = recursive_engine
                 .run::<R>(input)
                 .wrap_err("Error in the recursive engine.")?;
-            info!("Stack based: {stack_based_result}");
+            info!("Recursive: {recursive_result}");
 
-            if stack_based_result != stackless_result {
+            if recursive_result != main_result {
                 return Err(eyre!("Result mismatch!"));
             }
 
-            println!("{stack_based_result}");
+            println!("{recursive_result}");
         }
     }
 
