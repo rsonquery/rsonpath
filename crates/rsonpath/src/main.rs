@@ -88,7 +88,7 @@ fn run_with_args(args: &Args) -> Result<()> {
 
 fn compile(query: &JsonPathQuery) -> Result<()> {
     let automaton = Automaton::new(query)
-        .map_err(|err| report_compiler_error(err).wrap_err("Error compiling the query."))?;
+        .map_err(|err| report_compiler_error(query, err).wrap_err("Error compiling the query."))?;
     info!("Automaton: {automaton}");
     println!("{automaton}");
     Ok(())
@@ -125,7 +125,7 @@ fn run<R: QueryResult>(query: &JsonPathQuery, input: &Input, engine: EngineArg) 
 
 fn run_engine<C: Compiler, R: QueryResult>(query: &JsonPathQuery, input: &Input) -> Result<R> {
     let engine = C::compile_query(query)
-        .map_err(|err| report_compiler_error(err).wrap_err("Error compiling the query."))?;
+        .map_err(|err| report_compiler_error(query, err).wrap_err("Error compiling the query."))?;
     info!("Compilation finished, running...");
 
     let result = engine

@@ -3,7 +3,10 @@ use eyre::eyre;
 use rsonpath_lib::{
     engine::error::EngineError,
     error::UnsupportedFeatureError,
-    query::error::{CompilerError, ParseErrorReport, ParserError},
+    query::{
+        error::{CompilerError, ParseErrorReport, ParserError},
+        JsonPathQuery,
+    },
 };
 
 pub(crate) const FEATURE_REQUEST_URL: &str =
@@ -16,9 +19,23 @@ pub fn report_parser_error(query_string: &str, error: ParserError) -> eyre::Repo
     }
 }
 
-pub fn report_compiler_error(error: CompilerError) -> eyre::Report {
+pub fn report_compiler_error(query: &JsonPathQuery, error: CompilerError) -> eyre::Report {
     match error {
         CompilerError::NotSupported(unsupported) => report_unsupported_error(unsupported),
+        CompilerError::QueryTooComplex(_) => {
+            let mut report = eyre::Report::new(error);
+            if query
+                .root()
+                .iter()
+                .any(|node| matches!(node, rsonpath_lib::query::JsonPathQueryNode::AnyChild(_)))
+            {
+                report = report.suggestion(
+                    "Wildcard selectors are a common source of query complexity.\n            \
+                    Consider reformulating the query using descendant selectors to replace sequences of wildcards."
+                );
+            }
+            add_unsupported_context(report, UnsupportedFeatureError::large_automaton_queries())
+        }
     }
 }
 

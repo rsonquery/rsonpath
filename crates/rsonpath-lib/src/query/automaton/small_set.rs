@@ -104,6 +104,7 @@ impl SmallSet<u8> for SmallSet128 {
         let elem_mask = 1_u128.wrapping_shl(elem);
         let remainder = self.bitmask ^ elem_mask;
 
+        // CAST: trivially safe as bitmask can have at most 128 zeroes.
         (remainder == 0).then_some(elem as u8)
     }
 
@@ -208,6 +209,7 @@ impl Iterator for SmallSet128Iter {
         let elem_mask = 1 << next_elem;
         self.bitmask ^= elem_mask;
 
+        // CAST: trivially safe as bitmask can have at most 128 zeroes.
         Some(next_elem as u8)
     }
 }

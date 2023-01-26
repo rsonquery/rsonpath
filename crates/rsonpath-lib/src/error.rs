@@ -49,6 +49,14 @@ impl UnsupportedFeatureError {
         Self::untracked("Large JSON Depths")
     }
 
+    /// Large Automaton Queries feature &ndash; supporting queries that
+    /// cause compiled DFAs to exceed 256 states. Unsupported and not planned.
+    #[must_use]
+    #[inline(always)]
+    pub fn large_automaton_queries() -> Self {
+        Self::untracked("Large Automaton Queries")
+    }
+
     /// Returns the issue number on GitHub corresponding to the unsupported feature.
     /// Is [`None`] if the feature is not planned.
     #[must_use]

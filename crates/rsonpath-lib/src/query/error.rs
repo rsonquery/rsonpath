@@ -34,7 +34,10 @@
 //! }
 //! ```
 
-use std::fmt::{self, Display};
+use std::{
+    fmt::{self, Display},
+    num::TryFromIntError,
+};
 use thiserror::Error;
 
 /// Errors raised by the query parser.
@@ -134,6 +137,9 @@ impl ParseErrorReport {
 /// Errors raised by the query compiler.
 #[derive(Debug, Error)]
 pub enum CompilerError {
+    /// Max automaton size was exceeded during compilation of the query.
+    #[error("Max automaton size was exceeded. Query is too complex.")]
+    QueryTooComplex(#[source] TryFromIntError),
     /// Parsing error that occurred due to invalid input.
     #[error(transparent)]
     NotSupported(#[from] crate::error::UnsupportedFeatureError),
