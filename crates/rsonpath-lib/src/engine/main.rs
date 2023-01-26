@@ -83,6 +83,7 @@ fn empty_query<R: QueryResult>(bytes: &AlignedBytes<alignment::Page>) -> R {
 struct StackFrame {
     depth: u8,
     state: State,
+    is_list: bool,
 }
 
 #[derive(Debug)]
@@ -126,6 +127,7 @@ struct Executor<'q, 'b, 'r, R: QueryResult> {
     bytes: &'b AlignedBytes<alignment::Page>,
     result: &'r mut R,
     next_event: Option<Structural>,
+    is_list: bool,
 }
 
 fn query_executor<'q, 'b, 'r, R: QueryResult>(
@@ -141,6 +143,7 @@ fn query_executor<'q, 'b, 'r, R: QueryResult>(
         bytes,
         result,
         next_event: None,
+        is_list: false,
     }
 }
 
@@ -261,7 +264,13 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
 
             self.next_event = None;
             match event {
-                Structural::Comma(_) => (),
+                Structural::Comma(idx) => {
+                    let fallback = self.automaton[self.state].fallback_state();
+                    if self.is_list && self.automaton.is_accepting(fallback) {
+                        debug!("Accepting on comma.");
+                        self.result.report(idx);
+                    }
+                }
                 Structural::Closing(idx) => {
                     debug!("Closing, decreasing depth and popping stack.");
 
@@ -270,7 +279,8 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                         .map_err(|err| EngineError::DepthBelowZero(idx, err))?;
 
                     if let Some(stack_frame) = self.stack.pop_if_at_or_below(*self.depth) {
-                        self.state = stack_frame.state
+                        self.state = stack_frame.state;
+                        self.is_list = stack_frame.is_list;
                     }
 
                     if self.depth == Depth::ZERO {
@@ -278,24 +288,48 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                     }
                 }
                 Structural::Opening(idx) => {
-                    debug!("Opening, increasing depth and pushing stack.");
-                    self.depth
-                        .increment()
-                        .map_err(|err| EngineError::DepthAboveLimit(idx, err))?;
+                    debug!(
+                        "Opening {}, increasing depth and pushing stack.",
+                        self.bytes[idx]
+                    );
+                    let fallback = self.automaton[self.state].fallback_state();
 
                     if fallback_active {
-                        let fallback = self.automaton[self.state].fallback_state();
+                        debug!("Falling back to {fallback}");
 
                         if self.automaton.is_rejecting(fallback) {
                             classifier.skip(self.bytes[idx]);
-                            self.depth
-                                .decrement()
-                                .map_err(|err| EngineError::DepthBelowZero(idx, err))?;
+                            continue;
                         } else {
                             self.transition_to(fallback);
                         }
+                    } else {
+                        fallback_active = true;
                     }
-                    fallback_active = true;
+
+                    let fallback = self.automaton[self.state].fallback_state();
+                    if self.bytes[idx] == b'[' {
+                        self.is_list = true;
+
+                        if self.automaton.is_accepting(fallback) {
+                            self.next_event = classifier.next();
+                            if let Some(Structural::Closing(close_idx)) = self.next_event {
+                                for next_idx in (idx + 1)..close_idx {
+                                    if !self.bytes[next_idx].is_ascii_whitespace() {
+                                        debug!("Accepting only item in the list.");
+                                        self.result.report(next_idx);
+                                        break;
+                                    }
+                                }
+                            } else {
+                                debug!("Accepting first item in the list.");
+                                self.result.report(idx + 1);
+                            }
+                        }
+                    }
+                    self.depth
+                        .increment()
+                        .map_err(|err| EngineError::DepthAboveLimit(idx, err))?;
                 }
                 Structural::Colon(idx) => {
                     debug!(
@@ -306,6 +340,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
 
                     self.next_event = classifier.next();
                     let is_next_opening = matches!(self.next_event, Some(Structural::Opening(_)));
+                    let mut any_matched = false;
 
                     for &(label, target) in self.automaton[self.state].transitions() {
                         if is_next_opening {
@@ -317,14 +352,22 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                                 }
 
                                 self.transition_to(target);
+                                any_matched = true;
                                 break;
                             }
                         } else if self.automaton.is_accepting(target)
                             && self.is_match(idx, label)?
                         {
                             self.result.report(idx);
+                            any_matched = true;
                             break;
                         }
+                    }
+
+                    let fallback = self.automaton[self.state].fallback_state();
+                    if !any_matched && self.automaton.is_accepting(fallback) {
+                        debug!("Value accepted by fallback.");
+                        self.result.report(idx);
                     }
                 }
             }
@@ -338,6 +381,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
             self.stack.push(StackFrame {
                 depth: *self.depth,
                 state: self.state,
+                is_list: self.is_list,
             });
             self.state = target;
         }

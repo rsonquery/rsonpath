@@ -204,7 +204,7 @@ macro_rules! indices_test_cases {
     };
 }
 
-//count_test_cases!(rsonpath_count_main, MainEngine);
+count_test_cases!(rsonpath_count_main, MainEngine);
 count_test_cases!(rsonpath_count_recursive, RecursiveEngine);
-//indices_test_cases!(rsonpath_indices_main, MainEngine);
+indices_test_cases!(rsonpath_indices_main, MainEngine);
 indices_test_cases!(rsonpath_indices_recursive, RecursiveEngine);
