@@ -7,7 +7,7 @@ use crate::{debug, error::UnsupportedFeatureError};
 use smallvec::SmallVec;
 
 mod minimizer;
-mod superstate;
+mod small_set;
 
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) struct NondeterministicAutomaton<'q> {
