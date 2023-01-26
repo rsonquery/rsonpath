@@ -136,5 +136,5 @@ impl ParseErrorReport {
 pub enum CompilerError {
     /// Parsing error that occurred due to invalid input.
     #[error(transparent)]
-    NotSupportedError(#[from] crate::error::UnsupportedFeatureError),
+    NotSupported(#[from] crate::error::UnsupportedFeatureError),
 }

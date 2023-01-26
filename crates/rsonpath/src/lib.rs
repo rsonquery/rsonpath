@@ -18,7 +18,7 @@ pub fn report_parser_error(query_string: &str, error: ParserError) -> eyre::Repo
 
 pub fn report_compiler_error(error: CompilerError) -> eyre::Report {
     match error {
-        CompilerError::NotSupportedError(unsupported) => report_unsupported_error(unsupported),
+        CompilerError::NotSupported(unsupported) => report_unsupported_error(unsupported),
     }
 }
 

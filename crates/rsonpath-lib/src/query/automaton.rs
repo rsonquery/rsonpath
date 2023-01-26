@@ -144,7 +144,7 @@ impl<'q> Automaton<'q> {
     /// Convert a [`JsonPathQuery`] into a minimal deterministic automaton.
     ///
     /// # Errors
-    /// [`CompilerError::NotSupportedError`] raised if the query contains elements
+    /// [`CompilerError::NotSupported`] raised if the query contains elements
     /// not yet supported by the compiler.
     #[inline]
     pub fn new(query: &'q JsonPathQuery) -> Result<Self, CompilerError> {
