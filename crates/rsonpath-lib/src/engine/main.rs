@@ -6,7 +6,7 @@
 //! the JSON structure, which allows efficient SIMD operations and optimized register usage.
 //!
 //! This implementation should be more performant than [`recursive`](super::recursive::RecursiveEngine)
-//! even on targets that don't support AVX2 SIMD operations.
+//! even on targets that do not support AVX2 SIMD operations.
 
 use crate::classify::{
     classify_structural_characters, resume_structural_classification, ClassifierWithSkipping,
@@ -215,7 +215,11 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
             self.run_on_subtree(quote_classifier)?;
         }
 
-        Ok(())
+        if self.depth != Depth::ZERO {
+            Err(EngineError::MissingClosingCharacter())
+        } else {
+            Ok(())
+        }
     }
 
     fn run_on_subtree<I: QuoteClassifiedIterator<'b>>(
@@ -246,10 +250,12 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
             match event {
                 #[cfg(feature = "commas")]
                 Structural::Comma(_) => (),
-                Structural::Closing(_) => {
+                Structural::Closing(idx) => {
                     debug!("Closing, decreasing depth and popping stack.");
 
-                    self.depth.decrement()?;
+                    self.depth
+                        .decrement()
+                        .map_err(|err| EngineError::DepthBelowZero(idx, err))?;
 
                     if let Some(stack_frame) = self.stack.pop_if_at_or_below(*self.depth) {
                         self.state = stack_frame.state
@@ -261,14 +267,18 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                 }
                 Structural::Opening(idx) => {
                     debug!("Opening, increasing depth and pushing stack.");
-                    self.depth.increment()?;
+                    self.depth
+                        .increment()
+                        .map_err(|err| EngineError::DepthAboveLimit(idx, err))?;
 
                     if fallback_active {
                         let fallback = self.automaton[self.state].fallback_state();
 
                         if self.automaton.is_rejecting(fallback) {
                             classifier.skip(self.bytes[idx]);
-                            self.depth.decrement()?;
+                            self.depth
+                                .decrement()
+                                .map_err(|err| EngineError::DepthBelowZero(idx, err))?;
                         } else {
                             self.transition_to(fallback);
                         }

@@ -4,7 +4,7 @@
 //! query results from input bytes. Result types are defined in the [result]
 //! module.
 
-pub mod depth;
+mod depth;
 pub mod error;
 pub mod main;
 pub mod recursive;

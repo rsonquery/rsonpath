@@ -2,7 +2,7 @@ use clap::{Parser, ValueEnum};
 use color_eyre::eyre::{eyre, Result, WrapErr};
 use color_eyre::Help;
 use log::*;
-use rsonpath::report_query_syntax_error;
+use rsonpath::{report_compiler_error, report_engine_error, report_parser_error};
 use rsonpath_lib::engine::main::MainEngine;
 use rsonpath_lib::engine::recursive::RecursiveEngine;
 use rsonpath_lib::engine::result::{CountResult, IndexResult, QueryResult};
@@ -59,12 +59,14 @@ enum ResultArg {
 }
 
 fn main() -> Result<()> {
+    use color_eyre::owo_colors::OwoColorize;
     color_eyre::install()?;
     let args = Args::parse();
 
     configure_logger(args.verbose)?;
 
-    run_with_args(&args).with_note(|| format!("For the query string '{}'.", args.query))
+    run_with_args(&args)
+        .map_err(|err| err.with_note(|| format!("Query string: '{}'.", args.query.dimmed())))
 }
 
 fn run_with_args(args: &Args) -> Result<()> {
@@ -85,7 +87,8 @@ fn run_with_args(args: &Args) -> Result<()> {
 }
 
 fn compile(query: &JsonPathQuery) -> Result<()> {
-    let automaton = Automaton::new(query).wrap_err("Error compiling the query.")?;
+    let automaton = Automaton::new(query)
+        .map_err(|err| report_compiler_error(err).wrap_err("Error compiling the query."))?;
     info!("Automaton: {automaton}");
     println!("{automaton}");
     Ok(())
@@ -121,40 +124,22 @@ fn run<R: QueryResult>(query: &JsonPathQuery, input: &Input, engine: EngineArg) 
 }
 
 fn run_engine<C: Compiler, R: QueryResult>(query: &JsonPathQuery, input: &Input) -> Result<R> {
-    let engine = C::compile_query(query).wrap_err("Error compiling the query.")?;
+    let engine = C::compile_query(query)
+        .map_err(|err| report_compiler_error(err).wrap_err("Error compiling the query."))?;
     info!("Compilation finished, running...");
 
     let result = engine
         .run::<R>(input)
-        .wrap_err("Error executing the query.")?;
+        .map_err(|err| report_engine_error(err).wrap_err("Error executing the query."))?;
     info!("Result: {result}");
 
     Ok(result)
 }
 
 fn parse_query(query_string: &str) -> Result<JsonPathQuery> {
-    use rsonpath_lib::query::error::ParserError;
-    match JsonPathQuery::parse(query_string) {
-        Ok(query) => Ok(query),
-        Err(e) => {
-            if let ParserError::SyntaxError { report } = e {
-                Err(report_query_syntax_error(query_string, report))
-            } else {
-                Err(e).wrap_err("Could not parse JSONPath query.")
-            }
-        }
-    }
-}
-
-fn configure_logger(verbose: bool) -> Result<()> {
-    SimpleLogger::new()
-        .with_level(if verbose {
-            LevelFilter::Debug
-        } else {
-            LevelFilter::Warn
-        })
-        .init()
-        .wrap_err("Logger configuration error.")
+    JsonPathQuery::parse(query_string).map_err(|err| {
+        report_parser_error(query_string, err).wrap_err("Could not parse JSONPath query.")
+    })
 }
 
 fn get_contents(file_path: Option<&str>) -> Result<String> {
@@ -170,4 +155,15 @@ fn get_contents(file_path: Option<&str>) -> Result<String> {
             Ok(result)
         }
     }
+}
+
+fn configure_logger(verbose: bool) -> Result<()> {
+    SimpleLogger::new()
+        .with_level(if verbose {
+            LevelFilter::Debug
+        } else {
+            LevelFilter::Warn
+        })
+        .init()
+        .wrap_err("Logger configuration error.")
 }

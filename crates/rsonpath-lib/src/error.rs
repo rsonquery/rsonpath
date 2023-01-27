@@ -17,6 +17,7 @@ pub struct UnsupportedFeatureError {
 }
 
 impl UnsupportedFeatureError {
+    #[must_use]
     #[inline(always)]
     fn tracked(issue: usize, feature: &'static str) -> Self {
         Self {
@@ -25,7 +26,7 @@ impl UnsupportedFeatureError {
         }
     }
 
-    #[allow(dead_code)]
+    #[must_use]
     #[inline(always)]
     fn untracked(feature: &'static str) -> Self {
         Self {
@@ -34,9 +35,40 @@ impl UnsupportedFeatureError {
         }
     }
 
+    #[must_use]
     #[inline(always)]
     pub(crate) fn wildcard_child_selector() -> Self {
         Self::tracked(9, "Wildcard Child Selector")
+    }
+
+    /// Large JSON Depths feature &ndash; supporting JSON documents
+    /// with nesting depth exceeding 255. Unsupported and not planned.
+    #[must_use]
+    #[inline(always)]
+    pub fn large_json_depths() -> Self {
+        Self::untracked("Large JSON Depths")
+    }
+
+    /// Returns the issue number on GitHub corresponding to the unsupported feature.
+    /// Is [`None`] if the feature is not planned.
+    #[must_use]
+    #[inline(always)]
+    pub fn issue(&self) -> Option<usize> {
+        self.issue
+    }
+
+    /// Returns the descriptive name of the feature.
+    #[must_use]
+    #[inline(always)]
+    pub fn feature(&self) -> &str {
+        self.feature
+    }
+
+    /// Whether the issue is planned to ever be supported.
+    #[must_use]
+    #[inline(always)]
+    pub fn is_planned(&self) -> bool {
+        self.issue.is_some()
     }
 }
 
@@ -55,9 +87,9 @@ impl Display for UnsupportedFeatureError {
             None => {
                 write!(
                     f,
-                    "the feature {} is not supported yet, and is not planned; \
+                    "the feature {} is not supported, and is not planned; \
                     if you would like to see it introduced to rsonpath, please raise a feature request at \
-                    {BUG_REPORT_URL}",
+                    {FEATURE_REQUEST_URL}",
                     self.feature
                 )
             }

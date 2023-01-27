@@ -1,9 +1,41 @@
 use color_eyre::{Help, SectionExt};
 use eyre::eyre;
-use rsonpath_lib::query::error::ParseErrorReport;
+use rsonpath_lib::{
+    engine::error::EngineError,
+    error::UnsupportedFeatureError,
+    query::error::{CompilerError, ParseErrorReport, ParserError},
+};
 
-pub fn report_query_syntax_error(query_string: &str, report: ParseErrorReport) -> eyre::Report {
-    let mut eyre = eyre!("Could not parse JSONPath query.");
+pub(crate) const FEATURE_REQUEST_URL: &str =
+    "https://github.com/V0ldek/rsonpath/issues/new?template=feature_request.md";
+
+pub fn report_parser_error(query_string: &str, error: ParserError) -> eyre::Report {
+    match error {
+        ParserError::SyntaxError { report } => report_query_syntax_error(query_string, report),
+        ParserError::InternalNomError { .. } => eyre::Report::new(error),
+    }
+}
+
+pub fn report_compiler_error(error: CompilerError) -> eyre::Report {
+    match error {
+        CompilerError::NotSupportedError(unsupported) => report_unsupported_error(unsupported),
+    }
+}
+
+pub fn report_engine_error(error: EngineError) -> eyre::Report {
+    match error {
+        EngineError::DepthBelowZero(_, _) => eyre::Report::new(error),
+        EngineError::DepthAboveLimit(_, _) => add_unsupported_context(
+            eyre::Report::new(error),
+            UnsupportedFeatureError::large_json_depths(),
+        ),
+        EngineError::MissingClosingCharacter() => eyre::Report::new(error),
+        EngineError::MalformedLabelQuotes(_) => eyre::Report::new(error),
+    }
+}
+
+fn report_query_syntax_error(query_string: &str, report: ParseErrorReport) -> eyre::Report {
+    let mut eyre = eyre!("One or more syntax errors occurred.");
 
     for error in report.errors() {
         use color_eyre::owo_colors::OwoColorize;
@@ -36,13 +68,57 @@ pub fn report_query_syntax_error(query_string: &str, report: ParseErrorReport) -
         eyre = eyre.section(display_string.header("Parse error:"));
 
         if error.start_idx == 0 {
-            eyre = eyre.suggestion("Queries should start with the root selector `$`.");
+            eyre = eyre.suggestion(format!(
+                "Queries should start with the root selector '{}'.",
+                "$".dimmed()
+            ));
         }
 
         if error_slice.contains('$') {
-            eyre = eyre.suggestion("The `$` character is reserved for the root selector and may appear only at the start.");
+            eyre = eyre.suggestion(format!("The '{}' character is reserved for the root selector and may appear only at the start.", "$".dimmed()));
         }
     }
 
     eyre
+}
+
+fn report_unsupported_error(unsupported: UnsupportedFeatureError) -> eyre::Report {
+    use color_eyre::owo_colors::OwoColorize;
+    let feature = unsupported.feature();
+    let base_report = if unsupported.is_planned() {
+        let feature = feature.blue();
+        eyre!(
+            "The feature {feature} {}",
+            "is not supported yet.".bright_red()
+        )
+    } else {
+        let feature = feature.red();
+        eyre!("The feature {feature} {}", "is not supported.".bright_red())
+    };
+    add_unsupported_context(base_report, unsupported)
+}
+
+fn add_unsupported_context(
+    report: eyre::Report,
+    unsupported: UnsupportedFeatureError,
+) -> eyre::Report {
+    use color_eyre::owo_colors::OwoColorize;
+    let feature = unsupported.feature();
+    if let Some(issue) = unsupported.issue() {
+        let feature = feature.blue();
+        report.note(format!(
+            "The feature {feature} is planned for a future release of rsonpath.\n      \
+            You can join the ongoing discussion at {}.",
+            format!("https://github.com/V0ldek/rsonpath/issues/{issue}").bright_blue()
+        ))
+    } else {
+        let feature = feature.red();
+        report.note(format!(
+            "The feature {feature} is not supported and is {} planned.\n      \
+            If you would like to see it introduced to rsonpath, please raise a feature request at\n      \
+            {} and describe your use case.",
+            "not".italic(),
+            FEATURE_REQUEST_URL.bright_blue()
+        ))
+    }
 }
