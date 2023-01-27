@@ -1,154 +1,15 @@
 use clap::{Parser, ValueEnum};
 use color_eyre::eyre::{eyre, Result, WrapErr};
-use color_eyre::{Help, SectionExt};
+use color_eyre::Help;
 use log::*;
+use rsonpath::{report_compiler_error, report_engine_error, report_parser_error};
+use rsonpath_lib::engine::main::MainEngine;
+use rsonpath_lib::engine::recursive::RecursiveEngine;
 use rsonpath_lib::engine::result::{CountResult, IndexResult, QueryResult};
-use rsonpath_lib::engine::{Input, Runner};
+use rsonpath_lib::engine::{Compiler, Engine, Input};
 use rsonpath_lib::query::automaton::Automaton;
 use rsonpath_lib::query::JsonPathQuery;
-use rsonpath_lib::stack_based::StackBasedRunner;
-use rsonpath_lib::stackless::StacklessRunner;
 use simple_logger::SimpleLogger;
-
-fn main() -> Result<()> {
-    color_eyre::install()?;
-    let args = Args::parse();
-
-    configure_logger(args.verbose)?;
-
-    let query = parse_query(&args.query)?;
-    info!("Preparing query: `{query}`\n");
-
-    if args.compile {
-        return compile(&query);
-    }
-
-    let mut contents = get_contents(args.file_path.as_deref())?;
-    let input = Input::new(&mut contents);
-
-    match args.result {
-        ResultArg::Bytes => run::<IndexResult>(&query, &input, args.engine),
-        ResultArg::Count => run::<CountResult>(&query, &input, args.engine),
-    }
-}
-
-fn compile(query: &JsonPathQuery) -> Result<()> {
-    let automaton = Automaton::new(query).wrap_err("Error compiling the query.")?;
-    info!("Automaton: {automaton}");
-    println!("{automaton}");
-    Ok(())
-}
-
-fn run<R: QueryResult>(query: &JsonPathQuery, input: &Input, engine: EngineArg) -> Result<()> {
-    match engine {
-        EngineArg::Main => {
-            let stackless_runner =
-                StacklessRunner::compile_query(query).wrap_err("Error compiling the query.")?;
-            info!("Compilation finished, running...");
-
-            let stackless_result = stackless_runner
-                .run::<R>(input)
-                .wrap_err("Error in the main engine.")?;
-            info!("Stackless: {stackless_result}");
-
-            println!("{stackless_result}");
-        }
-        EngineArg::Recursive => {
-            let stack_based_runner =
-                StackBasedRunner::compile_query(query).wrap_err("Error compiling the query.")?;
-            info!("Compilation finished, running...");
-
-            let stack_based_result = stack_based_runner
-                .run::<R>(input)
-                .wrap_err("Error in the recursive engine.")?;
-            info!("Stack based: {stack_based_result}");
-
-            println!("{stack_based_result}");
-        }
-        EngineArg::VerifyBoth => {
-            let stackless_runner =
-                StacklessRunner::compile_query(query).wrap_err("Error compiling the query.")?;
-            let stack_based_runner =
-                StackBasedRunner::compile_query(query).wrap_err("Error compiling the query.")?;
-            info!("Compilation finished, running...");
-
-            let stackless_result = stackless_runner
-                .run::<R>(input)
-                .wrap_err("Error in the main engine.")?;
-            info!("Stackless: {stackless_result}");
-
-            let stack_based_result = stack_based_runner
-                .run::<R>(input)
-                .wrap_err("Error in the recursive engine.")?;
-            info!("Stack based: {stack_based_result}");
-
-            if stack_based_result != stackless_result {
-                return Err(eyre!("Result mismatch!"));
-            }
-
-            println!("{stack_based_result}");
-        }
-    }
-
-    Ok(())
-}
-
-fn parse_query(query_string: &str) -> Result<JsonPathQuery> {
-    use rsonpath_lib::query::error::ParserError;
-    match JsonPathQuery::parse(query_string) {
-        Ok(query) => Ok(query),
-        Err(e) => {
-            if let ParserError::SyntaxError { report } = e {
-                let mut eyre = Err(eyre!("Could not parse JSONPath query."));
-                eyre = eyre.note(format!("for query string {query_string}"));
-
-                for error in report.errors() {
-                    use color_eyre::owo_colors::OwoColorize;
-                    use std::cmp;
-                    const MAX_DISPLAY_LENGTH: usize = 80;
-
-                    let display_start_idx = if error.start_idx > MAX_DISPLAY_LENGTH {
-                        error.start_idx - MAX_DISPLAY_LENGTH
-                    } else {
-                        0
-                    };
-                    let display_length = cmp::min(
-                        error.len + MAX_DISPLAY_LENGTH,
-                        query_string.len() - display_start_idx,
-                    );
-                    let error_slice = &query_string[error.start_idx..error.start_idx + error.len];
-                    let slice =
-                        &query_string[display_start_idx..display_start_idx + display_length];
-                    let error_idx = error.start_idx - display_start_idx;
-
-                    let underline: String = std::iter::repeat(' ')
-                        .take(error_idx)
-                        .chain(std::iter::repeat('^').take(error.len))
-                        .collect();
-                    let display_string = format!(
-                        "{}\n{}",
-                        slice,
-                        (underline + " invalid tokens").bright_red()
-                    );
-
-                    eyre = eyre.section(display_string.header("Parse error:"));
-
-                    if error.start_idx == 0 {
-                        eyre = eyre.suggestion("Queries should start with the root selector `$`.");
-                    }
-
-                    if error_slice.contains('$') {
-                        eyre = eyre.suggestion("The `$` character is reserved for the root selector and may appear only at the start.");
-                    }
-                }
-
-                eyre
-            } else {
-                Err(e).wrap_err("Could not parse JSONPath query.")
-            }
-        }
-    }
-}
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about)]
@@ -197,15 +58,88 @@ enum ResultArg {
     Count,
 }
 
-fn configure_logger(verbose: bool) -> Result<()> {
-    SimpleLogger::new()
-        .with_level(if verbose {
-            LevelFilter::Debug
-        } else {
-            LevelFilter::Warn
-        })
-        .init()
-        .wrap_err("Logger configuration error.")
+fn main() -> Result<()> {
+    use color_eyre::owo_colors::OwoColorize;
+    color_eyre::install()?;
+    let args = Args::parse();
+
+    configure_logger(args.verbose)?;
+
+    run_with_args(&args)
+        .map_err(|err| err.with_note(|| format!("Query string: '{}'.", args.query.dimmed())))
+}
+
+fn run_with_args(args: &Args) -> Result<()> {
+    let query = parse_query(&args.query)?;
+    info!("Preparing query: `{query}`\n");
+
+    if args.compile {
+        compile(&query)
+    } else {
+        let mut contents = get_contents(args.file_path.as_deref())?;
+        let input = Input::new(&mut contents);
+
+        match args.result {
+            ResultArg::Bytes => run::<IndexResult>(&query, &input, args.engine),
+            ResultArg::Count => run::<CountResult>(&query, &input, args.engine),
+        }
+    }
+}
+
+fn compile(query: &JsonPathQuery) -> Result<()> {
+    let automaton = Automaton::new(query)
+        .map_err(|err| report_compiler_error(query, err).wrap_err("Error compiling the query."))?;
+    info!("Automaton: {automaton}");
+    println!("{automaton}");
+    Ok(())
+}
+
+fn run<R: QueryResult>(query: &JsonPathQuery, input: &Input, engine: EngineArg) -> Result<()> {
+    match engine {
+        EngineArg::Main => {
+            let result = run_engine::<MainEngine, R>(query, input)
+                .wrap_err("Error running the main engine.")?;
+            println!("{result}");
+        }
+        EngineArg::Recursive => {
+            let result = run_engine::<RecursiveEngine, R>(query, input)
+                .wrap_err("Error running the recursive engine.")?;
+            println!("{result}");
+        }
+        EngineArg::VerifyBoth => {
+            let main_result = run_engine::<MainEngine, R>(query, input)
+                .wrap_err("Error running the main engine.")?;
+            let recursive_result = run_engine::<RecursiveEngine, R>(query, input)
+                .wrap_err("Error running the recursive engine.")?;
+
+            if recursive_result != main_result {
+                return Err(eyre!("Result mismatch!"));
+            }
+
+            println!("{main_result}");
+        }
+    }
+
+    Ok(())
+}
+
+fn run_engine<C: Compiler, R: QueryResult>(query: &JsonPathQuery, input: &Input) -> Result<R> {
+    let engine = C::compile_query(query)
+        .map_err(|err| report_compiler_error(query, err).wrap_err("Error compiling the query."))?;
+    info!("Compilation finished, running...");
+
+    let result = engine
+        .run::<R>(input)
+        .map_err(|err| report_engine_error(err).wrap_err("Error executing the query."))?;
+    info!("Result: {result}");
+
+    Ok(result)
+}
+
+fn parse_query(query_string: &str) -> Result<JsonPathQuery> {
+    JsonPathQuery::parse(query_string).map_err(|err| {
+        report_parser_error(query_string, err).wrap_err("Could not parse JSONPath query.")
+    })
 }
 
 fn get_contents(file_path: Option<&str>) -> Result<String> {
@@ -221,4 +155,15 @@ fn get_contents(file_path: Option<&str>) -> Result<String> {
             Ok(result)
         }
     }
+}
+
+fn configure_logger(verbose: bool) -> Result<()> {
+    SimpleLogger::new()
+        .with_level(if verbose {
+            LevelFilter::Debug
+        } else {
+            LevelFilter::Warn
+        })
+        .init()
+        .wrap_err("Logger configuration error.")
 }

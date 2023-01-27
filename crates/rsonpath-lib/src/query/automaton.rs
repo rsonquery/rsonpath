@@ -7,7 +7,7 @@ use crate::{debug, error::UnsupportedFeatureError};
 use smallvec::SmallVec;
 
 mod minimizer;
-mod superstate;
+mod small_set;
 
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) struct NondeterministicAutomaton<'q> {
@@ -144,13 +144,13 @@ impl<'q> Automaton<'q> {
     /// Convert a [`JsonPathQuery`] into a minimal deterministic automaton.
     ///
     /// # Errors
-    /// [`CompilerError::NotSupportedError`] raised if the query contains elements
+    /// [`CompilerError::NotSupported`] raised if the query contains elements
     /// not yet supported by the compiler.
     #[inline]
     pub fn new(query: &'q JsonPathQuery) -> Result<Self, CompilerError> {
         let nfa = NondeterministicAutomaton::new(query)?;
         debug!("NFA: {}", nfa);
-        Ok(Automaton::minimize(nfa))
+        Automaton::minimize(nfa)
     }
 
     /// Returns whether this automaton represents an empty JSONPath query ('$').
@@ -250,7 +250,7 @@ impl<'q> Automaton<'q> {
         state == self.rejecting_state()
     }
 
-    fn minimize(nfa: NondeterministicAutomaton<'q>) -> Self {
+    fn minimize(nfa: NondeterministicAutomaton<'q>) -> Result<Self, CompilerError> {
         minimizer::minimize(nfa)
     }
 }
@@ -347,7 +347,7 @@ mod tests {
             ],
         };
 
-        let result = Automaton::minimize(nfa);
+        let result = Automaton::minimize(nfa).unwrap();
         let expected = Automaton {
             states: vec![
                 TransitionTable {

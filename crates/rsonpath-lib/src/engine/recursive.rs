@@ -5,7 +5,7 @@ use crate::classify::{classify_structural_characters, Structural, StructuralIter
 use crate::debug;
 use crate::engine::error::EngineError;
 use crate::engine::result::QueryResult;
-use crate::engine::{Input, Runner};
+use crate::engine::{Compiler, Engine, Input};
 use crate::query::automaton::{Automaton, State};
 use crate::query::error::CompilerError;
 use crate::query::{JsonPathQuery, Label};
@@ -14,25 +14,27 @@ use aligners::{alignment, AlignedBytes, AlignedSlice};
 use std::marker::PhantomData;
 
 /// Recursive implementation of the JSONPath query engine.
-pub struct StackBasedRunner<'q> {
+pub struct RecursiveEngine<'q> {
     automaton: Automaton<'q>,
 }
 
-impl<'q> StackBasedRunner<'q> {
-    /// Compile a query into a [`StackBasedRunner`].
+impl Compiler for RecursiveEngine<'_> {
+    type E<'q> = RecursiveEngine<'q>;
+
+    /// Compile a query into a [`RecursiveEngine`].
     ///
     /// # Errors
     /// [`CompilerError`] may be raised by the [`Automaton`] when compiling the query.
     #[must_use = "compiling the query only creates an engine instance that should be used"]
     #[inline(always)]
-    pub fn compile_query(query: &'q JsonPathQuery) -> Result<Self, CompilerError> {
+    fn compile_query(query: &JsonPathQuery) -> Result<RecursiveEngine, CompilerError> {
         let automaton = Automaton::new(query)?;
         debug!("DFA:\n {}", automaton);
-        Ok(StackBasedRunner { automaton })
+        Ok(RecursiveEngine { automaton })
     }
 }
 
-impl Runner for StackBasedRunner<'_> {
+impl Engine for RecursiveEngine<'_> {
     #[inline]
     fn run<R: QueryResult>(&self, input: &Input) -> Result<R, EngineError> {
         if self.automaton.is_empty_query() {

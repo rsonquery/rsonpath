@@ -1,15 +1,16 @@
-use super::superstate::Superstate;
+use super::small_set::{SmallSet, SmallSet256};
 use super::Label;
 use super::{
     Automaton, NfaState::*, NfaStateId, NondeterministicAutomaton, State as DfaStateId,
     TransitionTable,
 };
 use crate::debug;
+use crate::query::error::CompilerError;
 use smallvec::smallvec;
 use vector_map::VecMap;
 
 /// Turn the [`NondeterministicAutomaton`] to an equivalent minimal deterministic [`Automaton`].
-pub(crate) fn minimize(nfa: NondeterministicAutomaton) -> Automaton {
+pub(crate) fn minimize(nfa: NondeterministicAutomaton) -> Result<Automaton, CompilerError> {
     let minimizer = Minimizer {
         nfa,
         superstates: VecMap::new(),
@@ -25,11 +26,11 @@ pub(crate) struct Minimizer<'q> {
     /// The NFA being minimized.
     nfa: NondeterministicAutomaton<'q>,
     /// All superstates created thus far mapping to their index in the DFA being constructed.
-    superstates: VecMap<Superstate, DfaStateId>,
+    superstates: VecMap<SmallSet256, DfaStateId>,
     /// Map from superstates to the furthest reachable checkpoint on a path leading to that superstate.
-    checkpoints: VecMap<Superstate, NfaStateId>,
+    checkpoints: VecMap<SmallSet256, NfaStateId>,
     /// Superstates that have not been processed and expanded yet.
-    active_superstates: Vec<Superstate>,
+    active_superstates: Vec<SmallSet256>,
     /// All superstates created thus far, in order matching the `superstates` map.
     dfa_states: Vec<TransitionTable<'q>>,
 }
@@ -61,7 +62,7 @@ pub(crate) struct Minimizer<'q> {
 impl<'q> Minimizer<'q> {
     /// Main loop of the algorithm. Initialize rejecting and initial states
     /// and perform expansion until we run out of active states.
-    fn run(mut self) -> Automaton<'q> {
+    fn run(mut self) -> Result<Automaton<'q>, CompilerError> {
         // Rejecting state has no outgoing transitions except for a self-loop.
         self.dfa_states.push(TransitionTable {
             transitions: smallvec![],
@@ -69,16 +70,16 @@ impl<'q> Minimizer<'q> {
         });
 
         // Initial superstate is {0}.
-        let initial_superstate = [NfaStateId(0)].into();
-        self.activate_if_new(initial_superstate);
+        let initial_superstate = [0].into();
+        self.activate_if_new(initial_superstate)?;
 
         while let Some(superstate) = self.active_superstates.pop() {
-            self.process_superstate(superstate);
+            self.process_superstate(superstate)?;
         }
 
-        Automaton {
+        Ok(Automaton {
             states: self.dfa_states,
-        }
+        })
     }
 
     fn rejecting_state() -> DfaStateId {
@@ -87,18 +88,23 @@ impl<'q> Minimizer<'q> {
 
     /// Every time a transition to a superstate is created, we need to check if it is
     /// discovered for the first time. If so, we need to initialize and activate it.
-    fn activate_if_new(&mut self, superstate: Superstate) {
+    fn activate_if_new(&mut self, superstate: SmallSet256) -> Result<(), CompilerError> {
         if !self.superstates.contains_key(&superstate) {
-            let identifier = DfaStateId(self.superstates.len() as u8 + 1);
+            let identifier = (self.superstates.len() + 1)
+                .try_into()
+                .map(DfaStateId)
+                .map_err(CompilerError::QueryTooComplex)?;
             self.superstates.insert(superstate, identifier);
             self.active_superstates.push(superstate);
             debug!("New superstate created: {superstate:?} {identifier}");
         }
+
+        Ok(())
     }
 
     /// Create the superstate's [`TransitionTable`] by processing all transitions
     /// of NFA states within the superstate.
-    fn process_superstate(&mut self, current_superstate: Superstate) {
+    fn process_superstate(&mut self, current_superstate: SmallSet256) -> Result<(), CompilerError> {
         let current_checkpoint = self.determine_checkpoint(current_superstate);
         debug!(
             "Expanding superstate: {current_superstate:?}, last checkpoint is {current_checkpoint:?}"
@@ -107,7 +113,7 @@ impl<'q> Minimizer<'q> {
         let mut transitions = self.process_nfa_transitions(current_superstate);
         debug!("Raw transitions: {:?}", transitions);
 
-        self.normalize_superstate_transitions(&mut transitions, current_checkpoint);
+        self.normalize_superstate_transitions(&mut transitions, current_checkpoint)?;
         debug!("Normalized transitions: {:?}", transitions);
 
         // Translate the transitions to the data model expected by TransitionTable.
@@ -122,17 +128,19 @@ impl<'q> Minimizer<'q> {
         self.dfa_states.push(TransitionTable {
             transitions: translated_transitions,
             fallback_state: current_checkpoint
-                .map(|x| [x].into())
-                .map_or(Self::rejecting_state(), |x: Superstate| {
+                .map(|x| [x.0].into())
+                .map_or(Self::rejecting_state(), |x: SmallSet256| {
                     self.superstates[&x]
                 }),
         });
+
+        Ok(())
     }
 
     /// Determine what is the furthest reachable checkpoint on the path to this
     /// superstate. This is either the superstate itself, if it is a checkpoint,
     /// or the one flowed into from a previous superstate via the `checkpoints` map.
-    fn determine_checkpoint(&mut self, superstate: Superstate) -> Option<NfaStateId> {
+    fn determine_checkpoint(&mut self, superstate: SmallSet256) -> Option<NfaStateId> {
         if let Some(nfa_state) = self.as_checkpoint(superstate) {
             self.checkpoints.insert(superstate, nfa_state);
             Some(nfa_state)
@@ -143,8 +151,8 @@ impl<'q> Minimizer<'q> {
 
     /// Determine whether the `superstate` is a checkpoint, and if yes
     /// return the Recursive NFA state it represents. Otherwise, return `None`.
-    fn as_checkpoint(&self, superstate: Superstate) -> Option<NfaStateId> {
-        if let Some(single_state) = superstate.singleton() {
+    fn as_checkpoint(&self, superstate: SmallSet256) -> Option<NfaStateId> {
+        if let Some(single_state) = superstate.singleton().map(NfaStateId) {
             if matches!(self.nfa[single_state], Recursive(_)) {
                 return Some(single_state);
             }
@@ -157,11 +165,11 @@ impl<'q> Minimizer<'q> {
     /// from states within it.
     fn process_nfa_transitions(
         &self,
-        current_superstate: Superstate,
-    ) -> VecMap<&'q Label, Superstate> {
-        let mut transitions: VecMap<&Label, Superstate> = VecMap::new();
+        current_superstate: SmallSet256,
+    ) -> VecMap<&'q Label, SmallSet256> {
+        let mut transitions: VecMap<&Label, SmallSet256> = VecMap::new();
 
-        for nfa_state in current_superstate.iter() {
+        for nfa_state in current_superstate.iter().map(NfaStateId) {
             match self.nfa[nfa_state] {
                 // Direct states simply have a single transition to the next state in the NFA.
                 // Recursive transitions also have a self-loop, but that is handled by the
@@ -174,9 +182,9 @@ impl<'q> Minimizer<'q> {
                     // Add the target NFA state to the target superstate, or create a singleton
                     // set if this is the first transition via this label encountered in the loop.
                     if let Some(target) = transitions.get_mut(&label) {
-                        target.insert(nfa_state.next());
+                        target.insert(nfa_state.next().0);
                     } else {
-                        transitions.insert(label, [nfa_state.next()].into());
+                        transitions.insert(label, [nfa_state.next().0].into());
                     }
                 }
                 Accepting => (),
@@ -190,34 +198,37 @@ impl<'q> Minimizer<'q> {
     /// and activate them if needed.
     fn normalize_superstate_transitions(
         &mut self,
-        transitions: &mut VecMap<&Label, Superstate>,
+        transitions: &mut VecMap<&Label, SmallSet256>,
         current_checkpoint: Option<NfaStateId>,
-    ) {
+    ) -> Result<(), CompilerError> {
         for (_, state) in transitions.iter_mut() {
             if let Some(checkpoint) = current_checkpoint {
-                state.insert(checkpoint);
+                state.insert(checkpoint.0);
             }
 
             self.normalize(state);
-            self.activate_if_new(*state);
+            self.activate_if_new(*state)?;
 
             if let Some(checkpoint) = current_checkpoint {
                 self.checkpoints.insert(*state, checkpoint);
             }
         }
+
+        Ok(())
     }
 
     /// If a superstate contains a Recursive NFA state, then all the NFA states
     /// prior to that Recursive state can be removed, equalizing many possible
     /// combinations.
-    fn normalize(&self, superstate: &mut Superstate) {
+    fn normalize(&self, superstate: &mut SmallSet256) {
         let furthest_checkpoint = superstate
             .iter()
+            .map(NfaStateId)
             .filter(|&x| matches!(self.nfa[x], Recursive(_)))
             .max();
 
         if let Some(cutoff) = furthest_checkpoint {
-            superstate.remove_all_before(cutoff);
+            superstate.remove_all_before(cutoff.0);
         }
     }
 }

@@ -1,18 +1,24 @@
 //! Base traits for different implementations of JSONPath execution engines.
 //!
-//! Defines the [`Runner`] trait that provides different ways of retrieving
+//! Defines the [`Engine`] trait that provides different ways of retrieving
 //! query results from input bytes. Result types are defined in the [result]
 //! module.
 
-pub mod depth;
+mod depth;
 pub mod error;
+pub mod main;
+pub mod recursive;
 pub mod result;
+
+pub use main::MainEngine as RsonpathEngine;
 
 use aligners::{
     alignment::{self},
     AlignedBytes,
 };
 use cfg_if::cfg_if;
+
+use crate::query::{error::CompilerError, JsonPathQuery};
 
 use self::{error::EngineError, result::QueryResult};
 
@@ -103,7 +109,7 @@ impl Input {
 }
 
 /// Trait for an engine that can run its query on a given input.
-pub trait Runner {
+pub trait Engine {
     /// Compute the [`QueryResult`] on given [`Input`].
     ///
     /// # Errors
@@ -113,5 +119,20 @@ pub trait Runner {
     /// **Please note** that detecting malformed JSONs is not guaranteed.
     /// Some glaring errors like mismatched braces or double quotes are raised,
     /// but in general the result of an engine run on an invalid JSON is undefined.
+    /// It _is_ guaranteed that the computation terminates and does not panic.
     fn run<R: QueryResult>(&self, input: &Input) -> Result<R, EngineError>;
+}
+
+/// Trait for an engine that can be created by compiling a [`JsonPathQuery`].
+pub trait Compiler {
+    /// Concrete type of the [`Engines`](`Engine`) created,
+    /// parameterized with the lifetime of the input query.
+    type E<'q>: Engine + 'q;
+
+    /// Compile a [`JsonPathQuery`] into an [`Engine`].
+    ///
+    /// # Errors
+    /// An appropriate [`CompilerError`] is returned if the compiler
+    /// cannot handle the query.
+    fn compile_query(query: &JsonPathQuery) -> Result<Self::E<'_>, CompilerError>;
 }

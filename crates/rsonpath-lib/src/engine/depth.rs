@@ -1,6 +1,6 @@
 //! Overflow-safe utilities for tracking JSON document depth.
 
-use super::error::EngineError;
+use super::error::DepthError;
 use std::{fmt::Display, ops::Deref};
 
 /// Overflow-safe thin wrapper for a [`u8`] depth counter.
@@ -15,21 +15,18 @@ impl Depth {
 
     /// Add `1` to the depth, or raise an error if the maximum
     /// supported value is reached.
-    pub(crate) fn increment(&mut self) -> Result<(), EngineError> {
+    pub(crate) fn increment(&mut self) -> Result<(), DepthError> {
         self.value = self
             .value
             .checked_add(1)
-            .ok_or(EngineError::DepthAboveLimit(u8::MAX as usize))?;
+            .ok_or(DepthError::AboveLimit(u8::MAX as usize))?;
         Ok(())
     }
 
     /// Subtract `1` from the depth, or raise an error if the depth
     /// is zero.
-    pub(crate) fn decrement(&mut self) -> Result<(), EngineError> {
-        self.value = self
-            .value
-            .checked_sub(1)
-            .ok_or(EngineError::DepthBelowZero)?;
+    pub(crate) fn decrement(&mut self) -> Result<(), DepthError> {
+        self.value = self.value.checked_sub(1).ok_or(DepthError::BelowZero)?;
         Ok(())
     }
 }

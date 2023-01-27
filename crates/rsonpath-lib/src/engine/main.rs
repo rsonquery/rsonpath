@@ -1,12 +1,12 @@
-//! Stackless implementation of a JSONPath query engine.
+//! Main implementation of a JSONPath query engine.
 //!
 //! Core engine for processing of JSONPath queries, based on the
 //! [Stackless Processing of Streamed Trees](https://hal.archives-ouvertes.fr/hal-03021960) paper.
 //! Entire query execution is done without recursion or an explicit stack, linearly through
 //! the JSON structure, which allows efficient SIMD operations and optimized register usage.
 //!
-//! This implementation should be more performant than [`stack_based`](super::stack_based)
-//! even on targets that don't support AVX2 SIMD operations.
+//! This implementation should be more performant than [`recursive`](super::recursive::RecursiveEngine)
+//! even on targets that do not support AVX2 SIMD operations.
 
 use crate::classify::{
     classify_structural_characters, resume_structural_classification, ClassifierWithSkipping,
@@ -16,7 +16,7 @@ use crate::debug;
 use crate::engine::depth::Depth;
 use crate::engine::error::EngineError;
 use crate::engine::result::QueryResult;
-use crate::engine::{Input, Runner};
+use crate::engine::{Engine, Input};
 use crate::query::automaton::{Automaton, State};
 use crate::query::error::CompilerError;
 use crate::query::{JsonPathQuery, Label};
@@ -24,16 +24,20 @@ use crate::quotes::{classify_quoted_sequences, QuoteClassifiedIterator, ResumeCl
 use aligners::{alignment, AlignedBytes};
 use smallvec::{smallvec, SmallVec};
 
-/// Stackless runner for a fixed JSONPath query.
+use super::Compiler;
+
+/// Main engine for a fixed JSONPath query.
 ///
-/// The runner is stateless, meaning that it can be executed
+/// The engine is stateless, meaning that it can be executed
 /// on any number of separate inputs, even on separate threads.
-pub struct StacklessRunner<'q> {
+pub struct MainEngine<'q> {
     automaton: Automaton<'q>,
 }
 
-impl StacklessRunner<'_> {
-    /// Compile a query into a [`StacklessRunner`].
+impl Compiler for MainEngine<'_> {
+    type E<'q> = MainEngine<'q>;
+
+    /// Compile a query into a [`MainEngine`].
     ///
     /// Compilation time is proportional to the length of the query.
     ///
@@ -41,14 +45,14 @@ impl StacklessRunner<'_> {
     /// [`CompilerError`] may be raised by the [`Automaton`] when compiling the query.
     #[must_use = "compiling the query only creates an engine instance that should be used"]
     #[inline(always)]
-    pub fn compile_query(query: &JsonPathQuery) -> Result<StacklessRunner<'_>, CompilerError> {
+    fn compile_query(query: &JsonPathQuery) -> Result<MainEngine, CompilerError> {
         let automaton = Automaton::new(query)?;
         debug!("DFA:\n {}", automaton);
-        Ok(StacklessRunner { automaton })
+        Ok(MainEngine { automaton })
     }
 }
 
-impl Runner for StacklessRunner<'_> {
+impl Engine for MainEngine<'_> {
     #[inline]
     fn run<R: QueryResult>(&self, input: &Input) -> Result<R, EngineError> {
         if self.automaton.is_empty_query() {
@@ -211,7 +215,11 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
             self.run_on_subtree(quote_classifier)?;
         }
 
-        Ok(())
+        if self.depth != Depth::ZERO {
+            Err(EngineError::MissingClosingCharacter())
+        } else {
+            Ok(())
+        }
     }
 
     fn run_on_subtree<I: QuoteClassifiedIterator<'b>>(
@@ -242,10 +250,12 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
             match event {
                 #[cfg(feature = "commas")]
                 Structural::Comma(_) => (),
-                Structural::Closing(_) => {
+                Structural::Closing(idx) => {
                     debug!("Closing, decreasing depth and popping stack.");
 
-                    self.depth.decrement()?;
+                    self.depth
+                        .decrement()
+                        .map_err(|err| EngineError::DepthBelowZero(idx, err))?;
 
                     if let Some(stack_frame) = self.stack.pop_if_at_or_below(*self.depth) {
                         self.state = stack_frame.state
@@ -257,14 +267,18 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                 }
                 Structural::Opening(idx) => {
                     debug!("Opening, increasing depth and pushing stack.");
-                    self.depth.increment()?;
+                    self.depth
+                        .increment()
+                        .map_err(|err| EngineError::DepthAboveLimit(idx, err))?;
 
                     if fallback_active {
                         let fallback = self.automaton[self.state].fallback_state();
 
                         if self.automaton.is_rejecting(fallback) {
                             classifier.skip(self.bytes[idx]);
-                            self.depth.decrement()?;
+                            self.depth
+                                .decrement()
+                                .map_err(|err| EngineError::DepthBelowZero(idx, err))?;
                         } else {
                             self.transition_to(fallback);
                         }
