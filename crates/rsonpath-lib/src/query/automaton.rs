@@ -7,6 +7,7 @@ mod small_set;
 use super::{error::CompilerError, JsonPathQuery, Label};
 use crate::debug;
 use nfa::NondeterministicAutomaton;
+use small_set::{SmallSet, SmallSet256};
 use smallvec::SmallVec;
 use std::{fmt::Display, ops::Index};
 
@@ -32,6 +33,7 @@ impl From<u8> for State {
 #[derive(Debug, PartialEq, Eq)]
 pub struct Automaton<'q> {
     states: Vec<TransitionTable<'q>>,
+    accepting: SmallSet256,
 }
 
 /// A single transition of an [`Automaton`].
@@ -151,14 +153,13 @@ impl<'q> Automaton<'q> {
         State(1)
     }
 
-    /// Returns the accepting state of the automaton.
+    /// Returns the accepting states of the automaton.
     ///
-    /// Query execution should treat transitioning into this state
+    /// Query execution should treat transitioning into any of these states
     /// as a match.
-    #[must_use]
     #[inline(always)]
-    pub fn accepting_state(&self) -> State {
-        State((self.states.len() - 1) as u8)
+    pub fn accepting_states(&self) -> impl Iterator<Item = State> {
+        self.accepting.iter().map(State)
     }
 
     /// Returns whether the given state is accepting.
@@ -170,12 +171,12 @@ impl<'q> Automaton<'q> {
     /// let query = JsonPathQuery::parse("$.a").unwrap();
     /// let automaton = Automaton::new(&query).unwrap();
     ///
-    /// assert!(automaton.is_accepting(automaton.accepting_state()));
+    /// assert!(automaton.accepting_states().all(|state| automaton.is_accepting(state)));
     /// ```
     #[must_use]
     #[inline(always)]
     pub fn is_accepting(&self, state: State) -> bool {
-        state == self.accepting_state()
+        self.accepting.contains(state.0)
     }
 
     /// Returns whether the given state is rejecting, i.e.
@@ -227,11 +228,15 @@ impl<'q> Display for Automaton<'q> {
     #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "digraph {{")?;
-        for (i, state) in self.states.iter().enumerate() {
-            for (label, state) in state.transitions.iter() {
+        for i in self.accepting.iter() {
+            writeln!(f, "node [shape = doublecircle]; {i}")?;
+        }
+        writeln!(f, "node [shape = circle];")?;
+        for (i, transitions) in self.states.iter().enumerate() {
+            for (label, state) in transitions.transitions.iter() {
                 writeln!(f, "  {i} -> {} [label=\"{}\"]", state.0, label.display(),)?
             }
-            writeln!(f, "  {i} -> {} [label=\"*\"]", state.fallback_state.0)?;
+            writeln!(f, "  {i} -> {} [label=\"*\"]", transitions.fallback_state.0)?;
         }
         write!(f, "}}")?;
         Ok(())

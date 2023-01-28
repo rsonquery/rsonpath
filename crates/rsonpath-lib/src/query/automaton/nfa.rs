@@ -74,9 +74,19 @@ impl<'q> NondeterministicAutomaton<'q> {
 
         states.push(Accepting);
 
-        Ok(NondeterministicAutomaton {
-            ordered_states: states,
-        })
+        let accepting_state: Result<u8, _> = (states.len() - 1).try_into();
+        if let Err(err) = accepting_state {
+            Err(CompilerError::QueryTooComplex(err))
+        } else {
+            Ok(NondeterministicAutomaton {
+                ordered_states: states,
+            })
+        }
+    }
+
+    pub(crate) fn accepting_state(&self) -> NfaStateId {
+        // CAST: safe because of the check in `new`.
+        NfaStateId((self.ordered_states.len() - 1) as u8)
     }
 }
 

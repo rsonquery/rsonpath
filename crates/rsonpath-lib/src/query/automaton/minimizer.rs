@@ -15,6 +15,7 @@ pub(crate) fn minimize(nfa: NondeterministicAutomaton) -> Result<Automaton, Comp
         checkpoints: VecMap::new(),
         active_superstates: smallvec![],
         dfa_states: vec![],
+        accepting: SmallSet256::default(),
     };
 
     minimizer.run()
@@ -31,6 +32,8 @@ pub(crate) struct Minimizer<'q> {
     active_superstates: SmallVec<[SmallSet256; 2]>,
     /// All superstates created thus far, in order matching the `superstates` map.
     dfa_states: Vec<TransitionTable<'q>>,
+    /// Set of activated DFA states that are accepting.
+    accepting: SmallSet256,
 }
 
 #[derive(Debug)]
@@ -85,6 +88,7 @@ impl<'q> Minimizer<'q> {
 
         Ok(Automaton {
             states: self.dfa_states,
+            accepting: self.accepting,
         })
     }
 
@@ -106,6 +110,10 @@ impl<'q> Minimizer<'q> {
             self.active_superstates.push(superstate);
             self.dfa_states.push(TransitionTable::default());
             debug!("New superstate created: {superstate:?} {identifier}");
+            if superstate.contains(self.nfa.accepting_state().0) {
+                self.accepting.insert(identifier.0);
+                debug!("{identifier} is accepting");
+            }
         }
 
         Ok(())
@@ -301,6 +309,7 @@ mod tests {
                     fallback_state: State(0),
                 },
             ],
+            accepting: [1].into(),
         };
 
         assert_eq!(result, expected);
@@ -332,6 +341,7 @@ mod tests {
                     fallback_state: State(0),
                 },
             ],
+            accepting: [2].into(),
         };
 
         assert_eq!(result, expected);
@@ -373,6 +383,7 @@ mod tests {
                     fallback_state: State(3),
                 },
             ],
+            accepting: [3, 4].into(),
         };
 
         assert_eq!(result, expected);
@@ -420,6 +431,7 @@ mod tests {
                     fallback_state: State(0),
                 },
             ],
+            accepting: [5].into(),
         };
 
         assert_eq!(result, expected);
@@ -478,6 +490,7 @@ mod tests {
                     fallback_state: State(3),
                 },
             ],
+            accepting: [5, 6, 7, 8].into(),
         };
 
         assert_eq!(result, expected);
@@ -545,6 +558,7 @@ mod tests {
                     fallback_state: State(7),
                 },
             ],
+            accepting: [8].into(),
         };
 
         assert_eq!(result, expected);
@@ -608,6 +622,7 @@ mod tests {
                     fallback_state: State(3),
                 },
             ],
+            accepting: [7, 8].into(),
         };
 
         assert_eq!(result, expected);

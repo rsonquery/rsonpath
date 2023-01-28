@@ -1013,6 +1013,7 @@ dependencies = [
  "aligners",
  "cfg-if",
  "eyre",
+ "itertools",
  "log",
  "memchr",
  "nom",

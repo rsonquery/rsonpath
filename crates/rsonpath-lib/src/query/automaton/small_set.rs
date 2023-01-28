@@ -7,6 +7,8 @@ pub(crate) trait SmallSet<T: Copy + PartialOrd + Ord>: IntoIterator<Item = T> {
 
     fn insert(&mut self, elem: T);
 
+    fn contains(&self, elem: T) -> bool;
+
     /// If the set is a singleton, returns the only element.
     /// Otherwise, returns `None`.
     fn singleton(&self) -> Option<T>;
@@ -45,6 +47,14 @@ impl SmallSet<u8> for SmallSet256 {
             self.half_1.insert(elem)
         } else {
             self.half_2.insert(elem - 128)
+        }
+    }
+
+    fn contains(&self, elem: u8) -> bool {
+        if elem < 128 {
+            self.half_1.contains(elem)
+        } else {
+            self.half_2.contains(elem - 128)
         }
     }
 
@@ -91,6 +101,10 @@ impl SmallSet<u8> for SmallSet128 {
 
     fn insert(&mut self, elem: u8) {
         self.bitmask |= 1 << elem;
+    }
+
+    fn contains(&self, elem: u8) -> bool {
+        (self.bitmask & (1 << elem)) != 0
     }
 
     fn iter(&self) -> SmallSet128Iter {
@@ -217,59 +231,113 @@ impl Iterator for SmallSet128Iter {
 #[cfg(test)]
 mod tests256 {
     use super::*;
-    use proptest::{collection, proptest, strategy::Strategy};
+    use itertools::Itertools;
+    use proptest::{collection, proptest};
     use std::collections::BTreeSet;
 
-    const MAX_SIZE: usize = 256;
+    const MAX_SET_SIZE: usize = 256;
+    const MAX_INPUT_SIZE: usize = 1024;
     const MAX_ELEM: u8 = 255;
 
-    fn any_state() -> impl proptest::strategy::Strategy<Value = u8> {
-        (0_u8..=MAX_ELEM).prop_map_into()
+    fn any_elem() -> impl proptest::strategy::Strategy<Value = u8> {
+        0_u8..=MAX_ELEM
     }
 
     proptest! {
         #[test]
-        fn from_slice(btree_set in collection::btree_set(any_state(), 0..=MAX_SIZE)) {
+        fn contains(btree_set in collection::btree_set(any_elem(), 0..=MAX_SET_SIZE)) {
+            let vec: Vec<u8> = btree_set.iter().copied().collect();
+            let slice: &[u8] = &vec;
+            let small_set: SmallSet256 = slice.into();
+
+            for elem in 0..=MAX_ELEM {
+                assert_eq!(btree_set.contains(&elem), small_set.contains(elem));
+            }
+        }
+
+        #[test]
+        fn insert(vec in collection::vec(any_elem(), 0..=MAX_INPUT_SIZE)) {
+            let unique: Vec<_> = vec.iter().copied().sorted().dedup().collect();
+            let slice: &[u8] = &unique;
+            let mut small_set = SmallSet256::default();
+
+            for elem in vec {
+                small_set.insert(elem);
+            }
+
+            let result: Vec<u8> = small_set.iter().collect();
+
+            assert_eq!(slice, &result);
+        }
+
+        #[test]
+        fn from_set_slice(btree_set in collection::btree_set(any_elem(), 0..=MAX_SET_SIZE)) {
             let vec: Vec<u8> = btree_set.into_iter().collect();
             let slice: &[u8] = &vec;
-            let state_set: SmallSet256 = slice.into();
+            let small_set: SmallSet256 = slice.into();
 
-            let round_trip: Vec<u8> = state_set.iter().collect();
+            let round_trip: Vec<u8> = small_set.iter().collect();
 
             assert_eq!(&round_trip, slice);
         }
 
         #[test]
-        fn singleton_some(value in any_state()) {
-            let state_set: SmallSet256 = [value].into();
+        fn from_any_slice(vec in collection::vec(any_elem(), 0..=MAX_INPUT_SIZE)) {
+            let unique: BTreeSet<u8> = vec.iter().copied().collect();
+            let slice: &[u8] = &vec;
+            let small_set: SmallSet256 = slice.into();
 
-            assert_eq!(Some(value), state_set.singleton());
+            let round_trip: BTreeSet<u8> = small_set.iter().collect();
+
+            assert_eq!(round_trip, unique);
         }
 
         #[test]
-        fn singleton_some_many(btree_set in collection::btree_set(any_state(), 2..=MAX_SIZE)) {
+        fn len(vec in collection::vec(any_elem(), 0..=MAX_INPUT_SIZE)) {
+            let mut normal_set = BTreeSet::new();
+            let mut small_set = SmallSet256::default();
+
+            assert_eq!(0, small_set.len());
+
+            for elem in vec {
+                normal_set.insert(elem);
+                small_set.insert(elem);
+
+                assert_eq!(normal_set.len(), small_set.len());
+            }
+        }
+
+        #[test]
+        fn singleton_some(value in any_elem()) {
+            let small_set: SmallSet256 = [value].into();
+
+            assert_eq!(Some(value), small_set.singleton());
+        }
+
+        #[test]
+        fn singleton_some_many(btree_set in collection::btree_set(any_elem(), 2..=MAX_SET_SIZE)) {
             let vec: Vec<u8> = btree_set.into_iter().collect();
             let slice: &[u8] = &vec;
-            let state_set: SmallSet256 = slice.into();
+            let small_set: SmallSet256 = slice.into();
 
-            assert_eq!(None, state_set.singleton());
+            assert_eq!(None, small_set.singleton());
         }
 
         #[test]
-        fn remove_all_below(btree_set in collection::btree_set(any_state(), 0..=MAX_SIZE), state in any_state()) {
+        fn remove_all_below(btree_set in collection::btree_set(any_elem(), 0..=MAX_SET_SIZE), state in any_elem()) {
             let expected_btree_set = BTreeSet::from_iter(btree_set.iter().copied().filter(|&x| x >= state));
-            let mut state_set = SmallSet256::from_iter(btree_set.into_iter());
+            let mut small_set = SmallSet256::from_iter(btree_set.into_iter());
 
-            state_set.remove_all_before(state);
+            small_set.remove_all_before(state);
 
-            assert_eq!(expected_btree_set, state_set);
+            assert_eq!(expected_btree_set, small_set);
         }
     }
 
     #[test]
     fn singleton_none_empty() {
-        let state_set = SmallSet256::default();
+        let small_set = SmallSet256::default();
 
-        assert_eq!(None, state_set.singleton());
+        assert_eq!(None, small_set.singleton());
     }
 }
