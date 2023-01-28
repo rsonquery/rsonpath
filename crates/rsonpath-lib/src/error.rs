@@ -18,6 +18,7 @@ pub struct UnsupportedFeatureError {
 
 impl UnsupportedFeatureError {
     #[must_use]
+    #[allow(dead_code)]
     #[inline(always)]
     fn tracked(issue: usize, feature: &'static str) -> Self {
         Self {
@@ -33,12 +34,6 @@ impl UnsupportedFeatureError {
             issue: None,
             feature,
         }
-    }
-
-    #[must_use]
-    #[inline(always)]
-    pub(crate) fn wildcard_child_selector() -> Self {
-        Self::tracked(9, "Wildcard Child Selector")
     }
 
     /// Large JSON Depths feature &ndash; supporting JSON documents

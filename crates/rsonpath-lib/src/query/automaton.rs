@@ -1,83 +1,15 @@
 //! Automaton representations of a JSONPath query.
 
-use std::{fmt::Display, ops::Index};
-
-use super::{error::CompilerError, JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label};
-use crate::{debug, error::UnsupportedFeatureError};
-use smallvec::SmallVec;
-
 mod minimizer;
+mod nfa;
 mod small_set;
 
-#[derive(Debug, PartialEq, Eq)]
-pub(crate) struct NondeterministicAutomaton<'q> {
-    ordered_states: Vec<NfaState<'q>>,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(crate) enum NfaState<'q> {
-    Direct(&'q Label),
-    Recursive(&'q Label),
-    Accepting,
-}
-use NfaState::*;
-
-/// State of an [`NondeterministicAutomaton`]. Thin wrapper over a state's
-/// identifier to distinguish NFA states from DFA states ([`State`]).
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
-pub(crate) struct NfaStateId(u8);
-
-impl NfaStateId {
-    pub(crate) fn next(&self) -> Self {
-        Self(self.0 + 1)
-    }
-}
-
-impl Display for NfaStateId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "NFA({})", self.0)
-    }
-}
-
-impl From<u8> for NfaStateId {
-    fn from(i: u8) -> Self {
-        Self(i)
-    }
-}
-
-impl<'q> NondeterministicAutomaton<'q> {
-    fn new(query: &'q JsonPathQuery) -> Result<Self, CompilerError> {
-        debug_assert!(query.root().is_root());
-
-        let states_result: Result<Vec<NfaState>, CompilerError> = query
-            .root()
-            .iter()
-            .filter_map(|node| match node {
-                JsonPathQueryNode::Root(_) => None,
-                JsonPathQueryNode::Descendant(label, _) => Some(Ok(Recursive(label))),
-                JsonPathQueryNode::Child(label, _) => Some(Ok(Direct(label))),
-                JsonPathQueryNode::AnyChild(_) => Some(Err(
-                    UnsupportedFeatureError::wildcard_child_selector().into(),
-                )),
-            })
-            .collect();
-        let mut states = states_result?;
-
-        states.push(Accepting);
-
-        Ok(NondeterministicAutomaton {
-            ordered_states: states,
-        })
-    }
-}
-
-impl<'q> Index<NfaStateId> for NondeterministicAutomaton<'q> {
-    type Output = NfaState<'q>;
-
-    fn index(&self, index: NfaStateId) -> &Self::Output {
-        &self.ordered_states[index.0 as usize]
-    }
-}
+use super::{error::CompilerError, JsonPathQuery, Label};
+use crate::debug;
+use nfa::NondeterministicAutomaton;
+use small_set::{SmallSet, SmallSet256};
+use smallvec::SmallVec;
+use std::{fmt::Display, ops::Index};
 
 /// State of an [`Automaton`]. Thin wrapper over a state's identifier.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
@@ -101,7 +33,11 @@ impl From<u8> for State {
 #[derive(Debug, PartialEq, Eq)]
 pub struct Automaton<'q> {
     states: Vec<TransitionTable<'q>>,
+    accepting: SmallSet256,
 }
+
+/// A single transition of an [`Automaton`].
+type Transition<'q> = (&'q Label, State);
 
 /// A transition table of a single [`State`] of an [`Automaton`].
 ///
@@ -109,8 +45,18 @@ pub struct Automaton<'q> {
 /// triggered when none of the label transitions match.
 #[derive(Debug)]
 pub struct TransitionTable<'q> {
-    transitions: SmallVec<[(&'q Label, State); 2]>,
+    transitions: SmallVec<[Transition<'q>; 2]>,
     fallback_state: State,
+}
+
+impl<'q> Default for TransitionTable<'q> {
+    #[inline]
+    fn default() -> Self {
+        Self {
+            transitions: Default::default(),
+            fallback_state: State(0),
+        }
+    }
 }
 
 impl<'q> PartialEq for TransitionTable<'q> {
@@ -144,7 +90,9 @@ impl<'q> Automaton<'q> {
     /// Convert a [`JsonPathQuery`] into a minimal deterministic automaton.
     ///
     /// # Errors
-    /// [`CompilerError::NotSupported`] raised if the query contains elements
+    /// - [`CompilerError::QueryTooComplex`] raised if the query is too complex
+    /// and the automaton size was exceeded.
+    /// - [`CompilerError::NotSupported`] raised if the query contains elements
     /// not yet supported by the compiler.
     #[inline]
     pub fn new(query: &'q JsonPathQuery) -> Result<Self, CompilerError> {
@@ -205,14 +153,13 @@ impl<'q> Automaton<'q> {
         State(1)
     }
 
-    /// Returns the accepting state of the automaton.
+    /// Returns the accepting states of the automaton.
     ///
-    /// Query execution should treat transitioning into this state
+    /// Query execution should treat transitioning into any of these states
     /// as a match.
-    #[must_use]
     #[inline(always)]
-    pub fn accepting_state(&self) -> State {
-        State((self.states.len() - 1) as u8)
+    pub fn accepting_states(&self) -> impl Iterator<Item = State> {
+        self.accepting.iter().map(State)
     }
 
     /// Returns whether the given state is accepting.
@@ -224,12 +171,12 @@ impl<'q> Automaton<'q> {
     /// let query = JsonPathQuery::parse("$.a").unwrap();
     /// let automaton = Automaton::new(&query).unwrap();
     ///
-    /// assert!(automaton.is_accepting(automaton.accepting_state()));
+    /// assert!(automaton.accepting_states().all(|state| automaton.is_accepting(state)));
     /// ```
     #[must_use]
     #[inline(always)]
     pub fn is_accepting(&self, state: State) -> bool {
-        state == self.accepting_state()
+        self.accepting.contains(state.0)
     }
 
     /// Returns whether the given state is rejecting, i.e.
@@ -272,7 +219,7 @@ impl<'q> TransitionTable<'q> {
     /// to the contained [`State`].
     #[must_use]
     #[inline(always)]
-    pub fn transitions(&self) -> &SmallVec<[(&'q Label, State); 2]> {
+    pub fn transitions(&self) -> &SmallVec<[Transition<'q>; 2]> {
         &self.transitions
     }
 }
@@ -281,114 +228,17 @@ impl<'q> Display for Automaton<'q> {
     #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "digraph {{")?;
-        for (i, state) in self.states.iter().enumerate() {
-            for transition in state.transitions.iter() {
-                writeln!(
-                    f,
-                    "  {i} -> {} [label=\"{}\"]",
-                    transition.1 .0,
-                    transition.0.display(),
-                )?;
+        for i in self.accepting.iter() {
+            writeln!(f, "node [shape = doublecircle]; {i}")?;
+        }
+        writeln!(f, "node [shape = circle];")?;
+        for (i, transitions) in self.states.iter().enumerate() {
+            for (label, state) in transitions.transitions.iter() {
+                writeln!(f, "  {i} -> {} [label=\"{}\"]", state.0, label.display(),)?
             }
-            writeln!(f, "  {i} -> {} [label=\"*\"]", state.fallback_state.0)?;
+            writeln!(f, "  {i} -> {} [label=\"*\"]", transitions.fallback_state.0)?;
         }
         write!(f, "}}")?;
         Ok(())
-    }
-}
-
-impl<'q> Display for NondeterministicAutomaton<'q> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut dir = 1;
-        let mut rec = 1;
-        for state in &self.ordered_states {
-            match state {
-                Direct(label) => {
-                    write!(f, "d{dir} --{}-> ", label.display())?;
-                    dir += 1;
-                }
-                Recursive(label) => {
-                    write!(f, "r{rec} --{}-> ", label.display())?;
-                    rec += 1;
-                }
-                Accepting => {
-                    write!(f, "acc")?;
-                }
-            }
-        }
-        Ok(())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use smallvec::smallvec;
-
-    #[test]
-    fn child_and_descendant_test() {
-        // Query = $.x..a.b.a.b.c..d
-        let label_a = Label::new("a");
-        let label_b = Label::new("b");
-        let label_c = Label::new("c");
-        let label_d = Label::new("d");
-        let label_x = Label::new("x");
-
-        let nfa = NondeterministicAutomaton {
-            ordered_states: vec![
-                NfaState::Direct(&label_x),
-                NfaState::Recursive(&label_a),
-                NfaState::Direct(&label_b),
-                NfaState::Direct(&label_a),
-                NfaState::Direct(&label_b),
-                NfaState::Direct(&label_c),
-                NfaState::Recursive(&label_d),
-                NfaState::Accepting,
-            ],
-        };
-
-        let result = Automaton::minimize(nfa).unwrap();
-        let expected = Automaton {
-            states: vec![
-                TransitionTable {
-                    transitions: smallvec![],
-                    fallback_state: State(0),
-                },
-                TransitionTable {
-                    transitions: smallvec![(&label_x, State(2))],
-                    fallback_state: State(0),
-                },
-                TransitionTable {
-                    transitions: smallvec![(&label_a, State(3))],
-                    fallback_state: State(2),
-                },
-                TransitionTable {
-                    transitions: smallvec![(&label_a, State(3)), (&label_b, State(4))],
-                    fallback_state: State(2),
-                },
-                TransitionTable {
-                    transitions: smallvec![(&label_a, State(5))],
-                    fallback_state: State(2),
-                },
-                TransitionTable {
-                    transitions: smallvec![(&label_a, State(3)), (&label_b, State(6))],
-                    fallback_state: State(2),
-                },
-                TransitionTable {
-                    transitions: smallvec![(&label_a, State(5)), (&label_c, State(7))],
-                    fallback_state: State(2),
-                },
-                TransitionTable {
-                    transitions: smallvec![(&label_d, State(8))],
-                    fallback_state: State(7),
-                },
-                TransitionTable {
-                    transitions: smallvec![(&label_d, State(8))],
-                    fallback_state: State(7),
-                },
-            ],
-        };
-
-        assert_eq!(result, expected);
     }
 }

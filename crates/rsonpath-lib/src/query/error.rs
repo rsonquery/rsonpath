@@ -140,7 +140,7 @@ pub enum CompilerError {
     /// Max automaton size was exceeded during compilation of the query.
     #[error("Max automaton size was exceeded. Query is too complex.")]
     QueryTooComplex(#[source] TryFromIntError),
-    /// Parsing error that occurred due to invalid input.
+    /// Compiler error that occurred due to a known limitation.
     #[error(transparent)]
     NotSupported(#[from] crate::error::UnsupportedFeatureError),
 }

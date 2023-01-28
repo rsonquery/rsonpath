@@ -1,12 +1,10 @@
+use super::nfa::{self, NfaState, NfaStateId};
 use super::small_set::{SmallSet, SmallSet256};
 use super::Label;
-use super::{
-    Automaton, NfaState::*, NfaStateId, NondeterministicAutomaton, State as DfaStateId,
-    TransitionTable,
-};
+use super::{Automaton, NondeterministicAutomaton, State as DfaStateId, TransitionTable};
 use crate::debug;
 use crate::query::error::CompilerError;
-use smallvec::smallvec;
+use smallvec::{smallvec, SmallVec};
 use vector_map::VecMap;
 
 /// Turn the [`NondeterministicAutomaton`] to an equivalent minimal deterministic [`Automaton`].
@@ -15,8 +13,9 @@ pub(crate) fn minimize(nfa: NondeterministicAutomaton) -> Result<Automaton, Comp
         nfa,
         superstates: VecMap::new(),
         checkpoints: VecMap::new(),
-        active_superstates: vec![],
+        active_superstates: smallvec![],
         dfa_states: vec![],
+        accepting: SmallSet256::default(),
     };
 
     minimizer.run()
@@ -30,9 +29,17 @@ pub(crate) struct Minimizer<'q> {
     /// Map from superstates to the furthest reachable checkpoint on a path leading to that superstate.
     checkpoints: VecMap<SmallSet256, NfaStateId>,
     /// Superstates that have not been processed and expanded yet.
-    active_superstates: Vec<SmallSet256>,
+    active_superstates: SmallVec<[SmallSet256; 2]>,
     /// All superstates created thus far, in order matching the `superstates` map.
     dfa_states: Vec<TransitionTable<'q>>,
+    /// Set of activated DFA states that are accepting.
+    accepting: SmallSet256,
+}
+
+#[derive(Debug)]
+struct SuperstateTransitionTable<'q> {
+    labelled: VecMap<&'q Label, SmallSet256>,
+    wildcard: SmallSet256,
 }
 
 /**
@@ -68,6 +75,8 @@ impl<'q> Minimizer<'q> {
             transitions: smallvec![],
             fallback_state: Self::rejecting_state(),
         });
+        self.superstates
+            .insert(SmallSet256::default(), Self::rejecting_state());
 
         // Initial superstate is {0}.
         let initial_superstate = [0].into();
@@ -79,6 +88,7 @@ impl<'q> Minimizer<'q> {
 
         Ok(Automaton {
             states: self.dfa_states,
+            accepting: self.accepting,
         })
     }
 
@@ -90,13 +100,20 @@ impl<'q> Minimizer<'q> {
     /// discovered for the first time. If so, we need to initialize and activate it.
     fn activate_if_new(&mut self, superstate: SmallSet256) -> Result<(), CompilerError> {
         if !self.superstates.contains_key(&superstate) {
-            let identifier = (self.superstates.len() + 1)
+            let identifier = self
+                .superstates
+                .len()
                 .try_into()
                 .map(DfaStateId)
                 .map_err(CompilerError::QueryTooComplex)?;
             self.superstates.insert(superstate, identifier);
             self.active_superstates.push(superstate);
+            self.dfa_states.push(TransitionTable::default());
             debug!("New superstate created: {superstate:?} {identifier}");
+            if superstate.contains(self.nfa.accepting_state().0) {
+                self.accepting.insert(identifier.0);
+                debug!("{identifier} is accepting");
+            }
         }
 
         Ok(())
@@ -110,7 +127,7 @@ impl<'q> Minimizer<'q> {
             "Expanding superstate: {current_superstate:?}, last checkpoint is {current_checkpoint:?}"
         );
 
-        let mut transitions = self.process_nfa_transitions(current_superstate);
+        let mut transitions = self.process_nfa_transitions(current_superstate, current_checkpoint);
         debug!("Raw transitions: {:?}", transitions);
 
         self.normalize_superstate_transitions(&mut transitions, current_checkpoint)?;
@@ -118,6 +135,7 @@ impl<'q> Minimizer<'q> {
 
         // Translate the transitions to the data model expected by TransitionTable.
         let translated_transitions = transitions
+            .labelled
             .into_iter()
             .map(|(label, state)| (label, self.superstates[&state]))
             .collect();
@@ -125,14 +143,9 @@ impl<'q> Minimizer<'q> {
 
         // If a checkpoint was reached, its singleton superstate is this DFA state's fallback state.
         // Otherwise, we set the fallback to the rejecting state.
-        self.dfa_states.push(TransitionTable {
-            transitions: translated_transitions,
-            fallback_state: current_checkpoint
-                .map(|x| [x.0].into())
-                .map_or(Self::rejecting_state(), |x: SmallSet256| {
-                    self.superstates[&x]
-                }),
-        });
+        let mut table = &mut self.dfa_states[self.superstates[&current_superstate].0 as usize];
+        table.transitions = translated_transitions;
+        table.fallback_state = self.superstates[&transitions.wildcard];
 
         Ok(())
     }
@@ -153,7 +166,7 @@ impl<'q> Minimizer<'q> {
     /// return the Recursive NFA state it represents. Otherwise, return `None`.
     fn as_checkpoint(&self, superstate: SmallSet256) -> Option<NfaStateId> {
         if let Some(single_state) = superstate.singleton().map(NfaStateId) {
-            if matches!(self.nfa[single_state], Recursive(_)) {
+            if matches!(self.nfa[single_state], NfaState::Recursive(_)) {
                 return Some(single_state);
             }
         }
@@ -166,28 +179,53 @@ impl<'q> Minimizer<'q> {
     fn process_nfa_transitions(
         &self,
         current_superstate: SmallSet256,
-    ) -> VecMap<&'q Label, SmallSet256> {
-        let mut transitions: VecMap<&Label, SmallSet256> = VecMap::new();
+        current_checkpoint: Option<NfaStateId>,
+    ) -> SuperstateTransitionTable<'q> {
+        let mut wildcard_targets: SmallSet256 = current_superstate
+            .iter()
+            .map(NfaStateId)
+            .filter_map(|id| match self.nfa[id] {
+                NfaState::Recursive(nfa::Transition::Wildcard)
+                | NfaState::Direct(nfa::Transition::Wildcard) => Some(id.next().0),
+                _ => None,
+            })
+            .collect();
+        if let Some(checkpoint) = current_checkpoint {
+            wildcard_targets.insert(checkpoint.0);
+        }
+
+        debug!("Wildcard target: {wildcard_targets:?}");
+
+        let mut transitions = SuperstateTransitionTable {
+            labelled: VecMap::new(),
+            wildcard: wildcard_targets,
+        };
 
         for nfa_state in current_superstate.iter().map(NfaStateId) {
             match self.nfa[nfa_state] {
                 // Direct states simply have a single transition to the next state in the NFA.
                 // Recursive transitions also have a self-loop, but that is handled by the
                 // checkpoints mechanism - here we only handle the forward transition.
-                Direct(label) | Recursive(label) => {
+                NfaState::Direct(nfa::Transition::Labelled(label))
+                | NfaState::Recursive(nfa::Transition::Labelled(label)) => {
                     debug!(
-                        "Considering transition {nfa_state} --{label:?}-> {}",
-                        nfa_state.next()
+                        "Considering transition {nfa_state} --{}-> {}",
+                        label.display(),
+                        nfa_state.next(),
                     );
                     // Add the target NFA state to the target superstate, or create a singleton
                     // set if this is the first transition via this label encountered in the loop.
-                    if let Some(target) = transitions.get_mut(&label) {
+                    if let Some(target) = transitions.labelled.get_mut(&label) {
                         target.insert(nfa_state.next().0);
                     } else {
-                        transitions.insert(label, [nfa_state.next().0].into());
+                        let mut new_set = transitions.wildcard;
+                        new_set.insert(nfa_state.next().0);
+                        transitions.labelled.insert(label, new_set);
                     }
                 }
-                Accepting => (),
+                NfaState::Direct(nfa::Transition::Wildcard)
+                | NfaState::Recursive(nfa::Transition::Wildcard)
+                | NfaState::Accepting => (),
             }
         }
 
@@ -198,20 +236,31 @@ impl<'q> Minimizer<'q> {
     /// and activate them if needed.
     fn normalize_superstate_transitions(
         &mut self,
-        transitions: &mut VecMap<&Label, SmallSet256>,
+        transitions: &mut SuperstateTransitionTable,
         current_checkpoint: Option<NfaStateId>,
     ) -> Result<(), CompilerError> {
-        for (_, state) in transitions.iter_mut() {
+        fn normalize_one(
+            this: &mut Minimizer,
+            state: &mut SmallSet256,
+            current_checkpoint: Option<NfaStateId>,
+        ) -> Result<(), CompilerError> {
             if let Some(checkpoint) = current_checkpoint {
                 state.insert(checkpoint.0);
             }
 
-            self.normalize(state);
-            self.activate_if_new(*state)?;
+            this.normalize(state);
+            this.activate_if_new(*state)?;
 
             if let Some(checkpoint) = current_checkpoint {
-                self.checkpoints.insert(*state, checkpoint);
+                this.checkpoints.insert(*state, checkpoint);
             }
+
+            Ok(())
+        }
+
+        normalize_one(self, &mut transitions.wildcard, current_checkpoint)?;
+        for (_, state) in transitions.labelled.iter_mut() {
+            normalize_one(self, state, current_checkpoint)?;
         }
 
         Ok(())
@@ -224,11 +273,358 @@ impl<'q> Minimizer<'q> {
         let furthest_checkpoint = superstate
             .iter()
             .map(NfaStateId)
-            .filter(|&x| matches!(self.nfa[x], Recursive(_)))
+            .filter(|&x| matches!(self.nfa[x], NfaState::Recursive(_)))
             .max();
 
         if let Some(cutoff) = furthest_checkpoint {
             superstate.remove_all_before(cutoff.0);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::super::*;
+    use super::*;
+    use nfa::NfaState;
+    use pretty_assertions::assert_eq;
+    use smallvec::smallvec;
+
+    #[test]
+    fn empty_query_test() {
+        // Query = $.
+        let nfa = NondeterministicAutomaton {
+            ordered_states: vec![NfaState::Accepting],
+        };
+
+        let result = minimize(nfa).unwrap();
+        let expected = Automaton {
+            states: vec![
+                TransitionTable {
+                    transitions: smallvec![],
+                    fallback_state: State(0),
+                },
+                TransitionTable {
+                    transitions: smallvec![],
+                    fallback_state: State(0),
+                },
+            ],
+            accepting: [1].into(),
+        };
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn simple_wildcard_test() {
+        // Query = $.*
+        let nfa = NondeterministicAutomaton {
+            ordered_states: vec![
+                NfaState::Direct(nfa::Transition::Wildcard),
+                NfaState::Accepting,
+            ],
+        };
+
+        let result = minimize(nfa).unwrap();
+        let expected = Automaton {
+            states: vec![
+                TransitionTable {
+                    transitions: smallvec![],
+                    fallback_state: State(0),
+                },
+                TransitionTable {
+                    transitions: smallvec![],
+                    fallback_state: State(2),
+                },
+                TransitionTable {
+                    transitions: smallvec![],
+                    fallback_state: State(0),
+                },
+            ],
+            accepting: [2].into(),
+        };
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn simple_multi_accepting_test() {
+        // Query = $..a.*
+        let label = Label::new("a");
+        let nfa = NondeterministicAutomaton {
+            ordered_states: vec![
+                NfaState::Recursive(nfa::Transition::Labelled(&label)),
+                NfaState::Direct(nfa::Transition::Wildcard),
+                NfaState::Accepting,
+            ],
+        };
+
+        let result = minimize(nfa).unwrap();
+        let expected = Automaton {
+            states: vec![
+                TransitionTable {
+                    transitions: smallvec![],
+                    fallback_state: State(0),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label, State(2)),],
+                    fallback_state: State(1),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label, State(4))],
+                    fallback_state: State(3),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label, State(2))],
+                    fallback_state: State(1),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label, State(4))],
+                    fallback_state: State(3),
+                },
+            ],
+            accepting: [3, 4].into(),
+        };
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn chained_wildcard_children_test() {
+        // Query = $.a.*.*.*
+        let label = Label::new("a");
+        let nfa = NondeterministicAutomaton {
+            ordered_states: vec![
+                NfaState::Direct(nfa::Transition::Labelled(&label)),
+                NfaState::Direct(nfa::Transition::Wildcard),
+                NfaState::Direct(nfa::Transition::Wildcard),
+                NfaState::Direct(nfa::Transition::Wildcard),
+                NfaState::Accepting,
+            ],
+        };
+
+        let result = minimize(nfa).unwrap();
+        let expected = Automaton {
+            states: vec![
+                TransitionTable {
+                    transitions: smallvec![],
+                    fallback_state: State(0),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label, State(2))],
+                    fallback_state: State(0),
+                },
+                TransitionTable {
+                    transitions: smallvec![],
+                    fallback_state: State(3),
+                },
+                TransitionTable {
+                    transitions: smallvec![],
+                    fallback_state: State(4),
+                },
+                TransitionTable {
+                    transitions: smallvec![],
+                    fallback_state: State(5),
+                },
+                TransitionTable {
+                    transitions: smallvec![],
+                    fallback_state: State(0),
+                },
+            ],
+            accepting: [5].into(),
+        };
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn chained_wildcard_children_after_descendant_test() {
+        // Query = $..a.*.*
+        let label = Label::new("a");
+        let nfa = NondeterministicAutomaton {
+            ordered_states: vec![
+                NfaState::Recursive(nfa::Transition::Labelled(&label)),
+                NfaState::Direct(nfa::Transition::Wildcard),
+                NfaState::Direct(nfa::Transition::Wildcard),
+                NfaState::Accepting,
+            ],
+        };
+
+        let result = minimize(nfa).unwrap();
+        let expected = Automaton {
+            states: vec![
+                TransitionTable {
+                    transitions: smallvec![],
+                    fallback_state: State(0),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label, State(2))],
+                    fallback_state: State(1),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label, State(4))],
+                    fallback_state: State(3),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label, State(8))],
+                    fallback_state: State(7),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label, State(6))],
+                    fallback_state: State(5),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label, State(8))],
+                    fallback_state: State(7),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label, State(6))],
+                    fallback_state: State(5),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label, State(2))],
+                    fallback_state: State(1),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label, State(4))],
+                    fallback_state: State(3),
+                },
+            ],
+            accepting: [5, 6, 7, 8].into(),
+        };
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn child_and_descendant_test() {
+        // Query = $.x..a.b.a.b.c..d
+        let label_a = Label::new("a");
+        let label_b = Label::new("b");
+        let label_c = Label::new("c");
+        let label_d = Label::new("d");
+        let label_x = Label::new("x");
+
+        let nfa = NondeterministicAutomaton {
+            ordered_states: vec![
+                NfaState::Direct(nfa::Transition::Labelled(&label_x)),
+                NfaState::Recursive(nfa::Transition::Labelled(&label_a)),
+                NfaState::Direct(nfa::Transition::Labelled(&label_b)),
+                NfaState::Direct(nfa::Transition::Labelled(&label_a)),
+                NfaState::Direct(nfa::Transition::Labelled(&label_b)),
+                NfaState::Direct(nfa::Transition::Labelled(&label_c)),
+                NfaState::Recursive(nfa::Transition::Labelled(&label_d)),
+                NfaState::Accepting,
+            ],
+        };
+
+        let result = minimize(nfa).unwrap();
+        let expected = Automaton {
+            states: vec![
+                TransitionTable {
+                    transitions: smallvec![],
+                    fallback_state: State(0),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label_x, State(2))],
+                    fallback_state: State(0),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label_a, State(3))],
+                    fallback_state: State(2),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label_a, State(3)), (&label_b, State(4))],
+                    fallback_state: State(2),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label_a, State(5))],
+                    fallback_state: State(2),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label_a, State(3)), (&label_b, State(6))],
+                    fallback_state: State(2),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label_a, State(5)), (&label_c, State(7))],
+                    fallback_state: State(2),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label_d, State(8))],
+                    fallback_state: State(7),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label_d, State(8))],
+                    fallback_state: State(7),
+                },
+            ],
+            accepting: [8].into(),
+        };
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn child_descendant_and_child_wildcard_test() {
+        // Query = $.x.*..a.*.b
+        let label_a = Label::new("a");
+        let label_b = Label::new("b");
+        let label_x = Label::new("x");
+
+        let nfa = NondeterministicAutomaton {
+            ordered_states: vec![
+                NfaState::Direct(nfa::Transition::Labelled(&label_x)),
+                NfaState::Direct(nfa::Transition::Wildcard),
+                NfaState::Recursive(nfa::Transition::Labelled(&label_a)),
+                NfaState::Direct(nfa::Transition::Wildcard),
+                NfaState::Direct(nfa::Transition::Labelled(&label_b)),
+                NfaState::Accepting,
+            ],
+        };
+
+        let result = minimize(nfa).unwrap();
+        let expected = Automaton {
+            states: vec![
+                TransitionTable {
+                    transitions: smallvec![],
+                    fallback_state: State(0),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label_x, State(2))],
+                    fallback_state: State(0),
+                },
+                TransitionTable {
+                    transitions: smallvec![],
+                    fallback_state: State(3),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label_a, State(4))],
+                    fallback_state: State(3),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label_a, State(6))],
+                    fallback_state: State(5),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label_a, State(4)), (&label_b, State(8))],
+                    fallback_state: State(3),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label_a, State(6)), (&label_b, State(7))],
+                    fallback_state: State(5),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label_a, State(4)), (&label_b, State(8))],
+                    fallback_state: State(3),
+                },
+                TransitionTable {
+                    transitions: smallvec![(&label_a, State(4))],
+                    fallback_state: State(3),
+                },
+            ],
+            accepting: [7, 8].into(),
+        };
+
+        assert_eq!(result, expected);
     }
 }

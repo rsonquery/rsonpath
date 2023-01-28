@@ -134,8 +134,8 @@ verify-fmt:
 # === BENCHES ===
 
 # Run *all* benches (very long!).
-bench: (build-all "release")
-    cargo bench
+bench: (build-bench "release")
+    cargo bench --package rsonpath-benchmarks
 
 # === CLEAN ===
 
