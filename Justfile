@@ -82,6 +82,10 @@ alias doctest := test-doc
 test-unit:
     cargo rsontest --lib
 
+# Run the main engine end-to-end tests on default features.
+test-engine:
+    cargo test --test engine_correctness_test
+
 # Run all tests, including real dataset tests, on the feature powerset of the project.
 test-full:
     -cargo install cargo-hack

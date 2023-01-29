@@ -44,12 +44,17 @@ impl Engine for RecursiveEngine<'_> {
         let aligned_bytes: &AlignedSlice<alignment::Page> = input;
         let quote_classifier = classify_quoted_sequences(aligned_bytes.relax_alignment());
         let mut classifier = classify_structural_characters(quote_classifier);
-        classifier.next();
-        let mut result = R::default();
-        let mut execution_ctx =
-            ExecutionContext::new(classifier, &self.automaton, input, &mut result);
-        execution_ctx.run(self.automaton.initial_state())?;
-        Ok(result)
+
+        match classifier.next() {
+            Some(Structural::Opening(idx)) => {
+                let mut result = R::default();
+                let mut execution_ctx =
+                    ExecutionContext::new(classifier, &self.automaton, input, &mut result);
+                execution_ctx.run(self.automaton.initial_state(), idx)?;
+                Ok(result)
+            }
+            _ => Ok(R::default()),
+        }
     }
 }
 
@@ -137,9 +142,30 @@ where
         }
     }
 
-    pub(crate) fn run(&mut self, state: State) -> Result<(), EngineError> {
+    pub(crate) fn run(&mut self, state: State, open_idx: usize) -> Result<(), EngineError> {
         debug!("Run state {state}, depth {}", self.depth);
         let mut next_event = None;
+        let fallback_state = self.automaton[state].fallback_state();
+        let is_list = self.bytes[open_idx] == b'[';
+
+        #[cfg(feature = "commas")]
+        if is_list && self.automaton.is_accepting(fallback_state) {
+            next_event = self.classifier.next();
+            if let Some(Structural::Closing(close_idx)) = next_event {
+                for idx in (open_idx + 1)..close_idx {
+                    if !self.bytes[idx].is_ascii_whitespace() {
+                        debug!("Accepting only item in the list.");
+                        self.result.report(idx);
+                        break;
+                    }
+                }
+                return Ok(());
+            }
+
+            debug!("Accepting first item in the list.");
+            self.result.report(open_idx + 1);
+        }
+
         loop {
             if next_event.is_none() {
                 next_event = self.classifier.next();
@@ -149,12 +175,11 @@ where
                 Some(Structural::Opening(idx)) => {
                     debug!("Opening, falling back");
                     increase_depth!(self);
-                    let next_state = self.automaton[state].fallback_state();
 
-                    if self.automaton.is_rejecting(next_state) {
+                    if self.automaton.is_rejecting(fallback_state) {
                         self.classifier.skip(self.bytes[idx]);
                     } else {
-                        self.run(next_state)?;
+                        self.run(fallback_state, idx)?;
                     }
                     next_event = None;
                 }
@@ -163,19 +188,32 @@ where
                     decrease_depth!(self);
                     break;
                 }
+                #[cfg(feature = "commas")]
+                Some(Structural::Comma(idx)) => {
+                    if is_list && self.automaton.is_accepting(fallback_state) {
+                        debug!("Accepting on comma.");
+                        self.result.report(idx);
+                    }
+                    next_event = None;
+                },
                 Some(Structural::Colon(idx)) => {
                     next_event = self.classifier.next();
-                    let is_next_opening = matches!(next_event, Some(Structural::Opening(_)));
+                    let next_opening = match next_event {
+                        Some(Structural::Opening(idx)) => Some(idx),
+                        _ => None,
+                    };
+                    let mut any_matched = false;
                     for &(label, target) in self.automaton[state].transitions() {
-                        if is_next_opening {
+                        if let Some(next_idx) = next_opening {
                             if self.is_match(idx, label)? {
                                 debug!("Matched transition to {target}");
                                 if self.automaton.is_accepting(target) {
                                     self.result.report(idx);
                                 }
                                 increase_depth!(self);
-                                self.run(target)?;
+                                self.run(target, next_idx)?;
                                 next_event = None;
+                                any_matched = true;
                                 break;
                             }
                         } else if self.automaton.is_accepting(target)
@@ -183,12 +221,16 @@ where
                         {
                             debug!("Matched transition to acceptance in {target}");
                             self.result.report(idx);
+                            any_matched = true;
                             break;
                         }
                     }
+
+                    if !any_matched && self.automaton.is_accepting(fallback_state) {
+                        debug!("Value accepted by fallback.");
+                        self.result.report(idx);
+                    }
                 }
-                #[cfg(feature = "commas")]
-                Some(Structural::Comma(_)) => next_event = None,
                 None => break,
             }
         }

@@ -22,8 +22,10 @@
                 }
             },
             "args": [
-                "$.a4.b.c.d",
-                "./data/basic_compressed/fake3.json",
+                "$[*].entities.urls[*].url",
+                "./crates/rsonpath-lib/tests/data/twitter/twitter_entities.json",
+                "-e",
+                "recursive",
                 "-v"
             ],
             "cwd": "${workspaceFolder}"
@@ -31,7 +33,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in library 'rsonpath'",
+            "name": "Debug unit tests in library 'rsonpath-lib'",
             "env": {
                 "RUSTFLAGS": "-C target-feature=+avx2"
             },
@@ -40,7 +42,7 @@
                     "test",
                     "--no-run",
                     "--lib",
-                    "--package=rsonpath",
+                    "--package=rsonpath-lib",
                 ]
             },
             "args": [],
@@ -67,7 +69,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug integration tests in 'count_correctness_test'",
+            "name": "Debug integration tests in 'engine_correctness_test'",
             "env": {
                 "RUSTFLAGS": "-C target-feature=+avx2"
             },
@@ -75,16 +77,17 @@
                 "args": [
                     "test",
                     "--no-run",
-                    "--package=rsonpath",
-                    "--test=count_correctness_test"
+                    "--package=rsonpath-lib",
+                    "--test=engine_correctness_test",
+                    "wildcard_list_json_a"
                 ],
                 "filter": {
-                    "name": "count_correctness_test",
+                    "name": "engine_correctness_test",
                     "kind": "test"
                 }
             },
             "args": [],
-            "cwd": "${workspaceFolder}/rsonpath"
+            "cwd": "${workspaceFolder}/crates/rsonpath-lib"
         },
         {
             "type": "lldb",

@@ -55,7 +55,7 @@ impl<'a, I: QuoteClassifiedIterator<'a> + 'a> DepthIterator<'a, I> for VectorIte
 
     fn stop(self, block: Option<Self::Block>) -> ResumeClassifierState<'a, I> {
         let block_state = block.and_then(|b| {
-            let idx = b.idx + 1;
+            let idx = b.idx;
             debug!("Depth iterator stopping at index {idx}");
             if idx >= b.quote_classified.len() {
                 None

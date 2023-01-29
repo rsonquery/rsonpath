@@ -1,6 +1,6 @@
 [package]
 name = "rsonpath-lib"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["Mateusz Gienieczko <mat@gienieczko.com>"]
 edition = "2021"
 description = "Blazing fast JSONPath query engine powered by SIMD. Core library of `rsonpath`."
@@ -38,6 +38,6 @@ test-case = "2.2.2"
 eyre = "0.6.8"
 
 [features]
-default = ["simd"]
+default = ["simd", "commas"]
 simd = []
 commas = []
