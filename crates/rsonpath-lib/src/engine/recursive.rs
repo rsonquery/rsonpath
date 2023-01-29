@@ -195,7 +195,7 @@ where
                         self.result.report(idx);
                     }
                     next_event = None;
-                },
+                }
                 Some(Structural::Colon(idx)) => {
                     next_event = self.classifier.next();
                     let next_opening = match next_event {
