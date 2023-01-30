@@ -25,20 +25,15 @@ fn json() {
         Structural::Opening(0),
         Structural::Colon(4),
         Structural::Opening(6),
-        #[cfg(feature = "commas")]
         Structural::Comma(8),
-        #[cfg(feature = "commas")]
         Structural::Comma(11),
         Structural::Closing(14),
-        #[cfg(feature = "commas")]
         Structural::Comma(15),
         Structural::Colon(20),
-        #[cfg(feature = "commas")]
         Structural::Comma(30),
         Structural::Colon(35),
         Structural::Opening(37),
         Structural::Colon(41),
-        #[cfg(feature = "commas")]
         Structural::Comma(45),
         Structural::Colon(50),
         Structural::Closing(54),
@@ -56,7 +51,6 @@ fn json_with_escapes() {
     let expected: &[Structural] = &[
         Structural::Opening(0),
         Structural::Colon(4),
-        #[cfg(feature = "commas")]
         Structural::Comma(21),
         Structural::Colon(26),
         Structural::Closing(51),
@@ -78,7 +72,6 @@ fn reverse_exclamation_point() {
 }
 
 #[test]
-#[cfg(feature = "commas")]
 fn block_boundary() {
     use Structural::*;
 
@@ -131,12 +124,10 @@ fn block_boundary() {
 
 mod prop_test {
     use super::{classify_string, Structural};
-    use cfg_if::cfg_if;
     use proptest::{self, collection, prelude::*};
 
     #[derive(Debug, Clone)]
     enum Token {
-        #[cfg(feature = "commas")]
         Comma,
         Colon,
         OpeningBrace,
@@ -147,29 +138,15 @@ mod prop_test {
     }
 
     fn token_strategy() -> impl Strategy<Value = Token> {
-        cfg_if! {
-            if #[cfg(feature = "commas")] {
-                prop_oneof![
-                    Just(Token::Comma),
-                    Just(Token::Colon),
-                    Just(Token::OpeningBrace),
-                    Just(Token::OpeningBracket),
-                    Just(Token::ClosingBrace),
-                    Just(Token::ClosingBracket),
-                    r#"[^"\\,:{\[\}\]]+"#.prop_map(Token::Garbage)
-                ]
-            }
-            else {
-                prop_oneof![
-                    Just(Token::Colon),
-                    Just(Token::OpeningBrace),
-                    Just(Token::OpeningBracket),
-                    Just(Token::ClosingBrace),
-                    Just(Token::ClosingBracket),
-                    r#"[^"\\,:{\[\}\]]+"#.prop_map(Token::Garbage)
-                ]
-            }
-        }
+        prop_oneof![
+            Just(Token::Comma),
+            Just(Token::Colon),
+            Just(Token::OpeningBrace),
+            Just(Token::OpeningBracket),
+            Just(Token::ClosingBrace),
+            Just(Token::ClosingBracket),
+            r#"[^"\\,:{\[\}\]]+"#.prop_map(Token::Garbage)
+        ]
     }
 
     fn tokens_strategy() -> impl Strategy<Value = Vec<Token>> {
@@ -180,7 +157,6 @@ mod prop_test {
         tokens
             .iter()
             .map(|x| match x {
-                #[cfg(feature = "commas")]
                 Token::Comma => ",",
                 Token::Colon => ":",
                 Token::OpeningBrace => "{",
@@ -197,7 +173,6 @@ mod prop_test {
             .iter()
             .scan(0usize, |idx, x| {
                 let expected = match x {
-                    #[cfg(feature = "commas")]
                     Token::Comma => Some(Structural::Comma(*idx)),
                     Token::Colon => Some(Structural::Colon(*idx)),
                     Token::OpeningBrace | Token::OpeningBracket => Some(Structural::Opening(*idx)),

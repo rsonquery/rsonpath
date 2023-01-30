@@ -26,6 +26,6 @@ rsonpath-lib = { version = "0.2.1", default-features = false }
 simple_logger = "4.0.0"
 
 [features]
-default = ["simd"]
+default = ["simd", "head-skip"]
 simd = ["rsonpath-lib/simd"]
-commas = ["rsonpath-lib/commas"]
+head-skip = ["rsonpath-lib/head-skip"]

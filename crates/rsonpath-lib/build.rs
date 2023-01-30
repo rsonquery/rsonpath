@@ -1,9 +1,6 @@
 fn main() -> eyre::Result<()> {
     println!("cargo:rerun-if-changed=build.rs");
 
-    #[cfg(feature = "commas")]
-    println!("cargo:warning=COMMAS!");
-
     #[cfg(feature = "simd")]
     {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]

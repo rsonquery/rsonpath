@@ -38,6 +38,6 @@ test-case = "2.2.2"
 eyre = "0.6.8"
 
 [features]
-default = ["simd", "commas"]
+default = ["simd", "head-skip"]
 simd = []
-commas = []
+head-skip = []

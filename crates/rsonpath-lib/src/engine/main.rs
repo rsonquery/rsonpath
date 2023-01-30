@@ -146,72 +146,85 @@ fn query_executor<'q, 'b, 'r, R: QueryResult>(
 
 impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
     fn run(mut self) -> Result<(), EngineError> {
-        use memchr::memmem;
+        #[cfg(feature = "head-skip")]
+        {
+            use memchr::memmem;
 
-        let mut quote_classifier = ResumeClassifierState {
-            iter: classify_quoted_sequences(self.bytes.relax_alignment()),
-            block: None,
-        };
-        let initial_state = self.automaton.initial_state();
+            let mut quote_classifier = ResumeClassifierState {
+                iter: classify_quoted_sequences(self.bytes.relax_alignment()),
+                block: None,
+            };
+            let initial_state = self.automaton.initial_state();
 
-        if self.automaton[initial_state].fallback_state() == initial_state {
-            if let Some(&(label, target_state)) =
-                self.automaton[initial_state].transitions().first()
-            {
-                debug!("Automaton starts with a descendant search, using memmem heuristic.");
-                let needle = label.bytes_with_quotes();
-                let bytes: &[u8] = self.bytes;
-                let mut idx = 0;
-                let finder = memmem::Finder::new(needle);
+            if self.automaton[initial_state].fallback_state() == initial_state {
+                if let Some(&(label, target_state)) =
+                    self.automaton[initial_state].transitions().first()
+                {
+                    debug!("Automaton starts with a descendant search, using memmem heuristic.");
+                    let needle = label.bytes_with_quotes();
+                    let bytes: &[u8] = self.bytes;
+                    let mut idx = 0;
+                    let finder = memmem::Finder::new(needle);
 
-                while let Some(starting_quote_idx) = finder.find(&bytes[idx..]) {
-                    idx += starting_quote_idx;
-                    debug!("Needle found at {idx}");
+                    while let Some(starting_quote_idx) = finder.find(&bytes[idx..]) {
+                        idx += starting_quote_idx;
+                        debug!("Needle found at {idx}");
 
-                    if idx != 0 && bytes[idx - 1] != b'\\' {
-                        let mut colon_idx = idx + needle.len();
+                        if idx != 0 && bytes[idx - 1] != b'\\' {
+                            let mut colon_idx = idx + needle.len();
 
-                        while colon_idx < bytes.len() && bytes[colon_idx].is_ascii_whitespace() {
-                            colon_idx += 1;
-                        }
+                            while colon_idx < bytes.len() && bytes[colon_idx].is_ascii_whitespace()
+                            {
+                                colon_idx += 1;
+                            }
 
-                        if colon_idx < bytes.len() && bytes[colon_idx] == b':' {
-                            debug!("Actual match with colon at {colon_idx}");
-                            let distance = colon_idx - quote_classifier.get_idx();
-                            debug!("Distance skipped: {distance}");
-                            quote_classifier.offset_bytes(distance as isize);
+                            if colon_idx < bytes.len() && bytes[colon_idx] == b':' {
+                                debug!("Actual match with colon at {colon_idx}");
+                                let distance = colon_idx - quote_classifier.get_idx();
+                                debug!("Distance skipped: {distance}");
+                                quote_classifier.offset_bytes(distance as isize);
 
-                            // Check if the colon is marked as within quotes.
-                            // If yes, that is an error of state propagation through skipped blocks.
-                            // Flip the quote mask.
-                            if let Some(block) = quote_classifier.block.as_mut() {
-                                if (block.block.within_quotes_mask & (1_u64 << block.idx)) != 0 {
-                                    debug!("Mask needs flipping!");
-                                    block.block.within_quotes_mask =
-                                        !block.block.within_quotes_mask;
-                                    quote_classifier.iter.flip_quotes_bit();
+                                // Check if the colon is marked as within quotes.
+                                // If yes, that is an error of state propagation through skipped blocks.
+                                // Flip the quote mask.
+                                if let Some(block) = quote_classifier.block.as_mut() {
+                                    if (block.block.within_quotes_mask & (1_u64 << block.idx)) != 0
+                                    {
+                                        debug!("Mask needs flipping!");
+                                        block.block.within_quotes_mask =
+                                            !block.block.within_quotes_mask;
+                                        quote_classifier.iter.flip_quotes_bit();
+                                    }
                                 }
+
+                                quote_classifier.offset_bytes(1);
+
+                                self.state = target_state;
+
+                                if self.automaton.is_accepting(self.state) {
+                                    self.result.report(colon_idx);
+                                }
+                                quote_classifier = self.run_on_subtree(quote_classifier)?;
+                                debug!("Quote classified up to {}", quote_classifier.get_idx());
+                                idx = quote_classifier.get_idx();
+                            } else {
+                                idx += 1;
                             }
-
-                            quote_classifier.offset_bytes(1);
-
-                            self.state = target_state;
-
-                            if self.automaton.is_accepting(self.state) {
-                                self.result.report(colon_idx);
-                            }
-                            quote_classifier = self.run_on_subtree(quote_classifier)?;
-                            debug!("Quote classified up to {}", quote_classifier.get_idx());
-                            idx = quote_classifier.get_idx();
                         } else {
                             idx += 1;
                         }
-                    } else {
-                        idx += 1;
                     }
                 }
+            } else {
+                self.run_on_subtree(quote_classifier)?;
             }
-        } else {
+        }
+        #[cfg(not(feature = "head-skip"))]
+        {
+            let quote_classifier = ResumeClassifierState {
+                iter: classify_quoted_sequences(self.bytes.relax_alignment()),
+                block: None,
+            };
             self.run_on_subtree(quote_classifier)?;
         }
 
@@ -248,7 +261,6 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
 
             self.next_event = None;
             match event {
-                #[cfg(feature = "commas")]
                 Structural::Comma(_) => (),
                 Structural::Closing(idx) => {
                     debug!("Closing, decreasing depth and popping stack.");

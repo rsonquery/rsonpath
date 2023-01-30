@@ -63,7 +63,7 @@
     "lldb.consoleMode": "commands",
     "rust-analyzer.cargo.features": [
         "simd",
-        "commas"
+        "head-skip"
     ],
     "rust-analyzer.cargo.noDefaultFeatures": true,
     "rust-analyzer.cargo.allFeatures": false,

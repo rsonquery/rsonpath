@@ -133,7 +133,8 @@ verify-doc: (build-bin "release")
 
 # Verify formatting rules are not violated.
 verify-fmt:
-	cargo fmt -- --check
+    cargo fmt
+    cargo fmt -- --check
 
 # === BENCHES ===
 

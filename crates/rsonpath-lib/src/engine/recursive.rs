@@ -148,7 +148,6 @@ where
         let fallback_state = self.automaton[state].fallback_state();
         let is_list = self.bytes[open_idx] == b'[';
 
-        #[cfg(feature = "commas")]
         if is_list && self.automaton.is_accepting(fallback_state) {
             next_event = self.classifier.next();
             if let Some(Structural::Closing(close_idx)) = next_event {
@@ -188,7 +187,6 @@ where
                     decrease_depth!(self);
                     break;
                 }
-                #[cfg(feature = "commas")]
                 Some(Structural::Comma(idx)) => {
                     if is_list && self.automaton.is_accepting(fallback_state) {
                         debug!("Accepting on comma.");
