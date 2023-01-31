@@ -618,24 +618,15 @@ mod tests {
                     fallback_state: (State(5), false),
                 },
                 TransitionTable {
-                    transitions: smallvec![
-                        (&label_a, State(4), false),
-                        (&label_b, State(8), true)
-                    ],
+                    transitions: smallvec![(&label_a, State(4), false), (&label_b, State(8), true)],
                     fallback_state: (State(3), false),
                 },
                 TransitionTable {
-                    transitions: smallvec![
-                        (&label_a, State(6), false),
-                        (&label_b, State(7), true)
-                    ],
+                    transitions: smallvec![(&label_a, State(6), false), (&label_b, State(7), true)],
                     fallback_state: (State(5), false),
                 },
                 TransitionTable {
-                    transitions: smallvec![
-                        (&label_a, State(4), false),
-                        (&label_b, State(8), true)
-                    ],
+                    transitions: smallvec![(&label_a, State(4), false), (&label_b, State(8), true)],
                     fallback_state: (State(3), false),
                 },
                 TransitionTable {
