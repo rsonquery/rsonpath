@@ -100,13 +100,11 @@ impl SmallStack {
 
     #[inline]
     fn peek(&mut self) -> Option<StackFrame> {
-        firestorm::profile_method!(peek);
         self.contents.last().copied()
     }
 
     #[inline]
     fn pop_if_at_or_below(&mut self, depth: u8) -> Option<StackFrame> {
-        firestorm::profile_method!(pop_if_at_or_below);
         if let Some(stack_frame) = self.peek() {
             if depth <= stack_frame.depth {
                 return self.contents.pop();
@@ -117,7 +115,6 @@ impl SmallStack {
 
     #[inline]
     fn push(&mut self, value: StackFrame) {
-        firestorm::profile_method!(push);
         self.contents.push(value)
     }
 }
@@ -152,7 +149,6 @@ fn query_executor<'q, 'b, 'r, R: QueryResult>(
 
 impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
     fn run(mut self) -> Result<(), EngineError> {
-        firestorm::profile_method!(run);
         #[cfg(feature = "head-skip")]
         {
             use memchr::memmem;
@@ -246,7 +242,6 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
         &mut self,
         quote_classifier: ResumeClassifierState<'b, I>,
     ) -> Result<ResumeClassifierState<'b, I>, EngineError> {
-        firestorm::profile_method!(run_on_subtree);
         let mut classifier =
             ClassifierWithSkipping::new(resume_structural_classification(quote_classifier));
         let mut fallback_active = false;
@@ -270,7 +265,6 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
             self.next_event = None;
             match event {
                 Structural::Comma(idx) => {
-                    firestorm::profile_section!(comma_arm);
                     let (_, is_accepting) = self.automaton[self.state].fallback_state();
                     if self.is_list && is_accepting {
                         debug!("Accepting on comma.");
@@ -278,7 +272,6 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                     }
                 }
                 Structural::Closing(idx) => {
-                    firestorm::profile_section!(closing_arm);
                     debug!("Closing, decreasing depth and popping stack.");
 
                     self.depth
@@ -295,7 +288,6 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                     }
                 }
                 Structural::Opening(idx) => {
-                    firestorm::profile_section!(opening_arm);
                     debug!(
                         "Opening {}, increasing depth and pushing stack.",
                         self.bytes[idx]
@@ -323,7 +315,6 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                             self.next_event = classifier.next();
                             if let Some(Structural::Closing(close_idx)) = self.next_event {
                                 for next_idx in (idx + 1)..close_idx {
-                                    firestorm::profile_section!(short_list_loop);
                                     if !self.bytes[next_idx].is_ascii_whitespace() {
                                         debug!("Accepting only item in the list.");
                                         self.result.report(next_idx);
@@ -341,7 +332,6 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                         .map_err(|err| EngineError::DepthAboveLimit(idx, err))?;
                 }
                 Structural::Colon(idx) => {
-                    firestorm::profile_section!(colon_arm);
                     debug!(
                         "Colon, label ending with {:?}",
                         std::str::from_utf8(&self.bytes[(if idx < 8 { 0 } else { idx - 8 })..idx])
@@ -353,7 +343,6 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                     let mut any_matched = false;
 
                     for &(label, target, is_accepting) in self.automaton[self.state].transitions() {
-                        firestorm::profile_section!(transitions_loop);
                         if is_next_opening {
                             if self.is_match(idx, label)? {
                                 fallback_active = false;
@@ -397,7 +386,6 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
     }
 
     fn is_match(&self, idx: usize, label: &Label) -> Result<bool, EngineError> {
-        firestorm::profile_method!(is_match);
         let len = label.len() + 2;
 
         let mut closing_quote_idx = idx - 1;

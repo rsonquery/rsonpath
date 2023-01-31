@@ -126,7 +126,6 @@ where
     }
 
     pub(crate) fn skip(&mut self, opening: u8) {
-        firestorm::profile_fn!(depth_skip);
         debug!("Skipping");
 
         replace_with_or_abort(&mut self.classifier, |classifier| {
@@ -138,14 +137,12 @@ where
             let mut current_depth = 1;
 
             'outer: while let Some(ref mut vector) = current_vector {
-                firestorm::profile_section!(outer_loop);
                 vector.add_depth(current_depth);
 
                 debug!("Fetched vector, current depth is {current_depth}");
                 debug!("Estimate: {}", vector.estimate_lowest_possible_depth());
 
                 if vector.estimate_lowest_possible_depth() <= 0 {
-                    firestorm::profile_section!(inner_loop);
                     while vector.advance_to_next_depth_decrease() {
                         if vector.get_depth() == 0 {
                             debug!("Encountered depth 0, breaking.");
