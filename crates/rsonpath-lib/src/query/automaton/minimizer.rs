@@ -378,16 +378,16 @@ mod tests {
                     fallback_state: (State(1), false),
                 },
                 TransitionTable {
-                    transitions: smallvec![(&label, State(4), false)],
-                    fallback_state: (State(3), false),
+                    transitions: smallvec![(&label, State(4), true)],
+                    fallback_state: (State(3), true),
                 },
                 TransitionTable {
                     transitions: smallvec![(&label, State(2), false)],
                     fallback_state: (State(1), false),
                 },
                 TransitionTable {
-                    transitions: smallvec![(&label, State(4), false)],
-                    fallback_state: (State(3), false),
+                    transitions: smallvec![(&label, State(4), true)],
+                    fallback_state: (State(3), true),
                 },
             ],
         };
@@ -430,7 +430,7 @@ mod tests {
                 },
                 TransitionTable {
                     transitions: smallvec![],
-                    fallback_state: (State(5), false),
+                    fallback_state: (State(5), true),
                 },
                 TransitionTable {
                     transitions: smallvec![],
@@ -471,20 +471,20 @@ mod tests {
                     fallback_state: (State(3), false),
                 },
                 TransitionTable {
-                    transitions: smallvec![(&label, State(8), false)],
-                    fallback_state: (State(7), false),
+                    transitions: smallvec![(&label, State(8), true)],
+                    fallback_state: (State(7), true),
                 },
                 TransitionTable {
-                    transitions: smallvec![(&label, State(6), false)],
-                    fallback_state: (State(5), false),
+                    transitions: smallvec![(&label, State(6), true)],
+                    fallback_state: (State(5), true),
                 },
                 TransitionTable {
-                    transitions: smallvec![(&label, State(8), false)],
-                    fallback_state: (State(7), false),
+                    transitions: smallvec![(&label, State(8), true)],
+                    fallback_state: (State(7), true),
                 },
                 TransitionTable {
-                    transitions: smallvec![(&label, State(6), false)],
-                    fallback_state: (State(5), false),
+                    transitions: smallvec![(&label, State(6), true)],
+                    fallback_state: (State(5), true),
                 },
                 TransitionTable {
                     transitions: smallvec![(&label, State(2), false)],
@@ -563,11 +563,11 @@ mod tests {
                     fallback_state: (State(2), false),
                 },
                 TransitionTable {
-                    transitions: smallvec![(&label_d, State(8), false)],
+                    transitions: smallvec![(&label_d, State(8), true)],
                     fallback_state: (State(7), false),
                 },
                 TransitionTable {
-                    transitions: smallvec![(&label_d, State(8), false)],
+                    transitions: smallvec![(&label_d, State(8), true)],
                     fallback_state: (State(7), false),
                 },
             ],
@@ -620,21 +620,21 @@ mod tests {
                 TransitionTable {
                     transitions: smallvec![
                         (&label_a, State(4), false),
-                        (&label_b, State(8), false)
+                        (&label_b, State(8), true)
                     ],
                     fallback_state: (State(3), false),
                 },
                 TransitionTable {
                     transitions: smallvec![
                         (&label_a, State(6), false),
-                        (&label_b, State(7), false)
+                        (&label_b, State(7), true)
                     ],
                     fallback_state: (State(5), false),
                 },
                 TransitionTable {
                     transitions: smallvec![
                         (&label_a, State(4), false),
-                        (&label_b, State(8), false)
+                        (&label_b, State(8), true)
                     ],
                     fallback_state: (State(3), false),
                 },

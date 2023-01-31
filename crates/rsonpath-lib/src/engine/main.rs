@@ -297,12 +297,15 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                     if fallback_active {
                         debug!("Falling back to {fallback}");
 
+                        #[cfg(feature = "tail-skip")]
                         if self.automaton.is_rejecting(fallback) {
                             classifier.skip(self.bytes[idx]);
                             continue;
                         } else {
                             self.transition_to(fallback);
                         }
+                        #[cfg(not(feature = "tail-skip"))]
+                        self.transition_to(fallback);
                     } else {
                         fallback_active = true;
                     }

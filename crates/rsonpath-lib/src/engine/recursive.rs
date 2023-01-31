@@ -175,11 +175,15 @@ where
                     debug!("Opening, falling back");
                     increase_depth!(self);
 
+                    #[cfg(feature = "tail-skip")]
                     if self.automaton.is_rejecting(fallback_state) {
                         self.classifier.skip(self.bytes[idx]);
                     } else {
                         self.run(fallback_state, idx)?;
                     }
+                    #[cfg(not(feature = "tail-skip"))]
+                    self.run(fallback_state, idx)?;
+
                     next_event = None;
                 }
                 Some(Structural::Closing(_)) => {

@@ -56,7 +56,8 @@
 		"lldb.consoleMode": "commands",
 		"rust-analyzer.cargo.features": [
 			"simd",
-			"head-skip"
+			"head-skip",
+			"tail-skip"
 		],
 		"rust-analyzer.cargo.noDefaultFeatures": true,
 		"rust-analyzer.cargo.allFeatures": false
