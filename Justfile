@@ -133,7 +133,6 @@ verify-doc: (build-bin "release")
 
 # Verify formatting rules are not violated.
 verify-fmt:
-    cargo fmt
     cargo fmt -- --check
 
 # === BENCHES ===
@@ -177,6 +176,7 @@ tmpdiff := `mktemp -t pre-commit-hook-diff-XXXXXXXX.$$`
 [private]
 hook-pre-commit: 
     just assert-benchmarks-committed
+    cargo fmt
     git diff --full-index --binary > {{tmpdiff}}
     git stash -q --keep-index
     (just verify-fmt && just verify-check); \

@@ -239,14 +239,18 @@ impl<'q> Display for Automaton<'q> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "digraph {{")?;
         for i in self.accepting_states() {
-            writeln!(f, "node [shape = doublecircle]; {i}")?;
+            writeln!(f, "node [shape = doublecircle]; {}", i.0)?;
         }
         writeln!(f, "node [shape = circle];")?;
         for (i, transitions) in self.states.iter().enumerate() {
             for (label, state, _) in transitions.transitions.iter() {
                 writeln!(f, "  {i} -> {} [label=\"{}\"]", state.0, label.display(),)?
             }
-            writeln!(f, "  {i} -> {} [label=\"*\"]", transitions.fallback_state.0)?;
+            writeln!(
+                f,
+                "  {i} -> {} [label=\"*\"]",
+                transitions.fallback_state.0 .0
+            )?;
         }
         write!(f, "}}")?;
         Ok(())
