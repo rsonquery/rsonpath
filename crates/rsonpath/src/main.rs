@@ -65,6 +65,21 @@ fn main() -> Result<()> {
 
     configure_logger(args.verbose)?;
 
+    #[cfg(feature = "profiling")]
+    {
+        if firestorm::enabled() {
+            firestorm::bench("./flames/", || {
+                run_with_args(&args)
+                    .map_err(|err| {
+                        err.with_note(|| format!("Query string: '{}'.", args.query.dimmed()))
+                    })
+                    .unwrap();
+            })
+            .unwrap();
+        }
+        Ok(())
+    }
+    #[cfg(not(feature = "profiling"))]
     run_with_args(&args)
         .map_err(|err| err.with_note(|| format!("Query string: '{}'.", args.query.dimmed())))
 }

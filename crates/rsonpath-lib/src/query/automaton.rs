@@ -33,11 +33,10 @@ impl From<u8> for State {
 #[derive(Debug, PartialEq, Eq)]
 pub struct Automaton<'q> {
     states: Vec<TransitionTable<'q>>,
-    accepting: SmallSet256,
 }
 
 /// A single transition of an [`Automaton`].
-type Transition<'q> = (&'q Label, State);
+type Transition<'q> = (&'q Label, State, bool);
 
 /// A transition table of a single [`State`] of an [`Automaton`].
 ///
@@ -46,7 +45,7 @@ type Transition<'q> = (&'q Label, State);
 #[derive(Debug)]
 pub struct TransitionTable<'q> {
     transitions: SmallVec<[Transition<'q>; 2]>,
-    fallback_state: State,
+    fallback_state: (State, bool),
 }
 
 impl<'q> Default for TransitionTable<'q> {
@@ -54,7 +53,7 @@ impl<'q> Default for TransitionTable<'q> {
     fn default() -> Self {
         Self {
             transitions: Default::default(),
-            fallback_state: State(0),
+            fallback_state: (State(0), false),
         }
     }
 }
@@ -159,7 +158,18 @@ impl<'q> Automaton<'q> {
     /// as a match.
     #[inline(always)]
     pub fn accepting_states(&self) -> impl Iterator<Item = State> {
-        self.accepting.iter().map(State)
+        let mut states = SmallSet256::default();
+        for tab in &self.states {
+            if tab.fallback_state.1 {
+                states.insert(tab.fallback_state.0 .0)
+            }
+            for st in &tab.transitions {
+                if st.2 {
+                    states.insert(st.1 .0)
+                }
+            }
+        }
+        states.into_iter().map(State)
     }
 
     /// Returns whether the given state is accepting.
@@ -176,7 +186,7 @@ impl<'q> Automaton<'q> {
     #[must_use]
     #[inline(always)]
     pub fn is_accepting(&self, state: State) -> bool {
-        self.accepting.contains(state.0)
+        self.accepting_states().any(|s| s == state)
     }
 
     /// Returns whether the given state is rejecting, i.e.
@@ -209,7 +219,7 @@ impl<'q> TransitionTable<'q> {
     /// if none of the transitions were triggered.
     #[must_use]
     #[inline(always)]
-    pub fn fallback_state(&self) -> State {
+    pub fn fallback_state(&self) -> (State, bool) {
         self.fallback_state
     }
 
@@ -228,12 +238,12 @@ impl<'q> Display for Automaton<'q> {
     #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "digraph {{")?;
-        for i in self.accepting.iter() {
+        for i in self.accepting_states() {
             writeln!(f, "node [shape = doublecircle]; {i}")?;
         }
         writeln!(f, "node [shape = circle];")?;
         for (i, transitions) in self.states.iter().enumerate() {
-            for (label, state) in transitions.transitions.iter() {
+            for (label, state, _) in transitions.transitions.iter() {
                 writeln!(f, "  {i} -> {} [label=\"{}\"]", state.0, label.display(),)?
             }
             writeln!(f, "  {i} -> {} [label=\"*\"]", transitions.fallback_state.0)?;

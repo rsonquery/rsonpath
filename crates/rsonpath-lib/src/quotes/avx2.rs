@@ -48,6 +48,7 @@ impl<'a> Iterator for Avx2QuoteClassifier<'a> {
 
     #[inline(always)]
     fn next(&mut self) -> Option<Self::Item> {
+        firestorm::profile_method!(next);
         match self.iter.next() {
             Some(block) => {
                 if let Some(offset) = self.offset {
@@ -170,6 +171,7 @@ impl BlockAvx2Classifier {
     #[target_feature(enable = "pclmulqdq")]
     #[inline]
     unsafe fn classify(&mut self, two_blocks: &AlignedBlock<Twice<BlockAlignment>>) -> u64 {
+        firestorm::profile_method!(classify);
         /* For a 64-bit architecture, we classify two adjacent 32-byte blocks and combine their masks
          * into a single 64-bit mask, which is significantly more performant.
          *
@@ -203,6 +205,7 @@ impl BlockAvx2Classifier {
             // If there are no slashes in the input steps I.2, I.3, I.4 can be skipped.
             (self.get_prev_slash_mask(), false)
         } else {
+            firestorm::profile_section!(slashes_section);
             /* Step I.2.
              *
              * A character is a start of the sequence if it is not preceded by a backslash.
@@ -353,6 +356,7 @@ impl BlockAvx2Classifier {
     #[target_feature(enable = "avx2")]
     #[inline]
     unsafe fn classify_block(&self, block: &[u8]) -> BlockClassification {
+        firestorm::profile_method!(classify);
         let byte_vector = _mm256_loadu_si256(block.as_ptr().cast::<__m256i>());
 
         let slash_cmp = _mm256_cmpeq_epi8(byte_vector, self.slash_mask);

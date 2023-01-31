@@ -145,10 +145,10 @@ where
     pub(crate) fn run(&mut self, state: State, open_idx: usize) -> Result<(), EngineError> {
         debug!("Run state {state}, depth {}", self.depth);
         let mut next_event = None;
-        let fallback_state = self.automaton[state].fallback_state();
+        let (fallback_state, is_fallback_accepting) = self.automaton[state].fallback_state();
         let is_list = self.bytes[open_idx] == b'[';
 
-        if is_list && self.automaton.is_accepting(fallback_state) {
+        if is_list && is_fallback_accepting {
             next_event = self.classifier.next();
             if let Some(Structural::Closing(close_idx)) = next_event {
                 for idx in (open_idx + 1)..close_idx {
@@ -188,7 +188,7 @@ where
                     break;
                 }
                 Some(Structural::Comma(idx)) => {
-                    if is_list && self.automaton.is_accepting(fallback_state) {
+                    if is_list && is_fallback_accepting {
                         debug!("Accepting on comma.");
                         self.result.report(idx);
                     }
@@ -201,11 +201,11 @@ where
                         _ => None,
                     };
                     let mut any_matched = false;
-                    for &(label, target) in self.automaton[state].transitions() {
+                    for &(label, target, is_accepting) in self.automaton[state].transitions() {
                         if let Some(next_idx) = next_opening {
                             if self.is_match(idx, label)? {
                                 debug!("Matched transition to {target}");
-                                if self.automaton.is_accepting(target) {
+                                if is_accepting {
                                     self.result.report(idx);
                                 }
                                 increase_depth!(self);
@@ -214,9 +214,7 @@ where
                                 any_matched = true;
                                 break;
                             }
-                        } else if self.automaton.is_accepting(target)
-                            && self.is_match(idx, label)?
-                        {
+                        } else if is_accepting && self.is_match(idx, label)? {
                             debug!("Matched transition to acceptance in {target}");
                             self.result.report(idx);
                             any_matched = true;
@@ -224,7 +222,7 @@ where
                         }
                     }
 
-                    if !any_matched && self.automaton.is_accepting(fallback_state) {
+                    if !any_matched && is_fallback_accepting {
                         debug!("Value accepted by fallback.");
                         self.result.report(idx);
                     }

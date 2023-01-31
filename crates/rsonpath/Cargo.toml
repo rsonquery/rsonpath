@@ -21,6 +21,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 clap = { version = "4.0.25", features = ["derive", "wrap_help"] }
 color-eyre = { version = "0.6.2", default-features = false }
 eyre = "0.6.8"
+firestorm = "0.5.1"
 log = "0.4.17"
 rsonpath-lib = { version = "0.2.1", default-features = false }
 simple_logger = "4.0.0"
@@ -29,3 +30,4 @@ simple_logger = "4.0.0"
 default = ["simd", "head-skip"]
 simd = ["rsonpath-lib/simd"]
 head-skip = ["rsonpath-lib/head-skip"]
+profiling = ["rsonpath-lib/profiling"]

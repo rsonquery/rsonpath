@@ -45,6 +45,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> Iterator for VectorIterator<'a, I> {
 
     #[inline(always)]
     fn next(&mut self) -> Option<Self::Item> {
+        firestorm::profile_method!(next);
         let quote_classified = self.iter.next();
         quote_classified.map(|q| Vector::new(q, &self.classifier))
     }
@@ -54,6 +55,7 @@ impl<'a, I: QuoteClassifiedIterator<'a> + 'a> DepthIterator<'a, I> for VectorIte
     type Block = Vector<'a>;
 
     fn stop(self, block: Option<Self::Block>) -> ResumeClassifierState<'a, I> {
+        firestorm::profile_method!(stop);
         let block_state = block.and_then(|b| {
             let idx = b.idx;
             debug!("Depth iterator stopping at index {idx}");
@@ -74,6 +76,7 @@ impl<'a, I: QuoteClassifiedIterator<'a> + 'a> DepthIterator<'a, I> for VectorIte
     }
 
     fn resume(state: ResumeClassifierState<'a, I>, opening: u8) -> (Option<Self::Block>, Self) {
+        firestorm::profile_method!(resume);
         let classifier = DelimiterClassifierImpl::new(opening);
         let first_block = state.block.and_then(|b| {
             if b.idx == 64 {
@@ -142,6 +145,7 @@ impl<'a> Vector<'a> {
         classifier: &DelimiterClassifierImpl,
         start_idx: usize,
     ) -> Self {
+        firestorm::profile_method!(new_avx2);
         let idx_mask = 0xFFFF_FFFF_FFFF_FFFF_u64 << start_idx;
         let (first_block, second_block) = bytes.block.halves();
         let (first_opening_vector, first_closing_vector) =
@@ -176,6 +180,7 @@ impl<'a> Vector<'a> {
 impl<'a> DepthBlock<'a> for Vector<'a> {
     #[inline(always)]
     fn advance_to_next_depth_decrease(&mut self) -> bool {
+        firestorm::profile_method!(advance_to_next_depth_decrease);
         let next_closing = self.closing_mask.trailing_zeros() as usize;
 
         if next_closing == 64 {
@@ -237,6 +242,7 @@ struct DelimiterClassifierImpl {
 impl DelimiterClassifierImpl {
     #[inline(always)]
     fn new(opening: u8) -> Self {
+        firestorm::profile_method!(new);
         let closing = opening + 2;
 
         // SAFETY: target_feature invariant
@@ -256,6 +262,7 @@ impl DelimiterClassifierImpl {
         &self,
         bytes: &AlignedSlice<TwoTo<5>>,
     ) -> (__m256i, __m256i) {
+        firestorm::profile_method!(get_opening_and_closing_vectors);
         // SAFETY: target_feature invariant
         unsafe {
             let byte_vector = _mm256_load_si256(bytes.as_ptr().cast::<__m256i>());

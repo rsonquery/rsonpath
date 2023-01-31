@@ -106,6 +106,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> Iterator for Avx2Classifier<'a, I> {
 
     #[inline(always)]
     fn next(&mut self) -> Option<Structural> {
+        firestorm::profile_method!(next);
         while self.current_block_is_spent() {
             match self.iter.next() {
                 Some(block) => {
@@ -129,6 +130,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> std::iter::FusedIterator for Avx2Classi
 
 impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a, I> for Avx2Classifier<'a, I> {
     fn stop(self) -> ResumeClassifierState<'a, I> {
+        firestorm::profile_method!(stop);
         let block = self.block.map(|b| ResumeClassifierBlockState {
             idx: b.get_idx() as usize,
             block: b.quote_classified,
@@ -141,6 +143,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a, I> for Avx2Class
     }
 
     fn resume(state: ResumeClassifierState<'a, I>) -> Self {
+        firestorm::profile_method!(resume);
         // SAFETY: target_feature invariant
         let mut classifier = unsafe { BlockAvx2Classifier::new() };
         let block = state.block.map(|b| {
@@ -202,6 +205,7 @@ impl BlockAvx2Classifier {
         &mut self,
         quote_classified_block: QuoteClassifiedBlock<'a>,
     ) -> StructuralsBlock<'a> {
+        firestorm::profile_method!(classify);
         let (block1, block2) = quote_classified_block.block.halves();
         let classification1 = self.classify_block(block1);
         let classification2 = self.classify_block(block2);
