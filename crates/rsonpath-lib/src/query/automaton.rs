@@ -210,6 +210,11 @@ impl<'q> Automaton<'q> {
     fn minimize(nfa: NondeterministicAutomaton<'q>) -> Result<Self, CompilerError> {
         minimizer::minimize(nfa)
     }
+
+    pub(crate) fn is_unique(&self, state: State) -> bool {
+        let tab = &self[state];
+        self.is_rejecting(tab.fallback_state.0) && tab.transitions.len() < 2
+    }
 }
 
 impl<'q> TransitionTable<'q> {

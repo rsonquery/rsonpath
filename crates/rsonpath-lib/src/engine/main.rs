@@ -260,7 +260,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
         let mut classifier = ClassifierWithSkipping::new(structural_classifier);
         let mut fallback_active = false;
 
-        while let Some(event) = self.next_event.or_else(|| classifier.next()) {
+        'main: while let Some(event) = self.next_event.or_else(|| classifier.next()) {
             debug!("====================");
             debug!("Event = {:?}", event);
             debug!("Depth = {:?}", self.depth);
@@ -280,17 +280,45 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                 Structural::Closing(idx) => {
                     debug!("Closing, decreasing depth and popping stack.");
 
-                    self.depth
-                        .decrement()
-                        .map_err(|err| EngineError::DepthBelowZero(idx, err))?;
+                    #[cfg(not(feature = "duplicate-labels"))]
+                    loop {
+                        self.depth
+                            .decrement()
+                            .map_err(|err| EngineError::DepthBelowZero(idx, err))?;
 
-                    if let Some(stack_frame) = self.stack.pop_if_at_or_below(*self.depth) {
-                        self.state = stack_frame.state;
-                        self.is_list = stack_frame.is_list;
+                        if self.depth == Depth::ZERO {
+                            break 'main;
+                        }
+
+                        if let Some(stack_frame) = self.stack.pop_if_at_or_below(*self.depth) {
+                            self.state = stack_frame.state;
+                            self.is_list = stack_frame.is_list;
+
+                            if self.automaton.is_unique(self.state) {
+                                let opening = if self.is_list { b'[' } else { b'{' };
+                                debug!("Skipping unique state from {}", opening as char);
+                                classifier.skip(opening);
+                            } else {
+                                break;
+                            }
+                        } else {
+                            break;
+                        }
                     }
+                    #[cfg(feature = "duplicate-labels")]
+                    {
+                        self.depth
+                            .decrement()
+                            .map_err(|err| EngineError::DepthBelowZero(idx, err))?;
 
-                    if self.depth == Depth::ZERO {
-                        break;
+                        if self.depth == Depth::ZERO {
+                            break 'main;
+                        }
+
+                        if let Some(stack_frame) = self.stack.pop_if_at_or_below(*self.depth) {
+                            self.state = stack_frame.state;
+                            self.is_list = stack_frame.is_list;
+                        }
                     }
                 }
                 Structural::Opening(idx) => {
@@ -335,6 +363,8 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                                 self.result.report(idx + 1);
                             }
                         }
+                    } else {
+                        self.is_list = false;
                     }
 
                     self.depth
@@ -387,7 +417,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
 
     fn transition_to(&mut self, target: State) {
         if target != self.state {
-            log::trace!("push {}, goto {target}", self.state);
+            debug!("push {}, goto {target}", self.state);
             self.stack.push(StackFrame {
                 depth: *self.depth,
                 state: self.state,
