@@ -10,7 +10,7 @@
 
 use crate::classify::{
     classify_structural_characters, resume_structural_classification, ClassifierWithSkipping,
-    Structural,
+    Structural, StructuralIterator,
 };
 use crate::debug;
 use crate::engine::depth::Depth;
@@ -153,7 +153,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
         {
             use memchr::memmem;
 
-            let mut quote_classifier = ResumeClassifierState {
+            let mut classifier_state = ResumeClassifierState {
                 iter: classify_quoted_sequences(self.bytes.relax_alignment()),
                 block: None,
             };
@@ -183,33 +183,45 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
 
                             if colon_idx < bytes.len() && bytes[colon_idx] == b':' {
                                 debug!("Actual match with colon at {colon_idx}");
-                                let distance = colon_idx - quote_classifier.get_idx();
+                                let distance = colon_idx - classifier_state.get_idx();
                                 debug!("Distance skipped: {distance}");
-                                quote_classifier.offset_bytes(distance as isize);
+                                classifier_state.offset_bytes(distance as isize);
 
                                 // Check if the colon is marked as within quotes.
                                 // If yes, that is an error of state propagation through skipped blocks.
                                 // Flip the quote mask.
-                                if let Some(block) = quote_classifier.block.as_mut() {
+                                if let Some(block) = classifier_state.block.as_mut() {
                                     if (block.block.within_quotes_mask & (1_u64 << block.idx)) != 0
                                     {
                                         debug!("Mask needs flipping!");
                                         block.block.within_quotes_mask =
                                             !block.block.within_quotes_mask;
-                                        quote_classifier.iter.flip_quotes_bit();
+                                        classifier_state.iter.flip_quotes_bit();
                                     }
                                 }
 
-                                quote_classifier.offset_bytes(1);
+                                classifier_state.offset_bytes(1);
 
                                 self.state = target_state;
 
                                 if is_accepting {
                                     self.result.report(colon_idx);
                                 }
-                                quote_classifier = self.run_on_subtree(quote_classifier)?;
-                                debug!("Quote classified up to {}", quote_classifier.get_idx());
-                                idx = quote_classifier.get_idx();
+
+                                let mut classifier =
+                                    resume_structural_classification(classifier_state);
+                                let first_event = classifier.next();
+
+                                classifier_state = if let Some(Structural::Opening(_)) = first_event
+                                {
+                                    self.next_event = first_event;
+                                    self.run_on_subtree(classifier)?
+                                } else {
+                                    classifier.stop()
+                                };
+
+                                debug!("Quote classified up to {}", classifier_state.get_idx());
+                                idx = classifier_state.get_idx();
                             } else {
                                 idx += 1;
                             }
@@ -219,16 +231,19 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                     }
                 }
             } else {
-                self.run_on_subtree(quote_classifier)?;
+                let mut classifier = resume_structural_classification(classifier_state);
+                let first_event = classifier.next();
+
+                if let Some(Structural::Opening(_)) = first_event {
+                    self.next_event = first_event;
+                    self.run_on_subtree(classifier)?;
+                }
             }
         }
         #[cfg(not(feature = "head-skip"))]
         {
-            let quote_classifier = ResumeClassifierState {
-                iter: classify_quoted_sequences(self.bytes.relax_alignment()),
-                block: None,
-            };
-            self.run_on_subtree(quote_classifier)?;
+            let quote_classifier = classify_quoted_sequences(self.bytes.relax_alignment());
+            self.run_on_subtree(classify_structural_characters(quote_classifier))?;
         }
 
         if self.depth != Depth::ZERO {
@@ -238,14 +253,12 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
         }
     }
 
-    fn run_on_subtree<I: QuoteClassifiedIterator<'b>>(
+    fn run_on_subtree<Q: QuoteClassifiedIterator<'b>, I: StructuralIterator<'b, Q>>(
         &mut self,
-        quote_classifier: ResumeClassifierState<'b, I>,
-    ) -> Result<ResumeClassifierState<'b, I>, EngineError> {
-        let mut classifier =
-            ClassifierWithSkipping::new(resume_structural_classification(quote_classifier));
+        structural_classifier: I,
+    ) -> Result<ResumeClassifierState<'b, Q>, EngineError> {
+        let mut classifier = ClassifierWithSkipping::new(structural_classifier);
         let mut fallback_active = false;
-        let mut start = true;
 
         while let Some(event) = self.next_event.or_else(|| classifier.next()) {
             debug!("====================");
@@ -254,13 +267,6 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
             debug!("Stack = {:?}", self.stack);
             debug!("State = {:?}", self.state);
             debug!("====================");
-
-            if start && !matches!(event, Structural::Opening(_)) {
-                self.next_event = Some(event);
-                break;
-            } else {
-                start = false;
-            }
 
             self.next_event = None;
             match event {
@@ -330,6 +336,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                             }
                         }
                     }
+
                     self.depth
                         .increment()
                         .map_err(|err| EngineError::DepthAboveLimit(idx, err))?;
@@ -359,6 +366,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                                 break;
                             }
                         } else if is_accepting && self.is_match(idx, label)? {
+                            debug!("Accept.");
                             self.result.report(idx);
                             any_matched = true;
                             break;
@@ -379,6 +387,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
 
     fn transition_to(&mut self, target: State) {
         if target != self.state {
+            log::trace!("push {}, goto {target}", self.state);
             self.stack.push(StackFrame {
                 depth: *self.depth,
                 state: self.state,
