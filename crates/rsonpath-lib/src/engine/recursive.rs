@@ -142,13 +142,15 @@ where
         }
     }
 
-    pub(crate) fn run(&mut self, state: State, open_idx: usize) -> Result<(), EngineError> {
+    pub(crate) fn run(&mut self, state: State, open_idx: usize) -> Result<usize, EngineError> {
         debug!("Run state {state}, depth {}", self.depth);
         let mut next_event = None;
+        let mut latest_idx = open_idx;
         let (fallback_state, is_fallback_accepting) = self.automaton[state].fallback_state();
         let is_list = self.bytes[open_idx] == b'[';
 
         if is_list && is_fallback_accepting {
+            self.classifier.turn_commas_on(open_idx);
             next_event = self.classifier.next();
             if let Some(Structural::Closing(close_idx)) = next_event {
                 for idx in (open_idx + 1)..close_idx {
@@ -158,7 +160,7 @@ where
                         break;
                     }
                 }
-                return Ok(());
+                return Ok(close_idx);
             }
 
             debug!("Accepting first item in the list.");
@@ -177,21 +179,30 @@ where
 
                     #[cfg(feature = "tail-skip")]
                     if self.automaton.is_rejecting(fallback_state) {
-                        self.classifier.skip(self.bytes[idx]);
+                        latest_idx = self.classifier.skip(self.bytes[idx]);
                     } else {
-                        self.run(fallback_state, idx)?;
+                        latest_idx = self.run(fallback_state, idx)?;
                     }
                     #[cfg(not(feature = "tail-skip"))]
-                    self.run(fallback_state, idx)?;
+                    {
+                        latest_idx = self.run(fallback_state, idx)?;
+                    }
+
+                    if is_list && is_fallback_accepting {
+                        self.classifier.turn_commas_on(latest_idx);
+                    }
 
                     next_event = None;
                 }
-                Some(Structural::Closing(_)) => {
+                Some(Structural::Closing(idx)) => {
                     debug!("Closing, popping stack");
+                    latest_idx = idx;
                     decrease_depth!(self);
+                    self.classifier.turn_commas_off();
                     break;
                 }
                 Some(Structural::Comma(idx)) => {
+                    latest_idx = idx;
                     if is_list && is_fallback_accepting {
                         debug!("Accepting on comma.");
                         self.result.report(idx);
@@ -199,6 +210,7 @@ where
                     next_event = None;
                 }
                 Some(Structural::Colon(idx)) => {
+                    latest_idx = idx;
                     next_event = self.classifier.next();
                     let next_opening = match next_event {
                         Some(Structural::Opening(idx)) => Some(idx),
@@ -213,7 +225,7 @@ where
                                     self.result.report(idx);
                                 }
                                 increase_depth!(self);
-                                self.run(target, next_idx)?;
+                                latest_idx = self.run(target, next_idx)?;
                                 next_event = None;
                                 any_matched = true;
                                 break;
@@ -235,7 +247,7 @@ where
             }
         }
 
-        Ok(())
+        Ok(latest_idx)
     }
 
     fn is_match(&self, idx: usize, label: &Label) -> Result<bool, EngineError> {

@@ -1,4 +1,4 @@
-//! Classification of structurally significant JSON bytes.
+//! TODO: UPDATE! Classification of structurally significant JSON bytes.
 //!
 //! Provides the [`Structural`] struct and [`StructuralIterator`] trait
 //! that allow effectively iterating over structural characters in a JSON document.
@@ -19,7 +19,6 @@
 //!     Structural::Opening(7),
 //!     Structural::Colon(11),
 //!     Structural::Closing(15),
-//!     Structural::Comma(16),
 //!     Structural::Opening(18),
 //!     Structural::Closing(19),
 //!     Structural::Closing(20),
@@ -125,8 +124,9 @@ where
         }
     }
 
-    pub(crate) fn skip(&mut self, opening: u8) {
+    pub(crate) fn skip(&mut self, opening: u8) -> usize {
         debug!("Skipping");
+        let mut idx = 0;
 
         replace_with_or_abort(&mut self.classifier, |classifier| {
             let resume_state = classifier.stop();
@@ -158,8 +158,11 @@ where
             debug!("Skipping complete, resuming structural classification.");
             let resume_state = depth_classifier.stop(current_vector);
             debug!("Finished at {}", resume_state.get_idx());
+            idx = resume_state.get_idx();
             I::resume(resume_state)
         });
+
+        idx
     }
 
     pub(crate) fn stop(self) -> ResumeClassifierState<'b, Q> {
@@ -201,6 +204,10 @@ pub trait StructuralIterator<'a, I: QuoteClassifiedIterator<'a>>:
     /// Resume classification from a state retrieved by a previous
     /// [`StructuralIterator::stop`] or [`DepthIterator::stop`] invocation.
     fn resume(state: ResumeClassifierState<'a, I>) -> Self;
+
+    fn turn_commas_on(&mut self, idx: usize);
+
+    fn turn_commas_off(&mut self);
 }
 
 cfg_if! {
@@ -261,7 +268,7 @@ mod tests {
     use aligners::AlignedBytes;
 
     #[test]
-    fn resumption() {
+    fn resumption_without_commas() {
         use Structural::*;
 
         let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
@@ -273,12 +280,38 @@ mod tests {
         assert_eq!(Some(Opening(0)), classifier.next());
         assert_eq!(Some(Colon(4)), classifier.next());
         assert_eq!(Some(Opening(6)), classifier.next());
+
+        let resume_state = classifier.stop();
+
+        let mut resumed_classifier = resume_structural_classification(resume_state);
+
+        assert_eq!(Some(Opening(15)), resumed_classifier.next());
+        assert_eq!(Some(Colon(20)), resumed_classifier.next());
+        assert_eq!(Some(Opening(22)), resumed_classifier.next());
+        assert_eq!(Some(Colon(27)), resumed_classifier.next());
+    }
+
+    #[test]
+    fn resumption_with_commas() {
+        use Structural::*;
+
+        let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
+        let bytes = AlignedBytes::new_padded(json.as_bytes());
+        let quotes = classify_quoted_sequences(&bytes);
+
+        let mut classifier = classify_structural_characters(quotes);
+        classifier.turn_commas_on(0);
+
+        assert_eq!(Some(Opening(0)), classifier.next());
+        assert_eq!(Some(Colon(4)), classifier.next());
+        assert_eq!(Some(Opening(6)), classifier.next());
         assert_eq!(Some(Comma(9)), classifier.next());
         assert_eq!(Some(Comma(13)), classifier.next());
 
         let resume_state = classifier.stop();
 
         let mut resumed_classifier = resume_structural_classification(resume_state);
+        resumed_classifier.turn_commas_on(14);
 
         assert_eq!(Some(Opening(15)), resumed_classifier.next());
         assert_eq!(Some(Colon(20)), resumed_classifier.next());

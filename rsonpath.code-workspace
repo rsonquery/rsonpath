@@ -57,7 +57,8 @@
 		"rust-analyzer.cargo.features": [
 			"simd",
 			"head-skip",
-			"tail-skip"
+			"tail-skip",
+			"unique-labels"
 		],
 		"rust-analyzer.cargo.noDefaultFeatures": true,
 		"rust-analyzer.cargo.allFeatures": false

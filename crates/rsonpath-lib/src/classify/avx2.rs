@@ -82,6 +82,7 @@ pub(crate) struct Avx2Classifier<'a, I: QuoteClassifiedIterator<'a>> {
     iter: I,
     classifier: BlockAvx2Classifier,
     block: Option<StructuralsBlock<'a>>,
+    are_commas_on: bool,
 }
 
 impl<'a, I: QuoteClassifiedIterator<'a>> Avx2Classifier<'a, I> {
@@ -92,6 +93,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> Avx2Classifier<'a, I> {
             // SAFETY: target_feature invariant
             classifier: unsafe { BlockAvx2Classifier::new() },
             block: None,
+            are_commas_on: false,
         }
     }
 
@@ -128,6 +130,34 @@ impl<'a, I: QuoteClassifiedIterator<'a>> Iterator for Avx2Classifier<'a, I> {
 impl<'a, I: QuoteClassifiedIterator<'a>> std::iter::FusedIterator for Avx2Classifier<'a, I> {}
 
 impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a, I> for Avx2Classifier<'a, I> {
+    fn turn_commas_on(&mut self, idx: usize) {
+        if !self.are_commas_on {
+            self.are_commas_on = true;
+            debug!("Turning commas on at {idx}.");
+            unsafe { self.classifier.toggle_commas() }
+
+            if let Some(block) = self.block.take() {
+                let quote_classified_block = block.quote_classified;
+                let block_idx = (idx + 1) % quote_classified_block.len();
+
+                if block_idx != 0 {
+                    let mask = u64::MAX << block_idx;
+                    let mut new_block = unsafe { self.classifier.classify(quote_classified_block) };
+                    new_block.structural_mask &= mask;
+                    self.block = Some(new_block);
+                }
+            }
+        }
+    }
+
+    fn turn_commas_off(&mut self) {
+        if self.are_commas_on {
+            self.are_commas_on = false;
+            debug!("Turning commas off.");
+            unsafe { self.classifier.toggle_commas() }
+        }
+    }
+
     fn stop(self) -> ResumeClassifierState<'a, I> {
         let block = self.block.map(|b| ResumeClassifierBlockState {
             idx: b.get_idx() as usize,
@@ -156,6 +186,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a, I> for Avx2Class
             iter: state.iter,
             block,
             classifier,
+            are_commas_on: false,
         }
     }
 }
@@ -164,6 +195,8 @@ struct BlockAvx2Classifier {
     lower_nibble_mask: __m256i,
     upper_nibble_mask: __m256i,
     upper_nibble_zeroing_mask: __m256i,
+    inactive_lower_nibble_mask: __m256i,
+    inactive_upper_nibble_mask: __m256i,
 }
 
 struct BlockClassification {
@@ -181,19 +214,52 @@ impl BlockAvx2Classifier {
         0xfe, 0xfe, 0xfe, 0x02, 0x01, 0xfe, 0x03, 0xfe, 0x03, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe,
         0xfe, 0xfe,
     ];
+    const LOWER_NIBBLE_MASK_ARRAY_WITHOUT_COMMAS: [u8; 32] = [
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01, 0x03, 0xff, 0x03, 0xff,
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01, 0x03, 0xff, 0x03,
+        0xff, 0xff,
+    ];
+    const UPPER_NIBBLE_MASK_ARRAY_WITHOUT_COMMAS: [u8; 32] = [
+        0xfe, 0xfe, 0xfe, 0x01, 0xfe, 0x03, 0xfe, 0x03, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe,
+        0xfe, 0xfe, 0xfe, 0xfe, 0x01, 0xfe, 0x03, 0xfe, 0x03, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe,
+        0xfe, 0xfe,
+    ];
 
     #[target_feature(enable = "avx2")]
     #[inline]
     unsafe fn new() -> Self {
         Self {
             lower_nibble_mask: _mm256_loadu_si256(
-                Self::LOWER_NIBBLE_MASK_ARRAY.as_ptr().cast::<__m256i>(),
+                Self::LOWER_NIBBLE_MASK_ARRAY_WITHOUT_COMMAS
+                    .as_ptr()
+                    .cast::<__m256i>(),
             ),
             upper_nibble_mask: _mm256_loadu_si256(
-                Self::UPPER_NIBBLE_MASK_ARRAY.as_ptr().cast::<__m256i>(),
+                Self::UPPER_NIBBLE_MASK_ARRAY_WITHOUT_COMMAS
+                    .as_ptr()
+                    .cast::<__m256i>(),
             ),
             upper_nibble_zeroing_mask: _mm256_set1_epi8(0x0F),
+            inactive_lower_nibble_mask: _mm256_loadu_si256(
+                Self::LOWER_NIBBLE_MASK_ARRAY.as_ptr().cast::<__m256i>(),
+            ),
+            inactive_upper_nibble_mask: _mm256_loadu_si256(
+                Self::UPPER_NIBBLE_MASK_ARRAY.as_ptr().cast::<__m256i>(),
+            ),
         }
+    }
+
+    #[target_feature(enable = "avx2")]
+    #[inline]
+    unsafe fn toggle_commas(&mut self) {
+        std::mem::swap(
+            &mut self.lower_nibble_mask,
+            &mut self.inactive_lower_nibble_mask,
+        );
+        std::mem::swap(
+            &mut self.upper_nibble_mask,
+            &mut self.inactive_upper_nibble_mask,
+        );
     }
 
     #[target_feature(enable = "avx2")]

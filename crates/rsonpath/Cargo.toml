@@ -29,8 +29,8 @@ tracing-chrome = "0.7.0"
 tracing-subscriber = "0.3.16"
 
 [features]
-default = ["simd", "head-skip", "tail-skip"]
+default = ["simd", "head-skip", "tail-skip", "unique-labels"]
 simd = ["rsonpath-lib/simd"]
 head-skip = ["rsonpath-lib/head-skip"]
 tail-skip = ["rsonpath-lib/tail-skip"]
-tracing = ["rsonpath-lib/tracing"]
+unique-labels = ["tail-skip", "rsonpath-lib/unique-labels"]

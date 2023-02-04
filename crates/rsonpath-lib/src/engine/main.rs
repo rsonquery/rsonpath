@@ -280,7 +280,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                 Structural::Closing(idx) => {
                     debug!("Closing, decreasing depth and popping stack.");
 
-                    #[cfg(not(feature = "duplicate-labels"))]
+                    #[cfg(feature = "unique-labels")]
                     loop {
                         self.depth
                             .decrement()
@@ -305,7 +305,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                             break;
                         }
                     }
-                    #[cfg(feature = "duplicate-labels")]
+                    #[cfg(not(feature = "unique-labels"))]
                     {
                         self.depth
                             .decrement()
@@ -319,6 +319,12 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                             self.state = stack_frame.state;
                             self.is_list = stack_frame.is_list;
                         }
+                    }
+
+                    if self.is_list && self.automaton[self.state].fallback_state().1 {
+                        classifier.turn_commas_on(idx);
+                    } else {
+                        classifier.turn_commas_off();
                     }
                 }
                 Structural::Opening(idx) => {
@@ -349,6 +355,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                         self.is_list = true;
 
                         if is_accepting {
+                            classifier.turn_commas_on(idx);
                             self.next_event = classifier.next();
                             if let Some(Structural::Closing(close_idx)) = self.next_event {
                                 for next_idx in (idx + 1)..close_idx {
@@ -362,9 +369,12 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                                 debug!("Accepting first item in the list.");
                                 self.result.report(idx + 1);
                             }
+                        } else {
+                            classifier.turn_commas_off();
                         }
                     } else {
                         self.is_list = false;
+                        classifier.turn_commas_off();
                     }
 
                     self.depth
@@ -396,7 +406,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                                 break;
                             }
                         } else if is_accepting && self.is_match(idx, label)? {
-                            debug!("Accept.");
+                            debug!("Accept {idx}");
                             self.result.report(idx);
                             any_matched = true;
                             break;
