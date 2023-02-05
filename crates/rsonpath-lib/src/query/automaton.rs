@@ -189,6 +189,13 @@ impl<'q> Automaton<'q> {
         self.accepting_states().any(|s| s == state)
     }
 
+    #[must_use]
+    #[inline(always)]
+    pub fn can_accept(&self, state: State) -> bool {
+        let tab = &self[state];
+        tab.fallback_state.1 || tab.transitions.iter().any(|x| x.2)
+    }
+
     /// Returns whether the given state is rejecting, i.e.
     /// there exist no accepting runs from it.
     ///

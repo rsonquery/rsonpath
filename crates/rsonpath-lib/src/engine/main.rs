@@ -156,6 +156,8 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
             let mut classifier_state = ResumeClassifierState {
                 iter: classify_quoted_sequences(self.bytes.relax_alignment()),
                 block: None,
+                are_commas_on: false,
+                are_colons_on: false,
             };
             let initial_state = self.automaton.initial_state();
 
@@ -205,6 +207,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                                 self.state = target_state;
 
                                 if is_accepting {
+                                    debug!("Accepting immediatelly.");
                                     self.result.report(colon_idx);
                                 }
 
@@ -258,7 +261,6 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
         structural_classifier: I,
     ) -> Result<ResumeClassifierState<'b, Q>, EngineError> {
         let mut classifier = ClassifierWithSkipping::new(structural_classifier);
-        let mut fallback_active = false;
 
         'main: while let Some(event) = self.next_event.or_else(|| classifier.next()) {
             debug!("====================");
@@ -270,11 +272,58 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
 
             self.next_event = None;
             match event {
+                Structural::Colon(idx) => {
+                    debug!(
+                        "Colon, label ending with {:?}",
+                        std::str::from_utf8(&self.bytes[(if idx < 8 { 0 } else { idx - 8 })..idx])
+                            .unwrap_or("[invalid utf8]")
+                    );
+
+                    self.next_event = classifier.next();
+                    let is_next_opening = matches!(self.next_event, Some(Structural::Opening(_)));
+
+                    if !is_next_opening {
+                        let mut any_matched = false;
+
+                        for &(label, _, is_accepting) in self.automaton[self.state].transitions() {
+                            if is_accepting && self.is_match(idx, label)? {
+                                debug!("Accept {idx}");
+                                self.result.report(idx);
+                                any_matched = true;
+                                break;
+                            }
+                        }
+                        let (_, is_accepting) = self.automaton[self.state].fallback_state();
+                        if !any_matched && is_accepting {
+                            debug!("Value accepted by fallback.");
+                            self.result.report(idx);
+                        }
+                        #[cfg(feature = "unique-labels")]
+                        {
+                            let is_next_closing =
+                                matches!(self.next_event, Some(Structural::Closing(_)));
+                            if any_matched
+                                && !is_next_closing
+                                && self.automaton.is_unique(self.state)
+                            {
+                                let opening = if self.is_list { b'[' } else { b'{' };
+                                debug!("Skipping unique state from {}", opening as char);
+                                let stop_at = classifier.skip(opening);
+                                self.next_event = Some(Structural::Closing(stop_at));
+                            }
+                        }
+                    }
+                }
                 Structural::Comma(idx) => {
-                    let (_, is_accepting) = self.automaton[self.state].fallback_state();
-                    if self.is_list && is_accepting {
-                        debug!("Accepting on comma.");
-                        self.result.report(idx);
+                    self.next_event = classifier.next();
+                    let is_next_opening = matches!(self.next_event, Some(Structural::Opening(_)));
+
+                    if !is_next_opening {
+                        let (_, is_accepting) = self.automaton[self.state].fallback_state();
+                        if self.is_list && is_accepting {
+                            debug!("Accepting on comma.");
+                            self.result.report(idx);
+                        }
                     }
                 }
                 Structural::Closing(idx) => {
@@ -326,15 +375,56 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                     } else {
                         classifier.turn_commas_off();
                     }
+
+                    if !self.is_list && self.automaton.can_accept(self.state) {
+                        classifier.turn_colons_on(idx);
+                    } else {
+                        classifier.turn_colons_off();
+                    }
                 }
                 Structural::Opening(idx) => {
                     debug!(
                         "Opening {}, increasing depth and pushing stack.",
                         self.bytes[idx]
                     );
-                    let (fallback, _) = self.automaton[self.state].fallback_state();
+                    let mut any_matched = false;
+                    let colon_idx = if self.depth == Depth::ZERO {
+                        None
+                    } else {
+                        let mut colon_idx = idx - 1;
+                        while self.bytes[colon_idx].is_ascii_whitespace() {
+                            colon_idx -= 1;
+                        }
+                        if self.bytes[colon_idx] == b':' {
+                            Some(colon_idx)
+                        } else {
+                            None
+                        }
+                    };
 
-                    if fallback_active {
+                    if let Some(colon_idx) = colon_idx {
+                        debug!(
+                            "Colon backtracked, label ending with {:?}",
+                            std::str::from_utf8(&self.bytes[(if colon_idx < 8 { 0 } else { colon_idx - 8 })..colon_idx])
+                                .unwrap_or("[invalid utf8]")
+                        );
+                        for &(label, target, is_accepting) in
+                            self.automaton[self.state].transitions()
+                        {
+                            if self.is_match(colon_idx, label)? {
+                                any_matched = true;
+                                self.transition_to(target);
+                                if is_accepting {
+                                    debug!("Accept {idx}");
+                                    self.result.report(colon_idx);
+                                }
+                                break;
+                            }
+                        }
+                    }
+
+                    if !any_matched && self.depth != Depth::ZERO {
+                        let (fallback, is_accepting) = self.automaton[self.state].fallback_state();
                         debug!("Falling back to {fallback}");
 
                         #[cfg(feature = "tail-skip")]
@@ -346,14 +436,17 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                         }
                         #[cfg(not(feature = "tail-skip"))]
                         self.transition_to(fallback);
-                    } else {
-                        fallback_active = true;
+
+                        if is_accepting {
+                            debug!("Accept {idx}");
+                            self.result.report(idx);
+                        }
                     }
 
-                    let (_, is_accepting) = self.automaton[self.state].fallback_state();
                     if self.bytes[idx] == b'[' {
                         self.is_list = true;
 
+                        let (_, is_accepting) = self.automaton[self.state].fallback_state();
                         if is_accepting {
                             classifier.turn_commas_on(idx);
                             self.next_event = classifier.next();
@@ -372,52 +465,22 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                         } else {
                             classifier.turn_commas_off();
                         }
-                    } else {
+                        classifier.turn_colons_off();
+                    }
+                    else {
                         self.is_list = false;
-                        classifier.turn_commas_off();
                     }
 
+                    if !self.is_list && self.automaton.can_accept(self.state) {
+                        debug!("Can accept from here.");
+                        classifier.turn_colons_on(idx);
+                    } else {
+                        debug!("Can't accept from here.");
+                        classifier.turn_colons_off();
+                    }
                     self.depth
                         .increment()
                         .map_err(|err| EngineError::DepthAboveLimit(idx, err))?;
-                }
-                Structural::Colon(idx) => {
-                    debug!(
-                        "Colon, label ending with {:?}",
-                        std::str::from_utf8(&self.bytes[(if idx < 8 { 0 } else { idx - 8 })..idx])
-                            .unwrap_or("[invalid utf8]")
-                    );
-
-                    self.next_event = classifier.next();
-                    let is_next_opening = matches!(self.next_event, Some(Structural::Opening(_)));
-                    let mut any_matched = false;
-
-                    for &(label, target, is_accepting) in self.automaton[self.state].transitions() {
-                        if is_next_opening {
-                            if self.is_match(idx, label)? {
-                                fallback_active = false;
-
-                                if is_accepting {
-                                    self.result.report(idx);
-                                }
-
-                                self.transition_to(target);
-                                any_matched = true;
-                                break;
-                            }
-                        } else if is_accepting && self.is_match(idx, label)? {
-                            debug!("Accept {idx}");
-                            self.result.report(idx);
-                            any_matched = true;
-                            break;
-                        }
-                    }
-
-                    let (_, is_accepting) = self.automaton[self.state].fallback_state();
-                    if !any_matched && is_accepting {
-                        debug!("Value accepted by fallback.");
-                        self.result.report(idx);
-                    }
                 }
             }
         }

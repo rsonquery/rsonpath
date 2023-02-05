@@ -208,6 +208,10 @@ pub trait StructuralIterator<'a, I: QuoteClassifiedIterator<'a>>:
     fn turn_commas_on(&mut self, idx: usize);
 
     fn turn_commas_off(&mut self);
+
+    fn turn_colons_on(&mut self, idx: usize);
+
+    fn turn_colons_off(&mut self);
 }
 
 cfg_if! {
