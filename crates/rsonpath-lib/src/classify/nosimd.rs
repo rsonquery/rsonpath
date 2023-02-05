@@ -117,13 +117,9 @@ impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a, I> for Sequentia
         self.are_commas_on = false;
     }
 
+    fn turn_colons_on(&mut self, idx: usize) {}
 
-    fn turn_colons_on(&mut self, idx: usize) {
-    }
-
-    fn turn_colons_off(&mut self) {
-    }
-
+    fn turn_colons_off(&mut self) {}
 
     fn stop(self) -> ResumeClassifierState<'a, I> {
         let block = self.block.map(|b| ResumeClassifierBlockState {

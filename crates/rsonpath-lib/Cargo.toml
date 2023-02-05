@@ -13,6 +13,7 @@ categories = [
     "parser-implementations",
 ]
 repository = "https://github.com/V0ldek/rsonpath"
+rust-version = "1.65.0"
 
 [package.metadata.docs.rs]
 rustdoc-args = ["--cfg", "docsrs"]

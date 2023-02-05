@@ -405,8 +405,11 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                     if let Some(colon_idx) = colon_idx {
                         debug!(
                             "Colon backtracked, label ending with {:?}",
-                            std::str::from_utf8(&self.bytes[(if colon_idx < 8 { 0 } else { colon_idx - 8 })..colon_idx])
-                                .unwrap_or("[invalid utf8]")
+                            std::str::from_utf8(
+                                &self.bytes
+                                    [(if colon_idx < 8 { 0 } else { colon_idx - 8 })..colon_idx]
+                            )
+                            .unwrap_or("[invalid utf8]")
                         );
                         for &(label, target, is_accepting) in
                             self.automaton[self.state].transitions()
@@ -466,8 +469,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                             classifier.turn_commas_off();
                         }
                         classifier.turn_colons_off();
-                    }
-                    else {
+                    } else {
                         self.is_list = false;
                     }
 
