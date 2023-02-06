@@ -10,8 +10,6 @@ use rsonpath_lib::engine::{Compiler, Engine, Input};
 use rsonpath_lib::query::automaton::Automaton;
 use rsonpath_lib::query::JsonPathQuery;
 use simple_logger::SimpleLogger;
-use tracing_chrome::ChromeLayerBuilder;
-use tracing_subscriber::{prelude::*, registry::Registry};
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about)]
