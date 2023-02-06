@@ -21,7 +21,7 @@ jobs:
         label-id: 'LA_kwDOHodxeM8AAAABA8dlvA'
         token: ${{ secrets.GITHUB_TOKEN }}
     - name: Issue comment tag
-      uses: devops-actions/issue-comment-tag@v0.1.6
+      uses: devops-actions/issue-comment-tag@v0.1.7
       with:
         # The tag of the team to mention in the issue comment
         team: V0ldek
