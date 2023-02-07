@@ -13,9 +13,11 @@ cfg_if::cfg_if! {
     }
 }
 
-use super::*;
-use crate::bin;
+use crate::classify::{
+    QuoteClassifiedIterator, ResumeClassifierState, Structural, StructuralIterator,
+};
 use crate::quotes::{QuoteClassifiedBlock, ResumeClassifierBlockState};
+use crate::{bin, debug};
 
 #[cfg(target_arch = "x86")]
 use core::arch::x86::*;
@@ -136,6 +138,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a, I> for Avx2Class
         if !self.are_commas_on {
             self.are_commas_on = true;
             debug!("Turning commas on at {idx}.");
+            // SAFETY: target_feature invariant
             unsafe { self.classifier.toggle_commas() }
 
             if let Some(block) = self.block.take() {
@@ -144,6 +147,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a, I> for Avx2Class
 
                 if block_idx != 0 {
                     let mask = u64::MAX << block_idx;
+                    // SAFETY: target_feature invariant
                     let mut new_block = unsafe { self.classifier.classify(quote_classified_block) };
                     new_block.structural_mask &= mask;
                     self.block = Some(new_block);
@@ -156,6 +160,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a, I> for Avx2Class
         if self.are_commas_on {
             self.are_commas_on = false;
             debug!("Turning commas off.");
+            // SAFETY: target_feature invariant
             unsafe { self.classifier.toggle_commas() }
         }
     }
@@ -164,6 +169,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a, I> for Avx2Class
         if !self.are_colons_on {
             self.are_colons_on = true;
             debug!("Turning colons on at {idx}.");
+            // SAFETY: target_feature invariant
             unsafe { self.classifier.toggle_colons() }
 
             if let Some(block) = self.block.take() {
@@ -172,6 +178,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a, I> for Avx2Class
 
                 if block_idx != 0 {
                     let mask = u64::MAX << block_idx;
+                    // SAFETY: target_feature invariant
                     let mut new_block = unsafe { self.classifier.classify(quote_classified_block) };
                     new_block.structural_mask &= mask;
                     self.block = Some(new_block);
@@ -184,6 +191,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a, I> for Avx2Class
         if self.are_colons_on {
             self.are_colons_on = false;
             debug!("Turning colons off.");
+            // SAFETY: target_feature invariant
             unsafe { self.classifier.toggle_colons() }
         }
     }
@@ -206,6 +214,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a, I> for Avx2Class
         // SAFETY: target_feature invariant
         let mut classifier = unsafe { BlockAvx2Classifier::new() };
 
+        // SAFETY: target_feature invariant
         unsafe {
             if state.are_commas_on {
                 classifier.toggle_commas();

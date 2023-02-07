@@ -1,7 +1,8 @@
 use super::nfa::{self, NfaState, NfaStateId};
 use super::small_set::{SmallSet, SmallSet256};
-use super::Label;
-use super::{Automaton, NondeterministicAutomaton, State as DfaStateId, TransitionTable};
+use super::state::StateAttributesBuilder;
+use super::{Automaton, NondeterministicAutomaton, State as DfaStateId, StateTable};
+use super::{Label, StateAttributes};
 use crate::debug;
 use crate::query::error::CompilerError;
 use smallvec::{smallvec, SmallVec};
@@ -31,7 +32,7 @@ pub(crate) struct Minimizer<'q> {
     /// Superstates that have not been processed and expanded yet.
     active_superstates: SmallVec<[SmallSet256; 2]>,
     /// All superstates created thus far, in order matching the `superstates` map.
-    dfa_states: Vec<TransitionTable<'q>>,
+    dfa_states: Vec<StateTable<'q>>,
     /// Set of activated DFA states that are accepting.
     accepting: SmallSet256,
 }
@@ -71,9 +72,10 @@ impl<'q> Minimizer<'q> {
     /// and perform expansion until we run out of active states.
     fn run(mut self) -> Result<Automaton<'q>, CompilerError> {
         // Rejecting state has no outgoing transitions except for a self-loop.
-        self.dfa_states.push(TransitionTable {
+        self.dfa_states.push(StateTable {
             transitions: smallvec![],
-            fallback_state: (Self::rejecting_state(), false),
+            fallback_state: Self::rejecting_state(),
+            attributes: StateAttributesBuilder::new().rejecting().into(),
         });
         self.superstates
             .insert(SmallSet256::default(), Self::rejecting_state());
@@ -107,7 +109,7 @@ impl<'q> Minimizer<'q> {
                 .map_err(CompilerError::QueryTooComplex)?;
             self.superstates.insert(superstate, identifier);
             self.active_superstates.push(superstate);
-            self.dfa_states.push(TransitionTable::default());
+            self.dfa_states.push(StateTable::default());
             debug!("New superstate created: {superstate:?} {identifier}");
             if superstate.contains(self.nfa.accepting_state().0) {
                 self.accepting.insert(identifier.0);
@@ -133,30 +135,52 @@ impl<'q> Minimizer<'q> {
         debug!("Normalized transitions: {:?}", transitions);
 
         // Translate the transitions to the data model expected by TransitionTable.
-        let translated_transitions = transitions
+        let translated_transitions: SmallVec<_> = transitions
             .labelled
             .into_iter()
-            .map(|(label, state)| {
-                (
-                    label,
-                    self.superstates[&state],
-                    self.accepting.contains(self.superstates[&state].0),
-                )
-            })
+            .map(|(label, state)| (label, self.superstates[&state]))
             .collect();
         debug!("Translated transitions: {translated_transitions:?}");
 
         // If a checkpoint was reached, its singleton superstate is this DFA state's fallback state.
         // Otherwise, we set the fallback to the rejecting state.
-        let mut table = &mut self.dfa_states[self.superstates[&current_superstate].0 as usize];
+        let id = self.superstates[&current_superstate];
+        let fallback_state = self.superstates[&transitions.wildcard];
+        let attributes = self.build_attributes(id, &translated_transitions, fallback_state);
+        let mut table = &mut self.dfa_states[id.0 as usize];
         table.transitions = translated_transitions;
-        table.fallback_state = (
-            self.superstates[&transitions.wildcard],
-            self.accepting
-                .contains(self.superstates[&transitions.wildcard].0),
-        );
+        table.fallback_state = fallback_state;
+        table.attributes = attributes;
 
         Ok(())
+    }
+
+    fn build_attributes(
+        &self,
+        id: DfaStateId,
+        transitions: &[(&Label, DfaStateId)],
+        fallback: DfaStateId,
+    ) -> StateAttributes {
+        let mut attrs = StateAttributesBuilder::new();
+
+        if self.accepting.contains(id.0) {
+            attrs = attrs.accepting();
+        }
+        if id == Self::rejecting_state() {
+            attrs = attrs.rejecting();
+        }
+        if transitions.len() == 1 && fallback == Self::rejecting_state() {
+            attrs = attrs.unitary();
+        }
+        if self.accepting.contains(fallback.0)
+            || transitions
+                .iter()
+                .any(|(_, s)| self.accepting.contains(s.0))
+        {
+            attrs = attrs.transitions_to_accepting();
+        }
+
+        attrs.into()
     }
 
     /// Determine what is the furthest reachable checkpoint on the path to this
@@ -301,7 +325,7 @@ mod tests {
 
     #[test]
     fn empty_query_test() {
-        // Query = $.
+        // Query = $
         let nfa = NondeterministicAutomaton {
             ordered_states: vec![NfaState::Accepting],
         };
@@ -309,13 +333,15 @@ mod tests {
         let result = minimize(nfa).unwrap();
         let expected = Automaton {
             states: vec![
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![],
-                    fallback_state: (State(0), false),
+                    fallback_state: State(0),
+                    attributes: StateAttributes::REJECTING,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![],
-                    fallback_state: (State(0), false),
+                    fallback_state: State(0),
+                    attributes: StateAttributes::ACCEPTING,
                 },
             ],
         };
@@ -336,17 +362,20 @@ mod tests {
         let result = minimize(nfa).unwrap();
         let expected = Automaton {
             states: vec![
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![],
-                    fallback_state: (State(0), false),
+                    fallback_state: State(0),
+                    attributes: StateAttributes::REJECTING,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![],
-                    fallback_state: (State(2), true),
+                    fallback_state: State(2),
+                    attributes: StateAttributes::EMPTY,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![],
-                    fallback_state: (State(0), false),
+                    fallback_state: State(0),
+                    attributes: StateAttributes::EMPTY,
                 },
             ],
         };
@@ -369,25 +398,31 @@ mod tests {
         let result = minimize(nfa).unwrap();
         let expected = Automaton {
             states: vec![
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![],
-                    fallback_state: (State(0), false),
+                    fallback_state: State(0),
+                    attributes: StateAttributes::REJECTING,
                 },
-                TransitionTable {
-                    transitions: smallvec![(&label, State(2), false),],
-                    fallback_state: (State(1), false),
+                StateTable {
+                    transitions: smallvec![(&label, State(2)),],
+                    fallback_state: State(1),
+                    attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
-                TransitionTable {
-                    transitions: smallvec![(&label, State(4), true)],
-                    fallback_state: (State(3), true),
+                StateTable {
+                    transitions: smallvec![(&label, State(4))],
+                    fallback_state: State(3),
+                    attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
-                TransitionTable {
-                    transitions: smallvec![(&label, State(2), false)],
-                    fallback_state: (State(1), false),
+                StateTable {
+                    transitions: smallvec![(&label, State(2))],
+                    fallback_state: State(1),
+                    attributes: StateAttributes::ACCEPTING,
                 },
-                TransitionTable {
-                    transitions: smallvec![(&label, State(4), true)],
-                    fallback_state: (State(3), true),
+                StateTable {
+                    transitions: smallvec![(&label, State(4))],
+                    fallback_state: State(3),
+                    attributes: StateAttributes::ACCEPTING
+                        | StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
             ],
         };
@@ -412,29 +447,35 @@ mod tests {
         let result = minimize(nfa).unwrap();
         let expected = Automaton {
             states: vec![
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![],
-                    fallback_state: (State(0), false),
+                    fallback_state: State(0),
+                    attributes: StateAttributes::REJECTING,
                 },
-                TransitionTable {
-                    transitions: smallvec![(&label, State(2), false)],
-                    fallback_state: (State(0), false),
+                StateTable {
+                    transitions: smallvec![(&label, State(2))],
+                    fallback_state: State(0),
+                    attributes: StateAttributes::UNITARY,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![],
-                    fallback_state: (State(3), false),
+                    fallback_state: State(3),
+                    attributes: StateAttributes::EMPTY,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![],
-                    fallback_state: (State(4), false),
+                    fallback_state: State(4),
+                    attributes: StateAttributes::EMPTY,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![],
-                    fallback_state: (State(5), true),
+                    fallback_state: State(5),
+                    attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![],
-                    fallback_state: (State(0), false),
+                    fallback_state: State(0),
+                    attributes: StateAttributes::ACCEPTING,
                 },
             ],
         };
@@ -458,41 +499,51 @@ mod tests {
         let result = minimize(nfa).unwrap();
         let expected = Automaton {
             states: vec![
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![],
-                    fallback_state: (State(0), false),
+                    fallback_state: State(0),
+                    attributes: StateAttributes::REJECTING,
                 },
-                TransitionTable {
-                    transitions: smallvec![(&label, State(2), false)],
-                    fallback_state: (State(1), false),
+                StateTable {
+                    transitions: smallvec![(&label, State(2))],
+                    fallback_state: State(1),
+                    attributes: StateAttributes::EMPTY,
                 },
-                TransitionTable {
-                    transitions: smallvec![(&label, State(4), false)],
-                    fallback_state: (State(3), false),
+                StateTable {
+                    transitions: smallvec![(&label, State(4))],
+                    fallback_state: State(3),
+                    attributes: StateAttributes::EMPTY,
                 },
-                TransitionTable {
-                    transitions: smallvec![(&label, State(8), true)],
-                    fallback_state: (State(7), true),
+                StateTable {
+                    transitions: smallvec![(&label, State(8))],
+                    fallback_state: State(7),
+                    attributes: StateAttributes::EMPTY | StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
-                TransitionTable {
-                    transitions: smallvec![(&label, State(6), true)],
-                    fallback_state: (State(5), true),
+                StateTable {
+                    transitions: smallvec![(&label, State(6))],
+                    fallback_state: State(5),
+                    attributes: StateAttributes::EMPTY | StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
-                TransitionTable {
-                    transitions: smallvec![(&label, State(8), true)],
-                    fallback_state: (State(7), true),
+                StateTable {
+                    transitions: smallvec![(&label, State(8))],
+                    fallback_state: State(7),
+                    attributes: StateAttributes::ACCEPTING
+                        | StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
-                TransitionTable {
-                    transitions: smallvec![(&label, State(6), true)],
-                    fallback_state: (State(5), true),
+                StateTable {
+                    transitions: smallvec![(&label, State(6))],
+                    fallback_state: State(5),
+                    attributes: StateAttributes::EMPTY | StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
-                TransitionTable {
-                    transitions: smallvec![(&label, State(2), false)],
-                    fallback_state: (State(1), false),
+                StateTable {
+                    transitions: smallvec![(&label, State(2))],
+                    fallback_state: State(1),
+                    attributes: StateAttributes::ACCEPTING,
                 },
-                TransitionTable {
-                    transitions: smallvec![(&label, State(4), false)],
-                    fallback_state: (State(3), false),
+                StateTable {
+                    transitions: smallvec![(&label, State(4))],
+                    fallback_state: State(3),
+                    attributes: StateAttributes::ACCEPTING,
                 },
             ],
         };
@@ -525,50 +576,50 @@ mod tests {
         let result = minimize(nfa).unwrap();
         let expected = Automaton {
             states: vec![
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![],
-                    fallback_state: (State(0), false),
+                    fallback_state: State(0),
+                    attributes: StateAttributes::REJECTING,
                 },
-                TransitionTable {
-                    transitions: smallvec![(&label_x, State(2), false)],
-                    fallback_state: (State(0), false),
+                StateTable {
+                    transitions: smallvec![(&label_x, State(2))],
+                    fallback_state: State(0),
+                    attributes: StateAttributes::UNITARY,
                 },
-                TransitionTable {
-                    transitions: smallvec![(&label_a, State(3), false)],
-                    fallback_state: (State(2), false),
+                StateTable {
+                    transitions: smallvec![(&label_a, State(3))],
+                    fallback_state: State(2),
+                    attributes: StateAttributes::EMPTY,
                 },
-                TransitionTable {
-                    transitions: smallvec![
-                        (&label_a, State(3), false),
-                        (&label_b, State(4), false)
-                    ],
-                    fallback_state: (State(2), false),
+                StateTable {
+                    transitions: smallvec![(&label_a, State(3)), (&label_b, State(4))],
+                    fallback_state: State(2),
+                    attributes: StateAttributes::EMPTY,
                 },
-                TransitionTable {
-                    transitions: smallvec![(&label_a, State(5), false)],
-                    fallback_state: (State(2), false),
+                StateTable {
+                    transitions: smallvec![(&label_a, State(5))],
+                    fallback_state: State(2),
+                    attributes: StateAttributes::EMPTY,
                 },
-                TransitionTable {
-                    transitions: smallvec![
-                        (&label_a, State(3), false),
-                        (&label_b, State(6), false)
-                    ],
-                    fallback_state: (State(2), false),
+                StateTable {
+                    transitions: smallvec![(&label_a, State(3)), (&label_b, State(6))],
+                    fallback_state: State(2),
+                    attributes: StateAttributes::EMPTY,
                 },
-                TransitionTable {
-                    transitions: smallvec![
-                        (&label_a, State(5), false),
-                        (&label_c, State(7), false)
-                    ],
-                    fallback_state: (State(2), false),
+                StateTable {
+                    transitions: smallvec![(&label_a, State(5)), (&label_c, State(7))],
+                    fallback_state: State(2),
+                    attributes: StateAttributes::EMPTY,
                 },
-                TransitionTable {
-                    transitions: smallvec![(&label_d, State(8), true)],
-                    fallback_state: (State(7), false),
+                StateTable {
+                    transitions: smallvec![(&label_d, State(8))],
+                    fallback_state: State(7),
+                    attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
-                TransitionTable {
-                    transitions: smallvec![(&label_d, State(8), true)],
-                    fallback_state: (State(7), false),
+                StateTable {
+                    transitions: smallvec![(&label_d, State(8))],
+                    fallback_state: State(7),
+                    attributes: StateAttributes::ACCEPTING,
                 },
             ],
         };
@@ -597,41 +648,51 @@ mod tests {
         let result = minimize(nfa).unwrap();
         let expected = Automaton {
             states: vec![
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![],
-                    fallback_state: (State(0), false),
+                    fallback_state: State(0),
+                    attributes: StateAttributes::REJECTING,
                 },
-                TransitionTable {
-                    transitions: smallvec![(&label_x, State(2), false)],
-                    fallback_state: (State(0), false),
+                StateTable {
+                    transitions: smallvec![(&label_x, State(2))],
+                    fallback_state: State(0),
+                    attributes: StateAttributes::UNITARY,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![],
-                    fallback_state: (State(3), false),
+                    fallback_state: State(3),
+                    attributes: StateAttributes::EMPTY,
                 },
-                TransitionTable {
-                    transitions: smallvec![(&label_a, State(4), false)],
-                    fallback_state: (State(3), false),
+                StateTable {
+                    transitions: smallvec![(&label_a, State(4))],
+                    fallback_state: State(3),
+                    attributes: StateAttributes::EMPTY,
                 },
-                TransitionTable {
-                    transitions: smallvec![(&label_a, State(6), false)],
-                    fallback_state: (State(5), false),
+                StateTable {
+                    transitions: smallvec![(&label_a, State(6))],
+                    fallback_state: State(5),
+                    attributes: StateAttributes::EMPTY,
                 },
-                TransitionTable {
-                    transitions: smallvec![(&label_a, State(4), false), (&label_b, State(8), true)],
-                    fallback_state: (State(3), false),
+                StateTable {
+                    transitions: smallvec![(&label_a, State(4)), (&label_b, State(8))],
+                    fallback_state: State(3),
+                    attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
-                TransitionTable {
-                    transitions: smallvec![(&label_a, State(6), false), (&label_b, State(7), true)],
-                    fallback_state: (State(5), false),
+                StateTable {
+                    transitions: smallvec![(&label_a, State(6)), (&label_b, State(7))],
+                    fallback_state: State(5),
+                    attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
-                TransitionTable {
-                    transitions: smallvec![(&label_a, State(4), false), (&label_b, State(8), true)],
-                    fallback_state: (State(3), false),
+                StateTable {
+                    transitions: smallvec![(&label_a, State(4)), (&label_b, State(8))],
+                    fallback_state: State(3),
+                    attributes: StateAttributes::ACCEPTING
+                        | StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
-                TransitionTable {
-                    transitions: smallvec![(&label_a, State(4), false)],
-                    fallback_state: (State(3), false),
+                StateTable {
+                    transitions: smallvec![(&label_a, State(4))],
+                    fallback_state: State(3),
+                    attributes: StateAttributes::ACCEPTING,
                 },
             ],
         };

@@ -8,9 +8,10 @@
 //! This implementation should be more performant than [`recursive`](super::recursive::RecursiveEngine)
 //! even on targets that do not support AVX2 SIMD operations.
 
+#[cfg(feature = "head-skip")]
+use crate::classify::resume_structural_classification;
 use crate::classify::{
-    classify_structural_characters, resume_structural_classification, ClassifierWithSkipping,
-    Structural, StructuralIterator,
+    classify_structural_characters, ClassifierWithSkipping, Structural, StructuralIterator,
 };
 use crate::debug;
 use crate::engine::depth::Depth;
@@ -161,11 +162,12 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
             };
             let initial_state = self.automaton.initial_state();
 
-            if self.automaton[initial_state].fallback_state().0 == initial_state {
-                if let Some(&(label, target_state, is_accepting)) =
+            if self.automaton[initial_state].fallback_state() == initial_state {
+                if let Some(&(label, target_state)) =
                     self.automaton[initial_state].transitions().first()
                 {
                     debug!("Automaton starts with a descendant search, using memmem heuristic.");
+                    let is_accepting = self.automaton.is_accepting(target_state);
                     let needle = label.bytes_with_quotes();
                     let bytes: &[u8] = self.bytes;
                     let mut idx = 0;
@@ -285,16 +287,16 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                     if !is_next_opening {
                         let mut any_matched = false;
 
-                        for &(label, _, is_accepting) in self.automaton[self.state].transitions() {
-                            if is_accepting && self.is_match(idx, label)? {
+                        for &(label, target) in self.automaton[self.state].transitions() {
+                            if self.automaton.is_accepting(target) && self.is_match(idx, label)? {
                                 debug!("Accept {idx}");
                                 self.result.report(idx);
                                 any_matched = true;
                                 break;
                             }
                         }
-                        let (_, is_accepting) = self.automaton[self.state].fallback_state();
-                        if !any_matched && is_accepting {
+                        let fallback_state = self.automaton[self.state].fallback_state();
+                        if !any_matched && self.automaton.is_accepting(fallback_state) {
                             debug!("Value accepted by fallback.");
                             self.result.report(idx);
                         }
@@ -304,7 +306,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                                 matches!(self.next_event, Some(Structural::Closing(_)));
                             if any_matched
                                 && !is_next_closing
-                                && self.automaton.is_unique(self.state)
+                                && self.automaton.is_unitary(self.state)
                             {
                                 let opening = if self.is_list { b'[' } else { b'{' };
                                 debug!("Skipping unique state from {}", opening as char);
@@ -319,8 +321,8 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                     let is_next_opening = matches!(self.next_event, Some(Structural::Opening(_)));
 
                     if !is_next_opening {
-                        let (_, is_accepting) = self.automaton[self.state].fallback_state();
-                        if self.is_list && is_accepting {
+                        let fallback_state = self.automaton[self.state].fallback_state();
+                        if self.is_list && self.automaton.is_accepting(fallback_state) {
                             debug!("Accepting on comma.");
                             self.result.report(idx);
                         }
@@ -343,7 +345,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                             self.state = stack_frame.state;
                             self.is_list = stack_frame.is_list;
 
-                            if self.automaton.is_unique(self.state) {
+                            if self.automaton.is_unitary(self.state) {
                                 let opening = if self.is_list { b'[' } else { b'{' };
                                 debug!("Skipping unique state from {}", opening as char);
                                 classifier.skip(opening);
@@ -370,13 +372,17 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                         }
                     }
 
-                    if self.is_list && self.automaton[self.state].fallback_state().1 {
+                    if self.is_list
+                        && self
+                            .automaton
+                            .is_accepting(self.automaton[self.state].fallback_state())
+                    {
                         classifier.turn_commas_on(idx);
                     } else {
                         classifier.turn_commas_off();
                     }
 
-                    if !self.is_list && self.automaton.can_accept(self.state) {
+                    if !self.is_list && self.automaton.has_transition_to_accepting(self.state) {
                         classifier.turn_colons_on(idx);
                     } else {
                         classifier.turn_colons_off();
@@ -395,11 +401,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                         while self.bytes[colon_idx].is_ascii_whitespace() {
                             colon_idx -= 1;
                         }
-                        if self.bytes[colon_idx] == b':' {
-                            Some(colon_idx)
-                        } else {
-                            None
-                        }
+                        (self.bytes[colon_idx] == b':').then_some(colon_idx)
                     };
 
                     if let Some(colon_idx) = colon_idx {
@@ -411,13 +413,11 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                             )
                             .unwrap_or("[invalid utf8]")
                         );
-                        for &(label, target, is_accepting) in
-                            self.automaton[self.state].transitions()
-                        {
+                        for &(label, target) in self.automaton[self.state].transitions() {
                             if self.is_match(colon_idx, label)? {
                                 any_matched = true;
                                 self.transition_to(target);
-                                if is_accepting {
+                                if self.automaton.is_accepting(target) {
                                     debug!("Accept {idx}");
                                     self.result.report(colon_idx);
                                 }
@@ -427,7 +427,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                     }
 
                     if !any_matched && self.depth != Depth::ZERO {
-                        let (fallback, is_accepting) = self.automaton[self.state].fallback_state();
+                        let fallback = self.automaton[self.state].fallback_state();
                         debug!("Falling back to {fallback}");
 
                         #[cfg(feature = "tail-skip")]
@@ -440,7 +440,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                         #[cfg(not(feature = "tail-skip"))]
                         self.transition_to(fallback);
 
-                        if is_accepting {
+                        if self.automaton.is_accepting(fallback) {
                             debug!("Accept {idx}");
                             self.result.report(idx);
                         }
@@ -449,8 +449,8 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                     if self.bytes[idx] == b'[' {
                         self.is_list = true;
 
-                        let (_, is_accepting) = self.automaton[self.state].fallback_state();
-                        if is_accepting {
+                        let fallback = self.automaton[self.state].fallback_state();
+                        if self.automaton.is_accepting(fallback) {
                             classifier.turn_commas_on(idx);
                             self.next_event = classifier.next();
                             if let Some(Structural::Closing(close_idx)) = self.next_event {
@@ -473,7 +473,7 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                         self.is_list = false;
                     }
 
-                    if !self.is_list && self.automaton.can_accept(self.state) {
+                    if !self.is_list && self.automaton.has_transition_to_accepting(self.state) {
                         debug!("Can accept from here.");
                         classifier.turn_colons_on(idx);
                     } else {

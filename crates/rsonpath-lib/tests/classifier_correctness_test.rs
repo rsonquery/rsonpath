@@ -8,6 +8,7 @@ fn classify_string(json: &str) -> Vec<Structural> {
     let quotes_classifier = classify_quoted_sequences(&bytes);
     let mut structural_classifier = classify_structural_characters(quotes_classifier);
     structural_classifier.turn_commas_on(0);
+    structural_classifier.turn_colons_on(0);
 
     structural_classifier.collect()
 }

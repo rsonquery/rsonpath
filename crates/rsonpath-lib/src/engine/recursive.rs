@@ -146,7 +146,8 @@ where
         debug!("Run state {state}, depth {}", self.depth);
         let mut next_event = None;
         let mut latest_idx = open_idx;
-        let (fallback_state, is_fallback_accepting) = self.automaton[state].fallback_state();
+        let fallback_state = self.automaton[state].fallback_state();
+        let is_fallback_accepting = self.automaton.is_accepting(fallback_state);
         let is_list = self.bytes[open_idx] == b'[';
 
         if is_list && is_fallback_accepting {
@@ -217,7 +218,8 @@ where
                         _ => None,
                     };
                     let mut any_matched = false;
-                    for &(label, target, is_accepting) in self.automaton[state].transitions() {
+                    for &(label, target) in self.automaton[state].transitions() {
+                        let is_accepting = self.automaton.is_accepting(target);
                         if let Some(next_idx) = next_opening {
                             if self.is_match(idx, label)? {
                                 debug!("Matched transition to {target}");
