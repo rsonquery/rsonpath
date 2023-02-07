@@ -143,7 +143,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a, I> for Avx2Class
 
             if let Some(block) = self.block.take() {
                 let quote_classified_block = block.quote_classified;
-                let block_idx = (idx + 1) % quote_classified_block.len();
+                let block_idx = (idx + 1) % I::block_size();
 
                 if block_idx != 0 {
                     let mask = u64::MAX << block_idx;
@@ -174,7 +174,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a, I> for Avx2Class
 
             if let Some(block) = self.block.take() {
                 let quote_classified_block = block.quote_classified;
-                let block_idx = (idx + 1) % quote_classified_block.len();
+                let block_idx = (idx + 1) % I::block_size();
 
                 if block_idx != 0 {
                     let mask = u64::MAX << block_idx;

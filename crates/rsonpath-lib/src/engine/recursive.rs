@@ -196,7 +196,6 @@ where
                         debug!("Accepting on comma.");
                         self.result.report(idx);
                     }
-                    next_event = None;
                 }
                 Some(Structural::Colon(idx)) => {
                     debug!(
@@ -225,24 +224,20 @@ where
                             debug!("Value accepted by fallback.");
                             self.result.report(idx);
                         }
-                        /*#[cfg(feature = "unique-labels")]
+                        #[cfg(feature = "unique-labels")]
                         {
                             let is_next_closing =
-                                matches!(self.next_event, Some(Structural::Closing(_)));
-                            if any_matched
-                                && !is_next_closing
-                                && self.automaton.is_unitary(self.state)
-                            {
-                                let opening = if self.is_list { b'[' } else { b'{' };
+                                matches!(next_event, Some(Structural::Closing(_)));
+                            if any_matched && !is_next_closing && self.automaton.is_unitary(state) {
+                                let opening = if is_list { b'[' } else { b'{' };
                                 debug!("Skipping unique state from {}", opening as char);
-                                let stop_at = classifier.skip(opening);
-                                self.next_event = Some(Structural::Closing(stop_at));
+                                let stop_at = self.classifier.skip(opening);
+                                next_event = Some(Structural::Closing(stop_at));
                             }
-                        }*/
+                        }
                     }
                 }
                 Some(Structural::Opening(idx)) => {
-                    debug!("Opening, falling back");
                     increase_depth!(self);
 
                     let mut matched = None;
@@ -276,9 +271,7 @@ where
                     }
 
                     let end_idx = match matched {
-                        Some(target) => {
-                            self.run(target, idx)?
-                        }
+                        Some(target) => self.run(target, idx)?,
                         None => {
                             let fallback = self.automaton[state].fallback_state();
                             debug!("Falling back to {fallback}");
@@ -318,7 +311,6 @@ where
                     next_event = None;
                 }
                 Some(Structural::Closing(idx)) => {
-                    debug!("Closing, popping stack");
                     latest_idx = idx;
                     decrease_depth!(self);
                     break;

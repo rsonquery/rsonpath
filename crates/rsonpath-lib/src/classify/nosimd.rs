@@ -1,4 +1,5 @@
 use super::*;
+use crate::debug;
 use crate::quotes::{QuoteClassifiedBlock, ResumeClassifierBlockState, ResumeClassifierState};
 
 struct Block<'a> {
@@ -48,14 +49,21 @@ impl<'a> Iterator for Block<'a> {
 
             self.idx += 1;
 
-            if !is_quoted {
+            let character = if !is_quoted {
                 match character {
-                    b':' if self.are_colons_on => return Some(Colon(self.idx - 1)),
-                    b'[' | b'{' => return Some(Opening(self.idx - 1)),
-                    b',' if self.are_commas_on => return Some(Comma(self.idx - 1)),
-                    b']' | b'}' => return Some(Closing(self.idx - 1)),
-                    _ => (),
+                    b':' if self.are_colons_on => Some(Colon(self.idx - 1)),
+                    b'[' | b'{' => Some(Opening(self.idx - 1)),
+                    b',' if self.are_commas_on => Some(Comma(self.idx - 1)),
+                    b']' | b'}' => Some(Closing(self.idx - 1)),
+                    _ => None,
                 }
+            } else {
+                None
+            };
+
+            if let Some(c) = character {
+                debug!("Classified {c:?}");
+                return Some(c);
             }
         }
 
@@ -113,7 +121,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a, I> for Sequentia
 
             if let Some(block) = self.block.take() {
                 let quote_classified_block = block.quote_classified;
-                let block_idx = (idx + 1) % quote_classified_block.len();
+                let block_idx = (idx + 1) % I::block_size();
 
                 if block_idx != 0 {
                     let new_block = Block::from_idx(
@@ -138,7 +146,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a, I> for Sequentia
 
             if let Some(block) = self.block.take() {
                 let quote_classified_block = block.quote_classified;
-                let block_idx = (idx + 1) % quote_classified_block.len();
+                let block_idx = (idx + 1) % I::block_size();
 
                 if block_idx != 0 {
                     let new_block = Block::from_idx(

@@ -89,7 +89,7 @@ struct StackFrame {
 
 #[derive(Debug)]
 struct SmallStack {
-    contents: SmallVec<[StackFrame; 32]>,
+    contents: SmallVec<[StackFrame; 128]>,
 }
 
 impl SmallStack {
@@ -328,66 +328,6 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                         }
                     }
                 }
-                Structural::Closing(idx) => {
-                    debug!("Closing, decreasing depth and popping stack.");
-
-                    #[cfg(feature = "unique-labels")]
-                    loop {
-                        self.depth
-                            .decrement()
-                            .map_err(|err| EngineError::DepthBelowZero(idx, err))?;
-
-                        if self.depth == Depth::ZERO {
-                            break 'main;
-                        }
-
-                        if let Some(stack_frame) = self.stack.pop_if_at_or_below(*self.depth) {
-                            self.state = stack_frame.state;
-                            self.is_list = stack_frame.is_list;
-
-                            if self.automaton.is_unitary(self.state) {
-                                let opening = if self.is_list { b'[' } else { b'{' };
-                                debug!("Skipping unique state from {}", opening as char);
-                                classifier.skip(opening);
-                            } else {
-                                break;
-                            }
-                        } else {
-                            break;
-                        }
-                    }
-                    #[cfg(not(feature = "unique-labels"))]
-                    {
-                        self.depth
-                            .decrement()
-                            .map_err(|err| EngineError::DepthBelowZero(idx, err))?;
-
-                        if self.depth == Depth::ZERO {
-                            break 'main;
-                        }
-
-                        if let Some(stack_frame) = self.stack.pop_if_at_or_below(*self.depth) {
-                            self.state = stack_frame.state;
-                            self.is_list = stack_frame.is_list;
-                        }
-                    }
-
-                    if self.is_list
-                        && self
-                            .automaton
-                            .is_accepting(self.automaton[self.state].fallback_state())
-                    {
-                        classifier.turn_commas_on(idx);
-                    } else {
-                        classifier.turn_commas_off();
-                    }
-
-                    if !self.is_list && self.automaton.has_transition_to_accepting(self.state) {
-                        classifier.turn_colons_on(idx);
-                    } else {
-                        classifier.turn_colons_off();
-                    }
-                }
                 Structural::Opening(idx) => {
                     debug!(
                         "Opening {}, increasing depth and pushing stack.",
@@ -483,6 +423,66 @@ impl<'q, 'b, 'r, R: QueryResult> Executor<'q, 'b, 'r, R> {
                     self.depth
                         .increment()
                         .map_err(|err| EngineError::DepthAboveLimit(idx, err))?;
+                }
+                Structural::Closing(idx) => {
+                    debug!("Closing, decreasing depth and popping stack.");
+
+                    #[cfg(feature = "unique-labels")]
+                    loop {
+                        self.depth
+                            .decrement()
+                            .map_err(|err| EngineError::DepthBelowZero(idx, err))?;
+
+                        if self.depth == Depth::ZERO {
+                            break 'main;
+                        }
+
+                        if let Some(stack_frame) = self.stack.pop_if_at_or_below(*self.depth) {
+                            self.state = stack_frame.state;
+                            self.is_list = stack_frame.is_list;
+
+                            if self.automaton.is_unitary(self.state) {
+                                let opening = if self.is_list { b'[' } else { b'{' };
+                                debug!("Skipping unique state from {}", opening as char);
+                                classifier.skip(opening);
+                            } else {
+                                break;
+                            }
+                        } else {
+                            break;
+                        }
+                    }
+                    #[cfg(not(feature = "unique-labels"))]
+                    {
+                        self.depth
+                            .decrement()
+                            .map_err(|err| EngineError::DepthBelowZero(idx, err))?;
+
+                        if self.depth == Depth::ZERO {
+                            break 'main;
+                        }
+
+                        if let Some(stack_frame) = self.stack.pop_if_at_or_below(*self.depth) {
+                            self.state = stack_frame.state;
+                            self.is_list = stack_frame.is_list;
+                        }
+                    }
+
+                    if self.is_list
+                        && self
+                            .automaton
+                            .is_accepting(self.automaton[self.state].fallback_state())
+                    {
+                        classifier.turn_commas_on(idx);
+                    } else {
+                        classifier.turn_commas_off();
+                    }
+
+                    if !self.is_list && self.automaton.has_transition_to_accepting(self.state) {
+                        classifier.turn_colons_on(idx);
+                    } else {
+                        classifier.turn_colons_off();
+                    }
                 }
             }
         }

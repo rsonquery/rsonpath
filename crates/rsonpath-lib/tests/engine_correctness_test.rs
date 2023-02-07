@@ -153,10 +153,10 @@ macro_rules! indices_test_cases {
         #[test_case("basic/small_no_list.json", "$..person..phoneNumber..number" => vec![310, 764]; "small_no_list.json $..person..phoneNumber..number")]
         #[test_case("basic/small.json", "$..person..phoneNumber..number" => vec![332, 436, 934, 1070]; "small.json $..person..phoneNumber..number")]
         #[test_case("basic/spaced_colon.json", r#"$..a..b..label"# => vec![106, 213]; "spaced colon")]
-        #[test_case("basic/wildcard_list.json", r#"$..a.*"# => vec![46, 64, 83, 103, 123, 287]; "wildcard_list.json $..a.*")]
-        #[test_case("basic/wildcard_list2.json", r#"$..a.*..b.*"# => vec![226, 364, 402, 441, 481, 521, 641, 881]; "wildcard_list2.json $..a.*..b.*")]
-        #[test_case("basic/wildcard_object.json", r#"$..a.*"# => vec![66, 91, 116, 141, 211, 238, 267]; "wildcard_object.json $..a.*")]
-        #[test_case("basic/wildcard_object2.json", r#"$..a.*.*..b.*.*"# => vec![652, 709, 749, 791, 855, 899, 1713, 1811, 1876]; "wildcard_object2.json $..a.*.*..b.*.*")]
+        #[test_case("basic/wildcard_list.json", r#"$..a.*"# => vec![46, 64, 101, 121, 141, 287]; "wildcard_list.json $..a.*")]
+        #[test_case("basic/wildcard_list2.json", r#"$..a.*..b.*"# => vec![226, 364, 402, 479, 519, 559, 641, 881]; "wildcard_list2.json $..a.*..b.*")]
+        #[test_case("basic/wildcard_object.json", r#"$..a.*"# => vec![66, 91, 116, 143, 211, 238, 267]; "wildcard_object.json $..a.*")]
+        #[test_case("basic/wildcard_object2.json", r#"$..a.*.*..b.*.*"# => vec![652, 709, 751, 791, 855, 901, 1713, 1811, 1878]; "wildcard_object2.json $..a.*.*..b.*.*")]
         #[test_case(
             "twitter/twitter.json",
             "$..user..entities..url"
