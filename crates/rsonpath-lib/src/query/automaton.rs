@@ -265,7 +265,14 @@ impl<'q> Display for Automaton<'q> {
                 color_two = "";
             }
 
-            let attrs = vec![shape, "style=filled", "gradientangle=45", color_one, color_two].join(" ");
+            let attrs = vec![
+                shape,
+                "style=filled",
+                "gradientangle=45",
+                color_one,
+                color_two,
+            ]
+            .join(" ");
 
             writeln!(f, "node [{attrs}]; {i}")?;
         }

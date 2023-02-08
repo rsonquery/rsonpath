@@ -6,6 +6,8 @@
 
 mod depth;
 pub mod error;
+#[cfg(feature = "head-skip")]
+mod head_skipping;
 pub mod main;
 pub mod recursive;
 pub mod result;
