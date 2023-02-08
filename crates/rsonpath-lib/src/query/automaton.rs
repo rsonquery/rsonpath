@@ -5,7 +5,7 @@ mod nfa;
 mod small_set;
 mod state;
 
-pub use state::{State, StateAttribute, StateAttributes};
+pub use state::{State, StateAttributes};
 
 use super::{error::CompilerError, JsonPathQuery, Label};
 use crate::debug;
@@ -245,15 +245,31 @@ impl<'q> Display for Automaton<'q> {
     #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "digraph {{")?;
-        let accepting_states = self
-            .states
-            .iter()
-            .enumerate()
-            .filter_map(|(i, s)| s.attributes.is_accepting().then_some(State(i as u8)));
-        for i in accepting_states {
-            writeln!(f, "node [shape = doublecircle]; {}", i.0)?;
+
+        for (i, state) in self.states.iter().enumerate() {
+            let mut color_one = "fillcolor=\"white;0.5";
+            let mut color_two = ":white\"";
+            let mut shape = "shape=circle";
+
+            if state.attributes.is_accepting() {
+                shape = "shape=doublecircle";
+            }
+            if state.attributes.is_unitary() {
+                color_one = "fillcolor=\"darkgoldenrod2;0.5";
+            }
+            if state.attributes.has_transition_to_accepting() {
+                color_two = ":dodgerblue\"";
+            }
+            if state.attributes.is_rejecting() {
+                color_one = "fillcolor=gray";
+                color_two = "";
+            }
+
+            let attrs = vec![shape, "style=filled", "gradientangle=45", color_one, color_two].join(" ");
+
+            writeln!(f, "node [{attrs}]; {i}")?;
         }
-        writeln!(f, "node [shape = circle];")?;
+
         for (i, transitions) in self.states.iter().enumerate() {
             for (label, state) in transitions.transitions.iter() {
                 writeln!(f, "  {i} -> {} [label=\"{}\"]", state.0, label.display(),)?

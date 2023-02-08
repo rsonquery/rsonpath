@@ -3,7 +3,7 @@ use std::{fmt::Display, ops::BitOr};
 /// Attributes that may be associated with a DFA's [`State`].
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 #[repr(u8)]
-pub enum StateAttribute {
+pub(crate) enum StateAttribute {
     /// Marks that the [`State`] is accepting.
     Accepting = 0x01,
     /// Marks that the [`State`] is rejecting,
@@ -22,7 +22,7 @@ pub(crate) struct StateAttributesBuilder {
     attrs: StateAttributes,
 }
 
-/// A set of [`StateAttribute`] values.
+/// A set of attributes that can be associated with a [`State`].
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default)]
 pub struct StateAttributes(u8);
 
@@ -77,43 +77,51 @@ impl BitOr for StateAttributes {
 }
 
 impl StateAttributes {
-    /// Set with a single value of [`StateAttribute::Accepting`].
+    /// Marks that the [`State`] is accepting.
     pub const ACCEPTING: Self = Self(StateAttribute::Accepting as u8);
-    /// Set with no [`StateAttribute`] values.
+    /// Set with no attributes.
     pub const EMPTY: Self = Self(0);
-    /// Set with a single value of [`StateAttribute::Rejecting`].
+    /// Marks that the [`State`] is rejecting,
+    /// i.e. there is no possible path to any accepting state from it.
     pub const REJECTING: Self = Self(StateAttribute::Rejecting as u8);
-    /// Set with a single value of [`StateAttribute::TransitionsToAccepting`].
+    /// Marks that the [`State`] contains some transition
+    /// (labelled or fallback) to an [`Accepting`](`StateAttributes::is_accepting`) state.
     pub const TRANSITIONS_TO_ACCEPTING: Self = Self(StateAttribute::TransitionsToAccepting as u8);
-    /// Set with a single value of [`StateAttribute::Unitary`].
+    /// Marks that the [`State`] is _unitary_.
+    /// A state is _unitary_ if it contains exactly one labelled transition
+    /// and its fallback transition is [`Rejecting`](`StateAttributes::is_rejecting`).
     pub const UNITARY: Self = Self(StateAttribute::Unitary as u8);
 
-    /// Check if the attributes contain [`StateAttribute::Accepting`].
+    /// Check if the the state is accepting.
     #[inline(always)]
     #[must_use]
     pub fn is_accepting(&self) -> bool {
         self.is_set(StateAttribute::Accepting)
     }
 
-    /// Check if the attributes contain [`StateAttribute::Rejecting`].
+    /// Check if the state is rejecting,
+    /// i.e. there is no possible path to any accepting state from it.
     #[inline(always)]
     #[must_use]
     pub fn is_rejecting(&self) -> bool {
         self.is_set(StateAttribute::Rejecting)
     }
 
-    /// Check if the attributes contain [`StateAttribute::Unitary`].
-    #[inline(always)]
-    #[must_use]
-    pub fn is_unitary(&self) -> bool {
-        self.is_set(StateAttribute::Unitary)
-    }
-
-    /// Check if the attributes contain [`StateAttribute::TransitionsToAccepting`].
+    /// Marks that the [`State`] contains some transition
+    /// (labelled or fallback) to an [`Accepting`](`StateAttributes::is_accepting`) state.
     #[inline(always)]
     #[must_use]
     pub fn has_transition_to_accepting(&self) -> bool {
         self.is_set(StateAttribute::TransitionsToAccepting)
+    }
+
+    /// Marks that the [`State`] is _unitary_.
+    /// A state is _unitary_ if it contains exactly one labelled transition
+    /// and its fallback transition is [`Rejecting`](`StateAttributes::is_rejecting`).
+    #[inline(always)]
+    #[must_use]
+    pub fn is_unitary(&self) -> bool {
+        self.is_set(StateAttribute::Unitary)
     }
 
     #[inline(always)]
@@ -123,9 +131,9 @@ impl StateAttributes {
     }
 }
 
-/// State of an [`Automaton`]. Thin wrapper over a state's identifier.
+/// State of an [`Automaton`](`super::Automaton`). Thin wrapper over a state's identifier.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
-pub struct State(pub u8);
+pub struct State(pub(crate) u8);
 
 impl Display for State {
     #[inline]

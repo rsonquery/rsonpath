@@ -113,7 +113,6 @@ impl<'q> Minimizer<'q> {
             debug!("New superstate created: {superstate:?} {identifier}");
             if superstate.contains(self.nfa.accepting_state().0) {
                 self.accepting.insert(identifier.0);
-                debug!("{identifier} is accepting");
             }
         }
 
@@ -164,12 +163,15 @@ impl<'q> Minimizer<'q> {
         let mut attrs = StateAttributesBuilder::new();
 
         if self.accepting.contains(id.0) {
+            debug!("{id} is accepting");
             attrs = attrs.accepting();
         }
         if id == Self::rejecting_state() {
+            debug!("{id} is rejecting");
             attrs = attrs.rejecting();
         }
         if transitions.len() == 1 && fallback == Self::rejecting_state() {
+            debug!("{id} is unitary");
             attrs = attrs.unitary();
         }
         if self.accepting.contains(fallback.0)
@@ -177,6 +179,7 @@ impl<'q> Minimizer<'q> {
                 .iter()
                 .any(|(_, s)| self.accepting.contains(s.0))
         {
+            debug!("{id} has transitions to accepting");
             attrs = attrs.transitions_to_accepting();
         }
 
