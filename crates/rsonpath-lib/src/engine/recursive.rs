@@ -286,7 +286,19 @@ impl<'q, 'b> ExecutionContext<'q, 'b> {
                         }
                     };
 
+                    next_event = None;
                     latest_idx = end_idx;
+
+                    #[cfg(feature = "unique-labels")]
+                    {
+                        if matched.is_some() && self.automaton.is_unitary(state) {
+                            let opening = if is_list { b'[' } else { b'{' };
+                            debug!("Skipping unique state from {}", opening as char);
+                            let stop_at = classifier.skip(opening);
+                            latest_idx = stop_at;
+                            break;
+                        }
+                    }
 
                     if needs_commas {
                         classifier.turn_commas_on(end_idx);
@@ -299,8 +311,6 @@ impl<'q, 'b> ExecutionContext<'q, 'b> {
                     } else {
                         classifier.turn_colons_off();
                     }
-
-                    next_event = None;
                 }
                 Some(Structural::Closing(idx)) => {
                     latest_idx = idx;
