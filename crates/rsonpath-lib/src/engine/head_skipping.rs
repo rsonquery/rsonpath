@@ -110,15 +110,20 @@ impl<'b, 'q> HeadSkip<'b, 'q> {
                     let mut classifier = resume_structural_classification(classifier_state);
                     let next_event = classifier.next();
 
-                    classifier_state = if let Some(opening @ Structural::Opening(_)) = next_event {
-                        engine.run_on_subtree(
-                            opening,
-                            self.state,
-                            ClassifierWithSkipping::new(classifier),
-                            result,
-                        )?
-                    } else {
-                        classifier.stop()
+                    classifier_state = match next_event {
+                        Some(opening @ Structural::Opening(opening_idx))
+                            if self.bytes[colon_idx + 1..opening_idx]
+                                .iter()
+                                .all(u8::is_ascii_whitespace) =>
+                        {
+                            engine.run_on_subtree(
+                                opening,
+                                self.state,
+                                ClassifierWithSkipping::new(classifier),
+                                result,
+                            )?
+                        }
+                        _ => classifier.stop(),
                     };
 
                     debug!("Quote classified up to {}", classifier_state.get_idx());
