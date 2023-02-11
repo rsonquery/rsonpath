@@ -69,6 +69,10 @@ pub struct ResumeClassifierState<'a, I: QuoteClassifiedIterator<'a>> {
     pub iter: I,
     /// The block at which classification was stopped.
     pub block: Option<ResumeClassifierBlockState<'a>>,
+    /// Was comma classification turned on when the classification was stopped.
+    pub are_commas_on: bool,
+    /// Was colon classification turned on when the classification was stopped.
+    pub are_colons_on: bool,
 }
 
 impl<'a, I: QuoteClassifiedIterator<'a>> ResumeClassifierState<'a, I> {

@@ -1,14 +1,22 @@
+//! Determinization and minimization of an NFA into the final DFA used by the engines.
+
+// NOTE: Some comments in this module are outdated, because the minimizer doesn't
+// actually produce minimal automata as of now - see #91.
+
 use super::nfa::{self, NfaState, NfaStateId};
 use super::small_set::{SmallSet, SmallSet256};
-use super::Label;
-use super::{Automaton, NondeterministicAutomaton, State as DfaStateId, TransitionTable};
+use super::state::StateAttributesBuilder;
+use super::{Automaton, NondeterministicAutomaton, State as DfaStateId, StateTable};
+use super::{Label, StateAttributes};
 use crate::debug;
 use crate::query::error::CompilerError;
 use smallvec::{smallvec, SmallVec};
 use vector_map::VecMap;
 
-/// Turn the [`NondeterministicAutomaton`] to an equivalent minimal deterministic [`Automaton`].
-pub(crate) fn minimize(nfa: NondeterministicAutomaton) -> Result<Automaton, CompilerError> {
+/// Turn the [`NondeterministicAutomaton`] to an equivalent minimal* deterministic [`Automaton`].
+///
+/// * Not actualy minimal. See #91
+pub(super) fn minimize(nfa: NondeterministicAutomaton) -> Result<Automaton, CompilerError> {
     let minimizer = Minimizer {
         nfa,
         superstates: VecMap::new(),
@@ -21,7 +29,7 @@ pub(crate) fn minimize(nfa: NondeterministicAutomaton) -> Result<Automaton, Comp
     minimizer.run()
 }
 
-pub(crate) struct Minimizer<'q> {
+pub(super) struct Minimizer<'q> {
     /// The NFA being minimized.
     nfa: NondeterministicAutomaton<'q>,
     /// All superstates created thus far mapping to their index in the DFA being constructed.
@@ -31,7 +39,7 @@ pub(crate) struct Minimizer<'q> {
     /// Superstates that have not been processed and expanded yet.
     active_superstates: SmallVec<[SmallSet256; 2]>,
     /// All superstates created thus far, in order matching the `superstates` map.
-    dfa_states: Vec<TransitionTable<'q>>,
+    dfa_states: Vec<StateTable<'q>>,
     /// Set of activated DFA states that are accepting.
     accepting: SmallSet256,
 }
@@ -71,9 +79,10 @@ impl<'q> Minimizer<'q> {
     /// and perform expansion until we run out of active states.
     fn run(mut self) -> Result<Automaton<'q>, CompilerError> {
         // Rejecting state has no outgoing transitions except for a self-loop.
-        self.dfa_states.push(TransitionTable {
+        self.dfa_states.push(StateTable {
             transitions: smallvec![],
             fallback_state: Self::rejecting_state(),
+            attributes: StateAttributesBuilder::new().rejecting().into(),
         });
         self.superstates
             .insert(SmallSet256::default(), Self::rejecting_state());
@@ -88,7 +97,6 @@ impl<'q> Minimizer<'q> {
 
         Ok(Automaton {
             states: self.dfa_states,
-            accepting: self.accepting,
         })
     }
 
@@ -105,14 +113,13 @@ impl<'q> Minimizer<'q> {
                 .len()
                 .try_into()
                 .map(DfaStateId)
-                .map_err(CompilerError::QueryTooComplex)?;
+                .map_err(|err| CompilerError::QueryTooComplex(Some(err)))?;
             self.superstates.insert(superstate, identifier);
             self.active_superstates.push(superstate);
-            self.dfa_states.push(TransitionTable::default());
+            self.dfa_states.push(StateTable::default());
             debug!("New superstate created: {superstate:?} {identifier}");
             if superstate.contains(self.nfa.accepting_state().0) {
                 self.accepting.insert(identifier.0);
-                debug!("{identifier} is accepting");
             }
         }
 
@@ -127,14 +134,15 @@ impl<'q> Minimizer<'q> {
             "Expanding superstate: {current_superstate:?}, last checkpoint is {current_checkpoint:?}"
         );
 
-        let mut transitions = self.process_nfa_transitions(current_superstate, current_checkpoint);
+        let mut transitions =
+            self.process_nfa_transitions(current_superstate, current_checkpoint)?;
         debug!("Raw transitions: {:?}", transitions);
 
         self.normalize_superstate_transitions(&mut transitions, current_checkpoint)?;
         debug!("Normalized transitions: {:?}", transitions);
 
         // Translate the transitions to the data model expected by TransitionTable.
-        let translated_transitions = transitions
+        let translated_transitions: SmallVec<_> = transitions
             .labelled
             .into_iter()
             .map(|(label, state)| (label, self.superstates[&state]))
@@ -143,11 +151,49 @@ impl<'q> Minimizer<'q> {
 
         // If a checkpoint was reached, its singleton superstate is this DFA state's fallback state.
         // Otherwise, we set the fallback to the rejecting state.
-        let mut table = &mut self.dfa_states[self.superstates[&current_superstate].0 as usize];
+        let id = self.superstates[&current_superstate];
+        let fallback_state = self.superstates[&transitions.wildcard];
+        let attributes = self.build_attributes(id, &translated_transitions, fallback_state);
+        let mut table = &mut self.dfa_states[id.0 as usize];
         table.transitions = translated_transitions;
-        table.fallback_state = self.superstates[&transitions.wildcard];
+        table.fallback_state = fallback_state;
+        table.attributes = attributes;
 
         Ok(())
+    }
+
+    /// Build attributes of a DFA state after all of its transitions have been
+    /// determined.
+    fn build_attributes(
+        &self,
+        id: DfaStateId,
+        transitions: &[(&Label, DfaStateId)],
+        fallback: DfaStateId,
+    ) -> StateAttributes {
+        let mut attrs = StateAttributesBuilder::new();
+
+        if self.accepting.contains(id.0) {
+            debug!("{id} is accepting");
+            attrs = attrs.accepting();
+        }
+        if id == Self::rejecting_state() {
+            debug!("{id} is rejecting");
+            attrs = attrs.rejecting();
+        }
+        if transitions.len() == 1 && fallback == Self::rejecting_state() {
+            debug!("{id} is unitary");
+            attrs = attrs.unitary();
+        }
+        if self.accepting.contains(fallback.0)
+            || transitions
+                .iter()
+                .any(|(_, s)| self.accepting.contains(s.0))
+        {
+            debug!("{id} has transitions to accepting");
+            attrs = attrs.transitions_to_accepting();
+        }
+
+        attrs.into()
     }
 
     /// Determine what is the furthest reachable checkpoint on the path to this
@@ -180,16 +226,16 @@ impl<'q> Minimizer<'q> {
         &self,
         current_superstate: SmallSet256,
         current_checkpoint: Option<NfaStateId>,
-    ) -> SuperstateTransitionTable<'q> {
-        let mut wildcard_targets: SmallSet256 = current_superstate
+    ) -> Result<SuperstateTransitionTable<'q>, CompilerError> {
+        let mut wildcard_targets = current_superstate
             .iter()
             .map(NfaStateId)
             .filter_map(|id| match self.nfa[id] {
                 NfaState::Recursive(nfa::Transition::Wildcard)
-                | NfaState::Direct(nfa::Transition::Wildcard) => Some(id.next().0),
+                | NfaState::Direct(nfa::Transition::Wildcard) => Some(id.next().map(|x| x.0)),
                 _ => None,
             })
-            .collect();
+            .collect::<Result<SmallSet256, _>>()?;
         if let Some(checkpoint) = current_checkpoint {
             wildcard_targets.insert(checkpoint.0);
         }
@@ -211,15 +257,15 @@ impl<'q> Minimizer<'q> {
                     debug!(
                         "Considering transition {nfa_state} --{}-> {}",
                         label.display(),
-                        nfa_state.next(),
+                        nfa_state.next()?,
                     );
                     // Add the target NFA state to the target superstate, or create a singleton
                     // set if this is the first transition via this label encountered in the loop.
                     if let Some(target) = transitions.labelled.get_mut(&label) {
-                        target.insert(nfa_state.next().0);
+                        target.insert(nfa_state.next()?.0);
                     } else {
                         let mut new_set = transitions.wildcard;
-                        new_set.insert(nfa_state.next().0);
+                        new_set.insert(nfa_state.next()?.0);
                         transitions.labelled.insert(label, new_set);
                     }
                 }
@@ -229,7 +275,7 @@ impl<'q> Minimizer<'q> {
             }
         }
 
-        transitions
+        Ok(transitions)
     }
 
     /// Use the checkpoints to perform normalization of superstates
@@ -292,7 +338,7 @@ mod tests {
 
     #[test]
     fn empty_query_test() {
-        // Query = $.
+        // Query = $
         let nfa = NondeterministicAutomaton {
             ordered_states: vec![NfaState::Accepting],
         };
@@ -300,16 +346,17 @@ mod tests {
         let result = minimize(nfa).unwrap();
         let expected = Automaton {
             states: vec![
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![],
                     fallback_state: State(0),
+                    attributes: StateAttributes::REJECTING,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![],
                     fallback_state: State(0),
+                    attributes: StateAttributes::ACCEPTING,
                 },
             ],
-            accepting: [1].into(),
         };
 
         assert_eq!(result, expected);
@@ -328,20 +375,22 @@ mod tests {
         let result = minimize(nfa).unwrap();
         let expected = Automaton {
             states: vec![
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![],
                     fallback_state: State(0),
+                    attributes: StateAttributes::REJECTING,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![],
                     fallback_state: State(2),
+                    attributes: StateAttributes::EMPTY,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![],
                     fallback_state: State(0),
+                    attributes: StateAttributes::EMPTY,
                 },
             ],
-            accepting: [2].into(),
         };
 
         assert_eq!(result, expected);
@@ -362,28 +411,33 @@ mod tests {
         let result = minimize(nfa).unwrap();
         let expected = Automaton {
             states: vec![
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![],
                     fallback_state: State(0),
+                    attributes: StateAttributes::REJECTING,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![(&label, State(2)),],
                     fallback_state: State(1),
+                    attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![(&label, State(4))],
                     fallback_state: State(3),
+                    attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![(&label, State(2))],
                     fallback_state: State(1),
+                    attributes: StateAttributes::ACCEPTING,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![(&label, State(4))],
                     fallback_state: State(3),
+                    attributes: StateAttributes::ACCEPTING
+                        | StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
             ],
-            accepting: [3, 4].into(),
         };
 
         assert_eq!(result, expected);
@@ -406,32 +460,37 @@ mod tests {
         let result = minimize(nfa).unwrap();
         let expected = Automaton {
             states: vec![
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![],
                     fallback_state: State(0),
+                    attributes: StateAttributes::REJECTING,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![(&label, State(2))],
                     fallback_state: State(0),
+                    attributes: StateAttributes::UNITARY,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![],
                     fallback_state: State(3),
+                    attributes: StateAttributes::EMPTY,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![],
                     fallback_state: State(4),
+                    attributes: StateAttributes::EMPTY,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![],
                     fallback_state: State(5),
+                    attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![],
                     fallback_state: State(0),
+                    attributes: StateAttributes::ACCEPTING,
                 },
             ],
-            accepting: [5].into(),
         };
 
         assert_eq!(result, expected);
@@ -453,44 +512,53 @@ mod tests {
         let result = minimize(nfa).unwrap();
         let expected = Automaton {
             states: vec![
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![],
                     fallback_state: State(0),
+                    attributes: StateAttributes::REJECTING,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![(&label, State(2))],
                     fallback_state: State(1),
+                    attributes: StateAttributes::EMPTY,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![(&label, State(4))],
                     fallback_state: State(3),
+                    attributes: StateAttributes::EMPTY,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![(&label, State(8))],
                     fallback_state: State(7),
+                    attributes: StateAttributes::EMPTY | StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![(&label, State(6))],
                     fallback_state: State(5),
+                    attributes: StateAttributes::EMPTY | StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![(&label, State(8))],
                     fallback_state: State(7),
+                    attributes: StateAttributes::ACCEPTING
+                        | StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![(&label, State(6))],
                     fallback_state: State(5),
+                    attributes: StateAttributes::EMPTY | StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![(&label, State(2))],
                     fallback_state: State(1),
+                    attributes: StateAttributes::ACCEPTING,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![(&label, State(4))],
                     fallback_state: State(3),
+                    attributes: StateAttributes::ACCEPTING,
                 },
             ],
-            accepting: [5, 6, 7, 8].into(),
         };
 
         assert_eq!(result, expected);
@@ -521,44 +589,52 @@ mod tests {
         let result = minimize(nfa).unwrap();
         let expected = Automaton {
             states: vec![
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![],
                     fallback_state: State(0),
+                    attributes: StateAttributes::REJECTING,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![(&label_x, State(2))],
                     fallback_state: State(0),
+                    attributes: StateAttributes::UNITARY,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![(&label_a, State(3))],
                     fallback_state: State(2),
+                    attributes: StateAttributes::EMPTY,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![(&label_a, State(3)), (&label_b, State(4))],
                     fallback_state: State(2),
+                    attributes: StateAttributes::EMPTY,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![(&label_a, State(5))],
                     fallback_state: State(2),
+                    attributes: StateAttributes::EMPTY,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![(&label_a, State(3)), (&label_b, State(6))],
                     fallback_state: State(2),
+                    attributes: StateAttributes::EMPTY,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![(&label_a, State(5)), (&label_c, State(7))],
                     fallback_state: State(2),
+                    attributes: StateAttributes::EMPTY,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![(&label_d, State(8))],
                     fallback_state: State(7),
+                    attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![(&label_d, State(8))],
                     fallback_state: State(7),
+                    attributes: StateAttributes::ACCEPTING,
                 },
             ],
-            accepting: [8].into(),
         };
 
         assert_eq!(result, expected);
@@ -585,44 +661,53 @@ mod tests {
         let result = minimize(nfa).unwrap();
         let expected = Automaton {
             states: vec![
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![],
                     fallback_state: State(0),
+                    attributes: StateAttributes::REJECTING,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![(&label_x, State(2))],
                     fallback_state: State(0),
+                    attributes: StateAttributes::UNITARY,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![],
                     fallback_state: State(3),
+                    attributes: StateAttributes::EMPTY,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![(&label_a, State(4))],
                     fallback_state: State(3),
+                    attributes: StateAttributes::EMPTY,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![(&label_a, State(6))],
                     fallback_state: State(5),
+                    attributes: StateAttributes::EMPTY,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![(&label_a, State(4)), (&label_b, State(8))],
                     fallback_state: State(3),
+                    attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![(&label_a, State(6)), (&label_b, State(7))],
                     fallback_state: State(5),
+                    attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![(&label_a, State(4)), (&label_b, State(8))],
                     fallback_state: State(3),
+                    attributes: StateAttributes::ACCEPTING
+                        | StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
-                TransitionTable {
+                StateTable {
                     transitions: smallvec![(&label_a, State(4))],
                     fallback_state: State(3),
+                    attributes: StateAttributes::ACCEPTING,
                 },
             ],
-            accepting: [7, 8].into(),
         };
 
         assert_eq!(result, expected);

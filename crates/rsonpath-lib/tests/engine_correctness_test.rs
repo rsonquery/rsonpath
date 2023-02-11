@@ -11,13 +11,15 @@ use test_case::test_case;
 const ROOT_TEST_DIRECTORY: &str = "./tests/data";
 
 fn get_contents(test_path: &str) -> Input {
-    let path = format!("{}/{}", ROOT_TEST_DIRECTORY, test_path);
+    let path = format!("{ROOT_TEST_DIRECTORY}/{test_path}");
     let mut raw = fs::read_to_string(path).unwrap();
     Input::new(&mut raw)
 }
 
 macro_rules! count_test_cases {
     ($test_name:ident, $impl:ident) => {
+        #[test_case("basic/atomic_descendant.json", "$..a" => 1; "atomic_descendant.json $..a")]
+        #[test_case("basic/atomic_descendant.json", "$..a..b" => 0; "atomic_descendant.json $..a..b")]
         #[test_case("basic/child.json", "$..a..b.c..d" => 3; "child.json $..a..b.c..d")]
         #[test_case("basic/child_hell.json", "$..x..a.b.a.b.c" => 6; "child_hell.json $..x..a.b.a.b.c")]
         #[test_case("basic/empty.json", "" => 0; "empty.json")]
@@ -32,6 +34,10 @@ macro_rules! count_test_cases {
         #[test_case("basic/small_no_list.json", "$..person..phoneNumber..number" => 2; "small_no_list.json $..person..phoneNumber..number")]
         #[test_case("basic/small.json", "$..person..phoneNumber..number" => 4; "small.json $..person..phoneNumber..number")]
         #[test_case("basic/spaced_colon.json", r#"$..a..b..label"# => 2; "spaced colon")]
+        #[test_case("basic/wildcard_list.json", r#"$..a.*"# => 6; "wildcard_list.json $..a.*")]
+        #[test_case("basic/wildcard_list2.json", r#"$..a.*..b.*"# => 8; "wildcard_list2.json $..a.*..b.*")]
+        #[test_case("basic/wildcard_object.json", r#"$..a.*"# => 7; "wildcard_object.json $..a.*")]
+        #[test_case("basic/wildcard_object2.json", r#"$..a.*.*..b.*.*"# => 9; "wildcard_object2.json $..a.*.*..b.*.*")]
         #[test_case("twitter/twitter.json", "$..user..entities..url" => 44; "twitter.json $..user..entities..url (recursive)")]
         #[test_case("twitter/twitter.json", "$..user..entities.url" => 18; "twitter.json $..user..entities.url (child)")]
         #[test_case("twitter/twitter.json", "$.search_metadata.count" => 1; "twitter.json $.search_metadata.count (child-child)")]
@@ -135,6 +141,8 @@ macro_rules! count_test_cases {
 
 macro_rules! indices_test_cases {
     ($test_name:ident, $impl:ident) => {
+        #[test_case("basic/atomic_descendant.json", "$..a" => vec![9]; "atomic_descendant.json $..a")]
+        #[test_case("basic/atomic_descendant.json", "$..a..b" => Vec::<usize>::new(); "atomic_descendant.json $..a..b")]
         #[test_case("basic/child.json", "$..a..b.c..d" => vec![984, 1297, 1545]; "child.json $..a..b.c..d")]
         #[test_case("basic/child_hell.json", "$..x..a.b.a.b.c" => vec![198, 756, 1227, 1903, 2040, 2207]; "child_hell.json $..x..a.b.a.b.c")]
         #[test_case("basic/empty.json", "" => Vec::<usize>::new(); "empty.json")]
@@ -149,6 +157,10 @@ macro_rules! indices_test_cases {
         #[test_case("basic/small_no_list.json", "$..person..phoneNumber..number" => vec![310, 764]; "small_no_list.json $..person..phoneNumber..number")]
         #[test_case("basic/small.json", "$..person..phoneNumber..number" => vec![332, 436, 934, 1070]; "small.json $..person..phoneNumber..number")]
         #[test_case("basic/spaced_colon.json", r#"$..a..b..label"# => vec![106, 213]; "spaced colon")]
+        #[test_case("basic/wildcard_list.json", r#"$..a.*"# => vec![46, 64, 101, 121, 141, 287]; "wildcard_list.json $..a.*")]
+        #[test_case("basic/wildcard_list2.json", r#"$..a.*..b.*"# => vec![226, 364, 402, 479, 519, 559, 641, 881]; "wildcard_list2.json $..a.*..b.*")]
+        #[test_case("basic/wildcard_object.json", r#"$..a.*"# => vec![66, 91, 116, 143, 211, 238, 267]; "wildcard_object.json $..a.*")]
+        #[test_case("basic/wildcard_object2.json", r#"$..a.*.*..b.*.*"# => vec![652, 709, 751, 791, 855, 901, 1713, 1811, 1878]; "wildcard_object2.json $..a.*.*..b.*.*")]
         #[test_case(
             "twitter/twitter.json",
             "$..user..entities..url"

@@ -3,37 +3,20 @@
 mod minimizer;
 mod nfa;
 mod small_set;
+mod state;
+
+pub use state::{State, StateAttributes};
 
 use super::{error::CompilerError, JsonPathQuery, Label};
 use crate::debug;
 use nfa::NondeterministicAutomaton;
-use small_set::{SmallSet, SmallSet256};
 use smallvec::SmallVec;
 use std::{fmt::Display, ops::Index};
-
-/// State of an [`Automaton`]. Thin wrapper over a state's identifier.
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
-pub struct State(u8);
-
-impl Display for State {
-    #[inline]
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "DFA({})", self.0)
-    }
-}
-
-impl From<u8> for State {
-    #[inline(always)]
-    fn from(i: u8) -> Self {
-        Self(i)
-    }
-}
 
 /// A minimal, deterministic automaton representing a JSONPath query.
 #[derive(Debug, PartialEq, Eq)]
 pub struct Automaton<'q> {
-    states: Vec<TransitionTable<'q>>,
-    accepting: SmallSet256,
+    states: Vec<StateTable<'q>>,
 }
 
 /// A single transition of an [`Automaton`].
@@ -44,22 +27,24 @@ type Transition<'q> = (&'q Label, State);
 /// Contains transitions triggered by matching labels, and a fallback transition
 /// triggered when none of the label transitions match.
 #[derive(Debug)]
-pub struct TransitionTable<'q> {
+pub struct StateTable<'q> {
+    attributes: StateAttributes,
     transitions: SmallVec<[Transition<'q>; 2]>,
     fallback_state: State,
 }
 
-impl<'q> Default for TransitionTable<'q> {
+impl<'q> Default for StateTable<'q> {
     #[inline]
     fn default() -> Self {
         Self {
+            attributes: StateAttributes::default(),
             transitions: Default::default(),
             fallback_state: State(0),
         }
     }
 }
 
-impl<'q> PartialEq for TransitionTable<'q> {
+impl<'q> PartialEq for StateTable<'q> {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.fallback_state == other.fallback_state
@@ -75,10 +60,10 @@ impl<'q> PartialEq for TransitionTable<'q> {
     }
 }
 
-impl<'q> Eq for TransitionTable<'q> {}
+impl<'q> Eq for StateTable<'q> {}
 
 impl<'q> Index<State> for Automaton<'q> {
-    type Output = TransitionTable<'q>;
+    type Output = StateTable<'q>;
 
     #[inline(always)]
     fn index(&self, index: State) -> &Self::Output {
@@ -153,15 +138,6 @@ impl<'q> Automaton<'q> {
         State(1)
     }
 
-    /// Returns the accepting states of the automaton.
-    ///
-    /// Query execution should treat transitioning into any of these states
-    /// as a match.
-    #[inline(always)]
-    pub fn accepting_states(&self) -> impl Iterator<Item = State> {
-        self.accepting.iter().map(State)
-    }
-
     /// Returns whether the given state is accepting.
     ///
     /// # Example
@@ -170,13 +146,32 @@ impl<'q> Automaton<'q> {
     /// # use rsonpath_lib::query::automaton::*;
     /// let query = JsonPathQuery::parse("$.a").unwrap();
     /// let automaton = Automaton::new(&query).unwrap();
+    /// let state_2 = automaton[automaton.initial_state()].transitions()[0].1;
     ///
-    /// assert!(automaton.accepting_states().all(|state| automaton.is_accepting(state)));
+    /// assert!(automaton.is_accepting(state_2));
     /// ```
     #[must_use]
     #[inline(always)]
     pub fn is_accepting(&self, state: State) -> bool {
-        self.accepting.contains(state.0)
+        self[state].attributes.is_accepting()
+    }
+
+    /// Returns whether the given state has any transitions
+    /// (labelled or fallback) to an accepting state.
+    ///
+    /// # Example
+    /// ```rust
+    /// # use rsonpath_lib::query::*;
+    /// # use rsonpath_lib::query::automaton::*;
+    /// let query = JsonPathQuery::parse("$.a").unwrap();
+    /// let automaton = Automaton::new(&query).unwrap();
+    ///
+    /// assert!(automaton.has_transition_to_accepting(automaton.initial_state()));
+    /// ```
+    #[must_use]
+    #[inline(always)]
+    pub fn has_transition_to_accepting(&self, state: State) -> bool {
+        self[state].attributes.has_transition_to_accepting()
     }
 
     /// Returns whether the given state is rejecting, i.e.
@@ -194,7 +189,29 @@ impl<'q> Automaton<'q> {
     #[must_use]
     #[inline(always)]
     pub fn is_rejecting(&self, state: State) -> bool {
-        state == self.rejecting_state()
+        self[state].attributes.is_rejecting()
+    }
+
+    /// Returns whether the given state is unitary.
+    /// A unitary state is one that has exactly one labelled transition
+    /// and its fallback targets the rejecting state.
+    ///
+    /// Intuitively, there exists only one label that progresses towards
+    /// acceptance from this state.
+    ///
+    /// # Example
+    /// ```rust
+    /// # use rsonpath_lib::query::*;
+    /// # use rsonpath_lib::query::automaton::*;
+    /// let query = JsonPathQuery::parse("$.a").unwrap();
+    /// let automaton = Automaton::new(&query).unwrap();
+    ///
+    /// assert!(automaton.is_unitary(automaton.initial_state()));
+    /// ```
+    #[must_use]
+    #[inline(always)]
+    pub fn is_unitary(&self, state: State) -> bool {
+        self[state].attributes.is_unitary()
     }
 
     fn minimize(nfa: NondeterministicAutomaton<'q>) -> Result<Self, CompilerError> {
@@ -202,7 +219,7 @@ impl<'q> Automaton<'q> {
     }
 }
 
-impl<'q> TransitionTable<'q> {
+impl<'q> StateTable<'q> {
     /// Returns the state to which a fallback transition leads.
     ///
     /// A fallback transition is the catch-all transition triggered
@@ -219,7 +236,7 @@ impl<'q> TransitionTable<'q> {
     /// to the contained [`State`].
     #[must_use]
     #[inline(always)]
-    pub fn transitions(&self) -> &SmallVec<[Transition<'q>; 2]> {
+    pub fn transitions(&self) -> &[Transition<'q>] {
         &self.transitions
     }
 }
@@ -228,10 +245,38 @@ impl<'q> Display for Automaton<'q> {
     #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "digraph {{")?;
-        for i in self.accepting.iter() {
-            writeln!(f, "node [shape = doublecircle]; {i}")?;
+
+        for (i, state) in self.states.iter().enumerate() {
+            let mut color_one = "fillcolor=\"white;0.5";
+            let mut color_two = ":white\"";
+            let mut shape = "shape=circle";
+
+            if state.attributes.is_accepting() {
+                shape = "shape=doublecircle";
+            }
+            if state.attributes.is_unitary() {
+                color_one = "fillcolor=\"darkgoldenrod2;0.5";
+            }
+            if state.attributes.has_transition_to_accepting() {
+                color_two = ":dodgerblue\"";
+            }
+            if state.attributes.is_rejecting() {
+                color_one = "fillcolor=gray";
+                color_two = "";
+            }
+
+            let attrs = vec![
+                shape,
+                "style=filled",
+                "gradientangle=45",
+                color_one,
+                color_two,
+            ]
+            .join(" ");
+
+            writeln!(f, "node [{attrs}]; {i}")?;
         }
-        writeln!(f, "node [shape = circle];")?;
+
         for (i, transitions) in self.states.iter().enumerate() {
             for (label, state) in transitions.transitions.iter() {
                 writeln!(f, "  {i} -> {} [label=\"{}\"]", state.0, label.display(),)?

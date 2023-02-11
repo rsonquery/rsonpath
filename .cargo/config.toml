@@ -1,5 +1,5 @@
 [build]
-rustflags = "-C target-cpu=native"
+rustflags = ["-C", "target-cpu=native", "-C", "link-arg=-fuse-ld=lld"]
 
 [alias]
 rsontest = "hack test -p rsonpath-lib --feature-powerset --skip default"

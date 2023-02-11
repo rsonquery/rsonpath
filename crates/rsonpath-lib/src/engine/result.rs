@@ -1,5 +1,6 @@
 //! Result types that can be returned by a JSONPath query engine.
 
+use crate::debug;
 use std::fmt::{self, Display};
 
 /// Result that can be reported during query execution.
@@ -33,6 +34,7 @@ impl Display for CountResult {
 impl QueryResult for CountResult {
     #[inline(always)]
     fn report(&mut self, _item: usize) {
+        debug!("Reporting result: {_item}");
         self.count += 1;
     }
 }
@@ -70,6 +72,7 @@ impl Display for IndexResult {
 impl QueryResult for IndexResult {
     #[inline(always)]
     fn report(&mut self, item: usize) {
+        debug!("Reporting result: {item}");
         self.indices.push(item);
     }
 }

@@ -1,0 +1,58 @@
+{
+    "x1": {
+        "path": "$.x1",
+        "is_hit": false,
+        "a": {
+            "path": "$.x1.a",
+            "is_hit": false,
+            "a": {
+                "path": "$.x1.a.a",
+                "is_hit": false,
+                "x2": {
+                    "path": "$.x1.a.a.x2",
+                    "is_hit": false,
+                    "x3": {
+                        "path": "$.x1.a.a.x2.x3",
+                        "is_hit": false
+                    },
+                    "b": {
+                        "path": "$.x1.a.a.x2.b",
+                        "is_hit": false,
+                        "b": {
+                            "path": "$.x1.a.a.x2.b.b",
+                            "is_hit": true,
+                            "x5": {
+                                "path": "$.x1.a.a.x2.b.b.x5",
+                                "is_hit": true,
+                                "x6": {
+                                    "path": "$.x1.a.a.x2.b.b.x5.x6",
+                                    "is_hit": false,
+                                    "x7": {
+                                        "path": "$.x1.a.a.x2.b.b.x5.x6.x7",
+                                        "is_hit": false,
+                                        "x8": {
+                                            "path": "$.x1.a.a.x2.b.b.x5.x6.x7.x8",
+                                            "is_hit": false,
+                                            "b": {
+                                                "path": "$.x1.a.a.x2.b.b.x5.x6.x7.x8.b",
+                                                "is_hit": false,
+                                                "x9": {
+                                                    "path": "$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9",
+                                                    "is_hit": true,
+                                                    "x10": {
+                                                        "path": "$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10",
+                                                        "is_hit": false
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

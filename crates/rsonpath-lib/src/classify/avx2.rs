@@ -13,9 +13,11 @@ cfg_if::cfg_if! {
     }
 }
 
-use super::*;
-use crate::bin;
+use crate::classify::{
+    QuoteClassifiedIterator, ResumeClassifierState, Structural, StructuralIterator,
+};
 use crate::quotes::{QuoteClassifiedBlock, ResumeClassifierBlockState};
+use crate::{bin, debug};
 
 #[cfg(target_arch = "x86")]
 use core::arch::x86::*;
@@ -63,7 +65,6 @@ impl Iterator for StructuralsBlock<'_> {
             match self.quote_classified.block[idx] {
                 b':' => Colon(idx),
                 b'[' | b'{' => Opening(idx),
-                #[cfg(feature = "commas")]
                 b',' => Comma(idx),
                 _ => Closing(idx),
             }
@@ -83,6 +84,8 @@ pub(crate) struct Avx2Classifier<'a, I: QuoteClassifiedIterator<'a>> {
     iter: I,
     classifier: BlockAvx2Classifier,
     block: Option<StructuralsBlock<'a>>,
+    are_commas_on: bool,
+    are_colons_on: bool,
 }
 
 impl<'a, I: QuoteClassifiedIterator<'a>> Avx2Classifier<'a, I> {
@@ -93,6 +96,8 @@ impl<'a, I: QuoteClassifiedIterator<'a>> Avx2Classifier<'a, I> {
             // SAFETY: target_feature invariant
             classifier: unsafe { BlockAvx2Classifier::new() },
             block: None,
+            are_commas_on: false,
+            are_colons_on: false,
         }
     }
 
@@ -129,6 +134,68 @@ impl<'a, I: QuoteClassifiedIterator<'a>> Iterator for Avx2Classifier<'a, I> {
 impl<'a, I: QuoteClassifiedIterator<'a>> std::iter::FusedIterator for Avx2Classifier<'a, I> {}
 
 impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a, I> for Avx2Classifier<'a, I> {
+    fn turn_commas_on(&mut self, idx: usize) {
+        if !self.are_commas_on {
+            self.are_commas_on = true;
+            debug!("Turning commas on at {idx}.");
+            // SAFETY: target_feature invariant
+            unsafe { self.classifier.toggle_commas() }
+
+            if let Some(block) = self.block.take() {
+                let quote_classified_block = block.quote_classified;
+                let block_idx = (idx + 1) % I::block_size();
+
+                if block_idx != 0 {
+                    let mask = u64::MAX << block_idx;
+                    // SAFETY: target_feature invariant
+                    let mut new_block = unsafe { self.classifier.classify(quote_classified_block) };
+                    new_block.structural_mask &= mask;
+                    self.block = Some(new_block);
+                }
+            }
+        }
+    }
+
+    fn turn_commas_off(&mut self) {
+        if self.are_commas_on {
+            self.are_commas_on = false;
+            debug!("Turning commas off.");
+            // SAFETY: target_feature invariant
+            unsafe { self.classifier.toggle_commas() }
+        }
+    }
+
+    fn turn_colons_on(&mut self, idx: usize) {
+        if !self.are_colons_on {
+            self.are_colons_on = true;
+            debug!("Turning colons on at {idx}.");
+            // SAFETY: target_feature invariant
+            unsafe { self.classifier.toggle_colons() }
+
+            if let Some(block) = self.block.take() {
+                let quote_classified_block = block.quote_classified;
+                let block_idx = (idx + 1) % I::block_size();
+
+                if block_idx != 0 {
+                    let mask = u64::MAX << block_idx;
+                    // SAFETY: target_feature invariant
+                    let mut new_block = unsafe { self.classifier.classify(quote_classified_block) };
+                    new_block.structural_mask &= mask;
+                    self.block = Some(new_block);
+                }
+            }
+        }
+    }
+
+    fn turn_colons_off(&mut self) {
+        if self.are_colons_on {
+            self.are_colons_on = false;
+            debug!("Turning colons off.");
+            // SAFETY: target_feature invariant
+            unsafe { self.classifier.toggle_colons() }
+        }
+    }
+
     fn stop(self) -> ResumeClassifierState<'a, I> {
         let block = self.block.map(|b| ResumeClassifierBlockState {
             idx: b.get_idx() as usize,
@@ -138,12 +205,25 @@ impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a, I> for Avx2Class
         ResumeClassifierState {
             iter: self.iter,
             block,
+            are_commas_on: self.are_commas_on,
+            are_colons_on: self.are_colons_on,
         }
     }
 
     fn resume(state: ResumeClassifierState<'a, I>) -> Self {
         // SAFETY: target_feature invariant
         let mut classifier = unsafe { BlockAvx2Classifier::new() };
+
+        // SAFETY: target_feature invariant
+        unsafe {
+            if state.are_commas_on {
+                classifier.toggle_commas();
+            }
+            if state.are_colons_on {
+                classifier.toggle_colons();
+            }
+        }
+
         let block = state.block.map(|b| {
             // SAFETY: target_feature invariant
             let mut block = unsafe { classifier.classify(b.block) };
@@ -157,6 +237,8 @@ impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a, I> for Avx2Class
             iter: state.iter,
             block,
             classifier,
+            are_commas_on: state.are_commas_on,
+            are_colons_on: state.are_colons_on,
         }
     }
 }
@@ -165,6 +247,8 @@ struct BlockAvx2Classifier {
     lower_nibble_mask: __m256i,
     upper_nibble_mask: __m256i,
     upper_nibble_zeroing_mask: __m256i,
+    commas_toggle_mask: __m256i,
+    colons_toggle_mask: __m256i,
 }
 
 struct BlockClassification {
@@ -172,32 +256,26 @@ struct BlockClassification {
 }
 
 impl BlockAvx2Classifier {
-    cfg_if! {
-        if #[cfg(feature = "commas")] {
-            const LOWER_NIBBLE_MASK_ARRAY: [u8; 32] = [
-                0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01, 0x03, 0x02, 0x03, 0xff,
-                0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01, 0x03, 0x02, 0x03,
-                0xff, 0xff,
-            ];
-            const UPPER_NIBBLE_MASK_ARRAY: [u8; 32] = [
-                0xfe, 0xfe, 0x02, 0x01, 0xfe, 0x03, 0xfe, 0x03, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe,
-                0xfe, 0xfe, 0xfe, 0x02, 0x01, 0xfe, 0x03, 0xfe, 0x03, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe,
-                0xfe, 0xfe,
-            ];
-        }
-        else {
-            const LOWER_NIBBLE_MASK_ARRAY: [u8; 32] = [
-                0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x02, 0x01, 0xff, 0x01, 0xff,
-                0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x02, 0x01, 0xff, 0x01,
-                0xff, 0xff,
-            ];
-            const UPPER_NIBBLE_MASK_ARRAY: [u8; 32] = [
-                0xfe, 0xfe, 0xfe, 0x02, 0xfe, 0x01, 0xfe, 0x01, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe,
-                0xfe, 0xfe, 0xfe, 0xfe, 0x02, 0xfe, 0x01, 0xfe, 0x01, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe,
-                0xfe, 0xfe,
-            ];
-        }
-    }
+    const LOWER_NIBBLE_MASK_ARRAY: [u8; 32] = [
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x01, 0x00, 0x01, 0xff,
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x01, 0x00, 0x01,
+        0xff, 0xff,
+    ];
+    const UPPER_NIBBLE_MASK_ARRAY: [u8; 32] = [
+        0xfe, 0xfe, 0x10, 0x10, 0xfe, 0x01, 0xfe, 0x01, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe,
+        0xfe, 0xfe, 0xfe, 0x10, 0x10, 0xfe, 0x01, 0xfe, 0x01, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe,
+        0xfe, 0xfe,
+    ];
+    const COMMAS_TOGGLE_MASK_ARRAY: [u8; 32] = [
+        0x00, 0x00, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00,
+        0x00, 0x00,
+    ];
+    const COLON_TOGGLE_MASK_ARRAY: [u8; 32] = [
+        0x00, 0x00, 0x00, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00,
+        0x00, 0x00,
+    ];
 
     #[target_feature(enable = "avx2")]
     #[inline]
@@ -210,7 +288,27 @@ impl BlockAvx2Classifier {
                 Self::UPPER_NIBBLE_MASK_ARRAY.as_ptr().cast::<__m256i>(),
             ),
             upper_nibble_zeroing_mask: _mm256_set1_epi8(0x0F),
+            commas_toggle_mask: _mm256_loadu_si256(
+                Self::COMMAS_TOGGLE_MASK_ARRAY.as_ptr().cast::<__m256i>(),
+            ),
+            colons_toggle_mask: _mm256_loadu_si256(
+                Self::COLON_TOGGLE_MASK_ARRAY.as_ptr().cast::<__m256i>(),
+            ),
         }
+    }
+
+    #[target_feature(enable = "avx2")]
+    #[inline]
+    unsafe fn toggle_commas(&mut self) {
+        self.lower_nibble_mask = _mm256_xor_si256(self.lower_nibble_mask, self.commas_toggle_mask);
+        self.upper_nibble_mask = _mm256_xor_si256(self.upper_nibble_mask, self.commas_toggle_mask);
+    }
+
+    #[target_feature(enable = "avx2")]
+    #[inline]
+    unsafe fn toggle_colons(&mut self) {
+        self.lower_nibble_mask = _mm256_xor_si256(self.lower_nibble_mask, self.colons_toggle_mask);
+        self.upper_nibble_mask = _mm256_xor_si256(self.upper_nibble_mask, self.colons_toggle_mask);
     }
 
     #[target_feature(enable = "avx2")]

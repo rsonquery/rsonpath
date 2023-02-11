@@ -205,7 +205,7 @@ impl BlockAvx2Classifier {
         } else {
             /* Step I.2.
              *
-             * A character is a start of the sequence iff it is not preceded by a backslash.
+             * A character is a start of the sequence if it is not preceded by a backslash.
              * We also check whether the last character of the previous block was an unescaped backslash
              * to correctly classify the first character in the block.
              *
@@ -221,7 +221,8 @@ impl BlockAvx2Classifier {
              *  odd_starts      | 10100000 00100010 |
              */
 
-            let starts = slashes & !(slashes << 1) & !self.get_prev_slash_mask();
+            let slashes_excluding_escaped_first = slashes & !self.get_prev_slash_mask();
+            let starts = slashes_excluding_escaped_first & !(slashes_excluding_escaped_first << 1);
             let odd_starts = Self::ODD & starts;
             let even_starts = Self::EVEN & starts;
 
@@ -287,11 +288,11 @@ impl BlockAvx2Classifier {
          *
          * Select only unescaped quotes.
          *
-         * We also check whether the last character of the previous block was a starting quote
+         * We also check whether the last character of the previous block was still within quotes
          * and flip the first bit if it was. Assume that is the case - then there are two possibilities:
          *  1. The first character of the current block was a quote.
-         *     That quote is then not marked as an unescaped quote, but clearly the quotes represented
-         *     an empty string and can be simply ignored.
+         *     That quote is then not marked as an unescaped quote, but clearly it was a closing quote,
+         *     so it can be safely ignored.
          *  2. The first character of the current block was not a quote.
          *     As it follows from the clmul operation, the first character in the current block will then
          *     correctly be marked as quoted.

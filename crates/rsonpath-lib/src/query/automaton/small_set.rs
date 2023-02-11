@@ -1,18 +1,29 @@
+//! Highly optimized set collections useful during automaton minimization.
+//! Provides the [`SmallSet256`] set that is optimised for operations
+//! over [`u8`] elements.
+
 use std::{collections::BTreeSet, fmt::Debug};
 
+/// Traits for highly optimised sets of elements of type `T`,
+/// which are assumed to be relatively small elements that can be ordered.
 pub(crate) trait SmallSet<T: Copy + PartialOrd + Ord>: IntoIterator<Item = T> {
+    /// Returns the number of elements in the set.
     fn len(&self) -> usize;
 
+    /// Returns whether the set is empty.
     fn is_empty(&self) -> bool;
 
+    /// Modify the set to include `elem`.
     fn insert(&mut self, elem: T);
 
+    /// Returns whether the given `elem` is a member of the set.
     fn contains(&self, elem: T) -> bool;
 
     /// If the set is a singleton, returns the only element.
     /// Otherwise, returns `None`.
     fn singleton(&self) -> Option<T>;
 
+    /// Get an iterator over the set.
     fn iter(&self) -> <Self as IntoIterator>::IntoIter;
 
     /// Remove all elements from the set.
@@ -22,6 +33,8 @@ pub(crate) trait SmallSet<T: Copy + PartialOrd + Ord>: IntoIterator<Item = T> {
     fn remove_all_before(&mut self, cutoff: T);
 }
 
+/// [`SmallSet`] implementation that can hold any
+/// of the unique 256 [`u8`] values.
 #[derive(Default, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct SmallSet256 {
     half_1: SmallSet128,
@@ -191,6 +204,7 @@ impl Debug for SmallSet256 {
     }
 }
 
+/// Iterator over a [`SmallSet256`] structure.
 pub(crate) struct SmallSet256Iter {
     half_1: SmallSet128Iter,
     half_2: SmallSet128Iter,
@@ -206,7 +220,7 @@ impl Iterator for SmallSet256Iter {
     }
 }
 
-pub(crate) struct SmallSet128Iter {
+struct SmallSet128Iter {
     bitmask: u128,
 }
 

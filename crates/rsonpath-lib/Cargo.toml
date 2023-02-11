@@ -13,6 +13,7 @@ categories = [
     "parser-implementations",
 ]
 repository = "https://github.com/V0ldek/rsonpath"
+rust-version = "1.65.0"
 
 [package.metadata.docs.rs]
 rustdoc-args = ["--cfg", "docsrs"]
@@ -26,6 +27,7 @@ nom = "7.1.3"
 replace_with = "0.1.7"
 smallvec = { version = "1.10.0", features = ["union"] }
 thiserror = "1.0.38"
+tracing = "0.1.37"
 vector-map = "1.0.1"
 
 [dev-dependencies]
@@ -38,6 +40,8 @@ test-case = "2.2.2"
 eyre = "0.6.8"
 
 [features]
-default = ["simd"]
+default = ["simd", "head-skip", "tail-skip", "unique-labels"]
 simd = []
-commas = []
+head-skip = []
+tail-skip = []
+unique-labels = ["tail-skip"]

@@ -24,8 +24,13 @@ eyre = "0.6.8"
 log = "0.4.17"
 rsonpath-lib = { version = "0.2.1", default-features = false }
 simple_logger = "4.0.0"
+tracing = "0.1.37"
+tracing-chrome = "0.7.0"
+tracing-subscriber = "0.3.16"
 
 [features]
-default = ["simd"]
+default = ["simd", "head-skip", "tail-skip", "unique-labels"]
 simd = ["rsonpath-lib/simd"]
-commas = ["rsonpath-lib/commas"]
+head-skip = ["rsonpath-lib/head-skip"]
+tail-skip = ["rsonpath-lib/tail-skip"]
+unique-labels = ["tail-skip", "rsonpath-lib/unique-labels"]

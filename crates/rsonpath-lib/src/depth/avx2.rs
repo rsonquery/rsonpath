@@ -27,6 +27,8 @@ use core::arch::x86_64::*;
 pub(crate) struct VectorIterator<'a, I: QuoteClassifiedIterator<'a>> {
     iter: I,
     classifier: DelimiterClassifierImpl,
+    were_commas_on: bool,
+    were_colons_on: bool,
     phantom: PhantomData<&'a I>,
 }
 
@@ -36,6 +38,8 @@ impl<'a, I: QuoteClassifiedIterator<'a>> VectorIterator<'a, I> {
             iter,
             classifier: DelimiterClassifierImpl::new(opening),
             phantom: PhantomData,
+            were_commas_on: false,
+            were_colons_on: false,
         }
     }
 }
@@ -55,7 +59,7 @@ impl<'a, I: QuoteClassifiedIterator<'a> + 'a> DepthIterator<'a, I> for VectorIte
 
     fn stop(self, block: Option<Self::Block>) -> ResumeClassifierState<'a, I> {
         let block_state = block.and_then(|b| {
-            let idx = b.idx + 1;
+            let idx = b.idx;
             debug!("Depth iterator stopping at index {idx}");
             if idx >= b.quote_classified.len() {
                 None
@@ -70,6 +74,8 @@ impl<'a, I: QuoteClassifiedIterator<'a> + 'a> DepthIterator<'a, I> for VectorIte
         ResumeClassifierState {
             iter: self.iter,
             block: block_state,
+            are_commas_on: self.were_commas_on,
+            are_colons_on: self.were_colons_on,
         }
     }
 
@@ -89,6 +95,8 @@ impl<'a, I: QuoteClassifiedIterator<'a> + 'a> DepthIterator<'a, I> for VectorIte
                 iter: state.iter,
                 classifier,
                 phantom: PhantomData,
+                were_commas_on: state.are_commas_on,
+                were_colons_on: state.are_colons_on,
             },
         )
     }

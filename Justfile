@@ -35,7 +35,7 @@ checkout-benchmarks:
 alias b := build-bin
 
 # alias for build-all release
-build: (build-all "release")
+build profile="release": (build-all profile)
 
 # Build the rsonpath binary.
 build-bin profile="dev": (build-lib profile)
@@ -46,11 +46,11 @@ build-lib profile="dev":
     cargo build --package rsonpath-lib --profile {{profile}}
 
 # Build the rsonpath-benchmarks harness.
-build-bench profile="dev": (build-lib profile)
-    cargo build --package rsonpath-benchmarks --profile {{profile}}
+build-bench: (build-lib "release")
+    cargo build --package rsonpath-benchmarks --profile release
 
 # Build all rsonpath parts, the binary, library, and benches.
-build-all profile="dev": (build-lib profile) (build-bin profile) (build-bench profile)
+build-all profile="dev": (build-lib profile) (build-bin profile) build-bench
 
 # Build and open the library documentation.
 doc:
@@ -81,6 +81,14 @@ alias doctest := test-doc
 # Run the quick unit tests of the library with all features.
 test-unit:
     cargo rsontest --lib
+
+# Run the classifier tests on default features.
+test-classifier:
+    cargo test --test classifier_correctness_test
+
+# Run the main engine end-to-end tests on default features.
+test-engine:
+    cargo test --test engine_correctness_test
 
 # Run all tests, including real dataset tests, on the feature powerset of the project.
 test-full:
@@ -129,13 +137,17 @@ verify-doc: (build-bin "release")
 
 # Verify formatting rules are not violated.
 verify-fmt:
-	cargo fmt -- --check
+    cargo fmt -- --check
 
 # === BENCHES ===
 
 # Run *all* benches (very long!).
-bench: (build-bench "release")
+bench-all: (build-bench)
     cargo bench --package rsonpath-benchmarks
+
+# Run a given bench target.
+bench target="paper_parity": (build-bench)
+    cargo bench --package rsonpath-benchmarks --bench {{target}}
 
 # === CLEAN ===
 
@@ -217,17 +229,16 @@ release-patch ver:
         sed -i $'s/^version = "[^"]*"/version = "($ver)"/;s/^rsonpath-lib = { version = "[^"]*"/rsonpath-lib = { version = "($ver)"/' $path;
     };
 
-rsonpath-deps := `cargo tree --package rsonpath --edges normal --depth 1`
-rsonpath-lib-deps := `cargo tree --package rsonpath-lib --edges normal --depth 1`
-rsonpath-full-deps := `cargo tree --package rsonpath --edges normal`
-
 [private]
 release-readme:
     #!/usr/bin/env nu
+    let rsonpath_deps = (cargo tree --package rsonpath --edges normal --depth 1);
+    let rsonpath_lib_deps = (cargo tree --package rsonpath-lib --edges normal --depth 1);
+    let rsonpath_full_deps = (cargo tree --package rsonpath --edges normal);
     let params = [
-        ["{{rsonpath-deps}}", "rsonpath"],
-        ["{{rsonpath-lib-deps}}", "rsonpath-lib"],
-        ["{{rsonpath-full-deps}}", "rsonpath-full"]
+        [$rsonpath_deps, "rsonpath"],
+        [$rsonpath_lib_deps, "rsonpath-lib"],
+        [$rsonpath_full_deps, "rsonpath-full"]
     ];
     $params | each {|x|
         let deps = ($x.0 | str replace '\n' '\n' --all | str replace '/' '\/' --all);

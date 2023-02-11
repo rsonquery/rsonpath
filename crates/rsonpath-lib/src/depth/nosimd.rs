@@ -6,6 +6,8 @@ use std::marker::PhantomData;
 pub(crate) struct VectorIterator<'a, I: QuoteClassifiedIterator<'a>> {
     iter: I,
     opening: u8,
+    were_commas_on: bool,
+    were_colons_on: bool,
     phantom: PhantomData<&'a I>,
 }
 
@@ -14,6 +16,8 @@ impl<'a, I: QuoteClassifiedIterator<'a>> VectorIterator<'a, I> {
         Self {
             iter,
             opening,
+            were_commas_on: false,
+            were_colons_on: false,
             phantom: PhantomData,
         }
     }
@@ -47,6 +51,8 @@ impl<'a, I: QuoteClassifiedIterator<'a>> DepthIterator<'a, I> for VectorIterator
         ResumeClassifierState {
             iter: self.iter,
             block: block_state,
+            are_commas_on: self.were_commas_on,
+            are_colons_on: self.were_colons_on,
         }
     }
 
@@ -61,6 +67,8 @@ impl<'a, I: QuoteClassifiedIterator<'a>> DepthIterator<'a, I> for VectorIterator
                 iter: state.iter,
                 opening,
                 phantom: PhantomData,
+                were_commas_on: state.are_commas_on,
+                were_colons_on: state.are_colons_on,
             },
         )
     }

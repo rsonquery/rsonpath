@@ -160,7 +160,7 @@ fn get_contents(file_path: Option<&str>) -> Result<String> {
 fn configure_logger(verbose: bool) -> Result<()> {
     SimpleLogger::new()
         .with_level(if verbose {
-            LevelFilter::Debug
+            LevelFilter::Trace
         } else {
             LevelFilter::Warn
         })
