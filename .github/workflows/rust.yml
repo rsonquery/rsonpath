@@ -116,7 +116,9 @@ jobs:
     steps:
     - uses: actions/checkout@v3
       with:
-        submodules: true      
+        submodules: true
+    - name: Install lld
+        run: sudo apt install lld
     - name: Install Rust toolchain (${{ matrix.toolchain }})
       uses: dtolnay/rust-toolchain@master
       with:
