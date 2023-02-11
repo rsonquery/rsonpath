@@ -118,7 +118,7 @@ jobs:
       with:
         submodules: true
     - name: Install lld
-        run: sudo apt install lld
+      run: sudo apt install lld
     - name: Install Rust toolchain (${{ matrix.toolchain }})
       uses: dtolnay/rust-toolchain@master
       with:
