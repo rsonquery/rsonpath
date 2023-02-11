@@ -1527,7 +1527,7 @@ dependencies = [
 
 [[package]]
 name = "rsonpath-lib"
-version = "0.2.2"
+version = "0.2.1"
 dependencies = [
  "aligners",
  "cfg-if",
