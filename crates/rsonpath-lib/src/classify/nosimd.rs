@@ -49,21 +49,13 @@ impl<'a> Iterator for Block<'a> {
 
             self.idx += 1;
 
-            let character = if !is_quoted {
-                match character {
-                    b':' if self.are_colons_on => Some(Colon(self.idx - 1)),
-                    b'[' | b'{' => Some(Opening(self.idx - 1)),
-                    b',' if self.are_commas_on => Some(Comma(self.idx - 1)),
-                    b']' | b'}' => Some(Closing(self.idx - 1)),
-                    _ => None,
-                }
-            } else {
-                None
-            };
-
-            if let Some(c) = character {
-                debug!("Classified {c:?}");
-                return Some(c);
+            match character {
+                _ if is_quoted => (),
+                b':' if self.are_colons_on => return Some(Colon(self.idx - 1)),
+                b'[' | b'{' => return Some(Opening(self.idx - 1)),
+                b',' if self.are_commas_on => return Some(Comma(self.idx - 1)),
+                b']' | b'}' => return Some(Closing(self.idx - 1)),
+                _ => (),
             }
         }
 
