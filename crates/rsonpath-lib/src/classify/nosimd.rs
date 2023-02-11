@@ -118,6 +118,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a, I> for Sequentia
     fn turn_commas_on(&mut self, idx: usize) {
         if !self.are_commas_on {
             self.are_commas_on = true;
+            debug!("Turning commas on at {idx}.");
 
             if let Some(block) = self.block.take() {
                 let quote_classified_block = block.quote_classified;
@@ -138,11 +139,13 @@ impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a, I> for Sequentia
 
     fn turn_commas_off(&mut self) {
         self.are_commas_on = false;
+        debug!("Turning commas off.");
     }
 
     fn turn_colons_on(&mut self, idx: usize) {
         if !self.are_colons_on {
             self.are_colons_on = true;
+            debug!("Turning colons on at {idx}.");
 
             if let Some(block) = self.block.take() {
                 let quote_classified_block = block.quote_classified;
@@ -163,6 +166,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a, I> for Sequentia
 
     fn turn_colons_off(&mut self) {
         self.are_colons_on = false;
+        debug!("Turning colons off.");
     }
 
     fn stop(self) -> ResumeClassifierState<'a, I> {

@@ -22,7 +22,7 @@ use crate::engine::{Engine, Input};
 use crate::query::automaton::{Automaton, State};
 use crate::query::error::CompilerError;
 use crate::query::{JsonPathQuery, Label};
-use crate::quotes::{classify_quoted_sequences, QuoteClassifiedIterator, ResumeClassifierState};
+use crate::quotes::{classify_quoted_sequences, QuoteClassifiedIterator};
 use aligners::{alignment, AlignedBytes};
 use smallvec::{smallvec, SmallVec};
 
@@ -117,7 +117,10 @@ impl<'q, 'b> Executor<'q, 'b> {
     fn run_and_exit<R: QueryResult>(mut self, result: &mut R) -> Result<(), EngineError> {
         let quote_classifier = classify_quoted_sequences(self.bytes.relax_alignment());
         let structural_classifier = classify_structural_characters(quote_classifier);
-        self.run_on_subtree(ClassifierWithSkipping::new(structural_classifier), result)?;
+        self.run_on_subtree(
+            &mut ClassifierWithSkipping::new(structural_classifier),
+            result,
+        )?;
 
         self.verify_subtree_closed()
     }
@@ -128,9 +131,9 @@ impl<'q, 'b> Executor<'q, 'b> {
         R: QueryResult,
     >(
         &mut self,
-        mut classifier: ClassifierWithSkipping<'b, Q, I>,
+        classifier: &mut ClassifierWithSkipping<'b, Q, I>,
         result: &mut R,
-    ) -> Result<ResumeClassifierState<'b, Q>, EngineError> {
+    ) -> Result<(), EngineError> {
         while let Some(event) = self.next_event.or_else(|| classifier.next()) {
             debug!("====================");
             debug!("Event = {:?}", event);
@@ -141,11 +144,11 @@ impl<'q, 'b> Executor<'q, 'b> {
 
             self.next_event = None;
             match event {
-                Structural::Colon(idx) => self.handle_colon(&mut classifier, idx, result)?,
-                Structural::Comma(idx) => self.handle_comma(&mut classifier, idx, result)?,
-                Structural::Opening(idx) => self.handle_opening(&mut classifier, idx, result)?,
+                Structural::Colon(idx) => self.handle_colon(classifier, idx, result)?,
+                Structural::Comma(idx) => self.handle_comma(classifier, idx, result)?,
+                Structural::Opening(idx) => self.handle_opening(classifier, idx, result)?,
                 Structural::Closing(idx) => {
-                    self.handle_closing(&mut classifier, idx)?;
+                    self.handle_closing(classifier, idx)?;
 
                     if self.depth == Depth::ZERO {
                         break;
@@ -154,7 +157,7 @@ impl<'q, 'b> Executor<'q, 'b> {
             }
         }
 
-        Ok(classifier.stop())
+        Ok(())
     }
 
     fn handle_colon<Q, I, R>(
@@ -485,9 +488,9 @@ impl<'q, 'b> CanHeadSkip<'b> for Executor<'q, 'b> {
         &mut self,
         next_event: Structural,
         state: State,
-        classifier: ClassifierWithSkipping<'b, Q, I>,
+        classifier: &mut ClassifierWithSkipping<'b, Q, I>,
         result: &'r mut R,
-    ) -> Result<ResumeClassifierState<'b, Q>, EngineError>
+    ) -> Result<(), EngineError>
     where
         Q: QuoteClassifiedIterator<'b>,
         R: QueryResult,
@@ -496,9 +499,9 @@ impl<'q, 'b> CanHeadSkip<'b> for Executor<'q, 'b> {
         self.state = state;
         self.next_event = Some(next_event);
 
-        let classifier_state = self.run_on_subtree(classifier, result)?;
+        self.run_on_subtree(classifier, result)?;
         self.verify_subtree_closed()?;
 
-        Ok(classifier_state)
+        Ok(())
     }
 }

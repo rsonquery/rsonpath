@@ -168,6 +168,7 @@ where
         idx
     }
 
+    #[cfg(feature = "head-skip")]
     pub(crate) fn stop(self) -> ResumeClassifierState<'b, Q> {
         self.classifier.stop()
     }
@@ -205,7 +206,14 @@ pub trait StructuralIterator<'a, I: QuoteClassifiedIterator<'a>>:
     fn stop(self) -> ResumeClassifierState<'a, I>;
 
     /// Resume classification from a state retrieved by a previous
-    /// [`StructuralIterator::stop`] or [`DepthIterator::stop`] invocation.
+    #[cfg_attr(
+        feature = "tail-skip",
+        doc = "[`StructuralIterator::stop`] or [`DepthIterator::stop`] invocation."
+    )]
+    #[cfg_attr(
+        not(feature = "tail-skip"),
+        doc = "[`StructuralIterator::stop`] invocation."
+    )]
     fn resume(state: ResumeClassifierState<'a, I>) -> Self;
 
     /// Turn classification of [`Structural::Comma`] characters on.

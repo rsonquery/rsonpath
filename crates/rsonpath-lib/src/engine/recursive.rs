@@ -146,17 +146,21 @@ impl<'q, 'b> ExecutionContext<'q, 'b> {
         let needs_commas = is_list && is_fallback_accepting;
         let needs_colons = !is_list && self.automaton.has_transition_to_accepting(state);
 
-        if needs_commas {
-            classifier.turn_commas_on(open_idx);
-        } else {
-            classifier.turn_commas_off();
-        }
+        let config_characters = |classifier: &mut ClassifierWithSkipping<'b, Q, I>, idx: usize| {
+            if needs_commas {
+                classifier.turn_commas_on(idx);
+            } else {
+                classifier.turn_commas_off();
+            }
 
-        if needs_colons {
-            classifier.turn_colons_on(open_idx);
-        } else {
-            classifier.turn_colons_off();
-        }
+            if needs_colons {
+                classifier.turn_colons_on(idx);
+            } else {
+                classifier.turn_colons_off();
+            }
+        };
+
+        config_characters(classifier, open_idx);
 
         if needs_commas {
             next_event = classifier.next();
@@ -286,6 +290,7 @@ impl<'q, 'b> ExecutionContext<'q, 'b> {
                         }
                     };
 
+                    debug!("Return to {state}");
                     next_event = None;
                     latest_idx = end_idx;
 
@@ -300,17 +305,7 @@ impl<'q, 'b> ExecutionContext<'q, 'b> {
                         }
                     }
 
-                    if needs_commas {
-                        classifier.turn_commas_on(end_idx);
-                    } else {
-                        classifier.turn_commas_off();
-                    }
-
-                    if needs_colons {
-                        classifier.turn_colons_on(end_idx);
-                    } else {
-                        classifier.turn_colons_off();
-                    }
+                    config_characters(classifier, end_idx);
                 }
                 Some(Structural::Closing(idx)) => {
                     latest_idx = idx;
@@ -353,16 +348,16 @@ impl<'q, 'b> CanHeadSkip<'b> for ExecutionContext<'q, 'b> {
         &mut self,
         next_event: Structural,
         state: State,
-        mut classifier: ClassifierWithSkipping<'b, Q, I>,
+        classifier: &mut ClassifierWithSkipping<'b, Q, I>,
         result: &'r mut R,
-    ) -> Result<crate::quotes::ResumeClassifierState<'b, Q>, EngineError>
+    ) -> Result<(), EngineError>
     where
         Q: QuoteClassifiedIterator<'b>,
         R: QueryResult,
         I: StructuralIterator<'b, Q>,
     {
-        self.run_on_subtree(&mut classifier, state, next_event.idx(), result)?;
+        self.run_on_subtree(classifier, state, next_event.idx(), result)?;
 
-        Ok(classifier.stop())
+        Ok(())
     }
 }

@@ -1,3 +1,6 @@
+//! Derfinition of [`State`] and DFA-state attributes giving details
+//! about the state's properties.
+
 use std::{fmt::Display, ops::BitOr};
 
 /// Attributes that may be associated with a DFA's [`State`].
@@ -133,7 +136,12 @@ impl StateAttributes {
 
 /// State of an [`Automaton`](`super::Automaton`). Thin wrapper over a state's identifier.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
-pub struct State(pub(crate) u8);
+pub struct State(
+    // Only `pub` for the `automaton` module, since it needs to construct and deconstruct the wrapper.
+    // Everyone outside should *not* know this detail and must not rely on it.
+    // This representation may change at any point in the future.
+    pub(super) u8,
+);
 
 impl Display for State {
     #[inline]

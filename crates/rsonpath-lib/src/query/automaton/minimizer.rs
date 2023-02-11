@@ -1,3 +1,8 @@
+//! Determinization and minimization of an NFA into the final DFA used by the engines.
+
+// NOTE: Some comments in this module are outdated, because the minimizer doesn't
+// actually produce minimal automata as of now - see #91.
+
 use super::nfa::{self, NfaState, NfaStateId};
 use super::small_set::{SmallSet, SmallSet256};
 use super::state::StateAttributesBuilder;
@@ -8,8 +13,10 @@ use crate::query::error::CompilerError;
 use smallvec::{smallvec, SmallVec};
 use vector_map::VecMap;
 
-/// Turn the [`NondeterministicAutomaton`] to an equivalent minimal deterministic [`Automaton`].
-pub(crate) fn minimize(nfa: NondeterministicAutomaton) -> Result<Automaton, CompilerError> {
+/// Turn the [`NondeterministicAutomaton`] to an equivalent minimal* deterministic [`Automaton`].
+///
+/// * Not actualy minimal. See #91
+pub(super) fn minimize(nfa: NondeterministicAutomaton) -> Result<Automaton, CompilerError> {
     let minimizer = Minimizer {
         nfa,
         superstates: VecMap::new(),
@@ -22,7 +29,7 @@ pub(crate) fn minimize(nfa: NondeterministicAutomaton) -> Result<Automaton, Comp
     minimizer.run()
 }
 
-pub(crate) struct Minimizer<'q> {
+pub(super) struct Minimizer<'q> {
     /// The NFA being minimized.
     nfa: NondeterministicAutomaton<'q>,
     /// All superstates created thus far mapping to their index in the DFA being constructed.
@@ -106,7 +113,7 @@ impl<'q> Minimizer<'q> {
                 .len()
                 .try_into()
                 .map(DfaStateId)
-                .map_err(CompilerError::QueryTooComplex)?;
+                .map_err(|err| CompilerError::QueryTooComplex(Some(err)))?;
             self.superstates.insert(superstate, identifier);
             self.active_superstates.push(superstate);
             self.dfa_states.push(StateTable::default());
@@ -127,7 +134,8 @@ impl<'q> Minimizer<'q> {
             "Expanding superstate: {current_superstate:?}, last checkpoint is {current_checkpoint:?}"
         );
 
-        let mut transitions = self.process_nfa_transitions(current_superstate, current_checkpoint);
+        let mut transitions =
+            self.process_nfa_transitions(current_superstate, current_checkpoint)?;
         debug!("Raw transitions: {:?}", transitions);
 
         self.normalize_superstate_transitions(&mut transitions, current_checkpoint)?;
@@ -154,6 +162,8 @@ impl<'q> Minimizer<'q> {
         Ok(())
     }
 
+    /// Build attributes of a DFA state after all of its transitions have been
+    /// determined.
     fn build_attributes(
         &self,
         id: DfaStateId,
@@ -216,16 +226,16 @@ impl<'q> Minimizer<'q> {
         &self,
         current_superstate: SmallSet256,
         current_checkpoint: Option<NfaStateId>,
-    ) -> SuperstateTransitionTable<'q> {
-        let mut wildcard_targets: SmallSet256 = current_superstate
+    ) -> Result<SuperstateTransitionTable<'q>, CompilerError> {
+        let mut wildcard_targets = current_superstate
             .iter()
             .map(NfaStateId)
             .filter_map(|id| match self.nfa[id] {
                 NfaState::Recursive(nfa::Transition::Wildcard)
-                | NfaState::Direct(nfa::Transition::Wildcard) => Some(id.next().0),
+                | NfaState::Direct(nfa::Transition::Wildcard) => Some(id.next().map(|x| x.0)),
                 _ => None,
             })
-            .collect();
+            .collect::<Result<SmallSet256, _>>()?;
         if let Some(checkpoint) = current_checkpoint {
             wildcard_targets.insert(checkpoint.0);
         }
@@ -247,15 +257,15 @@ impl<'q> Minimizer<'q> {
                     debug!(
                         "Considering transition {nfa_state} --{}-> {}",
                         label.display(),
-                        nfa_state.next(),
+                        nfa_state.next()?,
                     );
                     // Add the target NFA state to the target superstate, or create a singleton
                     // set if this is the first transition via this label encountered in the loop.
                     if let Some(target) = transitions.labelled.get_mut(&label) {
-                        target.insert(nfa_state.next().0);
+                        target.insert(nfa_state.next()?.0);
                     } else {
                         let mut new_set = transitions.wildcard;
-                        new_set.insert(nfa_state.next().0);
+                        new_set.insert(nfa_state.next()?.0);
                         transitions.labelled.insert(label, new_set);
                     }
                 }
@@ -265,7 +275,7 @@ impl<'q> Minimizer<'q> {
             }
         }
 
-        transitions
+        Ok(transitions)
     }
 
     /// Use the checkpoints to perform normalization of superstates

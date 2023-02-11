@@ -139,7 +139,7 @@ impl ParseErrorReport {
 pub enum CompilerError {
     /// Max automaton size was exceeded during compilation of the query.
     #[error("Max automaton size was exceeded. Query is too complex.")]
-    QueryTooComplex(#[source] TryFromIntError),
+    QueryTooComplex(#[source] Option<TryFromIntError>),
     /// Compiler error that occurred due to a known limitation.
     #[error(transparent)]
     NotSupported(#[from] crate::error::UnsupportedFeatureError),
