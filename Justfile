@@ -45,12 +45,8 @@ build-bin profile="dev": (build-lib profile)
 build-lib profile="dev":
     cargo build --package rsonpath-lib --profile {{profile}}
 
-# Build the rsonpath-benchmarks harness.
-build-bench: (build-lib "release")
-    cargo build --package rsonpath-benchmarks --profile release
-
 # Build all rsonpath parts, the binary, library, and benches.
-build-all profile="dev": (build-lib profile) (build-bin profile) build-bench
+build-all profile="dev": (build-lib profile) (build-bin profile)
 
 # Build and open the library documentation.
 doc:
@@ -123,7 +119,7 @@ verify-quick: verify-fmt verify-check
 
 # Run cargo check on non-benchmark packages.
 verify-check:
-	cargo check --workspace --exclude rsonpath-benchmarks --all-features
+	cargo check --workspace --all-features
 
 # Run clippy lints on all packages.
 verify-clippy: (build-all "release")
@@ -138,16 +134,6 @@ verify-doc: (build-bin "release")
 # Verify formatting rules are not violated.
 verify-fmt:
     cargo fmt -- --check
-
-# === BENCHES ===
-
-# Run *all* benches (very long!).
-bench-all: (build-bench)
-    cargo bench --package rsonpath-benchmarks
-
-# Run a given bench target.
-bench target="paper_parity": (build-bench)
-    cargo bench --package rsonpath-benchmarks --bench {{target}}
 
 # === CLEAN ===
 
@@ -210,14 +196,14 @@ release-dry ver:
     just release-patch {{ver}}
     just release-readme
     just commit 'release v{{ver}}'
-    cargo release --sign-tag --sign-commit --exclude rsonpath-benchmarks
+    cargo release --sign-tag --sign-commit
 
 # Actually execute a release for the given version.
 release-execute ver:
     just release-patch {{ver}}
     just release-readme
     just commit 'release v{{ver}}'
-    cargo release --sign-tag --sign-commit --exclude rsonpath-benchmarks --execute
+    cargo release --sign-tag --sign-commit --execute
 
 [private]
 release-patch ver:

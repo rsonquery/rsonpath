@@ -2,8 +2,11 @@
 
 members = [
     "crates/rsonpath",
-    "crates/rsonpath-benchmarks",
     "crates/rsonpath-lib"
+]
+
+exclude = [
+    "crates/rsonpath-benchmarks"
 ]
 
 [profile.dev]
