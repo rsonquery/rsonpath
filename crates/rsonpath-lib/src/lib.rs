@@ -224,7 +224,6 @@ cfg_if! {
 /// Use this instead of plain [`log::debug`], since this is automatically removed in
 /// release mode and incurs no performance penalties.
 #[cfg(debug_assertions)]
-#[macro_export]
 macro_rules! debug {
     (target: $target:expr, $($arg:tt)+) => (log::debug!(target: $target, $($arg)+));
     ($($arg:tt)+) => (log::debug!($($arg)+))
@@ -236,14 +235,12 @@ macro_rules! debug {
 /// Use this instead of plain [`log::debug`], since this is automatically removed in
 /// release mode and incurs no performance penalties.
 #[cfg(not(debug_assertions))]
-#[macro_export]
 macro_rules! debug {
     (target: $target:expr, $($arg:tt)+) => {};
     ($($arg:tt)+) => {};
 }
 
 /// Debug log the given u64 expression by its full 64-bit binary string representation.
-#[macro_export]
 macro_rules! bin {
     ($name:expr, $e:expr) => {
         $crate::debug!(
@@ -261,3 +258,6 @@ macro_rules! bin {
         );
     };
 }
+
+pub(crate) use debug;
+pub(crate) use bin;
