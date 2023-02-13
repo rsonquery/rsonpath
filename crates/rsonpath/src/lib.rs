@@ -9,9 +9,10 @@ use rsonpath_lib::{
     },
 };
 
-pub(crate) const FEATURE_REQUEST_URL: &str =
+const FEATURE_REQUEST_URL: &str =
     "https://github.com/V0ldek/rsonpath/issues/new?template=feature_request.md";
 
+/// Turn a [`ParserError`] into a user-friendly eyre Report.
 pub fn report_parser_error(query_string: &str, error: ParserError) -> eyre::Report {
     match error {
         ParserError::SyntaxError { report } => report_query_syntax_error(query_string, report),
@@ -19,6 +20,7 @@ pub fn report_parser_error(query_string: &str, error: ParserError) -> eyre::Repo
     }
 }
 
+/// Turn a [`CompilerError`] into a user-friendly eyre Report.
 pub fn report_compiler_error(query: &JsonPathQuery, error: CompilerError) -> eyre::Report {
     match error {
         CompilerError::NotSupported(unsupported) => report_unsupported_error(unsupported),
@@ -39,6 +41,7 @@ pub fn report_compiler_error(query: &JsonPathQuery, error: CompilerError) -> eyr
     }
 }
 
+/// Turn a [`EngineError`] into a user-friendly eyre Report.
 pub fn report_engine_error(error: EngineError) -> eyre::Report {
     match error {
         EngineError::DepthBelowZero(_, _) => eyre::Report::new(error),
