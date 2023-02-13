@@ -241,6 +241,7 @@ macro_rules! debug {
 }
 
 /// Debug log the given u64 expression by its full 64-bit binary string representation.
+#[allow(unused_macros)]
 macro_rules! bin {
     ($name:expr, $e:expr) => {
         $crate::debug!(
@@ -259,5 +260,6 @@ macro_rules! bin {
     };
 }
 
-pub(crate) use debug;
+#[allow(unused_imports)]
 pub(crate) use bin;
+pub(crate) use debug;
