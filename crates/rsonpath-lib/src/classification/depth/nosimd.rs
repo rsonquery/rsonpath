@@ -1,6 +1,6 @@
 use super::*;
+use crate::classification::quotes::{QuoteClassifiedBlock, ResumeClassifierBlockState};
 use crate::debug;
-use crate::quotes::{QuoteClassifiedBlock, ResumeClassifierBlockState};
 use std::marker::PhantomData;
 
 pub(crate) struct VectorIterator<'a, I: QuoteClassifiedIterator<'a>> {

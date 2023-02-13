@@ -2,15 +2,17 @@
 
 #[cfg(feature = "head-skip")]
 use super::head_skipping::{CanHeadSkip, HeadSkip};
-use crate::classify::ClassifierWithSkipping;
-use crate::classify::{classify_structural_characters, Structural, StructuralIterator};
+use crate::classification::quotes::{classify_quoted_sequences, QuoteClassifiedIterator};
+use crate::classification::structural::{
+    classify_structural_characters, Structural, StructuralIterator,
+};
+use crate::classification::ClassifierWithSkipping;
 use crate::debug;
 use crate::engine::error::EngineError;
 use crate::engine::{Compiler, Engine, Input};
 use crate::query::automaton::{Automaton, State};
 use crate::query::error::CompilerError;
 use crate::query::{JsonPathQuery, Label};
-use crate::quotes::{classify_quoted_sequences, QuoteClassifiedIterator};
 use crate::result::QueryResult;
 use aligners::{alignment, AlignedBytes, AlignedSlice};
 

@@ -3,22 +3,21 @@
 //! This happens in queries starting with a descendant selector.
 
 use super::error::EngineError;
-use crate::classify::{
-    resume_structural_classification, ClassifierWithSkipping, Structural, StructuralIterator,
+use crate::classification::{
+    quotes::{classify_quoted_sequences, QuoteClassifiedIterator, ResumeClassifierState},
+    structural::{resume_structural_classification, Structural, StructuralIterator},
+    ClassifierWithSkipping,
 };
 use crate::debug;
-use crate::result::QueryResult;
-use crate::{
-    query::{
-        automaton::{Automaton, State},
-        Label,
-    },
-    quotes::{classify_quoted_sequences, QuoteClassifiedIterator, ResumeClassifierState},
+use crate::query::{
+    automaton::{Automaton, State},
+    Label,
 };
+use crate::result::QueryResult;
 use aligners::{alignment, AlignedBytes};
 
 /// Trait that needs to be implemented by an [`Engine`](`super::Engine`) to use this submodule.
-pub(crate) trait CanHeadSkip<'b> {
+pub(super) trait CanHeadSkip<'b> {
     /// Function called when head-skipping finds a label at which normal query execution
     /// should resume.
     ///
@@ -46,7 +45,7 @@ pub(crate) trait CanHeadSkip<'b> {
 }
 
 /// Configuration of the head-skipping decorator.
-pub(crate) struct HeadSkip<'b, 'q> {
+pub(super) struct HeadSkip<'b, 'q> {
     bytes: &'b AlignedBytes<alignment::Page>,
     state: State,
     is_accepting: bool,
@@ -76,7 +75,7 @@ impl<'b, 'q> HeadSkip<'b, 'q> {
     /// extremely quickly with [`memchr::memmem`].
     ///
     /// In all other cases, head-skipping is not supported.
-    pub(crate) fn new(
+    pub(super) fn new(
         bytes: &'b AlignedBytes<alignment::Page>,
         automaton: &'b Automaton<'q>,
     ) -> Option<Self> {
@@ -100,7 +99,7 @@ impl<'b, 'q> HeadSkip<'b, 'q> {
 
     /// Run a preconfigured [`HeadSkip`] using the given `engine` and reporting
     /// to the `result`.
-    pub(crate) fn run_head_skipping<'r, E: CanHeadSkip<'b>, R: QueryResult>(
+    pub(super) fn run_head_skipping<'r, E: CanHeadSkip<'b>, R: QueryResult>(
         &self,
         engine: &mut E,
         result: &'r mut R,

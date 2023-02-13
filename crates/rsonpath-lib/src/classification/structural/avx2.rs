@@ -13,10 +13,10 @@ cfg_if::cfg_if! {
     }
 }
 
-use crate::classify::{
+use crate::classification::quotes::{QuoteClassifiedBlock, ResumeClassifierBlockState};
+use crate::classification::structural::{
     QuoteClassifiedIterator, ResumeClassifierState, Structural, StructuralIterator,
 };
-use crate::quotes::{QuoteClassifiedBlock, ResumeClassifierBlockState};
 use crate::{bin, debug};
 
 #[cfg(target_arch = "x86")]

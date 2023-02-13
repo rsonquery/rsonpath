@@ -1,5 +1,5 @@
 //! JSON depth calculations on byte streams.
-use crate::quotes::{QuoteClassifiedIterator, ResumeClassifierState};
+use crate::classification::quotes::{QuoteClassifiedIterator, ResumeClassifierState};
 use cfg_if::cfg_if;
 
 /// Common trait for structs that enrich a byte block with JSON depth information.
@@ -42,7 +42,7 @@ pub trait DepthIterator<'a, I: QuoteClassifiedIterator<'a>>:
     fn resume(state: ResumeClassifierState<'a, I>, opening: u8) -> (Option<Self::Block>, Self);
 
     /// Resume classification from a state retrieved by a previous
-    /// [`DepthIterator::stop`] or [`StructuralIterator::stop`](`crate::classify::StructuralIterator::stop`) invocation.
+    /// [`DepthIterator::stop`] or [`StructuralIterator::stop`](`crate::classification::structural::StructuralIterator::stop`) invocation.
     fn stop(self, block: Option<Self::Block>) -> ResumeClassifierState<'a, I>;
 }
 

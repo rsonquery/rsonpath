@@ -13,7 +13,7 @@ cfg_if::cfg_if! {
     }
 }
 
-use crate::quotes::{QuoteClassifiedBlock, ResumeClassifierBlockState};
+use crate::classification::quotes::{QuoteClassifiedBlock, ResumeClassifierBlockState};
 use crate::{bin, debug};
 use aligners::{alignment::TwoTo, AlignedSlice};
 use std::marker::PhantomData;

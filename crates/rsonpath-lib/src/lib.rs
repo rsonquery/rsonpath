@@ -173,24 +173,22 @@
 )]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
-pub mod classify;
-pub mod depth;
+pub mod classification;
 pub mod engine;
 pub mod error;
 pub mod query;
-pub mod quotes;
 pub mod result;
 use cfg_if::cfg_if;
 
 cfg_if! {
     if #[cfg(simd = "avx2")] {
         /// Default alignment required out of input blocks for the purpose
-        /// of classification with [`quotes`](crate::quotes) and [`classify`](crate::classify).
+        /// of [`classification`](crate::classification).
         pub type BlockAlignment = aligners::alignment::TwoTo<5>;
     }
     else {
         /// Default alignment required out of input blocks for the purpose
-        /// of classification with [`quotes`](crate::quotes) and [`classify`](crate::classify).
+        /// of [`classification`](crate::classification).
         pub type BlockAlignment = aligners::alignment::TwoTo<5>;
     }
 }
