@@ -1,6 +1,6 @@
 use super::*;
-use crate::classification::quotes::{
-    QuoteClassifiedBlock, ResumeClassifierBlockState, ResumeClassifierState,
+use crate::classification::{
+    quotes::QuoteClassifiedBlock, ResumeClassifierBlockState, ResumeClassifierState,
 };
 use crate::debug;
 

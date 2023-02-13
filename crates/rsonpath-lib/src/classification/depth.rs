@@ -1,5 +1,5 @@
 //! JSON depth calculations on byte streams.
-use crate::classification::quotes::{QuoteClassifiedIterator, ResumeClassifierState};
+use crate::classification::{quotes::QuoteClassifiedIterator, ResumeClassifierState};
 use cfg_if::cfg_if;
 
 /// Common trait for structs that enrich a byte block with JSON depth information.

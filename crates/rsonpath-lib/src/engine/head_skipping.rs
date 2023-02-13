@@ -4,9 +4,9 @@
 
 use super::error::EngineError;
 use crate::classification::{
-    quotes::{classify_quoted_sequences, QuoteClassifiedIterator, ResumeClassifierState},
+    quotes::{classify_quoted_sequences, QuoteClassifiedIterator},
     structural::{resume_structural_classification, Structural, StructuralIterator},
-    ClassifierWithSkipping,
+    ResumeClassifierState,
 };
 use crate::debug;
 use crate::query::{
@@ -35,9 +35,9 @@ pub(super) trait CanHeadSkip<'b> {
         &mut self,
         next_event: Structural,
         state: State,
-        classifier: &mut ClassifierWithSkipping<'b, Q, I>,
+        structural_classifier: I,
         result: &'r mut R,
-    ) -> Result<(), EngineError>
+    ) -> Result<ResumeClassifierState<'b, Q>, EngineError>
     where
         Q: QuoteClassifiedIterator<'b>,
         R: QueryResult,
@@ -161,15 +161,7 @@ impl<'b, 'q> HeadSkip<'b, 'q> {
                                 .iter()
                                 .all(u8::is_ascii_whitespace) =>
                         {
-                            let mut engine_classifier = ClassifierWithSkipping::new(classifier);
-                            engine.run_on_subtree(
-                                opening,
-                                self.state,
-                                &mut engine_classifier,
-                                result,
-                            )?;
-
-                            engine_classifier.stop()
+                            engine.run_on_subtree(opening, self.state, classifier, result)?
                         }
                         _ => classifier.stop(),
                     };

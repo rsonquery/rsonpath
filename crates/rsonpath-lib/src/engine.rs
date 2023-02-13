@@ -9,6 +9,8 @@ pub mod error;
 mod head_skipping;
 pub mod main;
 pub mod recursive;
+#[cfg(feature = "tail-skip")]
+mod tail_skipping;
 
 pub use main::MainEngine as RsonpathEngine;
 

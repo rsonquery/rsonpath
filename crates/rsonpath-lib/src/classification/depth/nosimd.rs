@@ -1,5 +1,5 @@
 use super::*;
-use crate::classification::quotes::{QuoteClassifiedBlock, ResumeClassifierBlockState};
+use crate::classification::{quotes::QuoteClassifiedBlock, ResumeClassifierBlockState};
 use crate::debug;
 use std::marker::PhantomData;
 

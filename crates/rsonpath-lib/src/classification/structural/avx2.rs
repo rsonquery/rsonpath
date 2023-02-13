@@ -13,9 +13,9 @@ cfg_if::cfg_if! {
     }
 }
 
-use crate::classification::quotes::{QuoteClassifiedBlock, ResumeClassifierBlockState};
-use crate::classification::structural::{
-    QuoteClassifiedIterator, ResumeClassifierState, Structural, StructuralIterator,
+use crate::classification::structural::{QuoteClassifiedIterator, Structural, StructuralIterator};
+use crate::classification::{
+    QuoteClassifiedBlock, ResumeClassifierBlockState, ResumeClassifierState,
 };
 use crate::{bin, debug};
 

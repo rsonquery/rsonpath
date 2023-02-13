@@ -4,105 +4,75 @@ pub mod depth;
 pub mod quotes;
 pub mod structural;
 
-#[cfg(feature = "head-skip")]
-use crate::classification::quotes::ResumeClassifierState;
-#[cfg(feature = "tail-skip")]
 use crate::debug;
-#[cfg(feature = "tail-skip")]
-use depth::{resume_depth_classification, DepthBlock, DepthIterator, DepthIteratorResumeOutcome};
-use quotes::QuoteClassifiedIterator;
-#[cfg(feature = "tail-skip")]
-use replace_with::replace_with_or_abort;
-use std::marker::PhantomData;
-use structural::StructuralIterator;
+use quotes::{QuoteClassifiedBlock, QuoteClassifiedIterator};
 
-pub(crate) struct ClassifierWithSkipping<'b, Q, I>
-where
-    Q: QuoteClassifiedIterator<'b>,
-    I: StructuralIterator<'b, Q>,
-{
-    classifier: I,
-    phantom: PhantomData<&'b Q>,
+/// State allowing resumption of a classifier from a particular place
+/// in the input along with the stopped [`QuoteClassifiedIterator`].
+pub struct ResumeClassifierState<'a, I: QuoteClassifiedIterator<'a>> {
+    /// The stopped iterator.
+    pub iter: I,
+    /// The block at which classification was stopped.
+    pub block: Option<ResumeClassifierBlockState<'a>>,
+    /// Was comma classification turned on when the classification was stopped.
+    pub are_commas_on: bool,
+    /// Was colon classification turned on when the classification was stopped.
+    pub are_colons_on: bool,
 }
 
-impl<'b, Q, I> ClassifierWithSkipping<'b, Q, I>
-where
-    Q: QuoteClassifiedIterator<'b>,
-    I: StructuralIterator<'b, Q>,
-{
-    pub(crate) fn new(classifier: I) -> Self {
-        Self {
-            classifier,
-            phantom: PhantomData,
-        }
+/// State of the block at which classification was stopped.
+pub struct ResumeClassifierBlockState<'a> {
+    /// Quote classified information about the block.
+    pub block: QuoteClassifiedBlock<'a>,
+    /// The index at which classification was stopped.
+    pub idx: usize,
+}
+
+impl<'a, I: QuoteClassifiedIterator<'a>> ResumeClassifierState<'a, I> {
+    /// Get the index in the original bytes input at which classification has stopped.
+    #[inline(always)]
+    pub fn get_idx(&self) -> usize {
+        debug!(
+            "iter offset: {}, block idx: {:?}",
+            self.iter.get_offset(),
+            self.block.as_ref().map(|b| b.idx)
+        );
+
+        self.iter.get_offset() + self.block.as_ref().map_or(0, |b| b.idx)
     }
 
-    #[cfg(feature = "tail-skip")]
-    pub(crate) fn skip(&mut self, opening: u8) -> usize {
-        debug!("Skipping");
-        let mut idx = 0;
+    /// Move the state forward by `count` bytes.
+    #[inline]
+    pub fn offset_bytes(&mut self, count: isize) {
+        debug_assert!(count > 0);
+        let count = count as usize;
 
-        replace_with_or_abort(&mut self.classifier, |classifier| {
-            let resume_state = classifier.stop();
-            let DepthIteratorResumeOutcome(first_vector, mut depth_classifier) =
-                resume_depth_classification(resume_state, opening);
+        let remaining_in_block = self.block.as_ref().map_or(0, |b| b.block.len() - b.idx);
 
-            let mut current_vector = first_vector.or_else(|| depth_classifier.next());
-            let mut current_depth = 1;
-
-            'outer: while let Some(ref mut vector) = current_vector {
-                vector.add_depth(current_depth);
-
-                debug!("Fetched vector, current depth is {current_depth}");
-                debug!("Estimate: {}", vector.estimate_lowest_possible_depth());
-
-                if vector.estimate_lowest_possible_depth() <= 0 {
-                    while vector.advance_to_next_depth_decrease() {
-                        if vector.get_depth() == 0 {
-                            debug!("Encountered depth 0, breaking.");
-                            break 'outer;
-                        }
-                    }
-                }
-
-                current_depth = vector.depth_at_end();
-                current_vector = depth_classifier.next();
+        match self.block.as_mut() {
+            Some(b) if b.block.len() - b.idx > count => {
+                b.idx += count;
             }
+            _ => {
+                let blocks_to_advance = (count - remaining_in_block) / I::block_size();
 
-            debug!("Skipping complete, resuming structural classification.");
-            let resume_state = depth_classifier.stop(current_vector);
-            debug!("Finished at {}", resume_state.get_idx());
-            idx = resume_state.get_idx();
-            I::resume(resume_state)
-        });
+                let remainder = (self.block.as_ref().map_or(0, |b| b.idx) + count
+                    - blocks_to_advance * I::block_size())
+                    % I::block_size();
 
-        idx
-    }
+                self.iter.offset(blocks_to_advance as isize);
+                let next_block = self.iter.next();
 
-    #[cfg(feature = "head-skip")]
-    pub(crate) fn stop(self) -> ResumeClassifierState<'b, Q> {
-        self.classifier.stop()
-    }
-}
+                self.block = next_block.map(|b| ResumeClassifierBlockState {
+                    block: b,
+                    idx: remainder,
+                });
+            }
+        }
 
-impl<'b, Q, I> std::ops::Deref for ClassifierWithSkipping<'b, Q, I>
-where
-    Q: QuoteClassifiedIterator<'b>,
-    I: StructuralIterator<'b, Q>,
-{
-    type Target = I;
-
-    fn deref(&self) -> &Self::Target {
-        &self.classifier
-    }
-}
-
-impl<'b, Q, I> std::ops::DerefMut for ClassifierWithSkipping<'b, Q, I>
-where
-    Q: QuoteClassifiedIterator<'b>,
-    I: StructuralIterator<'b, Q>,
-{
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.classifier
+        debug!(
+            "offset_bytes({count}) results in idx moved to {}",
+            self.get_idx()
+        );
     }
 }

@@ -44,7 +44,7 @@
 //! assert_eq!(expected, actual);
 //! ```
 
-use crate::classification::quotes::{QuoteClassifiedIterator, ResumeClassifierState};
+use crate::classification::{quotes::QuoteClassifiedIterator, ResumeClassifierState};
 use cfg_if::cfg_if;
 
 /// Defines structural characters in JSON documents.
