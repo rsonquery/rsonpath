@@ -1,3 +1,5 @@
+#![forbid(unsafe_code)]
+
 use clap::{Parser, ValueEnum};
 use color_eyre::eyre::{eyre, Result, WrapErr};
 use color_eyre::Help;

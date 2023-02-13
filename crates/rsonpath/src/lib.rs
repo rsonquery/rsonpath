@@ -1,3 +1,5 @@
+#![forbid(unsafe_code)]
+
 use color_eyre::{Help, SectionExt};
 use eyre::eyre;
 use rsonpath_lib::{
