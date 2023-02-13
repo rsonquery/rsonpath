@@ -222,11 +222,12 @@ release-readme:
     let rsonpath_lib_deps = (cargo tree --package rsonpath-lib --edges normal --depth 1);
     let rsonpath_full_deps = (cargo tree --package rsonpath --edges normal);
     let params = [
-        [$rsonpath_deps, "rsonpath"],
-        [$rsonpath_lib_deps, "rsonpath-lib"],
-        [$rsonpath_full_deps, "rsonpath-full"]
+        [$rsonpath_deps, "rsonpath", "./README.md"],
+        [$rsonpath_lib_deps, "rsonpath-lib", "./README.md"],
+        [$rsonpath_lib_deps, "rsonpath-lib", "./crates/rsonpath-lib/README.md"],
+        [$rsonpath_full_deps, "rsonpath-full", "./README.md"]
     ];
     $params | each {|x|
         let deps = ($x.0 | str replace '\n' '\n' --all | str replace '/' '\/' --all);
-        sed -z -i $'s/<!-- ($x.1) dependencies start -->\n```ini\n.*```\n<!-- ($x.1) dependencies end -->/<!-- ($x.1) dependencies start -->\n```ini\n($deps)\n```\n<!-- ($x.1) dependencies end -->/' ./README.md
+        sed -z -i $'s/<!-- ($x.1) dependencies start -->\n```ini\n.*```\n<!-- ($x.1) dependencies end -->/<!-- ($x.1) dependencies start -->\n```ini\n($deps)\n```\n<!-- ($x.1) dependencies end -->/' $x.2
     };
