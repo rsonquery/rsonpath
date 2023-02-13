@@ -6,12 +6,12 @@ use crate::classify::ClassifierWithSkipping;
 use crate::classify::{classify_structural_characters, Structural, StructuralIterator};
 use crate::debug;
 use crate::engine::error::EngineError;
-use crate::engine::result::QueryResult;
 use crate::engine::{Compiler, Engine, Input};
 use crate::query::automaton::{Automaton, State};
 use crate::query::error::CompilerError;
 use crate::query::{JsonPathQuery, Label};
 use crate::quotes::{classify_quoted_sequences, QuoteClassifiedIterator};
+use crate::result::QueryResult;
 use aligners::{alignment, AlignedBytes, AlignedSlice};
 
 /// Recursive implementation of the JSONPath query engine.

@@ -3,11 +3,11 @@
 //! This happens in queries starting with a descendant selector.
 
 use super::error::EngineError;
-use super::result::QueryResult;
 use crate::classify::{
     resume_structural_classification, ClassifierWithSkipping, Structural, StructuralIterator,
 };
 use crate::debug;
+use crate::result::QueryResult;
 use crate::{
     query::{
         automaton::{Automaton, State},

@@ -1,10 +1,8 @@
 use rsonpath_lib::engine::main::MainEngine;
 use rsonpath_lib::engine::recursive::RecursiveEngine;
-use rsonpath_lib::engine::{
-    result::{CountResult, IndexResult},
-    Compiler, Engine, Input,
-};
+use rsonpath_lib::engine::{Compiler, Engine, Input};
 use rsonpath_lib::query::JsonPathQuery;
+use rsonpath_lib::result::{CountResult, IndexResult};
 use std::fs;
 use test_case::test_case;
 

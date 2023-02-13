@@ -5,8 +5,9 @@
 //!
 //! # Examples
 //! ```rust
-//! use rsonpath_lib::engine::{Compiler, Engine, Input, result::CountResult, RsonpathEngine};
+//! use rsonpath_lib::engine::{Compiler, Engine, Input, RsonpathEngine};
 //! use rsonpath_lib::query::JsonPathQuery;
+//! use rsonpath_lib::result::CountResult;
 //! # use std::error::Error;
 //!
 //! # fn main() -> Result<(), Box<dyn Error>> {
@@ -178,6 +179,7 @@ pub mod engine;
 pub mod error;
 pub mod query;
 pub mod quotes;
+pub mod result;
 use cfg_if::cfg_if;
 
 cfg_if! {

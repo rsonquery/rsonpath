@@ -1,8 +1,7 @@
 //! Base traits for different implementations of JSONPath execution engines.
 //!
 //! Defines the [`Engine`] trait that provides different ways of retrieving
-//! query results from input bytes. Result types are defined in the [result]
-//! module.
+//! query results from input bytes.
 
 mod depth;
 pub mod error;
@@ -10,19 +9,17 @@ pub mod error;
 mod head_skipping;
 pub mod main;
 pub mod recursive;
-pub mod result;
 
 pub use main::MainEngine as RsonpathEngine;
 
+use self::error::EngineError;
+use crate::query::{error::CompilerError, JsonPathQuery};
+use crate::result::QueryResult;
 use aligners::{
     alignment::{self},
     AlignedBytes,
 };
 use cfg_if::cfg_if;
-
-use crate::query::{error::CompilerError, JsonPathQuery};
-
-use self::{error::EngineError, result::QueryResult};
 
 /// Input into a query engine.
 pub struct Input {

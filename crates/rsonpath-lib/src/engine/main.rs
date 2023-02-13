@@ -17,12 +17,12 @@ use crate::classify::{
 use crate::debug;
 use crate::engine::depth::Depth;
 use crate::engine::error::EngineError;
-use crate::engine::result::QueryResult;
 use crate::engine::{Engine, Input};
 use crate::query::automaton::{Automaton, State};
 use crate::query::error::CompilerError;
 use crate::query::{JsonPathQuery, Label};
 use crate::quotes::{classify_quoted_sequences, QuoteClassifiedIterator};
+use crate::result::QueryResult;
 use aligners::{alignment, AlignedBytes};
 use smallvec::{smallvec, SmallVec};
 
