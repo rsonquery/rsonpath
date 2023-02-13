@@ -280,7 +280,7 @@ impl<'q, 'b> Executor<'q, 'b> {
             for &(label, target) in self.automaton[self.state].transitions() {
                 if self.is_match(colon_idx, label)? {
                     any_matched = true;
-                    self.transition_to(target);
+                    self.transition_to(target, self.bytes[idx]);
                     if self.automaton.is_accepting(target) {
                         result.report(colon_idx);
                     }
@@ -298,10 +298,10 @@ impl<'q, 'b> Executor<'q, 'b> {
                 classifier.skip(self.bytes[idx]);
                 return Ok(());
             } else {
-                self.transition_to(fallback);
+                self.transition_to(fallback, self.bytes[idx]);
             }
             #[cfg(not(feature = "tail-skip"))]
-            self.transition_to(fallback);
+            self.transition_to(fallback, self.bytes[idx]);
 
             if self.automaton.is_accepting(fallback) {
                 result.report(idx);
@@ -405,9 +405,13 @@ impl<'q, 'b> Executor<'q, 'b> {
         Ok(())
     }
 
-    fn transition_to(&mut self, target: State) {
-        if target != self.state {
-            debug!("push {}, goto {target}", self.state);
+    fn transition_to(&mut self, target: State, opening: u8) {
+        let target_is_list = opening == b'[';
+        if target != self.state || target_is_list != self.is_list {
+            debug!(
+                "push {}, goto {target}, is_list = {target_is_list}",
+                self.state
+            );
             self.stack.push(StackFrame {
                 depth: *self.depth,
                 state: self.state,

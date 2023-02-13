@@ -18,6 +18,7 @@ macro_rules! count_test_cases {
     ($test_name:ident, $impl:ident) => {
         #[test_case("basic/atomic_descendant.json", "$..a" => 1; "atomic_descendant.json $..a")]
         #[test_case("basic/atomic_descendant.json", "$..a..b" => 0; "atomic_descendant.json $..a..b")]
+        #[test_case("basic/atomic_after_complex.json", "$.a..b" => 1; "atomic_after_complex.json $.a..b")]
         #[test_case("basic/child.json", "$..a..b.c..d" => 3; "child.json $..a..b.c..d")]
         #[test_case("basic/child_hell.json", "$..x..a.b.a.b.c" => 6; "child_hell.json $..x..a.b.a.b.c")]
         #[test_case("basic/empty.json", "" => 0; "empty.json")]
@@ -142,6 +143,7 @@ macro_rules! indices_test_cases {
     ($test_name:ident, $impl:ident) => {
         #[test_case("basic/atomic_descendant.json", "$..a" => vec![9]; "atomic_descendant.json $..a")]
         #[test_case("basic/atomic_descendant.json", "$..a..b" => Vec::<usize>::new(); "atomic_descendant.json $..a..b")]
+        #[test_case("basic/atomic_after_complex.json", "$.a..b" => vec![174]; "atomic_after_complex.json $.a..b")]
         #[test_case("basic/child.json", "$..a..b.c..d" => vec![984, 1297, 1545]; "child.json $..a..b.c..d")]
         #[test_case("basic/child_hell.json", "$..x..a.b.a.b.c" => vec![198, 756, 1227, 1903, 2040, 2207]; "child_hell.json $..x..a.b.a.b.c")]
         #[test_case("basic/empty.json", "" => Vec::<usize>::new(); "empty.json")]
