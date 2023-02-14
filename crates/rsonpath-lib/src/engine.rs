@@ -124,5 +124,6 @@ pub trait Compiler {
     /// cannot handle the query.
     fn compile_query(query: &JsonPathQuery) -> Result<Self::E<'_>, CompilerError>;
 
+    /// Turn a compiled [`Automaton`] into an [`Engine`].
     fn from_compiled_query(automaton: Automaton<'_>) -> Self::E<'_>;
 }
