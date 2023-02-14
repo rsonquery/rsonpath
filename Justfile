@@ -70,12 +70,18 @@ run *ARGS: (build-bin "release")
 
 # Run all tests.
 
-alias t := test-unit
+alias t := test-quick
 alias test := test-full
 alias doctest := test-doc
 
-# Run the quick unit tests of the library with all features.
+# Run the quick unit and doc tests of the library with all features.
+test-quick:
+    cargo test --lib
+    cargo test --doc
+
+# Run the quick unit tests of the library on feature powerset.
 test-unit:
+    -cargo install cargo-hack
     cargo rsontest --lib
 
 # Run the classifier tests on default features.
@@ -115,11 +121,15 @@ alias verify := verify-full
 verify-full: build-all verify-clippy verify-doc verify-fmt test-full
 
 # Run a quick formatting and compilation check.
-verify-quick: verify-fmt verify-check
+verify-quick: verify-fmt verify-check verify-bench
 
 # Run cargo check on non-benchmark packages.
 verify-check:
 	cargo check --workspace --all-features
+
+# Run cargo check on the benchmark package
+verify-bench:
+    cargo check --manifest-path ./crates/rsonpath-benchmarks/Cargo.toml --all-features
 
 # Run clippy lints on all packages.
 verify-clippy: (build-all "release")
@@ -222,11 +232,12 @@ release-readme:
     let rsonpath_lib_deps = (cargo tree --package rsonpath-lib --edges normal --depth 1);
     let rsonpath_full_deps = (cargo tree --package rsonpath --edges normal);
     let params = [
-        [$rsonpath_deps, "rsonpath"],
-        [$rsonpath_lib_deps, "rsonpath-lib"],
-        [$rsonpath_full_deps, "rsonpath-full"]
+        [$rsonpath_deps, "rsonpath", "./README.md"],
+        [$rsonpath_lib_deps, "rsonpath-lib", "./README.md"],
+        [$rsonpath_lib_deps, "rsonpath-lib", "./crates/rsonpath-lib/README.md"],
+        [$rsonpath_full_deps, "rsonpath-full", "./README.md"]
     ];
     $params | each {|x|
         let deps = ($x.0 | str replace '\n' '\n' --all | str replace '/' '\/' --all);
-        sed -z -i $'s/<!-- ($x.1) dependencies start -->\n```ini\n.*```\n<!-- ($x.1) dependencies end -->/<!-- ($x.1) dependencies start -->\n```ini\n($deps)\n```\n<!-- ($x.1) dependencies end -->/' ./README.md
+        sed -z -i $'s/<!-- ($x.1) dependencies start -->\n```ini\n.*```\n<!-- ($x.1) dependencies end -->/<!-- ($x.1) dependencies start -->\n```ini\n($deps)\n```\n<!-- ($x.1) dependencies end -->/' $x.2
     };

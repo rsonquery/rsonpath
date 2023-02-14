@@ -16,26 +16,32 @@ Experimental JSONPath engine for querying massive streamed datasets.
 The `rsonpath` crate provides a JSONPath parser and a query execution engine,
 which utilizes SIMD instructions to provide massive throughput improvements over conventional engines.
 
+Benchmarks of `rsonpath` against a reference no-SIMD engine on the
+[Pison dataset](https://github.com/AutomataLab/Pison). **NOTE: Scale is logarithmic!**
 ![Main throughput plot](/img/main-plot.svg)
 
 ### Supported selectors
 
 The project is actively developed and currently supports only a subset of the JSONPath query language.
 
-| Selector              | Syntax                          | Supported | Since  |   |
-|-----------------------|---------------------------------|-----------|--------|---|
-| Root                  | `$`                             | ✔️        | v0.1.0 |   |
-| Dot                   | `.<label>`                      | ✔️        | v0.1.0 |   |
-| Index (object member) | `[<label>]`                     | ✔️        | v0.1.0 |   |
-| Index (array index)   | `[<index>]`                     | ❌        | -      |   |
-| Descendant            | `..`                            | ✔️        | v0.1.0 |   |
-| Child wildcard        | `.*`, `.[*]`                    | ❌        | -      |   |
-| Descendant wildcard   | `..*`, `..[*]`                  | ❌        | -      |   |
-| Slice                 | `[<start>:<end>:<step>]`        | ❌        | -      |   |
-| List                  | `[<sel1>, <sel2>, ..., <selN>]` | ❌        | -      |   |
-| Filter                | `[?(<expr>)]`                   | ❌        | -      |   |
+| Selector                       | Syntax                          | Supported | Since  | Tracking Issue |
+|--------------------------------|---------------------------------|-----------|--------|---------------:|
+| Root                           | `$`                             | ✔️        | v0.1.0 |   |
+| Dot                            | `.<label>`                      | ✔️        | v0.1.0 |   |
+| Index (object member)          | `[<label>]`                     | ✔️        | v0.1.0 |   |
+| Index (array index)            | `[<index>]`                     | ❌        | -      | [#64](https://github.com/V0ldek/rsonpath/issues/64) |
+| Index (array index from end)   | `[-<index>]`                    | ❌        | -      |   |
+| Descendant                     | `..`                            | ✔️        | v0.1.0 |   |
+| Child wildcard                 | `.*`, `.[*]`                    | ✔️        | v0.3.0 |   |
+| Descendant wildcard            | `..*`, `..[*]`                  | ❌        | -      | [#68](https://github.com/V0ldek/rsonpath/issues/68) |
+| Slice                          | `[<start>:<end>:<step>]`        | ❌        | -      |   |
+| List                           | `[<sel1>, <sel2>, ..., <selN>]` | ❌        | -      |   |
+| Filter                         | `[?(<expr>)]`                   | ❌        | -      |   |
 
 ## Installation
+
+See [Releases](https://github.com/V0ldek/rsonpath/releases/latest) for precompiled binaries for
+all first-class support targets.
 
 Easiest way to install is via [`cargo`](https://doc.rust-lang.org/cargo/getting-started/installation.html).
 
@@ -50,15 +56,22 @@ Target architecture is not supported by SIMD features of this crate. Disable the
 ```
 
 This means the SIMD features of the engine are not implemented for the machine's CPU.
-You can still use `rsonpath`, but the speed will be much more limited.
-To install SIMD-less `rsonpath`, run:
-
-```bash
-cargo install rsonpath --no-default-features
-```
+You can still use `rsonpath`, but the speed will be limited (see the reference engine in the chart above). To install without simd, run `cargo install --no-default-features -F default-optimizations`.
 
 Alternatively, you can download the source code and manually run `just install` (requires [`just`](https://github.com/casey/just))
 or `cargo install --path ./crates/rsonpath`.
+
+### Native CPU optimizations
+
+If maximum speed is paramount, you should install `rsonpath` with native CPU instructions support.
+This will result in a binary that is _not_ portable and might work incorrectly on any other machine,
+but will squeeze out every last bit of throughput.
+
+To do this, run the following `cargo install` variant:
+
+```bash
+RUSTFLAGS="-C target-cpu=native" cargo install rsonpath
+```
 
 ## Usage
 
@@ -74,13 +87,51 @@ For details, consult `rsonpath --help`.
 
 ### Results
 
-The results are presented as an array of indices at which a colon of a matching record was found.
+The results are presented as an array of indices at which a colon of a matching record was found,
+the comma directly preceding the matched record in a list,
+or the opening bracket of the list in case of the first element in it.
 Alternatively, passing `--result count` returns only the number of matches.
+Work to support more useful result reports is ongoing.
 
 ### Engine
 
 By default, the main SIMD engine is used. On machines not supporting SIMD, the recursive implementation
 might be faster in some cases. To change the engine use `--engine recursive`.
+
+## Caveats and limitations
+
+### JSONPath
+
+Not all selectors are supported, see the support table above.
+
+### Duplicate keys
+
+The engine assumes that every object in the input JSON has no duplicate keys.
+Behavior on duplicate keys is not guaranteed to be stable, but currently
+the engine will simply match the _first_ such key.
+
+```bash
+> rsonpath '$.key'
+{"key":"value","key":"other value"}
+[6]
+```
+
+This behavior can be overriden with a custom installation of `rsonpath`, disabling the default `unique-labels` feature. This will hurt performance.
+
+```bash
+> cargo install rsonpath --no-default-features -F simd -F head-skip -F tail-skip
+> rsonpath '$.key'
+{"key":"value","key":"other value"}
+[6, 20]
+```
+
+### Unicode
+
+The engine does _not_ parse unicode escape sequences in labels.
+This means that a label `"a"` is different from a label `"\u0041"`, even though semantically they represent the same string.
+Parsing unicode sequences is costly, so the support for this was postponed
+in favour of high performance. It would be possible for a flag to exist
+to trigger this behaviour, but it is not currently worked on.
 
 ## Build & test
 

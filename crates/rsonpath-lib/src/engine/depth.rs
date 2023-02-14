@@ -1,5 +1,4 @@
 //! Overflow-safe utilities for tracking JSON document depth.
-
 use super::error::DepthError;
 use std::{fmt::Display, ops::Deref};
 

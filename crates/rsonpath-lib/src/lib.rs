@@ -5,14 +5,19 @@
 //!
 //! # Examples
 //! ```rust
-//! use rsonpath_lib::engine::{Compiler, Engine, Input, result::CountResult, RsonpathEngine};
+//! use rsonpath_lib::engine::{Compiler, Engine, Input, RsonpathEngine};
 //! use rsonpath_lib::query::JsonPathQuery;
+//! use rsonpath_lib::result::CountResult;
 //! # use std::error::Error;
 //!
 //! # fn main() -> Result<(), Box<dyn Error>> {
 //! // Parse a JSONPath query from string.
 //! let query = JsonPathQuery::parse("$..person..number")?;
-//! let contents = r#"
+//! // Convert the contents to the Input type required by the Engines.
+//! // Currently requires the contents to be owned and allocations to occur,
+//! // this is a known limitation tracked as issue #23
+//! // (https://github.com/V0ldek/rsonpath/issues/23).
+//! let mut contents = r#"
 //! {
 //!   "person": {
 //!     "name": "John",
@@ -29,11 +34,8 @@
 //!     ]
 //!   }
 //! }
-//! "#;
-//! // Remove whitespace from the JSON - limitation of the current version.
-//! let mut stripped_contents = contents.chars().filter(|c| !c.is_whitespace()).collect::<String>();
-//! // Convert the contents to the Input type required by the Engines.
-//! let input = Input::new(&mut stripped_contents);
+//! "#.to_owned();
+//! let input = Input::new(&mut contents);
 //! // Compile the query. The engine can be reused to run the same query on different contents.
 //! let engine = RsonpathEngine::compile_query(&query)?;
 //! // Count the number of occurrences of elements satisfying the query.
@@ -45,57 +47,79 @@
 //! ```
 //! # Input JSON assumptions
 //!
-//! 1. The JSON must be a syntactically valid JSON encoded in UTF-8 as defined by [RFC4627](https://datatracker.ietf.org/doc/html/rfc4627).
-//! 2. The JSON must not contain any whitespace outside of string values. This is a known limitation that will be lifted in future versions.
+//! The JSON must be a syntactically valid JSON encoded in UTF-8 as defined by
+//! [RFC4627](https://datatracker.ietf.org/doc/html/rfc4627).
 //!
-//! If the assumptions are violated the algorithm's behavior is undefined. It might panic or it might return nonsensical results.
-//! No validation is performed for maximum performance. Asserting the assumptions falls on the user of this library.
+//! If the assumptions are violated the algorithm's behavior is undefined. It might return nonsensical results,
+//! not process the whole document, or stop with an error.
+//! It should not panic &ndash; if you encounter a panic, you may report it as a bug.
+//! Some simple mistakes are caught, for example missing closing brackets or braces, but robust validation is
+//! sacrificed for performance. Asserting the assumptions falls on the user of this library.
+//! If you need a high-throughput parser that validates the document, take a look at
+//! [simdjson](https://lib.rs/crates/simd-json).
 //!
 //! # JSONPath language
 //!
-//! The library implements the JSONPath syntax as established by Stefan Goessner in <https://goessner.net/articles/JsonPath/>.
+//! The library implements the JSONPath syntax as established by Stefan Goessner in
+//! <https://goessner.net/articles/JsonPath/>.
 //! That implementation does not describe its semantics. There is no guarantee that this library has the same semantics
 //! as Goessner's implementation. The semantics used by rsonpath are described below.
 //!
 //! ## Grammar
 //!
 //! ```ebnf
-//! query = [root_expr] , { expr }
-//! expr = root_expr | descendant_expr | label_expr
-//! root_expr = "$"
-//! descendant_expr = ".."
-//! label_expr = simple_label | explicit_label
-//! simple_label = { ALPHANUMERIC | "_" }
-//! explicit_label = "['" , JSON_LABEL , "']"
+//! query = [root] , { selector }
+//! root = "$"
+//! selector = wildcard child | child | descendant
+//! wildcard child = dot wildcard | index wildcard
+//! child = dot | index
+//! dot = "." , label
+//! dot wildcard = ".*"
+//! descendant = ".." , ( label | index )
+//! index = "[" , quoted label , "]"
+//! index wildcard = "[*]"
+//! label = label first , { label character }
+//! label first = ALPHA | "_" | NONASCII
+//! label character = ALPHANUMERIC | "_" | NONASCII
+//! quoted label = ("'" , single quoted label , "'") | ('"' , double quoted label , '"')
+//! single quoted label = { UNESCAPED | ESCAPED | '"' | "\'" }
+//! double quoted label = { UNESCAPED | ESCAPED | "'" | '\"' }
 //!
-//! ALPHANUMERIC = [A-Z][a-z][0-9]
+//! ALPHA = ? [A-Z][a-z] ?
+//! ALPHANUMERIC = ? [A-Z][a-z][0-9] ?
+//! NONASCII = ? UTF8 characters outside of U+0000-U+007F ?
+//! UNESCAPED = ? [^'"] ?
+//! ESCAPED = ? [btnfru/\\] ?
 //! ```
-//! `JSON_LABEL` is the string defined by [RFC4627](https://datatracker.ietf.org/doc/html/rfc4627#page-5).
 //!
 //! ## Semantics
 //!
-//! The query is executed from left to right, expression by expression. When a value is found that matches
-//! the current expression, the execution advances to the next expression and evaluates it recursively within
+//! The query is executed from left to right, selector by selector. When a value is found that matches
+//! the current selector, the execution advances to the next selector and evaluates it recursively within
 //! the context of that value.
 //!
-//! ### Root expression
-//! The root expression may only appear at the beginning of the query and is implicit if not specified.
+//! ### Root selector (`$`)
+//! The root selector may only appear at the beginning of the query and is implicit if not specified.
 //! It matches the root object or array. Thus the query "$" gives either 1 or 0 results, if the JSON
 //! is empty or non-empty, respectively.
 //!
-//! ### Label expression
-//! Matches any value under a specified key in the current object or array and then executes the rest of the query on that value.
+//! ### Child selector (`.<label>`, `[<label>]`)
+//! Matches any value under a specified key in the current object
+//! and then executes the rest of the query on that value.
 //!
-//! ### Descendant expression
-//! Switches the engine into a recursive descent mode. The remainder of the query is executed recursively on every value
-//! nested in the current object or array.
+//! ### Child wildcard selector (`.*`, `[*]`)
+//! Matches any value regardless of key in the current object, or any value within the current array,
+//! and then executes the rest of the query on that value.
 //!
-//! ## Limitations
+//! ### Descendant selector (`..<label>`, `..[<label>]`)
+//! Switches the engine into a recursive descent mode.
+//! Looks for the specified key in every value nested in the current object or array,
+//! recursively.
 //!
-//! The only type of query supported as of now is a sequence of descendant-label expressions.
-//! ```json
-//! $..label_1..label_2..[...]..label_n
-//! ```
+//! ## Active development
+//!
+//! Only the aforementioned selectors are supported at this moment.
+//! This library is under active development.
 
 // Documentation lints, enabled only on --release.
 #![cfg_attr(
@@ -171,24 +195,25 @@
     warn(clippy::print_stderr, clippy::print_stdout, clippy::todo)
 )]
 #![cfg_attr(docsrs, feature(doc_cfg))]
+// Unsafe code allowed only for SIMD.
+#![cfg_attr(not(feature = "simd"), forbid(unsafe_code))]
 
-pub mod classify;
-pub mod depth;
+pub mod classification;
 pub mod engine;
 pub mod error;
 pub mod query;
-pub mod quotes;
+pub mod result;
 use cfg_if::cfg_if;
 
 cfg_if! {
     if #[cfg(simd = "avx2")] {
         /// Default alignment required out of input blocks for the purpose
-        /// of classification with [`quotes`](crate::quotes) and [`classify`](crate::classify).
+        /// of [`classification`](crate::classification).
         pub type BlockAlignment = aligners::alignment::TwoTo<5>;
     }
     else {
         /// Default alignment required out of input blocks for the purpose
-        /// of classification with [`quotes`](crate::quotes) and [`classify`](crate::classify).
+        /// of [`classification`](crate::classification).
         pub type BlockAlignment = aligners::alignment::TwoTo<5>;
     }
 }
@@ -199,7 +224,6 @@ cfg_if! {
 /// Use this instead of plain [`log::debug`], since this is automatically removed in
 /// release mode and incurs no performance penalties.
 #[cfg(debug_assertions)]
-#[macro_export]
 macro_rules! debug {
     (target: $target:expr, $($arg:tt)+) => (log::debug!(target: $target, $($arg)+));
     ($($arg:tt)+) => (log::debug!($($arg)+))
@@ -211,14 +235,13 @@ macro_rules! debug {
 /// Use this instead of plain [`log::debug`], since this is automatically removed in
 /// release mode and incurs no performance penalties.
 #[cfg(not(debug_assertions))]
-#[macro_export]
 macro_rules! debug {
     (target: $target:expr, $($arg:tt)+) => {};
     ($($arg:tt)+) => {};
 }
 
 /// Debug log the given u64 expression by its full 64-bit binary string representation.
-#[macro_export]
+#[allow(unused_macros)]
 macro_rules! bin {
     ($name:expr, $e:expr) => {
         $crate::debug!(
@@ -236,3 +259,7 @@ macro_rules! bin {
         );
     };
 }
+
+#[allow(unused_imports)]
+pub(crate) use bin;
+pub(crate) use debug;

@@ -2,10 +2,35 @@
 //!
 //! Provides the [`QuoteClassifiedBlock`] struct and [`QuoteClassifiedIterator`] trait
 //! that allow effectively enriching JSON inputs with quote sequence information.
+//!
+//! The output of quote classification is an iterator of [`QuoteClassifiedBlock`]
+//! which contain bitmasks whose lit bits signify characters that are within quotes
+//! in the source document. These characters need to be ignored.
+//!
+//! Note that the actual quote characters are not guaranteed to be classified
+//! as "within themselves" or otherwise. In particular the current implementation
+//! marks _opening_ quotes with lit bits, but _closing_ quotes are always unmarked.
+//! This behavior should not be presumed to be stable, though, and can change
+//! without a major semver bump.
+//!
+//! # Examples
+//! ```
+//! use rsonpath_lib::classification::quotes::{classify_quoted_sequences, QuoteClassifiedIterator};
+//! use aligners::AlignedBytes;
+//!
+//! let json = r#"{"x": "string", "y": {"z": "\"escaped\""}}"#;
+//! //            011000111111100011000011000111111111111000
+//! // The mask below appears reversed due to endianness.
+//! let expd = 0b000111111111111000110000110001111111000110;
+//! let aligned = AlignedBytes::new_padded(json.as_bytes());
+//! let mut quote_classifier = classify_quoted_sequences(&aligned);
+//!
+//! let block = quote_classifier.next().unwrap();
+//! assert_eq!(expd, block.within_quotes_mask);
+//! ```
+use crate::BlockAlignment;
 use aligners::{alignment::Twice, AlignedBlock, AlignedSlice};
 use cfg_if::cfg_if;
-
-use crate::{debug, BlockAlignment};
 
 /// Input block with a bitmask signifying which characters are within quotes.
 ///
@@ -61,77 +86,6 @@ pub trait QuoteClassifiedIterator<'a>: Iterator<Item = QuoteClassifiedBlock<'a>>
     /// state could have been damaged due to stopping and resuming the classification at a later point.
     fn flip_quotes_bit(&mut self);
 }
-
-/// State allowing resumption of a classifier from a particular place
-/// in the input along with the stopped [`QuoteClassifiedIterator`].
-pub struct ResumeClassifierState<'a, I: QuoteClassifiedIterator<'a>> {
-    /// The stopped iterator.
-    pub iter: I,
-    /// The block at which classification was stopped.
-    pub block: Option<ResumeClassifierBlockState<'a>>,
-    /// Was comma classification turned on when the classification was stopped.
-    pub are_commas_on: bool,
-    /// Was colon classification turned on when the classification was stopped.
-    pub are_colons_on: bool,
-}
-
-impl<'a, I: QuoteClassifiedIterator<'a>> ResumeClassifierState<'a, I> {
-    /// Get the index in the original bytes input at which classification has stopped.
-    #[inline(always)]
-    pub fn get_idx(&self) -> usize {
-        debug!(
-            "iter offset: {}, block idx: {:?}",
-            self.iter.get_offset(),
-            self.block.as_ref().map(|b| b.idx)
-        );
-
-        self.iter.get_offset() + self.block.as_ref().map_or(0, |b| b.idx)
-    }
-
-    /// Move the state forward by `count` bytes.
-    #[inline]
-    pub fn offset_bytes(&mut self, count: isize) {
-        debug_assert!(count > 0);
-        let count = count as usize;
-
-        let remaining_in_block = self.block.as_ref().map_or(0, |b| b.block.len() - b.idx);
-
-        match self.block.as_mut() {
-            Some(b) if b.block.len() - b.idx > count => {
-                b.idx += count;
-            }
-            _ => {
-                let blocks_to_advance = (count - remaining_in_block) / I::block_size();
-
-                let remainder = (self.block.as_ref().map_or(0, |b| b.idx) + count
-                    - blocks_to_advance * I::block_size())
-                    % I::block_size();
-
-                self.iter.offset(blocks_to_advance as isize);
-                let next_block = self.iter.next();
-
-                self.block = next_block.map(|b| ResumeClassifierBlockState {
-                    block: b,
-                    idx: remainder,
-                });
-            }
-        }
-
-        debug!(
-            "offset_bytes({count}) results in idx moved to {}",
-            self.get_idx()
-        );
-    }
-}
-
-/// State of the block at which classification was stopped.
-pub struct ResumeClassifierBlockState<'a> {
-    /// Quote classified information about the block.
-    pub block: QuoteClassifiedBlock<'a>,
-    /// The index at which classification was stopped.
-    pub idx: usize,
-}
-
 cfg_if! {
     if #[cfg(any(doc, not(feature = "simd")))] {
         mod nosimd;
@@ -145,6 +99,8 @@ cfg_if! {
         pub fn classify_quoted_sequences(
             bytes: &AlignedSlice<alignment::Twice<BlockAlignment>>,
         ) -> impl QuoteClassifiedIterator {
+            assert_eq!(bytes.len() % SequentialQuoteClassifier::block_size(), 0, "bytes len have to be divisible by block size");
+
             SequentialQuoteClassifier::new(bytes)
         }
     }
@@ -160,6 +116,8 @@ cfg_if! {
         pub fn classify_quoted_sequences(
             bytes: &AlignedSlice<alignment::Twice<BlockAlignment>>,
         ) -> impl QuoteClassifiedIterator {
+            assert_eq!(bytes.len() % Avx2QuoteClassifier::block_size(), 0, "bytes len have to be divisible by block size");
+
             Avx2QuoteClassifier::new(bytes)
         }
     }

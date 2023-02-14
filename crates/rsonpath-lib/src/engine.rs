@@ -1,28 +1,27 @@
 //! Base traits for different implementations of JSONPath execution engines.
 //!
 //! Defines the [`Engine`] trait that provides different ways of retrieving
-//! query results from input bytes. Result types are defined in the [result]
-//! module.
-
+//! query results from input bytes, as well as [`Compiler`] which provides
+//! a standalone entry point for compiling a [`JsonPathQuery`] into an [`Engine`].
 mod depth;
 pub mod error;
 #[cfg(feature = "head-skip")]
 mod head_skipping;
 pub mod main;
 pub mod recursive;
-pub mod result;
+#[cfg(feature = "tail-skip")]
+mod tail_skipping;
 
 pub use main::MainEngine as RsonpathEngine;
 
+use self::error::EngineError;
+use crate::query::{automaton::Automaton, error::CompilerError, JsonPathQuery};
+use crate::result::QueryResult;
 use aligners::{
     alignment::{self},
     AlignedBytes,
 };
 use cfg_if::cfg_if;
-
-use crate::query::{error::CompilerError, JsonPathQuery};
-
-use self::{error::EngineError, result::QueryResult};
 
 /// Input into a query engine.
 pub struct Input {
@@ -46,32 +45,19 @@ impl Input {
     #[must_use]
     #[inline]
     pub fn new<T: Extend<char> + AsRef<[u8]>>(src: &mut T) -> Self {
-        cfg_if! {
-            if #[cfg(feature = "simd")] {
-                use aligners::alignment::Alignment;
-                type A = alignment::Twice::<crate::BlockAlignment>;
-                let contents = src;
-                let rem = contents.as_ref().len() % A::size();
-                let pad = if rem == 0 {
-                    0
-                } else {
-                    A::size() - rem
-                };
+        use aligners::alignment::Alignment;
+        type A = alignment::Twice<crate::BlockAlignment>;
+        let contents = src;
+        let rem = contents.as_ref().len() % A::size();
+        let pad = if rem == 0 { 0 } else { A::size() - rem };
 
-                let extension = std::iter::repeat('\0').take(pad + A::size());
-                contents.extend(extension);
+        let extension = std::iter::repeat('\0').take(pad + A::size());
+        contents.extend(extension);
 
-                debug_assert_eq!(contents.as_ref().len() % A::size(), 0);
+        debug_assert_eq!(contents.as_ref().len() % A::size(), 0);
 
-                Self {
-                    bytes: AlignedBytes::<alignment::Page>::from(contents.as_ref()),
-                }
-            }
-            else {
-                Self {
-                    bytes: AlignedBytes::<alignment::Page>::from(src.as_ref()),
-                }
-            }
+        Self {
+            bytes: AlignedBytes::<alignment::Page>::from(contents.as_ref()),
         }
     }
 
@@ -137,4 +123,7 @@ pub trait Compiler {
     /// An appropriate [`CompilerError`] is returned if the compiler
     /// cannot handle the query.
     fn compile_query(query: &JsonPathQuery) -> Result<Self::E<'_>, CompilerError>;
+
+    /// Turn a compiled [`Automaton`] into an [`Engine`].
+    fn from_compiled_query(automaton: Automaton<'_>) -> Self::E<'_>;
 }

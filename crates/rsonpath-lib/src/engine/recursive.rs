@@ -1,17 +1,21 @@
 //! Reference implementation of a JSONPath query engine with recursive descent.
-
 #[cfg(feature = "head-skip")]
 use super::head_skipping::{CanHeadSkip, HeadSkip};
-use crate::classify::ClassifierWithSkipping;
-use crate::classify::{classify_structural_characters, Structural, StructuralIterator};
+use crate::classification::quotes::{classify_quoted_sequences, QuoteClassifiedIterator};
+use crate::classification::structural::{
+    classify_structural_characters, Structural, StructuralIterator,
+};
+#[cfg(feature = "head-skip")]
+use crate::classification::ResumeClassifierState;
 use crate::debug;
 use crate::engine::error::EngineError;
-use crate::engine::result::QueryResult;
+#[cfg(feature = "tail-skip")]
+use crate::engine::tail_skipping::TailSkip;
 use crate::engine::{Compiler, Engine, Input};
 use crate::query::automaton::{Automaton, State};
 use crate::query::error::CompilerError;
 use crate::query::{JsonPathQuery, Label};
-use crate::quotes::{classify_quoted_sequences, QuoteClassifiedIterator};
+use crate::result::QueryResult;
 use aligners::{alignment, AlignedBytes, AlignedSlice};
 
 /// Recursive implementation of the JSONPath query engine.
@@ -29,6 +33,11 @@ impl Compiler for RecursiveEngine<'_> {
         debug!("DFA:\n {}", automaton);
         Ok(RecursiveEngine { automaton })
     }
+
+    #[inline(always)]
+    fn from_compiled_query(automaton: Automaton<'_>) -> Self::E<'_> {
+        RecursiveEngine { automaton }
+    }
 }
 
 impl Engine for RecursiveEngine<'_> {
@@ -41,7 +50,10 @@ impl Engine for RecursiveEngine<'_> {
         let aligned_bytes: &AlignedSlice<alignment::Page> = input;
         let quote_classifier = classify_quoted_sequences(aligned_bytes.relax_alignment());
         let structural_classifier = classify_structural_characters(quote_classifier);
-        let mut classifier = ClassifierWithSkipping::new(structural_classifier);
+        #[cfg(feature = "tail-skip")]
+        let mut classifier = TailSkip::new(structural_classifier);
+        #[cfg(not(feature = "tail-skip"))]
+        let mut classifier = structural_classifier;
 
         match classifier.next() {
             Some(Structural::Opening(idx)) => {
@@ -77,6 +89,19 @@ struct ExecutionContext<'q, 'b> {
     bytes: &'b AlignedBytes<alignment::Page>,
 }
 
+#[cfg(feature = "tail-skip")]
+macro_rules! Classifier {
+    () => {
+        TailSkip<'b, Q, I>
+    };
+}
+#[cfg(not(feature = "tail-skip"))]
+macro_rules! Classifier {
+    () => {
+        I
+    };
+}
+
 impl<'q, 'b> ExecutionContext<'q, 'b> {
     pub(crate) fn new(
         automaton: &'b Automaton<'q>,
@@ -88,7 +113,7 @@ impl<'q, 'b> ExecutionContext<'q, 'b> {
     #[cfg(feature = "head-skip")]
     fn run<'r, Q, I, R>(
         &mut self,
-        classifier: &mut ClassifierWithSkipping<'b, Q, I>,
+        classifier: &mut Classifier!(),
         state: State,
         open_idx: usize,
         result: &'r mut R,
@@ -111,7 +136,7 @@ impl<'q, 'b> ExecutionContext<'q, 'b> {
     #[cfg(not(feature = "head-skip"))]
     fn run<'r, Q, I, R>(
         &mut self,
-        classifier: &mut ClassifierWithSkipping<'b, Q, I>,
+        classifier: &mut Classifier!(),
         state: State,
         open_idx: usize,
         result: &'r mut R,
@@ -127,7 +152,7 @@ impl<'q, 'b> ExecutionContext<'q, 'b> {
 
     fn run_on_subtree<'r, Q, I, R>(
         &mut self,
-        classifier: &mut ClassifierWithSkipping<'b, Q, I>,
+        classifier: &mut Classifier!(),
         state: State,
         open_idx: usize,
         result: &'r mut R,
@@ -146,7 +171,7 @@ impl<'q, 'b> ExecutionContext<'q, 'b> {
         let needs_commas = is_list && is_fallback_accepting;
         let needs_colons = !is_list && self.automaton.has_transition_to_accepting(state);
 
-        let config_characters = |classifier: &mut ClassifierWithSkipping<'b, Q, I>, idx: usize| {
+        let config_characters = |classifier: &mut Classifier!(), idx: usize| {
             if needs_commas {
                 classifier.turn_commas_on(idx);
             } else {
@@ -348,16 +373,21 @@ impl<'q, 'b> CanHeadSkip<'b> for ExecutionContext<'q, 'b> {
         &mut self,
         next_event: Structural,
         state: State,
-        classifier: &mut ClassifierWithSkipping<'b, Q, I>,
+        structural_classifier: I,
         result: &'r mut R,
-    ) -> Result<(), EngineError>
+    ) -> Result<ResumeClassifierState<'b, Q>, EngineError>
     where
         Q: QuoteClassifiedIterator<'b>,
         R: QueryResult,
         I: StructuralIterator<'b, Q>,
     {
-        self.run_on_subtree(classifier, state, next_event.idx(), result)?;
+        #[cfg(feature = "tail-skip")]
+        let mut classifier = TailSkip::new(structural_classifier);
+        #[cfg(not(feature = "tail-skip"))]
+        let mut classifier = structural_classifier;
 
-        Ok(())
+        self.run_on_subtree(&mut classifier, state, next_event.idx(), result)?;
+
+        Ok(classifier.stop())
     }
 }

@@ -33,7 +33,6 @@
 //!     _ => unreachable!(),
 //! }
 //! ```
-
 use std::{
     fmt::{self, Display},
     num::TryFromIntError,

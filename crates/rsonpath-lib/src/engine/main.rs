@@ -7,22 +7,25 @@
 //!
 //! This implementation should be more performant than [`recursive`](super::recursive::RecursiveEngine)
 //! even on targets that do not support AVX2 SIMD operations.
-
 #[cfg(feature = "head-skip")]
 use super::head_skipping::{CanHeadSkip, HeadSkip};
 use super::Compiler;
-use crate::classify::{
-    classify_structural_characters, ClassifierWithSkipping, Structural, StructuralIterator,
+#[cfg(feature = "head-skip")]
+use crate::classification::ResumeClassifierState;
+use crate::classification::{
+    quotes::{classify_quoted_sequences, QuoteClassifiedIterator},
+    structural::{classify_structural_characters, Structural, StructuralIterator},
 };
 use crate::debug;
 use crate::engine::depth::Depth;
 use crate::engine::error::EngineError;
-use crate::engine::result::QueryResult;
+#[cfg(feature = "tail-skip")]
+use crate::engine::tail_skipping::TailSkip;
 use crate::engine::{Engine, Input};
 use crate::query::automaton::{Automaton, State};
 use crate::query::error::CompilerError;
 use crate::query::{JsonPathQuery, Label};
-use crate::quotes::{classify_quoted_sequences, QuoteClassifiedIterator};
+use crate::result::QueryResult;
 use aligners::{alignment, AlignedBytes};
 use smallvec::{smallvec, SmallVec};
 
@@ -43,6 +46,11 @@ impl Compiler for MainEngine<'_> {
         let automaton = Automaton::new(query)?;
         debug!("DFA:\n {}", automaton);
         Ok(MainEngine { automaton })
+    }
+
+    #[inline(always)]
+    fn from_compiled_query(automaton: Automaton<'_>) -> Self::E<'_> {
+        MainEngine { automaton }
     }
 }
 
@@ -71,6 +79,19 @@ fn empty_query<R: QueryResult>(bytes: &AlignedBytes<alignment::Page>) -> R {
     }
 
     result
+}
+
+#[cfg(feature = "tail-skip")]
+macro_rules! Classifier {
+    () => {
+        TailSkip<'b, Q, I>
+    };
+}
+#[cfg(not(feature = "tail-skip"))]
+macro_rules! Classifier {
+    () => {
+        I
+    };
 }
 
 struct Executor<'q, 'b> {
@@ -117,10 +138,12 @@ impl<'q, 'b> Executor<'q, 'b> {
     fn run_and_exit<R: QueryResult>(mut self, result: &mut R) -> Result<(), EngineError> {
         let quote_classifier = classify_quoted_sequences(self.bytes.relax_alignment());
         let structural_classifier = classify_structural_characters(quote_classifier);
-        self.run_on_subtree(
-            &mut ClassifierWithSkipping::new(structural_classifier),
-            result,
-        )?;
+        #[cfg(feature = "tail-skip")]
+        let mut classifier = TailSkip::new(structural_classifier);
+        #[cfg(not(feature = "tail-skip"))]
+        let mut classifier = structural_classifier;
+
+        self.run_on_subtree(&mut classifier, result)?;
 
         self.verify_subtree_closed()
     }
@@ -131,7 +154,7 @@ impl<'q, 'b> Executor<'q, 'b> {
         R: QueryResult,
     >(
         &mut self,
-        classifier: &mut ClassifierWithSkipping<'b, Q, I>,
+        classifier: &mut Classifier!(),
         result: &mut R,
     ) -> Result<(), EngineError> {
         while let Some(event) = self.next_event.or_else(|| classifier.next()) {
@@ -162,7 +185,7 @@ impl<'q, 'b> Executor<'q, 'b> {
 
     fn handle_colon<Q, I, R>(
         &mut self,
-        classifier: &mut ClassifierWithSkipping<'b, Q, I>,
+        classifier: &mut Classifier!(),
         idx: usize,
         result: &mut R,
     ) -> Result<(), EngineError>
@@ -211,7 +234,7 @@ impl<'q, 'b> Executor<'q, 'b> {
 
     fn handle_comma<Q, I, R>(
         &mut self,
-        classifier: &mut ClassifierWithSkipping<'b, Q, I>,
+        classifier: &mut Classifier!(),
         idx: usize,
         result: &mut R,
     ) -> Result<(), EngineError>
@@ -235,7 +258,7 @@ impl<'q, 'b> Executor<'q, 'b> {
 
     fn handle_opening<Q, I, R>(
         &mut self,
-        classifier: &mut ClassifierWithSkipping<'b, Q, I>,
+        classifier: &mut Classifier!(),
         idx: usize,
         result: &mut R,
     ) -> Result<(), EngineError>
@@ -261,7 +284,7 @@ impl<'q, 'b> Executor<'q, 'b> {
             for &(label, target) in self.automaton[self.state].transitions() {
                 if self.is_match(colon_idx, label)? {
                     any_matched = true;
-                    self.transition_to(target);
+                    self.transition_to(target, self.bytes[idx]);
                     if self.automaton.is_accepting(target) {
                         result.report(colon_idx);
                     }
@@ -279,10 +302,10 @@ impl<'q, 'b> Executor<'q, 'b> {
                 classifier.skip(self.bytes[idx]);
                 return Ok(());
             } else {
-                self.transition_to(fallback);
+                self.transition_to(fallback, self.bytes[idx]);
             }
             #[cfg(not(feature = "tail-skip"))]
-            self.transition_to(fallback);
+            self.transition_to(fallback, self.bytes[idx]);
 
             if self.automaton.is_accepting(fallback) {
                 result.report(idx);
@@ -327,7 +350,7 @@ impl<'q, 'b> Executor<'q, 'b> {
 
     fn handle_closing<Q, I>(
         &mut self,
-        classifier: &mut ClassifierWithSkipping<'b, Q, I>,
+        classifier: &mut Classifier!(),
         idx: usize,
     ) -> Result<(), EngineError>
     where
@@ -386,9 +409,13 @@ impl<'q, 'b> Executor<'q, 'b> {
         Ok(())
     }
 
-    fn transition_to(&mut self, target: State) {
-        if target != self.state {
-            debug!("push {}, goto {target}", self.state);
+    fn transition_to(&mut self, target: State, opening: u8) {
+        let target_is_list = opening == b'[';
+        if target != self.state || target_is_list != self.is_list {
+            debug!(
+                "push {}, goto {target}, is_list = {target_is_list}",
+                self.state
+            );
             self.stack.push(StackFrame {
                 depth: *self.depth,
                 state: self.state,
@@ -488,20 +515,25 @@ impl<'q, 'b> CanHeadSkip<'b> for Executor<'q, 'b> {
         &mut self,
         next_event: Structural,
         state: State,
-        classifier: &mut ClassifierWithSkipping<'b, Q, I>,
+        structural_classifier: I,
         result: &'r mut R,
-    ) -> Result<(), EngineError>
+    ) -> Result<ResumeClassifierState<'b, Q>, EngineError>
     where
         Q: QuoteClassifiedIterator<'b>,
         R: QueryResult,
         I: StructuralIterator<'b, Q>,
     {
+        #[cfg(feature = "tail-skip")]
+        let mut classifier = TailSkip::new(structural_classifier);
+        #[cfg(not(feature = "tail-skip"))]
+        let mut classifier = structural_classifier;
+
         self.state = state;
         self.next_event = Some(next_event);
 
-        self.run_on_subtree(classifier, result)?;
+        self.run_on_subtree(&mut classifier, result)?;
         self.verify_subtree_closed()?;
 
-        Ok(())
+        Ok(classifier.stop())
     }
 }

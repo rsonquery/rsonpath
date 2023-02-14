@@ -27,8 +27,6 @@
 //! # Ok(())
 //! # }
 //! ```
-//!
-
 pub mod automaton;
 pub mod builder;
 pub mod error;
@@ -101,9 +99,7 @@ impl Label {
         let bytes = label.as_bytes();
         let without_quotes = AlignedBytes::<LabelAlignment>::from(bytes);
 
-        // SAFETY:
-        // We immediately initialize the bytes below.
-        let mut with_quotes = unsafe { AlignedBytes::<LabelAlignment>::new(bytes.len() + 2) };
+        let mut with_quotes = AlignedBytes::<LabelAlignment>::new_zeroed(bytes.len() + 2);
         with_quotes[0] = b'"';
         with_quotes[1..bytes.len() + 1].copy_from_slice(bytes);
         with_quotes[bytes.len() + 1] = b'"';

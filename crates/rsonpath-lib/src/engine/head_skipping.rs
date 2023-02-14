@@ -1,24 +1,22 @@
 //! Engine decorator that performs **head skipping** &ndash; an extremely optimized search for
 //! the first matching label in a query starting with a self-looping state.
 //! This happens in queries starting with a descendant selector.
-
 use super::error::EngineError;
-use super::result::QueryResult;
-use crate::classify::{
-    resume_structural_classification, ClassifierWithSkipping, Structural, StructuralIterator,
+use crate::classification::{
+    quotes::{classify_quoted_sequences, QuoteClassifiedIterator},
+    structural::{resume_structural_classification, Structural, StructuralIterator},
+    ResumeClassifierState,
 };
 use crate::debug;
-use crate::{
-    query::{
-        automaton::{Automaton, State},
-        Label,
-    },
-    quotes::{classify_quoted_sequences, QuoteClassifiedIterator, ResumeClassifierState},
+use crate::query::{
+    automaton::{Automaton, State},
+    Label,
 };
+use crate::result::QueryResult;
 use aligners::{alignment, AlignedBytes};
 
 /// Trait that needs to be implemented by an [`Engine`](`super::Engine`) to use this submodule.
-pub(crate) trait CanHeadSkip<'b> {
+pub(super) trait CanHeadSkip<'b> {
     /// Function called when head-skipping finds a label at which normal query execution
     /// should resume.
     ///
@@ -36,9 +34,9 @@ pub(crate) trait CanHeadSkip<'b> {
         &mut self,
         next_event: Structural,
         state: State,
-        classifier: &mut ClassifierWithSkipping<'b, Q, I>,
+        structural_classifier: I,
         result: &'r mut R,
-    ) -> Result<(), EngineError>
+    ) -> Result<ResumeClassifierState<'b, Q>, EngineError>
     where
         Q: QuoteClassifiedIterator<'b>,
         R: QueryResult,
@@ -46,7 +44,7 @@ pub(crate) trait CanHeadSkip<'b> {
 }
 
 /// Configuration of the head-skipping decorator.
-pub(crate) struct HeadSkip<'b, 'q> {
+pub(super) struct HeadSkip<'b, 'q> {
     bytes: &'b AlignedBytes<alignment::Page>,
     state: State,
     is_accepting: bool,
@@ -76,7 +74,7 @@ impl<'b, 'q> HeadSkip<'b, 'q> {
     /// extremely quickly with [`memchr::memmem`].
     ///
     /// In all other cases, head-skipping is not supported.
-    pub(crate) fn new(
+    pub(super) fn new(
         bytes: &'b AlignedBytes<alignment::Page>,
         automaton: &'b Automaton<'q>,
     ) -> Option<Self> {
@@ -100,7 +98,7 @@ impl<'b, 'q> HeadSkip<'b, 'q> {
 
     /// Run a preconfigured [`HeadSkip`] using the given `engine` and reporting
     /// to the `result`.
-    pub(crate) fn run_head_skipping<'r, E: CanHeadSkip<'b>, R: QueryResult>(
+    pub(super) fn run_head_skipping<'r, E: CanHeadSkip<'b>, R: QueryResult>(
         &self,
         engine: &mut E,
         result: &'r mut R,
@@ -162,15 +160,7 @@ impl<'b, 'q> HeadSkip<'b, 'q> {
                                 .iter()
                                 .all(u8::is_ascii_whitespace) =>
                         {
-                            let mut engine_classifier = ClassifierWithSkipping::new(classifier);
-                            engine.run_on_subtree(
-                                opening,
-                                self.state,
-                                &mut engine_classifier,
-                                result,
-                            )?;
-
-                            engine_classifier.stop()
+                            engine.run_on_subtree(opening, self.state, classifier, result)?
                         }
                         _ => classifier.stop(),
                     };

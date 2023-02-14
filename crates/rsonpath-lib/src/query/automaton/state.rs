@@ -1,6 +1,5 @@
 //! Derfinition of [`State`] and DFA-state attributes giving details
 //! about the state's properties.
-
 use std::{fmt::Display, ops::BitOr};
 
 /// Attributes that may be associated with a DFA's [`State`].

@@ -1,20 +1,24 @@
-//! TODO: UPDATE! Classification of structurally significant JSON bytes.
+//! Classification of structurally significant JSON bytes.
 //!
 //! Provides the [`Structural`] struct and [`StructuralIterator`] trait
 //! that allow effectively iterating over structural characters in a JSON document.
 //!
 //! Classifying [`Commas`](`Structural::Comma`) and [`Colons`](`Structural::Colon`) is disabled by default.
-//! It can be enabled on demand by calling [`StructuralIterator::turn_commas_on`]/[`StructuralIterator::turn_colons_on`].
+//! It can be enabled on demand by calling
+//! [`StructuralIterator::turn_commas_on`]/[`StructuralIterator::turn_colons_on`].
+//! This configuration is persisted across [`stop`](StructuralIterator::stop) and
+//! [`resume`](StructuralIterator::resume) calls.
 //!
-//! A structural classifier needs ownership over a base [`QuoteClassifiedIterator`](`crate::quotes::QuoteClassifiedIterator`).
+//! A structural classifier needs ownership over a base
+//! [`QuoteClassifiedIterator`](`crate::classification::quotes::QuoteClassifiedIterator`).
 //!
 //! # Examples
 //! ```rust
-//! use rsonpath_lib::classify::{Structural, classify_structural_characters};
-//! use aligners::{alignment, AlignedBytes};
+//! use rsonpath_lib::classification::structural::{Structural, classify_structural_characters};
+//! use aligners::AlignedBytes;
 //!
 //! let json = r#"{"x": [{"y": 42}, {}]}""#;
-//! let aligned = AlignedBytes::<alignment::Twice<rsonpath_lib::BlockAlignment>>::new_padded(json.as_bytes());
+//! let aligned = AlignedBytes::new_padded(json.as_bytes());
 //! let expected = vec![
 //!     Structural::Opening(0),
 //!     Structural::Opening(6),
@@ -25,36 +29,27 @@
 //!     Structural::Closing(20),
 //!     Structural::Closing(21)
 //! ];
-//! let quote_classifier = rsonpath_lib::quotes::classify_quoted_sequences(&aligned);
+//! let quote_classifier = rsonpath_lib::classification::quotes::classify_quoted_sequences(&aligned);
 //! let actual = classify_structural_characters(quote_classifier).collect::<Vec<Structural>>();
 //! assert_eq!(expected, actual);
 //! ```
 //! ```rust
-//! use rsonpath_lib::classify::{Structural, classify_structural_characters};
+//! use rsonpath_lib::classification::structural::{Structural, classify_structural_characters};
+//! use rsonpath_lib::classification::quotes::classify_quoted_sequences;
 //! use aligners::{alignment, AlignedBytes};
 //!
 //! let json = r#"{"x": "[\"\"]"}""#;
-//! let aligned = AlignedBytes::<alignment::Twice<rsonpath_lib::BlockAlignment>>::new_padded(json.as_bytes());
+//! let aligned = AlignedBytes::new_padded(json.as_bytes());
 //! let expected = vec![
 //!     Structural::Opening(0),
 //!     Structural::Closing(14)
 //! ];
-//! let quote_classifier = rsonpath_lib::quotes::classify_quoted_sequences(&aligned);
+//! let quote_classifier = classify_quoted_sequences(&aligned);
 //! let actual = classify_structural_characters(quote_classifier).collect::<Vec<Structural>>();
 //! assert_eq!(expected, actual);
 //! ```
-
-use std::marker::PhantomData;
-
-use crate::quotes::{QuoteClassifiedIterator, ResumeClassifierState};
-#[cfg(feature = "tail-skip")]
-use crate::{
-    debug,
-    depth::{resume_depth_classification, DepthBlock, DepthIterator, DepthIteratorResumeOutcome},
-};
+use crate::classification::{quotes::QuoteClassifiedIterator, ResumeClassifierState};
 use cfg_if::cfg_if;
-#[cfg(feature = "tail-skip")]
-use replace_with::replace_with_or_abort;
 
 /// Defines structural characters in JSON documents.
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
@@ -85,7 +80,7 @@ impl Structural {
     ///
     /// # Examples
     /// ```rust
-    /// # use rsonpath_lib::classify::{Structural};
+    /// # use rsonpath_lib::classification::structural::Structural;
     ///
     /// let structural = Structural::Colon(42);
     /// let offset_structural = structural.offset(10);
@@ -105,97 +100,6 @@ impl Structural {
     }
 }
 
-pub(crate) struct ClassifierWithSkipping<'b, Q, I>
-where
-    Q: QuoteClassifiedIterator<'b>,
-    I: StructuralIterator<'b, Q>,
-{
-    classifier: I,
-    phantom: PhantomData<&'b Q>,
-}
-
-impl<'b, Q, I> ClassifierWithSkipping<'b, Q, I>
-where
-    Q: QuoteClassifiedIterator<'b>,
-    I: StructuralIterator<'b, Q>,
-{
-    pub(crate) fn new(classifier: I) -> Self {
-        Self {
-            classifier,
-            phantom: PhantomData,
-        }
-    }
-
-    #[cfg(feature = "tail-skip")]
-    pub(crate) fn skip(&mut self, opening: u8) -> usize {
-        debug!("Skipping");
-        let mut idx = 0;
-
-        replace_with_or_abort(&mut self.classifier, |classifier| {
-            let resume_state = classifier.stop();
-            let DepthIteratorResumeOutcome(first_vector, mut depth_classifier) =
-                resume_depth_classification(resume_state, opening);
-
-            let mut current_vector = first_vector.or_else(|| depth_classifier.next());
-            let mut current_depth = 1;
-
-            'outer: while let Some(ref mut vector) = current_vector {
-                vector.add_depth(current_depth);
-
-                debug!("Fetched vector, current depth is {current_depth}");
-                debug!("Estimate: {}", vector.estimate_lowest_possible_depth());
-
-                if vector.estimate_lowest_possible_depth() <= 0 {
-                    while vector.advance_to_next_depth_decrease() {
-                        if vector.get_depth() == 0 {
-                            debug!("Encountered depth 0, breaking.");
-                            break 'outer;
-                        }
-                    }
-                }
-
-                current_depth = vector.depth_at_end();
-                current_vector = depth_classifier.next();
-            }
-
-            debug!("Skipping complete, resuming structural classification.");
-            let resume_state = depth_classifier.stop(current_vector);
-            debug!("Finished at {}", resume_state.get_idx());
-            idx = resume_state.get_idx();
-            I::resume(resume_state)
-        });
-
-        idx
-    }
-
-    #[cfg(feature = "head-skip")]
-    pub(crate) fn stop(self) -> ResumeClassifierState<'b, Q> {
-        self.classifier.stop()
-    }
-}
-
-impl<'b, Q, I> std::ops::Deref for ClassifierWithSkipping<'b, Q, I>
-where
-    Q: QuoteClassifiedIterator<'b>,
-    I: StructuralIterator<'b, Q>,
-{
-    type Target = I;
-
-    fn deref(&self) -> &Self::Target {
-        &self.classifier
-    }
-}
-
-impl<'b, Q, I> std::ops::DerefMut for ClassifierWithSkipping<'b, Q, I>
-where
-    Q: QuoteClassifiedIterator<'b>,
-    I: StructuralIterator<'b, Q>,
-{
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.classifier
-    }
-}
-
 /// Trait for classifier iterators, i.e. finite iterators of [`Structural`] characters
 /// that hold a reference to the JSON document valid for `'a`.
 pub trait StructuralIterator<'a, I: QuoteClassifiedIterator<'a>>:
@@ -205,27 +109,11 @@ pub trait StructuralIterator<'a, I: QuoteClassifiedIterator<'a>>:
     /// a classifier from the place in which the current one was stopped.
     fn stop(self) -> ResumeClassifierState<'a, I>;
 
-    /// Resume classification from a state retrieved by a previous
-    #[cfg_attr(
-        feature = "tail-skip",
-        doc = "[`StructuralIterator::stop`] or [`DepthIterator::stop`] invocation."
-    )]
-    #[cfg_attr(
-        not(feature = "tail-skip"),
-        doc = "[`StructuralIterator::stop`] invocation."
-    )]
+    /// Resume classification from a state retrieved by stopping a classifier.
     fn resume(state: ResumeClassifierState<'a, I>) -> Self;
 
-    /// Turn classification of [`Structural::Comma`] characters on.
-    ///
-    /// The `idx` passed should be the index of the byte in the input
-    /// from which commas are to be classified. Passing an `idx` that
-    /// does not match the index which the internal [`QuoteClassifiedIterator`]
-    /// reached may result in incorrect results.
-    fn turn_commas_on(&mut self, idx: usize);
-
-    /// Turn classification of [`Structural::Comma`] characters off.
-    fn turn_commas_off(&mut self);
+    /// Turn classification of [`Structural::Colon`] characters off.
+    fn turn_colons_off(&mut self);
 
     /// Turn classification of [`Structural::Colon`] characters on.
     ///
@@ -235,8 +123,16 @@ pub trait StructuralIterator<'a, I: QuoteClassifiedIterator<'a>>:
     /// reached may result in incorrect results.
     fn turn_colons_on(&mut self, idx: usize);
 
-    /// Turn classification of [`Structural::Colon`] characters off.
-    fn turn_colons_off(&mut self);
+    /// Turn classification of [`Structural::Comma`] characters off.
+    fn turn_commas_off(&mut self);
+
+    /// Turn classification of [`Structural::Comma`] characters on.
+    ///
+    /// The `idx` passed should be the index of the byte in the input
+    /// from which commas are to be classified. Passing an `idx` that
+    /// does not match the index which the internal [`QuoteClassifiedIterator`]
+    /// reached may result in incorrect results.
+    fn turn_commas_on(&mut self, idx: usize);
 }
 
 cfg_if! {
@@ -291,7 +187,7 @@ cfg_if! {
 
 #[cfg(test)]
 mod tests {
-    use crate::quotes::classify_quoted_sequences;
+    use crate::classification::quotes::classify_quoted_sequences;
 
     use super::*;
     use aligners::AlignedBytes;

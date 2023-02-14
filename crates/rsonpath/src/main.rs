@@ -1,3 +1,5 @@
+#![forbid(unsafe_code)]
+
 use clap::{Parser, ValueEnum};
 use color_eyre::eyre::{eyre, Result, WrapErr};
 use color_eyre::Help;
@@ -5,10 +7,10 @@ use log::*;
 use rsonpath::{report_compiler_error, report_engine_error, report_parser_error};
 use rsonpath_lib::engine::main::MainEngine;
 use rsonpath_lib::engine::recursive::RecursiveEngine;
-use rsonpath_lib::engine::result::{CountResult, IndexResult, QueryResult};
 use rsonpath_lib::engine::{Compiler, Engine, Input};
 use rsonpath_lib::query::automaton::Automaton;
 use rsonpath_lib::query::JsonPathQuery;
+use rsonpath_lib::result::{CountResult, IndexResult, QueryResult};
 use simple_logger::SimpleLogger;
 
 #[derive(Parser, Debug)]
