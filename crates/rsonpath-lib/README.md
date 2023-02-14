@@ -32,6 +32,13 @@ just build
 just test
 ```
 
+## Architecture diagram
+
+Below is a simplified overview of the module interactions and interfaces,
+and how data flows from the user's input (query, document) through the pipeline to produce results.
+
+![Architecture diagram](/img/rsonpath-architecture.svg)
+
 ## Dependencies
 
 Showing direct dependencies.
