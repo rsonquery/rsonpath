@@ -33,6 +33,11 @@ impl Compiler for RecursiveEngine<'_> {
         debug!("DFA:\n {}", automaton);
         Ok(RecursiveEngine { automaton })
     }
+
+    #[inline(always)]
+    fn from_compiled_query(automaton: Automaton<'_>) -> Self::E<'_> {
+        RecursiveEngine { automaton }
+    }
 }
 
 impl Engine for RecursiveEngine<'_> {

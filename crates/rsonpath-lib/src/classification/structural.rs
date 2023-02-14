@@ -4,12 +4,12 @@
 //! that allow effectively iterating over structural characters in a JSON document.
 //!
 //! Classifying [`Commas`](`Structural::Comma`) and [`Colons`](`Structural::Colon`) is disabled by default.
-//! It can be enabled on demand by calling 
+//! It can be enabled on demand by calling
 //! [`StructuralIterator::turn_commas_on`]/[`StructuralIterator::turn_colons_on`].
-//! This configuration is persisted across [`stop`](StructuralIterator::stop) and 
+//! This configuration is persisted across [`stop`](StructuralIterator::stop) and
 //! [`resume`](StructuralIterator::resume) calls.
-//! 
-//! A structural classifier needs ownership over a base 
+//!
+//! A structural classifier needs ownership over a base
 //! [`QuoteClassifiedIterator`](`crate::classification::quotes::QuoteClassifiedIterator`).
 //!
 //! # Examples
@@ -112,16 +112,8 @@ pub trait StructuralIterator<'a, I: QuoteClassifiedIterator<'a>>:
     /// Resume classification from a state retrieved by stopping a classifier.
     fn resume(state: ResumeClassifierState<'a, I>) -> Self;
 
-    /// Turn classification of [`Structural::Comma`] characters on.
-    ///
-    /// The `idx` passed should be the index of the byte in the input
-    /// from which commas are to be classified. Passing an `idx` that
-    /// does not match the index which the internal [`QuoteClassifiedIterator`]
-    /// reached may result in incorrect results.
-    fn turn_commas_on(&mut self, idx: usize);
-
-    /// Turn classification of [`Structural::Comma`] characters off.
-    fn turn_commas_off(&mut self);
+    /// Turn classification of [`Structural::Colon`] characters off.
+    fn turn_colons_off(&mut self);
 
     /// Turn classification of [`Structural::Colon`] characters on.
     ///
@@ -131,8 +123,16 @@ pub trait StructuralIterator<'a, I: QuoteClassifiedIterator<'a>>:
     /// reached may result in incorrect results.
     fn turn_colons_on(&mut self, idx: usize);
 
-    /// Turn classification of [`Structural::Colon`] characters off.
-    fn turn_colons_off(&mut self);
+    /// Turn classification of [`Structural::Comma`] characters off.
+    fn turn_commas_off(&mut self);
+
+    /// Turn classification of [`Structural::Comma`] characters on.
+    ///
+    /// The `idx` passed should be the index of the byte in the input
+    /// from which commas are to be classified. Passing an `idx` that
+    /// does not match the index which the internal [`QuoteClassifiedIterator`]
+    /// reached may result in incorrect results.
+    fn turn_commas_on(&mut self, idx: usize);
 }
 
 cfg_if! {

@@ -12,19 +12,19 @@
 //! marks _opening_ quotes with lit bits, but _closing_ quotes are always unmarked.
 //! This behavior should not be presumed to be stable, though, and can change
 //! without a major semver bump.
-//! 
+//!
 //! # Examples
 //! ```
 //! use rsonpath_lib::classification::quotes::{classify_quoted_sequences, QuoteClassifiedIterator};
 //! use aligners::AlignedBytes;
-//! 
+//!
 //! let json = r#"{"x": "string", "y": {"z": "\"escaped\""}}"#;
 //! //            011000111111100011000011000111111111111000
 //! // The mask below appears reversed due to endianness.
 //! let expd = 0b000111111111111000110000110001111111000110;
 //! let aligned = AlignedBytes::new_padded(json.as_bytes());
 //! let mut quote_classifier = classify_quoted_sequences(&aligned);
-//! 
+//!
 //! let block = quote_classifier.next().unwrap();
 //! assert_eq!(expd, block.within_quotes_mask);
 //! ```

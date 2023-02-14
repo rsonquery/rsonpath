@@ -15,7 +15,7 @@ mod tail_skipping;
 pub use main::MainEngine as RsonpathEngine;
 
 use self::error::EngineError;
-use crate::query::{error::CompilerError, JsonPathQuery};
+use crate::query::{automaton::Automaton, error::CompilerError, JsonPathQuery};
 use crate::result::QueryResult;
 use aligners::{
     alignment::{self},
@@ -123,4 +123,6 @@ pub trait Compiler {
     /// An appropriate [`CompilerError`] is returned if the compiler
     /// cannot handle the query.
     fn compile_query(query: &JsonPathQuery) -> Result<Self::E<'_>, CompilerError>;
+
+    fn from_compiled_query(automaton: Automaton<'_>) -> Self::E<'_>;
 }

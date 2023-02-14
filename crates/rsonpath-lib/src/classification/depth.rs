@@ -41,7 +41,7 @@
 //! use rsonpath_lib::classification::depth::{classify_depth, DepthBlock, DepthIterator};
 //! use rsonpath_lib::classification::quotes::classify_quoted_sequences;
 //! use aligners::AlignedBytes;
-//! 
+//!
 //! let json = r#"
 //!     "a": [
 //!         42,
@@ -61,10 +61,10 @@
 //! let quote_classifier = classify_quoted_sequences(&input);
 //! let mut depth_classifier = classify_depth(quote_classifier, b'{');
 //! let mut current_depth = 1;
-//! 
+//!
 //! while let Some(mut vector) = depth_classifier.next() {
 //!     vector.add_depth(current_depth);
-//! 
+//!
 //!     if vector.estimate_lowest_possible_depth() <= 0 {
 //!         while vector.advance_to_next_depth_decrease() {
 //!             if vector.get_depth() == 0 {
@@ -74,7 +74,7 @@
 //!             }
 //!         }
 //!     }
-//! 
+//!
 //!     current_depth = vector.depth_at_end();
 //! }
 //! unreachable!();

@@ -47,6 +47,11 @@ impl Compiler for MainEngine<'_> {
         debug!("DFA:\n {}", automaton);
         Ok(MainEngine { automaton })
     }
+
+    #[inline(always)]
+    fn from_compiled_query(automaton: Automaton<'_>) -> Self::E<'_> {
+        MainEngine { automaton }
+    }
 }
 
 impl Engine for MainEngine<'_> {

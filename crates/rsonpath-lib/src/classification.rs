@@ -21,13 +21,13 @@
 //!     StructuralIterator,
 //! };
 //! use aligners::AlignedBytes;
-//! 
+//!
 //! let input = AlignedBytes::new_padded(r#"{"a":[42, {}, 44]}"#.as_bytes());
 //! let quote_classifier = classify_quoted_sequences(&input);
 //! let mut structural_classifier = classify_structural_characters(quote_classifier);
 //! structural_classifier.turn_colons_on(0);
 //! structural_classifier.turn_commas_on(0);
-//! 
+//!
 //! // Classify first two structural characters.
 //! assert_eq!(
 //!     structural_classifier.next(),
@@ -37,15 +37,15 @@
 //!     structural_classifier.next(),
 //!     Some(Structural::Colon(4))
 //! );
-//! 
+//!
 //! // We stop at the first non-classified character, Opening(5).
 //! let mut resume_state = structural_classifier.stop();
 //! assert_eq!(resume_state.get_idx(), 5);
-//! 
+//!
 //! // Skip 6 bytes.
 //! resume_state.offset_bytes(6);
 //! assert_eq!(resume_state.get_idx(), 11);
-//! 
+//!
 //! // Resume.
 //! let mut structural_classifier_2 = resume_structural_classification(resume_state);
 //! assert_eq!(
