@@ -2,6 +2,76 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2023-02-14
+
+### Features
+
+- Better error reporting. (#88)
+  - Added separate `engine::error::DepthError` type.
+  - Additional context for depth-related `EngineError`s including the character at which depth overflow occurred.
+  - New error, `EngineError::MissingClosingCharacter` reported if the engine reaches end of JSON and cannot match opening characters.
+  - Improvements to the CLI error reporting/display.
+- Increase max automaton size to 256 from 128.
+- Compiling wildcard child selectors. (#90, #7)
+  - Expressions parsed in #6 are now compiled into correct automata.
+- Wildcard child support in engines. (#9, #8, #73)
+  - Large overhaul to the query engines to enable processing the wildcard child selector. This closes the #9 epic of wildcard child support.
+  - Both `main` and `recursive` engines now support wildcard child selectors.
+  - The `commas` feature flag was removed.
+  - Feature flags of `head-skip`, `tail-skip`, and `unique-labels` were introduced to guard optimization paths.
+    - The `head-skip` and `tail-skip` features make the code faster without significant tradeoffs.
+    - The `unique-labels` feature utilizes the assumption of key uniqueness within a single JSON object to speed up query execution, but it will not work correctly when an object with duplicate keys is given. Currently only the first occurence of such a key will be processed.
+  - Many changes to the library structure and module visibility.
+
+### Bug Fixes
+
+- Too complex query now produces an error. (#88)
+  - Previously the compiled automaton was silently truncated, which would cause incorrect results.
+
+### Reliability
+
+- Rename engine modules. (#88)
+  - The `Runner` trait was renamed to `Engine`.
+  - The `stackless` module is now `engine::main`.
+  - The `stack_based` module is now `engine::recursive`.
+  - The `StacklessRunner` is now the `MainEngine`, and is also reexported as `engine::RsonpathEngine`
+  - The `StackBasedRunner` is now the `RecursiveEngine`.
+- Added the `Compiler` trait. (#88)
+  - The `compile_query` function creating engines is now part of that trait.
+- Rename `NotSupportedError` to `NotSupported`.
+- Moved `result` to a standalone module.
+- Move all classifiers to `classification`.
+  - Module `classify` renamed to `classification`.
+  - Moved all resumption related things to `classification` proper.
+- Removed only use of `unsafe` outside of SIMD.
+- Forbid unsafe code outside of simd.
+- Added test for heterogenous list.
+- Hide `debug` and `bin` macros.
+- Added `Compiler::from_compiled_query`.
+
+### Dependencies
+
+- Bump clap from 4.0.25 to 4.1.4.
+
+- Bumped a number of dependencies.
+  - backtrace (required by color-eyre) from 0.3.65 to 0.3.67.
+  - once_cell (required by color-eyre) from 1.16.0 to 1.17.0.
+  - owo-colors (required by color-eyre) from 3.3.0 to 3.5.0.
+  - ppv-lite86 (required by thiserror) from 0.2.16 to 0.2.17.
+  - itoa (required by simple_logger) from 1.0.2 to 1.0.5.
+- Remove benchmarks crate from workspace.
+  - This drastically reduces the number of dependencies tracked for the binary.
+- Make some deps optional.
+  - `memchr` is now included only with the `head-skip` feature
+  - `replace_with` is now included only with the `tail-skip` feature
+
+### Documentation
+
+- Update toplevel lib docs.
+- Add separate README for lib.
+- Updated most of module docs.
+- Added architecture diagram to lib README.
+
 ## [0.2.1] - 2023-01-25
 
 ### Features
@@ -13,17 +83,14 @@ All notable changes to this project will be documented in this file.
   - Specifying `--compile` or `-c` will cause rsonpath to compile the query and output its automaton, without running the engine.
 This option is mutually exclusive with `--engine` or providing an input path.
 
-
 ### Bug Fixes
 
 - Compile error on `cargo install rsonpath`. ([#86](https://github.com/V0ldek/rsonpath/issues/86))
-
 
 ### Reliability
 
 - Added install check to release CI/CD. ([#86](https://github.com/V0ldek/rsonpath/issues/86))
   - This will catch issues with the simplest `cargo install rsonpath` invocation before release to avoid these issues in the future.
-
 
 ### Dependencies
 

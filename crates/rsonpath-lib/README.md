@@ -49,7 +49,7 @@ cargo tree --package rsonpath-lib --edges normal --depth 1
 
 <!-- rsonpath-lib dependencies start -->
 ```ini
-rsonpath-lib v0.2.1 (/home/mgienieczko/rsonpath/crates/rsonpath-lib)
+rsonpath-lib v0.3.0 (/home/mat/rsonpath/crates/rsonpath-lib)
 ├── aligners v0.0.10
 ├── cfg-if v1.0.0
 ├── log v0.4.17
@@ -64,12 +64,9 @@ rsonpath-lib v0.2.1 (/home/mgienieczko/rsonpath/crates/rsonpath-lib)
 
 ### Justification
 
-- `clap` &ndash; standard crate to provide the CLI.
-- `color-eyre`, `eyre` &ndash; more accessible error messages for the parser.
-- `log`, `simple-logger` &ndash; diagnostic logs during compilation and execution.
-
 - `aligners` &ndash; SIMD operations require correct input data alignment, putting those requirements at type level makes our code more robust.
 - `cfg-if` &ndash; used to support SIMD and no-SIMD versions.
+- `log` &ndash; diagnostic logs during compilation and execution.
 - `memchr` &ndash; rapid, SIMDified substring search for fast-forwarding to labels.
 - `nom` &ndash; for parser implementation.
 - `replace_with` &ndash; for safe handling of internal classifier state when switching classifiers.

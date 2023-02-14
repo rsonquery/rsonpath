@@ -165,12 +165,12 @@ cargo tree --package rsonpath --edges normal --depth 1
 
 <!-- rsonpath dependencies start -->
 ```ini
-rsonpath v0.2.1 (/home/mgienieczko/rsonpath/crates/rsonpath)
-├── clap v4.0.25
+rsonpath v0.3.0 (/home/mat/rsonpath/crates/rsonpath)
+├── clap v4.1.4
 ├── color-eyre v0.6.2
 ├── eyre v0.6.8
 ├── log v0.4.17
-├── rsonpath-lib v0.2.1 (/home/mgienieczko/rsonpath/crates/rsonpath-lib)
+├── rsonpath-lib v0.3.0 (/home/mat/rsonpath/crates/rsonpath-lib)
 └── simple_logger v4.0.0
 ```
 <!-- rsonpath dependencies end -->
@@ -181,7 +181,7 @@ cargo tree --package rsonpath-lib --edges normal --depth 1
 
 <!-- rsonpath-lib dependencies start -->
 ```ini
-rsonpath-lib v0.2.1 (/home/mgienieczko/rsonpath/crates/rsonpath-lib)
+rsonpath-lib v0.3.0 (/home/mat/rsonpath/crates/rsonpath-lib)
 ├── aligners v0.0.10
 ├── cfg-if v1.0.0
 ├── log v0.4.17
@@ -217,60 +217,62 @@ cargo tree --package rsonpath --edges normal
 
 <!-- rsonpath-full dependencies start -->
 ```ini
-rsonpath v0.2.1 (/home/mgienieczko/rsonpath/crates/rsonpath)
-├── clap v4.0.25
-│   ├── atty v0.2.14
-│   │   └── libc v0.2.139
+rsonpath v0.3.0 (/home/mat/rsonpath/crates/rsonpath)
+├── clap v4.1.4
 │   ├── bitflags v1.3.2
-│   ├── clap_derive v4.0.21 (proc-macro)
-│   │   ├── heck v0.4.0
+│   ├── clap_derive v4.1.0 (proc-macro)
+│   │   ├── heck v0.4.1
 │   │   ├── proc-macro-error v1.0.4
 │   │   │   ├── proc-macro-error-attr v1.0.4 (proc-macro)
-│   │   │   │   ├── proc-macro2 v1.0.47
-│   │   │   │   │   └── unicode-ident v1.0.0
-│   │   │   │   └── quote v1.0.18
-│   │   │   │       └── proc-macro2 v1.0.47 (*)
-│   │   │   ├── proc-macro2 v1.0.47 (*)
-│   │   │   ├── quote v1.0.18 (*)
-│   │   │   └── syn v1.0.75
-│   │   │       ├── proc-macro2 v1.0.47 (*)
-│   │   │       ├── quote v1.0.18 (*)
-│   │   │       └── unicode-xid v0.2.2
-│   │   ├── proc-macro2 v1.0.47 (*)
-│   │   ├── quote v1.0.18 (*)
-│   │   └── syn v1.0.75 (*)
-│   ├── clap_lex v0.3.0
-│   │   └── os_str_bytes v6.1.0
-│   ├── once_cell v1.16.0
+│   │   │   │   ├── proc-macro2 v1.0.51
+│   │   │   │   │   └── unicode-ident v1.0.6
+│   │   │   │   └── quote v1.0.23
+│   │   │   │       └── proc-macro2 v1.0.51 (*)
+│   │   │   ├── proc-macro2 v1.0.51 (*)
+│   │   │   ├── quote v1.0.23 (*)
+│   │   │   └── syn v1.0.107
+│   │   │       ├── proc-macro2 v1.0.51 (*)
+│   │   │       ├── quote v1.0.23 (*)
+│   │   │       └── unicode-ident v1.0.6
+│   │   ├── proc-macro2 v1.0.51 (*)
+│   │   ├── quote v1.0.23 (*)
+│   │   └── syn v1.0.107 (*)
+│   ├── clap_lex v0.3.1
+│   │   └── os_str_bytes v6.4.1
+│   ├── is-terminal v0.4.3
+│   │   ├── io-lifetimes v1.0.5
+│   │   │   └── libc v0.2.139
+│   │   └── rustix v0.36.8
+│   │       ├── bitflags v1.3.2
+│   │       ├── io-lifetimes v1.0.5 (*)
+│   │       ├── libc v0.2.139
+│   │       └── linux-raw-sys v0.1.4
+│   ├── once_cell v1.17.0
 │   ├── strsim v0.10.0
-│   ├── termcolor v1.1.3
-│   └── terminal_size v0.2.2
-│       └── rustix v0.35.13
-│           ├── bitflags v1.3.2
-│           ├── io-lifetimes v0.7.5
-│           ├── libc v0.2.139
-│           └── linux-raw-sys v0.0.46
+│   ├── termcolor v1.2.0
+│   └── terminal_size v0.2.3
+│       └── rustix v0.36.8 (*)
 ├── color-eyre v0.6.2
-│   ├── backtrace v0.3.65
-│   │   ├── addr2line v0.17.0
-│   │   │   └── gimli v0.26.1
+│   ├── backtrace v0.3.67
+│   │   ├── addr2line v0.19.0
+│   │   │   └── gimli v0.27.1
 │   │   ├── cfg-if v1.0.0
 │   │   ├── libc v0.2.139
-│   │   ├── miniz_oxide v0.5.1
+│   │   ├── miniz_oxide v0.6.2
 │   │   │   └── adler v1.0.2
-│   │   ├── object v0.28.3
+│   │   ├── object v0.30.3
 │   │   │   └── memchr v2.5.0
 │   │   └── rustc-demangle v0.1.21
 │   ├── eyre v0.6.8
 │   │   ├── indenter v0.3.3
-│   │   └── once_cell v1.16.0
+│   │   └── once_cell v1.17.0
 │   ├── indenter v0.3.3
-│   ├── once_cell v1.16.0
-│   └── owo-colors v3.3.0
+│   ├── once_cell v1.17.0
+│   └── owo-colors v3.5.0
 ├── eyre v0.6.8 (*)
 ├── log v0.4.17
 │   └── cfg-if v1.0.0
-├── rsonpath-lib v0.2.1 (/home/mgienieczko/rsonpath/crates/rsonpath-lib)
+├── rsonpath-lib v0.3.0 (/home/mat/rsonpath/crates/rsonpath-lib)
 │   ├── aligners v0.0.10
 │   │   ├── cfg-if v1.0.0
 │   │   ├── lazy_static v1.4.0
@@ -286,31 +288,32 @@ rsonpath v0.2.1 (/home/mgienieczko/rsonpath/crates/rsonpath)
 │   ├── smallvec v1.10.0
 │   ├── thiserror v1.0.38
 │   │   └── thiserror-impl v1.0.38 (proc-macro)
-│   │       ├── proc-macro2 v1.0.47 (*)
-│   │       ├── quote v1.0.18 (*)
-│   │       └── syn v1.0.75 (*)
+│   │       ├── proc-macro2 v1.0.51 (*)
+│   │       ├── quote v1.0.23 (*)
+│   │       └── syn v1.0.107 (*)
 │   └── vector-map v1.0.1
 │       ├── contracts v0.4.0 (proc-macro)
-│       │   ├── proc-macro2 v1.0.47 (*)
-│       │   ├── quote v1.0.18 (*)
-│       │   └── syn v1.0.75 (*)
+│       │   ├── proc-macro2 v1.0.51 (*)
+│       │   ├── quote v1.0.23 (*)
+│       │   └── syn v1.0.107 (*)
 │       └── rand v0.7.3
 │           ├── getrandom v0.1.16
 │           │   ├── cfg-if v1.0.0
 │           │   └── libc v0.2.139
 │           ├── libc v0.2.139
 │           ├── rand_chacha v0.2.2
-│           │   ├── ppv-lite86 v0.2.16
+│           │   ├── ppv-lite86 v0.2.17
 │           │   └── rand_core v0.5.1
 │           │       └── getrandom v0.1.16 (*)
 │           └── rand_core v0.5.1 (*)
 └── simple_logger v4.0.0
     ├── colored v2.0.0
-    │   ├── atty v0.2.14 (*)
+    │   ├── atty v0.2.14
+    │   │   └── libc v0.2.139
     │   └── lazy_static v1.4.0
     ├── log v0.4.17 (*)
     └── time v0.3.17
-        ├── itoa v1.0.2
+        ├── itoa v1.0.5
         ├── libc v0.2.139
         ├── num_threads v0.1.6
         ├── time-core v0.1.0

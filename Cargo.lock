@@ -675,7 +675,7 @@ checksum = "e3a8614ee435691de62bcffcf4a66d91b3594bf1428a5722e79103249a095690"
 
 [[package]]
 name = "rsonpath"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "clap",
  "color-eyre",
@@ -687,7 +687,7 @@ dependencies = [
 
 [[package]]
 name = "rsonpath-lib"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "aligners",
  "cfg-if",
