@@ -7,7 +7,6 @@
 //!
 //! This implementation should be more performant than [`recursive`](super::recursive::RecursiveEngine)
 //! even on targets that do not support AVX2 SIMD operations.
-
 #[cfg(feature = "head-skip")]
 use super::head_skipping::{CanHeadSkip, HeadSkip};
 use super::Compiler;

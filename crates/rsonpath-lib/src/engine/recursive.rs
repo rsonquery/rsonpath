@@ -1,5 +1,4 @@
 //! Reference implementation of a JSONPath query engine with recursive descent.
-
 #[cfg(feature = "head-skip")]
 use super::head_skipping::{CanHeadSkip, HeadSkip};
 use crate::classification::quotes::{classify_quoted_sequences, QuoteClassifiedIterator};

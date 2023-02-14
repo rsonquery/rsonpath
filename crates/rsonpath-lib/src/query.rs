@@ -27,8 +27,6 @@
 //! # Ok(())
 //! # }
 //! ```
-//!
-
 pub mod automaton;
 pub mod builder;
 pub mod error;

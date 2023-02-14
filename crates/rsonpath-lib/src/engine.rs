@@ -1,8 +1,8 @@
 //! Base traits for different implementations of JSONPath execution engines.
 //!
 //! Defines the [`Engine`] trait that provides different ways of retrieving
-//! query results from input bytes.
-
+//! query results from input bytes, as well as [`Compiler`] which provides
+//! a standalone entry point for compiling a [`JsonPathQuery`] into an [`Engine`].
 mod depth;
 pub mod error;
 #[cfg(feature = "head-skip")]
@@ -45,32 +45,19 @@ impl Input {
     #[must_use]
     #[inline]
     pub fn new<T: Extend<char> + AsRef<[u8]>>(src: &mut T) -> Self {
-        cfg_if! {
-            if #[cfg(feature = "simd")] {
-                use aligners::alignment::Alignment;
-                type A = alignment::Twice::<crate::BlockAlignment>;
-                let contents = src;
-                let rem = contents.as_ref().len() % A::size();
-                let pad = if rem == 0 {
-                    0
-                } else {
-                    A::size() - rem
-                };
+        use aligners::alignment::Alignment;
+        type A = alignment::Twice<crate::BlockAlignment>;
+        let contents = src;
+        let rem = contents.as_ref().len() % A::size();
+        let pad = if rem == 0 { 0 } else { A::size() - rem };
 
-                let extension = std::iter::repeat('\0').take(pad + A::size());
-                contents.extend(extension);
+        let extension = std::iter::repeat('\0').take(pad + A::size());
+        contents.extend(extension);
 
-                debug_assert_eq!(contents.as_ref().len() % A::size(), 0);
+        debug_assert_eq!(contents.as_ref().len() % A::size(), 0);
 
-                Self {
-                    bytes: AlignedBytes::<alignment::Page>::from(contents.as_ref()),
-                }
-            }
-            else {
-                Self {
-                    bytes: AlignedBytes::<alignment::Page>::from(src.as_ref()),
-                }
-            }
+        Self {
+            bytes: AlignedBytes::<alignment::Page>::from(contents.as_ref()),
         }
     }
 

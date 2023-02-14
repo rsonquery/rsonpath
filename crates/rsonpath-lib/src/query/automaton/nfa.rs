@@ -1,7 +1,6 @@
 //! Definition of a nondeterministic automaton that can be directly
 //! obtained from a JsonPath query. This is then turned into
 //! a DFA with the minimizer.
-
 use crate::query::{
     error::CompilerError, JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label,
 };

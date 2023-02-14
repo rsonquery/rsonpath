@@ -1,5 +1,4 @@
 //! Result types that can be returned by a JSONPath query engine.
-
 use crate::debug;
 use std::fmt::{self, Display};
 

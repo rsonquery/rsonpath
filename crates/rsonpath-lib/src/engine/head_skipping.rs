@@ -1,7 +1,6 @@
 //! Engine decorator that performs **head skipping** &ndash; an extremely optimized search for
 //! the first matching label in a query starting with a self-looping state.
 //! This happens in queries starting with a descendant selector.
-
 use super::error::EngineError;
 use crate::classification::{
     quotes::{classify_quoted_sequences, QuoteClassifiedIterator},

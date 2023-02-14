@@ -1,20 +1,24 @@
-//! TODO: UPDATE! Classification of structurally significant JSON bytes.
+//! Classification of structurally significant JSON bytes.
 //!
 //! Provides the [`Structural`] struct and [`StructuralIterator`] trait
 //! that allow effectively iterating over structural characters in a JSON document.
 //!
 //! Classifying [`Commas`](`Structural::Comma`) and [`Colons`](`Structural::Colon`) is disabled by default.
-//! It can be enabled on demand by calling [`StructuralIterator::turn_commas_on`]/[`StructuralIterator::turn_colons_on`].
-//!
-//! A structural classifier needs ownership over a base [`QuoteClassifiedIterator`](`crate::classification::quotes::QuoteClassifiedIterator`).
+//! It can be enabled on demand by calling 
+//! [`StructuralIterator::turn_commas_on`]/[`StructuralIterator::turn_colons_on`].
+//! This configuration is persisted across [`stop`](StructuralIterator::stop) and 
+//! [`resume`](StructuralIterator::resume) calls.
+//! 
+//! A structural classifier needs ownership over a base 
+//! [`QuoteClassifiedIterator`](`crate::classification::quotes::QuoteClassifiedIterator`).
 //!
 //! # Examples
 //! ```rust
 //! use rsonpath_lib::classification::structural::{Structural, classify_structural_characters};
-//! use aligners::{alignment, AlignedBytes};
+//! use aligners::AlignedBytes;
 //!
 //! let json = r#"{"x": [{"y": 42}, {}]}""#;
-//! let aligned = AlignedBytes::<alignment::Twice<rsonpath_lib::BlockAlignment>>::new_padded(json.as_bytes());
+//! let aligned = AlignedBytes::new_padded(json.as_bytes());
 //! let expected = vec![
 //!     Structural::Opening(0),
 //!     Structural::Opening(6),
@@ -31,19 +35,19 @@
 //! ```
 //! ```rust
 //! use rsonpath_lib::classification::structural::{Structural, classify_structural_characters};
+//! use rsonpath_lib::classification::quotes::classify_quoted_sequences;
 //! use aligners::{alignment, AlignedBytes};
 //!
 //! let json = r#"{"x": "[\"\"]"}""#;
-//! let aligned = AlignedBytes::<alignment::Twice<rsonpath_lib::BlockAlignment>>::new_padded(json.as_bytes());
+//! let aligned = AlignedBytes::new_padded(json.as_bytes());
 //! let expected = vec![
 //!     Structural::Opening(0),
 //!     Structural::Closing(14)
 //! ];
-//! let quote_classifier = rsonpath_lib::classification::quotes::classify_quoted_sequences(&aligned);
+//! let quote_classifier = classify_quoted_sequences(&aligned);
 //! let actual = classify_structural_characters(quote_classifier).collect::<Vec<Structural>>();
 //! assert_eq!(expected, actual);
 //! ```
-
 use crate::classification::{quotes::QuoteClassifiedIterator, ResumeClassifierState};
 use cfg_if::cfg_if;
 

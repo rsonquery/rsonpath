@@ -1,5 +1,58 @@
-//! TODO
-
+//! Classifiers working on the input stream.
+//!
+//! - [`quotes`] contains the low-level [`QuoteClassifiedIterator`](`quotes::QuoteClassifiedIterator`)
+//! computing basic information on which characters are escaped or within quotes.
+//! - [`structural`] contains the [`StructuralIterator`](`structural::StructuralIterator`)
+//! that wraps over a quote classifier to extract a stream of [`Structural`](`structural::Structural`) characters.
+//! - [`depth`] contains the [`DepthIterator`](`depth::DepthIterator`) that works on top of a quote classifier
+//! to provide quick fast-forwarding over the stream while keeping track of the depth.
+//!
+//! This base module provides the [`ResumeClassifierState`] struct common between all
+//! higher-level classifiers that work on top of a [`QuoteClassifiedIterator`](`quotes::QuoteClassifiedIterator`).
+//! It allows saving the state of a classifier and can be later used to resume classification
+//! from a, possibly different, high-level classifier. This state's index can be pushed
+//! forward.
+//!
+//! # Examples
+//! ```rust
+//! use rsonpath_lib::classification::quotes::classify_quoted_sequences;
+//! use rsonpath_lib::classification::structural::{
+//!     classify_structural_characters, resume_structural_classification, Structural,
+//!     StructuralIterator,
+//! };
+//! use aligners::AlignedBytes;
+//! 
+//! let input = AlignedBytes::new_padded(r#"{"a":[42, {}, 44]}"#.as_bytes());
+//! let quote_classifier = classify_quoted_sequences(&input);
+//! let mut structural_classifier = classify_structural_characters(quote_classifier);
+//! structural_classifier.turn_colons_on(0);
+//! structural_classifier.turn_commas_on(0);
+//! 
+//! // Classify first two structural characters.
+//! assert_eq!(
+//!     structural_classifier.next(),
+//!     Some(Structural::Opening(0))
+//! );
+//! assert_eq!(
+//!     structural_classifier.next(),
+//!     Some(Structural::Colon(4))
+//! );
+//! 
+//! // We stop at the first non-classified character, Opening(5).
+//! let mut resume_state = structural_classifier.stop();
+//! assert_eq!(resume_state.get_idx(), 5);
+//! 
+//! // Skip 6 bytes.
+//! resume_state.offset_bytes(6);
+//! assert_eq!(resume_state.get_idx(), 11);
+//! 
+//! // Resume.
+//! let mut structural_classifier_2 = resume_structural_classification(resume_state);
+//! assert_eq!(
+//!     structural_classifier_2.next(),
+//!     Some(Structural::Closing(11))
+//! );
+//! ```
 pub mod depth;
 pub mod quotes;
 pub mod structural;
@@ -44,7 +97,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> ResumeClassifierState<'a, I> {
     /// Move the state forward by `count` bytes.
     #[inline]
     pub fn offset_bytes(&mut self, count: isize) {
-        debug_assert!(count > 0);
+        assert!(count > 0);
         let count = count as usize;
 
         let remaining_in_block = self.block.as_ref().map_or(0, |b| b.block.len() - b.idx);

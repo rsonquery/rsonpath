@@ -1,6 +1,5 @@
 //! This module can only be included if the code is compiled with AVX2 support
 //! and on x86/x86_64 architecture for safety.
-
 cfg_if::cfg_if! {
     if #[cfg(not(all(
         any(target_arch = "x86", target_arch = "x86_64"),

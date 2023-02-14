@@ -9,7 +9,7 @@
             "request": "launch",
             "name": "Debug executable 'rsonpath'",
             "env": {
-                "RUSTFLAGS": "-C target-feature=+avx2"
+                "RUSTFLAGS": "-C target-cpu=native"
             },
             "cargo": {
                 "args": [
@@ -36,7 +36,7 @@
             "request": "launch",
             "name": "Debug unit tests in library 'rsonpath-lib'",
             "env": {
-                "RUSTFLAGS": "-C target-feature=+avx2"
+                "RUSTFLAGS": "-C target-cpu=native"
             },
             "cargo": {
                 "args": [
@@ -54,7 +54,7 @@
             "request": "launch",
             "name": "Debug unit tests in executable 'rsonpath'",
             "env": {
-                "RUSTFLAGS": "-C target-feature=+avx2"
+                "RUSTFLAGS": "-C target-cpu=native"
             },
             "cargo": {
                 "args": [
@@ -72,7 +72,7 @@
             "request": "launch",
             "name": "Debug integration tests in 'engine_correctness_test'",
             "env": {
-                "RUSTFLAGS": "-C target-feature=+avx2"
+                "RUSTFLAGS": "-C target-cpu=native"
             },
             "cargo": {
                 "args": [

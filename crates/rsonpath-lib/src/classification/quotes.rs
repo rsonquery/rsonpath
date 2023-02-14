@@ -2,6 +2,32 @@
 //!
 //! Provides the [`QuoteClassifiedBlock`] struct and [`QuoteClassifiedIterator`] trait
 //! that allow effectively enriching JSON inputs with quote sequence information.
+//!
+//! The output of quote classification is an iterator of [`QuoteClassifiedBlock`]
+//! which contain bitmasks whose lit bits signify characters that are within quotes
+//! in the source document. These characters need to be ignored.
+//!
+//! Note that the actual quote characters are not guaranteed to be classified
+//! as "within themselves" or otherwise. In particular the current implementation
+//! marks _opening_ quotes with lit bits, but _closing_ quotes are always unmarked.
+//! This behavior should not be presumed to be stable, though, and can change
+//! without a major semver bump.
+//! 
+//! # Examples
+//! ```
+//! use rsonpath_lib::classification::quotes::{classify_quoted_sequences, QuoteClassifiedIterator};
+//! use aligners::AlignedBytes;
+//! 
+//! let json = r#"{"x": "string", "y": {"z": "\"escaped\""}}"#;
+//! //            011000111111100011000011000111111111111000
+//! // The mask below appears reversed due to endianness.
+//! let expd = 0b000111111111111000110000110001111111000110;
+//! let aligned = AlignedBytes::new_padded(json.as_bytes());
+//! let mut quote_classifier = classify_quoted_sequences(&aligned);
+//! 
+//! let block = quote_classifier.next().unwrap();
+//! assert_eq!(expd, block.within_quotes_mask);
+//! ```
 use crate::BlockAlignment;
 use aligners::{alignment::Twice, AlignedBlock, AlignedSlice};
 use cfg_if::cfg_if;
@@ -73,6 +99,8 @@ cfg_if! {
         pub fn classify_quoted_sequences(
             bytes: &AlignedSlice<alignment::Twice<BlockAlignment>>,
         ) -> impl QuoteClassifiedIterator {
+            assert_eq!(bytes.len() % SequentialQuoteClassifier::block_size(), 0, "bytes len have to be divisible by block size");
+
             SequentialQuoteClassifier::new(bytes)
         }
     }
@@ -88,6 +116,8 @@ cfg_if! {
         pub fn classify_quoted_sequences(
             bytes: &AlignedSlice<alignment::Twice<BlockAlignment>>,
         ) -> impl QuoteClassifiedIterator {
+            assert_eq!(bytes.len() % Avx2QuoteClassifier::block_size(), 0, "bytes len have to be divisible by block size");
+
             Avx2QuoteClassifier::new(bytes)
         }
     }

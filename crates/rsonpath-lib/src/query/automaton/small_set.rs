@@ -1,7 +1,6 @@
 //! Highly optimized set collections useful during automaton minimization.
 //! Provides the [`SmallSet256`] set that is optimised for operations
 //! over [`u8`] elements.
-
 use std::{collections::BTreeSet, fmt::Debug};
 
 /// Traits for highly optimised sets of elements of type `T`,

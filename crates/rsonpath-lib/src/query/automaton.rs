@@ -1,5 +1,4 @@
 //! Automaton representations of a JSONPath query.
-
 mod minimizer;
 mod nfa;
 mod small_set;

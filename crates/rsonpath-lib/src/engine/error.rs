@@ -1,5 +1,4 @@
 //! Error definitions and utilities for engine execution.
-
 use thiserror::Error;
 
 /// Error enum for all types of errors that can be reported
