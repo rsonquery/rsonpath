@@ -95,6 +95,9 @@ impl<'a, I: QuoteClassifiedIterator<'a>> ResumeClassifierState<'a, I> {
     }
 
     /// Move the state forward by `count` bytes.
+    /// 
+    /// # Panics
+    /// If the `count` is not positive.
     #[inline]
     pub fn offset_bytes(&mut self, count: isize) {
         assert!(count > 0);
