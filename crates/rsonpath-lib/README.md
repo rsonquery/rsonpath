@@ -49,7 +49,7 @@ cargo tree --package rsonpath-lib --edges normal --depth 1
 
 <!-- rsonpath-lib dependencies start -->
 ```ini
-rsonpath-lib v0.3.0 (/home/mat/rsonpath/crates/rsonpath-lib)
+rsonpath-lib v0.3.1 (/home/mat/rsonpath/crates/rsonpath-lib)
 ├── aligners v0.0.10
 ├── cfg-if v1.0.0
 ├── log v0.4.17

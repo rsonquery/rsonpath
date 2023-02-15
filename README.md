@@ -165,12 +165,12 @@ cargo tree --package rsonpath --edges normal --depth 1
 
 <!-- rsonpath dependencies start -->
 ```ini
-rsonpath v0.3.0 (/home/mat/rsonpath/crates/rsonpath)
-├── clap v4.1.4
+rsonpath v0.3.1 (/home/mat/rsonpath/crates/rsonpath)
+├── clap v4.1.6
 ├── color-eyre v0.6.2
 ├── eyre v0.6.8
 ├── log v0.4.17
-├── rsonpath-lib v0.3.0 (/home/mat/rsonpath/crates/rsonpath-lib)
+├── rsonpath-lib v0.3.1 (/home/mat/rsonpath/crates/rsonpath-lib)
 └── simple_logger v4.0.0
 ```
 <!-- rsonpath dependencies end -->
@@ -181,7 +181,7 @@ cargo tree --package rsonpath-lib --edges normal --depth 1
 
 <!-- rsonpath-lib dependencies start -->
 ```ini
-rsonpath-lib v0.3.0 (/home/mat/rsonpath/crates/rsonpath-lib)
+rsonpath-lib v0.3.1 (/home/mat/rsonpath/crates/rsonpath-lib)
 ├── aligners v0.0.10
 ├── cfg-if v1.0.0
 ├── log v0.4.17
@@ -217,8 +217,8 @@ cargo tree --package rsonpath --edges normal
 
 <!-- rsonpath-full dependencies start -->
 ```ini
-rsonpath v0.3.0 (/home/mat/rsonpath/crates/rsonpath)
-├── clap v4.1.4
+rsonpath v0.3.1 (/home/mat/rsonpath/crates/rsonpath)
+├── clap v4.1.6
 │   ├── bitflags v1.3.2
 │   ├── clap_derive v4.1.0 (proc-macro)
 │   │   ├── heck v0.4.1
@@ -272,7 +272,7 @@ rsonpath v0.3.0 (/home/mat/rsonpath/crates/rsonpath)
 ├── eyre v0.6.8 (*)
 ├── log v0.4.17
 │   └── cfg-if v1.0.0
-├── rsonpath-lib v0.3.0 (/home/mat/rsonpath/crates/rsonpath-lib)
+├── rsonpath-lib v0.3.1 (/home/mat/rsonpath/crates/rsonpath-lib)
 │   ├── aligners v0.0.10
 │   │   ├── cfg-if v1.0.0
 │   │   ├── lazy_static v1.4.0
