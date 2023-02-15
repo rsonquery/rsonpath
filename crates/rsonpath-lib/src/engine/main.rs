@@ -326,7 +326,7 @@ impl<'q, 'b> Executor<'q, 'b> {
                             break;
                         }
                     }
-                } else {
+                } else if matches!(self.next_event, Some(Structural::Comma(_))) {
                     result.report(idx + 1);
                 }
             } else {

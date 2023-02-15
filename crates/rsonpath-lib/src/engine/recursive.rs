@@ -199,9 +199,11 @@ impl<'q, 'b> ExecutionContext<'q, 'b> {
                 }
                 return Ok(close_idx);
             }
-
-            debug!("Accepting first item in the list.");
-            result.report(open_idx + 1);
+            
+           if matches!(next_event, Some(Structural::Comma(_))) {
+                debug!("Accepting first item in the list.");
+                result.report(open_idx + 1);
+            }
         }
 
         loop {
