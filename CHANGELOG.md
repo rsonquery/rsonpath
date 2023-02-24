@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.2] - 2023-02-24
+
+### Performance
+
+- Faster toggling of commas/colons.
+  - Shortened toggle by 1 SIMD instruction, improving perf by ~5% on heavily switching queries
+
+## [0.3.1] - 2023-02-15
+
+### Bug Fixes
+
+- Duplicate results with `.*` on singleton list. ([#100](https://github.com/V0ldek/rsonpath/issues/100)[#96](https://github.com/V0ldek/rsonpath/issues/96))
+  - If the query ended with a wildcard selector and was applied to a list with a singleton complex value, that value was being matched twice.
+
+### Dependencies
+
+- Bump clap from 4.1.4 to 4.1.6 (#99). ([#99](https://github.com/V0ldek/rsonpath/issues/99))
+
+### Documentation
+
+- Update main plot in README. ([#98](https://github.com/V0ldek/rsonpath/issues/98))
+
 ## [0.3.0] - 2023-02-14
 
 ### Features
