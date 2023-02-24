@@ -213,7 +213,7 @@ release-execute ver:
     just release-patch {{ver}}
     just release-readme
     just commit 'release v{{ver}}'
-    cargo release --sign-tag --sign-commit --execute --tag-prefix "" --tag-name "{{ver}}"
+    cargo release --sign-tag --sign-commit --execute --tag-prefix "" --tag-name "v{{ver}}"
 
 [private]
 release-patch ver:
