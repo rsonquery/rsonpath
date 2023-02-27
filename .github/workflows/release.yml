@@ -158,7 +158,7 @@ jobs:
       id: metadata
       run: echo "version=$(git describe --tags --always --abbrev=0)\n" > $GITHUB_OUTPUT
     - name: Install Rust toolchain (stable)
-      uses: dtolnay/rust-toolchain@master
+      uses: dtolnay/rust-toolchain@stable
       with:
         toolchain: stable
     - name: Override toolchain
