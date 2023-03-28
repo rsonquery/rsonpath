@@ -63,6 +63,7 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.toolchain }}
+          targets: ${{ matrix.target }}
       - name: Override toolchain
         run: rustup override set ${{ matrix.toolchain }}
       - name: Cache restore
@@ -83,22 +84,22 @@ jobs:
           CARGO_TARGET_DIR: target/
       - name: Build all feature sets with target-feature=${{ matrix.target-features }}
         if: matrix.target-features != ''
-        run: cargo hack build --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default
+        run: cargo hack build --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --target ${{ matrix.target }}
         env:
           RUSTFLAGS: "-C target-feature=${{ matrix.target-features }} --deny warnings"
       - name: Build without simd
         if: matrix.target-features == ''
-        run: cargo hack build --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --exclude-features simd
+        run: cargo hack build --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --exclude-features simd --target ${{ matrix.target }}
         env:
           RUSTFLAGS: "--deny warnings"
       - name: Test all feature sets with target-feature=${{ matrix.target-features }}
         if: matrix.target-features != ''
-        run: cargo hack test --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default
+        run: cargo hack test --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --target ${{ matrix.target }}
         env:
           RUSTFLAGS: "-C target-feature=${{ matrix.target-features }} --deny warnings"
       - name: Test without simd
         if: matrix.target-features == ''
-        run: cargo hack test --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --exclude-features simd
+        run: cargo hack test --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --exclude-features simd --target ${{ matrix.target }}
         env:
           RUSTFLAGS: "--deny warnings"
 
