@@ -64,14 +64,14 @@ jobs:
         with:
           path: |
             C:\ProgramData\chocolatey\lib\mingw
-          key: ${{ matrix.os }}-mingw-11-2
+          key: ${{ matrix.os }}-mingw-${{ matrix.needs-mingw }}-11-2
       - name: Set up MinGW ${{ matrix.needs-mingw }}
         if: matrix.needs-mingw != '' && steps.cache-restore-mingw.outputs.cache-hit != 'true'
         uses: egor-tensin/setup-mingw@v2
         with:
           platform: ${{ matrix.needs-mingw }}
       - name: Add MinGW to PATH
-        if: matrix.needs-mingw != ''
+        if: matrix.needs-mingw != '' && steps.cache-restore-mingw.outputs.cache-hit == 'true'
         run: echo "C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw32\bin" >> $GITHUB_PATH
       - name: Run prologue script
         if: matrix.prologue-script != ''
