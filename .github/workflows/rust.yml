@@ -36,6 +36,7 @@ jobs:
           - os: ubuntu-latest
             triple: i686-unknown-linux-gnu
             target-features: +avx2,+pclmulqdq
+            prologue-script: sudo apt install gcc-multilib
           - os: ubuntu-latest
             triple: x86_64-unknown-linux-gnu
             target-features: +avx2,+pclmulqdq
@@ -55,6 +56,9 @@ jobs:
             triple: x86_64-pc-windows-msvc
             target-features: +avx2,+pclmulqdq
     steps:
+      - name: Run prologue script
+        if: matrix.prologue-script != ''
+        run: ${{ prologue-script }}
       - name: Checkout sources
         uses: actions/checkout@v3
         with:
