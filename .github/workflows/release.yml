@@ -47,10 +47,12 @@ jobs:
             triple: i686-unknown-linux-gnu
             target-features: +avx2,+pclmulqdq
             artifact-suffix: avx2-pclmulqdq
+            prologue-script: sudo apt install gcc-multilib
           - os: ubuntu-latest
             triple: i686-unknown-linux-gnu
             target-features: ''
             artifact-suffix: nosimd
+            prologue-script: sudo apt install gcc-multilib
           - os: ubuntu-latest
             triple: x86_64-unknown-linux-gnu
             target-features: +avx2,+pclmulqdq
@@ -67,10 +69,12 @@ jobs:
             triple: i686-pc-windows-gnu
             target-features: +avx2,+pclmulqdq
             artifact-suffix: avx2-pclmulqdq
+            needs-mingw: x86
           - os: windows-latest
             triple: i686-pc-windows-gnu
             target-features: ''
             artifact-suffix: nosimd
+            needs-mingw: x86
           - os: windows-latest
             triple: i686-pc-windows-msvc
             target-features: +avx2,+pclmulqdq
@@ -96,6 +100,25 @@ jobs:
             target-features: ''
             artifact-suffix: nosimd
     steps:
+    - name: Run prologue script
+      if: matrix.prologue-script != ''
+      run: ${{ matrix.prologue-script }}
+    - name: Cache restore (MinGW)
+      id: cache-restore-mingw
+      if: matrix.needs-mingw != ''
+      uses: actions/cache@v3
+      with:
+        path: |
+          C:\ProgramData\chocolatey\lib\mingw
+        key: ${{ matrix.os }}-mingw-${{ matrix.needs-mingw }}-11-2
+    - name: Set up MinGW ${{ matrix.needs-mingw }}
+      if: matrix.needs-mingw != '' && steps.cache-restore-mingw.outputs.cache-hit != 'true'
+      uses: egor-tensin/setup-mingw@v2
+      with:
+        platform: ${{ matrix.needs-mingw }}
+    - name: Add MinGW to PATH
+      if: matrix.needs-mingw != ''
+      run: echo "C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw32\bin" >> $GITHUB_PATH
     - name: Checkout source
       uses: actions/checkout@v3
       with:
@@ -111,7 +134,7 @@ jobs:
     - name: Override toolchain
       run: rustup override set stable
     - name: Cache restore
-      id: cache-restore
+      id: cache-restore-cargo
       uses: actions/cache@v3
       with:
         path: |
@@ -164,7 +187,7 @@ jobs:
     - name: Override toolchain
       run: rustup override set stable
     - name: Cache restore
-      id: cache-restore
+      id: cache-restore-cargo
       uses: actions/cache@v3
       with:
         path: |
@@ -175,7 +198,7 @@ jobs:
           target/
         key: ubuntu-latest-stable-cargo-release-cliff-0.9.2
     - name: Install git-cliff
-      if: steps.cache-restore.outputs.cache-hit != 'true'
+      if: steps.cache-restore-cargo.outputs.cache-hit != 'true'
       run: cargo install git-cliff --version 0.9.2
       env:
         CARGO_TARGET_DIR: target/
