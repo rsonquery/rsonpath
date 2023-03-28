@@ -35,7 +35,7 @@ jobs:
             target-features: ''
           - os: ubuntu-latest
             triple: i686-unknown-linux-gnu
-            target-features: +avx2,+pclmulqdq
+            target-features: ''
             prologue-script: sudo apt install gcc-multilib
           - os: ubuntu-latest
             triple: x86_64-unknown-linux-gnu
@@ -45,10 +45,11 @@ jobs:
             target-features: ''
           - os: windows-latest
             triple: i686-pc-windows-gnu
-            target-features: +avx2,+pclmulqdq
+            target-features: ''
+            needs-mingw: x86
           - os: windows-latest
             triple: i686-pc-windows-msvc
-            target-features: +avx2,+pclmulqdq
+            target-features: ''
           - os: windows-latest
             triple: x86_64-pc-windows-gnu
             target-features: +avx2,+pclmulqdq
@@ -56,6 +57,11 @@ jobs:
             triple: x86_64-pc-windows-msvc
             target-features: +avx2,+pclmulqdq
     steps:
+      - name: Set up MinGW ${{ matrix.needs-mingw }}
+        if: matrix.needs-mingw != ''
+        uses: egor-tensin/setup-mingw@v2
+        with:
+          platform: ${{ matrix.needs-mingw }}
       - name: Run prologue script
         if: matrix.prologue-script != ''
         run: ${{ matrix.prologue-script }}
