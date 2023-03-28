@@ -29,8 +29,6 @@ jobs:
           - i686-pc-windows-msvc
           - x86_64-pc-windows-gnu
           - x86_64-pc-windows-msvc
-        prologue-script:
-          - ''
         include:
           - os: ubuntu-latest
             triple: aarch64-unknown-linux-gnu
@@ -60,7 +58,7 @@ jobs:
     steps:
       - name: Run prologue script
         if: matrix.prologue-script != ''
-        run: ${{ prologue-script }}
+        run: ${{ matrix.prologue-script }}
       - name: Checkout sources
         uses: actions/checkout@v3
         with:
