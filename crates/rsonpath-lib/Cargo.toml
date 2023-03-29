@@ -19,7 +19,7 @@ rust-version = "1.65.0"
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
-aligners = "0.0.10"
+aligners = { version = "0.0.10", default-features = false }
 cfg-if = "1.0.0"
 log = "0.4.17"
 memchr = { version = "2.5.0", optional = true }
@@ -40,7 +40,7 @@ eyre = "0.6.8"
 
 [features]
 default = ["simd", "head-skip", "tail-skip", "unique-labels"]
-simd = []
+simd = ["aligners/simd"]
 head-skip = ["dep:memchr"]
 tail-skip = ["dep:replace_with"]
 unique-labels = ["tail-skip"]

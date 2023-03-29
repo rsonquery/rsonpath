@@ -9,6 +9,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
+  CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: "aarch64-linux-gnu-gcc"
 
 jobs:
   test:
@@ -33,28 +34,58 @@ jobs:
           - os: ubuntu-latest
             triple: aarch64-unknown-linux-gnu
             target-features: ''
+            prologue-script: sudo apt install gcc-aarch64-linux-gnu
+            can-run: false
           - os: ubuntu-latest
             triple: i686-unknown-linux-gnu
-            target-features: +avx2,+pclmulqdq
+            target-features: ''
+            prologue-script: sudo apt install gcc-multilib
+            can-run: true
           - os: ubuntu-latest
             triple: x86_64-unknown-linux-gnu
             target-features: +avx2,+pclmulqdq
+            can-run: true
           - os: macos-latest
             triple: x86_64-apple-darwin
             target-features: ''
+            can-run: true
           - os: windows-latest
             triple: i686-pc-windows-gnu
-            target-features: +avx2,+pclmulqdq
+            target-features: ''
+            needs-mingw: x86
+            can-run: true
           - os: windows-latest
             triple: i686-pc-windows-msvc
-            target-features: +avx2,+pclmulqdq
+            target-features: ''
+            can-run: true
           - os: windows-latest
             triple: x86_64-pc-windows-gnu
             target-features: +avx2,+pclmulqdq
+            can-run: true
           - os: windows-latest
             triple: x86_64-pc-windows-msvc
             target-features: +avx2,+pclmulqdq
+            can-run: true
     steps:
+      - name: Cache restore (MinGW)
+        id: cache-restore-mingw
+        if: matrix.needs-mingw != ''
+        uses: actions/cache@v3
+        with:
+          path: |
+            C:\ProgramData\chocolatey\lib\mingw
+          key: ${{ matrix.os }}-mingw-${{ matrix.needs-mingw }}-11-2
+      - name: Set up MinGW ${{ matrix.needs-mingw }}
+        if: matrix.needs-mingw != '' && steps.cache-restore-mingw.outputs.cache-hit != 'true'
+        uses: egor-tensin/setup-mingw@v2
+        with:
+          platform: ${{ matrix.needs-mingw }}
+      - name: Add MinGW to PATH
+        if: matrix.needs-mingw != '' && steps.cache-restore-mingw.outputs.cache-hit == 'true'
+        run: echo "C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw32\bin" >> $env:GITHUB_PATH
+      - name: Run prologue script
+        if: matrix.prologue-script != ''
+        run: ${{ matrix.prologue-script }}
       - name: Checkout sources
         uses: actions/checkout@v3
         with:
@@ -63,10 +94,11 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.toolchain }}
+          target: ${{ matrix.triple }}
       - name: Override toolchain
         run: rustup override set ${{ matrix.toolchain }}
-      - name: Cache restore
-        id: cache-restore
+      - name: Cache restore (Cargo)
+        id: cache-restore-cargo
         uses: actions/cache@v3
         with:
           path: |
@@ -77,28 +109,28 @@ jobs:
             target/
           key: ${{ matrix.toolchain }}-${{ matrix.triple }}-${{ matrix.target_features }}-cargo-${{ hashFiles('**/Cargo.toml') }}
       - name: Install cargo-hack
-        if: steps.cache-restore.outputs.cache-hit != 'true'
+        if: steps.cache-restore-cargo.outputs.cache-hit != 'true'
         run: cargo install cargo-hack
         env:
           CARGO_TARGET_DIR: target/
       - name: Build all feature sets with target-feature=${{ matrix.target-features }}
         if: matrix.target-features != ''
-        run: cargo hack build --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default
+        run: cargo hack build --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --target ${{ matrix.triple }}
         env:
           RUSTFLAGS: "-C target-feature=${{ matrix.target-features }} --deny warnings"
       - name: Build without simd
         if: matrix.target-features == ''
-        run: cargo hack build --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --exclude-features simd
+        run: cargo hack build --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --exclude-features simd --target ${{ matrix.triple }}
         env:
           RUSTFLAGS: "--deny warnings"
       - name: Test all feature sets with target-feature=${{ matrix.target-features }}
-        if: matrix.target-features != ''
-        run: cargo hack test --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default
+        if: matrix.can-run && matrix.target-features != ''
+        run: cargo hack test --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --target ${{ matrix.triple }}
         env:
           RUSTFLAGS: "-C target-feature=${{ matrix.target-features }} --deny warnings"
       - name: Test without simd
-        if: matrix.target-features == ''
-        run: cargo hack test --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --exclude-features simd
+        if: matrix.can-run && matrix.target-features == ''
+        run: cargo hack test --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --exclude-features simd --target ${{ matrix.triple }}
         env:
           RUSTFLAGS: "--deny warnings"
 
