@@ -47,11 +47,6 @@ jobs:
             prologue-script: sudo apt install gcc-aarch64-linux-gnu
           - os: ubuntu-latest
             triple: i686-unknown-linux-gnu
-            target-features: +avx2,+pclmulqdq
-            artifact-suffix: avx2-pclmulqdq
-            prologue-script: sudo apt install gcc-multilib
-          - os: ubuntu-latest
-            triple: i686-unknown-linux-gnu
             target-features: ''
             artifact-suffix: nosimd
             prologue-script: sudo apt install gcc-multilib
@@ -69,18 +64,9 @@ jobs:
             artifact-suffix: nosimd
           - os: windows-latest
             triple: i686-pc-windows-gnu
-            target-features: +avx2,+pclmulqdq
-            artifact-suffix: avx2-pclmulqdq
-            needs-mingw: x86
-          - os: windows-latest
-            triple: i686-pc-windows-gnu
             target-features: ''
             artifact-suffix: nosimd
             needs-mingw: x86
-          - os: windows-latest
-            triple: i686-pc-windows-msvc
-            target-features: +avx2,+pclmulqdq
-            artifact-suffix: avx2-pclmulqdq
           - os: windows-latest
             triple: i686-pc-windows-msvc
             target-features: ''
