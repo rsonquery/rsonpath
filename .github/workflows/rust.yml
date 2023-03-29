@@ -35,29 +35,37 @@ jobs:
             triple: aarch64-unknown-linux-gnu
             target-features: ''
             prologue-script: sudo apt install gcc-aarch64-linux-gnu
+            can-run: false
           - os: ubuntu-latest
             triple: i686-unknown-linux-gnu
             target-features: ''
             prologue-script: sudo apt install gcc-multilib
+            can-run: true
           - os: ubuntu-latest
             triple: x86_64-unknown-linux-gnu
             target-features: +avx2,+pclmulqdq
+            can-run: true
           - os: macos-latest
             triple: x86_64-apple-darwin
             target-features: ''
+            can-run: true
           - os: windows-latest
             triple: i686-pc-windows-gnu
             target-features: ''
             needs-mingw: x86
+            can-run: true
           - os: windows-latest
             triple: i686-pc-windows-msvc
             target-features: ''
+            can-run: true
           - os: windows-latest
             triple: x86_64-pc-windows-gnu
             target-features: +avx2,+pclmulqdq
+            can-run: true
           - os: windows-latest
             triple: x86_64-pc-windows-msvc
             target-features: +avx2,+pclmulqdq
+            can-run: true
     steps:
       - name: Cache restore (MinGW)
         id: cache-restore-mingw
@@ -116,12 +124,12 @@ jobs:
         env:
           RUSTFLAGS: "--deny warnings"
       - name: Test all feature sets with target-feature=${{ matrix.target-features }}
-        if: matrix.target-features != ''
+        if: matrix.can-run && matrix.target-features != ''
         run: cargo hack test --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --target ${{ matrix.triple }}
         env:
           RUSTFLAGS: "-C target-feature=${{ matrix.target-features }} --deny warnings"
       - name: Test without simd
-        if: matrix.target-features == ''
+        if: matrix.can-run && matrix.target-features == ''
         run: cargo hack test --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --exclude-features simd --target ${{ matrix.triple }}
         env:
           RUSTFLAGS: "--deny warnings"
