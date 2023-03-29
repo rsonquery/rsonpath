@@ -98,6 +98,21 @@ Work to support more useful result reports is ongoing.
 By default, the main SIMD engine is used. On machines not supporting SIMD, the recursive implementation
 might be faster in some cases. To change the engine use `--engine recursive`.
 
+## Supported platforms
+
+The crate is continuously built for all Tier 1 Rust targets, and tests are continuously ran for targets that can be ran with GitHub action images. SIMD is supported only on x86-64 platforms for AVX2, while nosimd builds are always available for all targets.
+
+| Target triple             | nosimd build | SIMD support        | Continuous testing | Tracking issues |
+|:--------------------------|:-------------|:--------------------|:-------------------|----------------:|
+| aarch64-unknown-linux-gnu | ✔️          | ❌                  | ❌                | |
+| i686-unknown-linux-gnu    | ✔️          | ❌                  | ✔️                | [#14](https://github.com/V0ldek/rsonpath/issues/14) |
+| x86_64-unknown-linux-gnu  | ✔️          | ✔️ avx2+pclmulqdq   | ✔️                | |
+| x86_64-apple-darwin       | ✔️          | ❌                  | ✔️                | |
+| i686-pc-windows-gnu       | ✔️          | ❌                  | ✔️                | [#14](https://github.com/V0ldek/rsonpath/issues/14) |
+| i686-pc-windows-msvc      | ✔️          | ❌                  | ✔️                | [#14](https://github.com/V0ldek/rsonpath/issues/14) |
+| x86_64-pc-windows-gnu     | ✔️          | ✔️ avx2+pclmulqdq   | ✔️                | |
+| x86_64-pc-windows-msvc    | ✔️          | ✔️ avx2+pclmulqdq   | ✔️                | |
+
 ## Caveats and limitations
 
 ### JSONPath
