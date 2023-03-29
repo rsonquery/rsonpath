@@ -8,6 +8,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
+  CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: "aarch64-linux-gnu-gcc"
 
 jobs:
   check-install:
@@ -43,6 +44,7 @@ jobs:
             triple: aarch64-unknown-linux-gnu
             target-features: ''
             artifact-suffix: nosimd
+            prologue-script: sudo apt install gcc-aarch64-linux-gnu
           - os: ubuntu-latest
             triple: i686-unknown-linux-gnu
             target-features: +avx2,+pclmulqdq
@@ -118,7 +120,7 @@ jobs:
         platform: ${{ matrix.needs-mingw }}
     - name: Add MinGW to PATH
       if: matrix.needs-mingw != ''
-      run: echo "C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw32\bin" >> $GITHUB_PATH
+      run: echo "C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw32\bin" >> $env:GITHUB_PATH
     - name: Checkout source
       uses: actions/checkout@v3
       with:

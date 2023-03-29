@@ -9,6 +9,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
+  CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: "aarch64-linux-gnu-gcc"
 
 jobs:
   test:
@@ -33,6 +34,7 @@ jobs:
           - os: ubuntu-latest
             triple: aarch64-unknown-linux-gnu
             target-features: ''
+            prologue-script: sudo apt install gcc-aarch64-linux-gnu
           - os: ubuntu-latest
             triple: i686-unknown-linux-gnu
             target-features: ''
@@ -72,7 +74,7 @@ jobs:
           platform: ${{ matrix.needs-mingw }}
       - name: Add MinGW to PATH
         if: matrix.needs-mingw != '' && steps.cache-restore-mingw.outputs.cache-hit == 'true'
-        run: echo "C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw32\bin" >> $GITHUB_PATH
+        run: echo "C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw32\bin" >> $env:GITHUB_PATH
       - name: Run prologue script
         if: matrix.prologue-script != ''
         run: ${{ matrix.prologue-script }}
