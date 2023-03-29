@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.3] - 2023-03-29
+
+### Bug Fixes
+
+- Properly flow simd feature to dependencies. ([#111](https://github.com/V0ldek/rsonpath/issues/111))
+  - This fixes build issues with the `aarch64` target. It also turns out our CI did not actually compile to all the targets we claimed it did, which is a bit embarrassing. We now _do_ actually support all Rust Tier 1 targets and run tests for all **except** `aarch64-unknown-linux-gnu`, because there's no image for aarch64 on GitHub.
+
+### Dependencies
+
+- Bump clap from 4.1.6 to 4.1.11.
+
+- Bump thiserror from 1.0.38 to 1.0.40.
+
+- Bump simple_logger from 4.0.0 to 4.1.0.
+
+- Bump dev-dependency tempfile from v3.3.0 to v3.4.0.
+  - Resolves a dev-dependency security vulnerability of `remove-dir-all` by removing the dependency entirely.
+
 ## [0.3.2] - 2023-02-24
 
 ### Performance
