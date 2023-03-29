@@ -158,10 +158,10 @@ jobs:
         RUSTFLAGS: "-C target-feature=${{ matrix.target-features }} --deny warnings"
     - name: Rename binary (Unix)
       if: matrix.os != 'windows-latest'
-      run: mv target/release/rsonpath target/release/rsonpath-${{ matrix.triple }}-${{ matrix.artifact-suffix }}
+      run: mv "target/release/${{ matrix.triple }}/rsonpath" target/release/rsonpath-${{ matrix.triple }}-${{ matrix.artifact-suffix }}
     - name: Rename binary (Windows)
       if: matrix.os == 'windows-latest'
-      run: mv -Force target/release/rsonpath.exe target/release/rsonpath-${{ matrix.triple }}-${{ matrix.artifact-suffix }}.exe
+      run: mv -Force "target/release/${{ matrix.triple }}/rsonpath.exe" target/release/rsonpath-${{ matrix.triple }}-${{ matrix.artifact-suffix }}.exe
     - name: Upload the binary as artifact
       uses: actions/upload-artifact@v3.1.2
       with:
