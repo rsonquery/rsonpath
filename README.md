@@ -165,13 +165,13 @@ cargo tree --package rsonpath --edges normal --depth 1
 
 <!-- rsonpath dependencies start -->
 ```ini
-rsonpath v0.3.2 (/home/mat/rsonpath/crates/rsonpath)
-├── clap v4.1.6
+rsonpath v0.3.3 (/home/mat/rsonpath/crates/rsonpath)
+├── clap v4.1.11
 ├── color-eyre v0.6.2
 ├── eyre v0.6.8
 ├── log v0.4.17
-├── rsonpath-lib v0.3.2 (/home/mat/rsonpath/crates/rsonpath-lib)
-└── simple_logger v4.0.0
+├── rsonpath-lib v0.3.3 (/home/mat/rsonpath/crates/rsonpath-lib)
+└── simple_logger v4.1.0
 ```
 <!-- rsonpath dependencies end -->
 
@@ -181,7 +181,7 @@ cargo tree --package rsonpath-lib --edges normal --depth 1
 
 <!-- rsonpath-lib dependencies start -->
 ```ini
-rsonpath-lib v0.3.2 (/home/mat/rsonpath/crates/rsonpath-lib)
+rsonpath-lib v0.3.3 (/home/mat/rsonpath/crates/rsonpath-lib)
 ├── aligners v0.0.10
 ├── cfg-if v1.0.0
 ├── log v0.4.17
@@ -189,7 +189,7 @@ rsonpath-lib v0.3.2 (/home/mat/rsonpath/crates/rsonpath-lib)
 ├── nom v7.1.3
 ├── replace_with v0.1.7
 ├── smallvec v1.10.0
-├── thiserror v1.0.38
+├── thiserror v1.0.40
 └── vector-map v1.0.1
 ```
 <!-- rsonpath-lib dependencies end -->
@@ -217,25 +217,25 @@ cargo tree --package rsonpath --edges normal
 
 <!-- rsonpath-full dependencies start -->
 ```ini
-rsonpath v0.3.2 (/home/mat/rsonpath/crates/rsonpath)
-├── clap v4.1.6
-│   ├── bitflags v1.3.2
-│   ├── clap_derive v4.1.0 (proc-macro)
+rsonpath v0.3.3 (/home/mat/rsonpath/crates/rsonpath)
+├── clap v4.1.11
+│   ├── bitflags v2.0.2
+│   ├── clap_derive v4.1.9 (proc-macro)
 │   │   ├── heck v0.4.1
 │   │   ├── proc-macro-error v1.0.4
 │   │   │   ├── proc-macro-error-attr v1.0.4 (proc-macro)
-│   │   │   │   ├── proc-macro2 v1.0.51
+│   │   │   │   ├── proc-macro2 v1.0.52
 │   │   │   │   │   └── unicode-ident v1.0.6
-│   │   │   │   └── quote v1.0.23
-│   │   │   │       └── proc-macro2 v1.0.51 (*)
-│   │   │   ├── proc-macro2 v1.0.51 (*)
-│   │   │   ├── quote v1.0.23 (*)
+│   │   │   │   └── quote v1.0.26
+│   │   │   │       └── proc-macro2 v1.0.52 (*)
+│   │   │   ├── proc-macro2 v1.0.52 (*)
+│   │   │   ├── quote v1.0.26 (*)
 │   │   │   └── syn v1.0.107
-│   │   │       ├── proc-macro2 v1.0.51 (*)
-│   │   │       ├── quote v1.0.23 (*)
+│   │   │       ├── proc-macro2 v1.0.52 (*)
+│   │   │       ├── quote v1.0.26 (*)
 │   │   │       └── unicode-ident v1.0.6
-│   │   ├── proc-macro2 v1.0.51 (*)
-│   │   ├── quote v1.0.23 (*)
+│   │   ├── proc-macro2 v1.0.52 (*)
+│   │   ├── quote v1.0.26 (*)
 │   │   └── syn v1.0.107 (*)
 │   ├── clap_lex v0.3.1
 │   │   └── os_str_bytes v6.4.1
@@ -272,7 +272,7 @@ rsonpath v0.3.2 (/home/mat/rsonpath/crates/rsonpath)
 ├── eyre v0.6.8 (*)
 ├── log v0.4.17
 │   └── cfg-if v1.0.0
-├── rsonpath-lib v0.3.2 (/home/mat/rsonpath/crates/rsonpath-lib)
+├── rsonpath-lib v0.3.3 (/home/mat/rsonpath/crates/rsonpath-lib)
 │   ├── aligners v0.0.10
 │   │   ├── cfg-if v1.0.0
 │   │   ├── lazy_static v1.4.0
@@ -286,15 +286,18 @@ rsonpath v0.3.2 (/home/mat/rsonpath/crates/rsonpath)
 │   │   └── minimal-lexical v0.2.1
 │   ├── replace_with v0.1.7
 │   ├── smallvec v1.10.0
-│   ├── thiserror v1.0.38
-│   │   └── thiserror-impl v1.0.38 (proc-macro)
-│   │       ├── proc-macro2 v1.0.51 (*)
-│   │       ├── quote v1.0.23 (*)
-│   │       └── syn v1.0.107 (*)
+│   ├── thiserror v1.0.40
+│   │   └── thiserror-impl v1.0.40 (proc-macro)
+│   │       ├── proc-macro2 v1.0.52 (*)
+│   │       ├── quote v1.0.26 (*)
+│   │       └── syn v2.0.4
+│   │           ├── proc-macro2 v1.0.52 (*)
+│   │           ├── quote v1.0.26 (*)
+│   │           └── unicode-ident v1.0.6
 │   └── vector-map v1.0.1
 │       ├── contracts v0.4.0 (proc-macro)
-│       │   ├── proc-macro2 v1.0.51 (*)
-│       │   ├── quote v1.0.23 (*)
+│       │   ├── proc-macro2 v1.0.52 (*)
+│       │   ├── quote v1.0.26 (*)
 │       │   └── syn v1.0.107 (*)
 │       └── rand v0.7.3
 │           ├── getrandom v0.1.16
@@ -306,7 +309,7 @@ rsonpath v0.3.2 (/home/mat/rsonpath/crates/rsonpath)
 │           │   └── rand_core v0.5.1
 │           │       └── getrandom v0.1.16 (*)
 │           └── rand_core v0.5.1 (*)
-└── simple_logger v4.0.0
+└── simple_logger v4.1.0
     ├── colored v2.0.0
     │   ├── atty v0.2.14
     │   │   └── libc v0.2.139
