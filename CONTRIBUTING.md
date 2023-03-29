@@ -15,6 +15,10 @@ it will be assigned a milestone and the label will be exchanged for
 to signal it is of value to the project and
 can be worked on (for a feature), or that it is indeed a bug that we need to fix (for a bug).
 
+## Not sure?
+
+Go to [Discussions](https://github.com/V0ldek/rsonpath/discussions), where you can drop more open-ended questions and ideas without having to formulate them as detailed Issues!
+
 ## Code contributions
 
 You want to write code for the crate? Great! First, you need an issue to contribute to,
