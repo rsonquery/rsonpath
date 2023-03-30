@@ -1,10 +1,13 @@
 use super::error::{ParseErrorReport, ParserError};
 use crate::debug;
+use crate::lib::{
+    fmt::{self, Display},
+    Box, Vec,
+};
 use crate::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label};
 use nom::{
     branch::*, bytes::complete::*, character::complete::*, combinator::*, multi::*, sequence::*, *,
 };
-use std::fmt::{self, Display};
 
 #[derive(Debug, Clone, Copy)]
 enum Token<'a> {

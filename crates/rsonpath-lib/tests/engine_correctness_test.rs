@@ -2,7 +2,9 @@ use rsonpath_lib::engine::main::MainEngine;
 use rsonpath_lib::engine::recursive::RecursiveEngine;
 use rsonpath_lib::engine::{Compiler, Engine, Input};
 use rsonpath_lib::query::JsonPathQuery;
-use rsonpath_lib::result::{CountResult, IndexResult};
+use rsonpath_lib::result::CountResult;
+#[cfg(feature = "alloc")]
+use rsonpath_lib::result::IndexResult;
 use std::fs;
 use test_case::test_case;
 
@@ -141,6 +143,7 @@ macro_rules! count_test_cases {
     };
 }
 
+#[cfg(feature = "alloc")]
 macro_rules! indices_test_cases {
     ($test_name:ident, $impl:ident) => {
         #[test_case("basic/atomic_descendant.json", "$..a" => vec![9]; "atomic_descendant.json $..a")]
@@ -216,5 +219,8 @@ macro_rules! indices_test_cases {
 
 count_test_cases!(rsonpath_count_main, MainEngine);
 count_test_cases!(rsonpath_count_recursive, RecursiveEngine);
+
+#[cfg(feature = "alloc")]
 indices_test_cases!(rsonpath_indices_main, MainEngine);
+#[cfg(feature = "alloc")]
 indices_test_cases!(rsonpath_indices_recursive, RecursiveEngine);

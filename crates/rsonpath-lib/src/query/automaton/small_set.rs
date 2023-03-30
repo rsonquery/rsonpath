@@ -1,7 +1,7 @@
 //! Highly optimized set collections useful during automaton minimization.
 //! Provides the [`SmallSet256`] set that is optimised for operations
 //! over [`u8`] elements.
-use std::{collections::BTreeSet, fmt::Debug};
+use crate::lib::{BTreeSet, fmt};
 
 /// Traits for highly optimised sets of elements of type `T`,
 /// which are assumed to be relatively small elements that can be ordered.
@@ -197,8 +197,8 @@ impl FromIterator<u8> for SmallSet256 {
     }
 }
 
-impl Debug for SmallSet256 {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Debug for SmallSet256 {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_set().entries(self.iter()).finish()
     }
 }
@@ -246,7 +246,7 @@ mod tests256 {
     use super::*;
     use itertools::Itertools;
     use proptest::{collection, proptest};
-    use std::collections::BTreeSet;
+    use crate::lib::{BTreeSet, Vec};
 
     const MAX_SET_SIZE: usize = 256;
     const MAX_INPUT_SIZE: usize = 1024;

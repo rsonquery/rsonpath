@@ -15,6 +15,7 @@ mod tail_skipping;
 pub use main::MainEngine as RsonpathEngine;
 
 use self::error::EngineError;
+use crate::lib::{iter, ops};
 use crate::query::{automaton::Automaton, error::CompilerError, JsonPathQuery};
 use crate::result::QueryResult;
 use aligners::{
@@ -28,7 +29,7 @@ pub struct Input {
     bytes: AlignedBytes<alignment::Page>,
 }
 
-impl std::ops::Deref for Input {
+impl ops::Deref for Input {
     type Target = AlignedBytes<alignment::Page>;
 
     #[inline(always)]
@@ -51,7 +52,7 @@ impl Input {
         let rem = contents.as_ref().len() % A::size();
         let pad = if rem == 0 { 0 } else { A::size() - rem };
 
-        let extension = std::iter::repeat('\0').take(pad + A::size());
+        let extension = iter::repeat('\0').take(pad + A::size());
         contents.extend(extension);
 
         debug_assert_eq!(contents.as_ref().len() % A::size(), 0);
@@ -78,7 +79,7 @@ impl Input {
                     A::size() - rem
                 };
 
-                let extension = std::iter::repeat(0).take(pad + A::size());
+                let extension = iter::repeat(0).take(pad + A::size());
                 contents.extend(extension);
 
                 debug_assert_eq!(contents.as_ref().len() % A::size(), 0);

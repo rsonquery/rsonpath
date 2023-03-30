@@ -1,6 +1,7 @@
 //! Result types that can be returned by a JSONPath query engine.
 use crate::debug;
-use std::fmt::{self, Display};
+use crate::lib::fmt::{self, Display};
+use crate::lib::Vec;
 
 /// Result that can be reported during query execution.
 pub trait QueryResult: Default + Display + PartialEq {
@@ -41,10 +42,12 @@ impl QueryResult for CountResult {
 /// Query result containing all indices of colons that constitute a
 /// match.
 #[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg(feature = "alloc")]
 pub struct IndexResult {
     indices: Vec<usize>,
 }
 
+#[cfg(feature = "alloc")]
 impl IndexResult {
     /// Get indices of colons constituting matches of the query.
     #[must_use]
@@ -54,6 +57,7 @@ impl IndexResult {
     }
 }
 
+#[cfg(feature = "alloc")]
 impl From<IndexResult> for Vec<usize> {
     #[inline(always)]
     fn from(result: IndexResult) -> Self {
@@ -61,6 +65,7 @@ impl From<IndexResult> for Vec<usize> {
     }
 }
 
+#[cfg(feature = "alloc")]
 impl Display for IndexResult {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -68,6 +73,7 @@ impl Display for IndexResult {
     }
 }
 
+#[cfg(feature = "alloc")]
 impl QueryResult for IndexResult {
     #[inline(always)]
     fn report(&mut self, item: usize) {

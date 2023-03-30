@@ -1,6 +1,6 @@
 //! Derfinition of [`State`] and DFA-state attributes giving details
 //! about the state's properties.
-use std::{fmt::Display, ops::BitOr};
+use crate::lib::{fmt, ops::BitOr};
 
 /// Attributes that may be associated with a DFA's [`State`].
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
@@ -142,9 +142,9 @@ pub struct State(
     pub(super) u8,
 );
 
-impl Display for State {
+impl fmt::Display for State {
     #[inline]
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "DFA({})", self.0)
     }
 }

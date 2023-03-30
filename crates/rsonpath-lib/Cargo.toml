@@ -39,7 +39,9 @@ test-case = "3.0.0"
 eyre = "0.6.8"
 
 [features]
-default = ["simd", "head-skip", "tail-skip", "unique-labels"]
+default = ["simd", "head-skip", "tail-skip", "unique-labels", "std"]
+std = ["alloc"]
+alloc = []
 simd = ["aligners/simd"]
 head-skip = ["dep:memchr"]
 tail-skip = ["dep:replace_with"]

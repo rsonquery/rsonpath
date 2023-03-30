@@ -10,7 +10,7 @@ use super::{error::CompilerError, JsonPathQuery, Label};
 use crate::debug;
 use nfa::NondeterministicAutomaton;
 use smallvec::SmallVec;
-use std::{fmt::Display, ops::Index};
+use crate::lib::{fmt, ops::Index, Vec, vec};
 
 /// A minimal, deterministic automaton representing a JSONPath query.
 #[derive(Debug, PartialEq, Eq)]
@@ -240,9 +240,9 @@ impl<'q> StateTable<'q> {
     }
 }
 
-impl<'q> Display for Automaton<'q> {
+impl<'q> fmt::Display for Automaton<'q> {
     #[inline]
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "digraph {{")?;
 
         for (i, state) in self.states.iter().enumerate() {

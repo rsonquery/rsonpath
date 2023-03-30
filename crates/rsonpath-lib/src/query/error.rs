@@ -33,10 +33,13 @@
 //!     _ => unreachable!(),
 //! }
 //! ```
-use std::{
+use crate::lib::{
     fmt::{self, Display},
     num::TryFromIntError,
+    String,
+    Vec
 };
+use crate::lib as std;
 use thiserror::Error;
 
 /// Errors raised by the query parser.
@@ -108,7 +111,7 @@ impl ParseError {
 
 impl ParseErrorReport {
     pub(crate) fn new() -> Self {
-        Self { errors: vec![] }
+        Self { errors: Vec::new() }
     }
 
     pub(crate) fn record_at(&mut self, idx: usize) {

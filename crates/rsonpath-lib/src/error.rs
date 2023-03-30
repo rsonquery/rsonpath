@@ -1,5 +1,6 @@
 //! Common errors shared across the library.
-use std::fmt::Display;
+use crate::lib::fmt;
+use crate::lib as std;
 use thiserror::Error;
 
 pub(crate) const FEATURE_REQUEST_URL: &str =
@@ -75,9 +76,9 @@ impl UnsupportedFeatureError {
     }
 }
 
-impl Display for UnsupportedFeatureError {
+impl fmt::Display for UnsupportedFeatureError {
     #[inline]
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.issue {
             Some(issue) => {
                 write!(

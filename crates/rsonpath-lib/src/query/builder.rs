@@ -1,6 +1,7 @@
 //! Utility for building a [`JsonPathQuery`](`crate::query::JsonPathQuery`)
 //! programatically.
 use super::{JsonPathQuery, JsonPathQueryNode, Label};
+use crate::lib::{Box, Vec};
 
 /// Builder for [`JsonPathQuery`] instances.
 ///
@@ -36,7 +37,7 @@ impl JsonPathQueryBuilder {
     #[must_use]
     #[inline(always)]
     pub fn new() -> Self {
-        Self { nodes: vec![] }
+        Self { nodes: Vec::new() }
     }
 
     /// Add a child selector with a given label.

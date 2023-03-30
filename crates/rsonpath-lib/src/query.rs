@@ -32,10 +32,10 @@ pub mod builder;
 pub mod error;
 mod parser;
 
+use crate::lib::{self, Box, fmt::{self, Display}};
 use aligners::{alignment, AlignedBytes, AlignedSlice};
 use cfg_if::cfg_if;
 use log::*;
-use std::fmt::{self, Display};
 
 cfg_if! {
     if #[cfg(feature = "simd")] {
@@ -68,13 +68,13 @@ pub struct Label {
     label_with_quotes: AlignedBytes<LabelAlignment>,
 }
 
-impl std::fmt::Debug for Label {
+impl fmt::Debug for Label {
     #[inline]
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
         write!(
             f,
             r#"{}"#,
-            std::str::from_utf8(&self.label_with_quotes).unwrap_or("[invalid utf8]")
+            str::from_utf8(&self.label_with_quotes).unwrap_or("[invalid utf8]")
         )
     }
 }
@@ -131,11 +131,11 @@ impl Label {
     #[must_use]
     #[inline(always)]
     pub fn display(&self) -> impl Display + '_ {
-        std::str::from_utf8(&self.label).unwrap_or("[invalid utf8]")
+        str::from_utf8(&self.label).unwrap_or("[invalid utf8]")
     }
 }
 
-impl std::ops::Deref for Label {
+impl crate::lib::ops::Deref for Label {
     type Target = AlignedSlice<LabelAlignment>;
 
     #[inline(always)]
@@ -181,9 +181,10 @@ impl PartialEq<&[u8]> for Label {
     }
 }
 
-impl std::hash::Hash for Label {
+#[cfg(feature = "std")]
+impl lib::hash::Hash for Label {
     #[inline(always)]
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+    fn hash<H: hash::Hasher>(&self, state: &mut H) {
         let slice: &[u8] = &self.label;
         slice.hash(state);
     }
@@ -365,7 +366,7 @@ impl JsonPathQueryNodeType for JsonPathQueryNode {
 ///
 /// If the value is `None` automatically returns `false` or `None` on all calls in
 /// the natural manner.
-impl<T: std::ops::Deref<Target = JsonPathQueryNode>> JsonPathQueryNodeType for Option<T> {
+impl<T: lib::ops::Deref<Target = JsonPathQueryNode>> JsonPathQueryNodeType for Option<T> {
     #[inline(always)]
     fn is_root(&self) -> bool {
         self.as_ref().map_or(false, |x| x.is_root())
@@ -389,11 +390,6 @@ impl<T: std::ops::Deref<Target = JsonPathQueryNode>> JsonPathQueryNodeType for O
 
 #[cfg(test)]
 mod tests {
-    use std::{
-        collections::hash_map::DefaultHasher,
-        hash::{Hash, Hasher},
-    };
-
     use super::*;
 
     #[test]
@@ -413,6 +409,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "std")]
     fn label_hash() {
         let label1 = Label::new("dog");
         let label2 = Label::new("dog");
