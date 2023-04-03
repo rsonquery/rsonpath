@@ -34,7 +34,7 @@ jobs:
         # The GitHub token to use to create a new comment with. Use `secrets.GITHUB_TOKEN` to inject it
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Add To GitHub projects
-      uses: actions/add-to-project@v0.4.1
+      uses: actions/add-to-project@v0.5.0
       with:
         # URL of the project to add issues to
         project-url: https://github.com/users/V0ldek/projects/1
