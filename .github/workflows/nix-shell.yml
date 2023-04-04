@@ -1,9 +1,9 @@
 name: "Nix Shell Build"
 on:
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "nix" ]
   push:
-    branches: [ "main" ]
+    branches: [ "main", "nix" ]
 
 jobs:
   nix-build:
