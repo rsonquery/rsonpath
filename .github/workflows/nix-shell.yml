@@ -1,4 +1,4 @@
-name: "Nix Shell"
+name: "Nix Shell Build"
 on:
   pull_request:
     branches: [ "main" ]
@@ -6,13 +6,17 @@ on:
     branches: [ "main" ]
 
 jobs:
-  tests:
+  nix-build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - uses: cachix/install-nix-action@v18
-      with:
-        nix_path: nixpkgs=channel:nixos-unstable
-    - uses: workflow/nix-shell-action@v3
-      with:
-        script: nix-shell --command "just build"
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - uses: cachix/install-nix-action@v18
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+      - uses: rrbutani/use-nix-shell-action@v1
+        with:
+          file: shell.nix
+      - name: Build
+        run: just build
