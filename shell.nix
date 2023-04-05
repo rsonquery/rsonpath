@@ -29,6 +29,7 @@ in stable.mkShell rec {
       git-lfs
       git-cliff
       rust-analyzer
+      cargo-hack
     ]) ++ (with unstable; [
       just
     ]);
