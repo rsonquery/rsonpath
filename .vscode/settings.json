@@ -39,6 +39,7 @@
         "owo_colors",
         "Peekable",
         "proptest",
+        "proptests",
         "regs",
         "repr",
         "rsonpath",
