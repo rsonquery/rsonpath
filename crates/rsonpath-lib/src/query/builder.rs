@@ -63,6 +63,14 @@ impl JsonPathQueryBuilder {
         self
     }
 
+    /// Add a wildcard descendant selector.
+    #[must_use]
+    #[inline(always)]
+    pub fn any_descendant(mut self) -> Self {
+        self.nodes.push(NodeTemplate::AnyDescendant);
+        self
+    }
+
     /// Consume the builder and produce a [`JsonPathQuery`].
     #[must_use]
     #[inline]
@@ -75,6 +83,9 @@ impl JsonPathQueryBuilder {
                 NodeTemplate::AnyChild => Some(Box::new(JsonPathQueryNode::AnyChild(last))),
                 NodeTemplate::Descendant(label) => {
                     Some(Box::new(JsonPathQueryNode::Descendant(label, last)))
+                }
+                NodeTemplate::AnyDescendant => {
+                    Some(Box::new(JsonPathQueryNode::AnyDescendant(last)))
                 }
             };
         }
@@ -102,5 +113,6 @@ impl From<JsonPathQueryBuilder> for JsonPathQuery {
 enum NodeTemplate {
     Child(Label),
     AnyChild,
+    AnyDescendant,
     Descendant(Label),
 }

@@ -200,6 +200,8 @@ pub enum JsonPathQueryNode {
     AnyChild(Option<Box<JsonPathQueryNode>>),
     /// Represents recursive descent ('`..`' token).
     Descendant(Label, Option<Box<JsonPathQueryNode>>),
+    /// Represents recursive descendant with a wildcard ('`..*`' tokens).
+    AnyDescendant(Option<Box<JsonPathQueryNode>>),
 }
 
 use JsonPathQueryNode::*;
@@ -213,7 +215,11 @@ impl JsonPathQueryNode {
     #[inline(always)]
     pub fn child(&self) -> Option<&Self> {
         match self {
-            Root(node) | Child(_, node) | AnyChild(node) | Descendant(_, node) => node.as_deref(),
+            Root(node)
+            | Child(_, node)
+            | AnyChild(node)
+            | Descendant(_, node)
+            | AnyDescendant(node) => node.as_deref(),
         }
     }
 
@@ -309,6 +315,7 @@ impl Display for JsonPathQueryNode {
             Child(label, _) => write!(f, "['{}']", label.display()),
             AnyChild(_) => write!(f, "[*]"),
             Descendant(label, _) => write!(f, "..['{}']", label.display()),
+            AnyDescendant(_) => write!(f, "..[*]"),
         }?;
 
         if let Some(child) = self.child() {
@@ -356,7 +363,7 @@ impl JsonPathQueryNodeType for JsonPathQueryNode {
     fn label(&self) -> Option<&Label> {
         match self {
             Child(label, _) | Descendant(label, _) => Some(label),
-            Root(_) | AnyChild(_) => None,
+            Root(_) | AnyChild(_) | AnyDescendant(_) => None,
         }
     }
 }

@@ -12,6 +12,7 @@ enum Token<'a> {
     Child(&'a str),
     WildcardChild(),
     Descendant(&'a str),
+    WildcardDescendant(),
 }
 
 impl Display for Token<'_> {
@@ -21,6 +22,7 @@ impl Display for Token<'_> {
             Token::Child(label) => write!(f, "['{label}']"),
             Token::WildcardChild() => write!(f, "[*]"),
             Token::Descendant(label) => write!(f, "..['{label}']"),
+            Token::WildcardDescendant() => write!(f, "..[*]"),
         }
     }
 }
@@ -90,6 +92,9 @@ fn tokens_to_node<'a, I: Iterator<Item = Token<'a>>>(
                     Label::new(label),
                     child_node,
                 ))),
+                Token::WildcardDescendant() => {
+                    Ok(Some(JsonPathQueryNode::AnyDescendant(child_node)))
+                }
             }
         }
         _ => Ok(None),
@@ -111,6 +116,7 @@ fn non_root<'a>() -> impl Parser<'a, Vec<Token<'a>>> {
     many0(alt((
         wildcard_child_selector(),
         child_selector(),
+        wildcard_descendant_selector(),
         descendant_selector(),
     )))
 }
@@ -138,6 +144,13 @@ fn descendant_selector<'a>() -> impl Parser<'a, Token<'a>> {
     map(
         preceded(tag(".."), alt((label(), index_selector()))),
         Token::Descendant,
+    )
+}
+
+fn wildcard_descendant_selector<'a>() -> impl Parser<'a, Token<'a>> {
+    map(
+        preceded(tag(".."), alt((char('*'), index_wildcard_selector()))),
+        |_| Token::WildcardDescendant(),
     )
 }
 
@@ -244,6 +257,34 @@ mod tests {
             .any_child()
             .child(Label::new("*"))
             .child(Label::new("*"))
+            .into();
+
+        let result = parse_json_path_query(input).expect("expected Ok");
+
+        assert_eq!(result, expected_query);
+    }
+
+    #[test]
+    fn wildcard_descendant_selector_test() {
+        let input = "$..*.a..*";
+        let expected_query = JsonPathQueryBuilder::new()
+            .any_descendant()
+            .child(Label::new("a"))
+            .any_descendant()
+            .into();
+
+        let result = parse_json_path_query(input).expect("expected Ok");
+
+        assert_eq!(result, expected_query);
+    }
+
+    #[test]
+    fn indexed_wildcard_descendant_selector_nested_test() {
+        let input = r#"$..[*]..['*']..["*"]"#;
+        let expected_query = JsonPathQueryBuilder::new()
+            .any_descendant()
+            .descendant(Label::new("*"))
+            .descendant(Label::new("*"))
             .into();
 
         let result = parse_json_path_query(input).expect("expected Ok");
