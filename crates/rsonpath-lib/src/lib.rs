@@ -85,11 +85,11 @@
 //! single quoted label = { UNESCAPED | ESCAPED | '"' | "\'" }
 //! double quoted label = { UNESCAPED | ESCAPED | "'" | '\"' }
 //!
-//! ALPHA = ? [A-Z][a-z] ?
-//! ALPHANUMERIC = ? [A-Z][a-z][0-9] ?
-//! NONASCII = ? UTF8 characters outside of U+0000-U+007F ?
-//! UNESCAPED = ? [^'"] ?
-//! ESCAPED = ? [btnfru/\\] ?
+//! ALPHA = ? [A-Za-z] ?
+//! ALPHANUMERIC = ? [A-Za-z0-9] ?
+//! NONASCII = ? [\u0080-\u10FFFF] ?
+//! UNESCAPED = ? [^'"\u0000-\u001F] ?
+//! ESCAPED = ? \\[btnfr/\\] ?
 //! ```
 //!
 //! ## Semantics

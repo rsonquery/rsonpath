@@ -63,7 +63,7 @@ pub enum ParserError {
 }
 
 /// Error report created during the parser's run over a single input string.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct ParseErrorReport {
     errors: Vec<ParseError>,
 }
@@ -81,7 +81,7 @@ impl Display for ParseErrorReport {
 
 /// Single error raised during parsing, defined as the
 /// contiguous sequence of characters that caused the error.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct ParseError {
     /// The index at which the error occurred.
     pub start_idx: usize,
