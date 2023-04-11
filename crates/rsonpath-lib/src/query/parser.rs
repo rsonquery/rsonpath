@@ -4,15 +4,22 @@ use crate::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Labe
 use nom::{
     branch::*, bytes::complete::*, character::complete::*, combinator::*, multi::*, sequence::*, *,
 };
+use std::borrow::Borrow;
 use std::fmt::{self, Display};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 enum Token<'a> {
     Root,
-    Child(&'a str),
+    Child(LabelString<'a>),
     WildcardChild(),
-    Descendant(&'a str),
+    Descendant(LabelString<'a>),
     WildcardDescendant(),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum LabelString<'a> {
+    Borrowed(&'a str),
+    Owned(String),
 }
 
 impl Display for Token<'_> {
@@ -23,6 +30,33 @@ impl Display for Token<'_> {
             Token::WildcardChild() => write!(f, "[*]"),
             Token::Descendant(label) => write!(f, "..['{label}']"),
             Token::WildcardDescendant() => write!(f, "..[*]"),
+        }
+    }
+}
+
+impl Display for LabelString<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            LabelString::Borrowed(label) => write!(f, "{label}"),
+            LabelString::Owned(label) => write!(f, "{label}"),
+        }
+    }
+}
+
+impl<'a> Borrow<str> for LabelString<'a> {
+    fn borrow(&self) -> &str {
+        match self {
+            LabelString::Borrowed(label) => label,
+            LabelString::Owned(label) => label,
+        }
+    }
+}
+
+impl<'a> From<Option<String>> for LabelString<'a> {
+    fn from(value: Option<String>) -> Self {
+        match value {
+            Some(label) => LabelString::Owned(label),
+            None => LabelString::Borrowed(""),
         }
     }
 }
@@ -84,12 +118,12 @@ fn tokens_to_node<'a, I: Iterator<Item = Token<'a>>>(
             match token {
                 Token::Root => Ok(Some(JsonPathQueryNode::Root(child_node))),
                 Token::Child(label) => Ok(Some(JsonPathQueryNode::Child(
-                    Label::new(label),
+                    Label::new(label.borrow()),
                     child_node,
                 ))),
                 Token::WildcardChild() => Ok(Some(JsonPathQueryNode::AnyChild(child_node))),
                 Token::Descendant(label) => Ok(Some(JsonPathQueryNode::Descendant(
-                    Label::new(label),
+                    Label::new(label.borrow()),
                     child_node,
                 ))),
                 Token::WildcardDescendant() => {
@@ -104,6 +138,17 @@ fn tokens_to_node<'a, I: Iterator<Item = Token<'a>>>(
 trait Parser<'a, Out>: FnMut(&'a str) -> IResult<&'a str, Out> {}
 
 impl<'a, Out, T: FnMut(&'a str) -> IResult<&'a str, Out>> Parser<'a, Out> for T {}
+
+/// Helper type for parsers that might return a character that must be escaped
+/// when initialized in a [`Label`]. For example, an unescaped double quote
+/// must always be escaped in a label.
+enum MaybeEscapedChar {
+    Char(char),
+    Escaped(char),
+}
+
+/// Helper wrapper for a Vec, needed to implement traits for it.
+struct MaybeEscapedCharVec(Vec<MaybeEscapedChar>);
 
 fn jsonpath<'a>() -> impl Parser<'a, (Option<Token<'a>>, Vec<Token<'a>>)> {
     pair(
@@ -132,7 +177,7 @@ fn child_selector<'a>() -> impl Parser<'a, Token<'a>> {
     map(alt((dot_selector(), index_selector())), Token::Child)
 }
 
-fn dot_selector<'a>() -> impl Parser<'a, &'a str> {
+fn dot_selector<'a>() -> impl Parser<'a, LabelString<'a>> {
     preceded(char('.'), label())
 }
 
@@ -154,7 +199,7 @@ fn wildcard_descendant_selector<'a>() -> impl Parser<'a, Token<'a>> {
     )
 }
 
-fn index_selector<'a>() -> impl Parser<'a, &'a str> {
+fn index_selector<'a>() -> impl Parser<'a, LabelString<'a>> {
     delimited(char('['), quoted_label(), char(']'))
 }
 
@@ -162,8 +207,11 @@ fn index_wildcard_selector<'a>() -> impl Parser<'a, char> {
     delimited(char('['), char('*'), char(']'))
 }
 
-fn label<'a>() -> impl Parser<'a, &'a str> {
-    recognize(pair(label_first(), many0(label_character())))
+fn label<'a>() -> impl Parser<'a, LabelString<'a>> {
+    map(
+        recognize(pair(label_first(), many0(label_character()))),
+        LabelString::Borrowed,
+    )
 }
 
 fn label_first<'a>() -> impl Parser<'a, char> {
@@ -176,74 +224,161 @@ fn label_character<'a>() -> impl Parser<'a, char> {
     })
 }
 
-fn quoted_label<'a>() -> impl Parser<'a, &'a str> {
+fn quoted_label<'a>() -> impl Parser<'a, LabelString<'a>> {
     alt((
-        delimited(char('\''), single_quoted_label(), char('\'')),
-        delimited(char('"'), double_quoted_label(), char('"')),
+        delimited(
+            char('\''),
+            map(opt(single_quoted_label()), LabelString::from),
+            char('\''),
+        ),
+        delimited(
+            char('"'),
+            map(opt(double_quoted_label()), LabelString::from),
+            char('"'),
+        ),
     ))
 }
 
-//cSpell: disable
-fn single_quoted_label<'a>() -> impl Parser<'a, &'a str> {
-    escaped(
-        many0(alt((unescaped(), char('"')))),
+fn single_quoted_label<'a>() -> impl Parser<'a, String> {
+    escaped_transform(
+        // If ['"'] is parsed, we want the label to be \", not ", since
+        // in a valid JSON document the only way to represent a double quote in a label is with an escape.
+        map(
+            many1(alt((
+                map(unescaped(), MaybeEscapedChar::Char),
+                map(char('"'), MaybeEscapedChar::Escaped),
+            ))),
+            MaybeEscapedCharVec,
+        ),
         '\\',
-        one_of(r#"'btnfru/\"#),
+        alt((escaped(), value("'", tag("'")))),
     )
 }
 
-fn double_quoted_label<'a>() -> impl Parser<'a, &'a str> {
-    escaped(
-        many0(alt((unescaped(), char('\'')))),
+fn double_quoted_label<'a>() -> impl Parser<'a, String> {
+    escaped_transform(
+        recognize(many1(alt((unescaped(), char('\''))))),
         '\\',
-        one_of(r#""btnfru/\"#),
+        // If ["\""] is parsed the label must be \". Same reason as in single_quoted_label.
+        alt((escaped(), value("\\\"", tag("\"")))),
     )
+}
+
+fn escaped<'a>() -> impl Parser<'a, &'a str> {
+    alt((
+        value("\\b", tag("b")),
+        value("\\f", tag("f")),
+        value("\\n", tag("n")),
+        value("\\r", tag("r")),
+        value("\\t", tag("t")),
+        value("\\\\", tag("\\")),
+        value("/", tag("/")),
+    ))
 }
 
 fn unescaped<'a>() -> impl Parser<'a, char> {
-    verify(anychar, |&x| x != '\'' && x != '"')
+    verify(none_of(r#"'"\"#), |&c| u32::from(c) >= 0x20)
+}
+
+// This impl is needed for nom `escaped_transform` to work with our `MaybeEscapedChar`.
+// Logic is simple, we can extend a `String` with `MaybeEscapedChar` by appending
+// either the raw char, or a backslash followed by the should-be-escaped char.
+impl nom::ExtendInto for MaybeEscapedCharVec {
+    type Item = char;
+
+    type Extender = String;
+
+    fn new_builder(&self) -> Self::Extender {
+        String::new()
+    }
+
+    fn extend_into(&self, acc: &mut Self::Extender) {
+        for maybe_escaped in &self.0 {
+            match maybe_escaped {
+                MaybeEscapedChar::Char(c) => acc.push(*c),
+                MaybeEscapedChar::Escaped(c) => {
+                    acc.push('\\');
+                    acc.push(*c);
+                }
+            }
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::query::builder::JsonPathQueryBuilder;
+    use super::parse_json_path_query;
+    use crate::query::{parser::LabelString, JsonPathQuery};
+    use pretty_assertions::assert_eq;
 
     #[test]
-    fn single_quoted_label_test() {
+    fn single_quoted_label() {
         let input = "a";
 
-        let result = single_quoted_label()(input);
+        let result = super::single_quoted_label()(input);
 
-        assert_eq!(result, Ok(("", "a")));
+        assert_eq!(result, Ok(("", "a".to_owned())));
     }
 
     #[test]
-    fn double_quoted_label_test() {
+    fn double_quoted_label() {
         let input = "a";
 
-        let result = double_quoted_label()(input);
+        let result = super::double_quoted_label()(input);
 
-        assert_eq!(result, Ok(("", "a")));
+        assert_eq!(result, Ok(("", "a".to_owned())));
     }
 
     #[test]
-    fn quoted_label_test() {
+    fn single_quoted_label_should_not_unescape_backslashes() {
+        let input = r#"\\x"#;
+
+        let result = super::single_quoted_label()(input);
+
+        assert_eq!(result, Ok(("", r#"\\x"#.to_owned())));
+    }
+
+    #[test]
+    fn double_quoted_label_should_not_unescape_backslashes() {
+        let input = r#"\\x"#;
+
+        let result = super::double_quoted_label()(input);
+
+        assert_eq!(result, Ok(("", r#"\\x"#.to_owned())));
+    }
+
+    #[test]
+    fn single_quoted_label_should_escape_double_quotes() {
+        let input = r#"""#;
+
+        let result = super::single_quoted_label()(input);
+
+        assert_eq!(result, Ok(("", r#"\""#.to_owned())));
+    }
+
+    #[test]
+    fn double_quoted_label_should_not_unescape_double_quotes() {
+        let input = r#"\""#;
+
+        let result = super::double_quoted_label()(input);
+
+        assert_eq!(result, Ok(("", r#"\""#.to_owned())));
+    }
+
+    #[test]
+    fn quoted_label() {
         let input = "'a'";
 
-        let result = quoted_label()(input);
+        let result = super::quoted_label()(input);
 
-        assert_eq!(result, Ok(("", "a")));
+        assert_eq!(result, Ok(("", LabelString::Owned("a".to_string()))));
     }
 
     #[test]
-    fn wildcard_child_selector_test() {
-        let input = "$.*.a.*";
-        let expected_query = JsonPathQueryBuilder::new()
-            .any_child()
-            .child(Label::new("a"))
-            .any_child()
-            .into();
+    fn should_infer_root_from_empty_string() {
+        let input = "";
+        let expected_query =
+            JsonPathQuery::new(Box::new(crate::query::JsonPathQueryNode::Root(None)));
 
         let result = parse_json_path_query(input).expect("expected Ok");
 
@@ -251,41 +386,10 @@ mod tests {
     }
 
     #[test]
-    fn indexed_wildcard_child_selector_test() {
-        let input = r#"$[*]['*']["*"]"#;
-        let expected_query = JsonPathQueryBuilder::new()
-            .any_child()
-            .child(Label::new("*"))
-            .child(Label::new("*"))
-            .into();
-
-        let result = parse_json_path_query(input).expect("expected Ok");
-
-        assert_eq!(result, expected_query);
-    }
-
-    #[test]
-    fn wildcard_descendant_selector_test() {
-        let input = "$..*.a..*";
-        let expected_query = JsonPathQueryBuilder::new()
-            .any_descendant()
-            .child(Label::new("a"))
-            .any_descendant()
-            .into();
-
-        let result = parse_json_path_query(input).expect("expected Ok");
-
-        assert_eq!(result, expected_query);
-    }
-
-    #[test]
-    fn indexed_wildcard_descendant_selector_nested_test() {
-        let input = r#"$..[*]..['*']..["*"]"#;
-        let expected_query = JsonPathQueryBuilder::new()
-            .any_descendant()
-            .descendant(Label::new("*"))
-            .descendant(Label::new("*"))
-            .into();
+    fn root() {
+        let input = "$";
+        let expected_query =
+            JsonPathQuery::new(Box::new(crate::query::JsonPathQueryNode::Root(None)));
 
         let result = parse_json_path_query(input).expect("expected Ok");
 

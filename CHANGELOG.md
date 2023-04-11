@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+### Bug fixes
+
+- Fix parser incorrectly escaping labels.
+  - Queries like `$['\'']` would cause a parsing error, even though they were valid (match a child with key equal to "`'`").
+  - The `\u` escape sequence is no longer recognized, since without UTF-8 handling they were meaningless.
+    See ([#117](https://github.com/V0ldek/rsonpath/issues/117)).
+
+### Documentation
+
+- The grammar in top-level documentation now matches the implementation.
+
+### Reliability
+
+- Added proptests for query parsing.
+
 ## [0.3.3] - 2023-03-29
 
 ### Bug Fixes
