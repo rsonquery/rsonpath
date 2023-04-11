@@ -199,8 +199,8 @@ mod proptests {
     // ..* or ..[*]
     fn any_wildcard_descendant() -> impl Strategy<Value = Selector> {
         r#"(\*|\[\*\])"#.prop_map(|x| Selector {
-                string: format!("..{x}"),
-                tag: SelectorTag::WildcardDescendant,
+            string: format!("..{x}"),
+            tag: SelectorTag::WildcardDescendant,
         })
     }
 
