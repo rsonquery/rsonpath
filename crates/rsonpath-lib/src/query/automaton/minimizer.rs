@@ -534,12 +534,12 @@ mod tests {
                     attributes: StateAttributes::EMPTY,
                 },
                 StateTable {
-                    transitions: smallvec![(&label_a, State(6)),(&label_b, State(3))],
+                    transitions: smallvec![(&label_a, State(6)), (&label_b, State(3))],
                     fallback_state: State(1),
                     attributes: StateAttributes::EMPTY,
                 },
                 StateTable {
-                    transitions: smallvec![(&label_a, State(2)),(&label_b, State(7))],
+                    transitions: smallvec![(&label_a, State(2)), (&label_b, State(7))],
                     fallback_state: State(1),
                     attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
