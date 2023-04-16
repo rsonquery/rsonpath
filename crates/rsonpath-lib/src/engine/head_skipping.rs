@@ -155,7 +155,8 @@ impl<'b, 'q> HeadSkip<'b, 'q> {
                     let next_event = classifier.next();
 
                     classifier_state = match next_event {
-                        Some(opening @ Structural::Opening(opening_idx))
+                        Some(opening @ Structural::OpeningBrace(opening_idx))
+                        | Some(opening @ Structural::OpeningBracket(opening_idx))
                             if self.bytes[colon_idx + 1..opening_idx]
                                 .iter()
                                 .all(u8::is_ascii_whitespace) =>

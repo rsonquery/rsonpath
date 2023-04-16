@@ -31,7 +31,7 @@
 //! // Classify first two structural characters.
 //! assert_eq!(
 //!     structural_classifier.next(),
-//!     Some(Structural::Opening(0))
+//!     Some(Structural::OpeningBrace(0))
 //! );
 //! assert_eq!(
 //!     structural_classifier.next(),
@@ -50,7 +50,7 @@
 //! let mut structural_classifier_2 = resume_structural_classification(resume_state);
 //! assert_eq!(
 //!     structural_classifier_2.next(),
-//!     Some(Structural::Closing(11))
+//!     Some(Structural::ClosingBrace(11))
 //! );
 //! ```
 pub mod depth;

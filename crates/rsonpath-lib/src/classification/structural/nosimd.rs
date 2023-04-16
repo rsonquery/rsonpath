@@ -54,9 +54,11 @@ impl<'a> Iterator for Block<'a> {
             match character {
                 _ if is_quoted => (),
                 b':' if self.are_colons_on => return Some(Colon(self.idx - 1)),
-                b'[' | b'{' => return Some(Opening(self.idx - 1)),
+                b'{' => return Some(OpeningBrace(self.idx - 1)),
+                b'[' => return Some(OpeningBracket(self.idx - 1)),
                 b',' if self.are_commas_on => return Some(Comma(self.idx - 1)),
-                b']' | b'}' => return Some(Closing(self.idx - 1)),
+                b'}' => return Some(ClosingBrace(self.idx - 1)),
+                b']' => return Some(ClosingBracket(self.idx - 1)),
                 _ => (),
             }
         }

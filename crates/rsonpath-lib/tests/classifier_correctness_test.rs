@@ -25,22 +25,22 @@ fn empty_string() {
 fn json() {
     let json = r#"{"a": [1, 2, 3], "b": "string", "c": {"d": 42, "e": 17}}"#;
     let expected: &[Structural] = &[
-        Structural::Opening(0),
+        Structural::OpeningBrace(0),
         Structural::Colon(4),
-        Structural::Opening(6),
+        Structural::OpeningBracket(6),
         Structural::Comma(8),
         Structural::Comma(11),
-        Structural::Closing(14),
+        Structural::ClosingBracket(14),
         Structural::Comma(15),
         Structural::Colon(20),
         Structural::Comma(30),
         Structural::Colon(35),
-        Structural::Opening(37),
+        Structural::OpeningBrace(37),
         Structural::Colon(41),
         Structural::Comma(45),
         Structural::Colon(50),
-        Structural::Closing(54),
-        Structural::Closing(55),
+        Structural::ClosingBrace(54),
+        Structural::ClosingBrace(55),
     ];
 
     let result = classify_string(json);
@@ -52,11 +52,11 @@ fn json() {
 fn json_with_escapes() {
     let json = r#"{"a": "Hello, World!", "b": "\"{Hello, [World]!}\""}"#;
     let expected: &[Structural] = &[
-        Structural::Opening(0),
+        Structural::OpeningBrace(0),
         Structural::Colon(4),
         Structural::Comma(21),
         Structural::Colon(26),
-        Structural::Closing(51),
+        Structural::ClosingBrace(51),
     ];
 
     let result = classify_string(json);
@@ -178,8 +178,10 @@ mod prop_test {
                 let expected = match x {
                     Token::Comma => Some(Structural::Comma(*idx)),
                     Token::Colon => Some(Structural::Colon(*idx)),
-                    Token::OpeningBrace | Token::OpeningBracket => Some(Structural::Opening(*idx)),
-                    Token::ClosingBrace | Token::ClosingBracket => Some(Structural::Closing(*idx)),
+                    Token::OpeningBrace => Some(Structural::OpeningBrace(*idx)),
+                    Token::OpeningBracket => Some(Structural::OpeningBracket(*idx)),
+                    Token::ClosingBrace => Some(Structural::ClosingBrace(*idx)),
+                    Token::ClosingBracket => Some(Structural::ClosingBracket(*idx)),
                     _ => None,
                 };
                 match x {

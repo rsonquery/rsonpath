@@ -63,9 +63,11 @@ impl Iterator for StructuralsBlock<'_> {
 
             match self.quote_classified.block[idx] {
                 b':' => Colon(idx),
-                b'[' | b'{' => Opening(idx),
+                b'{' => OpeningBrace(idx),
+                b'[' => OpeningBracket(idx),
                 b',' => Comma(idx),
-                _ => Closing(idx),
+                b'}' => ClosingBrace(idx),
+                _ => ClosingBracket(idx),
             }
         })
     }

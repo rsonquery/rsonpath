@@ -20,14 +20,14 @@
 //! let json = r#"{"x": [{"y": 42}, {}]}""#;
 //! let aligned = AlignedBytes::new_padded(json.as_bytes());
 //! let expected = vec![
-//!     Structural::Opening(0),
-//!     Structural::Opening(6),
-//!     Structural::Opening(7),
-//!     Structural::Closing(15),
-//!     Structural::Opening(18),
-//!     Structural::Closing(19),
-//!     Structural::Closing(20),
-//!     Structural::Closing(21)
+//!     Structural::OpeningBrace(0),
+//!     Structural::OpeningBracket(6),
+//!     Structural::OpeningBrace(7),
+//!     Structural::ClosingBrace(15),
+//!     Structural::OpeningBrace(18),
+//!     Structural::ClosingBrace(19),
+//!     Structural::ClosingBracket(20),
+//!     Structural::ClosingBrace(21)
 //! ];
 //! let quote_classifier = rsonpath_lib::classification::quotes::classify_quoted_sequences(&aligned);
 //! let actual = classify_structural_characters(quote_classifier).collect::<Vec<Structural>>();
@@ -41,8 +41,8 @@
 //! let json = r#"{"x": "[\"\"]"}""#;
 //! let aligned = AlignedBytes::new_padded(json.as_bytes());
 //! let expected = vec![
-//!     Structural::Opening(0),
-//!     Structural::Closing(14)
+//!     Structural::OpeningBrace(0),
+//!     Structural::ClosingBrace(14)
 //! ];
 //! let quote_classifier = classify_quoted_sequences(&aligned);
 //! let actual = classify_structural_characters(quote_classifier).collect::<Vec<Structural>>();
@@ -54,12 +54,16 @@ use cfg_if::cfg_if;
 /// Defines structural characters in JSON documents.
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum Structural {
-    /// Represents either the closing brace '{' or closing bracket '['.
-    Closing(usize),
+    /// Represents the closing brace '{'.
+    ClosingBrace(usize),
+    /// Represents the closing bracket '['.
+    ClosingBracket(usize),
     /// Represents the colon ':' character.
     Colon(usize),
-    /// Represents either the opening brace '}' or opening bracket ']'.
-    Opening(usize),
+    /// Represents the opening brace '}'.
+    OpeningBrace(usize),
+    /// Represents the opening bracket ']'.
+    OpeningBracket(usize),
     /// Represents the comma ',' character.
     Comma(usize),
 }
@@ -72,7 +76,8 @@ impl Structural {
     #[must_use]
     pub fn idx(self) -> usize {
         match self {
-            Closing(idx) | Colon(idx) | Opening(idx) | Comma(idx) => idx,
+            ClosingBrace(idx) | ClosingBracket(idx) | Colon(idx) | OpeningBrace(idx)
+            | OpeningBracket(idx) | Comma(idx) => idx,
         }
     }
 
@@ -92,11 +97,55 @@ impl Structural {
     #[must_use]
     pub fn offset(self, amount: usize) -> Self {
         match self {
-            Closing(idx) => Closing(idx + amount),
+            ClosingBrace(idx) => ClosingBrace(idx + amount),
+            ClosingBracket(idx) => ClosingBracket(idx + amount),
             Colon(idx) => Colon(idx + amount),
-            Opening(idx) => Opening(idx + amount),
+            OpeningBrace(idx) => OpeningBrace(idx + amount),
+            OpeningBracket(idx) => OpeningBracket(idx + amount),
             Comma(idx) => Comma(idx + amount),
         }
+    }
+
+    /// Check if the structural represents a closing character,
+    /// i.e. either a [`ClosingBrace`] or a [`ClosingBracket`].
+    ///
+    /// # Examples
+    /// ```rust
+    /// # use rsonpath_lib::classification::structural::Structural;
+    ///
+    /// let brace = Structural::ClosingBrace(42);
+    /// let bracket = Structural::ClosingBracket(43);
+    /// let neither = Structural::Comma(44);
+    ///
+    /// assert!(brace.is_closing());
+    /// assert!(bracket.is_closing());
+    /// assert!(!neither.is_closing());
+    /// ```
+    #[inline(always)]
+    #[must_use]
+    pub fn is_closing(&self) -> bool {
+        matches!(self, ClosingBrace(_) | ClosingBracket(_))
+    }
+
+    /// Check if the structural represents an opening character,
+    /// i.e. either an [`OpeningBrace`] or an [`OpeningBracket`].
+    ///
+    /// # Examples
+    /// ```rust
+    /// # use rsonpath_lib::classification::structural::Structural;
+    ///
+    /// let brace = Structural::OpeningBrace(42);
+    /// let bracket = Structural::OpeningBracket(43);
+    /// let neither = Structural::Comma(44);
+    ///
+    /// assert!(brace.is_opening());
+    /// assert!(bracket.is_opening());
+    /// assert!(!neither.is_opening());
+    /// ```
+    #[inline(always)]
+    #[must_use]
+    pub fn is_opening(&self) -> bool {
+        matches!(self, OpeningBrace(_) | OpeningBracket(_))
     }
 }
 
@@ -202,15 +251,15 @@ mod tests {
 
         let mut classifier = classify_structural_characters(quotes);
 
-        assert_eq!(Some(Opening(0)), classifier.next());
-        assert_eq!(Some(Opening(6)), classifier.next());
+        assert_eq!(Some(OpeningBrace(0)), classifier.next());
+        assert_eq!(Some(OpeningBracket(6)), classifier.next());
 
         let resume_state = classifier.stop();
 
         let mut resumed_classifier = resume_structural_classification(resume_state);
 
-        assert_eq!(Some(Opening(15)), resumed_classifier.next());
-        assert_eq!(Some(Opening(22)), resumed_classifier.next());
+        assert_eq!(Some(OpeningBrace(15)), resumed_classifier.next());
+        assert_eq!(Some(OpeningBrace(22)), resumed_classifier.next());
     }
 
     #[test]
@@ -224,8 +273,8 @@ mod tests {
         let mut classifier = classify_structural_characters(quotes);
         classifier.turn_commas_on(0);
 
-        assert_eq!(Some(Opening(0)), classifier.next());
-        assert_eq!(Some(Opening(6)), classifier.next());
+        assert_eq!(Some(OpeningBrace(0)), classifier.next());
+        assert_eq!(Some(OpeningBracket(6)), classifier.next());
         assert_eq!(Some(Comma(9)), classifier.next());
         assert_eq!(Some(Comma(13)), classifier.next());
 
@@ -233,8 +282,8 @@ mod tests {
 
         let mut resumed_classifier = resume_structural_classification(resume_state);
 
-        assert_eq!(Some(Opening(15)), resumed_classifier.next());
-        assert_eq!(Some(Opening(22)), resumed_classifier.next());
+        assert_eq!(Some(OpeningBrace(15)), resumed_classifier.next());
+        assert_eq!(Some(OpeningBrace(22)), resumed_classifier.next());
         assert_eq!(Some(Comma(30)), resumed_classifier.next());
     }
 
@@ -249,17 +298,17 @@ mod tests {
         let mut classifier = classify_structural_characters(quotes);
         classifier.turn_colons_on(0);
 
-        assert_eq!(Some(Opening(0)), classifier.next());
+        assert_eq!(Some(OpeningBrace(0)), classifier.next());
         assert_eq!(Some(Colon(4)), classifier.next());
-        assert_eq!(Some(Opening(6)), classifier.next());
+        assert_eq!(Some(OpeningBracket(6)), classifier.next());
 
         let resume_state = classifier.stop();
 
         let mut resumed_classifier = resume_structural_classification(resume_state);
 
-        assert_eq!(Some(Opening(15)), resumed_classifier.next());
+        assert_eq!(Some(OpeningBrace(15)), resumed_classifier.next());
         assert_eq!(Some(Colon(20)), resumed_classifier.next());
-        assert_eq!(Some(Opening(22)), resumed_classifier.next());
+        assert_eq!(Some(OpeningBrace(22)), resumed_classifier.next());
         assert_eq!(Some(Colon(27)), resumed_classifier.next());
     }
 
@@ -275,9 +324,9 @@ mod tests {
         classifier.turn_commas_on(0);
         classifier.turn_colons_on(0);
 
-        assert_eq!(Some(Opening(0)), classifier.next());
+        assert_eq!(Some(OpeningBrace(0)), classifier.next());
         assert_eq!(Some(Colon(4)), classifier.next());
-        assert_eq!(Some(Opening(6)), classifier.next());
+        assert_eq!(Some(OpeningBracket(6)), classifier.next());
         assert_eq!(Some(Comma(9)), classifier.next());
         assert_eq!(Some(Comma(13)), classifier.next());
 
@@ -285,9 +334,9 @@ mod tests {
 
         let mut resumed_classifier = resume_structural_classification(resume_state);
 
-        assert_eq!(Some(Opening(15)), resumed_classifier.next());
+        assert_eq!(Some(OpeningBrace(15)), resumed_classifier.next());
         assert_eq!(Some(Colon(20)), resumed_classifier.next());
-        assert_eq!(Some(Opening(22)), resumed_classifier.next());
+        assert_eq!(Some(OpeningBrace(22)), resumed_classifier.next());
         assert_eq!(Some(Colon(27)), resumed_classifier.next());
         assert_eq!(Some(Comma(30)), resumed_classifier.next());
     }
