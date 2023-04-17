@@ -54,15 +54,15 @@ use cfg_if::cfg_if;
 /// Defines structural characters in JSON documents.
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum Structural {
-    /// Represents the closing brace '{'.
+    /// Represents the closing brace '}'.
     ClosingBrace(usize),
-    /// Represents the closing bracket '['.
+    /// Represents the closing bracket ']'.
     ClosingBracket(usize),
     /// Represents the colon ':' character.
     Colon(usize),
-    /// Represents the opening brace '}'.
+    /// Represents the opening brace '{'.
     OpeningBrace(usize),
-    /// Represents the opening bracket ']'.
+    /// Represents the opening bracket '['.
     OpeningBracket(usize),
     /// Represents the comma ',' character.
     Comma(usize),
