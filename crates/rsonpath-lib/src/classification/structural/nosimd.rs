@@ -49,18 +49,22 @@ impl<'a> Iterator for Block<'a> {
             let idx_mask = 1_u64 << self.idx;
             let is_quoted = (self.quote_classified.within_quotes_mask & idx_mask) == idx_mask;
 
+            let structural = match character {
+                _ if is_quoted => None,
+                b':' if self.are_colons_on => Some(Colon(self.idx)),
+                b'{' => Some(OpeningBrace(self.idx)),
+                b'[' => Some(OpeningBracket(self.idx)),
+                b',' if self.are_commas_on => Some(Comma(self.idx)),
+                b'}' => Some(ClosingBrace(self.idx)),
+                b']' => Some(ClosingBracket(self.idx)),
+                _ => None,
+            };
+
             self.idx += 1;
 
-            match character {
-                _ if is_quoted => (),
-                b':' if self.are_colons_on => return Some(Colon(self.idx - 1)),
-                b'{' => return Some(OpeningBrace(self.idx - 1)),
-                b'[' => return Some(OpeningBracket(self.idx - 1)),
-                b',' if self.are_commas_on => return Some(Comma(self.idx - 1)),
-                b'}' => return Some(ClosingBrace(self.idx - 1)),
-                b']' => return Some(ClosingBracket(self.idx - 1)),
-                _ => (),
-            }
+            if structural.is_some() {
+                return structural;
+            };
         }
 
         None
