@@ -74,7 +74,7 @@ fn empty_query<R: QueryResult>(bytes: &AlignedBytes<alignment::Page>) -> R {
     let mut block_event_source = classify_structural_characters(quote_classifier);
     let mut result = R::default();
 
-    if let Some(Structural::OpeningBrace(idx) | Structural::ClosingBracket(idx)) =
+    if let Some(Structural::OpeningBrace(idx) | Structural::OpeningBracket(idx)) =
         block_event_source.next()
     {
         result.report(idx);
