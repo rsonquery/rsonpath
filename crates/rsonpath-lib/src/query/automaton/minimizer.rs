@@ -416,12 +416,7 @@ mod tests {
                 StateTable {
                     transitions: smallvec![],
                     fallback_state: State(2),
-                    attributes: StateAttributes::EMPTY,
-                },
-                StateTable {
-                    transitions: smallvec![],
-                    fallback_state: State(2),
-                    attributes: StateAttributes::EMPTY,
+                    attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING | StateAttributes::ACCEPTING,
                 },
             ],
         };
@@ -440,7 +435,7 @@ mod tests {
                 NfaState::Direct(nfa::Transition::Labelled(&label_b)),
                 NfaState::Recursive(nfa::Transition::Wildcard),
                 NfaState::Direct(nfa::Transition::Labelled(&label_a)),
-                NfaState::Direct(nfa::Transition::Labelled(&label_b)),
+                NfaState::Recursive(nfa::Transition::Labelled(&label_b)),
                 NfaState::Accepting,
             ],
         };
@@ -500,7 +495,7 @@ mod tests {
                 NfaState::Direct(nfa::Transition::Labelled(&label_b)),
                 NfaState::Direct(nfa::Transition::Wildcard),
                 NfaState::Direct(nfa::Transition::Labelled(&label_a)),
-                NfaState::Direct(nfa::Transition::Labelled(&label_b)),
+                NfaState::Recursive(nfa::Transition::Labelled(&label_b)),
                 NfaState::Accepting,
             ],
         };

@@ -56,6 +56,7 @@ impl<'q> PartialEq for StateTable<'q> {
                 .transitions
                 .iter()
                 .all(|x| self.transitions.contains(x))
+            && self.attributes == other.attributes
     }
 }
 
