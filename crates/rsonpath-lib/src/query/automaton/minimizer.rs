@@ -382,12 +382,12 @@ mod tests {
                 StateTable {
                     transitions: smallvec![],
                     fallback_state: State(2),
-                    attributes: StateAttributes::EMPTY,
+                    attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
                 StateTable {
                     transitions: smallvec![],
                     fallback_state: State(0),
-                    attributes: StateAttributes::EMPTY,
+                    attributes: StateAttributes::ACCEPTING,
                 },
             ],
         };
@@ -416,8 +416,13 @@ mod tests {
                 StateTable {
                     transitions: smallvec![],
                     fallback_state: State(2),
-                    attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING
-                        | StateAttributes::ACCEPTING,
+                    attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING,
+                },
+                StateTable {
+                    transitions: smallvec![],
+                    fallback_state: State(2),
+                    attributes: StateAttributes::ACCEPTING
+                        | StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
             ],
         };
@@ -470,14 +475,15 @@ mod tests {
                     attributes: StateAttributes::EMPTY,
                 },
                 StateTable {
-                    transitions: smallvec![(&label_a, State(5)), (&label_b, State(6))],
-                    fallback_state: State(4),
+                    transitions: smallvec![(&label_b, State(6))],
+                    fallback_state: State(5),
                     attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
                 StateTable {
-                    transitions: smallvec![(&label_a, State(5))],
-                    fallback_state: State(4),
-                    attributes: StateAttributes::ACCEPTING,
+                    transitions: smallvec![(&label_b, State(6 ))],
+                    fallback_state: State(5),
+                    attributes: StateAttributes::ACCEPTING
+                        | StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
             ],
         };
@@ -535,14 +541,15 @@ mod tests {
                     attributes: StateAttributes::EMPTY,
                 },
                 StateTable {
-                    transitions: smallvec![(&label_a, State(2)), (&label_b, State(7))],
-                    fallback_state: State(1),
+                    transitions: smallvec![(&label_b, State(7))],
+                    fallback_state: State(6),
                     attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
                 StateTable {
-                    transitions: smallvec![(&label_a, State(5))],
-                    fallback_state: State(4),
-                    attributes: StateAttributes::ACCEPTING,
+                    transitions: smallvec![(&label_b, State(7))],
+                    fallback_state: State(6),
+                    attributes: StateAttributes::ACCEPTING
+                        | StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
             ],
         };
@@ -573,7 +580,7 @@ mod tests {
                 StateTable {
                     transitions: smallvec![(&label, State(2)),],
                     fallback_state: State(1),
-                    attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING,
+                    attributes: StateAttributes::EMPTY,
                 },
                 StateTable {
                     transitions: smallvec![(&label, State(4))],
@@ -700,7 +707,8 @@ mod tests {
                 StateTable {
                     transitions: smallvec![(&label, State(6))],
                     fallback_state: State(5),
-                    attributes: StateAttributes::EMPTY | StateAttributes::TRANSITIONS_TO_ACCEPTING,
+                    attributes: StateAttributes::ACCEPTING
+                        | StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
                 StateTable {
                     transitions: smallvec![(&label, State(2))],
@@ -786,7 +794,8 @@ mod tests {
                 StateTable {
                     transitions: smallvec![(&label_d, State(8))],
                     fallback_state: State(7),
-                    attributes: StateAttributes::ACCEPTING,
+                    attributes: StateAttributes::ACCEPTING
+                        | StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
             ],
         };
