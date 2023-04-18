@@ -416,7 +416,8 @@ mod tests {
                 StateTable {
                     transitions: smallvec![],
                     fallback_state: State(2),
-                    attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING | StateAttributes::ACCEPTING,
+                    attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING
+                        | StateAttributes::ACCEPTING,
                 },
             ],
         };
