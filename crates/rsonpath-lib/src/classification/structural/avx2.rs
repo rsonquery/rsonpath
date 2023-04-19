@@ -64,6 +64,9 @@ impl Iterator for StructuralsBlock<'_> {
 
             self.structural_mask ^= bit_mask;
 
+            // The last match being a catch-all *is important*.
+            // It has major performance implications, since the jump table generated here is a hot path for the engine.
+            // Changing this match must be accompanied with benchmark runs to make sure perf does not regress.
             match self.quote_classified.block[idx] {
                 b':' => Colon(idx),
                 b'{' => Opening(Curly, idx),
