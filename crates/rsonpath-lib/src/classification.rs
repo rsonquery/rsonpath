@@ -17,8 +17,8 @@
 //! ```rust
 //! use rsonpath_lib::classification::quotes::classify_quoted_sequences;
 //! use rsonpath_lib::classification::structural::{
-//!     classify_structural_characters, resume_structural_classification, Structural,
-//!     StructuralIterator,
+//!     classify_structural_characters, resume_structural_classification,
+//!     BracketType, Structural, StructuralIterator,
 //! };
 //! use aligners::AlignedBytes;
 //!
@@ -31,7 +31,7 @@
 //! // Classify first two structural characters.
 //! assert_eq!(
 //!     structural_classifier.next(),
-//!     Some(Structural::OpeningBrace(0))
+//!     Some(Structural::Opening(BracketType::Curly, 0))
 //! );
 //! assert_eq!(
 //!     structural_classifier.next(),
@@ -50,7 +50,7 @@
 //! let mut structural_classifier_2 = resume_structural_classification(resume_state);
 //! assert_eq!(
 //!     structural_classifier_2.next(),
-//!     Some(Structural::ClosingBrace(11))
+//!     Some(Structural::Closing(BracketType::Curly, 11))
 //! );
 //! ```
 pub mod depth;

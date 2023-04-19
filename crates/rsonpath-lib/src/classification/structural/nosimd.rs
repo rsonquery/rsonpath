@@ -52,11 +52,11 @@ impl<'a> Iterator for Block<'a> {
             let structural = match character {
                 _ if is_quoted => None,
                 b':' if self.are_colons_on => Some(Colon(self.idx)),
-                b'{' => Some(OpeningBrace(self.idx)),
-                b'[' => Some(OpeningBracket(self.idx)),
+                b'{' => Some(Opening(BracketType::Curly, self.idx)),
+                b'[' => Some(Opening(BracketType::Square, self.idx)),
                 b',' if self.are_commas_on => Some(Comma(self.idx)),
-                b'}' => Some(ClosingBrace(self.idx)),
-                b']' => Some(ClosingBracket(self.idx)),
+                b'}' => Some(Closing(BracketType::Curly, self.idx)),
+                b']' => Some(Closing(BracketType::Square, self.idx)),
                 _ => None,
             };
 

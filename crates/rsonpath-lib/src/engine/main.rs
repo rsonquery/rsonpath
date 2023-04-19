@@ -10,6 +10,8 @@
 #[cfg(feature = "head-skip")]
 use super::head_skipping::{CanHeadSkip, HeadSkip};
 use super::Compiler;
+#[cfg(feature = "unique-labels")]
+use crate::classification::structural::BracketType;
 #[cfg(feature = "head-skip")]
 use crate::classification::ResumeClassifierState;
 use crate::classification::{
@@ -74,9 +76,7 @@ fn empty_query<R: QueryResult>(bytes: &AlignedBytes<alignment::Page>) -> R {
     let mut block_event_source = classify_structural_characters(quote_classifier);
     let mut result = R::default();
 
-    if let Some(Structural::OpeningBrace(idx) | Structural::OpeningBracket(idx)) =
-        block_event_source.next()
-    {
+    if let Some(Structural::Opening(_, idx)) = block_event_source.next() {
         result.report(idx);
     }
 
@@ -171,10 +171,8 @@ impl<'q, 'b> Executor<'q, 'b> {
             match event {
                 Structural::Colon(idx) => self.handle_colon(classifier, idx, result)?,
                 Structural::Comma(idx) => self.handle_comma(classifier, idx, result)?,
-                Structural::OpeningBrace(idx) | Structural::OpeningBracket(idx) => {
-                    self.handle_opening(classifier, idx, result)?
-                }
-                Structural::ClosingBrace(idx) | Structural::ClosingBracket(idx) => {
+                Structural::Opening(_, idx) => self.handle_opening(classifier, idx, result)?,
+                Structural::Closing(_, idx) => {
                     self.handle_closing(classifier, idx)?;
 
                     if self.depth == Depth::ZERO {
@@ -228,11 +226,12 @@ impl<'q, 'b> Executor<'q, 'b> {
                     let opening = if self.is_list { b'[' } else { b'{' };
                     debug!("Skipping unique state from {}", opening as char);
                     let stop_at = classifier.skip(opening);
-                    self.next_event = Some(if opening == b'[' {
-                        Structural::ClosingBracket(stop_at)
+                    let bracket_type = if self.is_list {
+                        BracketType::Square
                     } else {
-                        Structural::ClosingBrace(stop_at)
-                    });
+                        BracketType::Curly
+                    };
+                    self.next_event = Some(Structural::Closing(bracket_type, stop_at));
                 }
             }
         }
@@ -328,9 +327,7 @@ impl<'q, 'b> Executor<'q, 'b> {
                 classifier.turn_commas_on(idx);
                 self.next_event = classifier.next();
                 match self.next_event {
-                    Some(
-                        Structural::ClosingBrace(close_idx) | Structural::ClosingBracket(close_idx),
-                    ) => {
+                    Some(Structural::Closing(_, close_idx)) => {
                         for next_idx in (idx + 1)..close_idx {
                             if !self.bytes[next_idx].is_ascii_whitespace() {
                                 result.report(next_idx);
@@ -387,11 +384,12 @@ impl<'q, 'b> Executor<'q, 'b> {
                     let opening = if self.is_list { b'[' } else { b'{' };
                     debug!("Skipping unique state from {}", opening as char);
                     let close_idx = classifier.skip(opening);
-                    self.next_event = Some(if opening == b'[' {
-                        Structural::ClosingBracket(close_idx)
+                    let bracket_type = if self.is_list {
+                        BracketType::Square
                     } else {
-                        Structural::ClosingBrace(close_idx)
-                    });
+                        BracketType::Curly
+                    };
+                    self.next_event = Some(Structural::Closing(bracket_type, close_idx));
                     return Ok(());
                 }
             }

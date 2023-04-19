@@ -12,7 +12,9 @@ cfg_if::cfg_if! {
     }
 }
 
-use crate::classification::structural::{QuoteClassifiedIterator, Structural, StructuralIterator};
+use crate::classification::structural::{
+    BracketType, QuoteClassifiedIterator, Structural, StructuralIterator,
+};
 use crate::classification::{
     QuoteClassifiedBlock, ResumeClassifierBlockState, ResumeClassifierState,
 };
@@ -53,6 +55,7 @@ impl Iterator for StructuralsBlock<'_> {
 
     #[inline]
     fn next(&mut self) -> Option<Structural> {
+        use BracketType::*;
         use Structural::*;
 
         let idx = self.get_idx() as usize;
@@ -63,11 +66,11 @@ impl Iterator for StructuralsBlock<'_> {
 
             match self.quote_classified.block[idx] {
                 b':' => Colon(idx),
-                b'{' => OpeningBrace(idx),
-                b'[' => OpeningBracket(idx),
+                b'{' => Opening(Curly, idx),
+                b'[' => Opening(Square, idx),
                 b',' => Comma(idx),
-                b'}' => ClosingBrace(idx),
-                _ => ClosingBracket(idx),
+                b'}' => Closing(Curly, idx),
+                _ => Closing(Square, idx),
             }
         })
     }
