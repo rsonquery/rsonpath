@@ -12,7 +12,9 @@ cfg_if::cfg_if! {
     }
 }
 
-use crate::classification::structural::{QuoteClassifiedIterator, Structural, StructuralIterator};
+use crate::classification::structural::{
+    BracketType, QuoteClassifiedIterator, Structural, StructuralIterator,
+};
 use crate::classification::{
     QuoteClassifiedBlock, ResumeClassifierBlockState, ResumeClassifierState,
 };
@@ -53,6 +55,7 @@ impl Iterator for StructuralsBlock<'_> {
 
     #[inline]
     fn next(&mut self) -> Option<Structural> {
+        use BracketType::*;
         use Structural::*;
 
         let idx = self.get_idx() as usize;
@@ -61,11 +64,16 @@ impl Iterator for StructuralsBlock<'_> {
 
             self.structural_mask ^= bit_mask;
 
+            // The last match being a catch-all *is important*.
+            // It has major performance implications, since the jump table generated here is a hot path for the engine.
+            // Changing this match must be accompanied with benchmark runs to make sure perf does not regress.
             match self.quote_classified.block[idx] {
                 b':' => Colon(idx),
-                b'[' | b'{' => Opening(idx),
+                b'{' => Opening(Curly, idx),
+                b'[' => Opening(Square, idx),
                 b',' => Comma(idx),
-                _ => Closing(idx),
+                b'}' => Closing(Curly, idx),
+                _ => Closing(Square, idx),
             }
         })
     }
