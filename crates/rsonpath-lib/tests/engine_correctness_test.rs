@@ -101,6 +101,10 @@ macro_rules! count_test_cases {
             "wikidata_person.json $..mainsnak..datavalue..value..id"
         )]
         #[test_case(
+            "wikidata/wikidata_person.json", "$..*" => 970442;
+            "wikidata_person.json $..* any descendant"
+        )]
+        #[test_case(
             "wikidata/wikidata_person.json", "$..en..value" => 2360;
             "wikidata_person.json $..en..value (recursive)"
         )]
@@ -111,6 +115,10 @@ macro_rules! count_test_cases {
         #[test_case(
             "wikidata/wikidata_profession.json", "$..claims..mainsnak..value" => 59112;
             "wikidata_profession.json $..claims..mainsnak..value"
+        )]
+        #[test_case(
+            "wikidata/wikidata_profession.json", "$..*" => 1702482;
+            "wikidata_profession.json $..* any descendant"
         )]
         #[test_case(
             "wikidata/wikidata_profession.json", "$..en..value" => 13634;
