@@ -33,7 +33,7 @@ The project is actively developed and currently supports only a subset of the JS
 | Index (array index from end)   | `[-<index>]`                    | ❌        | -      |   |
 | Descendant                     | `..`                            | ✔️        | v0.1.0 |   |
 | Child wildcard                 | `.*`, `.[*]`                    | ✔️        | v0.3.0 |   |
-| Descendant wildcard            | `..*`, `..[*]`                  | ❌        | -      | [#68](https://github.com/V0ldek/rsonpath/issues/68) |
+| Descendant wildcard            | `..*`, `..[*]`                  | ✔️        | v0.4.0 |   |
 | Slice                          | `[<start>:<end>:<step>]`        | ❌        | -      |   |
 | List                           | `[<sel1>, <sel2>, ..., <selN>]` | ❌        | -      |   |
 | Filter                         | `[?(<expr>)]`                   | ❌        | -      |   |

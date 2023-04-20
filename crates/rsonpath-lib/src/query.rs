@@ -7,23 +7,26 @@
 //! # use std::error::Error;
 //! #
 //! # fn main() -> Result<(), Box<dyn Error>> {
-//! let query_string = "$..person..phoneNumber";
+//! let query_string = "$..phoneNumbers[*].number";
 //! let query = JsonPathQuery::parse(query_string)?;
 //!
 //! // Query structure is a linear sequence of nodes:
-//! // Root '$', descendant '..person', descendant '..phoneNumber'.
+//! // Root '$', descendant '..phoneNumbers', child wildcard, child 'number'.
 //! let root_node = query.root();
-//! let descendant_node1 = root_node.child().unwrap();
-//! let descendant_node2 = descendant_node1.child().unwrap();
+//! let descendant_node = root_node.child().unwrap();
+//! let child_wildcard_node = descendant_node.child().unwrap();
+//! let child_node = child_wildcard_node.child().unwrap();
 //!
 //! assert!(root_node.is_root());
-//! assert!(descendant_node1.is_descendant());
-//! assert!(descendant_node2.is_descendant());
+//! assert!(descendant_node.is_descendant());
+//! assert!(child_wildcard_node.is_any_child());
+//! assert!(child_node.is_child());
 //! // Final node will have a None child.
-//! assert!(descendant_node2.child().is_none());
+//! assert!(child_node.child().is_none());
 //!
-//! assert_eq!(descendant_node1.label().unwrap(), "person".as_bytes());
-//! assert_eq!(descendant_node2.label().unwrap(), "phoneNumber".as_bytes());
+//! assert_eq!(descendant_node.label().unwrap(), "phoneNumbers".as_bytes());
+//! assert_eq!(child_wildcard_node.label(), None);
+//! assert_eq!(child_node.label().unwrap(), "number".as_bytes());
 //! # Ok(())
 //! # }
 //! ```
@@ -335,8 +338,14 @@ pub trait JsonPathQueryNodeType {
     /// Returns `true` iff the type is [`JsonPathQueryNode::Descendant`].
     fn is_descendant(&self) -> bool;
 
+    /// Returns `true` iff the type is [`JsonPathQueryNode::AnyDescendant`].
+    fn is_any_descendant(&self) -> bool;
+
     /// Returns `true` iff the type is [`JsonPathQueryNode::Child`].
     fn is_child(&self) -> bool;
+
+    /// Returns `true` iff the type is [`JsonPathQueryNode::AnyChild`].
+    fn is_any_child(&self) -> bool;
 
     /// If the type is [`JsonPathQueryNode::Descendant`] or [`JsonPathQueryNode::Child`]
     /// returns the label it represents; otherwise, `None`.
@@ -355,8 +364,18 @@ impl JsonPathQueryNodeType for JsonPathQueryNode {
     }
 
     #[inline(always)]
+    fn is_any_descendant(&self) -> bool {
+        matches!(self, AnyDescendant(_))
+    }
+
+    #[inline(always)]
     fn is_child(&self) -> bool {
         matches!(self, Child(_, _))
+    }
+
+    #[inline(always)]
+    fn is_any_child(&self) -> bool {
+        matches!(self, AnyChild(_))
     }
 
     #[inline(always)]
@@ -384,8 +403,18 @@ impl<T: std::ops::Deref<Target = JsonPathQueryNode>> JsonPathQueryNodeType for O
     }
 
     #[inline(always)]
+    fn is_any_descendant(&self) -> bool {
+        self.as_ref().map_or(false, |x| x.is_any_descendant())
+    }
+
+    #[inline(always)]
     fn is_child(&self) -> bool {
         self.as_ref().map_or(false, |x| x.is_child())
+    }
+
+    #[inline(always)]
+    fn is_any_child(&self) -> bool {
+        self.as_ref().map_or(false, |x| x.is_any_child())
     }
 
     #[inline(always)]

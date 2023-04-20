@@ -23,6 +23,7 @@
 			"Goessner",
 			"Hasher",
 			"jsonpath",
+			"Justfile",
 			"loadu",
 			"mainsnak",
 			"Mateusz",
@@ -46,7 +47,9 @@
 			"srli",
 			"stackless",
 			"Structurals",
+			"thiserror",
 			"Uninit",
+			"unseparated",
 			"vectorially",
 			"WHITESPACES"
 		],

@@ -1,5 +1,5 @@
 //! Utility for building a [`JsonPathQuery`](`crate::query::JsonPathQuery`)
-//! programatically.
+//! programmatically.
 use super::{JsonPathQuery, JsonPathQueryNode, Label};
 
 /// Builder for [`JsonPathQuery`] instances.
@@ -11,12 +11,13 @@ use super::{JsonPathQuery, JsonPathQueryNode, Label};
 ///     .child(Label::new("a"))
 ///     .descendant(Label::new("b"))
 ///     .any_child()
-///     .child(Label::new("c"));
+///     .child(Label::new("c"))
+///     .any_descendant();
 ///
 /// // Can also use `builder.build()`.
 /// let query: JsonPathQuery = builder.into();
 ///
-/// assert_eq!(format!("{query}"), "$['a']..['b'][*]['c']");
+/// assert_eq!(format!("{query}"), "$['a']..['b'][*]['c']..[*]");
 /// ```
 pub struct JsonPathQueryBuilder {
     nodes: Vec<NodeTemplate>,

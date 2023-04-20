@@ -2,7 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## [0.4.0] - 2023-04-20
+
+### Features
+
+- Wildcard descendant support.
+  - You can now use the `..*`/`..[*]` selector that selects all nodes in the document it acts upon.
+
+- Switch `Structural` to `BracketType`. ([#10](https://github.com/V0ldek/rsonpath/issues/10))
+  - The `Opening` and `Closing` variants now differentiate between curly
+  and square brackets with a value of the `BracketType` enum.
 
 ### Bug fixes
 
@@ -11,6 +20,9 @@ All notable changes to this project will be documented in this file.
   - The `\u` escape sequence is no longer recognized, since without UTF-8 handling they were meaningless.
     See ([#117](https://github.com/V0ldek/rsonpath/issues/117)).
 
+- Empty query array behavior.
+  - Running the query `$` on a document `[]` was giving zero results. Now correctly matches the root array.
+
 ### Documentation
 
 - The grammar in top-level documentation now matches the implementation.
@@ -18,6 +30,8 @@ All notable changes to this project will be documented in this file.
 ### Reliability
 
 - Added proptests for query parsing.
+  - Currently checks that correct queries are parsed correctly.
+    We still need tests for error conditions (see [#51](https://github.com/V0ldek/rsonpath/issues/51)).
 
 ## [0.3.3] - 2023-03-29
 

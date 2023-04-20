@@ -12,7 +12,7 @@
 //!
 //! # fn main() -> Result<(), Box<dyn Error>> {
 //! // Parse a JSONPath query from string.
-//! let query = JsonPathQuery::parse("$..person..number")?;
+//! let query = JsonPathQuery::parse("$..phoneNumbers[*].number")?;
 //! // Convert the contents to the Input type required by the Engines.
 //! // Currently requires the contents to be owned and allocations to occur,
 //! // this is a known limitation tracked as issue #23
@@ -70,14 +70,13 @@
 //! ```ebnf
 //! query = [root] , { selector }
 //! root = "$"
-//! selector = wildcard child | child | descendant
-//! wildcard child = dot wildcard | index wildcard
+//! selector = child | descendant | wildcard child | wildcard descendant
+//! wildcard child = ".*" | "[*]"
+//! wildcard descendant = "..*" | "..[*]"
 //! child = dot | index
 //! dot = "." , label
-//! dot wildcard = ".*"
 //! descendant = ".." , ( label | index )
 //! index = "[" , quoted label , "]"
-//! index wildcard = "[*]"
 //! label = label first , { label character }
 //! label first = ALPHA | "_" | NONASCII
 //! label character = ALPHANUMERIC | "_" | NONASCII
@@ -114,7 +113,12 @@
 //! ### Descendant selector (`..<label>`, `..[<label>]`)
 //! Switches the engine into a recursive descent mode.
 //! Looks for the specified key in every value nested in the current object or array,
-//! recursively.
+//! recursively, and then executes the rest of the query on that value..
+//!
+//! ### Descendant wildcard selector (`..*`, `..[*]`)
+//! Switches the engine into a recursive descent mode.
+//! Matches any value regardless of key in any object, or any value within any array nested
+//! within the current object or array, recursively, and then executes the rest of the query on that value.
 //!
 //! ## Active development
 //!
@@ -189,7 +193,7 @@
         clippy::unwrap_used
     )
 )]
-// IO hygene, only on --release.
+// IO hygiene, only on --release.
 #![cfg_attr(
     not(debug_assertions),
     warn(clippy::print_stderr, clippy::print_stdout, clippy::todo)

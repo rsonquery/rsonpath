@@ -85,7 +85,7 @@ impl Display for ParseErrorReport {
 pub struct ParseError {
     /// The index at which the error occurred.
     pub start_idx: usize,
-    /// The number of characters that the parser recognised as invalid.
+    /// The number of characters that the parser recognized as invalid.
     pub len: usize,
 }
 

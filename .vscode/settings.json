@@ -25,6 +25,7 @@
         "Itertools",
         "jsonpath",
         "jsonski",
+        "Justfile",
         "loadu",
         "mainsnak",
         "Mateusz",
@@ -53,7 +54,9 @@
         "stackless",
         "Structurals",
         "substate",
+        "thiserror",
         "Uninit",
+        "unseparated",
         "vectorially",
         "WHITESPACES"
     ],
