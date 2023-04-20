@@ -175,7 +175,7 @@ clean-all:
 # Commit (add all first) both rsonpath and the benchmarks with a given message.
 [no-exit-message]
 commit msg:
-    -cd ./crates/rsonpath-benchmarks && git add --all && git commit -m '{{msg}}'
+    -cd ./crates/rsonpath-benchmarks && git add --all && git commit -m '{{msg}}' && git push
     -git add --all && git commit -am '{{msg}}'
 
 # === HOOKS ===
