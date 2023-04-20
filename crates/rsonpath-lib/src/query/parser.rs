@@ -13,6 +13,7 @@ enum Token<'a> {
     Child(LabelString<'a>),
     WildcardChild(),
     Descendant(LabelString<'a>),
+    WildcardDescendant(),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -28,6 +29,7 @@ impl Display for Token<'_> {
             Token::Child(label) => write!(f, "['{label}']"),
             Token::WildcardChild() => write!(f, "[*]"),
             Token::Descendant(label) => write!(f, "..['{label}']"),
+            Token::WildcardDescendant() => write!(f, "..[*]"),
         }
     }
 }
@@ -124,6 +126,9 @@ fn tokens_to_node<'a, I: Iterator<Item = Token<'a>>>(
                     Label::new(label.borrow()),
                     child_node,
                 ))),
+                Token::WildcardDescendant() => {
+                    Ok(Some(JsonPathQueryNode::AnyDescendant(child_node)))
+                }
             }
         }
         _ => Ok(None),
@@ -156,6 +161,7 @@ fn non_root<'a>() -> impl Parser<'a, Vec<Token<'a>>> {
     many0(alt((
         wildcard_child_selector(),
         child_selector(),
+        wildcard_descendant_selector(),
         descendant_selector(),
     )))
 }
@@ -183,6 +189,13 @@ fn descendant_selector<'a>() -> impl Parser<'a, Token<'a>> {
     map(
         preceded(tag(".."), alt((label(), index_selector()))),
         Token::Descendant,
+    )
+}
+
+fn wildcard_descendant_selector<'a>() -> impl Parser<'a, Token<'a>> {
+    map(
+        preceded(tag(".."), alt((char('*'), index_wildcard_selector()))),
+        |_| Token::WildcardDescendant(),
     )
 }
 

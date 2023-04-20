@@ -382,12 +382,174 @@ mod tests {
                 StateTable {
                     transitions: smallvec![],
                     fallback_state: State(2),
-                    attributes: StateAttributes::EMPTY,
+                    attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
                 StateTable {
                     transitions: smallvec![],
                     fallback_state: State(0),
+                    attributes: StateAttributes::ACCEPTING,
+                },
+            ],
+        };
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn simple_descendant_wildcard_test() {
+        // Query = $..*
+        let nfa = NondeterministicAutomaton {
+            ordered_states: vec![
+                NfaState::Recursive(nfa::Transition::Wildcard),
+                NfaState::Accepting,
+            ],
+        };
+
+        let result = minimize(nfa).unwrap();
+        let expected = Automaton {
+            states: vec![
+                StateTable {
+                    transitions: smallvec![],
+                    fallback_state: State(0),
+                    attributes: StateAttributes::REJECTING,
+                },
+                StateTable {
+                    transitions: smallvec![],
+                    fallback_state: State(2),
+                    attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING,
+                },
+                StateTable {
+                    transitions: smallvec![],
+                    fallback_state: State(2),
+                    attributes: StateAttributes::ACCEPTING
+                        | StateAttributes::TRANSITIONS_TO_ACCEPTING,
+                },
+            ],
+        };
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn interstitial_descendant_wildcard_test() {
+        // Query = $..a.b..*.a..b
+        let label_a = Label::new("a");
+        let label_b = Label::new("b");
+        let nfa = NondeterministicAutomaton {
+            ordered_states: vec![
+                NfaState::Recursive(nfa::Transition::Labelled(&label_a)),
+                NfaState::Direct(nfa::Transition::Labelled(&label_b)),
+                NfaState::Recursive(nfa::Transition::Wildcard),
+                NfaState::Direct(nfa::Transition::Labelled(&label_a)),
+                NfaState::Recursive(nfa::Transition::Labelled(&label_b)),
+                NfaState::Accepting,
+            ],
+        };
+
+        let result = minimize(nfa).unwrap();
+        let expected = Automaton {
+            states: vec![
+                StateTable {
+                    transitions: smallvec![],
+                    fallback_state: State(0),
+                    attributes: StateAttributes::REJECTING,
+                },
+                StateTable {
+                    transitions: smallvec![(&label_a, State(2))],
+                    fallback_state: State(1),
                     attributes: StateAttributes::EMPTY,
+                },
+                StateTable {
+                    transitions: smallvec![(&label_a, State(2)), (&label_b, State(3))],
+                    fallback_state: State(1),
+                    attributes: StateAttributes::EMPTY,
+                },
+                StateTable {
+                    transitions: smallvec![],
+                    fallback_state: State(4),
+                    attributes: StateAttributes::EMPTY,
+                },
+                StateTable {
+                    transitions: smallvec![(&label_a, State(5))],
+                    fallback_state: State(4),
+                    attributes: StateAttributes::EMPTY,
+                },
+                StateTable {
+                    transitions: smallvec![(&label_b, State(6))],
+                    fallback_state: State(5),
+                    attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING,
+                },
+                StateTable {
+                    transitions: smallvec![(&label_b, State(6))],
+                    fallback_state: State(5),
+                    attributes: StateAttributes::ACCEPTING
+                        | StateAttributes::TRANSITIONS_TO_ACCEPTING,
+                },
+            ],
+        };
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn interstitial_nondescendant_wildcard_test() {
+        // Query = $..a.b.*.a..b
+        let label_a = Label::new("a");
+        let label_b = Label::new("b");
+        let nfa = NondeterministicAutomaton {
+            ordered_states: vec![
+                NfaState::Recursive(nfa::Transition::Labelled(&label_a)),
+                NfaState::Direct(nfa::Transition::Labelled(&label_b)),
+                NfaState::Direct(nfa::Transition::Wildcard),
+                NfaState::Direct(nfa::Transition::Labelled(&label_a)),
+                NfaState::Recursive(nfa::Transition::Labelled(&label_b)),
+                NfaState::Accepting,
+            ],
+        };
+
+        let result = minimize(nfa).unwrap();
+        let expected = Automaton {
+            states: vec![
+                StateTable {
+                    transitions: smallvec![],
+                    fallback_state: State(0),
+                    attributes: StateAttributes::REJECTING,
+                },
+                StateTable {
+                    transitions: smallvec![(&label_a, State(2))],
+                    fallback_state: State(1),
+                    attributes: StateAttributes::EMPTY,
+                },
+                StateTable {
+                    transitions: smallvec![(&label_a, State(2)), (&label_b, State(3))],
+                    fallback_state: State(1),
+                    attributes: StateAttributes::EMPTY,
+                },
+                StateTable {
+                    transitions: smallvec![(&label_a, State(5))],
+                    fallback_state: State(4),
+                    attributes: StateAttributes::EMPTY,
+                },
+                StateTable {
+                    transitions: smallvec![(&label_a, State(6))],
+                    fallback_state: State(1),
+                    attributes: StateAttributes::EMPTY,
+                },
+                StateTable {
+                    transitions: smallvec![(&label_a, State(6)), (&label_b, State(3))],
+                    fallback_state: State(1),
+                    attributes: StateAttributes::EMPTY,
+                },
+                StateTable {
+                    transitions: smallvec![(&label_b, State(7))],
+                    fallback_state: State(6),
+                    attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING,
+                },
+                StateTable {
+                    transitions: smallvec![(&label_b, State(7))],
+                    fallback_state: State(6),
+                    attributes: StateAttributes::ACCEPTING
+                        | StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
             ],
         };
@@ -418,7 +580,7 @@ mod tests {
                 StateTable {
                     transitions: smallvec![(&label, State(2)),],
                     fallback_state: State(1),
-                    attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING,
+                    attributes: StateAttributes::EMPTY,
                 },
                 StateTable {
                     transitions: smallvec![(&label, State(4))],
@@ -545,7 +707,8 @@ mod tests {
                 StateTable {
                     transitions: smallvec![(&label, State(6))],
                     fallback_state: State(5),
-                    attributes: StateAttributes::EMPTY | StateAttributes::TRANSITIONS_TO_ACCEPTING,
+                    attributes: StateAttributes::ACCEPTING
+                        | StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
                 StateTable {
                     transitions: smallvec![(&label, State(2))],
@@ -631,7 +794,8 @@ mod tests {
                 StateTable {
                     transitions: smallvec![(&label_d, State(8))],
                     fallback_state: State(7),
-                    attributes: StateAttributes::ACCEPTING,
+                    attributes: StateAttributes::ACCEPTING
+                        | StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
             ],
         };

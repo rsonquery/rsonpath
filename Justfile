@@ -66,6 +66,11 @@ run-debug *ARGS: (build-bin "dev")
 run *ARGS: (build-bin "release")
     ./target/release/rsonpath {{ARGS}}
 
+# === WATCH ===
+watch *ARGS:
+    cargo watch -x "check" -x "test --lib -q" -x "test --doc -q" '{{ARGS}}'
+
+
 # === TEST ===
 
 # Run all tests.

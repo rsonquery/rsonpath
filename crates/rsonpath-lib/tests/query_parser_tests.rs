@@ -50,6 +50,34 @@ fn indexed_wildcard_child_selector() {
 }
 
 #[test]
+fn wildcard_descendant_selector_test() {
+    let input = "$..*.a..*";
+    let expected_query = JsonPathQueryBuilder::new()
+        .any_descendant()
+        .child(Label::new("a"))
+        .any_descendant()
+        .into();
+
+    let result = JsonPathQuery::parse(input).expect("expected Ok");
+
+    assert_eq!(result, expected_query);
+}
+
+#[test]
+fn indexed_wildcard_descendant_selector_nested_test() {
+    let input = r#"$..[*]..['*']..["*"]"#;
+    let expected_query = JsonPathQueryBuilder::new()
+        .any_descendant()
+        .descendant(Label::new("*"))
+        .descendant(Label::new("*"))
+        .into();
+
+    let result = JsonPathQuery::parse(input).expect("expected Ok");
+
+    assert_eq!(result, expected_query);
+}
+
+#[test]
 fn escaped_single_quote_in_single_quote_label() {
     let input = r#"['\'']"#;
     let expected_query = JsonPathQueryBuilder::new().child(Label::new("'")).into();
@@ -140,6 +168,7 @@ mod proptests {
     enum SelectorTag {
         WildcardChild,
         Child(String),
+        WildcardDescendant,
         Descendant(String),
     }
 
@@ -151,7 +180,12 @@ mod proptests {
 
     // Cspell: disable
     fn any_selector() -> impl Strategy<Value = Selector> {
-        prop_oneof![any_wildcard_child(), any_child(), any_descendant(),]
+        prop_oneof![
+            any_wildcard_child(),
+            any_child(),
+            any_wildcard_descendant(),
+            any_descendant(),
+        ]
     }
 
     // .* or [*]
@@ -159,6 +193,14 @@ mod proptests {
         r#"(\.\*|\[\*\])"#.prop_map(|x| Selector {
             string: x,
             tag: SelectorTag::WildcardChild,
+        })
+    }
+
+    // ..* or ..[*]
+    fn any_wildcard_descendant() -> impl Strategy<Value = Selector> {
+        r#"(\*|\[\*\])"#.prop_map(|x| Selector {
+            string: format!("..{x}"),
+            tag: SelectorTag::WildcardDescendant,
         })
     }
 
@@ -221,6 +263,7 @@ mod proptests {
                 query = match selector.tag {
                     SelectorTag::WildcardChild => query.any_child(),
                     SelectorTag::Child(label) => query.child(Label::new(&transform_json_escape_sequences(label))),
+                    SelectorTag::WildcardDescendant => query.any_descendant(),
                     SelectorTag::Descendant(label) => query.descendant(Label::new(&transform_json_escape_sequences(label))),
                 };
             }

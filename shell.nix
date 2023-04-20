@@ -30,6 +30,7 @@ in stable.mkShell rec {
       git-cliff
       rust-analyzer
       cargo-hack
+      cargo-watch
     ]) ++ (with unstable; [
       just
     ]);

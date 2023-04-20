@@ -18,6 +18,8 @@ macro_rules! count_test_cases {
     ($test_name:ident, $impl:ident) => {
         #[test_case("basic/atomic_descendant.json", "$..a" => 1; "atomic_descendant.json $..a")]
         #[test_case("basic/atomic_descendant.json", "$..a..b" => 0; "atomic_descendant.json $..a..b")]
+        #[test_case("basic/atomic_descendant.json", "$..*..b" => 1; "atomic_descendant.json any descendant $..*..b")]
+        #[test_case("basic/atomic_descendant.json", "$..*" => 4; "atomic_descendant.json any descendant $..*")]
         #[test_case("basic/atomic_after_complex.json", "$.a..b" => 1; "atomic_after_complex.json $.a..b")]
         #[test_case("basic/array_root.json", "$" => 1; "array_root.json $")]
         #[test_case("basic/array_root.json", "" => 1; "array_root.json")]
@@ -32,13 +34,16 @@ macro_rules! count_test_cases {
         #[test_case("basic/quote_escape.json", r#"$['"x']"# => 1; "quote_escape.json with quote")]
         #[test_case("basic/root.json", "$" => 1; "root.json $")]
         #[test_case("basic/root.json", "" => 1; "root.json")]
-        #[test_case("basic/singletons_and_empties.json", r#"$.*.*"# => 2; "singletons_and_empties.json")]
+        #[test_case("basic/singletons_and_empties.json", r#"$.*.*"# => 2; "singletons_and_empties.json $.*.*")]
+        #[test_case("basic/singletons_and_empties.json", r#"$..*.*"# => 2; "singletons_and_empties.json any descendant $..*.*")]
         #[test_case("basic/skipping.json", r#"$.a.b"# => 1; "skipping")]
         #[test_case("basic/small_no_list.json", "$..person..phoneNumber..number" => 2; "small_no_list.json $..person..phoneNumber..number")]
         #[test_case("basic/small.json", "$..person..phoneNumber..number" => 4; "small.json $..person..phoneNumber..number")]
+        #[test_case("basic/small.json", "$..person..*..type" => 4; "small.json $..person..*..type")]
         #[test_case("basic/spaced_colon.json", r#"$..a..b..label"# => 2; "spaced colon")]
         #[test_case("basic/wildcard_list.json", r#"$..a.*"# => 6; "wildcard_list.json $..a.*")]
         #[test_case("basic/wildcard_list2.json", r#"$..a.*..b.*"# => 8; "wildcard_list2.json $..a.*..b.*")]
+        #[test_case("basic/wildcard_list2.json", r#"$..a..*..b..*"# => 9; "wildcard_list2.json any descendant $..a..*..b..*")]
         #[test_case("basic/wildcard_object.json", r#"$..a.*"# => 7; "wildcard_object.json $..a.*")]
         #[test_case("basic/wildcard_object2.json", r#"$..a.*.*..b.*.*"# => 9; "wildcard_object2.json $..a.*.*..b.*.*")]
         #[test_case("twitter/twitter.json", "$..user..entities..url" => 44; "twitter.json $..user..entities..url (recursive)")]
@@ -86,6 +91,10 @@ macro_rules! count_test_cases {
             "wikidata_person.json $..snaks..datavalue..value"
         )]
         #[test_case(
+            "wikidata/wikidata_person.json", "$..snaks..*.id" => 11113;
+            "wikidata_person.json $..snaks..*.id any descendant"
+        )]
+        #[test_case(
             "wikidata/wikidata_person.json", "$..datavalue..value..id" => 25093;
             "wikidata_person.json $..datavalue..value..id"
         )]
@@ -96,6 +105,10 @@ macro_rules! count_test_cases {
         #[test_case(
             "wikidata/wikidata_person.json", "$..mainsnak..datavalue..value..id" => 12958;
             "wikidata_person.json $..mainsnak..datavalue..value..id"
+        )]
+        #[test_case(
+            "wikidata/wikidata_person.json", "$..*" => 970442;
+            "wikidata_person.json $..* any descendant"
         )]
         #[test_case(
             "wikidata/wikidata_person.json", "$..en..value" => 2360;
@@ -110,8 +123,16 @@ macro_rules! count_test_cases {
             "wikidata_profession.json $..claims..mainsnak..value"
         )]
         #[test_case(
+            "wikidata/wikidata_profession.json", "$..*" => 1702482;
+            "wikidata_profession.json $..* any descendant"
+        )]
+        #[test_case(
             "wikidata/wikidata_profession.json", "$..en..value" => 13634;
             "wikidata_profession.json $..en..value (recursive)"
+        )]
+        #[test_case(
+            "wikidata/wikidata_profession.json", "$..*.id" => 98805;
+            "wikidata_profession.json $..*.id any descendant"
         )]
         #[test_case(
             "wikidata/wikidata_profession.json", "$..en.value" => 9452;
@@ -130,6 +151,10 @@ macro_rules! count_test_cases {
             "wikidata_properties.json $..en.value (child)"
         )]
         #[test_case(
+            "wikidata/wikidata_properties.json", "$..*.value" => 132188;
+            "wikidata_properties.json $..*.value (child) any desc"
+        )]
+        #[test_case(
             "wikidata/wikidata_properties.json", "$..P7103.claims.P31..references..snaks.P4656..hash" => 1;
             "wikidata_properties.json $..P7103.claims.P31..references..snaks.P4656..hash"
         )]
@@ -146,6 +171,7 @@ macro_rules! count_test_cases {
 macro_rules! indices_test_cases {
     ($test_name:ident, $impl:ident) => {
         #[test_case("basic/atomic_descendant.json", "$..a" => vec![9]; "atomic_descendant.json $..a")]
+        #[test_case("basic/atomic_descendant.json", "$..*" => vec![9,24,34,51]; "atomic_descendant.json any descendant $..*")]
         #[test_case("basic/atomic_descendant.json", "$..a..b" => Vec::<usize>::new(); "atomic_descendant.json $..a..b")]
         #[test_case("basic/atomic_after_complex.json", "$.a..b" => vec![174]; "atomic_after_complex.json $.a..b")]
         #[test_case("basic/array_root.json", "$" => vec![0]; "array_root.json $")]
@@ -162,14 +188,17 @@ macro_rules! indices_test_cases {
         #[test_case("basic/root.json", "$" => vec![0]; "root.json $")]
         #[test_case("basic/root.json", "" => vec![0]; "root.json")]
         #[test_case("basic/singletons_and_empties.json", r#"$.*.*"# => vec![21, 50]; "singletons_and_empties.json")]
+        #[test_case("basic/singletons_and_empties.json", r#"$..*..*"# => vec![21, 50]; "singletons_and_empties.json any descendant")]
         #[test_case("basic/skipping.json", r#"$.a.b"# => vec![808]; "skipping")]
         #[test_case("basic/small_no_list.json", "$..person..phoneNumber..number" => vec![310, 764]; "small_no_list.json $..person..phoneNumber..number")]
         #[test_case("basic/small.json", "$..person..phoneNumber..number" => vec![332, 436, 934, 1070]; "small.json $..person..phoneNumber..number")]
         #[test_case("basic/spaced_colon.json", r#"$..a..b..label"# => vec![106, 213]; "spaced colon")]
         #[test_case("basic/wildcard_list.json", r#"$..a.*"# => vec![46, 64, 101, 121, 141, 287]; "wildcard_list.json $..a.*")]
         #[test_case("basic/wildcard_list2.json", r#"$..a.*..b.*"# => vec![226, 364, 402, 479, 519, 559, 641, 881]; "wildcard_list2.json $..a.*..b.*")]
+        #[test_case("basic/wildcard_list2.json", r#"$..a..*..b..*"# => vec![226, 364, 402, 479, 519, 559, 601, 641, 881]; "wildcard_list2.json any descendant $..a..*..b..*")]
         #[test_case("basic/wildcard_object.json", r#"$..a.*"# => vec![66, 91, 116, 143, 211, 238, 267]; "wildcard_object.json $..a.*")]
         #[test_case("basic/wildcard_object2.json", r#"$..a.*.*..b.*.*"# => vec![652, 709, 751, 791, 855, 901, 1713, 1811, 1878]; "wildcard_object2.json $..a.*.*..b.*.*")]
+        #[test_case("basic/wildcard_object2.json", r#"$..a..*..*..b..*..*"# => vec![652, 709, 751, 791, 855, 901, 945, 1016, 1067, 1115, 1193, 1248, 1300, 1385, 1443, 1499, 1590, 1653, 1713, 1811, 1878, 1942, 2048]; "wildcard_object2.json any descendant $..a..*..*..b..*..*")]
         #[test_case(
             "twitter/twitter.json",
             "$..user..entities..url"
@@ -183,6 +212,7 @@ macro_rules! indices_test_cases {
         #[test_case("twitter/twitter_urls.json", "$..entities..urls..url" => vec![321, 881]; "twitter_urls.json $..entities..urls..url")]
         #[test_case("twitter/twitter_urls.json", "$..entities.urls..url" => vec![321, 881]; "twitter_urls.json $..entities.urls..url (child)")]
         #[test_case("basic/compressed/child.json", "$..a..b.c..d" => vec![99, 132, 152]; "compressed child.json $..a..b.c..d")]
+        #[test_case("basic/compressed/child.json", "$..*..b.c..*" => vec![99, 128, 132, 152]; "compressed child.json any descendant $..*..b.c..*")]
         #[test_case("basic/compressed/child_hell.json", "$..x..a.b.a.b.c" => vec![39, 108, 189, 240, 263, 280]; "compressed child_hell.json $..x..a.b.a.b.c")]
         #[test_case("basic/compressed/escapes.json", r#"$..a..b..['label\\']"# => vec![524]; "compressed escapes.json existing label")]
         #[test_case("basic/compressed/escapes.json", r#"$..a..b..['label\\\\']"# => Vec::<usize>::new(); "compressed escapes.json nonexistent label")]
