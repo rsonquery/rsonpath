@@ -67,8 +67,8 @@ run *ARGS: (build-bin "release")
     ./target/release/rsonpath {{ARGS}}
 
 # === WATCH ===
-watch:
-    cargo watch -x "test -q"
+watch *ARGS:
+    cargo watch -x "check" -x "test --lib -q" -x "test --doc -q" '{{ARGS}}'
 
 
 # === TEST ===
