@@ -2,6 +2,8 @@
 #[cfg(feature = "head-skip")]
 use super::head_skipping::{CanHeadSkip, HeadSkip};
 use crate::classification::quotes::{classify_quoted_sequences, QuoteClassifiedIterator};
+#[cfg(feature = "unique-labels")]
+use crate::classification::structural::BracketType;
 use crate::classification::structural::{
     classify_structural_characters, Structural, StructuralIterator,
 };
@@ -56,7 +58,7 @@ impl Engine for RecursiveEngine<'_> {
         let mut classifier = structural_classifier;
 
         match classifier.next() {
-            Some(Structural::Opening(idx)) => {
+            Some(Structural::Opening(_, idx)) => {
                 let mut result = R::default();
                 let mut execution_ctx = ExecutionContext::new(&self.automaton, input);
                 execution_ctx.run(
@@ -77,7 +79,7 @@ fn empty_query<R: QueryResult>(bytes: &AlignedBytes<alignment::Page>) -> Result<
     let mut block_event_source = classify_structural_characters(quote_classifier);
     let mut result = R::default();
 
-    if let Some(Structural::Opening(idx)) = block_event_source.next() {
+    if let Some(Structural::Opening(_, idx)) = block_event_source.next() {
         result.report(idx);
     }
 
@@ -189,7 +191,7 @@ impl<'q, 'b> ExecutionContext<'q, 'b> {
 
         if needs_commas {
             next_event = classifier.next();
-            if let Some(Structural::Closing(close_idx)) = next_event {
+            if let Some(Structural::Closing(_, close_idx)) = next_event {
                 for idx in (open_idx + 1)..close_idx {
                     if !self.bytes[idx].is_ascii_whitespace() {
                         debug!("Accepting only item in the list.");
@@ -215,7 +217,7 @@ impl<'q, 'b> ExecutionContext<'q, 'b> {
                 Some(Structural::Comma(idx)) => {
                     latest_idx = idx;
                     next_event = classifier.next();
-                    let is_next_opening = matches!(next_event, Some(Structural::Opening(_)));
+                    let is_next_opening = next_event.map_or(false, |s| s.is_opening());
 
                     if !is_next_opening && is_list && is_fallback_accepting {
                         debug!("Accepting on comma.");
@@ -231,7 +233,7 @@ impl<'q, 'b> ExecutionContext<'q, 'b> {
 
                     latest_idx = idx;
                     next_event = classifier.next();
-                    let is_next_opening = matches!(next_event, Some(Structural::Opening(_)));
+                    let is_next_opening = next_event.map_or(false, |s| s.is_opening());
 
                     if !is_next_opening {
                         let mut any_matched = false;
@@ -252,17 +254,22 @@ impl<'q, 'b> ExecutionContext<'q, 'b> {
                         #[cfg(feature = "unique-labels")]
                         {
                             let is_next_closing =
-                                matches!(next_event, Some(Structural::Closing(_)));
+                                matches!(next_event, Some(Structural::Closing(_, _)));
                             if any_matched && !is_next_closing && self.automaton.is_unitary(state) {
                                 let opening = if is_list { b'[' } else { b'{' };
                                 debug!("Skipping unique state from {}", opening as char);
                                 let stop_at = classifier.skip(opening);
-                                next_event = Some(Structural::Closing(stop_at));
+                                let bracket_type = if is_list {
+                                    BracketType::Square
+                                } else {
+                                    BracketType::Curly
+                                };
+                                next_event = Some(Structural::Opening(bracket_type, stop_at));
                             }
                         }
                     }
                 }
-                Some(Structural::Opening(idx)) => {
+                Some(Structural::Opening(_, idx)) => {
                     let mut matched = None;
                     let colon_idx = {
                         let mut colon_idx = idx - 1;
@@ -334,7 +341,7 @@ impl<'q, 'b> ExecutionContext<'q, 'b> {
 
                     config_characters(classifier, end_idx);
                 }
-                Some(Structural::Closing(idx)) => {
+                Some(Structural::Closing(_, idx)) => {
                     latest_idx = idx;
                     break;
                 }

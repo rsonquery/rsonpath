@@ -1,7 +1,7 @@
 use aligners::AlignedBytes;
 use rsonpath_lib::classification::quotes::classify_quoted_sequences;
 use rsonpath_lib::classification::structural::{
-    classify_structural_characters, Structural, StructuralIterator,
+    classify_structural_characters, BracketType, Structural, StructuralIterator,
 };
 
 fn classify_string(json: &str) -> Vec<Structural> {
@@ -25,22 +25,22 @@ fn empty_string() {
 fn json() {
     let json = r#"{"a": [1, 2, 3], "b": "string", "c": {"d": 42, "e": 17}}"#;
     let expected: &[Structural] = &[
-        Structural::Opening(0),
+        Structural::Opening(BracketType::Curly, 0),
         Structural::Colon(4),
-        Structural::Opening(6),
+        Structural::Opening(BracketType::Square, 6),
         Structural::Comma(8),
         Structural::Comma(11),
-        Structural::Closing(14),
+        Structural::Closing(BracketType::Square, 14),
         Structural::Comma(15),
         Structural::Colon(20),
         Structural::Comma(30),
         Structural::Colon(35),
-        Structural::Opening(37),
+        Structural::Opening(BracketType::Curly, 37),
         Structural::Colon(41),
         Structural::Comma(45),
         Structural::Colon(50),
-        Structural::Closing(54),
-        Structural::Closing(55),
+        Structural::Closing(BracketType::Curly, 54),
+        Structural::Closing(BracketType::Curly, 55),
     ];
 
     let result = classify_string(json);
@@ -52,11 +52,11 @@ fn json() {
 fn json_with_escapes() {
     let json = r#"{"a": "Hello, World!", "b": "\"{Hello, [World]!}\""}"#;
     let expected: &[Structural] = &[
-        Structural::Opening(0),
+        Structural::Opening(BracketType::Curly, 0),
         Structural::Colon(4),
         Structural::Comma(21),
         Structural::Colon(26),
-        Structural::Closing(51),
+        Structural::Closing(BracketType::Curly, 51),
     ];
 
     let result = classify_string(json);
@@ -126,7 +126,7 @@ fn block_boundary() {
 }
 
 mod prop_test {
-    use super::{classify_string, Structural};
+    use super::{classify_string, BracketType, Structural};
     use proptest::{self, collection, prelude::*};
 
     #[derive(Debug, Clone)]
@@ -178,8 +178,10 @@ mod prop_test {
                 let expected = match x {
                     Token::Comma => Some(Structural::Comma(*idx)),
                     Token::Colon => Some(Structural::Colon(*idx)),
-                    Token::OpeningBrace | Token::OpeningBracket => Some(Structural::Opening(*idx)),
-                    Token::ClosingBrace | Token::ClosingBracket => Some(Structural::Closing(*idx)),
+                    Token::OpeningBrace => Some(Structural::Opening(BracketType::Curly, *idx)),
+                    Token::OpeningBracket => Some(Structural::Opening(BracketType::Square, *idx)),
+                    Token::ClosingBrace => Some(Structural::Closing(BracketType::Curly, *idx)),
+                    Token::ClosingBracket => Some(Structural::Closing(BracketType::Square, *idx)),
                     _ => None,
                 };
                 match x {
