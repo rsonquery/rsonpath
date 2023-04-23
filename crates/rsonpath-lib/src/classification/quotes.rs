@@ -28,8 +28,10 @@
 //! let block = quote_classifier.next().unwrap();
 //! assert_eq!(expd, block.within_quotes_mask);
 //! ```
-use crate::BlockAlignment;
-use aligners::{alignment::Twice, AlignedBlock, AlignedSlice};
+use std::marker::PhantomData;
+
+use crate::classification::BLOCK_SIZE;
+use crate::input::{IBlock, Input, InputBlock};
 use cfg_if::cfg_if;
 
 /// Input block with a bitmask signifying which characters are within quotes.
@@ -40,14 +42,15 @@ use cfg_if::cfg_if;
 ///
 /// There is no guarantee on how the boundary quote characters are classified,
 /// their bits might be lit or not lit depending on the implementation.
-pub struct QuoteClassifiedBlock<'a> {
+pub struct QuoteClassifiedBlock<'a, B: InputBlock<'a, N>, const N: usize> {
     /// The block that was classified.
-    pub block: &'a AlignedBlock<Twice<BlockAlignment>>,
+    pub block: B,
     /// Mask marking characters within a quoted sequence.
     pub within_quotes_mask: u64,
+    pub phantom: PhantomData<&'a B>,
 }
 
-impl<'a> QuoteClassifiedBlock<'a> {
+impl<'a, B: InputBlock<'a, N>, const N: usize> QuoteClassifiedBlock<'a, B, N> {
     /// Returns the length of the classified block.
     #[must_use]
     #[inline(always)]
@@ -66,13 +69,9 @@ impl<'a> QuoteClassifiedBlock<'a> {
 /// Trait for quote classifier iterators, i.e. finite iterators
 /// enriching blocks of input with quote bitmasks.
 /// Iterator is allowed to hold a reference to the JSON document valid for `'a`.
-pub trait QuoteClassifiedIterator<'a>: Iterator<Item = QuoteClassifiedBlock<'a>> + 'a {
-    /// Get size of a single quote classified block returned by this iterator.
-    fn block_size() -> usize;
-
-    /// Returns whether the iterator is empty.
-    fn is_empty(&self) -> bool;
-
+pub trait QuoteClassifiedIterator<'a, I: Input + 'a, const N: usize>:
+    Iterator<Item = QuoteClassifiedBlock<'a, IBlock<'a, I, N>, N>> + 'a
+{
     /// Get the total offset in bytes from the beginning of input.
     fn get_offset(&self) -> usize;
 
@@ -90,34 +89,28 @@ cfg_if! {
     if #[cfg(any(doc, not(feature = "simd")))] {
         mod nosimd;
         use nosimd::SequentialQuoteClassifier;
-        use aligners::alignment;
 
         /// Walk through the JSON document represented by `bytes`
         /// and classify quoted sequences.
         #[must_use]
         #[inline(always)]
-        pub fn classify_quoted_sequences(
-            bytes: &AlignedSlice<alignment::Twice<BlockAlignment>>,
-        ) -> impl QuoteClassifiedIterator {
-            assert_eq!(bytes.len() % SequentialQuoteClassifier::block_size(), 0, "bytes len have to be divisible by block size");
-
+        pub fn classify_quoted_sequences<I: Input>(
+            bytes: &I,
+        ) -> impl QuoteClassifiedIterator<I, BLOCK_SIZE> {
             SequentialQuoteClassifier::new(bytes)
         }
     }
     else if #[cfg(simd = "avx2")] {
         mod avx2;
         use avx2::Avx2QuoteClassifier;
-        use aligners::alignment;
 
         /// Walk through the JSON document represented by `bytes`
         /// and classify quoted sequences.
         #[must_use]
         #[inline(always)]
-        pub fn classify_quoted_sequences(
-            bytes: &AlignedSlice<alignment::Twice<BlockAlignment>>,
-        ) -> impl QuoteClassifiedIterator {
-            assert_eq!(bytes.len() % Avx2QuoteClassifier::block_size(), 0, "bytes len have to be divisible by block size");
-
+        pub fn classify_quoted_sequences<I: Input>(
+            bytes: &I,
+        ) -> impl QuoteClassifiedIterator<I, BLOCK_SIZE> {
             Avx2QuoteClassifier::new(bytes)
         }
     }

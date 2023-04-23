@@ -205,6 +205,7 @@
 pub mod classification;
 pub mod engine;
 pub mod error;
+pub mod input;
 pub mod query;
 pub mod result;
 use cfg_if::cfg_if;

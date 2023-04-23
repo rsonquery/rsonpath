@@ -80,7 +80,11 @@
 //! unreachable!();
 //! ```
 //!
-use crate::classification::{quotes::QuoteClassifiedIterator, ResumeClassifierState};
+use super::structural::BracketType;
+use crate::{
+    classification::{quotes::QuoteClassifiedIterator, ResumeClassifierState, BLOCK_SIZE},
+    input::Input,
+};
 use cfg_if::cfg_if;
 
 /// Common trait for structs that enrich a byte block with JSON depth information.
@@ -116,7 +120,7 @@ pub trait DepthBlock<'a>: Sized {
 
 /// Trait for depth iterators, i.e. finite iterators returning depth information
 /// about JSON documents.
-pub trait DepthIterator<'a, I: QuoteClassifiedIterator<'a>>:
+pub trait DepthIterator<'a, I: Input + 'a, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize>:
     Iterator<Item = Self::Block> + 'a
 {
     /// Type of the [`DepthBlock`] implementation used by this iterator.
@@ -124,18 +128,24 @@ pub trait DepthIterator<'a, I: QuoteClassifiedIterator<'a>>:
 
     /// Resume classification from a state retrieved by a previous
     /// [`DepthIterator::stop`] or [`StructuralIterator::stop`](`crate::classification::structural::StructuralIterator::stop`) invocation.
-    fn resume(state: ResumeClassifierState<'a, I>, opening: u8) -> (Option<Self::Block>, Self);
+    fn resume(
+        state: ResumeClassifierState<'a, I, Q, N>,
+        opening: BracketType,
+    ) -> (Option<Self::Block>, Self);
 
     /// Stop classification and return a state object that can be used to resume
     /// a classifier from the place in which the current one was stopped.
-    fn stop(self, block: Option<Self::Block>) -> ResumeClassifierState<'a, I>;
+    fn stop(self, block: Option<Self::Block>) -> ResumeClassifierState<'a, I, Q, N>;
 }
 
 /// The result of resuming a [`DepthIterator`] &ndash; the first block and the rest of the iterator.
-pub struct DepthIteratorResumeOutcome<'a, I: QuoteClassifiedIterator<'a>, D: DepthIterator<'a, I>>(
-    pub Option<D::Block>,
-    pub D,
-);
+pub struct DepthIteratorResumeOutcome<
+    'a,
+    I: Input,
+    Q: QuoteClassifiedIterator<'a, I, N>,
+    D: DepthIterator<'a, I, Q, N>,
+    const N: usize,
+>(pub Option<D::Block>, pub D);
 
 cfg_if! {
     if #[cfg(any(doc, not(feature = "simd")))] {
@@ -143,16 +153,19 @@ cfg_if! {
 
         /// Enrich quote classified blocks with depth information.
         #[inline(always)]
-        pub fn classify_depth<'a, I: QuoteClassifiedIterator<'a>>(iter: I, opening: u8) -> impl DepthIterator<'a, I> {
+        pub fn classify_depth<'a, I: Input + 'a, Q: QuoteClassifiedIterator<'a, I, BLOCK_SIZE>>(
+            iter: Q,
+            opening: BracketType
+        ) -> impl DepthIterator<'a, I, Q, BLOCK_SIZE> {
             nosimd::VectorIterator::new(iter, opening)
         }
 
         /// Resume classification using a state retrieved from a previously
         /// used classifier via the `stop` function.
         #[inline(always)]
-        pub fn resume_depth_classification<'a, I: QuoteClassifiedIterator<'a>>(
-            state: ResumeClassifierState<'a, I>, opening: u8
-        ) -> DepthIteratorResumeOutcome<'a, I, impl DepthIterator<'a, I>> {
+        pub fn resume_depth_classification<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, BLOCK_SIZE>>(
+            state: ResumeClassifierState<'a, I, Q, BLOCK_SIZE>, opening: BracketType
+        ) -> DepthIteratorResumeOutcome<'a, I, Q, impl DepthIterator<'a, I, Q, BLOCK_SIZE>, BLOCK_SIZE> {
             let (first_block, iter) = nosimd::VectorIterator::resume(state, opening);
             DepthIteratorResumeOutcome(first_block, iter)
         }
@@ -162,16 +175,19 @@ cfg_if! {
 
         /// Enrich quote classified blocks with depth information.
         #[inline(always)]
-        pub fn classify_depth<'a, I: QuoteClassifiedIterator<'a>>(iter: I, opening: u8) -> impl DepthIterator<'a, I> {
+        pub fn classify_depth<'a, I: Input + 'a, Q: QuoteClassifiedIterator<'a, I, BLOCK_SIZE>>(
+            iter: Q,
+            opening: BracketType
+        ) -> impl DepthIterator<'a, I, Q, BLOCK_SIZE> {
             avx2::VectorIterator::new(iter, opening)
         }
 
         /// Resume classification using a state retrieved from a previously
         /// used classifier via the `stop` function.
         #[inline(always)]
-        pub fn resume_depth_classification<'a, I: QuoteClassifiedIterator<'a>>(
-            state: ResumeClassifierState<'a, I>, opening: u8
-        ) -> DepthIteratorResumeOutcome<'a, I, impl DepthIterator<'a, I>> {
+        pub fn resume_depth_classification<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, BLOCK_SIZE>>(
+            state: ResumeClassifierState<'a, I, Q, BLOCK_SIZE>, opening: BracketType
+        ) -> DepthIteratorResumeOutcome<'a, I, Q, impl DepthIterator<'a, I, Q, BLOCK_SIZE>, BLOCK_SIZE> {
             let (first_block, iter) = avx2::VectorIterator::resume(state, opening);
             DepthIteratorResumeOutcome(first_block, iter)
         }

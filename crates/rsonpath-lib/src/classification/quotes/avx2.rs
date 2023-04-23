@@ -15,26 +15,28 @@ cfg_if::cfg_if! {
 use super::*;
 use crate::bin;
 use crate::debug;
-use crate::BlockAlignment;
-use aligners::alignment::Alignment;
-use aligners::{AlignedBlock, AlignedBlockIterator, AlignedSlice};
+use crate::input::{Input, InputBlock, InputBlockIterator};
 
 #[cfg(target_arch = "x86")]
 use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 
-pub(crate) struct Avx2QuoteClassifier<'a> {
-    iter: AlignedBlockIterator<'a, Twice<BlockAlignment>>,
+const SIZE: usize = 64;
+
+pub(crate) struct Avx2QuoteClassifier<'a, I: Input> {
+    _input: &'a I,
+    iter: I::BlockIterator<'a, SIZE>,
     offset: Option<usize>,
     classifier: BlockAvx2Classifier,
 }
 
-impl<'a> Avx2QuoteClassifier<'a> {
+impl<'a, I: Input> Avx2QuoteClassifier<'a, I> {
     #[inline]
-    pub(crate) fn new(bytes: &'a AlignedSlice<Twice<BlockAlignment>>) -> Self {
+    pub(crate) fn new(input: &'a I) -> Self {
         Self {
-            iter: bytes.iter_blocks(),
+            _input: input,
+            iter: input.iter_blocks::<SIZE>(),
             offset: None,
             // SAFETY: target_feature invariant
             classifier: unsafe { BlockAvx2Classifier::new() },
@@ -42,8 +44,12 @@ impl<'a> Avx2QuoteClassifier<'a> {
     }
 }
 
-impl<'a> Iterator for Avx2QuoteClassifier<'a> {
-    type Item = QuoteClassifiedBlock<'a>;
+impl<'a, I: Input> Iterator for Avx2QuoteClassifier<'a, I> {
+    type Item = QuoteClassifiedBlock<
+        'a,
+        <<I as Input>::BlockIterator<'a, 64> as InputBlockIterator<'a, 64>>::Block,
+        64,
+    >;
 
     #[inline(always)]
     fn next(&mut self) -> Option<Self::Item> {
@@ -56,10 +62,11 @@ impl<'a> Iterator for Avx2QuoteClassifier<'a> {
                 }
 
                 // SAFETY: target_feature invariant
-                let mask = unsafe { self.classifier.classify(block) };
+                let mask = unsafe { self.classifier.classify(&block) };
                 let classified_block = QuoteClassifiedBlock {
                     block,
                     within_quotes_mask: mask,
+                    phantom: PhantomData,
                 };
                 Some(classified_block)
             }
@@ -68,17 +75,9 @@ impl<'a> Iterator for Avx2QuoteClassifier<'a> {
     }
 }
 
-impl std::iter::FusedIterator for Avx2QuoteClassifier<'_> {}
+impl<I: Input> std::iter::FusedIterator for Avx2QuoteClassifier<'_, I> {}
 
-impl<'a> QuoteClassifiedIterator<'a> for Avx2QuoteClassifier<'a> {
-    fn block_size() -> usize {
-        Twice::<BlockAlignment>::size()
-    }
-
-    fn is_empty(&self) -> bool {
-        self.iter.len() == 0
-    }
-
+impl<'a, I: Input + 'a> QuoteClassifiedIterator<'a, I, 64> for Avx2QuoteClassifier<'a, I> {
     fn get_offset(&self) -> usize {
         self.offset.unwrap_or(0)
     }
@@ -94,8 +93,8 @@ impl<'a> QuoteClassifiedIterator<'a> for Avx2QuoteClassifier<'a> {
         self.iter.offset(count);
 
         self.offset = Some(match self.offset {
-            None => (count as usize - 1) * Self::block_size(),
-            Some(offset) => offset + (count as usize) * Self::block_size(),
+            None => (count as usize - 1) * BLOCK_SIZE,
+            Some(offset) => offset + (count as usize) * BLOCK_SIZE,
         });
     }
 
@@ -168,7 +167,7 @@ impl BlockAvx2Classifier {
     #[target_feature(enable = "avx2")]
     #[target_feature(enable = "pclmulqdq")]
     #[inline]
-    unsafe fn classify(&mut self, two_blocks: &AlignedBlock<Twice<BlockAlignment>>) -> u64 {
+    unsafe fn classify<'a, B: InputBlock<'a, 64>>(&mut self, two_blocks: &B) -> u64 {
         /* For a 64-bit architecture, we classify two adjacent 32-byte blocks and combine their masks
          * into a single 64-bit mask, which is significantly more performant.
          *
@@ -366,12 +365,9 @@ impl BlockAvx2Classifier {
 
 #[cfg(test)]
 mod tests {
-    use aligners::{alignment::Twice, AlignedBytes};
-    use test_case::test_case;
-
-    use crate::BlockAlignment;
-
     use super::Avx2QuoteClassifier;
+    use crate::{input::InMemoryInput, classification::BLOCK_SIZE};
+    use test_case::test_case;
 
     #[test_case("" => None)]
     #[test_case("abcd" => Some(0))]
@@ -381,8 +377,9 @@ mod tests {
     #[test_case(r#"abc\\"abc\\""# => Some(0b0111_1110_0000))]
     #[test_case(r#"{"aaa":[{},{"b":{"c":[1,2,3]}}],"e":{"a":[[],[1,2,3],"# => Some(0b0_0000_0000_0000_0110_0011_0000_0000_0000_0110_0011_0000_0001_1110))]
     fn single_block(str: &str) -> Option<u64> {
-        let bytes: AlignedBytes<Twice<BlockAlignment>> = AlignedBytes::new_padded(str.as_bytes());
-        let mut classifier = Avx2QuoteClassifier::new(&bytes);
+        let mut owned_str = str.to_owned();
+        let input = InMemoryInput::new(&mut owned_str, BLOCK_SIZE);
+        let mut classifier = Avx2QuoteClassifier::new(&input);
         classifier.next().map(|x| x.within_quotes_mask)
     }
 }

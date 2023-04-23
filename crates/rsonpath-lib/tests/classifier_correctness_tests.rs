@@ -1,11 +1,13 @@
-use aligners::AlignedBytes;
+use rsonpath_lib::classification::BLOCK_SIZE;
 use rsonpath_lib::classification::quotes::classify_quoted_sequences;
 use rsonpath_lib::classification::structural::{
     classify_structural_characters, BracketType, Structural, StructuralIterator,
 };
+use rsonpath_lib::input::InMemoryInput;
 
 fn classify_string(json: &str) -> Vec<Structural> {
-    let bytes = AlignedBytes::new_padded(json.as_bytes());
+    let mut json_string = json.to_owned();
+    let bytes = InMemoryInput::new(&mut json_string, BLOCK_SIZE);
     let quotes_classifier = classify_quoted_sequences(&bytes);
     let mut structural_classifier = classify_structural_characters(quotes_classifier);
     structural_classifier.turn_commas_on(0);

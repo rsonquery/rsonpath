@@ -13,8 +13,8 @@ cfg_if::cfg_if! {
 }
 
 use crate::classification::{quotes::QuoteClassifiedBlock, ResumeClassifierBlockState};
+use crate::input::{IBlock, Input, InputBlock};
 use crate::{bin, debug};
-use aligners::{alignment::TwoTo, AlignedSlice};
 use std::marker::PhantomData;
 
 use super::*;
@@ -23,16 +23,16 @@ use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 
-pub(crate) struct VectorIterator<'a, I: QuoteClassifiedIterator<'a>> {
-    iter: I,
+pub(crate) struct VectorIterator<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> {
+    iter: Q,
     classifier: DelimiterClassifierImpl,
     were_commas_on: bool,
     were_colons_on: bool,
     phantom: PhantomData<&'a I>,
 }
 
-impl<'a, I: QuoteClassifiedIterator<'a>> VectorIterator<'a, I> {
-    pub(crate) fn new(iter: I, opening: u8) -> Self {
+impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> VectorIterator<'a, I, Q> {
+    pub(crate) fn new(iter: Q, opening: BracketType) -> Self {
         Self {
             iter,
             classifier: DelimiterClassifierImpl::new(opening),
@@ -43,8 +43,8 @@ impl<'a, I: QuoteClassifiedIterator<'a>> VectorIterator<'a, I> {
     }
 }
 
-impl<'a, I: QuoteClassifiedIterator<'a>> Iterator for VectorIterator<'a, I> {
-    type Item = Vector<'a>;
+impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> Iterator for VectorIterator<'a, I, Q> {
+    type Item = Vector<'a, I>;
 
     #[inline(always)]
     fn next(&mut self) -> Option<Self::Item> {
@@ -53,10 +53,12 @@ impl<'a, I: QuoteClassifiedIterator<'a>> Iterator for VectorIterator<'a, I> {
     }
 }
 
-impl<'a, I: QuoteClassifiedIterator<'a> + 'a> DepthIterator<'a, I> for VectorIterator<'a, I> {
-    type Block = Vector<'a>;
+impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> DepthIterator<'a, I, Q, 64>
+    for VectorIterator<'a, I, Q>
+{
+    type Block = Vector<'a, I>;
 
-    fn stop(self, block: Option<Self::Block>) -> ResumeClassifierState<'a, I> {
+    fn stop(self, block: Option<Self::Block>) -> ResumeClassifierState<'a, I, Q, 64> {
         let block_state = block.and_then(|b| {
             let idx = b.idx;
             debug!("Depth iterator stopping at index {idx}");
@@ -78,7 +80,10 @@ impl<'a, I: QuoteClassifiedIterator<'a> + 'a> DepthIterator<'a, I> for VectorIte
         }
     }
 
-    fn resume(state: ResumeClassifierState<'a, I>, opening: u8) -> (Option<Self::Block>, Self) {
+    fn resume(
+        state: ResumeClassifierState<'a, I, Q, 64>,
+        opening: BracketType,
+    ) -> (Option<Self::Block>, Self) {
         let classifier = DelimiterClassifierImpl::new(opening);
         let first_block = state.block.and_then(|b| {
             if b.idx == 64 {
@@ -117,8 +122,8 @@ impl<'a, I: QuoteClassifiedIterator<'a> + 'a> DepthIterator<'a, I> for VectorIte
     )))
 )]
 
-pub(crate) struct Vector<'a> {
-    quote_classified: QuoteClassifiedBlock<'a>,
+pub(crate) struct Vector<'a, I: Input + 'a> {
+    quote_classified: QuoteClassifiedBlock<'a, IBlock<'a, I, 64>, 64>,
     opening_mask: u64,
     opening_count: u32,
     closing_mask: u64,
@@ -126,15 +131,18 @@ pub(crate) struct Vector<'a> {
     depth: i32,
 }
 
-impl<'a> Vector<'a> {
+impl<'a, I: Input> Vector<'a, I> {
     #[inline]
-    fn new(bytes: QuoteClassifiedBlock<'a>, classifier: &DelimiterClassifierImpl) -> Self {
+    fn new(
+        bytes: QuoteClassifiedBlock<'a, IBlock<'a, I, 64>, 64>,
+        classifier: &DelimiterClassifierImpl,
+    ) -> Self {
         Self::new_from(bytes, classifier, 0)
     }
 
     #[inline]
     fn new_from(
-        bytes: QuoteClassifiedBlock<'a>,
+        bytes: QuoteClassifiedBlock<'a, IBlock<'a, I, 64>, 64>,
         classifier: &DelimiterClassifierImpl,
         idx: usize,
     ) -> Self {
@@ -145,7 +153,7 @@ impl<'a> Vector<'a> {
     #[target_feature(enable = "avx2")]
     #[inline]
     unsafe fn new_avx2(
-        bytes: QuoteClassifiedBlock<'a>,
+        bytes: QuoteClassifiedBlock<'a, IBlock<'a, I, 64>, 64>,
         classifier: &DelimiterClassifierImpl,
         start_idx: usize,
     ) -> Self {
@@ -180,7 +188,7 @@ impl<'a> Vector<'a> {
     }
 }
 
-impl<'a> DepthBlock<'a> for Vector<'a> {
+impl<'a, I: Input> DepthBlock<'a> for Vector<'a, I> {
     #[inline(always)]
     fn advance_to_next_depth_decrease(&mut self) -> bool {
         let next_closing = self.closing_mask.trailing_zeros() as usize;
@@ -243,7 +251,11 @@ struct DelimiterClassifierImpl {
 
 impl DelimiterClassifierImpl {
     #[inline(always)]
-    fn new(opening: u8) -> Self {
+    fn new(opening: BracketType) -> Self {
+        let opening = match opening {
+            BracketType::Square => b'[',
+            BracketType::Curly => b'{',
+        };
         let closing = opening + 2;
 
         // SAFETY: target_feature invariant
@@ -259,10 +271,8 @@ impl DelimiterClassifierImpl {
     }
 
     #[inline(always)]
-    fn get_opening_and_closing_vectors(
-        &self,
-        bytes: &AlignedSlice<TwoTo<5>>,
-    ) -> (__m256i, __m256i) {
+    fn get_opening_and_closing_vectors(&self, bytes: &[u8]) -> (__m256i, __m256i) {
+        assert_eq!(32, bytes.len());
         // SAFETY: target_feature invariant
         unsafe {
             let byte_vector = _mm256_load_si256(bytes.as_ptr().cast::<__m256i>());

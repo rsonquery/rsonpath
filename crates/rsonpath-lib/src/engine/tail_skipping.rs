@@ -1,36 +1,42 @@
 use crate::classification::depth::{
     resume_depth_classification, DepthBlock, DepthIterator, DepthIteratorResumeOutcome,
 };
-use crate::classification::quotes::QuoteClassifiedIterator;
-use crate::classification::structural::StructuralIterator;
 #[cfg(feature = "head-skip")]
 use crate::classification::ResumeClassifierState;
+use crate::classification::{
+    quotes::QuoteClassifiedIterator,
+    structural::{BracketType, StructuralIterator},
+    BLOCK_SIZE,
+};
 use crate::debug;
+use crate::input::Input;
 use replace_with::replace_with_or_abort;
 use std::marker::PhantomData;
 
-pub(crate) struct TailSkip<'b, Q, I>
+pub(crate) struct TailSkip<'b, I, Q, S, const N: usize>
 where
-    Q: QuoteClassifiedIterator<'b>,
-    I: StructuralIterator<'b, Q>,
+    I: Input,
+    Q: QuoteClassifiedIterator<'b, I, N>,
+    S: StructuralIterator<'b, I, Q, N>,
 {
-    classifier: I,
-    phantom: PhantomData<&'b Q>,
+    classifier: S,
+    phantom: PhantomData<&'b (I, Q)>,
 }
 
-impl<'b, Q, I> TailSkip<'b, Q, I>
+impl<'b, I, Q, S> TailSkip<'b, I, Q, S, BLOCK_SIZE>
 where
-    Q: QuoteClassifiedIterator<'b>,
-    I: StructuralIterator<'b, Q>,
+    I: Input,
+    Q: QuoteClassifiedIterator<'b, I, BLOCK_SIZE>,
+    S: StructuralIterator<'b, I, Q, BLOCK_SIZE>,
 {
-    pub(crate) fn new(classifier: I) -> Self {
+    pub(crate) fn new(classifier: S) -> Self {
         Self {
             classifier,
             phantom: PhantomData,
         }
     }
 
-    pub(crate) fn skip(&mut self, opening: u8) -> usize {
+    pub(crate) fn skip(&mut self, opening: BracketType) -> usize {
         debug!("Skipping");
         let mut idx = 0;
 
@@ -65,34 +71,36 @@ where
             let resume_state = depth_classifier.stop(current_vector);
             debug!("Finished at {}", resume_state.get_idx());
             idx = resume_state.get_idx();
-            I::resume(resume_state)
+            S::resume(resume_state)
         });
 
         idx
     }
 
     #[cfg(feature = "head-skip")]
-    pub(crate) fn stop(self) -> ResumeClassifierState<'b, Q> {
+    pub(crate) fn stop(self) -> ResumeClassifierState<'b, I, Q, BLOCK_SIZE> {
         self.classifier.stop()
     }
 }
 
-impl<'b, Q, I> std::ops::Deref for TailSkip<'b, Q, I>
+impl<'b, I, Q, S, const N: usize> std::ops::Deref for TailSkip<'b, I, Q, S, N>
 where
-    Q: QuoteClassifiedIterator<'b>,
-    I: StructuralIterator<'b, Q>,
+    I: Input,
+    Q: QuoteClassifiedIterator<'b, I, N>,
+    S: StructuralIterator<'b, I, Q, N>,
 {
-    type Target = I;
+    type Target = S;
 
     fn deref(&self) -> &Self::Target {
         &self.classifier
     }
 }
 
-impl<'b, Q, I> std::ops::DerefMut for TailSkip<'b, Q, I>
+impl<'b, I, Q, S, const N: usize> std::ops::DerefMut for TailSkip<'b, I, Q, S, N>
 where
-    Q: QuoteClassifiedIterator<'b>,
-    I: StructuralIterator<'b, Q>,
+    I: Input,
+    Q: QuoteClassifiedIterator<'b, I, N>,
+    S: StructuralIterator<'b, I, Q, N>,
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.classifier

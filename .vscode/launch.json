@@ -15,7 +15,6 @@
                 "args": [
                     "build",
                     "--bin=rsonpath",
-                    "--no-default-features"
                 ],
                 "filter": {
                     "name": "rsonpath",
@@ -23,8 +22,8 @@
                 }
             },
             "args": [
-                "$.a.b",
-                "./crates/rsonpath-lib/tests/data/basic/skipping.json",
+                "$..datavalue..value..id",
+                "./crates/rsonpath-lib/tests/data/wikidata/wikidata_person.json",
                 "-e",
                 "main",
                 "-v"

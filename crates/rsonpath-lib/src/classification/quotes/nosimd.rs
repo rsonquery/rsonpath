@@ -1,19 +1,19 @@
-use super::*;
-use aligners::alignment::Alignment;
-use aligners::{AlignedBlockIterator, AlignedSlice};
+use crate::input::InputBlockIterator;
 
-pub(crate) struct SequentialQuoteClassifier<'a> {
-    iter: AlignedBlockIterator<'a, alignment::Twice<BlockAlignment>>,
+use super::*;
+
+pub(crate) struct SequentialQuoteClassifier<'a, I: Input + 'a, const N: usize> {
+    iter: I::BlockIterator<'a, N>,
     escaped: bool,
     in_quotes: bool,
     offset: Option<usize>,
 }
 
-impl<'a> SequentialQuoteClassifier<'a> {
+impl<'a, I: Input, const N: usize> SequentialQuoteClassifier<'a, I, N> {
     #[inline(always)]
-    pub(crate) fn new(bytes: &'a AlignedSlice<alignment::Twice<BlockAlignment>>) -> Self {
+    pub(crate) fn new(input: &'a I) -> Self {
         Self {
-            iter: bytes.iter_blocks(),
+            iter: input.iter_blocks(),
             escaped: false,
             in_quotes: false,
             offset: None,
@@ -21,18 +21,18 @@ impl<'a> SequentialQuoteClassifier<'a> {
     }
 }
 
-impl<'a> Iterator for SequentialQuoteClassifier<'a> {
-    type Item = QuoteClassifiedBlock<'a>;
+impl<'a, I: Input, const N: usize> Iterator for SequentialQuoteClassifier<'a, I, N> {
+    type Item = QuoteClassifiedBlock<'a, IBlock<'a, I, N>, N>;
 
     #[inline(always)]
-    fn next(&mut self) -> Option<QuoteClassifiedBlock<'a>> {
+    fn next(&mut self) -> Option<Self::Item> {
         match self.iter.next() {
             Some(block) => {
                 let mut mask = 0_u64;
                 let mut idx_mask = 1;
 
                 if let Some(offset) = self.offset {
-                    self.offset = Some(offset + Self::block_size());
+                    self.offset = Some(offset + N);
                 } else {
                     self.offset = Some(0);
                 }
@@ -58,6 +58,7 @@ impl<'a> Iterator for SequentialQuoteClassifier<'a> {
                 Some(QuoteClassifiedBlock {
                     block,
                     within_quotes_mask: mask,
+                    phantom: PhantomData,
                 })
             }
             None => None,
@@ -65,17 +66,14 @@ impl<'a> Iterator for SequentialQuoteClassifier<'a> {
     }
 }
 
-impl<'a> std::iter::FusedIterator for SequentialQuoteClassifier<'a> {}
+impl<'a, I: Input, const N: usize> std::iter::FusedIterator
+    for SequentialQuoteClassifier<'a, I, N>
+{
+}
 
-impl<'a> QuoteClassifiedIterator<'a> for SequentialQuoteClassifier<'a> {
-    fn block_size() -> usize {
-        Twice::<BlockAlignment>::size()
-    }
-
-    fn is_empty(&self) -> bool {
-        self.iter.len() == 0
-    }
-
+impl<'a, I: Input, const N: usize> QuoteClassifiedIterator<'a, I, N>
+    for SequentialQuoteClassifier<'a, I, N>
+{
     fn get_offset(&self) -> usize {
         self.offset.unwrap_or(0)
     }
@@ -87,8 +85,8 @@ impl<'a> QuoteClassifiedIterator<'a> for SequentialQuoteClassifier<'a> {
 
         self.iter.offset(count);
         self.offset = Some(match self.offset {
-            None => (count as usize - 1) * Self::block_size(),
-            Some(offset) => offset + (count as usize) * Self::block_size(),
+            None => (count as usize - 1) * BLOCK_SIZE,
+            Some(offset) => offset + (count as usize) * BLOCK_SIZE,
         });
     }
 

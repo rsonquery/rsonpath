@@ -1,18 +1,22 @@
 use super::*;
 use crate::classification::{quotes::QuoteClassifiedBlock, ResumeClassifierBlockState};
 use crate::debug;
+use crate::input::IBlock;
 use std::marker::PhantomData;
 
-pub(crate) struct VectorIterator<'a, I: QuoteClassifiedIterator<'a>> {
-    iter: I,
-    opening: u8,
+pub(crate) struct VectorIterator<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize>
+{
+    iter: Q,
+    opening: BracketType,
     were_commas_on: bool,
     were_colons_on: bool,
     phantom: PhantomData<&'a I>,
 }
 
-impl<'a, I: QuoteClassifiedIterator<'a>> VectorIterator<'a, I> {
-    pub(crate) fn new(iter: I, opening: u8) -> Self {
+impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize>
+    VectorIterator<'a, I, Q, N>
+{
+    pub(crate) fn new(iter: Q, opening: BracketType) -> Self {
         Self {
             iter,
             opening,
@@ -23,8 +27,10 @@ impl<'a, I: QuoteClassifiedIterator<'a>> VectorIterator<'a, I> {
     }
 }
 
-impl<'a, I: QuoteClassifiedIterator<'a>> Iterator for VectorIterator<'a, I> {
-    type Item = Vector<'a>;
+impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> Iterator
+    for VectorIterator<'a, I, Q, N>
+{
+    type Item = Vector<'a, I, N>;
 
     fn next(&mut self) -> Option<Self::Item> {
         let quote_classified = self.iter.next();
@@ -32,10 +38,12 @@ impl<'a, I: QuoteClassifiedIterator<'a>> Iterator for VectorIterator<'a, I> {
     }
 }
 
-impl<'a, I: QuoteClassifiedIterator<'a>> DepthIterator<'a, I> for VectorIterator<'a, I> {
-    type Block = Vector<'a>;
+impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> DepthIterator<'a, I, Q, N>
+    for VectorIterator<'a, I, Q, N>
+{
+    type Block = Vector<'a, I, N>;
 
-    fn stop(self, block: Option<Self::Block>) -> ResumeClassifierState<'a, I> {
+    fn stop(self, block: Option<Self::Block>) -> ResumeClassifierState<'a, I, Q, N> {
         let block_state = block.and_then(|b| {
             debug!("Depth iterator stopping at index {}", b.idx);
             if b.idx >= b.quote_classified.len() {
@@ -56,7 +64,10 @@ impl<'a, I: QuoteClassifiedIterator<'a>> DepthIterator<'a, I> for VectorIterator
         }
     }
 
-    fn resume(state: ResumeClassifierState<'a, I>, opening: u8) -> (Option<Self::Block>, Self) {
+    fn resume(
+        state: ResumeClassifierState<'a, I, Q, N>,
+        opening: BracketType,
+    ) -> (Option<Self::Block>, Self) {
         let first_block = state
             .block
             .map(|b| Vector::new_from(b.block, opening, b.idx));
@@ -74,26 +85,30 @@ impl<'a, I: QuoteClassifiedIterator<'a>> DepthIterator<'a, I> for VectorIterator
     }
 }
 
-pub(crate) struct Vector<'a> {
-    quote_classified: QuoteClassifiedBlock<'a>,
+pub(crate) struct Vector<'a, I: Input + 'a, const N: usize> {
+    quote_classified: QuoteClassifiedBlock<'a, IBlock<'a, I, N>, N>,
     depth: isize,
     idx: usize,
-    opening: u8,
+    bracket_type: BracketType,
 }
 
-impl<'a> Vector<'a> {
+impl<'a, I: Input, const N: usize> Vector<'a, I, N> {
     #[inline]
-    pub(crate) fn new(bytes: QuoteClassifiedBlock<'a>, opening: u8) -> Self {
+    pub(crate) fn new(bytes: QuoteClassifiedBlock<'a, IBlock<'a, I, N>, N>, opening: BracketType) -> Self {
         Self::new_from(bytes, opening, 0)
     }
 
     #[inline]
-    fn new_from(bytes: QuoteClassifiedBlock<'a>, opening: u8, idx: usize) -> Self {
+    fn new_from(
+        bytes: QuoteClassifiedBlock<'a, IBlock<'a, I, N>, N>,
+        opening: BracketType,
+        idx: usize,
+    ) -> Self {
         Self {
             quote_classified: bytes,
             depth: 0,
             idx,
-            opening,
+            bracket_type: opening,
         }
     }
 
@@ -131,7 +146,7 @@ impl<'a> Vector<'a> {
     }
 }
 
-impl<'a> DepthBlock<'a> for Vector<'a> {
+impl<'a, I: Input, const N: usize> DepthBlock<'a> for Vector<'a, I, N> {
     #[inline]
     fn get_depth(&self) -> isize {
         self.depth
@@ -147,12 +162,15 @@ impl<'a> DepthBlock<'a> for Vector<'a> {
 
     #[inline]
     fn advance_to_next_depth_decrease(&mut self) -> bool {
-        let closing = self.opening + 2;
+        let (opening, closing) = match self.bracket_type {
+            BracketType::Square => (b'[', b']'),
+            BracketType::Curly => (b'{', b'}'),
+        };
         while self.idx < self.quote_classified.len() {
             let character = self.get_char(self.idx);
             self.idx += 1;
 
-            if character == Some(self.opening) {
+            if character == Some(opening) {
                 self.depth += 1;
             } else if character == Some(closing) {
                 self.depth -= 1;

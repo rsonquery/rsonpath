@@ -1,6 +1,8 @@
+use rsonpath_lib::classification::BLOCK_SIZE;
 use rsonpath_lib::engine::main::MainEngine;
 use rsonpath_lib::engine::recursive::RecursiveEngine;
-use rsonpath_lib::engine::{Compiler, Engine, Input};
+use rsonpath_lib::engine::{Compiler, Engine};
+use rsonpath_lib::input::InMemoryInput;
 use rsonpath_lib::query::JsonPathQuery;
 use rsonpath_lib::result::{CountResult, IndexResult};
 use std::fs;
@@ -8,10 +10,10 @@ use test_case::test_case;
 
 const ROOT_TEST_DIRECTORY: &str = "./tests/data";
 
-fn get_contents(test_path: &str) -> Input {
+fn get_contents(test_path: &str) -> InMemoryInput {
     let path = format!("{ROOT_TEST_DIRECTORY}/{test_path}");
     let mut raw = fs::read_to_string(path).unwrap();
-    Input::new(&mut raw)
+    InMemoryInput::new(&mut raw, BLOCK_SIZE)
 }
 
 macro_rules! count_test_cases {
@@ -161,7 +163,7 @@ macro_rules! count_test_cases {
         fn $test_name(test_path: &str, query_string: &str) -> usize {
             let contents = get_contents(test_path);
             let query = JsonPathQuery::parse(query_string).unwrap();
-            let result = $impl::compile_query(&query).unwrap().run::<CountResult>(&contents).unwrap();
+            let result = $impl::compile_query(&query).unwrap().run::<_, CountResult>(&contents).unwrap();
 
             result.get()
         }
@@ -241,7 +243,7 @@ macro_rules! indices_test_cases {
         fn $test_name(test_path: &str, query_string: &str) -> Vec<usize> {
             let contents = get_contents(test_path);
             let query = JsonPathQuery::parse(query_string).unwrap();
-            let result = $impl::compile_query(&query).unwrap().run::<IndexResult>(&contents).unwrap();
+            let result = $impl::compile_query(&query).unwrap().run::<_, IndexResult>(&contents).unwrap();
 
             result.into()
         }

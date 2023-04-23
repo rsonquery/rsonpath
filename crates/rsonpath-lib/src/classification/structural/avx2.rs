@@ -18,6 +18,7 @@ use crate::classification::structural::{
 use crate::classification::{
     QuoteClassifiedBlock, ResumeClassifierBlockState, ResumeClassifierState,
 };
+use crate::input::{IBlock, Input, InputBlock};
 use crate::{bin, debug};
 
 #[cfg(target_arch = "x86")]
@@ -25,14 +26,14 @@ use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 
-struct StructuralsBlock<'a> {
-    quote_classified: QuoteClassifiedBlock<'a>,
+struct StructuralsBlock<'a, I: Input + 'a, const N: usize> {
+    quote_classified: QuoteClassifiedBlock<'a, IBlock<'a, I, N>, N>,
     structural_mask: u64,
 }
 
-impl<'a> StructuralsBlock<'a> {
+impl<'a, I: Input, const N: usize> StructuralsBlock<'a, I, N> {
     #[inline(always)]
-    fn new(block: QuoteClassifiedBlock<'a>, structural_mask: u64) -> Self {
+    fn new(block: QuoteClassifiedBlock<'a, IBlock<'a, I, N>, N>, structural_mask: u64) -> Self {
         Self {
             quote_classified: block,
             structural_mask,
@@ -50,7 +51,7 @@ impl<'a> StructuralsBlock<'a> {
     }
 }
 
-impl Iterator for StructuralsBlock<'_> {
+impl<I: Input, const N: usize> Iterator for StructuralsBlock<'_, I, N> {
     type Item = Structural;
 
     #[inline]
@@ -79,25 +80,32 @@ impl Iterator for StructuralsBlock<'_> {
     }
 }
 
-impl std::iter::FusedIterator for StructuralsBlock<'_> {}
+impl<I: Input, const N: usize> std::iter::FusedIterator for StructuralsBlock<'_, I, N> {}
 
-impl ExactSizeIterator for StructuralsBlock<'_> {
+impl<I: Input, const N: usize> ExactSizeIterator for StructuralsBlock<'_, I, N> {
     fn len(&self) -> usize {
         self.structural_mask.count_ones() as usize
     }
 }
 
-pub(crate) struct Avx2Classifier<'a, I: QuoteClassifiedIterator<'a>> {
-    iter: I,
+pub(crate) struct Avx2Classifier<
+    'a,
+    I: Input,
+    Q: QuoteClassifiedIterator<'a, I, N>,
+    const N: usize,
+> {
+    iter: Q,
     classifier: BlockAvx2Classifier,
-    block: Option<StructuralsBlock<'a>>,
+    block: Option<StructuralsBlock<'a, I, N>>,
     are_commas_on: bool,
     are_colons_on: bool,
 }
 
-impl<'a, I: QuoteClassifiedIterator<'a>> Avx2Classifier<'a, I> {
+impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize>
+    Avx2Classifier<'a, I, Q, N>
+{
     #[inline]
-    pub(crate) fn new(iter: I) -> Self {
+    pub(crate) fn new(iter: Q) -> Self {
         Self {
             iter,
             // SAFETY: target_feature invariant
@@ -114,7 +122,9 @@ impl<'a, I: QuoteClassifiedIterator<'a>> Avx2Classifier<'a, I> {
     }
 }
 
-impl<'a, I: QuoteClassifiedIterator<'a>> Iterator for Avx2Classifier<'a, I> {
+impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> Iterator
+    for Avx2Classifier<'a, I, Q, N>
+{
     type Item = Structural;
 
     #[inline(always)]
@@ -138,9 +148,14 @@ impl<'a, I: QuoteClassifiedIterator<'a>> Iterator for Avx2Classifier<'a, I> {
     }
 }
 
-impl<'a, I: QuoteClassifiedIterator<'a>> std::iter::FusedIterator for Avx2Classifier<'a, I> {}
+impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> std::iter::FusedIterator
+    for Avx2Classifier<'a, I, Q, N>
+{
+}
 
-impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a, I> for Avx2Classifier<'a, I> {
+impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize>
+    StructuralIterator<'a, I, Q, N> for Avx2Classifier<'a, I, Q, N>
+{
     fn turn_commas_on(&mut self, idx: usize) {
         if !self.are_commas_on {
             self.are_commas_on = true;
@@ -150,7 +165,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a, I> for Avx2Class
 
             if let Some(block) = self.block.take() {
                 let quote_classified_block = block.quote_classified;
-                let block_idx = (idx + 1) % I::block_size();
+                let block_idx = (idx + 1) % N;
 
                 if block_idx != 0 {
                     let mask = u64::MAX << block_idx;
@@ -181,7 +196,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a, I> for Avx2Class
 
             if let Some(block) = self.block.take() {
                 let quote_classified_block = block.quote_classified;
-                let block_idx = (idx + 1) % I::block_size();
+                let block_idx = (idx + 1) % N;
 
                 if block_idx != 0 {
                     let mask = u64::MAX << block_idx;
@@ -203,7 +218,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a, I> for Avx2Class
         }
     }
 
-    fn stop(self) -> ResumeClassifierState<'a, I> {
+    fn stop(self) -> ResumeClassifierState<'a, I, Q, N> {
         let block = self.block.map(|b| ResumeClassifierBlockState {
             idx: b.get_idx() as usize,
             block: b.quote_classified,
@@ -217,7 +232,7 @@ impl<'a, I: QuoteClassifiedIterator<'a>> StructuralIterator<'a, I> for Avx2Class
         }
     }
 
-    fn resume(state: ResumeClassifierState<'a, I>) -> Self {
+    fn resume(state: ResumeClassifierState<'a, I, Q, N>) -> Self {
         // SAFETY: target_feature invariant
         let mut classifier = unsafe { BlockAvx2Classifier::new() };
 
@@ -318,10 +333,10 @@ impl BlockAvx2Classifier {
 
     #[target_feature(enable = "avx2")]
     #[inline]
-    unsafe fn classify<'a>(
+    unsafe fn classify<'a, I: Input, const N: usize>(
         &mut self,
-        quote_classified_block: QuoteClassifiedBlock<'a>,
-    ) -> StructuralsBlock<'a> {
+        quote_classified_block: QuoteClassifiedBlock<'a, IBlock<'a, I, N>, N>,
+    ) -> StructuralsBlock<'a, I, N> {
         let (block1, block2) = quote_classified_block.block.halves();
         let classification1 = self.classify_block(block1);
         let classification2 = self.classify_block(block2);

@@ -2,21 +2,23 @@
 //! the first matching label in a query starting with a self-looping state.
 //! This happens in queries starting with a descendant selector.
 use super::error::EngineError;
-use crate::classification::{
-    quotes::{classify_quoted_sequences, QuoteClassifiedIterator},
-    structural::{resume_structural_classification, Structural, StructuralIterator},
-    ResumeClassifierState,
-};
 use crate::debug;
 use crate::query::{
     automaton::{Automaton, State},
     Label,
 };
 use crate::result::QueryResult;
-use aligners::{alignment, AlignedBytes};
+use crate::{
+    classification::{
+        quotes::{classify_quoted_sequences, QuoteClassifiedIterator},
+        structural::{resume_structural_classification, Structural, StructuralIterator},
+        ResumeClassifierState, BLOCK_SIZE,
+    },
+    input::Input,
+};
 
 /// Trait that needs to be implemented by an [`Engine`](`super::Engine`) to use this submodule.
-pub(super) trait CanHeadSkip<'b> {
+pub(super) trait CanHeadSkip<'b, I: Input, const N: usize> {
     /// Function called when head-skipping finds a label at which normal query execution
     /// should resume.
     ///
@@ -30,28 +32,29 @@ pub(super) trait CanHeadSkip<'b> {
     /// and execute the query until a matching [`Structural::Closing`] character is encountered,
     /// using `classifier` for classification and `result` for reporting query results. The `classifier`
     /// must *not* be used to classify anything past the matching [`Structural::Closing`] character.
-    fn run_on_subtree<'r, R, Q, I>(
+    fn run_on_subtree<'r, R, Q, S>(
         &mut self,
         next_event: Structural,
         state: State,
-        structural_classifier: I,
+        structural_classifier: S,
         result: &'r mut R,
-    ) -> Result<ResumeClassifierState<'b, Q>, EngineError>
+    ) -> Result<ResumeClassifierState<'b, I, Q, N>, EngineError>
     where
-        Q: QuoteClassifiedIterator<'b>,
+        I: Input,
+        Q: QuoteClassifiedIterator<'b, I, N>,
         R: QueryResult,
-        I: StructuralIterator<'b, Q>;
+        S: StructuralIterator<'b, I, Q, N>;
 }
 
 /// Configuration of the head-skipping decorator.
-pub(super) struct HeadSkip<'b, 'q> {
-    bytes: &'b AlignedBytes<alignment::Page>,
+pub(super) struct HeadSkip<'b, 'q, I: Input, const N: usize> {
+    bytes: &'b I,
     state: State,
     is_accepting: bool,
     label: &'q Label,
 }
 
-impl<'b, 'q> HeadSkip<'b, 'q> {
+impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
     /// Create a new instance of the head-skipping decorator over a given input
     /// and for a compiled query [`Automaton`].
     ///
@@ -63,7 +66,7 @@ impl<'b, 'q> HeadSkip<'b, 'q> {
     /// ## Details
     /// Head-skipping is possible if the query automaton starts
     /// with a state with a wildcard self-loop and a single labelled transition forward.
-    /// Syntacticly, if the [`fallback_state`](`crate::query::automaton::StateTable::fallback_state`)
+    /// Syntactically, if the [`fallback_state`](`crate::query::automaton::StateTable::fallback_state`)
     /// of the [`initial_state`](`crate::query::automaton::StateTable::initial_state`) is the same as the
     /// [`initial_state`](`crate::query::automaton::StateTable::initial_state`), and its
     /// [`transitions`](`crate::query::automaton::StateTable::transitions`) are a single-element list.
@@ -74,10 +77,7 @@ impl<'b, 'q> HeadSkip<'b, 'q> {
     /// extremely quickly with [`memchr::memmem`].
     ///
     /// In all other cases, head-skipping is not supported.
-    pub(super) fn new(
-        bytes: &'b AlignedBytes<alignment::Page>,
-        automaton: &'b Automaton<'q>,
-    ) -> Option<Self> {
+    pub(super) fn new(bytes: &'b I, automaton: &'b Automaton<'q>) -> Option<Self> {
         let initial_state = automaton.initial_state();
         let fallback_state = automaton[initial_state].fallback_state();
         let transitions = automaton[initial_state].transitions();
@@ -98,37 +98,30 @@ impl<'b, 'q> HeadSkip<'b, 'q> {
 
     /// Run a preconfigured [`HeadSkip`] using the given `engine` and reporting
     /// to the `result`.
-    pub(super) fn run_head_skipping<'r, E: CanHeadSkip<'b>, R: QueryResult>(
+    pub(super) fn run_head_skipping<'r, E: CanHeadSkip<'b, I, BLOCK_SIZE>, R: QueryResult>(
         &self,
         engine: &mut E,
         result: &'r mut R,
     ) -> Result<(), EngineError> {
-        use memchr::memmem;
-
         let mut classifier_state = ResumeClassifierState {
-            iter: classify_quoted_sequences(self.bytes.relax_alignment()),
+            iter: classify_quoted_sequences(self.bytes),
             block: None,
             are_commas_on: false,
             are_colons_on: false,
         };
-        let needle = self.label.bytes_with_quotes();
-        let mut idx = 0;
-        let finder = memmem::Finder::new(needle);
 
-        while let Some(starting_quote_idx) = finder.find(&self.bytes[idx..]) {
-            idx += starting_quote_idx;
+        let mut idx = 0;
+
+        while let Some(starting_quote_idx) = self.bytes.find_label(idx, self.label) {
+            idx = starting_quote_idx;
             classifier_state.are_colons_on = false;
             classifier_state.are_commas_on = false;
             debug!("Needle found at {idx}");
 
-            if idx != 0 && self.bytes[idx - 1] != b'\\' {
-                let mut colon_idx = idx + needle.len();
+            let seek_start_idx = idx + self.label.len() + 2;
 
-                while colon_idx < self.bytes.len() && self.bytes[colon_idx].is_ascii_whitespace() {
-                    colon_idx += 1;
-                }
-
-                if colon_idx < self.bytes.len() && self.bytes[colon_idx] == b':' {
+            match self.bytes.seek_non_whitespace_forward(seek_start_idx) {
+                Some((colon_idx, char)) if char == b':' => {
                     let distance = colon_idx - classifier_state.get_idx();
                     debug!("Actual match with colon at {colon_idx}");
                     debug!("Distance skipped: {distance}");
@@ -156,9 +149,10 @@ impl<'b, 'q> HeadSkip<'b, 'q> {
 
                     classifier_state = match next_event {
                         Some(opening @ Structural::Opening(_, opening_idx))
-                            if self.bytes[colon_idx + 1..opening_idx]
-                                .iter()
-                                .all(u8::is_ascii_whitespace) =>
+                            if self
+                                .bytes
+                                .seek_non_whitespace_forward(colon_idx + 1)
+                                .map_or(false, |(x, _)| x == opening_idx) =>
                         {
                             engine.run_on_subtree(opening, self.state, classifier, result)?
                         }
@@ -167,10 +161,9 @@ impl<'b, 'q> HeadSkip<'b, 'q> {
 
                     debug!("Quote classified up to {}", classifier_state.get_idx());
                     idx = classifier_state.get_idx();
-                    continue;
                 }
+                _ => idx += 1,
             }
-            idx += 1;
         }
 
         Ok(())
