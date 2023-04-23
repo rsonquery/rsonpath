@@ -72,12 +72,7 @@ impl<'a, I: Input, const N: usize> Iterator for Block<'a, I, N> {
     }
 }
 
-pub(crate) struct SequentialClassifier<
-    'a,
-    I: Input,
-    Q: QuoteClassifiedIterator<'a, I, N>,
-    const N: usize,
-> {
+pub(crate) struct SequentialClassifier<'a, I: Input, Q, const N: usize> {
     iter: Q,
     block: Option<Block<'a, I, N>>,
     are_colons_on: bool,

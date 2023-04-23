@@ -15,7 +15,6 @@ use crate::classification::ResumeClassifierState;
 use crate::classification::{
     quotes::{classify_quoted_sequences, QuoteClassifiedIterator},
     structural::{classify_structural_characters, BracketType, Structural, StructuralIterator},
-    BLOCK_SIZE,
 };
 use crate::debug;
 use crate::engine::depth::Depth;
@@ -27,6 +26,7 @@ use crate::query::automaton::{Automaton, State};
 use crate::query::error::CompilerError;
 use crate::query::{JsonPathQuery, Label};
 use crate::result::QueryResult;
+use crate::BLOCK_SIZE;
 use smallvec::{smallvec, SmallVec};
 
 /// Main engine for a fixed JSONPath query.
@@ -427,7 +427,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
     }
 
     fn is_match(&self, idx: usize, label: &Label) -> Result<bool, EngineError> {
-        let len = label.len() + 2;
+        let len = label.bytes_with_quotes().len();
 
         let closing_quote_idx = match self.bytes.seek_backward(idx - 1, b'"') {
             Some(x) => x,
@@ -452,6 +452,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
         }
     }
 
+    #[cfg(feature = "unique-labels")]
     fn current_node_bracket_type(&self) -> BracketType {
         if self.is_list {
             BracketType::Square

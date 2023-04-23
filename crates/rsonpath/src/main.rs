@@ -5,11 +5,10 @@ use color_eyre::eyre::{eyre, Result, WrapErr};
 use color_eyre::Help;
 use log::*;
 use rsonpath::{report_compiler_error, report_engine_error, report_parser_error};
-use rsonpath_lib::classification::BLOCK_SIZE;
 use rsonpath_lib::engine::main::MainEngine;
 use rsonpath_lib::engine::recursive::RecursiveEngine;
 use rsonpath_lib::engine::{Compiler, Engine};
-use rsonpath_lib::input::InMemoryInput;
+use rsonpath_lib::input::OwnedBytes;
 use rsonpath_lib::query::automaton::Automaton;
 use rsonpath_lib::query::JsonPathQuery;
 use rsonpath_lib::result::{CountResult, IndexResult, QueryResult};
@@ -80,8 +79,8 @@ fn run_with_args(args: &Args) -> Result<()> {
     if args.compile {
         compile(&query)
     } else {
-        let mut contents = get_contents(args.file_path.as_deref())?;
-        let input = InMemoryInput::new(&mut contents, BLOCK_SIZE);
+        let contents = get_contents(args.file_path.as_deref())?;
+        let input = OwnedBytes::new(&contents);
 
         match args.result {
             ResultArg::Bytes => run::<IndexResult>(&query, &input, args.engine),
@@ -100,7 +99,7 @@ fn compile(query: &JsonPathQuery) -> Result<()> {
 
 fn run<R: QueryResult>(
     query: &JsonPathQuery,
-    input: &InMemoryInput,
+    input: &OwnedBytes,
     engine: EngineArg,
 ) -> Result<()> {
     match engine {
@@ -133,7 +132,7 @@ fn run<R: QueryResult>(
 
 fn run_engine<C: Compiler, R: QueryResult>(
     query: &JsonPathQuery,
-    input: &InMemoryInput,
+    input: &OwnedBytes,
 ) -> Result<R> {
     let engine = C::compile_query(query)
         .map_err(|err| report_compiler_error(query, err).wrap_err("Error compiling the query."))?;

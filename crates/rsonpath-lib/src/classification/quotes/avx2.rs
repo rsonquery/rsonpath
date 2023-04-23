@@ -366,7 +366,7 @@ impl BlockAvx2Classifier {
 #[cfg(test)]
 mod tests {
     use super::Avx2QuoteClassifier;
-    use crate::{input::InMemoryInput, classification::BLOCK_SIZE};
+    use crate::input::OwnedBytes;
     use test_case::test_case;
 
     #[test_case("" => None)]
@@ -377,8 +377,8 @@ mod tests {
     #[test_case(r#"abc\\"abc\\""# => Some(0b0111_1110_0000))]
     #[test_case(r#"{"aaa":[{},{"b":{"c":[1,2,3]}}],"e":{"a":[[],[1,2,3],"# => Some(0b0_0000_0000_0000_0110_0011_0000_0000_0000_0110_0011_0000_0001_1110))]
     fn single_block(str: &str) -> Option<u64> {
-        let mut owned_str = str.to_owned();
-        let input = InMemoryInput::new(&mut owned_str, BLOCK_SIZE);
+        let owned_str = str.to_owned();
+        let input = OwnedBytes::new(&owned_str);
         let mut classifier = Avx2QuoteClassifier::new(&input);
         classifier.next().map(|x| x.within_quotes_mask)
     }

@@ -31,6 +31,7 @@
 			"memchr",
 			"movemask",
 			"nonescaped",
+			"nonoverlapping",
 			"nonquoted",
 			"nosimd",
 			"owo_colors",

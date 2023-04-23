@@ -22,8 +22,8 @@
                 }
             },
             "args": [
-                "$..datavalue..value..id",
-                "./crates/rsonpath-lib/tests/data/wikidata/wikidata_person.json",
+                "$..person..phoneNumber..number",
+                "./crates/rsonpath-lib/tests/data/basic/small.json",
                 "-e",
                 "main",
                 "-v"

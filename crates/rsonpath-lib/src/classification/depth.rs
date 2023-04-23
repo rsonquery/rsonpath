@@ -15,15 +15,18 @@
 //! use rsonpath_lib::classification::depth::{
 //!     classify_depth, DepthIterator, DepthBlock
 //! };
-//! use aligners::AlignedBytes;
+//! use rsonpath_lib::classification::structural::BracketType;
+//! use rsonpath_lib::input::OwnedBytes;
 //!
-//! let input = AlignedBytes::new_padded(r#"[42, {"b":[[]],"c":{}}, 44]}"#.as_bytes());
-//! // Name a few places in the input:                  ^^            ^
-//! //                                                  AB            C
+//! let json = r#"[42, {"b":[[]],"c":{}}, 44]}"#.to_owned();
+//! //                        ^^            ^
+//! //                        AB            C
+//! let input = OwnedBytes::from(json);
 //! let quote_classifier = classify_quoted_sequences(&input);
 //! // Goal: skip through the document until the end of the current list.
-//! // We pass b'[' as the opening to tell the classifier to consider only '[' and ']' characters.
-//! let mut depth_classifier = classify_depth(quote_classifier, b'[');
+//! // We pass Square as the opening bracket type
+//! // to tell the classifier to consider only '[' and ']' characters.
+//! let mut depth_classifier = classify_depth(quote_classifier, BracketType::Square);
 //! let mut depth_block = depth_classifier.next().unwrap();
 //!
 //! assert_eq!(depth_block.get_depth(), 0);
@@ -40,7 +43,8 @@
 //! ```rust
 //! use rsonpath_lib::classification::depth::{classify_depth, DepthBlock, DepthIterator};
 //! use rsonpath_lib::classification::quotes::classify_quoted_sequences;
-//! use aligners::AlignedBytes;
+//! use rsonpath_lib::classification::structural::BracketType;
+//! use rsonpath_lib::input::OwnedBytes;
 //!
 //! let json = r#"
 //!     "a": [
@@ -54,12 +58,12 @@
 //!     "b": {
 //!         "c": "value"
 //!     }
-//! }{"target":true}"#;
-//! let input = AlignedBytes::new_padded(json.as_bytes());
+//! }{"target":true}"#.to_owned();
 //! // We expect to reach the newline before the opening brace of the second object.
 //! let expected_idx = json.len() - 15;
+//! let input = OwnedBytes::from(json);
 //! let quote_classifier = classify_quoted_sequences(&input);
-//! let mut depth_classifier = classify_depth(quote_classifier, b'{');
+//! let mut depth_classifier = classify_depth(quote_classifier, BracketType::Curly);
 //! let mut current_depth = 1;
 //!
 //! while let Some(mut vector) = depth_classifier.next() {
@@ -82,8 +86,9 @@
 //!
 use super::structural::BracketType;
 use crate::{
-    classification::{quotes::QuoteClassifiedIterator, ResumeClassifierState, BLOCK_SIZE},
+    classification::{quotes::QuoteClassifiedIterator, ResumeClassifierState},
     input::Input,
+    BLOCK_SIZE,
 };
 use cfg_if::cfg_if;
 
@@ -120,7 +125,7 @@ pub trait DepthBlock<'a>: Sized {
 
 /// Trait for depth iterators, i.e. finite iterators returning depth information
 /// about JSON documents.
-pub trait DepthIterator<'a, I: Input + 'a, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize>:
+pub trait DepthIterator<'a, I: Input, Q, const N: usize>:
     Iterator<Item = Self::Block> + 'a
 {
     /// Type of the [`DepthBlock`] implementation used by this iterator.
@@ -139,60 +144,49 @@ pub trait DepthIterator<'a, I: Input + 'a, Q: QuoteClassifiedIterator<'a, I, N>,
 }
 
 /// The result of resuming a [`DepthIterator`] &ndash; the first block and the rest of the iterator.
-pub struct DepthIteratorResumeOutcome<
-    'a,
+pub struct DepthIteratorResumeOutcome<'a, I, Q, D, const N: usize>(pub Option<D::Block>, pub D)
+where
     I: Input,
-    Q: QuoteClassifiedIterator<'a, I, N>,
-    D: DepthIterator<'a, I, Q, N>,
-    const N: usize,
->(pub Option<D::Block>, pub D);
+    D: DepthIterator<'a, I, Q, N>;
 
 cfg_if! {
     if #[cfg(any(doc, not(feature = "simd")))] {
         mod nosimd;
-
-        /// Enrich quote classified blocks with depth information.
-        #[inline(always)]
-        pub fn classify_depth<'a, I: Input + 'a, Q: QuoteClassifiedIterator<'a, I, BLOCK_SIZE>>(
-            iter: Q,
-            opening: BracketType
-        ) -> impl DepthIterator<'a, I, Q, BLOCK_SIZE> {
-            nosimd::VectorIterator::new(iter, opening)
-        }
-
-        /// Resume classification using a state retrieved from a previously
-        /// used classifier via the `stop` function.
-        #[inline(always)]
-        pub fn resume_depth_classification<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, BLOCK_SIZE>>(
-            state: ResumeClassifierState<'a, I, Q, BLOCK_SIZE>, opening: BracketType
-        ) -> DepthIteratorResumeOutcome<'a, I, Q, impl DepthIterator<'a, I, Q, BLOCK_SIZE>, BLOCK_SIZE> {
-            let (first_block, iter) = nosimd::VectorIterator::resume(state, opening);
-            DepthIteratorResumeOutcome(first_block, iter)
-        }
+        type IteratorImpl<'a, I, Q, const N: usize> = nosimd::VectorIterator<'a, I, Q, N>;
     }
     else if #[cfg(simd = "avx2")] {
         mod avx2;
-
-        /// Enrich quote classified blocks with depth information.
-        #[inline(always)]
-        pub fn classify_depth<'a, I: Input + 'a, Q: QuoteClassifiedIterator<'a, I, BLOCK_SIZE>>(
-            iter: Q,
-            opening: BracketType
-        ) -> impl DepthIterator<'a, I, Q, BLOCK_SIZE> {
-            avx2::VectorIterator::new(iter, opening)
-        }
-
-        /// Resume classification using a state retrieved from a previously
-        /// used classifier via the `stop` function.
-        #[inline(always)]
-        pub fn resume_depth_classification<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, BLOCK_SIZE>>(
-            state: ResumeClassifierState<'a, I, Q, BLOCK_SIZE>, opening: BracketType
-        ) -> DepthIteratorResumeOutcome<'a, I, Q, impl DepthIterator<'a, I, Q, BLOCK_SIZE>, BLOCK_SIZE> {
-            let (first_block, iter) = avx2::VectorIterator::resume(state, opening);
-            DepthIteratorResumeOutcome(first_block, iter)
-        }
+        type IteratorImpl<'a, I, Q> = avx2::VectorIterator<'a, I, Q>;
     }
     else {
         compile_error!("Target architecture is not supported by SIMD features of this crate. Disable the default `simd` feature.");
     }
+}
+
+/// Enrich quote classified blocks with depth information.
+#[inline(always)]
+pub fn classify_depth<'a, I, Q>(
+    iter: Q,
+    opening: BracketType,
+) -> impl DepthIterator<'a, I, Q, BLOCK_SIZE>
+where
+    I: Input + 'a,
+    Q: QuoteClassifiedIterator<'a, I, BLOCK_SIZE>,
+{
+    IteratorImpl::new(iter, opening)
+}
+
+/// Resume classification using a state retrieved from a previously
+/// used classifier via the `stop` function.
+#[inline(always)]
+pub fn resume_depth_classification<'a, I, Q>(
+    state: ResumeClassifierState<'a, I, Q, BLOCK_SIZE>,
+    opening: BracketType,
+) -> DepthIteratorResumeOutcome<'a, I, Q, impl DepthIterator<'a, I, Q, BLOCK_SIZE>, BLOCK_SIZE>
+where
+    I: Input + 'a,
+    Q: QuoteClassifiedIterator<'a, I, BLOCK_SIZE>,
+{
+    let (first_block, iter) = IteratorImpl::resume(state, opening);
+    DepthIteratorResumeOutcome(first_block, iter)
 }

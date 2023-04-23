@@ -275,7 +275,7 @@ impl DelimiterClassifierImpl {
         assert_eq!(32, bytes.len());
         // SAFETY: target_feature invariant
         unsafe {
-            let byte_vector = _mm256_load_si256(bytes.as_ptr().cast::<__m256i>());
+            let byte_vector = _mm256_loadu_si256(bytes.as_ptr().cast::<__m256i>());
             let opening_brace_cmp = _mm256_cmpeq_epi8(byte_vector, self.opening_mask);
             let closing_brace_cmp = _mm256_cmpeq_epi8(byte_vector, self.closing_mask);
             (opening_brace_cmp, closing_brace_cmp)

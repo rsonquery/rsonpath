@@ -1,12 +1,12 @@
 use crate::classification::depth::{
     resume_depth_classification, DepthBlock, DepthIterator, DepthIteratorResumeOutcome,
 };
+use crate::BLOCK_SIZE;
 #[cfg(feature = "head-skip")]
 use crate::classification::ResumeClassifierState;
 use crate::classification::{
     quotes::QuoteClassifiedIterator,
     structural::{BracketType, StructuralIterator},
-    BLOCK_SIZE,
 };
 use crate::debug;
 use crate::input::Input;

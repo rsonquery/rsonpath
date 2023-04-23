@@ -8,11 +8,12 @@ use crate::query::{
     Label,
 };
 use crate::result::QueryResult;
+use crate::BLOCK_SIZE;
 use crate::{
     classification::{
         quotes::{classify_quoted_sequences, QuoteClassifiedIterator},
         structural::{resume_structural_classification, Structural, StructuralIterator},
-        ResumeClassifierState, BLOCK_SIZE,
+        ResumeClassifierState,
     },
     input::Input,
 };
@@ -118,7 +119,7 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
             classifier_state.are_commas_on = false;
             debug!("Needle found at {idx}");
 
-            let seek_start_idx = idx + self.label.len() + 2;
+            let seek_start_idx = idx + self.label.bytes_with_quotes().len();
 
             match self.bytes.seek_non_whitespace_forward(seek_start_idx) {
                 Some((colon_idx, char)) if char == b':' => {

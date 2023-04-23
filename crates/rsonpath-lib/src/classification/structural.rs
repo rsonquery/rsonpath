@@ -15,10 +15,10 @@
 //! # Examples
 //! ```rust
 //! use rsonpath_lib::classification::structural::{BracketType, Structural, classify_structural_characters};
-//! use aligners::AlignedBytes;
+//! use rsonpath_lib::input::OwnedBytes;
 //!
-//! let json = r#"{"x": [{"y": 42}, {}]}""#;
-//! let aligned = AlignedBytes::new_padded(json.as_bytes());
+//! let json = r#"{"x": [{"y": 42}, {}]}""#.to_owned();
+//! let aligned = OwnedBytes::from(json);
 //! let expected = vec![
 //!     Structural::Opening(BracketType::Curly, 0),
 //!     Structural::Opening(BracketType::Square, 6),
@@ -36,10 +36,10 @@
 //! ```rust
 //! use rsonpath_lib::classification::structural::{BracketType, Structural, classify_structural_characters};
 //! use rsonpath_lib::classification::quotes::classify_quoted_sequences;
-//! use aligners::{alignment, AlignedBytes};
+//! use rsonpath_lib::input::OwnedBytes;
 //!
-//! let json = r#"{"x": "[\"\"]"}""#;
-//! let aligned = AlignedBytes::new_padded(json.as_bytes());
+//! let json = r#"{"x": "[\"\"]"}""#.to_owned();
+//! let aligned = OwnedBytes::from(json);
 //! let expected = vec![
 //!     Structural::Opening(BracketType::Curly, 0),
 //!     Structural::Closing(BracketType::Curly, 14)
@@ -49,8 +49,9 @@
 //! assert_eq!(expected, actual);
 //! ```
 use crate::{
-    classification::{quotes::QuoteClassifiedIterator, ResumeClassifierState, BLOCK_SIZE},
+    classification::{quotes::QuoteClassifiedIterator, ResumeClassifierState},
     input::Input,
+    BLOCK_SIZE,
 };
 use cfg_if::cfg_if;
 
@@ -157,12 +158,8 @@ impl Structural {
 
 /// Trait for classifier iterators, i.e. finite iterators of [`Structural`] characters
 /// that hold a reference to the JSON document valid for `'a`.
-pub trait StructuralIterator<
-    'a,
-    I: Input + 'a,
-    Q: QuoteClassifiedIterator<'a, I, N>,
-    const N: usize,
->: Iterator<Item = Structural> + 'a
+pub trait StructuralIterator<'a, I: Input, Q, const N: usize>:
+    Iterator<Item = Structural> + 'a
 {
     /// Stop classification and return a state object that can be used to resume
     /// a classifier from the place in which the current one was stopped.
@@ -197,57 +194,47 @@ pub trait StructuralIterator<
 cfg_if! {
     if #[cfg(any(doc, not(feature = "simd")))] {
         mod nosimd;
-        use nosimd::*;
-
-        /// Walk through the JSON document represented by `bytes` and iterate over all
-        /// occurrences of structural characters in it.
-        #[inline(always)]
-        pub fn classify_structural_characters<'a, I: Input + 'a, Q: QuoteClassifiedIterator<'a, I, BLOCK_SIZE>>(
-            iter: Q,
-        ) -> impl StructuralIterator<'a, I, Q, BLOCK_SIZE> {
-            SequentialClassifier::new(iter)
-        }
-
-        /// Resume classification using a state retrieved from a previously
-        /// used classifier via the `stop` function.
-        #[inline(always)]
-        pub fn resume_structural_classification<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize>(
-            state: ResumeClassifierState<'a, I, Q, N>
-        ) -> impl StructuralIterator<'a, I, Q, N> {
-            SequentialClassifier::resume(state)
-        }
+        type ClassifierImpl<'a, I, Q, const N: usize> = nosimd::SequentialClassifier<'a, I, Q, N>;
     }
     else if #[cfg(simd = "avx2")] {
         mod avx2;
-        use avx2::Avx2Classifier;
-
-        /// Walk through the JSON document represented by `bytes` and iterate over all
-        /// occurrences of structural characters in it.
-        #[inline(always)]
-        pub fn classify_structural_characters<'a, I: Input + 'a, Q: QuoteClassifiedIterator<'a, I, BLOCK_SIZE>>(
-            iter: Q,
-        ) -> impl StructuralIterator<'a, I, Q, BLOCK_SIZE> {
-            Avx2Classifier::new(iter)
-        }
-
-        /// Resume classification using a state retrieved from a previously
-        /// used classifier via the `stop` function.
-        #[inline(always)]
-        pub fn resume_structural_classification<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize>(
-            state: ResumeClassifierState<'a, I, Q, N>
-        ) -> impl StructuralIterator<'a, I, Q, N> {
-            Avx2Classifier::resume(state)
-        }
+        type ClassifierImpl<'a, I, Q> = avx2::Avx2Classifier<'a, I, Q>;
     }
     else {
         compile_error!("Target architecture is not supported by SIMD features of this crate. Disable the default `simd` feature.");
     }
 }
 
+/// Walk through the JSON document represented by `bytes` and iterate over all
+/// occurrences of structural characters in it.
+#[inline(always)]
+pub fn classify_structural_characters<
+    'a,
+    I: Input + 'a,
+    Q: QuoteClassifiedIterator<'a, I, BLOCK_SIZE>,
+>(
+    iter: Q,
+) -> impl StructuralIterator<'a, I, Q, BLOCK_SIZE> {
+    ClassifierImpl::new(iter)
+}
+
+/// Resume classification using a state retrieved from a previously
+/// used classifier via the `stop` function.
+#[inline(always)]
+pub fn resume_structural_classification<
+    'a,
+    I: Input,
+    Q: QuoteClassifiedIterator<'a, I, BLOCK_SIZE>,
+>(
+    state: ResumeClassifierState<'a, I, Q, BLOCK_SIZE>,
+) -> impl StructuralIterator<'a, I, Q, BLOCK_SIZE> {
+    ClassifierImpl::resume(state)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{classification::quotes::classify_quoted_sequences, input::InMemoryInput};
+    use crate::{classification::quotes::classify_quoted_sequences, input::OwnedBytes};
 
     #[test]
     fn resumption_without_commas_or_colons() {
@@ -255,8 +242,8 @@ mod tests {
         use Structural::*;
 
         let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
-        let mut json_string = json.to_owned();
-        let input = InMemoryInput::new(&mut json_string, BLOCK_SIZE);
+        let json_string = json.to_owned();
+        let input = OwnedBytes::new(&json_string);
         let quotes = classify_quoted_sequences(&input);
 
         let mut classifier = classify_structural_characters(quotes);
@@ -278,8 +265,8 @@ mod tests {
         use Structural::*;
 
         let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
-        let mut json_string = json.to_owned();
-        let input = InMemoryInput::new(&mut json_string, BLOCK_SIZE);
+        let json_string = json.to_owned();
+        let input = OwnedBytes::new(&json_string);
         let quotes = classify_quoted_sequences(&input);
 
         let mut classifier = classify_structural_characters(quotes);
@@ -305,8 +292,8 @@ mod tests {
         use Structural::*;
 
         let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
-        let mut json_string = json.to_owned();
-        let input = InMemoryInput::new(&mut json_string, BLOCK_SIZE);
+        let json_string = json.to_owned();
+        let input = OwnedBytes::new(&json_string);
         let quotes = classify_quoted_sequences(&input);
 
         let mut classifier = classify_structural_characters(quotes);
@@ -332,8 +319,8 @@ mod tests {
         use Structural::*;
 
         let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
-        let mut json_string = json.to_owned();
-        let input = InMemoryInput::new(&mut json_string, BLOCK_SIZE);
+        let json_string = json.to_owned();
+        let input = OwnedBytes::new(&json_string);
         let quotes = classify_quoted_sequences(&input);
 
         let mut classifier = classify_structural_characters(quotes);

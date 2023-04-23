@@ -4,8 +4,7 @@ use crate::debug;
 use crate::input::IBlock;
 use std::marker::PhantomData;
 
-pub(crate) struct VectorIterator<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize>
-{
+pub(crate) struct VectorIterator<'a, I: Input, Q, const N: usize> {
     iter: Q,
     opening: BracketType,
     were_commas_on: bool,
@@ -13,9 +12,7 @@ pub(crate) struct VectorIterator<'a, I: Input, Q: QuoteClassifiedIterator<'a, I,
     phantom: PhantomData<&'a I>,
 }
 
-impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize>
-    VectorIterator<'a, I, Q, N>
-{
+impl<'a, I: Input, Q, const N: usize> VectorIterator<'a, I, Q, N> {
     pub(crate) fn new(iter: Q, opening: BracketType) -> Self {
         Self {
             iter,
@@ -94,7 +91,10 @@ pub(crate) struct Vector<'a, I: Input + 'a, const N: usize> {
 
 impl<'a, I: Input, const N: usize> Vector<'a, I, N> {
     #[inline]
-    pub(crate) fn new(bytes: QuoteClassifiedBlock<'a, IBlock<'a, I, N>, N>, opening: BracketType) -> Self {
+    pub(crate) fn new(
+        bytes: QuoteClassifiedBlock<'a, IBlock<'a, I, N>, N>,
+        opening: BracketType,
+    ) -> Self {
         Self::new_from(bytes, opening, 0)
     }
 

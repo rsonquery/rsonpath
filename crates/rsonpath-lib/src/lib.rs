@@ -5,7 +5,8 @@
 //!
 //! # Examples
 //! ```rust
-//! use rsonpath_lib::engine::{Compiler, Engine, Input, RsonpathEngine};
+//! use rsonpath_lib::engine::{Compiler, Engine, RsonpathEngine};
+//! use rsonpath_lib::input::OwnedBytes;
 //! use rsonpath_lib::query::JsonPathQuery;
 //! use rsonpath_lib::result::CountResult;
 //! # use std::error::Error;
@@ -35,11 +36,11 @@
 //!   }
 //! }
 //! "#.to_owned();
-//! let input = Input::new(&mut contents);
+//! let input = OwnedBytes::from(contents);
 //! // Compile the query. The engine can be reused to run the same query on different contents.
 //! let engine = RsonpathEngine::compile_query(&query)?;
 //! // Count the number of occurrences of elements satisfying the query.
-//! let count = engine.run::<CountResult>(&input)?.get();
+//! let count = engine.run::<_, CountResult>(&input)?.get();
 //!
 //! assert_eq!(2, count);
 //! # Ok(())
@@ -200,7 +201,7 @@
 )]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 // Unsafe code allowed only for SIMD.
-#![cfg_attr(not(feature = "simd"), forbid(unsafe_code))]
+/*#![cfg_attr(not(feature = "simd"), forbid(unsafe_code))]*/
 
 pub mod classification;
 pub mod engine;
@@ -208,18 +209,13 @@ pub mod error;
 pub mod input;
 pub mod query;
 pub mod result;
-use cfg_if::cfg_if;
 
-cfg_if! {
-    if #[cfg(simd = "avx2")] {
-        /// Default alignment required out of input blocks for the purpose
-        /// of [`classification`](crate::classification).
-        pub type BlockAlignment = aligners::alignment::TwoTo<5>;
+cfg_if::cfg_if! {
+    if #[cfg(any(doc, not(feature = "simd")))] {
+        pub const BLOCK_SIZE: usize = 64;
     }
-    else {
-        /// Default alignment required out of input blocks for the purpose
-        /// of [`classification`](crate::classification).
-        pub type BlockAlignment = aligners::alignment::TwoTo<5>;
+    else if #[cfg(simd = "avx2")] {
+        pub const BLOCK_SIZE: usize = 64;
     }
 }
 

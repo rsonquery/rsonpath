@@ -25,7 +25,7 @@ checksum = "fc365933d18784ba8fabdeba3d5fb6ecedcdde0ccec94b217e3db54d007b92e7"
 dependencies = [
  "cfg-if",
  "lazy_static",
- "page_size",
+ "page_size 0.4.2",
 ]
 
 [[package]]
@@ -477,6 +477,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "page_size"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1b7663cbd190cfd818d08efa8497f6cd383076688c49a391ef7c0d03cd12b561"
+dependencies = [
+ "libc",
+ "winapi",
+]
+
+[[package]]
 name = "ppv-lite86"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -693,6 +703,7 @@ dependencies = [
  "log",
  "memchr",
  "nom",
+ "page_size 0.5.0",
  "pretty_assertions",
  "proptest",
  "replace_with",

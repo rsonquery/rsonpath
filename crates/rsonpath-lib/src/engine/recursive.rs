@@ -6,7 +6,6 @@ use crate::classification::ResumeClassifierState;
 use crate::classification::{
     quotes::{classify_quoted_sequences, QuoteClassifiedIterator},
     structural::{classify_structural_characters, BracketType, Structural, StructuralIterator},
-    BLOCK_SIZE,
 };
 use crate::debug;
 use crate::engine::error::EngineError;
@@ -18,6 +17,7 @@ use crate::query::automaton::{Automaton, State};
 use crate::query::error::CompilerError;
 use crate::query::{JsonPathQuery, Label};
 use crate::result::QueryResult;
+use crate::BLOCK_SIZE;
 
 /// Recursive implementation of the JSONPath query engine.
 pub struct RecursiveEngine<'q> {
@@ -339,7 +339,7 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
     }
 
     fn is_match(&self, idx: usize, label: &Label) -> Result<bool, EngineError> {
-        let len = label.len() + 2;
+        let len = label.bytes_with_quotes().len();
 
         let closing_quote_idx = match self.bytes.seek_backward(idx - 1, b'"') {
             Some(x) => x,
@@ -377,11 +377,9 @@ impl<'q, 'b, I: Input> CanHeadSkip<'b, I, BLOCK_SIZE> for ExecutionContext<'q, '
         let mut classifier = structural_classifier;
 
         let bracket_type = match next_event {
-            Structural::Closing(b, _) => b,
-            Structural::Colon(_) => unreachable!(),
-            Structural::Opening(b, _) => b,
-            Structural::Comma(_) => unreachable!(),
-        };
+            Structural::Closing(b, _) | Structural::Opening(b, _) => Ok(b),
+            _ => Err(EngineError::InternalError),
+        }?;
 
         self.run_on_subtree(
             &mut classifier,

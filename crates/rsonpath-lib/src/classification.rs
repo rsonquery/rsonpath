@@ -20,8 +20,10 @@
 //!     classify_structural_characters, resume_structural_classification,
 //!     BracketType, Structural, StructuralIterator,
 //! };
-//! let json = String::new(r#"{"a":[42, {}, 44]}"#.as_bytes())
-//! let input = AlignedBytes::new_padded(r#"{"a":[42, {}, 44]}"#.as_bytes());
+//! use rsonpath_lib::input::OwnedBytes;
+//! 
+//! let json = r#"{"a":[42, {}, 44]}"#.to_owned();
+//! let input = OwnedBytes::from(json);
 //! let quote_classifier = classify_quoted_sequences(&input);
 //! let mut structural_classifier = classify_structural_characters(quote_classifier);
 //! structural_classifier.turn_colons_on(0);
@@ -62,18 +64,9 @@ use crate::{
 };
 use quotes::{QuoteClassifiedBlock, QuoteClassifiedIterator};
 
-cfg_if::cfg_if! {
-    if #[cfg(any(doc, not(feature = "simd")))] {
-        pub const BLOCK_SIZE: usize = 64;
-    }
-    else if #[cfg(simd = "avx2")] {
-        pub const BLOCK_SIZE: usize = 64;
-    }
-}
-
 /// State allowing resumption of a classifier from a particular place
 /// in the input along with the stopped [`QuoteClassifiedIterator`].
-pub struct ResumeClassifierState<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize>
+pub struct ResumeClassifierState<'a, I: Input, Q, const N: usize>
 {
     /// The stopped iterator.
     pub iter: Q,
