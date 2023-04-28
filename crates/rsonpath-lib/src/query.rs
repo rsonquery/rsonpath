@@ -355,7 +355,7 @@ impl Display for JsonPathQueryNode {
             AnyChild(_) => write!(f, "[*]"),
             Descendant(label, _) => write!(f, "..['{}']", label.display()),
             AnyDescendant(_) => write!(f, "..[*]"),
-            ArrayIndex(i, _) => write!(f, "['{i}']"),
+            ArrayIndex(i, _) => write!(f, "[{i}]"),
         }?;
 
         if let Some(child) = self.child() {
