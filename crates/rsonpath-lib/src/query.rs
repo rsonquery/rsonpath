@@ -55,7 +55,7 @@ cfg_if! {
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct NonNegativeArrayIndex(u64);
 
-/// The upper exclusive bound on index values.
+/// The upper inclusive bound on index values.
 pub const ARRAY_INDEX_ULIMIT: u64 = (1 << 53) - 1;
 impl TryFrom<u64> for NonNegativeArrayIndex {
     type Error = ArrayIndexError;
