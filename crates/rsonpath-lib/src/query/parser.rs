@@ -414,7 +414,7 @@ mod tests {
     fn nonnegative_array_index() {
         let input = "[5]";
 
-        let result = super::nonnegative_array_index()(input);
+        let result = super::array_index_selector()(input);
 
         assert_eq!(result, Ok(("", 5.try_into().unwrap())));
     }
@@ -423,7 +423,7 @@ mod tests {
     // fn negative_array_index() {
     //     let input = "[-5]";
 
-    //     let result = super::nonnegative_array_index()(input).unwrap_err();
+    //     let result = super::array_index_selector()(input).unwrap_err();
 
     //     assert_eq!(result, Error("Array Indexes must be positive."));
     // }
@@ -432,7 +432,7 @@ mod tests {
     // fn two_sixyfour_array_index() {
     //     let input = "[18446744073709551616]";
 
-    //     let result = super::nonnegative_array_index()(input).unwrap_err();
+    //     let result = super::array_index_selector()(input).unwrap_err();
 
     //     assert_eq!(
     //         result,
@@ -444,7 +444,7 @@ mod tests {
     // fn two_sixyfour_plus_one_array_index() {
     //     let input = "[18446744073709551617]";
 
-    //     let result = super::nonnegative_array_index()(input);
+    //     let result = super::array_index_selector()(input);
 
     //     assert_eq!(result, Err("Array Indices must be [0-(2^53-1))"));
     // }
@@ -453,7 +453,7 @@ mod tests {
     fn two_fiftythree_minus_one_index() {
         let input = "[9007199254740991]";
 
-        let result = super::nonnegative_array_index()(input);
+        let result = super::array_index_selector()(input);
 
         assert_eq!(result, Ok(("", NonNegativeArrayIndex(9007199254740991))));
     }
@@ -462,7 +462,7 @@ mod tests {
     // fn two_fiftythree_index() {
     //     let input = "[9007199254740992]";
 
-    //     let result = super::nonnegative_array_index()(input);
+    //     let result = super::array_index_selector()(input);
 
     //     assert_eq!(result, Err("Array Indices must be [0-(2^53-1))".into()));
     // }
