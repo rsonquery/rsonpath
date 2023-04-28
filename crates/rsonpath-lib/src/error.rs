@@ -56,7 +56,7 @@ impl UnsupportedFeatureError {
     #[must_use]
     #[inline(always)]
     pub fn array_index() -> Self {
-        Self::tracked(62, "Array Index")
+        Self::tracked(64, "Array Index")
     }
 
     /// Returns the issue number on GitHub corresponding to the unsupported feature.
