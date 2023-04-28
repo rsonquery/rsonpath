@@ -56,26 +56,29 @@ cfg_if! {
 pub struct NonNegativeArrayIndex(u64);
 
 /// The upper exclusive bound on index values.
-pub const ARRAY_INDEX_ULIMIT: u64 = (2 << 53) - 1;
+pub const ARRAY_INDEX_ULIMIT: u64 = (1 << 53) - 1;
 impl TryFrom<u64> for NonNegativeArrayIndex {
     type Error = ArrayIndexError;
 
+    #[inline]
     fn try_from(value: u64) -> Result<Self, ArrayIndexError> {
-        if value >= ARRAY_INDEX_ULIMIT {
+        if value > ARRAY_INDEX_ULIMIT {
             Err(ArrayIndexError::ExceedsUpperLimitError(value.to_string()))
         } else {
-            Ok(NonNegativeArrayIndex(value))
+            Ok(Self(value))
         }
     }
 }
 
-impl Into<u64> for NonNegativeArrayIndex {
-    fn into(self) -> u64 {
-        self.0
+impl From<NonNegativeArrayIndex> for u64 {
+    #[inline]
+    fn from(val: NonNegativeArrayIndex) -> Self {
+        val.0
     }
 }
 
 impl Display for NonNegativeArrayIndex {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{index}", index = self.0)
     }
@@ -385,7 +388,7 @@ pub trait JsonPathQueryNodeType {
     /// returns the label it represents; otherwise, `None`.
     fn label(&self) -> Option<&Label>;
 
-    /// If the type is [`JsonPathQueryNode::Index`]
+    /// If the type is [`JsonPathQueryNode::ArrayIndex`]
     /// returns the index it represents; otherwise, `None`.
     fn array_index(&self) -> Option<&NonNegativeArrayIndex>;
 }
@@ -513,5 +516,10 @@ mod tests {
         let h2 = s2.finish();
 
         assert_eq!(h1, h2);
+    }
+
+    #[test]
+    fn index_ulimit_sanity_check() {
+        assert_eq!(9007199254740991, ARRAY_INDEX_ULIMIT);
     }
 }

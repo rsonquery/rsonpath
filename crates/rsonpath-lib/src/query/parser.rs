@@ -58,6 +58,7 @@ impl<'a> Borrow<str> for LabelString<'a> {
 }
 
 impl<'a> From<Option<String>> for LabelString<'a> {
+    #[inline]
     fn from(value: Option<String>) -> Self {
         match value {
             Some(label) => LabelString::Owned(label),
@@ -126,9 +127,7 @@ fn tokens_to_node<'a, I: Iterator<Item = Token<'a>>>(
                     Label::new(label.borrow()),
                     child_node,
                 ))),
-                Token::ArrayIndex(i) => {
-                    Ok(Some(JsonPathQueryNode::ArrayIndex(i.into(), child_node)))
-                }
+                Token::ArrayIndex(i) => Ok(Some(JsonPathQueryNode::ArrayIndex(i, child_node))),
                 Token::WildcardChild() => Ok(Some(JsonPathQueryNode::AnyChild(child_node))),
                 Token::Descendant(label) => Ok(Some(JsonPathQueryNode::Descendant(
                     Label::new(label.borrow()),
@@ -242,7 +241,7 @@ fn array_index_selector<'a>() -> impl Parser<'a, NonNegativeArrayIndex> {
 }
 
 fn nonnegative_array_index<'a>() -> impl Parser<'a, NonNegativeArrayIndex> {
-    map_res(parsed_array_index(), |i| i.try_into())
+    map_res(parsed_array_index(), TryInto::try_into)
 }
 
 fn parsed_array_index<'a>() -> impl Parser<'a, u64> {
@@ -251,12 +250,17 @@ fn parsed_array_index<'a>() -> impl Parser<'a, u64> {
 
 fn length_limited_array_index<'a>() -> impl Parser<'a, &'a str> {
     map_res(digit1, |cs: &str| {
-        // When unwrap goes const, this calc can be moved to a const
-        if cs.len() > (ARRAY_INDEX_ULIMIT.checked_ilog10().unwrap() as usize) {
-            Err(ArrayIndexError::ExceedsUpperLimitError(cs.to_owned()))
-        } else {
-            Ok(cs)
-        }
+        // When unwrap goes const, this calc can be moved to a const; there might be a feature flag we can enable too
+        ARRAY_INDEX_ULIMIT
+            .checked_ilog10()
+            .ok_or(ArrayIndexError::UpperLimitLengthCalculationError)
+            .and_then(|max_index_b10_len| {
+                if cs.len() > ((max_index_b10_len as usize) + 1) {
+                    Err(ArrayIndexError::ExceedsUpperLimitError(cs.to_owned()))
+                } else {
+                    Ok(cs)
+                }
+            })
     })
 }
 
@@ -344,7 +348,7 @@ impl nom::ExtendInto for MaybeEscapedCharVec {
 #[cfg(test)]
 mod tests {
     use super::parse_json_path_query;
-    use crate::query::{parser::LabelString, JsonPathQuery, NonNegativeArrayIndex};
+    use crate::query::{parser::LabelString, JsonPathQuery};
     use pretty_assertions::assert_eq;
 
     #[test]
@@ -419,53 +423,42 @@ mod tests {
         assert_eq!(result, Ok(("", 5.try_into().unwrap())));
     }
 
-    // #[test]
-    // fn negative_array_index() {
-    //     let input = "[-5]";
+    #[test]
+    fn negative_array_index() {
+        let input = "[-5]";
 
-    //     let result = super::array_index_selector()(input).unwrap_err();
-
-    //     assert_eq!(result, Error("Array Indexes must be positive."));
-    // }
-
-    // #[test]
-    // fn two_sixyfour_array_index() {
-    //     let input = "[18446744073709551616]";
-
-    //     let result = super::array_index_selector()(input).unwrap_err();
-
-    //     assert_eq!(
-    //         result,
-    //         nom::Err::Error(nom::error::Error(("[18446744073709551616]", "too big")))
-    //     );
-    // }
-
-    // #[test]
-    // fn two_sixyfour_plus_one_array_index() {
-    //     let input = "[18446744073709551617]";
-
-    //     let result = super::array_index_selector()(input);
-
-    //     assert_eq!(result, Err("Array Indices must be [0-(2^53-1))"));
-    // }
+        super::array_index_selector()(input).unwrap_err();
+    }
 
     #[test]
-    fn two_fiftythree_minus_one_index() {
+    fn two_sixyfour_array_index() {
+        let input = "[18446744073709551616]";
+
+        super::array_index_selector()(input).unwrap_err();
+    }
+
+    #[test]
+    fn two_sixyfour_plus_one_array_index() {
+        let input = "[18446744073709551617]";
+
+        super::array_index_selector()(input).unwrap_err();
+    }
+
+    #[test]
+    fn two_pow_fiftythree_minus_one_array_index() {
         let input = "[9007199254740991]";
 
         let result = super::array_index_selector()(input);
 
-        assert_eq!(result, Ok(("", NonNegativeArrayIndex(9007199254740991))));
+        assert_eq!(result, Ok(("", 9007199254740991.try_into().unwrap())));
     }
 
-    // #[test]
-    // fn two_fiftythree_index() {
-    //     let input = "[9007199254740992]";
+    #[test]
+    fn two_pow_fiftythree_index() {
+        let input = "[9007199254740992]";
 
-    //     let result = super::array_index_selector()(input);
-
-    //     assert_eq!(result, Err("Array Indices must be [0-(2^53-1))".into()));
-    // }
+        super::array_index_selector()(input).unwrap_err();
+    }
 
     #[test]
     fn should_infer_root_from_empty_string() {
