@@ -233,7 +233,14 @@ fn label_character<'a>() -> impl Parser<'a, char> {
 }
 
 fn array_index_child_selector<'a>() -> impl Parser<'a, Token<'a>> {
-    map(array_index_selector(), Token::ArrayIndex)
+    map(
+        alt((array_index_selector(), dot_index_selector())),
+        Token::ArrayIndex,
+    )
+}
+
+fn dot_index_selector<'a>() -> impl Parser<'a, NonNegativeArrayIndex> {
+    preceded(char('.'), array_index_selector())
 }
 
 fn array_index_selector<'a>() -> impl Parser<'a, NonNegativeArrayIndex> {
@@ -421,6 +428,15 @@ mod tests {
         let result = super::array_index_selector()(input);
 
         assert_eq!(result, Ok(("", 5.try_into().unwrap())));
+    }
+
+    #[test]
+    fn zero_array_index() {
+        let input = "[0]";
+
+        let result = super::array_index_selector()(input);
+
+        assert_eq!(result, Ok(("", 0.try_into().unwrap())));
     }
 
     #[test]
