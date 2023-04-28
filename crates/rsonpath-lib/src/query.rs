@@ -51,7 +51,7 @@ cfg_if! {
     }
 }
 
-/// Provides the [IETF-conforming index value](https://www.ietf.org/archive/id/draft-ietf-jsonpath-base-08.html#name-overview).  Values are \[0, (2^53)-1).
+/// Provides the [IETF-conforming index value](https://www.rfc-editor.org/rfc/rfc7493.html#section-2).  Values are \[0, (2^53)-1].
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct NonNegativeArrayIndex(u64);
 
