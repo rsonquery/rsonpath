@@ -71,7 +71,7 @@ impl TryFrom<u64> for NonNegativeArrayIndex {
 }
 
 impl From<NonNegativeArrayIndex> for u64 {
-    #[inline]
+    #[inline(always)]
     fn from(val: NonNegativeArrayIndex) -> Self {
         val.0
     }
