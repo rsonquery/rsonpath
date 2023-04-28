@@ -1,6 +1,9 @@
-use super::error::{ParseErrorReport, ParserError};
+use super::error::{ArrayIndexError, ParseErrorReport, ParserError};
+use super::ARRAY_INDEX_ULIMIT;
 use crate::debug;
-use crate::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label};
+use crate::query::{
+    JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label, NonNegativeArrayIndex,
+};
 use nom::{
     branch::*, bytes::complete::*, character::complete::*, combinator::*, multi::*, sequence::*, *,
 };
@@ -11,6 +14,7 @@ use std::fmt::{self, Display};
 enum Token<'a> {
     Root,
     Child(LabelString<'a>),
+    ArrayIndex(NonNegativeArrayIndex),
     WildcardChild(),
     Descendant(LabelString<'a>),
     WildcardDescendant(),
@@ -27,6 +31,7 @@ impl Display for Token<'_> {
         match self {
             Token::Root => write!(f, "$"),
             Token::Child(label) => write!(f, "['{label}']"),
+            Token::ArrayIndex(i) => write!(f, "[{i}]"),
             Token::WildcardChild() => write!(f, "[*]"),
             Token::Descendant(label) => write!(f, "..['{label}']"),
             Token::WildcardDescendant() => write!(f, "..[*]"),
@@ -121,6 +126,9 @@ fn tokens_to_node<'a, I: Iterator<Item = Token<'a>>>(
                     Label::new(label.borrow()),
                     child_node,
                 ))),
+                Token::ArrayIndex(i) => {
+                    Ok(Some(JsonPathQueryNode::ArrayIndex(i.into(), child_node)))
+                }
                 Token::WildcardChild() => Ok(Some(JsonPathQueryNode::AnyChild(child_node))),
                 Token::Descendant(label) => Ok(Some(JsonPathQueryNode::Descendant(
                     Label::new(label.borrow()),
@@ -161,6 +169,7 @@ fn non_root<'a>() -> impl Parser<'a, Vec<Token<'a>>> {
     many0(alt((
         wildcard_child_selector(),
         child_selector(),
+        array_index_child_selector(),
         wildcard_descendant_selector(),
         descendant_selector(),
     )))
@@ -221,6 +230,33 @@ fn label_first<'a>() -> impl Parser<'a, char> {
 fn label_character<'a>() -> impl Parser<'a, char> {
     verify(anychar, |&x| {
         x.is_alphanumeric() || x == '_' || !x.is_ascii()
+    })
+}
+
+fn array_index_child_selector<'a>() -> impl Parser<'a, Token<'a>> {
+    map(array_index_selector(), Token::ArrayIndex)
+}
+
+fn array_index_selector<'a>() -> impl Parser<'a, NonNegativeArrayIndex> {
+    delimited(char('['), nonnegative_array_index(), char(']'))
+}
+
+fn nonnegative_array_index<'a>() -> impl Parser<'a, NonNegativeArrayIndex> {
+    map_res(parsed_array_index(), |i| i.try_into())
+}
+
+fn parsed_array_index<'a>() -> impl Parser<'a, u64> {
+    map_res(length_limited_array_index(), str::parse)
+}
+
+fn length_limited_array_index<'a>() -> impl Parser<'a, &'a str> {
+    map_res(digit1, |cs: &str| {
+        // When unwrap goes const, this calc can be moved to a const
+        if cs.len() > (ARRAY_INDEX_ULIMIT.checked_ilog10().unwrap() as usize) {
+            Err(ArrayIndexError::ExceedsUpperLimitError(cs.to_owned()))
+        } else {
+            Ok(cs)
+        }
     })
 }
 
@@ -308,7 +344,7 @@ impl nom::ExtendInto for MaybeEscapedCharVec {
 #[cfg(test)]
 mod tests {
     use super::parse_json_path_query;
-    use crate::query::{parser::LabelString, JsonPathQuery};
+    use crate::query::{parser::LabelString, JsonPathQuery, NonNegativeArrayIndex};
     use pretty_assertions::assert_eq;
 
     #[test]
@@ -373,6 +409,63 @@ mod tests {
 
         assert_eq!(result, Ok(("", LabelString::Owned("a".to_string()))));
     }
+
+    #[test]
+    fn nonnegative_array_index() {
+        let input = "[5]";
+
+        let result = super::nonnegative_array_index()(input);
+
+        assert_eq!(result, Ok(("", 5.try_into().unwrap())));
+    }
+
+    // #[test]
+    // fn negative_array_index() {
+    //     let input = "[-5]";
+
+    //     let result = super::nonnegative_array_index()(input).unwrap_err();
+
+    //     assert_eq!(result, Error("Array Indexes must be positive."));
+    // }
+
+    // #[test]
+    // fn two_sixyfour_array_index() {
+    //     let input = "[18446744073709551616]";
+
+    //     let result = super::nonnegative_array_index()(input).unwrap_err();
+
+    //     assert_eq!(
+    //         result,
+    //         nom::Err::Error(nom::error::Error(("[18446744073709551616]", "too big")))
+    //     );
+    // }
+
+    // #[test]
+    // fn two_sixyfour_plus_one_array_index() {
+    //     let input = "[18446744073709551617]";
+
+    //     let result = super::nonnegative_array_index()(input);
+
+    //     assert_eq!(result, Err("Array Indices must be [0-(2^53-1))"));
+    // }
+
+    #[test]
+    fn two_fiftythree_minus_one_index() {
+        let input = "[9007199254740991]";
+
+        let result = super::nonnegative_array_index()(input);
+
+        assert_eq!(result, Ok(("", NonNegativeArrayIndex(9007199254740991))));
+    }
+
+    // #[test]
+    // fn two_fiftythree_index() {
+    //     let input = "[9007199254740992]";
+
+    //     let result = super::nonnegative_array_index()(input);
+
+    //     assert_eq!(result, Err("Array Indices must be [0-(2^53-1))".into()));
+    // }
 
     #[test]
     fn should_infer_root_from_empty_string() {

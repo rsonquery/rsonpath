@@ -39,6 +39,8 @@ use std::{
 };
 use thiserror::Error;
 
+use super::ARRAY_INDEX_ULIMIT;
+
 /// Errors raised by the query parser.
 #[derive(Debug, Error)]
 pub enum ParserError {
@@ -48,6 +50,7 @@ pub enum ParserError {
         /// Error report.
         report: ParseErrorReport,
     },
+
     /// Internal parser error. This is not expected to happen,
     /// and signifies a bug in [`query`](`crate::query`).
     #[error(
@@ -60,6 +63,20 @@ pub enum ParserError {
         #[source]
         source: nom::error::Error<String>,
     },
+
+    #[error(transparent)]
+    ArrayIndexError(#[from] ArrayIndexError),
+}
+
+#[derive(Debug, Error)]
+pub enum ArrayIndexError {
+    #[error(
+        "Array index {0} exceeds maximum specification value of {}.",
+        ARRAY_INDEX_ULIMIT
+    )]
+    ExceedsUpperLimitError(String),
+
+    
 }
 
 /// Error report created during the parser's run over a single input string.
@@ -139,6 +156,7 @@ pub enum CompilerError {
     /// Max automaton size was exceeded during compilation of the query.
     #[error("Max automaton size was exceeded. Query is too complex.")]
     QueryTooComplex(#[source] Option<TryFromIntError>),
+
     /// Compiler error that occurred due to a known limitation.
     #[error(transparent)]
     NotSupported(#[from] crate::error::UnsupportedFeatureError),

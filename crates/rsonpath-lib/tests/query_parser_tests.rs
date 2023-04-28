@@ -36,6 +36,48 @@ fn wildcard_child_selector() {
 }
 
 #[test]
+fn nonnegative_array_indexed_selector() {
+    let input = "$.[5]";
+    let expected_query = JsonPathQueryBuilder::new()
+        .any_child()
+        .index(5.try_into().unwrap())
+        .any_child()
+        .into();
+
+    let result = JsonPathQuery::parse(input).expect("expected Ok");
+
+    assert_eq!(result, expected_query);
+}
+
+#[test]
+fn multiple_nonnegative_array_indexed_selector() {
+    let input = "$.[5][0]";
+    let expected_query = JsonPathQueryBuilder::new()
+        .any_child()
+        .index(5.try_into().unwrap())
+        .any_child()
+        .into();
+
+    let result = JsonPathQuery::parse(input).expect("expected Ok");
+
+    assert_eq!(result, expected_query);
+}
+
+#[test]
+fn zeroth_array_indexed_selector() {
+    let input = "$.[5][0]";
+    let expected_query = JsonPathQueryBuilder::new()
+        .any_child()
+        .index(5.try_into().unwrap())
+        .any_child()
+        .into();
+
+    let result = JsonPathQuery::parse(input).expect("expected Ok");
+
+    assert_eq!(result, expected_query);
+}
+
+#[test]
 fn indexed_wildcard_child_selector() {
     let input = r#"$[*]['*']["*"]"#;
     let expected_query = JsonPathQueryBuilder::new()

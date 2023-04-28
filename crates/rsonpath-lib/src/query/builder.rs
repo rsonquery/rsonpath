@@ -1,6 +1,6 @@
 //! Utility for building a [`JsonPathQuery`](`crate::query::JsonPathQuery`)
 //! programmatically.
-use super::{JsonPathQuery, JsonPathQueryNode, Label};
+use super::{JsonPathQuery, JsonPathQueryNode, Label, NonNegativeArrayIndex};
 
 /// Builder for [`JsonPathQuery`] instances.
 ///
@@ -48,6 +48,14 @@ impl JsonPathQueryBuilder {
         self
     }
 
+    /// Add a child selector with a given index.
+    #[must_use]
+    #[inline(always)]
+    pub fn index(mut self, index: NonNegativeArrayIndex) -> Self {
+        self.nodes.push(NodeTemplate::ArrayIndex(index));
+        self
+    }
+
     /// Add a wildcard child selector.
     #[must_use]
     #[inline(always)]
@@ -80,6 +88,9 @@ impl JsonPathQueryBuilder {
 
         for node in self.nodes.into_iter().rev() {
             last = match node {
+                NodeTemplate::ArrayIndex(i) => {
+                    Some(Box::new(JsonPathQueryNode::ArrayIndex(i, last)))
+                }
                 NodeTemplate::Child(label) => Some(Box::new(JsonPathQueryNode::Child(label, last))),
                 NodeTemplate::AnyChild => Some(Box::new(JsonPathQueryNode::AnyChild(last))),
                 NodeTemplate::Descendant(label) => {
@@ -113,6 +124,7 @@ impl From<JsonPathQueryBuilder> for JsonPathQuery {
 
 enum NodeTemplate {
     Child(Label),
+    ArrayIndex(NonNegativeArrayIndex),
     AnyChild,
     AnyDescendant,
     Descendant(Label),
