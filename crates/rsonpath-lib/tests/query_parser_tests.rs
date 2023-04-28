@@ -37,7 +37,7 @@ fn wildcard_child_selector() {
 
 #[test]
 fn nonnegative_array_indexed_selector() {
-    let input = "$.[5]";
+    let input = "$[5]";
     let expected_query = JsonPathQueryBuilder::new()
         .array_index(5.try_into().unwrap())
         .into();
@@ -49,7 +49,7 @@ fn nonnegative_array_indexed_selector() {
 
 #[test]
 fn multiple_nonnegative_array_indexed_selector() {
-    let input = "$.[5][2]";
+    let input = "$[5][2]";
     let expected_query = JsonPathQueryBuilder::new()
         .array_index(5.try_into().unwrap())
         .array_index(2.try_into().unwrap())
@@ -62,7 +62,7 @@ fn multiple_nonnegative_array_indexed_selector() {
 
 #[test]
 fn zeroth_array_indexed_selector() {
-    let input = "$.[0]";
+    let input = "$[0]";
     let expected_query = JsonPathQueryBuilder::new()
         .array_index(0.try_into().unwrap())
         .into();
