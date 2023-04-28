@@ -51,7 +51,7 @@ impl JsonPathQueryBuilder {
     /// Add a child selector with a given index.
     #[must_use]
     #[inline(always)]
-    pub fn index(mut self, index: NonNegativeArrayIndex) -> Self {
+    pub fn array_index(mut self, index: NonNegativeArrayIndex) -> Self {
         self.nodes.push(NodeTemplate::ArrayIndex(index));
         self
     }
