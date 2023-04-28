@@ -233,14 +233,7 @@ fn label_character<'a>() -> impl Parser<'a, char> {
 }
 
 fn array_index_child_selector<'a>() -> impl Parser<'a, Token<'a>> {
-    map(
-        alt((array_index_selector(), dot_index_selector())),
-        Token::ArrayIndex,
-    )
-}
-
-fn dot_index_selector<'a>() -> impl Parser<'a, NonNegativeArrayIndex> {
-    preceded(char('.'), array_index_selector())
+    map(array_index_selector(), Token::ArrayIndex)
 }
 
 fn array_index_selector<'a>() -> impl Parser<'a, NonNegativeArrayIndex> {
@@ -255,19 +248,14 @@ fn parsed_array_index<'a>() -> impl Parser<'a, u64> {
     map_res(length_limited_array_index(), str::parse)
 }
 
+const ARRAY_INDEX_ULIMIT_B10_DIGIT_CT: usize = ARRAY_INDEX_ULIMIT.ilog10() as usize;
 fn length_limited_array_index<'a>() -> impl Parser<'a, &'a str> {
     map_res(digit1, |cs: &str| {
-        // When unwrap goes const, this calc can be moved to a const; there might be a feature flag we can enable too
-        ARRAY_INDEX_ULIMIT
-            .checked_ilog10()
-            .ok_or(ArrayIndexError::UpperLimitLengthCalculationError)
-            .and_then(|max_index_b10_len| {
-                if cs.len() > ((max_index_b10_len as usize) + 1) {
-                    Err(ArrayIndexError::ExceedsUpperLimitError(cs.to_owned()))
-                } else {
-                    Ok(cs)
-                }
-            })
+        if cs.len() > (ARRAY_INDEX_ULIMIT_B10_DIGIT_CT + 1) {
+            Err(ArrayIndexError::ExceedsUpperLimitError(cs.to_owned()))
+        } else {
+            Ok(cs)
+        }
     })
 }
 
