@@ -466,7 +466,7 @@ mod tests {
 
         let result = super::array_index_selector()(input);
 
-        assert_eq!(result, Ok(("", 9007199254740991.try_into().unwrap())));
+        assert_eq!(result, Ok(("", 9_007_199_254_740_991.try_into().unwrap())));
     }
 
     #[test]
