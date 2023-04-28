@@ -522,4 +522,13 @@ mod tests {
     fn index_ulimit_sanity_check() {
         assert_eq!(9007199254740991, ARRAY_INDEX_ULIMIT);
     }
+
+    #[test]
+    fn index_ulimit_parse_check() {
+        NonNegativeArrayIndex::try_from(ARRAY_INDEX_ULIMIT)
+            .expect("Array index ulimit should be convertible.");
+
+        NonNegativeArrayIndex::try_from(ARRAY_INDEX_ULIMIT + 1)
+            .expect_err("Values in excess of array index ulimit should not be convertible.");
+    }
 }
