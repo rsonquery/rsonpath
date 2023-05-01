@@ -20,16 +20,20 @@ macro_rules! count_test_cases {
         #[test_case("basic/atomic_descendant.json", "$..a..b" => 0; "atomic_descendant.json $..a..b")]
         #[test_case("basic/atomic_descendant.json", "$..*..b" => 1; "atomic_descendant.json any descendant $..*..b")]
         #[test_case("basic/atomic_descendant.json", "$..*" => 4; "atomic_descendant.json any descendant $..*")]
+        #[test_case("basic/atomic_descendant.json", "$.a[0].c.d[1]" => 1; "atomic_descendant.json any descendant nested mixed nneg array index")]
         #[test_case("basic/atomic_after_complex.json", "$.a..b" => 1; "atomic_after_complex.json $.a..b")]
+        #[test_case("basic/atomic_after_complex.json", "$.a[0]" => 1; "atomic_after_complex.json simple nneg array index")]
         #[test_case("basic/array_root.json", "$" => 1; "array_root.json $")]
         #[test_case("basic/array_root.json", "" => 1; "array_root.json")]
         #[test_case("basic/child.json", "$..a..b.c..d" => 3; "child.json $..a..b.c..d")]
         #[test_case("basic/child_hell.json", "$..x..a.b.a.b.c" => 6; "child_hell.json $..x..a.b.a.b.c")]
         #[test_case("basic/empty.json", "" => 0; "empty.json")]
         #[test_case("basic/empty.json", "$" => 0; "empty.json $")]
+        #[test_case("basic/empty.json", "$[0]" => 0; "empty.json zeroth index")]
         #[test_case("basic/escapes.json", r#"$..a..b..['label\\']"# => 1; "escapes.json existing label")]
         #[test_case("basic/escapes.json", r#"$..a..b..['label\\\\']"# => 0; "escapes.json nonexistent label")]
         #[test_case("basic/heterogeneous_list.json", r#"$.a.*"# => 3; "heterogeneous_list.json $.a.*")]
+        #[test_case("basic/heterogeneous_list.json", r#"$.*[1]"# => 1; "heterogeneous_list.json wildcard nneg array index")]
         #[test_case("basic/quote_escape.json", r#"$['x']"# => 1; "quote_escape.json without quote")]
         #[test_case("basic/quote_escape.json", r#"$['"x']"# => 1; "quote_escape.json with quote")]
         #[test_case("basic/root.json", "$" => 1; "root.json $")]
@@ -42,6 +46,8 @@ macro_rules! count_test_cases {
         #[test_case("basic/small.json", "$..person..*..type" => 4; "small.json $..person..*..type")]
         #[test_case("basic/spaced_colon.json", r#"$..a..b..label"# => 2; "spaced colon")]
         #[test_case("basic/wildcard_list.json", r#"$..a.*"# => 6; "wildcard_list.json $..a.*")]
+        #[test_case("basic/wildcard_list.json", r#"$..[4]..[0]"# => 3; "wildcard_list.json nested wildcard desc nneg array index")]
+        #[test_case("basic/wildcard_list.json", r#"$..[4][0][0]"# => 1; "wildcard_list.json wildcard desc nneg array index")]
         #[test_case("basic/wildcard_list2.json", r#"$..a.*..b.*"# => 8; "wildcard_list2.json $..a.*..b.*")]
         #[test_case("basic/wildcard_list2.json", r#"$..a..*..b..*"# => 9; "wildcard_list2.json any descendant $..a..*..b..*")]
         #[test_case("basic/wildcard_object.json", r#"$..a.*"# => 7; "wildcard_object.json $..a.*")]
@@ -153,6 +159,10 @@ macro_rules! count_test_cases {
         #[test_case(
             "wikidata/wikidata_properties.json", "$..*.value" => 132188;
             "wikidata_properties.json $..*.value (child) any desc"
+        )]
+        #[test_case(
+            "wikidata/wikidata_properties.json", "$..*.[5]" => 335251;
+            "wikidata_properties.json $..*.value (child) any desc nneg array index"
         )]
         #[test_case(
             "wikidata/wikidata_properties.json", "$..P7103.claims.P31..references..snaks.P4656..hash" => 1;
