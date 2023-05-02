@@ -150,6 +150,13 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
             .map(|_| ())
     }
 
+    // fn is_counting(){
+
+    //     is_fallback_accepting && 
+    //     // TODO: any transition requires counting
+    //     self.automaton[state].attributes.
+    // }
+
     fn run_on_subtree<'r, Q, S, R>(
         &mut self,
         classifier: &mut Classifier!(),
@@ -172,6 +179,10 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
         let needs_commas = is_list && is_fallback_accepting;
         let needs_colons = !is_list && self.automaton.has_transition_to_accepting(state);
 
+        // TODO: investigate option<>
+        let is_counting = is_fallback_accepting && is_list;
+        let mut array_count = 0;
+
         let config_characters = |classifier: &mut Classifier!(), idx: usize| {
             if needs_commas {
                 classifier.turn_commas_on(idx);
@@ -187,12 +198,25 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
         };
 
         config_characters(classifier, open_idx);
-
-        if needs_commas {
+        
+        
+        if is_list && is_fallback_accepting {
             next_event = classifier.next();
             if let Some(Structural::Closing(_, close_idx)) = next_event {
                 if let Some((next_idx, _)) = self.bytes.seek_non_whitespace_forward(open_idx + 1) {
-                    if next_idx < close_idx {
+
+                    is_fallback_accepting ||
+                    // When a list is opened, it may contain only a single-item.  Ensure that at least one  of the outgoing transition wants the zeroth item.  If this is the final accepting state, the list item is reported.
+                    let wants_first_item = (self.automaton[state].transitions().iter().any(
+                        |t| match t {
+                            // 
+                            ArrayIndex(NonNegativeArrayIndex(0)) => t.transitions().len() == 0
+                            , _ => false
+                        } has non neg && transition.count = 0));
+
+
+
+                    if (next_idx < close_idx) && (wants_first_item)  {
                         result.report(next_idx);
                     }
                 }
@@ -220,9 +244,23 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
                         debug!("Accepting on comma.");
                         result.report(idx);
                     }
+
+                    // if counting, increment array_count
+                    array_count+=1;
+                    
+                    let is_next_closing = next_event.map_or(false, |s| s.is_closing());
+
+                    if is_counting && !is_next_closing && ((self.automaton[state].transitions().iter().any(|t| match t {
+                        NonNegativeArrayIndex(_) => true,
+                        _ => false
+                    })) == array_count){
+                        debug!("Accepting on list item.");
+                        result.report(idx);
+                    }
                 }
                 Some(Structural::Colon(idx)) => {
                     debug!("Colon");
+                    debug_assert!(!is_counting);
 
                     latest_idx = idx;
                     next_event = classifier.next();
@@ -271,13 +309,27 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
                     if let Some(colon_idx) = colon_idx {
                         debug!("Colon backtracked");
                         for &(label, target) in self.automaton[state].transitions() {
-                            if self.is_match(colon_idx, label)? {
-                                matched = Some(target);
-                                if self.automaton.is_accepting(target) {
-                                    debug!("Accept {idx}");
-                                    result.report(colon_idx);
+                            //todo: refactor common
+                            match label {
+                                ObjectMember(l) => { 
+                                    if self.is_match(colon_idx, label)? {
+                                        matched = Some(target);
+                                        if self.automaton.is_accepting(target) {
+                                            debug!("Accept {idx}");
+                                            result.report(colon_idx);
+                                        }
+                                        break;
+                                    }
                                 }
-                                break;
+                                ArrayIndex(NonNegativeArrayIndex(i)) => {
+                                    if i == count {
+                                        matched = Some(target);
+                                        if self.automaton.is_accepting(target) {
+                                            result.report(colon_idx);
+                                        }
+                                        break;
+                                    }
+                                }
                             }
                         }
                     }
