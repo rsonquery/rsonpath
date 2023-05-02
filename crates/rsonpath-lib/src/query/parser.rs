@@ -248,10 +248,10 @@ fn parsed_array_index<'a>() -> impl Parser<'a, u64> {
     map_res(length_limited_array_index(), str::parse)
 }
 
-const ARRAY_INDEX_ULIMIT_B10_DIGIT_CT: usize = ARRAY_INDEX_ULIMIT.ilog10() as usize;
+const ARRAY_INDEX_ULIMIT_BASE_10_DIGIT_COUNT: usize = ARRAY_INDEX_ULIMIT.ilog10() as usize;
 fn length_limited_array_index<'a>() -> impl Parser<'a, &'a str> {
     map_res(digit1, |cs: &str| {
-        if cs.len() > (ARRAY_INDEX_ULIMIT_B10_DIGIT_CT + 1) {
+        if cs.len() > (ARRAY_INDEX_ULIMIT_BASE_10_DIGIT_COUNT + 1) {
             Err(ArrayIndexError::ExceedsUpperLimitError(cs.to_owned()))
         } else {
             Ok(cs)
