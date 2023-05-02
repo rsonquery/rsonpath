@@ -55,6 +55,7 @@ pub fn report_engine_error(error: EngineError) -> eyre::Report {
         EngineError::MissingClosingCharacter() => eyre::Report::new(error),
         EngineError::MalformedLabelQuotes(_) => eyre::Report::new(error),
         EngineError::NotSupported(unsupported) => report_unsupported_error(unsupported),
+        EngineError::InternalError => eyre::Report::new(error),
     }
 }
 

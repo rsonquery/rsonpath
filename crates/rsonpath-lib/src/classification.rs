@@ -20,9 +20,10 @@
 //!     classify_structural_characters, resume_structural_classification,
 //!     BracketType, Structural, StructuralIterator,
 //! };
-//! use aligners::AlignedBytes;
-//!
-//! let input = AlignedBytes::new_padded(r#"{"a":[42, {}, 44]}"#.as_bytes());
+//! use rsonpath_lib::input::OwnedBytes;
+//! 
+//! let json = r#"{"a":[42, {}, 44]}"#.to_owned();
+//! let input = OwnedBytes::from(json);
 //! let quote_classifier = classify_quoted_sequences(&input);
 //! let mut structural_classifier = classify_structural_characters(quote_classifier);
 //! structural_classifier.turn_colons_on(0);
@@ -57,16 +58,20 @@ pub mod depth;
 pub mod quotes;
 pub mod structural;
 
-use crate::debug;
+use crate::{
+    debug,
+    input::{IBlock, Input},
+};
 use quotes::{QuoteClassifiedBlock, QuoteClassifiedIterator};
 
 /// State allowing resumption of a classifier from a particular place
 /// in the input along with the stopped [`QuoteClassifiedIterator`].
-pub struct ResumeClassifierState<'a, I: QuoteClassifiedIterator<'a>> {
+pub struct ResumeClassifierState<'a, I: Input, Q, const N: usize>
+{
     /// The stopped iterator.
-    pub iter: I,
+    pub iter: Q,
     /// The block at which classification was stopped.
-    pub block: Option<ResumeClassifierBlockState<'a>>,
+    pub block: Option<ResumeClassifierBlockState<'a, I, N>>,
     /// Was comma classification turned on when the classification was stopped.
     pub are_commas_on: bool,
     /// Was colon classification turned on when the classification was stopped.
@@ -74,14 +79,16 @@ pub struct ResumeClassifierState<'a, I: QuoteClassifiedIterator<'a>> {
 }
 
 /// State of the block at which classification was stopped.
-pub struct ResumeClassifierBlockState<'a> {
+pub struct ResumeClassifierBlockState<'a, I: Input + 'a, const N: usize> {
     /// Quote classified information about the block.
-    pub block: QuoteClassifiedBlock<'a>,
+    pub block: QuoteClassifiedBlock<'a, IBlock<'a, I, N>, N>,
     /// The index at which classification was stopped.
     pub idx: usize,
 }
 
-impl<'a, I: QuoteClassifiedIterator<'a>> ResumeClassifierState<'a, I> {
+impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize>
+    ResumeClassifierState<'a, I, Q, N>
+{
     /// Get the index in the original bytes input at which classification has stopped.
     #[inline(always)]
     pub fn get_idx(&self) -> usize {
@@ -110,11 +117,10 @@ impl<'a, I: QuoteClassifiedIterator<'a>> ResumeClassifierState<'a, I> {
                 b.idx += count;
             }
             _ => {
-                let blocks_to_advance = (count - remaining_in_block) / I::block_size();
+                let blocks_to_advance = (count - remaining_in_block) / N;
 
-                let remainder = (self.block.as_ref().map_or(0, |b| b.idx) + count
-                    - blocks_to_advance * I::block_size())
-                    % I::block_size();
+                let remainder =
+                    (self.block.as_ref().map_or(0, |b| b.idx) + count - blocks_to_advance * N) % N;
 
                 self.iter.offset(blocks_to_advance as isize);
                 let next_block = self.iter.next();

@@ -33,10 +33,10 @@
 pub mod automaton;
 pub mod builder;
 pub mod error;
+mod label;
 mod parser;
+pub use label::Label;
 
-use aligners::{alignment, AlignedBytes, AlignedSlice};
-use cfg_if::cfg_if;
 use log::*;
 use std::fmt::{self, Display};
 

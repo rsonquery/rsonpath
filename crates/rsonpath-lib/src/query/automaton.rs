@@ -6,7 +6,7 @@ mod state;
 
 pub use state::{State, StateAttributes};
 
-use super::{error::CompilerError, JsonPathQuery, Label};
+use super::{error::CompilerError, JsonPathQuery, Label, NonNegativeArrayIndex};
 use crate::debug;
 use nfa::NondeterministicAutomaton;
 use smallvec::SmallVec;
@@ -18,8 +18,14 @@ pub struct Automaton<'q> {
     states: Vec<StateTable<'q>>,
 }
 
+enum TransitionLabel<'q> {
+    //TODO: Label name
+    ObjectMember(&'q Label),
+    ArrayIndex(NonNegativeArrayIndex),
+}
+
 /// A single transition of an [`Automaton`].
-type Transition<'q> = (&'q Label, State);
+type Transition<'q> = (TransitionLabel<'q>, State);
 
 /// A transition table of a single [`State`] of an [`Automaton`].
 ///

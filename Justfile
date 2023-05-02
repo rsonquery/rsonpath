@@ -91,11 +91,11 @@ test-unit:
 
 # Run the classifier tests on default features.
 test-classifier:
-    cargo test --test classifier_correctness_test
+    cargo test --test classifier_correctness_tests
 
 # Run the main engine end-to-end tests on default features.
 test-engine:
-    cargo test --test engine_correctness_test
+    cargo test --test engine_correctness_tests
 
 # Run all tests, including real dataset tests, on the feature powerset of the project.
 test-full:

@@ -1,6 +1,7 @@
 use rsonpath_lib::engine::main::MainEngine;
 use rsonpath_lib::engine::recursive::RecursiveEngine;
-use rsonpath_lib::engine::{Compiler, Engine, Input};
+use rsonpath_lib::engine::{Compiler, Engine};
+use rsonpath_lib::input::OwnedBytes;
 use rsonpath_lib::query::JsonPathQuery;
 use rsonpath_lib::result::{CountResult, IndexResult};
 use std::fs;
@@ -8,10 +9,10 @@ use test_case::test_case;
 
 const ROOT_TEST_DIRECTORY: &str = "./tests/data";
 
-fn get_contents(test_path: &str) -> Input {
+fn get_contents(test_path: &str) -> OwnedBytes {
     let path = format!("{ROOT_TEST_DIRECTORY}/{test_path}");
-    let mut raw = fs::read_to_string(path).unwrap();
-    Input::new(&mut raw)
+    let raw = fs::read_to_string(path).unwrap();
+    OwnedBytes::new(&raw)
 }
 
 macro_rules! count_test_cases {
@@ -33,6 +34,8 @@ macro_rules! count_test_cases {
         #[test_case("basic/escapes.json", r#"$..a..b..['label\\']"# => 1; "escapes.json existing label")]
         #[test_case("basic/escapes.json", r#"$..a..b..['label\\\\']"# => 0; "escapes.json nonexistent label")]
         #[test_case("basic/heterogeneous_list.json", r#"$.a.*"# => 3; "heterogeneous_list.json $.a.*")]
+        #[test_case("basic/memchr_trap.json", "$..b" => 1; "memchr_trap.json $..b")]
+        #[test_case("basic/memchr_trap.json", r#"$..['"b']"# => 1; r#"memchr_trap.json $..['"b']"#)]
         #[test_case("basic/heterogeneous_list.json", r#"$.*[1]"# => 1; "heterogeneous_list.json wildcard nneg array index")]
         #[test_case("basic/quote_escape.json", r#"$['x']"# => 1; "quote_escape.json without quote")]
         #[test_case("basic/quote_escape.json", r#"$['"x']"# => 1; "quote_escape.json with quote")]
@@ -66,6 +69,8 @@ macro_rules! count_test_cases {
         #[test_case("basic/compressed/escapes.json", r#"$..a..b..['label\\']"# => 1; "compressed escapes.json existing label")]
         #[test_case("basic/compressed/escapes.json", r#"$..a..b..['label\\\\']"# => 0; "compressed escapes.json nonexistent label")]
         #[test_case("basic/compressed/fake2.json", r#"$.a999999.b.c.d"# => 1; "compressed fake2.json")]
+        #[test_case("basic/compressed/memchr_trap.json", "$..b" => 1; "compressed memchr_trap.json $..b")]
+        #[test_case("basic/compressed/memchr_trap.json", r#"$..['"b']"# => 1; r#"compressed memchr_trap.json $..['"b']"#)]
         #[test_case("basic/compressed/quote_escape.json", r#"$['x']"# => 1; "compressed quote_escape.json without quote")]
         #[test_case("basic/compressed/quote_escape.json", r#"$['"x']"# => 1; "compressed quote_escape.json with quote")]
         #[test_case("basic/compressed/singletons_and_empties.json", r#"$.*.*"# => 2; "compressed singletons_and_empties.json")]
@@ -171,7 +176,7 @@ macro_rules! count_test_cases {
         fn $test_name(test_path: &str, query_string: &str) -> usize {
             let contents = get_contents(test_path);
             let query = JsonPathQuery::parse(query_string).unwrap();
-            let result = $impl::compile_query(&query).unwrap().run::<CountResult>(&contents).unwrap();
+            let result = $impl::compile_query(&query).unwrap().run::<_, CountResult>(&contents).unwrap();
 
             result.get()
         }
@@ -193,6 +198,8 @@ macro_rules! indices_test_cases {
         #[test_case("basic/escapes.json", r#"$..a..b..['label\\']"# => vec![609]; "escapes.json existing label")]
         #[test_case("basic/escapes.json", r#"$..a..b..['label\\\\']"# => Vec::<usize>::new(); "escapes.json nonexistent label")]
         #[test_case("basic/heterogeneous_list.json", r#"$.a.*"# => vec![10, 23, 44]; "heterogeneous_list.json $.a.*")]
+        #[test_case("basic/memchr_trap.json", "$..b" => vec![43]; "memchr_trap.json $..b")]
+        #[test_case("basic/memchr_trap.json", r#"$..['"b']"# => vec![26]; r#"memchr_trap.json $..['"b']"#)]
         #[test_case("basic/quote_escape.json", r#"$['"x']"# => vec![11]; "quote_escape.json with quote")]
         #[test_case("basic/quote_escape.json", r#"$['x']"# => vec![24]; "quote_escape.json without quote")]
         #[test_case("basic/root.json", "$" => vec![0]; "root.json $")]
@@ -226,6 +233,8 @@ macro_rules! indices_test_cases {
         #[test_case("basic/compressed/child_hell.json", "$..x..a.b.a.b.c" => vec![39, 108, 189, 240, 263, 280]; "compressed child_hell.json $..x..a.b.a.b.c")]
         #[test_case("basic/compressed/escapes.json", r#"$..a..b..['label\\']"# => vec![524]; "compressed escapes.json existing label")]
         #[test_case("basic/compressed/escapes.json", r#"$..a..b..['label\\\\']"# => Vec::<usize>::new(); "compressed escapes.json nonexistent label")]
+        #[test_case("basic/compressed/memchr_trap.json", "$..b" => vec![18]; "compressed memchr_trap.json $..b")]
+        #[test_case("basic/compressed/memchr_trap.json", r#"$..['"b']"# => vec![11]; r#"compressed memchr_trap.json $..['"b']"#)]
         #[test_case("basic/compressed/quote_escape.json", r#"$['"x']"# => vec![6]; "compressed quote_escape.json with quote")]
         #[test_case("basic/compressed/quote_escape.json", r#"$['x']"# => vec![13]; "compressed quote_escape.json without quote")]
         #[test_case("basic/compressed/singletons_and_empties.json", r#"$.*.*"# => vec![6, 15]; "compressed singletons_and_empties.json")]
@@ -251,7 +260,7 @@ macro_rules! indices_test_cases {
         fn $test_name(test_path: &str, query_string: &str) -> Vec<usize> {
             let contents = get_contents(test_path);
             let query = JsonPathQuery::parse(query_string).unwrap();
-            let result = $impl::compile_query(&query).unwrap().run::<IndexResult>(&contents).unwrap();
+            let result = $impl::compile_query(&query).unwrap().run::<_, IndexResult>(&contents).unwrap();
 
             result.into()
         }
