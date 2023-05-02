@@ -487,38 +487,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn label_equality() {
-        let label1 = Label::new("dog");
-        let label2 = Label::new("dog");
-
-        assert_eq!(label1, label2);
-    }
-
-    #[test]
-    fn label_inequality() {
-        let label1 = Label::new("dog");
-        let label2 = Label::new("doc");
-
-        assert_ne!(label1, label2);
-    }
-
-    #[test]
-    fn label_hash() {
-        let label1 = Label::new("dog");
-        let label2 = Label::new("dog");
-
-        let mut s1 = DefaultHasher::new();
-        label1.hash(&mut s1);
-        let h1 = s1.finish();
-
-        let mut s2 = DefaultHasher::new();
-        label2.hash(&mut s2);
-        let h2 = s2.finish();
-
-        assert_eq!(h1, h2);
-    }
-
-    #[test]
     fn index_ulimit_sanity_check() {
         assert_eq!(9007199254740991, ARRAY_INDEX_ULIMIT);
     }
