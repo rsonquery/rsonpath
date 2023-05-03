@@ -1,5 +1,5 @@
 use super::error::{ArrayIndexError, ParseErrorReport, ParserError};
-use super::ARRAY_INDEX_ULIMIT;
+use super::nonnegative_array_index::ARRAY_INDEX_ULIMIT;
 use crate::debug;
 use crate::query::{
     JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label, NonNegativeArrayIndex,

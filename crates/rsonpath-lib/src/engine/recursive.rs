@@ -1,19 +1,21 @@
 //! Reference implementation of a JSONPath query engine with recursive descent.
 #[cfg(feature = "head-skip")]
 use super::head_skipping::{CanHeadSkip, HeadSkip};
+use crate::classification::quotes::classify_quoted_sequences;
+use crate::classification::quotes::QuoteClassifiedIterator;
+use crate::classification::structural::classify_structural_characters;
+use crate::classification::structural::BracketType;
+use crate::classification::structural::Structural;
+use crate::classification::structural::StructuralIterator;
 #[cfg(feature = "head-skip")]
 use crate::classification::ResumeClassifierState;
-use crate::classification::{
-    quotes::{classify_quoted_sequences, QuoteClassifiedIterator},
-    structural::{classify_structural_characters, BracketType, Structural, StructuralIterator},
-};
 use crate::debug;
 use crate::engine::error::EngineError;
 #[cfg(feature = "tail-skip")]
 use crate::engine::tail_skipping::TailSkip;
 use crate::engine::{Compiler, Engine};
 use crate::input::Input;
-use crate::query::automaton::{Automaton, State};
+use crate::query::automaton::{Automaton, State, TransitionLabel};
 use crate::query::error::CompilerError;
 use crate::query::{JsonPathQuery, Label};
 use crate::result::QueryResult;
@@ -150,13 +152,6 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
             .map(|_| ())
     }
 
-    // fn is_counting(){
-
-    //     is_fallback_accepting && 
-    //     // TODO: any transition requires counting
-    //     self.automaton[state].attributes.
-    // }
-
     fn run_on_subtree<'r, Q, S, R>(
         &mut self,
         classifier: &mut Classifier!(),
@@ -198,25 +193,20 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
         };
 
         config_characters(classifier, open_idx);
-        
-        
-        if is_list && is_fallback_accepting {
+
+        // When a list contains only one item, this block ensures that the list item is reported if appropriate without entering the loop below.
+        let wants_first_item = self.automaton[state].transitions().iter().any(|t| match t {
+            (TransitionLabel::ArrayIndex(NonNegativeArrayIndex), s) => {
+                self.automaton.is_accepting(*s)
+            }
+            _ => false,
+        }) || is_fallback_accepting;
+
+        if is_list && wants_first_item {
             next_event = classifier.next();
             if let Some(Structural::Closing(_, close_idx)) = next_event {
                 if let Some((next_idx, _)) = self.bytes.seek_non_whitespace_forward(open_idx + 1) {
-
-                    is_fallback_accepting ||
-                    // When a list is opened, it may contain only a single-item.  Ensure that at least one  of the outgoing transition wants the zeroth item.  If this is the final accepting state, the list item is reported.
-                    let wants_first_item = (self.automaton[state].transitions().iter().any(
-                        |t| match t {
-                            // 
-                            ArrayIndex(NonNegativeArrayIndex(0)) => t.transitions().len() == 0
-                            , _ => false
-                        } has non neg && transition.count = 0));
-
-
-
-                    if (next_idx < close_idx) && (wants_first_item)  {
+                    if next_idx < close_idx {
                         result.report(next_idx);
                     }
                 }
@@ -245,15 +235,17 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
                         result.report(idx);
                     }
 
-                    // if counting, increment array_count
-                    array_count+=1;
-                    
+                    // Once we are in comma search, loop we have already considered the option that the first item in the list is a match.  Iterate on the remaining items.
+                    array_count += 1;
+
                     let is_next_closing = next_event.map_or(false, |s| s.is_closing());
 
-                    if is_counting && !is_next_closing && ((self.automaton[state].transitions().iter().any(|t| match t {
-                        NonNegativeArrayIndex(_) => true,
-                        _ => false
-                    })) == array_count){
+                    let match_index = self.automaton[state].transitions().iter().any(|t| match t {
+                        (TransitionLabel::ArrayIndex(i), _) => array_count == i.get_index(),
+                        _ => false,
+                    });
+
+                    if is_counting && !is_next_closing && match_index {
                         debug!("Accepting on list item.");
                         result.report(idx);
                     }
@@ -270,11 +262,17 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
                         let mut any_matched = false;
 
                         for &(label, target) in self.automaton[state].transitions() {
-                            if self.automaton.is_accepting(target) && self.is_match(idx, label)? {
-                                debug!("Accept {idx}");
-                                result.report(idx);
-                                any_matched = true;
-                                break;
+                            match label {
+                                TransitionLabel::ObjectMember(label)
+                                    if self.automaton.is_accepting(target)
+                                        && self.is_match(idx, label)? =>
+                                {
+                                    debug!("Accept {idx}");
+                                    result.report(idx);
+                                    any_matched = true;
+                                    break;
+                                }
+                                _ => {}
                             }
                         }
                         let fallback_state = self.automaton[state].fallback_state();
@@ -311,20 +309,23 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
                         for &(label, target) in self.automaton[state].transitions() {
                             //todo: refactor common
                             match label {
-                                ObjectMember(l) => { 
-                                    if self.is_match(colon_idx, label)? {
+                                TransitionLabel::ObjectMember(l) => {
+                                    if self.is_match(colon_idx, l)? {
                                         matched = Some(target);
                                         if self.automaton.is_accepting(target) {
+                                            debug!("Accept Object Member {}", l.display());
                                             debug!("Accept {idx}");
                                             result.report(colon_idx);
                                         }
                                         break;
                                     }
                                 }
-                                ArrayIndex(NonNegativeArrayIndex(i)) => {
-                                    if i == count {
+                                TransitionLabel::ArrayIndex(i) => {
+                                    if i.get_index() == array_count {
                                         matched = Some(target);
                                         if self.automaton.is_accepting(target) {
+                                            debug!("Accept Array Index {i}");
+                                            debug!("Accept {idx}");
                                             result.report(colon_idx);
                                         }
                                         break;
