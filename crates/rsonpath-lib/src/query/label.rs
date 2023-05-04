@@ -16,6 +16,7 @@ use std::fmt::Display;
 /// assert_eq!(label.bytes_with_quotes(), "\"needle\"".as_bytes());
 /// ```
 #[derive(Clone)]
+// TODO: rename to objectMemberLabel or etc?
 pub struct Label {
     label: Vec<u8>,
     label_with_quotes: Vec<u8>,

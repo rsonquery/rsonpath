@@ -36,12 +36,13 @@ pub mod error;
 mod label;
 pub mod nonnegative_array_index;
 mod parser;
+use aligners::alignment;
 pub use label::Label;
 
 use log::*;
 use std::fmt::{self, Display};
 
-cfg_if! {
+cfg_if::cfg_if! {
     if #[cfg(feature = "simd")] {
         /// Label byte alignment for SIMD.
         pub type LabelAlignment = alignment::SimdBlock;

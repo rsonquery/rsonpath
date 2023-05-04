@@ -18,10 +18,80 @@ pub struct Automaton<'q> {
     states: Vec<StateTable<'q>>,
 }
 
-enum TransitionLabel<'q> {
-    //TODO: Label name
+/// Represent the distinct methods of moving on a match between states.
+#[derive(Debug, Copy, PartialEq, Clone, Eq)]
+pub enum TransitionLabel<'q> {
     ObjectMember(&'q Label),
     ArrayIndex(NonNegativeArrayIndex),
+}
+
+impl<'q> TransitionLabel<'q> {
+    /// Return a display object with a UTF8 representation of this label.
+    #[must_use]
+    #[inline(always)]
+    pub fn display(&self) -> impl Display + 'q {
+        match self {
+            // TODO: this seems like a kludge; but, just to get things compiling:
+            // This isn't just calling label.display() because the compile makes opaque types unique at the declaration site.
+            // So, the one for display() that is defined above would not equate to Label's def.
+            TransitionLabel::ObjectMember(label) => format!("{}", label.display()),
+            TransitionLabel::ArrayIndex(index) => format!("{index}"),
+        }
+    }
+
+    #[must_use]
+    #[inline(always)]
+    pub fn get_label(&self) -> Option<&Label> {
+        match self {
+            TransitionLabel::ObjectMember(l) => Some(l),
+            _ => None,
+        }
+    }
+
+    #[must_use]
+    #[inline(always)]
+    pub fn get_label_owned(self) -> Option<&'q Label> {
+        match self {
+            TransitionLabel::ObjectMember(l) => Some(l),
+            _ => None,
+        }
+    }
+
+    #[must_use]
+    #[inline(always)]
+    pub fn new_object_member(label: &'q Label) -> Self {
+        TransitionLabel::ObjectMember(label)
+    }
+
+    #[must_use]
+    #[inline(always)]
+    pub fn new_array_index(label: NonNegativeArrayIndex) -> Self {
+        TransitionLabel::ArrayIndex(label)
+    }
+}
+
+impl<'q> From<&'q Label> for TransitionLabel<'q> {
+    #[must_use]
+    #[inline(always)]
+    fn from(label: &'q Label) -> Self {
+        TransitionLabel::new_object_member(label)
+    }
+}
+
+impl From<&NonNegativeArrayIndex> for TransitionLabel<'_> {
+    #[must_use]
+    #[inline(always)]
+    fn from(label: &NonNegativeArrayIndex) -> Self {
+        TransitionLabel::new_array_index(*label)
+    }
+}
+
+impl From<NonNegativeArrayIndex> for TransitionLabel<'_> {
+    #[must_use]
+    #[inline(always)]
+    fn from(label: NonNegativeArrayIndex) -> Self {
+        TransitionLabel::new_array_index(label)
+    }
 }
 
 /// A single transition of an [`Automaton`].
@@ -238,7 +308,7 @@ impl<'q> StateTable<'q> {
 
     /// Returns the collection of labelled transitions from this state.
     ///
-    /// A transition is triggered if the [`Label`] is matched and leads
+    /// A transition is triggered if the [`TransitionLabel`] is matched and leads
     /// to the contained [`State`].
     #[must_use]
     #[inline(always)]

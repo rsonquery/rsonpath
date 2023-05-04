@@ -85,13 +85,18 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
 
         if fallback_state == initial_state && transitions.len() == 1 {
             let (label, target_state) = transitions[0];
-            debug!("Automaton starts with a descendant search, using memmem heuristic.");
-            return Some(Self {
-                bytes,
-                state: target_state,
-                is_accepting: automaton.is_accepting(target_state),
-                label,
-            });
+
+            // TODO: factor out as member impl
+            if let Some(named_label) = label.get_label_owned() {
+                debug!("Automaton starts with a descendant search, using memmem heuristic.");
+
+                return Some(Self {
+                    bytes,
+                    state: target_state,
+                    is_accepting: automaton.is_accepting(target_state),
+                    label: named_label,
+                });
+            }
         }
 
         None
@@ -112,6 +117,8 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
         };
 
         let mut idx = 0;
+
+        // TODO: Implement for array index?
 
         while let Some(starting_quote_idx) = self.bytes.find_label(idx, self.label) {
             idx = starting_quote_idx;

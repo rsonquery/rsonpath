@@ -2,8 +2,7 @@
 //! obtained from a JsonPath query. This is then turned into
 //! a DFA with the minimizer.
 use crate::{
-    error::UnsupportedFeatureError,
-    query::{error::CompilerError, JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label},
+    query::{error::CompilerError, JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType},
 };
 use std::{fmt::Display, ops::Index};
 
@@ -28,11 +27,13 @@ pub(super) enum NfaState<'q> {
 }
 use NfaState::*;
 
+use super::TransitionLabel;
+
 /// A transition in the NFA mapped from a [`JsonPathQuery`] selector.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(super) enum Transition<'q> {
     /// A transition matching a specific [`Label`] only.
-    Labelled(&'q Label),
+    Labelled(TransitionLabel<'q>),
     /// A transition matching anything.
     Wildcard,
 }
@@ -71,14 +72,16 @@ impl<'q> NondeterministicAutomaton<'q> {
             .filter_map(|node| match node {
                 JsonPathQueryNode::Root(_) => None,
                 JsonPathQueryNode::Descendant(label, _) => {
-                    Some(Ok(Recursive(Transition::Labelled(label))))
+                    Some(Ok(Recursive(Transition::Labelled(label.into()))))
                 }
-                JsonPathQueryNode::Child(label, _) => Some(Ok(Direct(Transition::Labelled(label)))),
+                JsonPathQueryNode::Child(label, _) => {
+                    Some(Ok(Direct(Transition::Labelled(label.into()))))
+                }
                 JsonPathQueryNode::AnyChild(_) => Some(Ok(Direct(Transition::Wildcard))),
                 JsonPathQueryNode::AnyDescendant(_) => Some(Ok(Recursive(Transition::Wildcard))),
-                JsonPathQueryNode::ArrayIndex(_, _) => Some(Err(CompilerError::NotSupported(
-                    UnsupportedFeatureError::array_index(),
-                ))),
+                JsonPathQueryNode::ArrayIndex(label, _) => {
+                    Some(Ok(Direct(Transition::Labelled(label.into()))))
+                }
             })
             .collect();
         let mut states = states_result?;

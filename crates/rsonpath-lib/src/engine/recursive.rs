@@ -196,7 +196,7 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
 
         // When a list contains only one item, this block ensures that the list item is reported if appropriate without entering the loop below.
         let wants_first_item = self.automaton[state].transitions().iter().any(|t| match t {
-            (TransitionLabel::ArrayIndex(NonNegativeArrayIndex), s) => {
+            (TransitionLabel::ArrayIndex(_), s) => {
                 self.automaton.is_accepting(*s)
             }
             _ => false,

@@ -1,23 +1,9 @@
-use std::fmt::{self, Display, Formatter};
-
 use super::error::ArrayIndexError;
+use std::fmt::{self, Display, Formatter};
 
 /// Array index to search for in a JSON document.
 ///
 /// Represents a specific location from the front of the list in a json array.
-///
-///
-/// # Examples
-///
-/// ```
-/// # use rsonpath_lib::query::NonNegativeArrayIndex;
-///
-/// let index = ::new("needle");
-///
-/// assert_eq!(label.bytes(), "needle".as_bytes());
-/// assert_eq!(label.bytes_with_quotes(), "\"needle\"".as_bytes());
-/// ```
-
 /// Provides the [IETF-conforming index value](https://www.rfc-editor.org/rfc/rfc7493.html#section-2).  Values are \[0, (2^53)-1].
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct NonNegativeArrayIndex(u64);
