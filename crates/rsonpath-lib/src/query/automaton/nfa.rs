@@ -1,8 +1,9 @@
 //! Definition of a nondeterministic automaton that can be directly
 //! obtained from a JsonPath query. This is then turned into
 //! a DFA with the minimizer.
-use crate::query::{
-    error::CompilerError, JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label,
+use crate::{
+    error::UnsupportedFeatureError,
+    query::{error::CompilerError, JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label},
 };
 use std::{fmt::Display, ops::Index};
 
@@ -75,6 +76,9 @@ impl<'q> NondeterministicAutomaton<'q> {
                 JsonPathQueryNode::Child(label, _) => Some(Ok(Direct(Transition::Labelled(label)))),
                 JsonPathQueryNode::AnyChild(_) => Some(Ok(Direct(Transition::Wildcard))),
                 JsonPathQueryNode::AnyDescendant(_) => Some(Ok(Recursive(Transition::Wildcard))),
+                JsonPathQueryNode::ArrayIndex(_, _) => Some(Err(CompilerError::NotSupported(
+                    UnsupportedFeatureError::array_index(),
+                ))),
             })
             .collect();
         let mut states = states_result?;

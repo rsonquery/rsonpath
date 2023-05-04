@@ -19,6 +19,7 @@ pub fn report_parser_error(query_string: &str, error: ParserError) -> eyre::Repo
     match error {
         ParserError::SyntaxError { report } => report_query_syntax_error(query_string, report),
         ParserError::InternalNomError { .. } => eyre::Report::new(error),
+        ParserError::ArrayIndexError(_) => eyre::Report::new(error),
     }
 }
 

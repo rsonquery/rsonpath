@@ -1,6 +1,9 @@
-use super::error::{ParseErrorReport, ParserError};
+use super::error::{ArrayIndexError, ParseErrorReport, ParserError};
+use super::ARRAY_INDEX_ULIMIT;
 use crate::debug;
-use crate::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label};
+use crate::query::{
+    JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label, NonNegativeArrayIndex,
+};
 use nom::{
     branch::*, bytes::complete::*, character::complete::*, combinator::*, multi::*, sequence::*, *,
 };
@@ -11,6 +14,7 @@ use std::fmt::{self, Display};
 enum Token<'a> {
     Root,
     Child(LabelString<'a>),
+    ArrayIndex(NonNegativeArrayIndex),
     WildcardChild(),
     Descendant(LabelString<'a>),
     WildcardDescendant(),
@@ -27,6 +31,7 @@ impl Display for Token<'_> {
         match self {
             Token::Root => write!(f, "$"),
             Token::Child(label) => write!(f, "['{label}']"),
+            Token::ArrayIndex(i) => write!(f, "[{i}]"),
             Token::WildcardChild() => write!(f, "[*]"),
             Token::Descendant(label) => write!(f, "..['{label}']"),
             Token::WildcardDescendant() => write!(f, "..[*]"),
@@ -53,6 +58,7 @@ impl<'a> Borrow<str> for LabelString<'a> {
 }
 
 impl<'a> From<Option<String>> for LabelString<'a> {
+    #[inline]
     fn from(value: Option<String>) -> Self {
         match value {
             Some(label) => LabelString::Owned(label),
@@ -121,6 +127,7 @@ fn tokens_to_node<'a, I: Iterator<Item = Token<'a>>>(
                     Label::new(label.borrow()),
                     child_node,
                 ))),
+                Token::ArrayIndex(i) => Ok(Some(JsonPathQueryNode::ArrayIndex(i, child_node))),
                 Token::WildcardChild() => Ok(Some(JsonPathQueryNode::AnyChild(child_node))),
                 Token::Descendant(label) => Ok(Some(JsonPathQueryNode::Descendant(
                     Label::new(label.borrow()),
@@ -161,6 +168,7 @@ fn non_root<'a>() -> impl Parser<'a, Vec<Token<'a>>> {
     many0(alt((
         wildcard_child_selector(),
         child_selector(),
+        array_index_child_selector(),
         wildcard_descendant_selector(),
         descendant_selector(),
     )))
@@ -221,6 +229,33 @@ fn label_first<'a>() -> impl Parser<'a, char> {
 fn label_character<'a>() -> impl Parser<'a, char> {
     verify(anychar, |&x| {
         x.is_alphanumeric() || x == '_' || !x.is_ascii()
+    })
+}
+
+fn array_index_child_selector<'a>() -> impl Parser<'a, Token<'a>> {
+    map(array_index_selector(), Token::ArrayIndex)
+}
+
+fn array_index_selector<'a>() -> impl Parser<'a, NonNegativeArrayIndex> {
+    delimited(char('['), nonnegative_array_index(), char(']'))
+}
+
+fn nonnegative_array_index<'a>() -> impl Parser<'a, NonNegativeArrayIndex> {
+    map_res(parsed_array_index(), TryInto::try_into)
+}
+
+fn parsed_array_index<'a>() -> impl Parser<'a, u64> {
+    map_res(length_limited_array_index(), str::parse)
+}
+
+const ARRAY_INDEX_ULIMIT_BASE_10_DIGIT_COUNT: usize = ARRAY_INDEX_ULIMIT.ilog10() as usize;
+fn length_limited_array_index<'a>() -> impl Parser<'a, &'a str> {
+    map_res(digit1, |cs: &str| {
+        if cs.len() > (ARRAY_INDEX_ULIMIT_BASE_10_DIGIT_COUNT + 1) {
+            Err(ArrayIndexError::ExceedsUpperLimitError(cs.to_owned()))
+        } else {
+            Ok(cs)
+        }
     })
 }
 
@@ -372,6 +407,61 @@ mod tests {
         let result = super::quoted_label()(input);
 
         assert_eq!(result, Ok(("", LabelString::Owned("a".to_string()))));
+    }
+
+    #[test]
+    fn nonnegative_array_index() {
+        let input = "[5]";
+
+        let result = super::array_index_selector()(input);
+
+        assert_eq!(result, Ok(("", 5.try_into().unwrap())));
+    }
+
+    #[test]
+    fn zero_array_index() {
+        let input = "[0]";
+
+        let result = super::array_index_selector()(input);
+
+        assert_eq!(result, Ok(("", 0.try_into().unwrap())));
+    }
+
+    #[test]
+    fn negative_array_index() {
+        let input = "[-5]";
+
+        super::array_index_selector()(input).unwrap_err();
+    }
+
+    #[test]
+    fn two_sixyfour_array_index() {
+        let input = "[18446744073709551616]";
+
+        super::array_index_selector()(input).unwrap_err();
+    }
+
+    #[test]
+    fn two_sixyfour_plus_one_array_index() {
+        let input = "[18446744073709551617]";
+
+        super::array_index_selector()(input).unwrap_err();
+    }
+
+    #[test]
+    fn two_pow_fiftythree_minus_one_array_index() {
+        let input = "[9007199254740991]";
+
+        let result = super::array_index_selector()(input);
+
+        assert_eq!(result, Ok(("", 9_007_199_254_740_991.try_into().unwrap())));
+    }
+
+    #[test]
+    fn two_pow_fiftythree_index() {
+        let input = "[9007199254740992]";
+
+        super::array_index_selector()(input).unwrap_err();
     }
 
     #[test]

@@ -153,7 +153,7 @@ impl<'q> Minimizer<'q> {
         let id = self.superstates[&current_superstate];
         let fallback_state = self.superstates[&transitions.wildcard];
         let attributes = self.build_attributes(id, &translated_transitions, fallback_state);
-        let mut table = &mut self.dfa_states[id.0 as usize];
+        let table = &mut self.dfa_states[id.0 as usize];
         table.transitions = translated_transitions;
         table.fallback_state = fallback_state;
         table.attributes = attributes;

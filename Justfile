@@ -68,7 +68,7 @@ run *ARGS: (build-bin "release")
 
 # === WATCH ===
 watch *ARGS:
-    cargo watch -x "check" -x "test --lib -q" -x "test --doc -q" '{{ARGS}}'
+    cargo watch -x "check" -x "test --lib -q" -x "test --doc -q" {{ARGS}}
 
 
 # === TEST ===

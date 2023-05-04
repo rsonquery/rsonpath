@@ -52,6 +52,13 @@ impl UnsupportedFeatureError {
         Self::untracked("Large Automaton Queries")
     }
 
+    /// Temporary error for index functionality to be implemented in engine.
+    #[must_use]
+    #[inline(always)]
+    pub fn array_index() -> Self {
+        Self::tracked(64, "Array Index")
+    }
+
     /// Returns the issue number on GitHub corresponding to the unsupported feature.
     /// Is [`None`] if the feature is not planned.
     #[must_use]
