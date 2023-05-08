@@ -36,6 +36,19 @@ fn wildcard_child_selector() {
 }
 
 #[test]
+fn descendant_nonnegative_array_indexed_selector() {
+    let input = "$..[5]";
+    let expected_query = JsonPathQueryBuilder::new()
+        .any_descendant()
+        .array_index(5.try_into().unwrap())
+        .into();
+
+    let result = JsonPathQuery::parse(input).expect("expected Ok");
+
+    assert_eq!(result, expected_query);
+}
+
+#[test]
 fn nonnegative_array_indexed_selector() {
     let input = "$[5]";
     let expected_query = JsonPathQueryBuilder::new()

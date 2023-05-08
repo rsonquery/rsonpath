@@ -67,7 +67,8 @@ pub enum JsonPathQueryNode {
     /// Represents recursive descendant with a wildcard ('`..*`' tokens).
     AnyDescendant(Option<Box<JsonPathQueryNode>>),
     /// Represents direct descendant list item with a positive index (numbers).
-    ArrayIndex(NonNegativeArrayIndex, Option<Box<JsonPathQueryNode>>),
+    ArrayIndexChild(NonNegativeArrayIndex, Option<Box<JsonPathQueryNode>>),
+    ArrayIndexDescendant(NonNegativeArrayIndex, Option<Box<JsonPathQueryNode>>),
 }
 
 use JsonPathQueryNode::*;
@@ -86,7 +87,8 @@ impl JsonPathQueryNode {
             | AnyChild(node)
             | Descendant(_, node)
             | AnyDescendant(node)
-            | ArrayIndex(_, node) => node.as_deref(),
+            | ArrayIndexChild(_, node)
+            | ArrayIndexDescendant(_, node) => node.as_deref(),
         }
     }
 
@@ -183,7 +185,8 @@ impl Display for JsonPathQueryNode {
             AnyChild(_) => write!(f, "[*]"),
             Descendant(label, _) => write!(f, "..['{}']", label.display()),
             AnyDescendant(_) => write!(f, "..[*]"),
-            ArrayIndex(i, _) => write!(f, "[{i}]"),
+            ArrayIndexChild(i, _) => write!(f, "[{i}]"),
+            ArrayIndexDescendant(i, _) => write!(f, "..[{i}]"),
         }?;
 
         if let Some(child) = self.child() {
@@ -251,14 +254,18 @@ impl JsonPathQueryNodeType for JsonPathQueryNode {
     fn label(&self) -> Option<&Label> {
         match self {
             Child(label, _) | Descendant(label, _) => Some(label),
-            Root(_) | AnyChild(_) | AnyDescendant(_) | ArrayIndex(_, _) => None,
+            Root(_)
+            | AnyChild(_)
+            | AnyDescendant(_)
+            | ArrayIndexChild(_, _)
+            | ArrayIndexDescendant(_, _) => None,
         }
     }
 
     #[inline(always)]
     fn array_index(&self) -> Option<&NonNegativeArrayIndex> {
         match self {
-            ArrayIndex(i, _) => Some(i),
+            ArrayIndexChild(i, _) | ArrayIndexDescendant(i,_) => Some(i),
             Child(_, _) | Descendant(_, _) | Root(_) | AnyChild(_) | AnyDescendant(_) => None,
         }
     }

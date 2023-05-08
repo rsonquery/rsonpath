@@ -79,7 +79,7 @@ impl<'q> NondeterministicAutomaton<'q> {
                 }
                 JsonPathQueryNode::AnyChild(_) => Some(Ok(Direct(Transition::Wildcard))),
                 JsonPathQueryNode::AnyDescendant(_) => Some(Ok(Recursive(Transition::Wildcard))),
-                JsonPathQueryNode::ArrayIndex(label, _) => {
+                JsonPathQueryNode::ArrayIndexChild(label, _) => {
                     Some(Ok(Direct(Transition::Labelled(label.into()))))
                 }
             })
