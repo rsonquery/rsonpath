@@ -97,6 +97,10 @@ test-classifier:
 test-engine:
     cargo test --test engine_correctness_tests
 
+# Run the query tests on default features.
+test-parser:
+    cargo test --test query_parser_tests
+
 # Run all tests, including real dataset tests, on the feature powerset of the project.
 test-full:
     -cargo install cargo-hack
