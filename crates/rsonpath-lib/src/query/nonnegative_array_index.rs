@@ -57,7 +57,7 @@ impl From<NonNegativeArrayIndex> for u64 {
 impl Display for NonNegativeArrayIndex {
     #[inline]
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{index}", index = self.0)
+        write!(f, "{}", self.0)
     }
 }
 
