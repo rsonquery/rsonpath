@@ -398,6 +398,43 @@ mod tests {
     }
 
     #[test]
+    fn simple_nonnegative_indexed_test() {
+        // Query = $[0]
+        let label = TransitionLabel::ArrayIndex(0.try_into().unwrap());
+
+        let nfa = NondeterministicAutomaton {
+            ordered_states: vec![
+                NfaState::Direct(nfa::Transition::Labelled(label)),
+                NfaState::Accepting,
+            ],
+        };
+
+        let result = minimize(nfa).unwrap();
+        let expected = Automaton {
+            states: vec![
+                StateTable {
+                    transitions: smallvec![],
+                    fallback_state: State(0),
+                    attributes: StateAttributes::REJECTING,
+                },
+                StateTable {
+                    transitions: smallvec![(label, State(2))],
+                    fallback_state: State(0),
+                    attributes: StateAttributes::UNITARY
+                        | StateAttributes::TRANSITIONS_TO_ACCEPTING,
+                },
+                StateTable {
+                    transitions: smallvec![],
+                    fallback_state: State(0),
+                    attributes: StateAttributes::ACCEPTING,
+                },
+            ],
+        };
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
     fn simple_descendant_wildcard_test() {
         // Query = $..*
         let nfa = NondeterministicAutomaton {
@@ -610,6 +647,43 @@ mod tests {
                     fallback_state: State(3),
                     attributes: StateAttributes::ACCEPTING
                         | StateAttributes::TRANSITIONS_TO_ACCEPTING,
+                },
+            ],
+        };
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn simple_multi_accepting_nneg_index_test() {
+        // Query = $..[3]
+        let label = TransitionLabel::ArrayIndex(0.try_into().unwrap());
+
+        let nfa = NondeterministicAutomaton {
+            ordered_states: vec![
+                NfaState::Recursive(nfa::Transition::Labelled(label)),
+                NfaState::Accepting,
+            ],
+        };
+
+        let result = minimize(nfa).unwrap();
+        let expected = Automaton {
+            states: vec![
+                StateTable {
+                    transitions: smallvec![],
+                    fallback_state: State(0),
+                    attributes: StateAttributes::REJECTING,
+                },
+                StateTable {
+                    transitions: smallvec![(label, State(2)),],
+                    fallback_state: State(1),
+                    attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING,
+                },
+                StateTable {
+                    transitions: smallvec![(label, State(2))],
+                    fallback_state: State(1),
+                    attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING
+                        | StateAttributes::ACCEPTING,
                 },
             ],
         };
