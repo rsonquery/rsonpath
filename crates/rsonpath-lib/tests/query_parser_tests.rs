@@ -39,7 +39,6 @@ fn wildcard_child_selector() {
 fn descendant_nonnegative_array_indexed_selector() {
     let input = "$..[5]";
     let expected_query = JsonPathQueryBuilder::new()
-        .any_descendant()
         .array_index_descendant(5.try_into().unwrap())
         .into();
 
