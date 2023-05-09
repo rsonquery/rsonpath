@@ -68,6 +68,7 @@ pub enum JsonPathQueryNode {
     AnyDescendant(Option<Box<JsonPathQueryNode>>),
     /// Represents direct descendant list item with a positive index (numbers).
     ArrayIndexChild(NonNegativeArrayIndex, Option<Box<JsonPathQueryNode>>),
+    /// Represents recursive descendant with an array index ('`..[n]`' tokens).
     ArrayIndexDescendant(NonNegativeArrayIndex, Option<Box<JsonPathQueryNode>>),
 }
 
