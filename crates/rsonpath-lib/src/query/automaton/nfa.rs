@@ -79,9 +79,10 @@ impl<'q> NondeterministicAutomaton<'q> {
                 }
                 JsonPathQueryNode::AnyChild(_) => Some(Ok(Direct(Transition::Wildcard))),
                 JsonPathQueryNode::AnyDescendant(_) => Some(Ok(Recursive(Transition::Wildcard))),
-                JsonPathQueryNode::ArrayIndexChild(label, _) => {
-                    Some(Ok(Direct(Transition::Labelled(label.into()))))
+                JsonPathQueryNode::ArrayIndexChild(index, _) => {
+                    Some(Ok(Direct(Transition::Labelled(index.into()))))
                 }
+                JsonPathQueryNode::ArrayIndexDescendant(_, _) => todo!(),
             })
             .collect();
         let mut states = states_result?;
