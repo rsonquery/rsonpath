@@ -12,7 +12,7 @@ const ROOT_TEST_DIRECTORY: &str = "./tests/data";
 fn get_contents(test_path: &str) -> OwnedBytes {
     let path = format!("{ROOT_TEST_DIRECTORY}/{test_path}");
     let raw = fs::read_to_string(path).unwrap();
-    OwnedBytes::new(&raw)
+    OwnedBytes::try_from(raw).unwrap()
 }
 
 macro_rules! count_test_cases {

@@ -123,7 +123,7 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> DepthIterator<'a, I, Q
 )]
 
 pub(crate) struct Vector<'a, I: Input + 'a> {
-    quote_classified: QuoteClassifiedBlock<'a, IBlock<'a, I, 64>, 64>,
+    quote_classified: QuoteClassifiedBlock<IBlock<'a, I, 64>, 64>,
     opening_mask: u64,
     opening_count: u32,
     closing_mask: u64,
@@ -134,7 +134,7 @@ pub(crate) struct Vector<'a, I: Input + 'a> {
 impl<'a, I: Input> Vector<'a, I> {
     #[inline]
     fn new(
-        bytes: QuoteClassifiedBlock<'a, IBlock<'a, I, 64>, 64>,
+        bytes: QuoteClassifiedBlock<IBlock<'a, I, 64>, 64>,
         classifier: &DelimiterClassifierImpl,
     ) -> Self {
         Self::new_from(bytes, classifier, 0)
@@ -142,7 +142,7 @@ impl<'a, I: Input> Vector<'a, I> {
 
     #[inline]
     fn new_from(
-        bytes: QuoteClassifiedBlock<'a, IBlock<'a, I, 64>, 64>,
+        bytes: QuoteClassifiedBlock<IBlock<'a, I, 64>, 64>,
         classifier: &DelimiterClassifierImpl,
         idx: usize,
     ) -> Self {
@@ -153,7 +153,7 @@ impl<'a, I: Input> Vector<'a, I> {
     #[target_feature(enable = "avx2")]
     #[inline]
     unsafe fn new_avx2(
-        bytes: QuoteClassifiedBlock<'a, IBlock<'a, I, 64>, 64>,
+        bytes: QuoteClassifiedBlock<IBlock<'a, I, 64>, 64>,
         classifier: &DelimiterClassifierImpl,
         start_idx: usize,
     ) -> Self {

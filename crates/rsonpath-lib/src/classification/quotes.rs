@@ -32,7 +32,6 @@
 use crate::BLOCK_SIZE;
 use crate::input::{IBlock, Input, InputBlock};
 use cfg_if::cfg_if;
-use std::marker::PhantomData;
 
 /// Input block with a bitmask signifying which characters are within quotes.
 ///
@@ -42,19 +41,18 @@ use std::marker::PhantomData;
 ///
 /// There is no guarantee on how the boundary quote characters are classified,
 /// their bits might be lit or not lit depending on the implementation.
-pub struct QuoteClassifiedBlock<'a, B, const N: usize> {
+pub struct QuoteClassifiedBlock<B, const N: usize> {
     /// The block that was classified.
     pub block: B,
     /// Mask marking characters within a quoted sequence.
     pub within_quotes_mask: u64,
-    pub phantom: PhantomData<&'a B>,
 }
 
 /// Trait for quote classifier iterators, i.e. finite iterators
 /// enriching blocks of input with quote bitmasks.
 /// Iterator is allowed to hold a reference to the JSON document valid for `'a`.
 pub trait QuoteClassifiedIterator<'a, I: Input + 'a, const N: usize>:
-    Iterator<Item = QuoteClassifiedBlock<'a, IBlock<'a, I, N>, N>> + 'a
+    Iterator<Item = QuoteClassifiedBlock<IBlock<'a, I, N>, N>> + 'a
 {
     /// Get the total offset in bytes from the beginning of input.
     fn get_offset(&self) -> usize;
@@ -70,7 +68,7 @@ pub trait QuoteClassifiedIterator<'a, I: Input + 'a, const N: usize>:
     fn flip_quotes_bit(&mut self);
 }
 
-impl<'a, B, const N: usize> QuoteClassifiedBlock<'a, B, N>
+impl<'a, B, const N: usize> QuoteClassifiedBlock<B, N>
 where
     B: InputBlock<'a, N>,
 {

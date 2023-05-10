@@ -212,10 +212,10 @@ pub mod result;
 
 cfg_if::cfg_if! {
     if #[cfg(any(doc, not(feature = "simd")))] {
-        pub const BLOCK_SIZE: usize = 64;
+        pub(crate) const BLOCK_SIZE: usize = 64;
     }
     else if #[cfg(simd = "avx2")] {
-        pub const BLOCK_SIZE: usize = 64;
+        pub(crate) const BLOCK_SIZE: usize = 64;
     }
 }
 

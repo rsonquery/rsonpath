@@ -46,7 +46,6 @@ impl<'a, I: Input> Avx2QuoteClassifier<'a, I> {
 
 impl<'a, I: Input> Iterator for Avx2QuoteClassifier<'a, I> {
     type Item = QuoteClassifiedBlock<
-        'a,
         <<I as Input>::BlockIterator<'a, 64> as InputBlockIterator<'a, 64>>::Block,
         64,
     >;
@@ -66,7 +65,6 @@ impl<'a, I: Input> Iterator for Avx2QuoteClassifier<'a, I> {
                 let classified_block = QuoteClassifiedBlock {
                     block,
                     within_quotes_mask: mask,
-                    phantom: PhantomData,
                 };
                 Some(classified_block)
             }
@@ -378,7 +376,7 @@ mod tests {
     #[test_case(r#"{"aaa":[{},{"b":{"c":[1,2,3]}}],"e":{"a":[[],[1,2,3],"# => Some(0b0_0000_0000_0000_0110_0011_0000_0000_0000_0110_0011_0000_0001_1110))]
     fn single_block(str: &str) -> Option<u64> {
         let owned_str = str.to_owned();
-        let input = OwnedBytes::new(&owned_str);
+        let input = OwnedBytes::new(&owned_str).unwrap();
         let mut classifier = Avx2QuoteClassifier::new(&input);
         classifier.next().map(|x| x.within_quotes_mask)
     }

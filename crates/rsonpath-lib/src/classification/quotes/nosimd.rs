@@ -1,5 +1,4 @@
 use crate::input::InputBlockIterator;
-
 use super::*;
 
 pub(crate) struct SequentialQuoteClassifier<'a, I: Input + 'a, const N: usize> {
@@ -22,7 +21,7 @@ impl<'a, I: Input, const N: usize> SequentialQuoteClassifier<'a, I, N> {
 }
 
 impl<'a, I: Input, const N: usize> Iterator for SequentialQuoteClassifier<'a, I, N> {
-    type Item = QuoteClassifiedBlock<'a, IBlock<'a, I, N>, N>;
+    type Item = QuoteClassifiedBlock<IBlock<'a, I, N>, N>;
 
     #[inline(always)]
     fn next(&mut self) -> Option<Self::Item> {
@@ -58,7 +57,6 @@ impl<'a, I: Input, const N: usize> Iterator for SequentialQuoteClassifier<'a, I,
                 Some(QuoteClassifiedBlock {
                     block,
                     within_quotes_mask: mask,
-                    phantom: PhantomData,
                 })
             }
             None => None,

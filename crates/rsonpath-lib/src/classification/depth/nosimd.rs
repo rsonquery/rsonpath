@@ -83,7 +83,7 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> DepthIt
 }
 
 pub(crate) struct Vector<'a, I: Input + 'a, const N: usize> {
-    quote_classified: QuoteClassifiedBlock<'a, IBlock<'a, I, N>, N>,
+    quote_classified: QuoteClassifiedBlock<IBlock<'a, I, N>, N>,
     depth: isize,
     idx: usize,
     bracket_type: BracketType,
@@ -92,7 +92,7 @@ pub(crate) struct Vector<'a, I: Input + 'a, const N: usize> {
 impl<'a, I: Input, const N: usize> Vector<'a, I, N> {
     #[inline]
     pub(crate) fn new(
-        bytes: QuoteClassifiedBlock<'a, IBlock<'a, I, N>, N>,
+        bytes: QuoteClassifiedBlock<IBlock<'a, I, N>, N>,
         opening: BracketType,
     ) -> Self {
         Self::new_from(bytes, opening, 0)
@@ -100,7 +100,7 @@ impl<'a, I: Input, const N: usize> Vector<'a, I, N> {
 
     #[inline]
     fn new_from(
-        bytes: QuoteClassifiedBlock<'a, IBlock<'a, I, N>, N>,
+        bytes: QuoteClassifiedBlock<IBlock<'a, I, N>, N>,
         opening: BracketType,
         idx: usize,
     ) -> Self {

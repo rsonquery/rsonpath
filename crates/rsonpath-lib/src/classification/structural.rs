@@ -243,7 +243,7 @@ mod tests {
 
         let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
         let json_string = json.to_owned();
-        let input = OwnedBytes::new(&json_string);
+        let input = OwnedBytes::new(&json_string).unwrap();
         let quotes = classify_quoted_sequences(&input);
 
         let mut classifier = classify_structural_characters(quotes);
@@ -266,7 +266,7 @@ mod tests {
 
         let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
         let json_string = json.to_owned();
-        let input = OwnedBytes::new(&json_string);
+        let input = OwnedBytes::new(&json_string).unwrap();
         let quotes = classify_quoted_sequences(&input);
 
         let mut classifier = classify_structural_characters(quotes);
@@ -293,7 +293,7 @@ mod tests {
 
         let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
         let json_string = json.to_owned();
-        let input = OwnedBytes::new(&json_string);
+        let input = OwnedBytes::new(&json_string).unwrap();
         let quotes = classify_quoted_sequences(&input);
 
         let mut classifier = classify_structural_characters(quotes);
@@ -320,7 +320,7 @@ mod tests {
 
         let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
         let json_string = json.to_owned();
-        let input = OwnedBytes::new(&json_string);
+        let input = OwnedBytes::new(&json_string).unwrap();
         let quotes = classify_quoted_sequences(&input);
 
         let mut classifier = classify_structural_characters(quotes);

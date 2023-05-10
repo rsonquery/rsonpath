@@ -27,13 +27,13 @@ use core::arch::x86::*;
 use core::arch::x86_64::*;
 
 struct StructuralsBlock<'a, I: Input + 'a> {
-    quote_classified: QuoteClassifiedBlock<'a, IBlock<'a, I, 64>, 64>,
+    quote_classified: QuoteClassifiedBlock<IBlock<'a, I, 64>, 64>,
     structural_mask: u64,
 }
 
 impl<'a, I: Input> StructuralsBlock<'a, I> {
     #[inline(always)]
-    fn new(block: QuoteClassifiedBlock<'a, IBlock<'a, I, 64>, 64>, structural_mask: u64) -> Self {
+    fn new(block: QuoteClassifiedBlock<IBlock<'a, I, 64>, 64>, structural_mask: u64) -> Self {
         Self {
             quote_classified: block,
             structural_mask,
@@ -326,7 +326,7 @@ impl BlockAvx2Classifier {
     #[inline]
     unsafe fn classify<'a, I: Input>(
         &mut self,
-        quote_classified_block: QuoteClassifiedBlock<'a, IBlock<'a, I, 64>, 64>,
+        quote_classified_block: QuoteClassifiedBlock<IBlock<'a, I, 64>, 64>,
     ) -> StructuralsBlock<'a, I> {
         let (block1, block2) = quote_classified_block.block.halves();
         let classification1 = self.classify_block(block1);

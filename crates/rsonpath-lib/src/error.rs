@@ -1,11 +1,85 @@
 //! Common errors shared across the library.
-use std::fmt::Display;
+use std::fmt::{self, Display};
 use thiserror::Error;
 
 pub(crate) const FEATURE_REQUEST_URL: &str =
     "https://github.com/V0ldek/rsonpath/issues/new?template=feature_request.md";
 pub(crate) const BUG_REPORT_URL: &str =
     "https://github.com/V0ldek/rsonpath/issues/new?template=bug_report.md";
+
+/// Internal irrecoverable error. These are caused solely
+/// by bugs &ndash; broken invariants or assertions in internal logic &ndash;
+/// but we return those instead of panicking.
+#[derive(Error, Debug)]
+pub struct InternalRsonpathError {
+    details: &'static str,
+    #[source]
+    source: Option<InternalErrorSource>,
+}
+
+struct InternalErrorSource(Box<dyn std::error::Error + Send + Sync>);
+
+impl fmt::Debug for InternalErrorSource {
+    #[inline(always)]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Debug::fmt(&self.0, f)
+    }
+}
+
+impl Display for InternalErrorSource {
+    #[inline(always)]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(&self.0, f)
+    }
+}
+
+impl std::error::Error for InternalErrorSource {
+    #[inline(always)]
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        self.0.source()
+    }
+}
+
+impl InternalRsonpathError {
+    pub(crate) fn from_expectation(details: &'static str) -> Self {
+        Self {
+            details,
+            source: None,
+        }
+    }
+
+    #[allow(unused)]
+    pub(crate) fn from_error<E: std::error::Error + Send + Sync + 'static>(
+        err: E,
+        details: &'static str,
+    ) -> Self {
+        Self {
+            details,
+            source: Some(InternalErrorSource(Box::new(err))),
+        }
+    }
+}
+
+impl Display for InternalRsonpathError {
+    #[inline]
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let details_are_enabled = std::env::var("RUST_BACKTRACE").unwrap_or_default() == "0";
+        write!(
+            f,
+            "an internal error has occurred; this is a bug, please report it at {BUG_REPORT_URL}"
+        )?;
+
+        if details_are_enabled {
+            writeln!(f, "; the error details follow")?;
+            write!(f, "{}", self.details)?;
+            if let Some(source) = &self.source {
+                write!(f, "; source: {}", source)?;
+            }
+        }
+
+        Ok(())
+    }
+}
 
 /// Error raised when rsonpath is asked to perform an operation that is currently
 /// unsupported. This may be either because the feature is in the works, or

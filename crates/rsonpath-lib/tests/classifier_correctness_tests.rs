@@ -6,7 +6,7 @@ use rsonpath_lib::input::OwnedBytes;
 
 fn classify_string(json: &str) -> Vec<Structural> {
     let json_string = json.to_owned();
-    let bytes = OwnedBytes::new(&json_string);
+    let bytes = OwnedBytes::try_from(json_string).unwrap();
     let quotes_classifier = classify_quoted_sequences(&bytes);
     let mut structural_classifier = classify_structural_characters(quotes_classifier);
     structural_classifier.turn_commas_on(0);

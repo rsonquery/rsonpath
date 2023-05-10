@@ -1,5 +1,5 @@
 //! Error definitions and utilities for engine execution.
-use crate::error::BUG_REPORT_URL;
+use crate::error::InternalRsonpathError;
 use thiserror::Error;
 
 /// Error enum for all types of errors that can be reported
@@ -37,8 +37,14 @@ pub enum EngineError {
     /// Engine error that occurred due to a known limitation.
     #[error(transparent)]
     NotSupported(#[from] crate::error::UnsupportedFeatureError),
-    #[error("Internal engine error. This is a bug. Please report it at: {BUG_REPORT_URL}")]
-    InternalError,
+    /// Irrecoverable error due to a broken invariant or assumption.
+    /// The engine returns these instead of panicking.
+    #[error("EngineError: {0}")]
+    InternalError(
+        #[source]
+        #[from]
+        InternalRsonpathError,
+    ),
 }
 
 /// Errors in internal depth tracking of execution engines.

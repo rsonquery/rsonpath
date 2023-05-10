@@ -3,10 +3,8 @@
 use super::head_skipping::{CanHeadSkip, HeadSkip};
 #[cfg(feature = "head-skip")]
 use crate::classification::ResumeClassifierState;
-use crate::classification::{
-    quotes::{classify_quoted_sequences, QuoteClassifiedIterator},
-    structural::{classify_structural_characters, BracketType, Structural, StructuralIterator},
-};
+#[cfg(feature = "head-skip")]
+use crate::error::InternalRsonpathError;
 use crate::debug;
 use crate::engine::error::EngineError;
 #[cfg(feature = "tail-skip")]
@@ -18,6 +16,12 @@ use crate::query::error::CompilerError;
 use crate::query::{JsonPathQuery, Label};
 use crate::result::QueryResult;
 use crate::BLOCK_SIZE;
+use crate::{
+    classification::{
+        quotes::{classify_quoted_sequences, QuoteClassifiedIterator},
+        structural::{classify_structural_characters, BracketType, Structural, StructuralIterator},
+    },
+};
 
 /// Recursive implementation of the JSONPath query engine.
 pub struct RecursiveEngine<'q> {
@@ -378,7 +382,7 @@ impl<'q, 'b, I: Input> CanHeadSkip<'b, I, BLOCK_SIZE> for ExecutionContext<'q, '
 
         let bracket_type = match next_event {
             Structural::Closing(b, _) | Structural::Opening(b, _) => Ok(b),
-            _ => Err(EngineError::InternalError),
+            _ => Err(InternalRsonpathError::from_expectation("")),
         }?;
 
         self.run_on_subtree(

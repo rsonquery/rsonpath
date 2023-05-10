@@ -80,7 +80,7 @@ fn run_with_args(args: &Args) -> Result<()> {
         compile(&query)
     } else {
         let contents = get_contents(args.file_path.as_deref())?;
-        let input = OwnedBytes::new(&contents);
+        let input = OwnedBytes::new(&contents)?;
 
         match args.result {
             ResultArg::Bytes => run::<IndexResult>(&query, &input, args.engine),
