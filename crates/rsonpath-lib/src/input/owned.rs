@@ -4,8 +4,8 @@ use super::{
     error::InputError,
     Input, MAX_BLOCK_SIZE,
 };
-use crate::{error::InternalRsonpathError, query::Label};
-use std::{alloc, mem, ptr, slice};
+use crate::query::Label;
+use std::{alloc, ptr, slice};
 
 /// Input into a query engine.
 pub struct OwnedBytes {
@@ -61,8 +61,8 @@ impl OwnedBytes {
     /// Copy a buffer of bytes and create a proper [`OwnedBytes`] instance.
     ///
     /// The contents of the buffer will be copied and might be padded to
-    /// the [`MAX_BLOCK_SIZE`] boundary. 
-    /// 
+    /// the [`MAX_BLOCK_SIZE`] boundary.
+    ///
     /// # Errors
     /// If the length of the buffer plus
     /// the padding exceeds the system limit of [`isize::MAX`], an [`InputError::AllocationSizeExceeded`]
@@ -158,31 +158,8 @@ impl TryFrom<Vec<u8>> for OwnedBytes {
     type Error = InputError;
 
     #[inline]
-    fn try_from(mut value: Vec<u8>) -> Result<Self, Self::Error> {
-        let rem = value.len() % MAX_BLOCK_SIZE;
-        let pad = if rem == 0 { 0 } else { MAX_BLOCK_SIZE - rem };
-
-        let new_size = value
-            .len()
-            .checked_add(pad)
-            .ok_or(InputError::AllocationSizeExceeded)?;
-        isize::try_from(new_size).map_err(|_err| InputError::AllocationSizeExceeded)?;
-
-        value.resize(new_size, 0);
-
-        let ptr = ptr::NonNull::new(value.as_mut_ptr()).ok_or(
-            InternalRsonpathError::from_expectation("stdlib's Vec::as_mut_ptr returned a null ptr"),
-        )?;
-        let len = value.len();
-        let capacity = value.capacity();
-
-        mem::forget(value);
-
-        Ok(Self {
-            bytes_ptr: ptr,
-            len,
-            capacity,
-        })
+    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
+        Self::new(&value)
     }
 }
 

@@ -29,8 +29,8 @@
 //! assert_eq!(expd, block.within_quotes_mask);
 //! ```
 
-use crate::BLOCK_SIZE;
 use crate::input::{IBlock, Input, InputBlock};
+use crate::BLOCK_SIZE;
 use cfg_if::cfg_if;
 
 /// Input block with a bitmask signifying which characters are within quotes.

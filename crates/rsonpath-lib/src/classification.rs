@@ -21,7 +21,7 @@
 //!     BracketType, Structural, StructuralIterator,
 //! };
 //! use rsonpath_lib::input::OwnedBytes;
-//! 
+//!
 //! let json = r#"{"a":[42, {}, 44]}"#.to_owned();
 //! let input = OwnedBytes::from(json);
 //! let quote_classifier = classify_quoted_sequences(&input);
@@ -66,8 +66,7 @@ use quotes::{QuoteClassifiedBlock, QuoteClassifiedIterator};
 
 /// State allowing resumption of a classifier from a particular place
 /// in the input along with the stopped [`QuoteClassifiedIterator`].
-pub struct ResumeClassifierState<'a, I: Input, Q, const N: usize>
-{
+pub struct ResumeClassifierState<'a, I: Input, Q, const N: usize> {
     /// The stopped iterator.
     pub iter: Q,
     /// The block at which classification was stopped.

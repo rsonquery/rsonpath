@@ -368,7 +368,7 @@ mod tests {
 
     #[test]
     fn index_ulimit_sanity_check() {
-        assert_eq!(9007199254740991, ARRAY_INDEX_ULIMIT);
+        assert_eq!(9_007_199_254_740_991, ARRAY_INDEX_ULIMIT);
     }
 
     #[test]

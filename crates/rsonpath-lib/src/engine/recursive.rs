@@ -3,25 +3,23 @@
 use super::head_skipping::{CanHeadSkip, HeadSkip};
 #[cfg(feature = "head-skip")]
 use crate::classification::ResumeClassifierState;
-#[cfg(feature = "head-skip")]
-use crate::error::InternalRsonpathError;
+use crate::classification::{
+    quotes::{classify_quoted_sequences, QuoteClassifiedIterator},
+    structural::{classify_structural_characters, BracketType, Structural, StructuralIterator},
+};
 use crate::debug;
 use crate::engine::error::EngineError;
 #[cfg(feature = "tail-skip")]
 use crate::engine::tail_skipping::TailSkip;
 use crate::engine::{Compiler, Engine};
+#[cfg(feature = "head-skip")]
+use crate::error::InternalRsonpathError;
 use crate::input::Input;
 use crate::query::automaton::{Automaton, State};
 use crate::query::error::CompilerError;
 use crate::query::{JsonPathQuery, Label};
 use crate::result::QueryResult;
 use crate::BLOCK_SIZE;
-use crate::{
-    classification::{
-        quotes::{classify_quoted_sequences, QuoteClassifiedIterator},
-        structural::{classify_structural_characters, BracketType, Structural, StructuralIterator},
-    },
-};
 
 /// Recursive implementation of the JSONPath query engine.
 pub struct RecursiveEngine<'q> {

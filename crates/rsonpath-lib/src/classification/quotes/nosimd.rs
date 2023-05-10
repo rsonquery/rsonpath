@@ -1,5 +1,5 @@
-use crate::input::InputBlockIterator;
 use super::*;
+use crate::input::InputBlockIterator;
 
 pub(crate) struct SequentialQuoteClassifier<'a, I: Input + 'a, const N: usize> {
     iter: I::BlockIterator<'a, N>,

@@ -1,7 +1,7 @@
 //! Error types for the [`input`](`crate::input`) module.
 
-use thiserror::Error;
 use crate::error::InternalRsonpathError;
+use thiserror::Error;
 
 /// Errors raised when constructing [`Input`](super::Input) implementations.
 #[derive(Debug, Error)]

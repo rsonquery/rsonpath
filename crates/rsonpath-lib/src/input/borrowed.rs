@@ -14,19 +14,19 @@ pub struct BorrowedBytesBlockIterator<'a, const N: usize> {
 
 impl<'a> BorrowedBytes<'a> {
     /// Create a new instance of [`BorrowedBytes`] wrapping the given buffer.
-    /// 
+    ///
     /// # Safety
     /// The buffer must satisfy all invariants of [`BorrowedBytes`],
     /// since it is not copied or modified. It must:
     /// - have length divisible by [`MAX_BLOCK_SIZE`] (the function checks this);
     /// - be aligned to [`MAX_BLOCK_SIZE`].
-    /// 
+    ///
     /// The latter condition cannot be reliably checked.
     /// Violating it may result in memory errors where the engine relies
     /// on proper alignment.
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// If `bytes.len()` is not divisible by [`MAX_BLOCK_SIZE`].
     #[must_use]
     #[inline(always)]

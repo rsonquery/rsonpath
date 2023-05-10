@@ -41,6 +41,7 @@ impl std::error::Error for InternalErrorSource {
 }
 
 impl InternalRsonpathError {
+    #[allow(unused)]
     pub(crate) fn from_expectation(details: &'static str) -> Self {
         Self {
             details,

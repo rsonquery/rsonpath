@@ -97,11 +97,7 @@ fn compile(query: &JsonPathQuery) -> Result<()> {
     Ok(())
 }
 
-fn run<R: QueryResult>(
-    query: &JsonPathQuery,
-    input: &OwnedBytes,
-    engine: EngineArg,
-) -> Result<()> {
+fn run<R: QueryResult>(query: &JsonPathQuery, input: &OwnedBytes, engine: EngineArg) -> Result<()> {
     match engine {
         EngineArg::Main => {
             let result = run_engine::<MainEngine, R>(query, input)
@@ -130,10 +126,7 @@ fn run<R: QueryResult>(
     Ok(())
 }
 
-fn run_engine<C: Compiler, R: QueryResult>(
-    query: &JsonPathQuery,
-    input: &OwnedBytes,
-) -> Result<R> {
+fn run_engine<C: Compiler, R: QueryResult>(query: &JsonPathQuery, input: &OwnedBytes) -> Result<R> {
     let engine = C::compile_query(query)
         .map_err(|err| report_compiler_error(query, err).wrap_err("Error compiling the query."))?;
     info!("Compilation finished, running...");

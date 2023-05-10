@@ -1,7 +1,6 @@
 use crate::classification::depth::{
     resume_depth_classification, DepthBlock, DepthIterator, DepthIteratorResumeOutcome,
 };
-use crate::BLOCK_SIZE;
 #[cfg(feature = "head-skip")]
 use crate::classification::ResumeClassifierState;
 use crate::classification::{
@@ -10,6 +9,7 @@ use crate::classification::{
 };
 use crate::debug;
 use crate::input::Input;
+use crate::BLOCK_SIZE;
 use replace_with::replace_with_or_abort;
 use std::marker::PhantomData;
 
