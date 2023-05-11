@@ -93,7 +93,7 @@ impl OwnedBytes {
         // SAFETY:
         unsafe {
             ptr::copy_nonoverlapping(slice.as_ptr(), ptr.as_ptr(), slice.len());
-            ptr::write_bytes(ptr.as_ptr().add(size), 0, pad);
+            ptr::write_bytes(ptr.as_ptr().add(slice.len()), 0, pad);
         };
 
         Ok(Self {

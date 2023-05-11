@@ -18,7 +18,7 @@
 //! use rsonpath_lib::input::OwnedBytes;
 //!
 //! let json = r#"{"x": [{"y": 42}, {}]}""#.to_owned();
-//! let aligned = OwnedBytes::from(json);
+//! let aligned = OwnedBytes::try_from(json).unwrap();
 //! let expected = vec![
 //!     Structural::Opening(BracketType::Curly, 0),
 //!     Structural::Opening(BracketType::Square, 6),
@@ -39,7 +39,7 @@
 //! use rsonpath_lib::input::OwnedBytes;
 //!
 //! let json = r#"{"x": "[\"\"]"}""#.to_owned();
-//! let aligned = OwnedBytes::from(json);
+//! let aligned = OwnedBytes::try_from(json).unwrap();
 //! let expected = vec![
 //!     Structural::Opening(BracketType::Curly, 0),
 //!     Structural::Closing(BracketType::Curly, 14)

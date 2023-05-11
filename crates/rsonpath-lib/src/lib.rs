@@ -36,7 +36,7 @@
 //!   }
 //! }
 //! "#.to_owned();
-//! let input = OwnedBytes::from(contents);
+//! let input = OwnedBytes::try_from(contents).unwrap();
 //! // Compile the query. The engine can be reused to run the same query on different contents.
 //! let engine = RsonpathEngine::compile_query(&query)?;
 //! // Count the number of occurrences of elements satisfying the query.

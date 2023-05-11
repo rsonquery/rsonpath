@@ -22,7 +22,7 @@
 //! //            011000111111100011000011000111111111111000
 //! // The mask below appears reversed due to endianness.
 //! let expd = 0b000111111111111000110000110001111111000110;
-//! let input = OwnedBytes::from(json);
+//! let input = OwnedBytes::try_from(json).unwrap();
 //! let mut quote_classifier = classify_quoted_sequences(&input);
 //!
 //! let block = quote_classifier.next().unwrap();

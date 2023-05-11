@@ -23,7 +23,7 @@
 //! use rsonpath_lib::input::OwnedBytes;
 //!
 //! let json = r#"{"a":[42, {}, 44]}"#.to_owned();
-//! let input = OwnedBytes::from(json);
+//! let input = OwnedBytes::try_from(json).unwrap();
 //! let quote_classifier = classify_quoted_sequences(&input);
 //! let mut structural_classifier = classify_structural_characters(quote_classifier);
 //! structural_classifier.turn_colons_on(0);

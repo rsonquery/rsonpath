@@ -21,7 +21,7 @@
 //! let json = r#"[42, {"b":[[]],"c":{}}, 44]}"#.to_owned();
 //! //                        ^^            ^
 //! //                        AB            C
-//! let input = OwnedBytes::from(json);
+//! let input = OwnedBytes::try_from(json).unwrap();
 //! let quote_classifier = classify_quoted_sequences(&input);
 //! // Goal: skip through the document until the end of the current list.
 //! // We pass Square as the opening bracket type
@@ -61,7 +61,7 @@
 //! }{"target":true}"#.to_owned();
 //! // We expect to reach the newline before the opening brace of the second object.
 //! let expected_idx = json.len() - 15;
-//! let input = OwnedBytes::from(json);
+//! let input = OwnedBytes::try_from(json).unwrap();
 //! let quote_classifier = classify_quoted_sequences(&input);
 //! let mut depth_classifier = classify_depth(quote_classifier, BracketType::Curly);
 //! let mut current_depth = 1;
