@@ -51,8 +51,16 @@ impl JsonPathQueryBuilder {
     /// Add a child selector with a given index.
     #[must_use]
     #[inline(always)]
-    pub fn array_index(mut self, index: NonNegativeArrayIndex) -> Self {
-        self.nodes.push(NodeTemplate::ArrayIndex(index));
+    pub fn array_index_child(mut self, index: NonNegativeArrayIndex) -> Self {
+        self.nodes.push(NodeTemplate::ArrayIndexChild(index));
+        self
+    }
+
+    /// Add a descendant selector with a given index.
+    #[must_use]
+    #[inline(always)]
+    pub fn array_index_descendant(mut self, index: NonNegativeArrayIndex) -> Self {
+        self.nodes.push(NodeTemplate::ArrayIndexDescendant(index));
         self
     }
 
@@ -88,8 +96,11 @@ impl JsonPathQueryBuilder {
 
         for node in self.nodes.into_iter().rev() {
             last = match node {
-                NodeTemplate::ArrayIndex(i) => {
-                    Some(Box::new(JsonPathQueryNode::ArrayIndex(i, last)))
+                NodeTemplate::ArrayIndexChild(i) => {
+                    Some(Box::new(JsonPathQueryNode::ArrayIndexChild(i, last)))
+                }
+                NodeTemplate::ArrayIndexDescendant(i) => {
+                    Some(Box::new(JsonPathQueryNode::ArrayIndexDescendant(i, last)))
                 }
                 NodeTemplate::Child(label) => Some(Box::new(JsonPathQueryNode::Child(label, last))),
                 NodeTemplate::AnyChild => Some(Box::new(JsonPathQueryNode::AnyChild(last))),
@@ -124,7 +135,8 @@ impl From<JsonPathQueryBuilder> for JsonPathQuery {
 
 enum NodeTemplate {
     Child(Label),
-    ArrayIndex(NonNegativeArrayIndex),
+    ArrayIndexChild(NonNegativeArrayIndex),
+    ArrayIndexDescendant(NonNegativeArrayIndex),
     AnyChild,
     AnyDescendant,
     Descendant(Label),

@@ -39,7 +39,7 @@ use std::{
 };
 use thiserror::Error;
 
-use super::ARRAY_INDEX_ULIMIT;
+use super::nonnegative_array_index::ARRAY_INDEX_ULIMIT;
 
 /// Errors raised by the query parser.
 #[derive(Debug, Error)]

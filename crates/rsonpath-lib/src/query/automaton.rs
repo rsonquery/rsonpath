@@ -6,7 +6,7 @@ mod state;
 
 pub use state::{State, StateAttributes};
 
-use super::{error::CompilerError, JsonPathQuery, Label};
+use super::{error::CompilerError, JsonPathQuery, Label, NonNegativeArrayIndex};
 use crate::debug;
 use nfa::NondeterministicAutomaton;
 use smallvec::SmallVec;
@@ -18,8 +18,89 @@ pub struct Automaton<'q> {
     states: Vec<StateTable<'q>>,
 }
 
+/// Represent the distinct methods of moving on a match between states.
+#[derive(Debug, Copy, PartialEq, Clone, Eq)]
+pub enum TransitionLabel<'q> {
+    /// Wraps a textual field [`Label`] in a JSON object.
+    ObjectMember(&'q Label),
+    /// Wraps an array index [`NonNegativeArrayIndex`] in a JSON object.
+    ArrayIndex(NonNegativeArrayIndex),
+}
+
+impl<'q> TransitionLabel<'q> {
+    /// Return a display object with a UTF8 representation of this label.
+    #[must_use]
+    #[inline(always)]
+    pub fn display(&self) -> impl Display + 'q {
+        match self {
+            // This isn't just calling label.display() because the compile makes opaque types unique at the declaration site.
+            // So, the one for display() that is defined above would not equate to Label's def.
+            TransitionLabel::ObjectMember(label) => format!("{}", label.display()),
+            TransitionLabel::ArrayIndex(index) => format!("{index}"),
+        }
+    }
+
+    ///Return the textual [`Label`] being wrapped if so.  Returns [`None`] otherwise.
+    #[must_use]
+    #[inline(always)]
+    pub fn get_label(&self) -> Option<&Label> {
+        match self {
+            TransitionLabel::ObjectMember(l) => Some(l),
+            _ => None,
+        }
+    }
+
+    /// Consumes the [`TransitionLabel`] and gives the wrapped [`Label`], if so.  Returns [`None`] otherwise.
+    #[must_use]
+    #[inline(always)]
+    pub fn get_label_owned(self) -> Option<&'q Label> {
+        match self {
+            TransitionLabel::ObjectMember(l) => Some(l),
+            _ => None,
+        }
+    }
+
+    /// Wraps a [`Label`] in a [`TransitionLabel`].
+    #[must_use]
+    #[inline(always)]
+    pub fn new_object_member(label: &'q Label) -> Self {
+        TransitionLabel::ObjectMember(label)
+    }
+
+    /// Wraps a [`NonNegativeArrayIndex`] in a [`TransitionLabel`].
+    #[must_use]
+    #[inline(always)]
+    pub fn new_array_index(label: NonNegativeArrayIndex) -> Self {
+        TransitionLabel::ArrayIndex(label)
+    }
+}
+
+impl<'q> From<&'q Label> for TransitionLabel<'q> {
+    #[must_use]
+    #[inline(always)]
+    fn from(label: &'q Label) -> Self {
+        TransitionLabel::new_object_member(label)
+    }
+}
+
+impl From<&NonNegativeArrayIndex> for TransitionLabel<'_> {
+    #[must_use]
+    #[inline(always)]
+    fn from(label: &NonNegativeArrayIndex) -> Self {
+        TransitionLabel::new_array_index(*label)
+    }
+}
+
+impl From<NonNegativeArrayIndex> for TransitionLabel<'_> {
+    #[must_use]
+    #[inline(always)]
+    fn from(label: NonNegativeArrayIndex) -> Self {
+        TransitionLabel::new_array_index(label)
+    }
+}
+
 /// A single transition of an [`Automaton`].
-type Transition<'q> = (&'q Label, State);
+type Transition<'q> = (TransitionLabel<'q>, State);
 
 /// A transition table of a single [`State`] of an [`Automaton`].
 ///
@@ -156,6 +237,27 @@ impl<'q> Automaton<'q> {
         self[state].attributes.is_accepting()
     }
 
+    /// Returns whether the given state is accepting an item in a list.
+    ///
+    /// # Example
+    /// ```rust
+    /// # use rsonpath_lib::query::*;
+    /// # use rsonpath_lib::query::automaton::*;
+    /// let query = JsonPathQuery::parse("$[2]").unwrap();
+    /// let automaton = Automaton::new(&query).unwrap();
+    /// let state_2 = automaton.initial_state();
+    ///
+    /// assert!(automaton.is_accepting_list_item(state_2));
+    /// ```
+    #[must_use]
+    #[inline(always)]
+    pub fn is_accepting_list_item(&self, state: State) -> bool {
+        self[state].transitions().iter().any(|t| match t {
+            (TransitionLabel::ArrayIndex(_), s) => self.is_accepting(*s),
+            _ => false,
+        })
+    }
+
     /// Returns whether the given state has any transitions
     /// (labelled or fallback) to an accepting state.
     ///
@@ -232,7 +334,7 @@ impl<'q> StateTable<'q> {
 
     /// Returns the collection of labelled transitions from this state.
     ///
-    /// A transition is triggered if the [`Label`] is matched and leads
+    /// A transition is triggered if the [`TransitionLabel`] is matched and leads
     /// to the contained [`State`].
     #[must_use]
     #[inline(always)]

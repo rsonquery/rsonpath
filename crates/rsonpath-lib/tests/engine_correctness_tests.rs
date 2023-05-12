@@ -21,7 +21,15 @@ macro_rules! count_test_cases {
         #[test_case("basic/atomic_descendant.json", "$..a..b" => 0; "atomic_descendant.json $..a..b")]
         #[test_case("basic/atomic_descendant.json", "$..*..b" => 1; "atomic_descendant.json any descendant $..*..b")]
         #[test_case("basic/atomic_descendant.json", "$..*" => 4; "atomic_descendant.json any descendant $..*")]
+        #[test_case("basic/atomic_descendant.json", "$.b[0]" => 1; "atomic_descendant.json nneg array index")]
+        #[test_case("basic/atomic_descendant.json", "$.b[1]" => 0; "atomic_descendant.json nonexistent nneg array index")]
+        #[test_case("basic/atomic_descendant.json", "$..[0]" => 1; "atomic_descendant.json descendant array index")]
+        #[test_case("basic/atomic_descendant.json", "$.b[0].b" => 1; "atomic_descendant.json nested nneg array index")]
         #[test_case("basic/atomic_after_complex.json", "$.a..b" => 1; "atomic_after_complex.json $.a..b")]
+        #[test_case("basic/atomic_after_complex.json", "$.a[0]" => 1; "atomic_after_complex.json nneg array index")]
+        #[test_case("basic/atomic_after_complex.json", "$.a[0].c.d[2]" => 1; "atomic_after_complex.json nneg last array index")]
+        #[test_case("basic/atomic_after_complex.json", "$.a[0].c.d[3]" => 0; "atomic_after_complex.json nneg nonexistent array index")]
+        #[test_case("basic/atomic_descendant.json", "$[1]" => 0; "atomic_descendant.json nneg nonexistent array index")]
         #[test_case("basic/array_root.json", "$" => 1; "array_root.json $")]
         #[test_case("basic/array_root.json", "" => 1; "array_root.json")]
         #[test_case("basic/child.json", "$..a..b.c..d" => 3; "child.json $..a..b.c..d")]
@@ -158,6 +166,10 @@ macro_rules! count_test_cases {
         #[test_case(
             "wikidata/wikidata_properties.json", "$..*.value" => 132188;
             "wikidata_properties.json $..*.value (child) any desc"
+        )]
+        #[test_case(
+            "wikidata/wikidata_properties.json", "$..*[5]" => 2511;
+            "wikidata_properties.json $..*[5] (child) any desc nneg array index"
         )]
         #[test_case(
             "wikidata/wikidata_properties.json", "$..P7103.claims.P31..references..snaks.P4656..hash" => 1;

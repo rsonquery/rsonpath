@@ -12,10 +12,6 @@ use super::head_skipping::{CanHeadSkip, HeadSkip};
 use super::Compiler;
 #[cfg(feature = "head-skip")]
 use crate::classification::ResumeClassifierState;
-use crate::classification::{
-    quotes::{classify_quoted_sequences, QuoteClassifiedIterator},
-    structural::{classify_structural_characters, BracketType, Structural, StructuralIterator},
-};
 use crate::debug;
 use crate::engine::depth::Depth;
 use crate::engine::error::EngineError;
@@ -27,6 +23,13 @@ use crate::query::error::CompilerError;
 use crate::query::{JsonPathQuery, Label};
 use crate::result::QueryResult;
 use crate::BLOCK_SIZE;
+use crate::{
+    classification::{
+        quotes::{classify_quoted_sequences, QuoteClassifiedIterator},
+        structural::{classify_structural_characters, BracketType, Structural, StructuralIterator},
+    },
+    query::automaton::TransitionLabel,
+};
 use smallvec::{smallvec, SmallVec};
 
 /// Main engine for a fixed JSONPath query.
@@ -203,10 +206,15 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
             let mut any_matched = false;
 
             for &(label, target) in self.automaton[self.state].transitions() {
-                if self.automaton.is_accepting(target) && self.is_match(idx, label)? {
-                    result.report(idx);
-                    any_matched = true;
-                    break;
+                match label {
+                    TransitionLabel::ArrayIndex(_) => {}
+                    TransitionLabel::ObjectMember(label) => {
+                        if self.automaton.is_accepting(target) && self.is_match(idx, label)? {
+                            result.report(idx);
+                            any_matched = true;
+                            break;
+                        }
+                    }
                 }
             }
             let fallback_state = self.automaton[self.state].fallback_state();
@@ -269,13 +277,18 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
 
         if let Some(colon_idx) = self.find_preceding_colon(idx) {
             for &(label, target) in self.automaton[self.state].transitions() {
-                if self.is_match(colon_idx, label)? {
-                    any_matched = true;
-                    self.transition_to(target, bracket_type);
-                    if self.automaton.is_accepting(target) {
-                        result.report(colon_idx);
+                match label {
+                    TransitionLabel::ArrayIndex(_) => {}
+                    TransitionLabel::ObjectMember(label) => {
+                        if self.is_match(colon_idx, label)? {
+                            any_matched = true;
+                            self.transition_to(target, bracket_type); 
+                            if self.automaton.is_accepting(target) {
+                                result.report(colon_idx);
+                            }
+                            break;
+                        }
                     }
-                    break;
                 }
             }
         }
