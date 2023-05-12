@@ -46,7 +46,7 @@ impl<'q> TransitionLabel<'q> {
     pub fn get_label(&self) -> Option<&Label> {
         match self {
             TransitionLabel::ObjectMember(l) => Some(l),
-            _ => None,
+            TransitionLabel::ArrayIndex(_) => None,
         }
     }
 
@@ -56,7 +56,7 @@ impl<'q> TransitionLabel<'q> {
     pub fn get_label_owned(self) -> Option<&'q Label> {
         match self {
             TransitionLabel::ObjectMember(l) => Some(l),
-            _ => None,
+            TransitionLabel::ArrayIndex(_) => None,
         }
     }
 

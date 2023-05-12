@@ -205,8 +205,8 @@ fn descendant_selector<'a>() -> impl Parser<'a, Token<'a>> {
         tag(".."),
         alt((
             map(alt((label(), index_selector())), Token::Descendant),
-            array_index_descendant_selector(),)
-        ),
+            array_index_descendant_selector(),
+        )),
     )
 }
 

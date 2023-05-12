@@ -24,6 +24,8 @@ use crate::query::{JsonPathQuery, Label};
 use crate::result::QueryResult;
 use crate::BLOCK_SIZE;
 
+pub(crate) const FIRST_ITEM_INDEX: NonNegativeArrayIndex = NonNegativeArrayIndex::new(0);
+
 /// Recursive implementation of the JSONPath query engine.
 pub struct RecursiveEngine<'q> {
     automaton: Automaton<'q>,
@@ -175,10 +177,10 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
         let is_fallback_accepting = self.automaton.is_accepting(fallback_state);
         let is_list = bracket_type == BracketType::Square;
 
-        let searching_list = self.automaton[state].transitions().iter().any(|t| match t {
-            (TransitionLabel::ArrayIndex(_), _) => true,
-            _ => false,
-        });
+        let searching_list = self.automaton[state]
+            .transitions()
+            .iter()
+            .any(|t| matches!(t, (TransitionLabel::ArrayIndex(_), _)));
 
         let accepting_list = self.automaton.is_accepting_list_item(state);
 
@@ -203,11 +205,10 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
         };
 
         config_characters(classifier, open_idx);
-        let zeroth_index: NonNegativeArrayIndex = 0_u64.try_into().unwrap();
 
         // When a list contains only one item, this block ensures that the list item is reported if appropriate without entering the loop below.
         let wants_first_item = self.automaton[state].transitions().iter().any(|t| match t {
-            (TransitionLabel::ArrayIndex(i), s) if i.eq(&zeroth_index) => {
+            (TransitionLabel::ArrayIndex(i), s) if i.eq(&FIRST_ITEM_INDEX) => {
                 self.automaton.is_accepting(*s)
             }
             _ => false,

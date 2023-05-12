@@ -221,7 +221,7 @@ pub trait JsonPathQueryNodeType {
     /// returns the label it represents; otherwise, `None`.
     fn label(&self) -> Option<&Label>;
 
-    /// If the type is [`JsonPathQueryNode::ArrayIndex`]
+    /// If the type is [`JsonPathQueryNode::ArrayIndexDescendant`] or [`JsonPathQueryNode::ArrayIndexChild`]
     /// returns the index it represents; otherwise, `None`.
     fn array_index(&self) -> Option<&NonNegativeArrayIndex>;
 }

@@ -282,7 +282,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
                     TransitionLabel::ObjectMember(label) => {
                         if self.is_match(colon_idx, label)? {
                             any_matched = true;
-                            self.transition_to(target, bracket_type); 
+                            self.transition_to(target, bracket_type);
                             if self.automaton.is_accepting(target) {
                                 result.report(colon_idx);
                             }

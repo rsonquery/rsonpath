@@ -19,6 +19,7 @@ pub struct NonNegativeArrayIndex(u64);
 
 /// The upper inclusive bound on index values.
 pub(crate) const ARRAY_INDEX_ULIMIT: u64 = (1 << 53) - 1;
+
 impl TryFrom<u64> for NonNegativeArrayIndex {
     type Error = ArrayIndexError;
 
@@ -36,7 +37,7 @@ impl NonNegativeArrayIndex {
     /// Create a new search index from a u64.
     #[must_use]
     #[inline]
-    pub fn new(index: u64) -> Self {
+    pub const fn new(index: u64) -> Self {
         Self(index)
     }
 
