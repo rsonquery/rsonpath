@@ -16,20 +16,21 @@
 //! # Examples
 //! ```
 //! use rsonpath_lib::classification::quotes::{classify_quoted_sequences, QuoteClassifiedIterator};
-//! use aligners::AlignedBytes;
+//! use rsonpath_lib::input::OwnedBytes;
 //!
-//! let json = r#"{"x": "string", "y": {"z": "\"escaped\""}}"#;
+//! let json = r#"{"x": "string", "y": {"z": "\"escaped\""}}"#.to_owned();
 //! //            011000111111100011000011000111111111111000
 //! // The mask below appears reversed due to endianness.
 //! let expd = 0b000111111111111000110000110001111111000110;
-//! let aligned = AlignedBytes::new_padded(json.as_bytes());
-//! let mut quote_classifier = classify_quoted_sequences(&aligned);
+//! let input = OwnedBytes::try_from(json).unwrap();
+//! let mut quote_classifier = classify_quoted_sequences(&input);
 //!
 //! let block = quote_classifier.next().unwrap();
 //! assert_eq!(expd, block.within_quotes_mask);
 //! ```
-use crate::BlockAlignment;
-use aligners::{alignment::Twice, AlignedBlock, AlignedSlice};
+
+use crate::input::{IBlock, Input, InputBlock};
+use crate::BLOCK_SIZE;
 use cfg_if::cfg_if;
 
 /// Input block with a bitmask signifying which characters are within quotes.
@@ -40,14 +41,37 @@ use cfg_if::cfg_if;
 ///
 /// There is no guarantee on how the boundary quote characters are classified,
 /// their bits might be lit or not lit depending on the implementation.
-pub struct QuoteClassifiedBlock<'a> {
+pub struct QuoteClassifiedBlock<B, const N: usize> {
     /// The block that was classified.
-    pub block: &'a AlignedBlock<Twice<BlockAlignment>>,
+    pub block: B,
     /// Mask marking characters within a quoted sequence.
     pub within_quotes_mask: u64,
 }
 
-impl<'a> QuoteClassifiedBlock<'a> {
+/// Trait for quote classifier iterators, i.e. finite iterators
+/// enriching blocks of input with quote bitmasks.
+/// Iterator is allowed to hold a reference to the JSON document valid for `'a`.
+pub trait QuoteClassifiedIterator<'a, I: Input + 'a, const N: usize>:
+    Iterator<Item = QuoteClassifiedBlock<IBlock<'a, I, N>, N>> + 'a
+{
+    /// Get the total offset in bytes from the beginning of input.
+    fn get_offset(&self) -> usize;
+
+    /// Move the iterator `count` blocks forward.
+    /// Effectively skips `count * Twice<BlockAlignment>::size()` bytes.
+    fn offset(&mut self, count: isize);
+
+    /// Flip the bit representing whether the last block ended with a nonescaped quote.
+    ///
+    /// This should be done only in very specific circumstances where the previous-block
+    /// state could have been damaged due to stopping and resuming the classification at a later point.
+    fn flip_quotes_bit(&mut self);
+}
+
+impl<'a, B, const N: usize> QuoteClassifiedBlock<B, N>
+where
+    B: InputBlock<'a, N>,
+{
     /// Returns the length of the classified block.
     #[must_use]
     #[inline(always)]
@@ -63,65 +87,26 @@ impl<'a> QuoteClassifiedBlock<'a> {
     }
 }
 
-/// Trait for quote classifier iterators, i.e. finite iterators
-/// enriching blocks of input with quote bitmasks.
-/// Iterator is allowed to hold a reference to the JSON document valid for `'a`.
-pub trait QuoteClassifiedIterator<'a>: Iterator<Item = QuoteClassifiedBlock<'a>> + 'a {
-    /// Get size of a single quote classified block returned by this iterator.
-    fn block_size() -> usize;
-
-    /// Returns whether the iterator is empty.
-    fn is_empty(&self) -> bool;
-
-    /// Get the total offset in bytes from the beginning of input.
-    fn get_offset(&self) -> usize;
-
-    /// Move the iterator `count` blocks forward.
-    /// Effectively skips `count * Twice<BlockAlignment>::size()` bytes.
-    fn offset(&mut self, count: isize);
-
-    /// Flip the bit representing whether the last block ended with a nonescaped quote.
-    ///
-    /// This should be done only in very specific circumstances where the previous-block
-    /// state could have been damaged due to stopping and resuming the classification at a later point.
-    fn flip_quotes_bit(&mut self);
-}
 cfg_if! {
     if #[cfg(any(doc, not(feature = "simd")))] {
         mod nosimd;
-        use nosimd::SequentialQuoteClassifier;
-        use aligners::alignment;
-
-        /// Walk through the JSON document represented by `bytes`
-        /// and classify quoted sequences.
-        #[must_use]
-        #[inline(always)]
-        pub fn classify_quoted_sequences(
-            bytes: &AlignedSlice<alignment::Twice<BlockAlignment>>,
-        ) -> impl QuoteClassifiedIterator {
-            assert_eq!(bytes.len() % SequentialQuoteClassifier::block_size(), 0, "bytes len have to be divisible by block size");
-
-            SequentialQuoteClassifier::new(bytes)
-        }
+        type ClassifierImpl<'a, I, const N: usize> = nosimd::SequentialQuoteClassifier<'a, I, N>;
     }
     else if #[cfg(simd = "avx2")] {
         mod avx2;
-        use avx2::Avx2QuoteClassifier;
-        use aligners::alignment;
-
-        /// Walk through the JSON document represented by `bytes`
-        /// and classify quoted sequences.
-        #[must_use]
-        #[inline(always)]
-        pub fn classify_quoted_sequences(
-            bytes: &AlignedSlice<alignment::Twice<BlockAlignment>>,
-        ) -> impl QuoteClassifiedIterator {
-            assert_eq!(bytes.len() % Avx2QuoteClassifier::block_size(), 0, "bytes len have to be divisible by block size");
-
-            Avx2QuoteClassifier::new(bytes)
-        }
+        type ClassifierImpl<'a, I> = avx2::Avx2QuoteClassifier<'a, I>;
     }
     else {
         compile_error!("Target architecture is not supported by SIMD features of this crate. Disable the default `simd` feature.");
     }
+}
+
+/// Walk through the JSON document represented by `bytes`
+/// and classify quoted sequences.
+#[must_use]
+#[inline(always)]
+pub fn classify_quoted_sequences<I: Input>(
+    bytes: &I,
+) -> impl QuoteClassifiedIterator<I, BLOCK_SIZE> {
+    ClassifierImpl::new(bytes)
 }

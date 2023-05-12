@@ -33,23 +33,12 @@
 pub mod automaton;
 pub mod builder;
 pub mod error;
+mod label;
 mod parser;
+pub use label::Label;
 
-use aligners::{alignment, AlignedBytes, AlignedSlice};
-use cfg_if::cfg_if;
 use log::*;
 use std::fmt::{self, Display};
-
-cfg_if! {
-    if #[cfg(feature = "simd")] {
-        /// Label byte alignment for SIMD.
-        pub type LabelAlignment = alignment::SimdBlock;
-    }
-    else {
-        /// Label byte alignment for `simd` feature disabled.
-        pub type LabelAlignment = alignment::One;
-    }
-}
 
 /// Provides the [IETF-conforming index value](https://www.rfc-editor.org/rfc/rfc7493.html#section-2).  Values are \[0, (2^53)-1].
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -81,147 +70,6 @@ impl Display for NonNegativeArrayIndex {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{index}", index = self.0)
-    }
-}
-
-/// Label to search for in a JSON document.
-///
-/// Represents the bytes defining a label/key in a JSON object
-/// that can be matched against when executing a query.
-///
-/// # Examples
-///
-/// ```
-/// # use rsonpath_lib::query::Label;
-///
-/// let label = Label::new("needle");
-///
-/// assert_eq!(label.bytes(), "needle".as_bytes());
-/// assert_eq!(label.bytes_with_quotes(), "\"needle\"".as_bytes());
-/// ```
-pub struct Label {
-    label: AlignedBytes<LabelAlignment>,
-    label_with_quotes: AlignedBytes<LabelAlignment>,
-}
-
-impl std::fmt::Debug for Label {
-    #[inline]
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
-        write!(
-            f,
-            r#"{}"#,
-            std::str::from_utf8(&self.label_with_quotes).unwrap_or("[invalid utf8]")
-        )
-    }
-}
-
-impl Clone for Label {
-    #[inline]
-    fn clone(&self) -> Self {
-        let label_clone = AlignedBytes::from(self.label.as_ref());
-        let quoted_clone = AlignedBytes::from(self.label_with_quotes.as_ref());
-        Self {
-            label: label_clone,
-            label_with_quotes: quoted_clone,
-        }
-    }
-}
-
-impl Label {
-    /// Create a new label from UTF8 input.
-    #[must_use]
-    #[inline]
-    pub fn new(label: &str) -> Self {
-        let bytes = label.as_bytes();
-        let without_quotes = AlignedBytes::<LabelAlignment>::from(bytes);
-
-        let mut with_quotes = AlignedBytes::<LabelAlignment>::new_zeroed(bytes.len() + 2);
-        with_quotes[0] = b'"';
-        with_quotes[1..bytes.len() + 1].copy_from_slice(bytes);
-        with_quotes[bytes.len() + 1] = b'"';
-
-        Self {
-            label: without_quotes,
-            label_with_quotes: with_quotes,
-        }
-    }
-
-    /// Return the raw bytes of the label, guaranteed to be block-aligned.
-    #[must_use]
-    #[inline(always)]
-    pub fn bytes(&self) -> &AlignedSlice<LabelAlignment> {
-        &self.label
-    }
-
-    /// Return the bytes representing the label with a leading and trailing
-    /// double quote symbol `"`, guaranteed to be block-aligned.
-    #[must_use]
-    #[inline(always)]
-    pub fn bytes_with_quotes(&self) -> &AlignedSlice<LabelAlignment> {
-        &self.label_with_quotes
-    }
-
-    /// Return a display object with a UTF8 representation of this label.
-    ///
-    /// If the label contains invalid UTF8, the value will always be `"[invalid utf8]"`.
-    #[must_use]
-    #[inline(always)]
-    pub fn display(&self) -> impl Display + '_ {
-        std::str::from_utf8(&self.label).unwrap_or("[invalid utf8]")
-    }
-}
-
-impl std::ops::Deref for Label {
-    type Target = AlignedSlice<LabelAlignment>;
-
-    #[inline(always)]
-    fn deref(&self) -> &Self::Target {
-        self.bytes()
-    }
-}
-
-impl PartialEq<Self> for Label {
-    #[inline(always)]
-    fn eq(&self, other: &Self) -> bool {
-        self.label == other.label
-    }
-}
-
-impl Eq for Label {}
-
-impl PartialEq<Label> for [u8] {
-    #[inline(always)]
-    fn eq(&self, other: &Label) -> bool {
-        self == &other.label
-    }
-}
-
-impl PartialEq<Label> for &[u8] {
-    #[inline(always)]
-    fn eq(&self, other: &Label) -> bool {
-        *self == &other.label
-    }
-}
-
-impl PartialEq<[u8]> for Label {
-    #[inline(always)]
-    fn eq(&self, other: &[u8]) -> bool {
-        &self.label == other
-    }
-}
-
-impl PartialEq<&[u8]> for Label {
-    #[inline(always)]
-    fn eq(&self, other: &&[u8]) -> bool {
-        &self.label == *other
-    }
-}
-
-impl std::hash::Hash for Label {
-    #[inline(always)]
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        let slice: &[u8] = &self.label;
-        slice.hash(state);
     }
 }
 
@@ -520,7 +368,7 @@ mod tests {
 
     #[test]
     fn index_ulimit_sanity_check() {
-        assert_eq!(9007199254740991, ARRAY_INDEX_ULIMIT);
+        assert_eq!(9_007_199_254_740_991, ARRAY_INDEX_ULIMIT);
     }
 
     #[test]
