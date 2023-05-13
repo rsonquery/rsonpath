@@ -193,6 +193,8 @@ macro_rules! indices_test_cases {
         #[test_case("basic/atomic_after_complex.json", "$.a..b" => vec![174]; "atomic_after_complex.json $.a..b")]
         #[test_case("basic/array_root.json", "$" => vec![0]; "array_root.json $")]
         #[test_case("basic/array_root.json", "" => vec![0]; "array_root.json")]
+        #[test_case("basic/array_root.json", "$[0]" => Vec::<usize>::new(); "array_root.json nneg array index simple")]
+        #[test_case("basic/array_root_singleton.json", "$[0]" => vec![1]; "array_root_singleton.json nneg array index simple")]
         #[test_case("basic/child.json", "$..a..b.c..d" => vec![984, 1297, 1545]; "child.json $..a..b.c..d")]
         #[test_case("basic/child_hell.json", "$..x..a.b.a.b.c" => vec![198, 756, 1227, 1903, 2040, 2207]; "child_hell.json $..x..a.b.a.b.c")]
         #[test_case("basic/empty.json", "" => Vec::<usize>::new(); "empty.json")]
@@ -242,6 +244,7 @@ macro_rules! indices_test_cases {
         #[test_case("basic/compressed/singletons_and_empties.json", r#"$.*.*"# => vec![6, 15]; "compressed singletons_and_empties.json")]
         #[test_case("basic/compressed/skipping.json", r#"$.a.b"# => vec![452]; "compressed skipping")]
         #[test_case("basic/compressed/small_no_list.json", "$..person..phoneNumber..number" => vec![176, 380]; "compressed small_no_list.json $..person..phoneNumber..number")]
+        #[test_case("basic/compressed/small.json", "$..person..*[1].type" => vec![203, 451]; "compressed small.json $..person..*[1].type")]
         #[test_case("basic/compressed/small.json", "$..person..phoneNumber..number" => vec![177, 219, 425, 467]; "compressed small.json $..person..phoneNumber..number")]
         #[test_case(
             "twitter/compressed/twitter.json",
@@ -254,6 +257,8 @@ macro_rules! indices_test_cases {
                 => vec![3487, 9835, 12717, 52573, 64602, 77996, 119306, 121917, 201072, 212697, 215342, 241825, 288268, 310029, 312971, 445430, 454459, 464575];
             "compressed twitter.json $..user..entities.url (child)")]
         #[test_case("twitter/compressed/twitter_urls.json", "$..entities..urls..url" => vec![145, 326]; "compressed twitter_urls.json $..entities..urls..url")]
+        #[test_case("twitter/compressed/twitter_urls.json", "$..[0]" => vec![1, 139, 183, 249, 320, 364]; "compressed twitter_urls.json nneg array first descendent")]
+        #[test_case("twitter/compressed/twitter_urls.json", "$[0]" => vec![1]; "compressed twitter_urls.json nneg array first root only")]
         #[test_case("twitter/compressed/twitter_urls.json", "$..entities.urls..url" => vec![145, 326]; "compressed twitter_urls.json $..entities.urls..url (child)")]
         #[test_case(
             "wikidata/wikidata_properties.json", "$..P7103.claims.P31..references..snaks.P4656..hash" => vec![22639033];
