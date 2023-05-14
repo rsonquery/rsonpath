@@ -23,7 +23,7 @@ macro_rules! count_test_cases {
         #[test_case("basic/atomic_descendant.json", "$..*" => 4; "atomic_descendant.json any descendant $..*")]
         #[test_case("basic/atomic_descendant.json", "$.b[0]" => 1; "atomic_descendant.json nneg array index")]
         #[test_case("basic/atomic_descendant.json", "$.b[1]" => 0; "atomic_descendant.json nonexistent nneg array index")]
-        #[test_case("basic/atomic_descendant.json", "$..[0]" => 1; "atomic_descendant.json descendant array index")]
+        #[test_case("basic/atomic_descendant.json", "$..[0]" => 1; "atomic_descendant.json descendant nneg array index")]
         #[test_case("basic/atomic_descendant.json", "$.b[0].b" => 1; "atomic_descendant.json nested nneg array index")]
         #[test_case("basic/atomic_after_complex.json", "$.a..b" => 1; "atomic_after_complex.json $.a..b")]
         #[test_case("basic/atomic_after_complex.json", "$.a[0]" => 1; "atomic_after_complex.json nneg array index")]

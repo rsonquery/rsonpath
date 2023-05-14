@@ -7,7 +7,7 @@ mod state;
 pub use state::{State, StateAttributes};
 
 use super::{error::CompilerError, JsonPathQuery, Label, NonNegativeArrayIndex};
-use crate::debug;
+use crate::{debug, engine::FIRST_ITEM_INDEX};
 use nfa::NondeterministicAutomaton;
 use smallvec::SmallVec;
 use std::{fmt::Display, ops::Index};
@@ -254,6 +254,61 @@ impl<'q> Automaton<'q> {
     pub fn is_accepting_list_item(&self, state: State) -> bool {
         self[state].transitions().iter().any(|t| match t {
             (TransitionLabel::ArrayIndex(_), s) => self.is_accepting(*s),
+            _ => false,
+        })
+    }
+
+    /// Returns whether the given state is accepting the first item in a list.
+    ///
+    /// # Example
+    /// ```rust
+    /// # use rsonpath_lib::query::*;
+    /// # use rsonpath_lib::query::automaton::*;
+    /// let query = JsonPathQuery::parse("$[0]").unwrap();
+    /// let automaton = Automaton::new(&query).unwrap();
+    /// let state = automaton.initial_state();
+    ///
+    /// assert!(automaton.has_first_array_index_transition_to_accepting(state));
+    /// ```
+    /// ```rust
+    /// # use rsonpath_lib::query::*;
+    /// # use rsonpath_lib::query::automaton::*;
+    /// let query = JsonPathQuery::parse("$[1]").unwrap();
+    /// let automaton = Automaton::new(&query).unwrap();
+    /// let state = automaton.initial_state();
+    ///
+    /// assert!(!automaton.has_first_array_index_transition_to_accepting(state));
+    /// ```
+    #[must_use]
+    #[inline(always)]
+    pub fn has_first_array_index_transition_to_accepting(&self, state: State) -> bool {
+        self.has_array_index_transition_to_accepting(state, &FIRST_ITEM_INDEX)
+    }
+
+    /// Returns whether the given state is accepting the item at a given index in a list.
+    ///
+    /// # Example
+    /// ```rust
+    /// # use rsonpath_lib::query::*;
+    /// # use rsonpath_lib::query::automaton::*;
+    /// let query = JsonPathQuery::parse("$[1]").unwrap();
+    /// let automaton = Automaton::new(&query).unwrap();
+    /// let state = automaton.initial_state();
+    /// let match_index_1 = NonNegativeArrayIndex::new(1);
+    /// let match_index_2 = NonNegativeArrayIndex::new(2);
+    ///
+    /// assert!(automaton.has_array_index_transition_to_accepting(state, &match_index_1));
+    /// assert!(!automaton.has_array_index_transition_to_accepting(state, &match_index_2));
+    /// ```
+    #[must_use]
+    #[inline(always)]
+    pub fn has_array_index_transition_to_accepting(
+        &self,
+        state: State,
+        match_index: &NonNegativeArrayIndex,
+    ) -> bool {
+        self[state].transitions().iter().any(|t| match t {
+            (TransitionLabel::ArrayIndex(i), s) => i.eq(match_index) && self.is_accepting(*s),
             _ => false,
         })
     }

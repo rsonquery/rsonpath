@@ -13,18 +13,16 @@ use crate::debug;
 use crate::engine::error::EngineError;
 #[cfg(feature = "tail-skip")]
 use crate::engine::tail_skipping::TailSkip;
+use crate::engine::FIRST_ITEM_INDEX;
 use crate::engine::{Compiler, Engine};
 #[cfg(feature = "head-skip")]
 use crate::error::InternalRsonpathError;
 use crate::input::Input;
 use crate::query::automaton::{Automaton, State, TransitionLabel};
 use crate::query::error::CompilerError;
-use crate::query::NonNegativeArrayIndex;
 use crate::query::{JsonPathQuery, Label};
 use crate::result::QueryResult;
 use crate::BLOCK_SIZE;
-
-pub(crate) const FIRST_ITEM_INDEX: NonNegativeArrayIndex = NonNegativeArrayIndex::new(0);
 
 /// Recursive implementation of the JSONPath query engine.
 pub struct RecursiveEngine<'q> {
@@ -188,7 +186,7 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
         let needs_commas = is_list && (is_fallback_accepting || searching_list);
         let needs_colons = !is_list && self.automaton.has_transition_to_accepting(state);
 
-        let mut array_count = 0;
+        let mut array_count = FIRST_ITEM_INDEX;
 
         let config_characters = |classifier: &mut Classifier!(), idx: usize| {
             if needs_commas {
@@ -249,23 +247,21 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
                     }
 
                     // Once we are in comma search, we have already considered the option that the first item in the list is a match.  Iterate on the remaining items.
-                    array_count += 1;
+                    array_count = array_count.increment();
 
-                    // let is_next_closing = next_event.map_or(false, |s| s.is_closing());
+                    if let Ok(array_id) = array_count.try_into() {
+                        let match_index = self
+                            .automaton
+                            .has_array_index_transition_to_accepting(state, &array_id);
 
-                    let match_index = self.automaton[state].transitions().iter().any(|t| match t {
-                        (TransitionLabel::ArrayIndex(i), _) => array_count == i.get_index(),
-                        _ => false,
-                    });
-
-                    if is_accepting_list_item && !is_next_opening && match_index {
-                        debug!("Accepting on list item.");
-                        result.report(idx);
+                        if is_accepting_list_item && !is_next_opening && match_index {
+                            debug!("Accepting on list item.");
+                            result.report(idx);
+                        }
                     }
                 }
                 Some(Structural::Colon(idx)) => {
                     debug!("Colon");
-                    // debug_assert!(!is_accepting_list_item);
 
                     latest_idx = idx;
                     next_event = classifier.next();
@@ -334,7 +330,7 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
                                 }
                             }
                             TransitionLabel::ArrayIndex(i) => {
-                                if is_list && (i.get_index() == array_count) {
+                                if is_list && i.eq(&array_count) {
                                     matched = Some(target);
                                     if self.automaton.is_accepting(target) {
                                         debug!("Accept Array Index {i}");

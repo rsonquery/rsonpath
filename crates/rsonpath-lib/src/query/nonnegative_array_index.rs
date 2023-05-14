@@ -14,7 +14,7 @@ use std::fmt::{self, Display, Formatter};
 ///
 /// assert_eq!(idx.get_index(), 2);
 /// ```
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug, PartialOrd, Ord)]
 pub struct NonNegativeArrayIndex(u64);
 
 /// The upper inclusive bound on index values.
@@ -39,6 +39,13 @@ impl NonNegativeArrayIndex {
     #[inline]
     pub const fn new(index: u64) -> Self {
         Self(index)
+    }
+
+    /// Create a new search index from a u64.
+    #[must_use]
+    #[inline]
+    pub fn increment(&self) -> Self {
+        NonNegativeArrayIndex::new(&self.0 + 1)
     }
 
     /// Return the index stored.
