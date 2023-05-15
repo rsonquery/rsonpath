@@ -237,6 +237,27 @@ impl<'q> Automaton<'q> {
         self[state].attributes.is_accepting()
     }
 
+    /// Returns whether the given state transitions to any list.
+    ///
+    /// # Example
+    /// ```rust
+    /// # use rsonpath_lib::query::*;
+    /// # use rsonpath_lib::query::automaton::*;
+    /// let query = JsonPathQuery::parse("$[2]").unwrap();
+    /// let automaton = Automaton::new(&query).unwrap();
+    /// let state = automaton.initial_state();
+    ///
+    /// assert!(automaton.has_any_array_item_transition(state));
+    /// ```
+    #[must_use]
+    #[inline(always)]
+    pub fn has_any_array_item_transition(&self, state: State) -> bool {
+        self[state].transitions().iter().any(|t| match t {
+            (TransitionLabel::ArrayIndex(_), _) => true,
+            _ => false,
+        })
+    }
+
     /// Returns whether the given state is accepting an item in a list.
     ///
     /// # Example

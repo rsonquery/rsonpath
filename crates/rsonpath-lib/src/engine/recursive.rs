@@ -19,6 +19,7 @@ use crate::engine::{Compiler, Engine};
 use crate::error::InternalRsonpathError;
 use crate::input::Input;
 use crate::query::automaton::{Automaton, State, TransitionLabel};
+use crate::query::error::ArrayIndexError;
 use crate::query::error::CompilerError;
 use crate::query::{JsonPathQuery, Label};
 use crate::result::QueryResult;
@@ -175,10 +176,7 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
         let is_fallback_accepting = self.automaton.is_accepting(fallback_state);
         let is_list = bracket_type == BracketType::Square;
 
-        let searching_list = self.automaton[state]
-            .transitions()
-            .iter()
-            .any(|t| matches!(t, (TransitionLabel::ArrayIndex(_), _)));
+        let searching_list = self.automaton.has_any_array_item_transition(state);
 
         let is_accepting_list_item = is_list
             && self
@@ -248,7 +246,14 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
                     }
 
                     // Once we are in comma search, we have already considered the option that the first item in the list is a match.  Iterate on the remaining items.
-                    array_count.increment();
+
+                    match array_count.try_increment() {
+                        Err(ArrayIndexError::ExceedsUpperLimitError(_)) => {
+                            debug!("Exceeded possible array match in content.");
+                            continue;
+                        }
+                        _ => {}
+                    }
 
                     let match_index = self
                         .automaton

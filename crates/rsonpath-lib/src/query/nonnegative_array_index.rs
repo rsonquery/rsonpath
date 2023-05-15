@@ -44,8 +44,17 @@ impl NonNegativeArrayIndex {
     /// Create a new search index from a u64.
     #[must_use]
     #[inline]
-    pub fn increment(&self) -> Self {
-        NonNegativeArrayIndex::new(&self.0 + 1)
+    pub fn try_increment(&mut self) -> Result<(), ArrayIndexError> {
+        // TODO: investigate checked add
+        let new_index = self.0 + 1;
+        if new_index <= ARRAY_INDEX_ULIMIT {
+            self.0 = new_index;
+            Ok(())
+        } else {
+            Err(ArrayIndexError::ExceedsUpperLimitError(
+                new_index.to_string(),
+            ))
+        }
     }
 
     /// Return the index stored.

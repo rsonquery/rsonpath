@@ -251,7 +251,10 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
     {
         self.next_event = classifier.next();
         if self.is_list {
-            self.array_count.increment();
+            if let Err(_) = self.array_count.try_increment() {
+                // We can't possibly match these items, but it's not an error either.
+                return Ok(());
+            }
             debug!("array_count = {}", self.array_count);
         }
 
@@ -348,17 +351,13 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
             let fallback = self.automaton[self.state].fallback_state();
             let is_fallback_accepting = self.automaton.is_accepting(fallback);
 
-            let searching_list = is_fallback_accepting
-                || self.automaton[self.state]
-                    .transitions()
-                    .iter()
-                    .any(|t| match t {
-                        (TransitionLabel::ArrayIndex(_), s) => true,
-                        _ => false,
-                    });
+            let searching_list =
+                is_fallback_accepting || self.automaton.has_any_array_item_transition(self.state);
 
             if searching_list {
                 classifier.turn_commas_on(idx);
+
+                self.array_count = FIRST_ITEM_INDEX;
 
                 let wants_first_item = is_fallback_accepting
                     || self
