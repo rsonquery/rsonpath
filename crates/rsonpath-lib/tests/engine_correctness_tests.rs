@@ -244,7 +244,11 @@ macro_rules! indices_test_cases {
         #[test_case("basic/compressed/singletons_and_empties.json", r#"$.*.*"# => vec![6, 15]; "compressed singletons_and_empties.json")]
         #[test_case("basic/compressed/skipping.json", r#"$.a.b"# => vec![452]; "compressed skipping")]
         #[test_case("basic/compressed/small_no_list.json", "$..person..phoneNumber..number" => vec![176, 380]; "compressed small_no_list.json $..person..phoneNumber..number")]
-        #[test_case("basic/compressed/small.json", "$..person..*[1].type" => vec![203, 451]; "compressed small.json $..person..*[1].type")]
+        #[test_case("basic/small.json", "$..person..*[1].type" => vec![402, 1028]; "small.json nneg array $..person..*[1].type")]
+        #[test_case("basic/compressed/small.json", "$..person..*[1].type" => vec![203, 451]; "compressed anydesc small.json $..person..*[1].type")]
+        #[test_case("basic/compressed/small.json", "$..person..[1].type" => vec![203, 451]; "compressed nneg array small.json $..person..[1].type nneg")]
+        #[test_case("basic/compressed/small.json", "$..person.phoneNumber[1].type" => vec![203, 451]; "compressed nneg array direct small.json $..person..[1].type")]
+        #[test_case("basic/compressed/small.json", "$..person.phoneNumber[0].type" => vec![159, 407]; "compressed nneg array direct small.json $..person..[0].type")]
         #[test_case("basic/compressed/small.json", "$..person..phoneNumber..number" => vec![177, 219, 425, 467]; "compressed small.json $..person..phoneNumber..number")]
         #[test_case(
             "twitter/compressed/twitter.json",

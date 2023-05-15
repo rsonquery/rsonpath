@@ -180,9 +180,10 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
             .iter()
             .any(|t| matches!(t, (TransitionLabel::ArrayIndex(_), _)));
 
-        let accepting_list = self.automaton.is_accepting_list_item(state);
-
-        let is_accepting_list_item = is_list && accepting_list;
+        let is_accepting_list_item = is_list
+            && self
+                .automaton
+                .has_any_array_item_transition_to_accepting(state);
         let needs_commas = is_list && (is_fallback_accepting || searching_list);
         let needs_colons = !is_list && self.automaton.has_transition_to_accepting(state);
 
@@ -247,17 +248,15 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
                     }
 
                     // Once we are in comma search, we have already considered the option that the first item in the list is a match.  Iterate on the remaining items.
-                    array_count = array_count.increment();
+                    array_count.increment();
 
-                    if let Ok(array_id) = array_count.try_into() {
-                        let match_index = self
-                            .automaton
-                            .has_array_index_transition_to_accepting(state, &array_id);
+                    let match_index = self
+                        .automaton
+                        .has_array_index_transition_to_accepting(state, &array_count);
 
-                        if is_accepting_list_item && !is_next_opening && match_index {
-                            debug!("Accepting on list item.");
-                            result.report(idx);
-                        }
+                    if is_accepting_list_item && !is_next_opening && match_index {
+                        debug!("Accepting on list item.");
+                        result.report(idx);
                     }
                 }
                 Some(Structural::Colon(idx)) => {

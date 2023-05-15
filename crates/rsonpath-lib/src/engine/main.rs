@@ -249,35 +249,30 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
         S: StructuralIterator<'b, I, Q, BLOCK_SIZE>,
         R: QueryResult,
     {
-        debug!("array_count = {}", self.array_count);
         self.next_event = classifier.next();
+        if self.is_list {
+            self.array_count.increment();
+            debug!("array_count = {}", self.array_count);
+        }
+
         let is_next_opening = self.next_event.map_or(false, |s| s.is_opening());
 
-        if !is_next_opening {
-            let fallback_accepting = self
-                .automaton
-                .is_accepting(self.automaton[self.state].fallback_state());
+        let is_fallback_accepting = self
+            .automaton
+            .is_accepting(self.automaton[self.state].fallback_state());
 
-            if self.is_list && fallback_accepting {
-                result.report(idx);
-            }
+        if !is_next_opening && self.is_list && is_fallback_accepting {
+            debug!("Accepting on comma.");
+            result.report(idx);
+        }
 
-            self.array_count = self.array_count.increment();
+        let match_index = self
+            .automaton
+            .has_array_index_transition_to_accepting(self.state, &self.array_count);
 
-            if let Ok(array_id) = self.array_count.try_into() {
-                let match_index = self
-                    .automaton
-                    .has_array_index_transition_to_accepting(self.state, &array_id);
-
-                let accepting_list = self.automaton.is_accepting_list_item(self.state);
-
-                let is_accepting_list_item = self.is_list && accepting_list;
-
-                if is_accepting_list_item && match_index {
-                    debug!("Accepting on list item.");
-                    result.report(idx);
-                }
-            }
+        if !is_next_opening && match_index {
+            debug!("Accepting on list item.");
+            result.report(idx);
         }
 
         Ok(())
@@ -298,28 +293,23 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
         debug!("Opening {bracket_type:?}, increasing depth and pushing stack.",);
         let mut any_matched = false;
 
-        if let Some(colon_idx) = self.find_preceding_colon(idx) {
-            for &(label, target) in self.automaton[self.state].transitions() {
-                match label {
-                    TransitionLabel::ArrayIndex(_i) => {
-                        // TODO: should this really be a no-op?
-                        // if let Ok(array_id) = self.array_count.try_into() {
-                        //     if self.is_list
-                        //         && self
-                        //             .automaton
-                        //             .has_accepting_list_item_at_index(self.state, &array_id)
-                        //     {
-                        //         any_matched = true;
-                        //         if self.automaton.is_accepting(target) {
-                        //             debug!("Accept Array Index {i}");
-                        //             debug!("Accept {idx}");
-                        //             result.report(idx);
-                        //         }
-                        //         break;
-                        //     }
-                        // }
+        let colon_idx = self.find_preceding_colon(idx);
+
+        for &(label, target) in self.automaton[self.state].transitions() {
+            match label {
+                TransitionLabel::ArrayIndex(i) => {
+                    if self.is_list && i.eq(&self.array_count) {
+                        any_matched = true;
+                        self.transition_to(target, bracket_type);
+                        if self.automaton.is_accepting(target) {
+                            debug!("Accept {idx}");
+                            result.report(idx);
+                        }
+                        break;
                     }
-                    TransitionLabel::ObjectMember(label) => {
+                }
+                TransitionLabel::ObjectMember(label) => {
+                    if let Some(colon_idx) = colon_idx {
                         if self.is_match(colon_idx, label)? {
                             any_matched = true;
                             self.transition_to(target, bracket_type);
@@ -357,34 +347,48 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
 
             let fallback = self.automaton[self.state].fallback_state();
             let is_fallback_accepting = self.automaton.is_accepting(fallback);
-            let wants_first_item = is_fallback_accepting
-                || self
-                    .automaton
-                    .has_first_array_index_transition_to_accepting(self.state);
 
-            classifier.turn_commas_on(idx);
+            let searching_list = is_fallback_accepting
+                || self.automaton[self.state]
+                    .transitions()
+                    .iter()
+                    .any(|t| match t {
+                        (TransitionLabel::ArrayIndex(_), s) => true,
+                        _ => false,
+                    });
 
-            if wants_first_item {
-                self.next_event = classifier.next();
+            if searching_list {
+                classifier.turn_commas_on(idx);
 
-                match self.next_event {
-                    Some(Structural::Closing(_, close_idx)) => {
-                        if let Some((next_idx, _)) = self.bytes.seek_non_whitespace_forward(idx + 1)
-                        {
-                            if next_idx < close_idx {
-                                result.report(next_idx);
+                let wants_first_item = is_fallback_accepting
+                    || self
+                        .automaton
+                        .has_first_array_index_transition_to_accepting(self.state);
+
+                if wants_first_item {
+                    self.next_event = classifier.next();
+
+                    match self.next_event {
+                        Some(Structural::Closing(_, close_idx)) => {
+                            if let Some((next_idx, _)) =
+                                self.bytes.seek_non_whitespace_forward(idx + 1)
+                            {
+                                if next_idx < close_idx {
+                                    result.report(next_idx);
+                                }
                             }
                         }
+                        Some(Structural::Comma(_)) => {
+                            result.report(idx + 1);
+                        }
+                        _ => (),
                     }
-                    Some(Structural::Comma(_)) => {
-                        result.report(idx + 1);
-                    }
-                    _ => (),
                 }
             } else {
                 classifier.turn_commas_off();
             }
         } else {
+            classifier.turn_commas_off();
             self.is_list = false;
         }
 
@@ -444,9 +448,16 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
         }
 
         if self.is_list
-            && self
+            && (self
                 .automaton
                 .is_accepting(self.automaton[self.state].fallback_state())
+                || self.automaton[self.state]
+                    .transitions()
+                    .iter()
+                    .any(|t| match t {
+                        (TransitionLabel::ArrayIndex(_), _) => true,
+                        _ => false,
+                    }))
         {
             classifier.turn_commas_on(idx);
         } else {

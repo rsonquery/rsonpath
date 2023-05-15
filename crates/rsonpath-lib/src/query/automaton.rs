@@ -245,13 +245,13 @@ impl<'q> Automaton<'q> {
     /// # use rsonpath_lib::query::automaton::*;
     /// let query = JsonPathQuery::parse("$[2]").unwrap();
     /// let automaton = Automaton::new(&query).unwrap();
-    /// let state_2 = automaton.initial_state();
+    /// let state = automaton.initial_state();
     ///
-    /// assert!(automaton.is_accepting_list_item(state_2));
+    /// assert!(automaton.has_any_array_item_transition_to_accepting(state));
     /// ```
     #[must_use]
     #[inline(always)]
-    pub fn is_accepting_list_item(&self, state: State) -> bool {
+    pub fn has_any_array_item_transition_to_accepting(&self, state: State) -> bool {
         self[state].transitions().iter().any(|t| match t {
             (TransitionLabel::ArrayIndex(_), s) => self.is_accepting(*s),
             _ => false,
