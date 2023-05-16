@@ -247,12 +247,11 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
 
                     // Once we are in comma search, we have already considered the option that the first item in the list is a match.  Iterate on the remaining items.
 
-                    match array_count.try_increment() {
-                        Err(ArrayIndexError::ExceedsUpperLimitError(_)) => {
-                            debug!("Exceeded possible array match in content.");
-                            continue;
-                        }
-                        _ => {}
+                    if let Err(ArrayIndexError::ExceedsUpperLimitError(_)) =
+                        array_count.try_increment()
+                    {
+                        debug!("Exceeded possible array match in content.");
+                        continue;
                     }
 
                     let match_index = self

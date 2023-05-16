@@ -42,10 +42,10 @@ impl NonNegativeArrayIndex {
     }
 
     /// Create a new search index from a u64.
-    #[must_use]
+    /// # Errors
+    /// Will return `Err` if the increment causes the [`NonNegativeArrayIndex`] to exceed the addressable IETF-conforming index value value.
     #[inline]
     pub fn try_increment(&mut self) -> Result<(), ArrayIndexError> {
-        // TODO: investigate checked add
         let new_index = self.0 + 1;
         if new_index <= ARRAY_INDEX_ULIMIT {
             self.0 = new_index;

@@ -252,10 +252,10 @@ impl<'q> Automaton<'q> {
     #[must_use]
     #[inline(always)]
     pub fn has_any_array_item_transition(&self, state: State) -> bool {
-        self[state].transitions().iter().any(|t| match t {
-            (TransitionLabel::ArrayIndex(_), _) => true,
-            _ => false,
-        })
+        self[state]
+            .transitions()
+            .iter()
+            .any(|t| matches!(t, (TransitionLabel::ArrayIndex(_), _)))
     }
 
     /// Returns whether the given state is accepting an item in a list.

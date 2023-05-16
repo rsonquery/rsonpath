@@ -86,7 +86,6 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
         if fallback_state == initial_state && transitions.len() == 1 {
             let (label, target_state) = transitions[0];
 
-            // TODO: factor out as member impl
             if let Some(named_label) = label.get_label_owned() {
                 debug!("Automaton starts with a descendant search, using memmem heuristic.");
 

@@ -251,8 +251,8 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
     {
         self.next_event = classifier.next();
         if self.is_list {
-            if let Err(_) = self.array_count.try_increment() {
-                // We can't possibly match these items, but it's not an error either.
+            if self.array_count.try_increment().is_err() {
+                // We can't possibly match these items, but it's not necessarily an error either.
                 return Ok(());
             }
             debug!("Incremented array count to {}", self.array_count);
@@ -454,13 +454,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
             && (self
                 .automaton
                 .is_accepting(self.automaton[self.state].fallback_state())
-                || self.automaton[self.state]
-                    .transitions()
-                    .iter()
-                    .any(|t| match t {
-                        (TransitionLabel::ArrayIndex(_), _) => true,
-                        _ => false,
-                    }))
+                || self.automaton.has_any_array_item_transition(self.state))
         {
             classifier.turn_commas_on(idx);
         } else {
@@ -478,10 +472,10 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
 
     fn transition_to(&mut self, target: State, opening: BracketType) {
         let target_is_list = opening == BracketType::Square;
-        if target != self.state || target_is_list != self.is_list {
+        if target != self.state || target_is_list != self.is_list || target_is_list {
             debug!(
-                "push {}, goto {target}, is_list = {target_is_list}",
-                self.state
+                "push {}, goto {target}, is_list = {target_is_list}, array_count: {}",
+                self.state, self.array_count
             );
 
             self.stack.push(StackFrame {
@@ -491,7 +485,6 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
                 array_count: self.array_count,
             });
             self.state = target;
-            debug!("Saved array count {}", self.array_count);
         }
     }
 
