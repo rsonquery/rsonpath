@@ -255,7 +255,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
                 // We can't possibly match these items, but it's not an error either.
                 return Ok(());
             }
-            debug!("array_count = {}", self.array_count);
+            debug!("Incremented array count to {}", self.array_count);
         }
 
         let is_next_opening = self.next_event.map_or(false, |s| s.is_opening());
@@ -356,8 +356,8 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
 
             if searching_list {
                 classifier.turn_commas_on(idx);
-
                 self.array_count = FIRST_ITEM_INDEX;
+                debug!("Initialized array count to {}", self.array_count);
 
                 let wants_first_item = is_fallback_accepting
                     || self
@@ -424,6 +424,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
                 self.state = stack_frame.state;
                 self.is_list = stack_frame.is_list;
                 self.array_count = stack_frame.array_count;
+                debug!("Restored array count to {}", self.array_count);
 
                 if self.automaton.is_unitary(self.state) {
                     let bracket_type = self.current_node_bracket_type();
@@ -434,6 +435,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
                 }
             }
         }
+
         #[cfg(not(feature = "unique-labels"))]
         {
             self.depth
@@ -443,6 +445,8 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
             if let Some(stack_frame) = self.stack.pop_if_at_or_below(*self.depth) {
                 self.state = stack_frame.state;
                 self.is_list = stack_frame.is_list;
+                self.array_count = stack_frame.array_count;
+                debug!("Restored array count to {}", self.array_count);
             }
         }
 
@@ -487,6 +491,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
                 array_count: self.array_count,
             });
             self.state = target;
+            debug!("Saved array count {}", self.array_count);
         }
     }
 
