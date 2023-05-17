@@ -292,7 +292,7 @@ macro_rules! indices_test_cases {
         #[test_case("basic/array_root_nested.json", "$[2][1].*[1]" => vec![95, 162, 229]; "array_root_nested.json nneg nneg any nneg")]
         #[test_case("basic/array_root_nested.json", "$[2]..*" => vec![49, 61, 75, 93, 95, 142, 160, 162, 209, 227, 229]; "array_root_nested.json nneg array anydesc")]
         #[test_case("basic/array_root_nested.json", "$..*[0]" => vec![16,17,49,75,93,160,227]; "array_root_nested.json anydesc nneg array first")]
-        #[test_case("basic/array_root_nested.json", "$..*[2]" => vec![209]; "array_root_nested.json anydesc nneg array second")]
+        #[test_case("basic/array_root_nested.json", "$..*[2]" => vec![209]; "array_root_nested.json anydesc nneg array third")]
         #[test_case("basic/array_root_nested.json", "$[2][0]" => vec![49]; "array_root_nested.json nneg array direct first")]
         #[test_case("basic/array_root_nested.json", "$[2][1]" => vec![61]; "array_root_nested.json nneg array direct second")]
         fn $test_name(test_path: &str, query_string: &str) -> Vec<usize> {

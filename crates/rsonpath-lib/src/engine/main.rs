@@ -472,7 +472,13 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
 
     fn transition_to(&mut self, target: State, opening: BracketType) {
         let target_is_list = opening == BracketType::Square;
-        if target != self.state || target_is_list != self.is_list || target_is_list {
+
+        let fallback = self.automaton[self.state].fallback_state();
+        let is_fallback_accepting = self.automaton.is_accepting(fallback);
+        let searching_list =
+            is_fallback_accepting || self.automaton.has_any_array_item_transition(self.state);
+
+        if target != self.state || target_is_list != self.is_list || searching_list {
             debug!(
                 "push {}, goto {target}, is_list = {target_is_list}, array_count: {}",
                 self.state, self.array_count
