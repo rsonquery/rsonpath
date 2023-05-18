@@ -5,8 +5,8 @@
 use super::nfa::{self, NfaState, NfaStateId};
 use super::small_set::{SmallSet, SmallSet256};
 use super::state::StateAttributesBuilder;
-use super::StateAttributes;
 use super::{
+    StateAttributes,
     Automaton, NondeterministicAutomaton, State as DfaStateId, StateTable, TransitionLabel,
 };
 use crate::debug;
