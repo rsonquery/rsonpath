@@ -8,7 +8,7 @@
 //!
 //! Borrows a slice of bytes of the input document. Choose this implementation if:
 //!
-//! 1. You already have the data loaded in-memory and it is properly padded.
+//! 1. You already have the data loaded in-memory and it is properly aligned and padded.
 //! The length of the buffer **MUST** be divisible by [`MAX_BLOCK_SIZE`].
 //!
 //! ### Performance characteristics
@@ -40,9 +40,11 @@
 //! than using a buffered input stream.
 
 pub mod borrowed;
+pub mod buffered;
 pub mod error;
 pub mod owned;
 pub use borrowed::BorrowedBytes;
+pub use buffered::BufferedInput;
 pub use owned::OwnedBytes;
 
 use crate::query::Label;
@@ -55,6 +57,14 @@ use std::ops::Deref;
 /// `<<I as Input>::BlockIterator<'a, N> as InputBlockIterator<'a, N>>::Block`.
 pub type IBlock<'a, I, const N: usize> =
     <<I as Input>::BlockIterator<'a, N> as InputBlockIterator<'a, N>>::Block;
+
+#[macro_export]
+macro_rules! repr_align_block_size {
+    ($it:item) => {
+        #[repr(C, align(128))]
+        $it
+    };
+}
 
 /// Global padding guarantee for all [`Input`] implementations.
 /// Iterating over blocks of at most this size is guaranteed
@@ -148,5 +158,86 @@ impl<'a, const N: usize> InputBlock<'a, N> for &'a [u8] {
     fn halves(&self) -> (&[u8], &[u8]) {
         assert_eq!(N % 2, 0);
         (&self[..N / 2], &self[N / 2..])
+    }
+}
+
+pub(super) mod in_slice {
+    use crate::query::Label;
+
+    #[inline]
+    pub(super) fn seek_backward(bytes: &[u8], from: usize, needle: u8) -> Option<usize> {
+        let mut idx = from;
+
+        loop {
+            if bytes[idx] == needle {
+                return Some(idx);
+            }
+            if idx == 0 {
+                return None;
+            }
+            idx -= 1;
+        }
+    }
+
+    #[inline]
+    pub(super) fn seek_non_whitespace_forward(bytes: &[u8], from: usize) -> Option<(usize, u8)> {
+        let mut idx = from;
+
+        loop {
+            let b = bytes[idx];
+            if !b.is_ascii_whitespace() {
+                return Some((idx, b));
+            }
+            idx += 1;
+            if idx == bytes.len() {
+                return None;
+            }
+        }
+    }
+
+    #[inline]
+    pub(super) fn seek_non_whitespace_backward(bytes: &[u8], from: usize) -> Option<(usize, u8)> {
+        let mut idx = from;
+
+        loop {
+            let b = bytes[idx];
+            if !b.is_ascii_whitespace() {
+                return Some((idx, b));
+            }
+            if idx == 0 {
+                return None;
+            }
+            idx -= 1;
+        }
+    }
+
+    #[inline]
+    #[cfg(feature = "head-skip")]
+    pub(super) fn find_label(bytes: &[u8], from: usize, label: &Label) -> Option<usize> {
+        use memchr::memmem;
+
+        let finder = memmem::Finder::new(label.bytes_with_quotes());
+        let mut idx = from;
+        let brr = bytes.len();
+
+        loop {
+            match finder.find(&bytes[idx..brr]) {
+                Some(offset) => {
+                    let starting_quote_idx = offset + idx;
+                    if bytes[starting_quote_idx - 1] != b'\\' {
+                        return Some(starting_quote_idx);
+                    } else {
+                        idx = starting_quote_idx + label.bytes_with_quotes().len() + 1;
+                    }
+                }
+                None => return None,
+            }
+        }
+    }
+
+    #[inline]
+    pub(super) fn is_label_match(bytes: &[u8], from: usize, to: usize, label: &Label) -> bool {
+        let slice = &bytes[from..to];
+        label.bytes_with_quotes() == slice && (from == 0 || bytes[from - 1] != b'\\')
     }
 }

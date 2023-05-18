@@ -8,7 +8,7 @@ use rsonpath::{report_compiler_error, report_engine_error, report_parser_error};
 use rsonpath_lib::engine::main::MainEngine;
 use rsonpath_lib::engine::recursive::RecursiveEngine;
 use rsonpath_lib::engine::{Compiler, Engine};
-use rsonpath_lib::input::OwnedBytes;
+use rsonpath_lib::input::BufferedInput;
 use rsonpath_lib::query::automaton::Automaton;
 use rsonpath_lib::query::JsonPathQuery;
 use rsonpath_lib::result::{CountResult, IndexResult, QueryResult};
@@ -80,7 +80,7 @@ fn run_with_args(args: &Args) -> Result<()> {
         compile(&query)
     } else {
         let contents = get_contents(args.file_path.as_deref())?;
-        let input = OwnedBytes::new(&contents)?;
+        let input = BufferedInput::new(ReadString(contents, 0));
 
         match args.result {
             ResultArg::Bytes => run::<IndexResult>(&query, &input, args.engine),
@@ -97,7 +97,7 @@ fn compile(query: &JsonPathQuery) -> Result<()> {
     Ok(())
 }
 
-fn run<R: QueryResult>(query: &JsonPathQuery, input: &OwnedBytes, engine: EngineArg) -> Result<()> {
+fn run<R: QueryResult>(query: &JsonPathQuery, input: &BufferedInput<ReadString>, engine: EngineArg) -> Result<()> {
     match engine {
         EngineArg::Main => {
             let result = run_engine::<MainEngine, R>(query, input)
@@ -126,7 +126,7 @@ fn run<R: QueryResult>(query: &JsonPathQuery, input: &OwnedBytes, engine: Engine
     Ok(())
 }
 
-fn run_engine<C: Compiler, R: QueryResult>(query: &JsonPathQuery, input: &OwnedBytes) -> Result<R> {
+fn run_engine<C: Compiler, R: QueryResult>(query: &JsonPathQuery, input: &BufferedInput<ReadString>) -> Result<R> {
     let engine = C::compile_query(query)
         .map_err(|err| report_compiler_error(query, err).wrap_err("Error compiling the query."))?;
     info!("Compilation finished, running...");
@@ -169,4 +169,21 @@ fn configure_logger(verbose: bool) -> Result<()> {
         })
         .init()
         .wrap_err("Logger configuration error.")
+}
+
+struct ReadString(String, usize);
+
+impl std::io::Read for ReadString {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        let rem = self.0.as_bytes().len() - self.1;
+        if rem > 0 {
+            let size = std::cmp::min(1024, rem);
+            buf[..size].copy_from_slice(&self.0.as_bytes()[self.1..self.1 + size]);
+            self.1 += size;
+            Ok(size)
+        }
+        else {
+            Ok(0)
+        }
+    }
 }

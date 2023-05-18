@@ -1,9 +1,5 @@
 //! Input sourced from an owned buffer of bytes, without growing.
-use super::{
-    borrowed::{BorrowedBytes, BorrowedBytesBlockIterator},
-    error::InputError,
-    Input, MAX_BLOCK_SIZE,
-};
+use super::{*, error::InputError, borrowed::BorrowedBytesBlockIterator};
 use crate::query::Label;
 use std::{alloc, ptr, slice};
 
@@ -219,27 +215,27 @@ impl Input for OwnedBytes {
 
     #[inline]
     fn seek_backward(&self, from: usize, needle: u8) -> Option<usize> {
-        self.as_borrowed().seek_backward(from, needle)
+        in_slice::seek_backward(self.as_slice(), from, needle)
     }
 
     #[inline]
     fn seek_non_whitespace_forward(&self, from: usize) -> Option<(usize, u8)> {
-        self.as_borrowed().seek_non_whitespace_forward(from)
+        in_slice::seek_non_whitespace_forward(self.as_slice(), from)
     }
 
     #[inline]
     fn seek_non_whitespace_backward(&self, from: usize) -> Option<(usize, u8)> {
-        self.as_borrowed().seek_non_whitespace_backward(from)
+        in_slice::seek_non_whitespace_backward(self.as_slice(), from)
     }
 
     #[inline]
     #[cfg(feature = "head-skip")]
     fn find_label(&self, from: usize, label: &Label) -> Option<usize> {
-        self.as_borrowed().find_label(from, label)
+        in_slice::find_label(self.as_slice(), from, label)
     }
 
     #[inline]
     fn is_label_match(&self, from: usize, to: usize, label: &Label) -> bool {
-        self.as_borrowed().is_label_match(from, to, label)
+        in_slice::is_label_match(self.as_slice(), from, to, label)
     }
 }

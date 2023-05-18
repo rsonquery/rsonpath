@@ -81,8 +81,8 @@ alias doctest := test-doc
 
 # Run the quick unit and doc tests of the library with all features.
 test-quick:
-    cargo test --lib
-    cargo test --doc
+    cargo test --lib -q
+    cargo test --doc -q
 
 # Run the quick unit tests of the library on feature powerset.
 test-unit:
@@ -91,11 +91,11 @@ test-unit:
 
 # Run the classifier tests on default features.
 test-classifier:
-    cargo test --test classifier_correctness_tests
+    cargo test --test classifier_correctness_tests -q
 
 # Run the main engine end-to-end tests on default features.
 test-engine:
-    cargo test --test engine_correctness_tests
+    cargo test --test engine_correctness_tests -q
 
 # Run all tests, including real dataset tests, on the feature powerset of the project.
 test-full:

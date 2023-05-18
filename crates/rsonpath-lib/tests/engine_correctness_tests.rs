@@ -1,18 +1,37 @@
 use rsonpath_lib::engine::main::MainEngine;
 use rsonpath_lib::engine::recursive::RecursiveEngine;
 use rsonpath_lib::engine::{Compiler, Engine};
-use rsonpath_lib::input::OwnedBytes;
+use rsonpath_lib::input::BufferedInput;
 use rsonpath_lib::query::JsonPathQuery;
 use rsonpath_lib::result::{CountResult, IndexResult};
-use std::fs;
+use std::{fs, cmp};
+use std::io::Read;
 use test_case::test_case;
 
 const ROOT_TEST_DIRECTORY: &str = "./tests/data";
 
-fn get_contents(test_path: &str) -> OwnedBytes {
+struct ReadString(String, usize);
+
+impl Read for ReadString {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        let rem = self.0.as_bytes().len() - self.1;
+        if rem > 0 {
+            let size = cmp::min(1024, rem);
+            buf[..size].copy_from_slice(&self.0.as_bytes()[self.1..self.1 + size]);
+            self.1 += size;
+            Ok(size)
+        }
+        else {
+            Ok(0)
+        }
+    }
+}
+
+fn get_contents(test_path: &str) -> BufferedInput<ReadString> {
     let path = format!("{ROOT_TEST_DIRECTORY}/{test_path}");
-    let raw = fs::read_to_string(path).unwrap();
-    OwnedBytes::try_from(raw).unwrap()
+    let act_path = fs::canonicalize(path).unwrap();
+    let raw = fs::read_to_string(act_path).unwrap();
+    BufferedInput::new(ReadString(raw, 0))
 }
 
 macro_rules! count_test_cases {

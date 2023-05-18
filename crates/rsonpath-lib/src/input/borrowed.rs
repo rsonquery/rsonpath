@@ -81,78 +81,28 @@ impl<'a> Input for BorrowedBytes<'a> {
 
     #[inline]
     fn seek_backward(&self, from: usize, needle: u8) -> Option<usize> {
-        let mut idx = from;
-
-        loop {
-            if self.bytes[idx] == needle {
-                return Some(idx);
-            }
-            if idx == 0 {
-                return None;
-            }
-            idx -= 1;
-        }
+        in_slice::seek_backward(self.bytes, from, needle)
     }
 
     #[inline]
     fn seek_non_whitespace_forward(&self, from: usize) -> Option<(usize, u8)> {
-        let mut idx = from;
-
-        loop {
-            let b = self.bytes[idx];
-            if !b.is_ascii_whitespace() {
-                return Some((idx, b));
-            }
-            idx += 1;
-            if idx == self.bytes.len() {
-                return None;
-            }
-        }
+        in_slice::seek_non_whitespace_forward(self.bytes, from)
     }
 
     #[inline]
     fn seek_non_whitespace_backward(&self, from: usize) -> Option<(usize, u8)> {
-        let mut idx = from;
-
-        loop {
-            let b = self.bytes[idx];
-            if !b.is_ascii_whitespace() {
-                return Some((idx, b));
-            }
-            if idx == 0 {
-                return None;
-            }
-            idx -= 1;
-        }
+        in_slice::seek_non_whitespace_backward(self.bytes, from)
     }
 
     #[inline]
     #[cfg(feature = "head-skip")]
     fn find_label(&self, from: usize, label: &Label) -> Option<usize> {
-        use memchr::memmem;
-
-        let finder = memmem::Finder::new(label.bytes_with_quotes());
-        let mut idx = from;
-
-        loop {
-            match finder.find(&self.bytes[idx..]) {
-                Some(offset) => {
-                    let starting_quote_idx = offset + idx;
-                    if self.bytes[starting_quote_idx - 1] != b'\\' {
-                        return Some(starting_quote_idx);
-                    } else {
-                        idx = starting_quote_idx + label.bytes_with_quotes().len() + 1;
-                    }
-                }
-                None => return None,
-            }
-        }
+        in_slice::find_label(self.bytes, from, label)
     }
 
     #[inline]
     fn is_label_match(&self, from: usize, to: usize, label: &Label) -> bool {
-        let slice = &self.bytes[from..to];
-        label.bytes_with_quotes() == slice && (from == 0 || self.bytes[from - 1] != b'\\')
+        in_slice::is_label_match(self.bytes, from, to, label)
     }
 }
 
