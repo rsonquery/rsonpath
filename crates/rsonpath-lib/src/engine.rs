@@ -11,18 +11,12 @@ pub mod main;
 pub mod recursive;
 #[cfg(feature = "tail-skip")]
 mod tail_skipping;
-
 pub use main::MainEngine as RsonpathEngine;
 
 use self::error::EngineError;
 use crate::input::Input;
-use crate::query::automaton::Automaton;
-use crate::query::NonNegativeArrayIndex;
-use crate::query::{error::CompilerError, JsonPathQuery};
+use crate::query::{automaton::Automaton, error::CompilerError, JsonPathQuery};
 use crate::result::QueryResult;
-
-/// A constant index for the common and starting case of the first item.
-pub const FIRST_ITEM_INDEX: NonNegativeArrayIndex = NonNegativeArrayIndex::new(0);
 
 /// Trait for an engine that can run its query on a given input.
 pub trait Engine {

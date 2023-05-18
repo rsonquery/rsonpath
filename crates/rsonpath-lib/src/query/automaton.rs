@@ -7,7 +7,7 @@ mod state;
 pub use state::{State, StateAttributes};
 
 use super::{error::CompilerError, JsonPathQuery, Label, NonNegativeArrayIndex};
-use crate::{debug, engine::FIRST_ITEM_INDEX};
+use crate::debug;
 use nfa::NondeterministicAutomaton;
 use smallvec::SmallVec;
 use std::{fmt::Display, ops::Index};
@@ -303,7 +303,7 @@ impl<'q> Automaton<'q> {
     #[must_use]
     #[inline(always)]
     pub fn has_first_array_index_transition_to_accepting(&self, state: State) -> bool {
-        self.has_array_index_transition_to_accepting(state, &FIRST_ITEM_INDEX)
+        self.has_array_index_transition_to_accepting(state, &NonNegativeArrayIndex::ZERO)
     }
 
     /// Returns whether the given state is accepting the item at a given index in a list.

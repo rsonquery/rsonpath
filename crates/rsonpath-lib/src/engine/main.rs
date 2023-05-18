@@ -9,7 +9,7 @@
 //! even on targets that do not support AVX2 SIMD operations.
 #[cfg(feature = "head-skip")]
 use super::head_skipping::{CanHeadSkip, HeadSkip};
-use super::{Compiler, FIRST_ITEM_INDEX};
+use super::Compiler;
 #[cfg(feature = "head-skip")]
 use crate::classification::ResumeClassifierState;
 use crate::debug;
@@ -120,7 +120,7 @@ fn query_executor<'q, 'b, I: Input>(
         bytes,
         next_event: None,
         is_list: false,
-        array_count: FIRST_ITEM_INDEX,
+        array_count: NonNegativeArrayIndex::ZERO,
     }
 }
 
@@ -356,7 +356,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
 
             if searching_list {
                 classifier.turn_commas_on(idx);
-                self.array_count = FIRST_ITEM_INDEX;
+                self.array_count = NonNegativeArrayIndex::ZERO;
                 debug!("Initialized array count to {}", self.array_count);
 
                 let wants_first_item = is_fallback_accepting

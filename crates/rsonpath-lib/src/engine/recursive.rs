@@ -13,11 +13,11 @@ use crate::debug;
 use crate::engine::error::EngineError;
 #[cfg(feature = "tail-skip")]
 use crate::engine::tail_skipping::TailSkip;
-use crate::engine::FIRST_ITEM_INDEX;
 use crate::engine::{Compiler, Engine};
 #[cfg(feature = "head-skip")]
 use crate::error::InternalRsonpathError;
 use crate::input::Input;
+use crate::query::NonNegativeArrayIndex;
 use crate::query::automaton::{Automaton, State, TransitionLabel};
 use crate::query::error::ArrayIndexError;
 use crate::query::error::CompilerError;
@@ -185,7 +185,7 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
         let needs_commas = is_list && (is_fallback_accepting || searching_list);
         let needs_colons = !is_list && self.automaton.has_transition_to_accepting(state);
 
-        let mut array_count = FIRST_ITEM_INDEX;
+        let mut array_count = NonNegativeArrayIndex::ZERO;
 
         let config_characters = |classifier: &mut Classifier!(), idx: usize| {
             if needs_commas {
@@ -205,7 +205,7 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
 
         // When a list contains only one item, this block ensures that the list item is reported if appropriate without entering the loop below.
         let wants_first_item = self.automaton[state].transitions().iter().any(|t| match t {
-            (TransitionLabel::ArrayIndex(i), s) if i.eq(&FIRST_ITEM_INDEX) => {
+            (TransitionLabel::ArrayIndex(i), s) if i.eq(&NonNegativeArrayIndex::ZERO) => {
                 self.automaton.is_accepting(*s)
             }
             _ => false,

@@ -34,6 +34,9 @@ impl TryFrom<u64> for NonNegativeArrayIndex {
 }
 
 impl NonNegativeArrayIndex {
+    /// A constant index for the common and starting case of the first item.
+    pub const ZERO: NonNegativeArrayIndex = NonNegativeArrayIndex::new(0);
+
     /// Create a new search index from a u64.
     #[must_use]
     #[inline]
