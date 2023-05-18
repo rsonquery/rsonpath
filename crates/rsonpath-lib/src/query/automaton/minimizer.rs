@@ -257,7 +257,7 @@ impl<'q> Minimizer<'q> {
                 | NfaState::Recursive(nfa::Transition::Labelled(label)) => {
                     debug!(
                         "Considering transition {nfa_state} --{}-> {}",
-                        label.display(),
+                        label,
                         nfa_state.next()?,
                     );
                     // Add the target NFA state to the target superstate, or create a singleton

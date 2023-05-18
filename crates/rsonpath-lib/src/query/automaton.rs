@@ -10,7 +10,7 @@ use super::{error::CompilerError, JsonPathQuery, Label, NonNegativeArrayIndex};
 use crate::debug;
 use nfa::NondeterministicAutomaton;
 use smallvec::SmallVec;
-use std::{fmt::Display, ops::Index};
+use std::{fmt::Display, ops::Index, borrow::Borrow};
 
 /// A minimal, deterministic automaton representing a JSONPath query.
 #[derive(Debug, PartialEq, Eq)]
@@ -28,18 +28,6 @@ pub enum TransitionLabel<'q> {
 }
 
 impl<'q> TransitionLabel<'q> {
-    /// Return a display object with a UTF8 representation of this label.
-    #[must_use]
-    #[inline(always)]
-    pub fn display(&self) -> impl Display + 'q {
-        match self {
-            // This isn't just calling label.display() because the compile makes opaque types unique at the declaration site.
-            // So, the one for display() that is defined above would not equate to Label's def.
-            TransitionLabel::ObjectMember(label) => format!("{}", label.display()),
-            TransitionLabel::ArrayIndex(index) => format!("{index}"),
-        }
-    }
-
     ///Return the textual [`Label`] being wrapped if so.  Returns [`None`] otherwise.
     #[must_use]
     #[inline(always)]
@@ -83,13 +71,28 @@ impl<'q> From<&'q Label> for TransitionLabel<'q> {
     }
 }
 
-impl From<&NonNegativeArrayIndex> for TransitionLabel<'_> {
-    #[must_use]
+impl Display for TransitionLabel<'_> {
     #[inline(always)]
-    fn from(label: &NonNegativeArrayIndex) -> Self {
-        TransitionLabel::new_array_index(*label)
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TransitionLabel::ObjectMember(label) => write!(f, "{}", label.display()),
+            TransitionLabel::ArrayIndex(index) => write!(f, "{}", index.get_index()),
+        }
     }
 }
+
+impl<'q> Borrow<TransitionLabel<'q>> for NonNegativeArrayIndex {
+    fn borrow(&self) -> &TransitionLabel<'q> {
+        &TransitionLabel::ArrayIndex(*self)
+    }
+}
+// impl From<&NonNegativeArrayIndex> for TransitionLabel<'_> {
+//     #[must_use]
+//     #[inline(always)]
+//     fn from(label: &NonNegativeArrayIndex) -> Self {
+//         TransitionLabel::new_array_index(*label)
+//     }
+// }
 
 impl From<NonNegativeArrayIndex> for TransitionLabel<'_> {
     #[must_use]
@@ -457,7 +460,7 @@ impl<'q> Display for Automaton<'q> {
 
         for (i, transitions) in self.states.iter().enumerate() {
             for (label, state) in transitions.transitions.iter() {
-                writeln!(f, "  {i} -> {} [label=\"{}\"]", state.0, label.display(),)?
+                writeln!(f, "  {i} -> {} [label=\"{}\"]", state.0, label,)?
             }
             writeln!(f, "  {i} -> {} [label=\"*\"]", transitions.fallback_state.0)?;
         }

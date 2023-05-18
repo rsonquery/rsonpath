@@ -77,10 +77,10 @@ impl<'q> NondeterministicAutomaton<'q> {
                 JsonPathQueryNode::AnyChild(_) => Some(Ok(Direct(Transition::Wildcard))),
                 JsonPathQueryNode::AnyDescendant(_) => Some(Ok(Recursive(Transition::Wildcard))),
                 JsonPathQueryNode::ArrayIndexChild(index, _) => {
-                    Some(Ok(Direct(Transition::Labelled(index.into()))))
+                    Some(Ok(Direct(Transition::Labelled((*index).into()))))
                 }
                 JsonPathQueryNode::ArrayIndexDescendant(index, _) => {
-                    Some(Ok(Recursive(Transition::Labelled(index.into()))))
+                    Some(Ok(Recursive(Transition::Labelled((*index).into()))))
                 }
             })
             .collect();
@@ -135,24 +135,24 @@ impl<'q> Display for NondeterministicAutomaton<'q> {
         for (i, state) in self.ordered_states.iter().enumerate() {
             match state {
                 Direct(Transition::Labelled(label)) => {
-                    writeln!(f, "s{i}.{} -> s{};", label.display(), i + 1)?;
+                    writeln!(f, "s{i}.{} -> s{};", label, i + 1)?;
                 }
                 Direct(Transition::Wildcard) => {
                     for label in &all_labels {
-                        writeln!(f, "s{i}.{} -> s{};", label.display(), i + 1)?;
+                        writeln!(f, "s{i}.{} -> s{};", label, i + 1)?;
                     }
                     writeln!(f, "s{i}.X -> s{};", i + 1)?;
                 }
                 Recursive(Transition::Labelled(label)) => {
-                    writeln!(f, "s{i}.{} -> s{i}, s{};", label.display(), i + 1)?;
+                    writeln!(f, "s{i}.{} -> s{i}, s{};", label, i + 1)?;
                     for label in all_labels.iter().filter(|&l| l != label) {
-                        writeln!(f, "s{i}.{} -> s{i};", label.display())?;
+                        writeln!(f, "s{i}.{} -> s{i};", label)?;
                     }
                     writeln!(f, "s{i}.X -> s{i};")?;
                 }
                 Recursive(Transition::Wildcard) => {
                     for label in &all_labels {
-                        writeln!(f, "s{i}.{} -> s{i}, s{};", label.display(), i + 1)?;
+                        writeln!(f, "s{i}.{} -> s{i}, s{};", label, i + 1)?;
                     }
                     writeln!(f, "s{i}.X -> s{i}, s{};", i + 1)?;
                 }

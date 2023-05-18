@@ -36,23 +36,10 @@ pub mod error;
 mod label;
 mod nonnegative_array_index;
 mod parser;
-use aligners::alignment;
 pub use label::Label;
-pub use nonnegative_array_index::NonNegativeArrayIndex;
-
 use log::*;
+pub use nonnegative_array_index::NonNegativeArrayIndex;
 use std::fmt::{self, Display};
-
-cfg_if::cfg_if! {
-    if #[cfg(feature = "simd")] {
-        /// Label byte alignment for SIMD.
-        pub type LabelAlignment = alignment::SimdBlock;
-    }
-    else {
-        /// Label byte alignment for `simd` feature disabled.
-        pub type LabelAlignment = alignment::One;
-    }
-}
 
 /// Linked list structure of a JSONPath query.
 #[derive(Debug, PartialEq, Eq)]
