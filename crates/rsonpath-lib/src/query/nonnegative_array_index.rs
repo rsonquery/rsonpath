@@ -18,7 +18,7 @@ use std::fmt::{self, Display, Formatter};
 pub struct NonNegativeArrayIndex(u64);
 
 /// The upper inclusive bound on index values.
-pub(crate) const ARRAY_INDEX_ULIMIT: u64 = (1 << 53) - 1;
+const ARRAY_INDEX_ULIMIT: u64 = (1 << 53) - 1;
 
 impl TryFrom<u64> for NonNegativeArrayIndex {
     type Error = ArrayIndexError;
@@ -36,6 +36,7 @@ impl TryFrom<u64> for NonNegativeArrayIndex {
 impl NonNegativeArrayIndex {
     /// A constant index for the common and starting case of the first item.
     pub const ZERO: NonNegativeArrayIndex = NonNegativeArrayIndex::new(0);
+    pub const MAX: NonNegativeArrayIndex = NonNegativeArrayIndex::new(ARRAY_INDEX_ULIMIT);
 
     /// Create a new search index from a u64.
     #[must_use]
@@ -63,7 +64,7 @@ impl NonNegativeArrayIndex {
     /// Return the index stored.
     #[must_use]
     #[inline]
-    pub fn get_index(&self) -> u64 {
+    pub const fn get_index(&self) -> u64 {
         self.0
     }
 

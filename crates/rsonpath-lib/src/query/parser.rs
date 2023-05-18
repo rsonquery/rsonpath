@@ -1,5 +1,4 @@
 use super::error::{ArrayIndexError, ParseErrorReport, ParserError};
-use super::nonnegative_array_index::ARRAY_INDEX_ULIMIT;
 use crate::debug;
 use crate::query::{
     JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label, NonNegativeArrayIndex,
@@ -262,7 +261,7 @@ fn parsed_array_index<'a>() -> impl Parser<'a, u64> {
     map_res(length_limited_array_index(), str::parse)
 }
 
-const ARRAY_INDEX_ULIMIT_BASE_10_DIGIT_COUNT: usize = ARRAY_INDEX_ULIMIT.ilog10() as usize;
+const ARRAY_INDEX_ULIMIT_BASE_10_DIGIT_COUNT: usize = NonNegativeArrayIndex::MAX.get_index().ilog10() as usize;
 fn length_limited_array_index<'a>() -> impl Parser<'a, &'a str> {
     map_res(digit1, |cs: &str| {
         if cs.len() > (ARRAY_INDEX_ULIMIT_BASE_10_DIGIT_COUNT + 1) {
