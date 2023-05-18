@@ -10,7 +10,7 @@ use super::{error::CompilerError, JsonPathQuery, Label, NonNegativeArrayIndex};
 use crate::debug;
 use nfa::NondeterministicAutomaton;
 use smallvec::SmallVec;
-use std::{fmt::Display, ops::Index, borrow::Borrow};
+use std::{fmt::Display, ops::Index};
 
 /// A minimal, deterministic automaton representing a JSONPath query.
 #[derive(Debug, PartialEq, Eq)]
