@@ -43,20 +43,20 @@ impl<'q> TransitionLabel<'q> {
     ///Return the textual [`Label`] being wrapped if so.  Returns [`None`] otherwise.
     #[must_use]
     #[inline(always)]
-    pub fn get_label(&self) -> Option<&Label> {
+    pub fn get_label(&self) -> Option<&'q Label> {
         match self {
             TransitionLabel::ObjectMember(l) => Some(l),
             TransitionLabel::ArrayIndex(_) => None,
         }
     }
 
-    /// Consumes the [`TransitionLabel`] and gives the wrapped [`Label`], if so.  Returns [`None`] otherwise.
+    ///Return the textual [`Label`] being wrapped if so.  Returns [`None`] otherwise.
     #[must_use]
     #[inline(always)]
-    pub fn get_label_owned(self) -> Option<&'q Label> {
+    pub fn get_array_index(&'q self) -> Option<&'q NonNegativeArrayIndex> {
         match self {
-            TransitionLabel::ObjectMember(l) => Some(l),
-            TransitionLabel::ArrayIndex(_) => None,
+            TransitionLabel::ArrayIndex(l) => Some(l),
+            TransitionLabel::ObjectMember(_) => None,
         }
     }
 
