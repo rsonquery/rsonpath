@@ -81,11 +81,11 @@ impl Display for TransitionLabel<'_> {
     }
 }
 
-impl<'q> Borrow<TransitionLabel<'q>> for NonNegativeArrayIndex {
-    fn borrow(&self) -> &TransitionLabel<'q> {
-        &TransitionLabel::ArrayIndex(*self)
-    }
-}
+// impl<'q> Borrow<TransitionLabel<'q>> for NonNegativeArrayIndex {
+//     fn borrow(&self) -> &TransitionLabel<'q> {
+//         &TransitionLabel::ArrayIndex(*self)
+//     }
+// }
 // impl From<&NonNegativeArrayIndex> for TransitionLabel<'_> {
 //     #[must_use]
 //     #[inline(always)]
