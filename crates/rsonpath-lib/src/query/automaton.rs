@@ -21,9 +21,9 @@ pub struct Automaton<'q> {
 /// Represent the distinct methods of moving on a match between states.
 #[derive(Debug, Copy, PartialEq, Clone, Eq)]
 pub enum TransitionLabel<'q> {
-    /// Wraps a textual field [`Label`] in a JSON object.
+    /// Transition when a JSON member name matches a [`Label`]i.
     ObjectMember(&'q Label),
-    /// Wraps an array index [`NonNegativeArrayIndex`] in a JSON object.
+    /// Transition on the n-th element of an array, with n specified by a [`NonNegativeArrayIndex`].
     ArrayIndex(NonNegativeArrayIndex),
 }
 
