@@ -35,8 +35,9 @@ impl TryFrom<u64> for NonNegativeArrayIndex {
 
 impl NonNegativeArrayIndex {
     /// A constant index for the common and starting case of the first item.
-    pub const ZERO: NonNegativeArrayIndex = NonNegativeArrayIndex::new(0);
-    pub const MAX: NonNegativeArrayIndex = NonNegativeArrayIndex::new(ARRAY_INDEX_ULIMIT);
+    pub const ZERO: Self = Self::new(0);
+    /// A constant index for the largest addressable index.
+    pub const MAX: Self = Self::new(ARRAY_INDEX_ULIMIT);
 
     /// Create a new search index from a u64.
     #[must_use]
@@ -66,13 +67,6 @@ impl NonNegativeArrayIndex {
     #[inline]
     pub const fn get_index(&self) -> u64 {
         self.0
-    }
-
-    /// Return a display object with a UTF8 representation of this index.
-    #[must_use]
-    #[inline(always)]
-    pub fn display(&self) -> impl Display + '_ {
-        self
     }
 }
 

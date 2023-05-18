@@ -17,11 +17,9 @@ use crate::engine::{Compiler, Engine};
 #[cfg(feature = "head-skip")]
 use crate::error::InternalRsonpathError;
 use crate::input::Input;
-use crate::query::NonNegativeArrayIndex;
 use crate::query::automaton::{Automaton, State, TransitionLabel};
-use crate::query::error::ArrayIndexError;
-use crate::query::error::CompilerError;
-use crate::query::{JsonPathQuery, Label};
+use crate::query::error::{ArrayIndexError, CompilerError};
+use crate::query::{JsonPathQuery, Label, NonNegativeArrayIndex};
 use crate::result::QueryResult;
 use crate::BLOCK_SIZE;
 

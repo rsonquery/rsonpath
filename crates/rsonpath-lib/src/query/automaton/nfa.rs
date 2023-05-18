@@ -1,6 +1,7 @@
 //! Definition of a nondeterministic automaton that can be directly
 //! obtained from a JsonPath query. This is then turned into
 //! a DFA with the minimizer.
+use super::TransitionLabel;
 use crate::query::{error::CompilerError, JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType};
 use std::{fmt::Display, ops::Index};
 
@@ -24,8 +25,6 @@ pub(super) enum NfaState<'q> {
     Accepting,
 }
 use NfaState::*;
-
-use super::TransitionLabel;
 
 /// A transition in the NFA mapped from a [`JsonPathQuery`] selector.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
