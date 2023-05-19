@@ -37,8 +37,9 @@ mod label;
 mod nonnegative_array_index;
 mod parser;
 pub use label::Label;
-use log::*;
 pub use nonnegative_array_index::NonNegativeArrayIndex;
+
+use log::*;
 use std::fmt::{self, Display};
 
 /// Linked list structure of a JSONPath query.
