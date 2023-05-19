@@ -10,7 +10,7 @@ use super::{error::CompilerError, JsonPathQuery, Label, NonNegativeArrayIndex};
 use crate::debug;
 use nfa::NondeterministicAutomaton;
 use smallvec::SmallVec;
-use std::{fmt::Display, ops::Index};
+use std::{borrow::Borrow, fmt::Display, ops::Index};
 
 /// A minimal, deterministic automaton representing a JSONPath query.
 #[derive(Debug, PartialEq, Eq)]
@@ -81,24 +81,11 @@ impl Display for TransitionLabel<'_> {
     }
 }
 
-// impl<'q> Borrow<TransitionLabel<'q>> for NonNegativeArrayIndex {
-//     fn borrow(&self) -> &TransitionLabel<'q> {
-//         &TransitionLabel::ArrayIndex(*self)
-//     }
-// }
-// impl From<&NonNegativeArrayIndex> for TransitionLabel<'_> {
-//     #[must_use]
-//     #[inline(always)]
-//     fn from(label: &NonNegativeArrayIndex) -> Self {
-//         TransitionLabel::new_array_index(*label)
-//     }
-// }
-
-impl From<NonNegativeArrayIndex> for TransitionLabel<'_> {
+impl<T: Borrow<NonNegativeArrayIndex>> From<T> for TransitionLabel<'_> {
     #[must_use]
     #[inline(always)]
-    fn from(label: NonNegativeArrayIndex) -> Self {
-        TransitionLabel::new_array_index(label)
+    fn from(label: T) -> Self {
+        TransitionLabel::new_array_index(*label.borrow())
     }
 }
 
