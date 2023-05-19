@@ -250,13 +250,6 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
         R: QueryResult,
     {
         self.next_event = classifier.next();
-        if self.is_list {
-            if self.array_count.try_increment().is_err() {
-                // We can't possibly match these items, but it's not necessarily an error either.
-                return Ok(());
-            }
-            debug!("Incremented array count to {}", self.array_count);
-        }
 
         let is_next_opening = self.next_event.map_or(false, |s| s.is_opening());
 
@@ -268,6 +261,13 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
             debug!("Accepting on comma.");
             result.report(idx);
         }
+
+        // After wildcard, check for a matching array index.
+        // If the index increment exceeds the field's limit, give up.
+        if self.is_list && self.array_count.try_increment().is_err() {
+            return Ok(());
+        }
+        debug!("Incremented array count to {}", self.array_count);
 
         let match_index = self
             .automaton
