@@ -106,6 +106,8 @@ struct Executor<'q, 'b, I: Input> {
     next_event: Option<Structural>,
     is_list: bool,
     array_count: NonNegativeArrayIndex,
+    has_any_array_item_transition: bool,
+    has_any_array_item_transition_to_accepting: bool,
 }
 
 fn query_executor<'q, 'b, I: Input>(
@@ -121,6 +123,8 @@ fn query_executor<'q, 'b, I: Input>(
         next_event: None,
         is_list: false,
         array_count: NonNegativeArrayIndex::ZERO,
+        has_any_array_item_transition: false,
+        has_any_array_item_transition_to_accepting: false,
     }
 }
 
@@ -347,12 +351,16 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
 
         if bracket_type == BracketType::Square {
             self.is_list = true;
+            self.has_any_array_item_transition =
+                self.automaton.has_any_array_item_transition(self.state);
+            self.has_any_array_item_transition_to_accepting = self
+                .automaton
+                .has_any_array_item_transition_to_accepting(self.state);
 
             let fallback = self.automaton[self.state].fallback_state();
             let is_fallback_accepting = self.automaton.is_accepting(fallback);
 
-            let searching_list =
-                is_fallback_accepting || self.automaton.has_any_array_item_transition(self.state);
+            let searching_list = is_fallback_accepting || self.has_any_array_item_transition;
 
             if searching_list {
                 classifier.turn_commas_on(idx);
@@ -424,6 +432,10 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
                 self.state = stack_frame.state;
                 self.is_list = stack_frame.is_list;
                 self.array_count = stack_frame.array_count;
+                self.has_any_array_item_transition = stack_frame.has_any_array_item_transition;
+                self.has_any_array_item_transition_to_accepting =
+                    stack_frame.has_any_array_item_transition_to_accepting;
+
                 debug!("Restored array count to {}", self.array_count);
 
                 if self.automaton.is_unitary(self.state) {
@@ -446,6 +458,10 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
                 self.state = stack_frame.state;
                 self.is_list = stack_frame.is_list;
                 self.array_count = stack_frame.array_count;
+                self.has_any_array_item_transition = stack_frame.has_any_array_item_transition;
+                self.has_any_array_item_transition_to_accepting =
+                    stack_frame.has_any_array_item_transition_to_accepting;
+
                 debug!("Restored array count to {}", self.array_count);
             }
         }
@@ -454,7 +470,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
             && (self
                 .automaton
                 .is_accepting(self.automaton[self.state].fallback_state())
-                || self.automaton.has_any_array_item_transition(self.state))
+                || self.has_any_array_item_transition)
         {
             classifier.turn_commas_on(idx);
         } else {
@@ -475,8 +491,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
 
         let fallback = self.automaton[self.state].fallback_state();
         let is_fallback_accepting = self.automaton.is_accepting(fallback);
-        let searching_list =
-            is_fallback_accepting || self.automaton.has_any_array_item_transition(self.state);
+        let searching_list = is_fallback_accepting || self.has_any_array_item_transition;
 
         if target != self.state || target_is_list != self.is_list || searching_list {
             debug!(
@@ -489,6 +504,9 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
                 state: self.state,
                 is_list: self.is_list,
                 array_count: self.array_count,
+                has_any_array_item_transition: self.has_any_array_item_transition,
+                has_any_array_item_transition_to_accepting: self
+                    .has_any_array_item_transition_to_accepting,
             });
             self.state = target;
         }
@@ -546,6 +564,8 @@ struct StackFrame {
     state: State,
     is_list: bool,
     array_count: NonNegativeArrayIndex,
+    has_any_array_item_transition: bool,
+    has_any_array_item_transition_to_accepting: bool,
 }
 
 #[derive(Debug)]
