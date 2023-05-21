@@ -609,7 +609,6 @@ mod tests {
         // Query = $..a.*
         let label = Label::new("a");
         let label = (&label).into();
-        "a";
 
         let nfa = NondeterministicAutomaton {
             ordered_states: vec![
