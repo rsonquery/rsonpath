@@ -33,13 +33,12 @@
 //!     _ => unreachable!(),
 //! }
 //! ```
+use super::NonNegativeArrayIndex;
 use std::{
     fmt::{self, Display},
     num::TryFromIntError,
 };
 use thiserror::Error;
-
-use super::ARRAY_INDEX_ULIMIT;
 
 /// Errors raised by the query parser.
 #[derive(Debug, Error)]
@@ -75,7 +74,7 @@ pub enum ArrayIndexError {
     /// A value in excess of the permitted size was specified.
     #[error(
         "Array index {0} exceeds maximum specification value of {}.",
-        ARRAY_INDEX_ULIMIT
+        NonNegativeArrayIndex::MAX
     )]
     ExceedsUpperLimitError(String),
 

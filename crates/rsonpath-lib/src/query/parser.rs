@@ -1,5 +1,4 @@
 use super::error::{ArrayIndexError, ParseErrorReport, ParserError};
-use super::ARRAY_INDEX_ULIMIT;
 use crate::debug;
 use crate::query::{
     JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label, NonNegativeArrayIndex,
@@ -14,9 +13,10 @@ use std::fmt::{self, Display};
 enum Token<'a> {
     Root,
     Child(LabelString<'a>),
-    ArrayIndex(NonNegativeArrayIndex),
+    ArrayIndexChild(NonNegativeArrayIndex),
     WildcardChild(),
     Descendant(LabelString<'a>),
+    ArrayIndexDescendant(NonNegativeArrayIndex),
     WildcardDescendant(),
 }
 
@@ -31,10 +31,11 @@ impl Display for Token<'_> {
         match self {
             Token::Root => write!(f, "$"),
             Token::Child(label) => write!(f, "['{label}']"),
-            Token::ArrayIndex(i) => write!(f, "[{i}]"),
+            Token::ArrayIndexChild(i) => write!(f, "[{i}]"),
             Token::WildcardChild() => write!(f, "[*]"),
             Token::Descendant(label) => write!(f, "..['{label}']"),
             Token::WildcardDescendant() => write!(f, "..[*]"),
+            Token::ArrayIndexDescendant(i) => write!(f, "..[{i}]"),
         }
     }
 }
@@ -127,12 +128,17 @@ fn tokens_to_node<'a, I: Iterator<Item = Token<'a>>>(
                     Label::new(label.borrow()),
                     child_node,
                 ))),
-                Token::ArrayIndex(i) => Ok(Some(JsonPathQueryNode::ArrayIndex(i, child_node))),
+                Token::ArrayIndexChild(i) => {
+                    Ok(Some(JsonPathQueryNode::ArrayIndexChild(i, child_node)))
+                }
                 Token::WildcardChild() => Ok(Some(JsonPathQueryNode::AnyChild(child_node))),
                 Token::Descendant(label) => Ok(Some(JsonPathQueryNode::Descendant(
                     Label::new(label.borrow()),
                     child_node,
                 ))),
+                Token::ArrayIndexDescendant(i) => {
+                    Ok(Some(JsonPathQueryNode::ArrayIndexDescendant(i, child_node)))
+                }
                 Token::WildcardDescendant() => {
                     Ok(Some(JsonPathQueryNode::AnyDescendant(child_node)))
                 }
@@ -194,9 +200,12 @@ fn dot_wildcard_selector<'a>() -> impl Parser<'a, char> {
 }
 
 fn descendant_selector<'a>() -> impl Parser<'a, Token<'a>> {
-    map(
-        preceded(tag(".."), alt((label(), index_selector()))),
-        Token::Descendant,
+    preceded(
+        tag(".."),
+        alt((
+            map(alt((label(), index_selector())), Token::Descendant),
+            array_index_descendant_selector(),
+        )),
     )
 }
 
@@ -233,7 +242,11 @@ fn label_character<'a>() -> impl Parser<'a, char> {
 }
 
 fn array_index_child_selector<'a>() -> impl Parser<'a, Token<'a>> {
-    map(array_index_selector(), Token::ArrayIndex)
+    map(array_index_selector(), Token::ArrayIndexChild)
+}
+
+fn array_index_descendant_selector<'a>() -> impl Parser<'a, Token<'a>> {
+    map(array_index_selector(), Token::ArrayIndexDescendant)
 }
 
 fn array_index_selector<'a>() -> impl Parser<'a, NonNegativeArrayIndex> {
@@ -248,7 +261,8 @@ fn parsed_array_index<'a>() -> impl Parser<'a, u64> {
     map_res(length_limited_array_index(), str::parse)
 }
 
-const ARRAY_INDEX_ULIMIT_BASE_10_DIGIT_COUNT: usize = ARRAY_INDEX_ULIMIT.ilog10() as usize;
+const ARRAY_INDEX_ULIMIT_BASE_10_DIGIT_COUNT: usize =
+    NonNegativeArrayIndex::MAX.get_index().ilog10() as usize;
 fn length_limited_array_index<'a>() -> impl Parser<'a, &'a str> {
     map_res(digit1, |cs: &str| {
         if cs.len() > (ARRAY_INDEX_ULIMIT_BASE_10_DIGIT_COUNT + 1) {

@@ -34,44 +34,13 @@ pub mod automaton;
 pub mod builder;
 pub mod error;
 mod label;
+mod nonnegative_array_index;
 mod parser;
 pub use label::Label;
+pub use nonnegative_array_index::NonNegativeArrayIndex;
 
 use log::*;
 use std::fmt::{self, Display};
-
-/// Provides the [IETF-conforming index value](https://www.rfc-editor.org/rfc/rfc7493.html#section-2).  Values are \[0, (2^53)-1].
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub struct NonNegativeArrayIndex(u64);
-
-/// The upper inclusive bound on index values.
-pub const ARRAY_INDEX_ULIMIT: u64 = (1 << 53) - 1;
-impl TryFrom<u64> for NonNegativeArrayIndex {
-    type Error = ArrayIndexError;
-
-    #[inline]
-    fn try_from(value: u64) -> Result<Self, ArrayIndexError> {
-        if value > ARRAY_INDEX_ULIMIT {
-            Err(ArrayIndexError::ExceedsUpperLimitError(value.to_string()))
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-
-impl From<NonNegativeArrayIndex> for u64 {
-    #[inline(always)]
-    fn from(val: NonNegativeArrayIndex) -> Self {
-        val.0
-    }
-}
-
-impl Display for NonNegativeArrayIndex {
-    #[inline]
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{index}", index = self.0)
-    }
-}
 
 /// Linked list structure of a JSONPath query.
 #[derive(Debug, PartialEq, Eq)]
@@ -87,12 +56,14 @@ pub enum JsonPathQueryNode {
     /// Represents recursive descendant with a wildcard ('`..*`' tokens).
     AnyDescendant(Option<Box<JsonPathQueryNode>>),
     /// Represents direct descendant list item with a positive index (numbers).
-    ArrayIndex(NonNegativeArrayIndex, Option<Box<JsonPathQueryNode>>),
+    ArrayIndexChild(NonNegativeArrayIndex, Option<Box<JsonPathQueryNode>>),
+    /// Represents recursive descendant with an array index ('`..[n]`' tokens).
+    ArrayIndexDescendant(NonNegativeArrayIndex, Option<Box<JsonPathQueryNode>>),
 }
 
 use JsonPathQueryNode::*;
 
-use self::error::{ArrayIndexError, ParserError};
+use self::error::ParserError;
 
 impl JsonPathQueryNode {
     /// Retrieve the child of the node or `None` if it is the last one
@@ -106,7 +77,8 @@ impl JsonPathQueryNode {
             | AnyChild(node)
             | Descendant(_, node)
             | AnyDescendant(node)
-            | ArrayIndex(_, node) => node.as_deref(),
+            | ArrayIndexChild(_, node)
+            | ArrayIndexDescendant(_, node) => node.as_deref(),
         }
     }
 
@@ -203,7 +175,8 @@ impl Display for JsonPathQueryNode {
             AnyChild(_) => write!(f, "[*]"),
             Descendant(label, _) => write!(f, "..['{}']", label.display()),
             AnyDescendant(_) => write!(f, "..[*]"),
-            ArrayIndex(i, _) => write!(f, "[{i}]"),
+            ArrayIndexChild(i, _) => write!(f, "[{i}]"),
+            ArrayIndexDescendant(i, _) => write!(f, "..[{i}]"),
         }?;
 
         if let Some(child) = self.child() {
@@ -236,7 +209,7 @@ pub trait JsonPathQueryNodeType {
     /// returns the label it represents; otherwise, `None`.
     fn label(&self) -> Option<&Label>;
 
-    /// If the type is [`JsonPathQueryNode::ArrayIndex`]
+    /// If the type is [`JsonPathQueryNode::ArrayIndexDescendant`] or [`JsonPathQueryNode::ArrayIndexChild`]
     /// returns the index it represents; otherwise, `None`.
     fn array_index(&self) -> Option<&NonNegativeArrayIndex>;
 }
@@ -271,14 +244,18 @@ impl JsonPathQueryNodeType for JsonPathQueryNode {
     fn label(&self) -> Option<&Label> {
         match self {
             Child(label, _) | Descendant(label, _) => Some(label),
-            Root(_) | AnyChild(_) | AnyDescendant(_) | ArrayIndex(_, _) => None,
+            Root(_)
+            | AnyChild(_)
+            | AnyDescendant(_)
+            | ArrayIndexChild(_, _)
+            | ArrayIndexDescendant(_, _) => None,
         }
     }
 
     #[inline(always)]
     fn array_index(&self) -> Option<&NonNegativeArrayIndex> {
         match self {
-            ArrayIndex(i, _) => Some(i),
+            ArrayIndexChild(i, _) | ArrayIndexDescendant(i, _) => Some(i),
             Child(_, _) | Descendant(_, _) | Root(_) | AnyChild(_) | AnyDescendant(_) => None,
         }
     }
@@ -322,61 +299,5 @@ impl<T: std::ops::Deref<Target = JsonPathQueryNode>> JsonPathQueryNodeType for O
     #[inline(always)]
     fn array_index(&self) -> Option<&NonNegativeArrayIndex> {
         self.as_ref().and_then(|x| x.array_index())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use std::{
-        collections::hash_map::DefaultHasher,
-        hash::{Hash, Hasher},
-    };
-
-    use super::*;
-
-    #[test]
-    fn label_equality() {
-        let label1 = Label::new("dog");
-        let label2 = Label::new("dog");
-
-        assert_eq!(label1, label2);
-    }
-
-    #[test]
-    fn label_inequality() {
-        let label1 = Label::new("dog");
-        let label2 = Label::new("doc");
-
-        assert_ne!(label1, label2);
-    }
-
-    #[test]
-    fn label_hash() {
-        let label1 = Label::new("dog");
-        let label2 = Label::new("dog");
-
-        let mut s1 = DefaultHasher::new();
-        label1.hash(&mut s1);
-        let h1 = s1.finish();
-
-        let mut s2 = DefaultHasher::new();
-        label2.hash(&mut s2);
-        let h2 = s2.finish();
-
-        assert_eq!(h1, h2);
-    }
-
-    #[test]
-    fn index_ulimit_sanity_check() {
-        assert_eq!(9_007_199_254_740_991, ARRAY_INDEX_ULIMIT);
-    }
-
-    #[test]
-    fn index_ulimit_parse_check() {
-        NonNegativeArrayIndex::try_from(ARRAY_INDEX_ULIMIT)
-            .expect("Array index ulimit should be convertible.");
-
-        NonNegativeArrayIndex::try_from(ARRAY_INDEX_ULIMIT + 1)
-            .expect_err("Values in excess of array index ulimit should not be convertible.");
     }
 }

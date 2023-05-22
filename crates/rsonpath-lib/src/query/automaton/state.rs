@@ -1,4 +1,4 @@
-//! Derfinition of [`State`] and DFA-state attributes giving details
+//! Definition of [`State`] and DFA-state attributes giving details
 //! about the state's properties.
 use std::{fmt::Display, ops::BitOr};
 

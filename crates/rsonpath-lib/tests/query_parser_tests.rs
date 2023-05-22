@@ -36,10 +36,22 @@ fn wildcard_child_selector() {
 }
 
 #[test]
+fn descendant_nonnegative_array_indexed_selector() {
+    let input = "$..[5]";
+    let expected_query = JsonPathQueryBuilder::new()
+        .array_index_descendant(5.try_into().unwrap())
+        .into();
+
+    let result = JsonPathQuery::parse(input).expect("expected Ok");
+
+    assert_eq!(result, expected_query);
+}
+
+#[test]
 fn nonnegative_array_indexed_selector() {
     let input = "$[5]";
     let expected_query = JsonPathQueryBuilder::new()
-        .array_index(5.try_into().unwrap())
+        .array_index_child(5.try_into().unwrap())
         .into();
 
     let result = JsonPathQuery::parse(input).expect("expected Ok");
@@ -51,8 +63,8 @@ fn nonnegative_array_indexed_selector() {
 fn multiple_nonnegative_array_indexed_selector() {
     let input = "$[5][2]";
     let expected_query = JsonPathQueryBuilder::new()
-        .array_index(5.try_into().unwrap())
-        .array_index(2.try_into().unwrap())
+        .array_index_child(5.try_into().unwrap())
+        .array_index_child(2.try_into().unwrap())
         .into();
 
     let result = JsonPathQuery::parse(input).expect("expected Ok");
@@ -64,7 +76,7 @@ fn multiple_nonnegative_array_indexed_selector() {
 fn zeroth_array_indexed_selector() {
     let input = "$[0]";
     let expected_query = JsonPathQueryBuilder::new()
-        .array_index(0.try_into().unwrap())
+        .array_index_child(0.try_into().unwrap())
         .into();
 
     let result = JsonPathQuery::parse(input).expect("expected Ok");

@@ -85,13 +85,17 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
 
         if fallback_state == initial_state && transitions.len() == 1 {
             let (label, target_state) = transitions[0];
-            debug!("Automaton starts with a descendant search, using memmem heuristic.");
-            return Some(Self {
-                bytes,
-                state: target_state,
-                is_accepting: automaton.is_accepting(target_state),
-                label,
-            });
+
+            if let Some(named_label) = label.get_label() {
+                debug!("Automaton starts with a descendant search, using memmem heuristic.");
+
+                return Some(Self {
+                    bytes,
+                    state: target_state,
+                    is_accepting: automaton.is_accepting(target_state),
+                    label: named_label,
+                });
+            }
         }
 
         None
