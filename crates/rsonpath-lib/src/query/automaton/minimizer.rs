@@ -447,10 +447,10 @@ mod tests {
     #[test]
     fn interstitial_descendant_wildcard_test() {
         // Query = $..a.b..*.a..b
-        let label_a = Label::new("a");
+        let label_a = JsonString::new("a");
         let label_a = (&label_a).into();
 
-        let label_b = Label::new("b");
+        let label_b = JsonString::new("b");
         let label_b = (&label_b).into();
 
         let nfa = NondeterministicAutomaton {
@@ -511,10 +511,10 @@ mod tests {
     #[test]
     fn interstitial_nondescendant_wildcard_test() {
         // Query = $..a.b.*.a..b
-        let label_a = Label::new("a");
+        let label_a = JsonString::new("a");
         let label_a = (&label_a).into();
 
-        let label_b = Label::new("b");
+        let label_b = JsonString::new("b");
         let label_b = (&label_b).into();
 
         let nfa = NondeterministicAutomaton {
@@ -580,7 +580,7 @@ mod tests {
     #[test]
     fn simple_multi_accepting_test() {
         // Query = $..a.*
-        let label = Label::new("a");
+        let label = JsonString::new("a");
         let label = (&label).into();
 
         let nfa = NondeterministicAutomaton {
@@ -664,7 +664,7 @@ mod tests {
     #[test]
     fn chained_wildcard_children_test() {
         // Query = $.a.*.*.*
-        let label = Label::new("a");
+        let label = JsonString::new("a");
         let label = (&label).into();
 
         let nfa = NondeterministicAutomaton {
@@ -719,7 +719,7 @@ mod tests {
     #[test]
     fn chained_wildcard_children_after_descendant_test() {
         // Query = $..a.*.*
-        let label = Label::new("a");
+        let label = JsonString::new("a");
         let label = (&label).into();
 
         let nfa = NondeterministicAutomaton {
@@ -788,19 +788,19 @@ mod tests {
     #[test]
     fn child_and_descendant_test() {
         // Query = $.x..a.b.a.b.c..d
-        let label_a = Label::new("a");
+        let label_a = JsonString::new("a");
         let label_a = (&label_a).into();
 
-        let label_b = Label::new("b");
+        let label_b = JsonString::new("b");
         let label_b = (&label_b).into();
 
-        let label_c = Label::new("c");
+        let label_c = JsonString::new("c");
         let label_c = (&label_c).into();
 
-        let label_d = Label::new("d");
+        let label_d = JsonString::new("d");
         let label_d = (&label_d).into();
 
-        let label_x = Label::new("x");
+        let label_x = JsonString::new("x");
         let label_x = (&label_x).into();
 
         let nfa = NondeterministicAutomaton {
@@ -873,13 +873,13 @@ mod tests {
     #[test]
     fn child_descendant_and_child_wildcard_test() {
         // Query = $.x.*..a.*.b
-        let label_a = Label::new("a");
+        let label_a = JsonString::new("a");
         let label_a = (&label_a).into();
 
-        let label_b = Label::new("b");
+        let label_b = JsonString::new("b");
         let label_b = (&label_b).into();
 
-        let label_x = Label::new("x");
+        let label_x = JsonString::new("x");
         let label_x = (&label_x).into();
 
         let nfa = NondeterministicAutomaton {

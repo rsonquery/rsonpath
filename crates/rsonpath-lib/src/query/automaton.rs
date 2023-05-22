@@ -6,7 +6,7 @@ mod state;
 
 pub use state::{State, StateAttributes};
 
-use super::{error::CompilerError, JsonPathQuery, Label, NonNegativeArrayIndex};
+use super::{error::CompilerError, JsonPathQuery, JsonString, NonNegativeArrayIndex};
 use crate::debug;
 use nfa::NondeterministicAutomaton;
 use smallvec::SmallVec;
@@ -21,53 +21,53 @@ pub struct Automaton<'q> {
 /// Represent the distinct methods of moving on a match between states.
 #[derive(Debug, Copy, PartialEq, Clone, Eq)]
 pub enum TransitionLabel<'q> {
-    /// Transition when a JSON member name matches a [`Label`]i.
-    ObjectMember(&'q Label),
+    /// Transition when a JSON member name matches a [`JsonString`]i.
+    ObjectMember(&'q JsonString),
     /// Transition on the n-th element of an array, with n specified by a [`NonNegativeArrayIndex`].
     ArrayIndex(NonNegativeArrayIndex),
 }
 
 impl<'q> TransitionLabel<'q> {
-    ///Return the textual [`Label`] being wrapped if so.  Returns [`None`] otherwise.
+    ///Return the textual [`JsonString`] being wrapped if so. Returns [`None`] otherwise.
     #[must_use]
     #[inline(always)]
-    pub fn get_label(&self) -> Option<&'q Label> {
+    pub fn get_member_name(&self) -> Option<&'q JsonString> {
         match self {
-            TransitionLabel::ObjectMember(l) => Some(l),
+            TransitionLabel::ObjectMember(name) => Some(name),
             TransitionLabel::ArrayIndex(_) => None,
         }
     }
 
-    ///Return the textual [`Label`] being wrapped if so.  Returns [`None`] otherwise.
+    ///Return the [`NonNegativeArrayIndex`] being wrapped if so. Returns [`None`] otherwise.
     #[must_use]
     #[inline(always)]
     pub fn get_array_index(&'q self) -> Option<&'q NonNegativeArrayIndex> {
         match self {
-            TransitionLabel::ArrayIndex(l) => Some(l),
+            TransitionLabel::ArrayIndex(name) => Some(name),
             TransitionLabel::ObjectMember(_) => None,
         }
     }
 
-    /// Wraps a [`Label`] in a [`TransitionLabel`].
+    /// Wraps a [`JsonString`] in a [`TransitionLabel`].
     #[must_use]
     #[inline(always)]
-    pub fn new_object_member(label: &'q Label) -> Self {
-        TransitionLabel::ObjectMember(label)
+    pub fn new_object_member(member_name: &'q JsonString) -> Self {
+        TransitionLabel::ObjectMember(member_name)
     }
 
     /// Wraps a [`NonNegativeArrayIndex`] in a [`TransitionLabel`].
     #[must_use]
     #[inline(always)]
-    pub fn new_array_index(label: NonNegativeArrayIndex) -> Self {
-        TransitionLabel::ArrayIndex(label)
+    pub fn new_array_index(index: NonNegativeArrayIndex) -> Self {
+        TransitionLabel::ArrayIndex(index)
     }
 }
 
-impl<'q> From<&'q Label> for TransitionLabel<'q> {
+impl<'q> From<&'q JsonString> for TransitionLabel<'q> {
     #[must_use]
     #[inline(always)]
-    fn from(label: &'q Label) -> Self {
-        TransitionLabel::new_object_member(label)
+    fn from(member_name: &'q JsonString) -> Self {
+        TransitionLabel::new_object_member(member_name)
     }
 }
 
@@ -75,7 +75,7 @@ impl Display for TransitionLabel<'_> {
     #[inline(always)]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            TransitionLabel::ObjectMember(label) => write!(f, "{}", label.display()),
+            TransitionLabel::ObjectMember(name) => write!(f, "{}", name.display()),
             TransitionLabel::ArrayIndex(index) => write!(f, "{}", index.get_index()),
         }
     }
@@ -84,8 +84,8 @@ impl Display for TransitionLabel<'_> {
 impl<T: Borrow<NonNegativeArrayIndex>> From<T> for TransitionLabel<'_> {
     #[must_use]
     #[inline(always)]
-    fn from(label: T) -> Self {
-        TransitionLabel::new_array_index(*label.borrow())
+    fn from(index: T) -> Self {
+        TransitionLabel::new_array_index(*index.borrow())
     }
 }
 
@@ -94,8 +94,8 @@ type Transition<'q> = (TransitionLabel<'q>, State);
 
 /// A transition table of a single [`State`] of an [`Automaton`].
 ///
-/// Contains transitions triggered by matching labels, and a fallback transition
-/// triggered when none of the label transitions match.
+/// Contains transitions triggered by matching member names or array indices, and a fallback transition
+/// triggered when none of the labelled transitions match.
 #[derive(Debug)]
 pub struct StateTable<'q> {
     attributes: StateAttributes,

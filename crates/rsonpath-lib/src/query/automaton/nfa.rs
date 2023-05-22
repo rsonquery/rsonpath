@@ -29,7 +29,7 @@ use NfaState::*;
 /// A transition in the NFA mapped from a [`JsonPathQuery`] selector.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(super) enum Transition<'q> {
-    /// A transition matching a specific [`Label`] only.
+    /// A transition matching a specific label.
     Labelled(TransitionLabel<'q>),
     /// A transition matching anything.
     Wildcard,
@@ -68,8 +68,8 @@ impl<'q> NondeterministicAutomaton<'q> {
             .iter()
             .filter_map(|node| match node {
                 JsonPathQueryNode::Root(_) => None,
-                JsonPathQueryNode::Descendant(label, _) => Some(Ok(Recursive(Transition::Labelled(label.into())))),
-                JsonPathQueryNode::Child(label, _) => Some(Ok(Direct(Transition::Labelled(label.into())))),
+                JsonPathQueryNode::Descendant(name, _) => Some(Ok(Recursive(Transition::Labelled(name.into())))),
+                JsonPathQueryNode::Child(name, _) => Some(Ok(Direct(Transition::Labelled(name.into())))),
                 JsonPathQueryNode::AnyChild(_) => Some(Ok(Direct(Transition::Wildcard))),
                 JsonPathQueryNode::AnyDescendant(_) => Some(Ok(Recursive(Transition::Wildcard))),
                 JsonPathQueryNode::ArrayIndexChild(index, _) => Some(Ok(Direct(Transition::Labelled((*index).into())))),

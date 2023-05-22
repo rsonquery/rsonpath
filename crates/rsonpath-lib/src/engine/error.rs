@@ -26,14 +26,14 @@ pub enum EngineError {
     /// closing characters.
     #[error("Malformed input JSON; end of input was reached, but unmatched opening characters remained.")]
     MissingClosingCharacter(),
-    /// An error occurred when trying to parse a label terminated by a particular colon character.
+    /// An error occurred when trying to parse a member name terminated by a particular colon character.
     /// The inner [`usize`] value should be set to the byte index of the colon.
     #[error(
-        "Malformed label in the input JSON; \
+        "Malformed member name in the input JSON; \
         the colon at position {0} must be preceded by a string, but \
         there are no matching double quote characters."
     )]
-    MalformedLabelQuotes(usize),
+    MalformedStringQuotes(usize),
     /// Engine error that occurred due to a known limitation.
     #[error(transparent)]
     NotSupported(#[from] crate::error::UnsupportedFeatureError),

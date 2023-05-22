@@ -4,7 +4,7 @@ use super::{
     error::InputError,
     Input, MAX_BLOCK_SIZE,
 };
-use crate::query::Label;
+use crate::query::JsonString;
 use std::{alloc, ptr, slice};
 
 /// Input into a query engine.
@@ -232,12 +232,12 @@ impl Input for OwnedBytes {
 
     #[inline]
     #[cfg(feature = "head-skip")]
-    fn find_label(&self, from: usize, label: &Label) -> Option<usize> {
-        self.as_borrowed().find_label(from, label)
+    fn find_member(&self, from: usize, member_name: &JsonString) -> Option<usize> {
+        self.as_borrowed().find_member(from, member_name)
     }
 
     #[inline]
-    fn is_label_match(&self, from: usize, to: usize, label: &Label) -> bool {
-        self.as_borrowed().is_label_match(from, to, label)
+    fn is_member_match(&self, from: usize, to: usize, member_name: &JsonString) -> bool {
+        self.as_borrowed().is_member_match(from, to, member_name)
     }
 }

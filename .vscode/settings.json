@@ -75,7 +75,7 @@
         "simd",
         "head-skip",
         "tail-skip",
-        "unique-labels"
+        "unique-members"
     ],
     "rust-analyzer.cargo.noDefaultFeatures": true,
     "rust-analyzer.cargo.allFeatures": false,
