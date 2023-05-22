@@ -27,8 +27,8 @@ The project is actively developed and currently supports only a subset of the JS
 | Selector                       | Syntax                          | Supported | Since  | Tracking Issue |
 |--------------------------------|---------------------------------|-----------|--------|---------------:|
 | Root                           | `$`                             | ✔️        | v0.1.0 |   |
-| Dot                            | `.<label>`                      | ✔️        | v0.1.0 |   |
-| Index (object member)          | `[<label>]`                     | ✔️        | v0.1.0 |   |
+| Dot                            | `.<member>`                     | ✔️        | v0.1.0 |   |
+| Index (object member)          | `[<member>]`                    | ✔️        | v0.1.0 |   |
 | Index (array index)            | `[<index>]`                     | ❌        | -      | [#64](https://github.com/V0ldek/rsonpath/issues/64) |
 | Index (array index from end)   | `[-<index>]`                    | ❌        | -      |   |
 | Descendant                     | `..`                            | ✔️        | v0.1.0 |   |
@@ -131,7 +131,7 @@ the engine will simply match the _first_ such key.
 [6]
 ```
 
-This behavior can be overriden with a custom installation of `rsonpath`, disabling the default `unique-labels` feature. This will hurt performance.
+This behavior can be overriden with a custom installation of `rsonpath`, disabling the default `unique-members` feature. This will hurt performance.
 
 ```bash
 > cargo install rsonpath --no-default-features -F simd -F head-skip -F tail-skip
@@ -142,8 +142,8 @@ This behavior can be overriden with a custom installation of `rsonpath`, disabli
 
 ### Unicode
 
-The engine does _not_ parse unicode escape sequences in labels.
-This means that a label `"a"` is different from a label `"\u0041"`, even though semantically they represent the same string.
+The engine does _not_ parse unicode escape sequences in member names.
+This means that a key `"a"` is different from a key `"\u0041"`, even though semantically they represent the same string.
 Parsing unicode sequences is costly, so the support for this was postponed
 in favour of high performance. It would be possible for a flag to exist
 to trigger this behaviour, but it is not currently worked on.

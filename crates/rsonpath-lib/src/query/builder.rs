@@ -1,17 +1,17 @@
 //! Utility for building a [`JsonPathQuery`](`crate::query::JsonPathQuery`)
 //! programmatically.
-use super::{JsonPathQuery, JsonPathQueryNode, Label, NonNegativeArrayIndex};
+use super::{JsonPathQuery, JsonPathQueryNode, JsonString, NonNegativeArrayIndex};
 
 /// Builder for [`JsonPathQuery`] instances.
 ///
 /// # Examples
 /// ```
-/// # use rsonpath_lib::query::{JsonPathQuery, Label, builder::JsonPathQueryBuilder};
+/// # use rsonpath_lib::query::{JsonPathQuery, JsonString, builder::JsonPathQueryBuilder};
 /// let builder = JsonPathQueryBuilder::new()
-///     .child(Label::new("a"))
-///     .descendant(Label::new("b"))
+///     .child(JsonString::new("a"))
+///     .descendant(JsonString::new("b"))
 ///     .any_child()
-///     .child(Label::new("c"))
+///     .child(JsonString::new("c"))
 ///     .any_descendant();
 ///
 /// // Can also use `builder.build()`.
@@ -28,7 +28,7 @@ impl JsonPathQueryBuilder {
     ///
     /// # Examples
     /// ```
-    /// # use rsonpath_lib::query::{JsonPathQuery, JsonPathQueryNode, Label, builder::JsonPathQueryBuilder};
+    /// # use rsonpath_lib::query::{JsonPathQuery, JsonPathQueryNode, builder::JsonPathQueryBuilder};
     /// let builder = JsonPathQueryBuilder::new();
     /// let query: JsonPathQuery = builder.into();
     ///
@@ -40,11 +40,11 @@ impl JsonPathQueryBuilder {
         Self { nodes: vec![] }
     }
 
-    /// Add a child selector with a given label.
+    /// Add a child selector with a given member name.
     #[must_use]
     #[inline(always)]
-    pub fn child(mut self, label: Label) -> Self {
-        self.nodes.push(NodeTemplate::Child(label));
+    pub fn child(mut self, member_name: JsonString) -> Self {
+        self.nodes.push(NodeTemplate::Child(member_name));
         self
     }
 
@@ -72,11 +72,11 @@ impl JsonPathQueryBuilder {
         self
     }
 
-    /// Add a descendant selector with a given label.
+    /// Add a descendant selector with a given member_name.
     #[must_use]
     #[inline(always)]
-    pub fn descendant(mut self, label: Label) -> Self {
-        self.nodes.push(NodeTemplate::Descendant(label));
+    pub fn descendant(mut self, member_name: JsonString) -> Self {
+        self.nodes.push(NodeTemplate::Descendant(member_name));
         self
     }
 
@@ -100,9 +100,9 @@ impl JsonPathQueryBuilder {
                 NodeTemplate::ArrayIndexDescendant(i) => {
                     Some(Box::new(JsonPathQueryNode::ArrayIndexDescendant(i, last)))
                 }
-                NodeTemplate::Child(label) => Some(Box::new(JsonPathQueryNode::Child(label, last))),
+                NodeTemplate::Child(name) => Some(Box::new(JsonPathQueryNode::Child(name, last))),
                 NodeTemplate::AnyChild => Some(Box::new(JsonPathQueryNode::AnyChild(last))),
-                NodeTemplate::Descendant(label) => Some(Box::new(JsonPathQueryNode::Descendant(label, last))),
+                NodeTemplate::Descendant(name) => Some(Box::new(JsonPathQueryNode::Descendant(name, last))),
                 NodeTemplate::AnyDescendant => Some(Box::new(JsonPathQueryNode::AnyDescendant(last))),
             };
         }
@@ -128,10 +128,10 @@ impl From<JsonPathQueryBuilder> for JsonPathQuery {
 }
 
 enum NodeTemplate {
-    Child(Label),
+    Child(JsonString),
     ArrayIndexChild(NonNegativeArrayIndex),
     ArrayIndexDescendant(NonNegativeArrayIndex),
     AnyChild,
     AnyDescendant,
-    Descendant(Label),
+    Descendant(JsonString),
 }

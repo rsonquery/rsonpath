@@ -67,7 +67,7 @@ rsonpath-lib v0.4.0 (/home/mat/rsonpath/crates/rsonpath-lib)
 - `aligners` &ndash; SIMD operations require correct input data alignment, putting those requirements at type level makes our code more robust.
 - `cfg-if` &ndash; used to support SIMD and no-SIMD versions.
 - `log` &ndash; diagnostic logs during compilation and execution.
-- `memchr` &ndash; rapid, SIMDified substring search for fast-forwarding to labels.
+- `memchr` &ndash; rapid, SIMDified substring search for fast-forwarding to specific members.
 - `nom` &ndash; for parser implementation.
 - `replace_with` &ndash; for safe handling of internal classifier state when switching classifiers.
 - `smallvec` &ndash; crucial for small-stack performance.

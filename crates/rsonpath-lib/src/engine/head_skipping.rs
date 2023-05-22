@@ -1,11 +1,11 @@
 //! Engine decorator that performs **head skipping** &ndash; an extremely optimized search for
-//! the first matching label in a query starting with a self-looping state.
+//! the first matching member name in a query starting with a self-looping state.
 //! This happens in queries starting with a descendant selector.
 use super::error::EngineError;
 use crate::debug;
 use crate::query::{
     automaton::{Automaton, State},
-    Label,
+    JsonString,
 };
 use crate::result::QueryResult;
 use crate::BLOCK_SIZE;
@@ -20,11 +20,11 @@ use crate::{
 
 /// Trait that needs to be implemented by an [`Engine`](`super::Engine`) to use this submodule.
 pub(super) trait CanHeadSkip<'b, I: Input, const N: usize> {
-    /// Function called when head-skipping finds a label at which normal query execution
+    /// Function called when head-skipping finds a member name at which normal query execution
     /// should resume.
     ///
     /// The [`HeadSkip::run_head_skipping`] function will call this implementation
-    /// whenever it finds a label matching the first transition in the query.
+    /// whenever it finds a member name matching the first transition in the query.
     /// The structural `classifier` passed is guaranteed to have classified the
     /// `next_event` and nothing past that. It is guaranteed that
     /// `next_event` is [`Structural::Opening`].
@@ -52,7 +52,7 @@ pub(super) struct HeadSkip<'b, 'q, I: Input, const N: usize> {
     bytes: &'b I,
     state: State,
     is_accepting: bool,
-    label: &'q Label,
+    member_name: &'q JsonString,
 }
 
 impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
@@ -66,7 +66,7 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
     ///
     /// ## Details
     /// Head-skipping is possible if the query automaton starts
-    /// with a state with a wildcard self-loop and a single labelled transition forward.
+    /// with a state with a wildcard self-loop and a single member-labelled transition forward.
     /// Syntactically, if the [`fallback_state`](`crate::query::automaton::StateTable::fallback_state`)
     /// of the [`initial_state`](`crate::query::automaton::StateTable::initial_state`) is the same as the
     /// [`initial_state`](`crate::query::automaton::StateTable::initial_state`), and its
@@ -74,7 +74,7 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
     ///
     /// This means that we can search for the label of the forward transition in the entire document,
     /// disregarding any additional structure &ndash; during execution we would always loop
-    /// around in the initial state until encountering the desired label. This search can be done
+    /// around in the initial state until encountering the desired member name. This search can be done
     /// extremely quickly with [`memchr::memmem`].
     ///
     /// In all other cases, head-skipping is not supported.
@@ -86,14 +86,14 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
         if fallback_state == initial_state && transitions.len() == 1 {
             let (label, target_state) = transitions[0];
 
-            if let Some(named_label) = label.get_label() {
+            if let Some(member_name) = label.get_member_name() {
                 debug!("Automaton starts with a descendant search, using memmem heuristic.");
 
                 return Some(Self {
                     bytes,
                     state: target_state,
                     is_accepting: automaton.is_accepting(target_state),
-                    label: named_label,
+                    member_name,
                 });
             }
         }
@@ -117,13 +117,13 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
 
         let mut idx = 0;
 
-        while let Some(starting_quote_idx) = self.bytes.find_label(idx, self.label) {
+        while let Some(starting_quote_idx) = self.bytes.find_member(idx, self.member_name) {
             idx = starting_quote_idx;
             classifier_state.are_colons_on = false;
             classifier_state.are_commas_on = false;
             debug!("Needle found at {idx}");
 
-            let seek_start_idx = idx + self.label.bytes_with_quotes().len();
+            let seek_start_idx = idx + self.member_name.bytes_with_quotes().len();
 
             match self.bytes.seek_non_whitespace_forward(seek_start_idx) {
                 Some((colon_idx, char)) if char == b':' => {

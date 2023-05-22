@@ -20,7 +20,7 @@ use crate::engine::tail_skipping::TailSkip;
 use crate::engine::{Engine, Input};
 use crate::query::automaton::{Automaton, State};
 use crate::query::error::CompilerError;
-use crate::query::{JsonPathQuery, Label, NonNegativeArrayIndex};
+use crate::query::{JsonPathQuery, JsonString, NonNegativeArrayIndex};
 use crate::result::QueryResult;
 use crate::BLOCK_SIZE;
 use crate::{
@@ -211,8 +211,8 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
             for &(label, target) in self.automaton[self.state].transitions() {
                 match label {
                     TransitionLabel::ArrayIndex(_) => {}
-                    TransitionLabel::ObjectMember(label) => {
-                        if self.automaton.is_accepting(target) && self.is_match(idx, label)? {
+                    TransitionLabel::ObjectMember(member_name) => {
+                        if self.automaton.is_accepting(target) && self.is_match(idx, member_name)? {
                             result.report(idx);
                             any_matched = true;
                             break;
@@ -224,7 +224,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
             if !any_matched && self.automaton.is_accepting(fallback_state) {
                 result.report(idx);
             }
-            #[cfg(feature = "unique-labels")]
+            #[cfg(feature = "unique-members")]
             {
                 let is_next_closing = self.next_event.map_or(false, |s| s.is_closing());
                 if any_matched && !is_next_closing && self.automaton.is_unitary(self.state) {
@@ -310,9 +310,9 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
                         break;
                     }
                 }
-                TransitionLabel::ObjectMember(label) => {
+                TransitionLabel::ObjectMember(member_name) => {
                     if let Some(colon_idx) = colon_idx {
-                        if self.is_match(colon_idx, label)? {
+                        if self.is_match(colon_idx, member_name)? {
                             any_matched = true;
                             self.transition_to(target, bracket_type);
                             if self.automaton.is_accepting(target) {
@@ -407,7 +407,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
     {
         debug!("Closing, decreasing depth and popping stack.");
 
-        #[cfg(feature = "unique-labels")]
+        #[cfg(feature = "unique-members")]
         {
             self.depth
                 .decrement()
@@ -433,7 +433,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
             }
         }
 
-        #[cfg(not(feature = "unique-labels"))]
+        #[cfg(not(feature = "unique-members"))]
         {
             self.depth
                 .decrement()
@@ -504,12 +504,12 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
         }
     }
 
-    fn is_match(&self, idx: usize, label: &Label) -> Result<bool, EngineError> {
-        let len = label.bytes_with_quotes().len();
+    fn is_match(&self, idx: usize, member_name: &JsonString) -> Result<bool, EngineError> {
+        let len = member_name.bytes_with_quotes().len();
 
         let closing_quote_idx = match self.bytes.seek_backward(idx - 1, b'"') {
             Some(x) => x,
-            None => return Err(EngineError::MalformedLabelQuotes(idx - 1)),
+            None => return Err(EngineError::MalformedStringQuotes(idx - 1)),
         };
 
         if closing_quote_idx + 1 < len {
@@ -517,7 +517,9 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
         }
 
         let start_idx = closing_quote_idx + 1 - len;
-        Ok(self.bytes.is_label_match(start_idx, closing_quote_idx + 1, label))
+        Ok(self
+            .bytes
+            .is_member_match(start_idx, closing_quote_idx + 1, member_name))
     }
 
     fn verify_subtree_closed(&self) -> Result<(), EngineError> {
@@ -528,7 +530,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
         }
     }
 
-    #[cfg(feature = "unique-labels")]
+    #[cfg(feature = "unique-members")]
     fn current_node_bracket_type(&self) -> BracketType {
         if self.is_list {
             BracketType::Square

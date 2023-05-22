@@ -40,8 +40,8 @@ test-case = "3.1.0"
 eyre = "0.6.8"
 
 [features]
-default = ["simd", "head-skip", "tail-skip", "unique-labels"]
+default = ["simd", "head-skip", "tail-skip", "unique-members"]
 simd = ["aligners/simd"]
 head-skip = ["dep:memchr"]
 tail-skip = ["dep:replace_with"]
-unique-labels = ["tail-skip"]
+unique-members = ["tail-skip"]

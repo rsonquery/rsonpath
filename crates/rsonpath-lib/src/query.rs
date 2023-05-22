@@ -24,19 +24,19 @@
 //! // Final node will have a None child.
 //! assert!(child_node.child().is_none());
 //!
-//! assert_eq!(descendant_node.label().unwrap(), "phoneNumbers".as_bytes());
-//! assert_eq!(child_wildcard_node.label(), None);
-//! assert_eq!(child_node.label().unwrap(), "number".as_bytes());
+//! assert_eq!(descendant_node.member_name().unwrap(), "phoneNumbers".as_bytes());
+//! assert_eq!(child_wildcard_node.member_name(), None);
+//! assert_eq!(child_node.member_name().unwrap(), "number".as_bytes());
 //! # Ok(())
 //! # }
 //! ```
 pub mod automaton;
 pub mod builder;
 pub mod error;
-mod label;
+mod json_string;
 mod nonnegative_array_index;
 mod parser;
-pub use label::Label;
+pub use json_string::JsonString;
 pub use nonnegative_array_index::NonNegativeArrayIndex;
 
 use log::*;
@@ -47,12 +47,12 @@ use std::fmt::{self, Display};
 pub enum JsonPathQueryNode {
     /// The first link in the list representing the root '`$`' character.
     Root(Option<Box<JsonPathQueryNode>>),
-    /// Represents direct descendant with a label ('`.`' token).
-    Child(Label, Option<Box<JsonPathQueryNode>>),
+    /// Represents direct descendant with a given property name ('`.`' token).
+    Child(JsonString, Option<Box<JsonPathQueryNode>>),
     /// Represents direct descendant with a wildcard ('`.*`' tokens).
     AnyChild(Option<Box<JsonPathQueryNode>>),
     /// Represents recursive descent ('`..`' token).
-    Descendant(Label, Option<Box<JsonPathQueryNode>>),
+    Descendant(JsonString, Option<Box<JsonPathQueryNode>>),
     /// Represents recursive descendant with a wildcard ('`..*`' tokens).
     AnyDescendant(Option<Box<JsonPathQueryNode>>),
     /// Represents direct descendant list item with a positive index (numbers).
@@ -171,9 +171,9 @@ impl Display for JsonPathQueryNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Root(_) => write!(f, "$"),
-            Child(label, _) => write!(f, "['{}']", label.display()),
+            Child(key, _) => write!(f, "['{}']", key.display()),
             AnyChild(_) => write!(f, "[*]"),
-            Descendant(label, _) => write!(f, "..['{}']", label.display()),
+            Descendant(key, _) => write!(f, "..['{}']", key.display()),
             AnyDescendant(_) => write!(f, "..[*]"),
             ArrayIndexChild(i, _) => write!(f, "[{i}]"),
             ArrayIndexDescendant(i, _) => write!(f, "..[{i}]"),
@@ -206,8 +206,8 @@ pub trait JsonPathQueryNodeType {
     fn is_any_child(&self) -> bool;
 
     /// If the type is [`JsonPathQueryNode::Descendant`] or [`JsonPathQueryNode::Child`]
-    /// returns the label it represents; otherwise, `None`.
-    fn label(&self) -> Option<&Label>;
+    /// returns the member name it represents; otherwise, `None`.
+    fn member_name(&self) -> Option<&JsonString>;
 
     /// If the type is [`JsonPathQueryNode::ArrayIndexDescendant`] or [`JsonPathQueryNode::ArrayIndexChild`]
     /// returns the index it represents; otherwise, `None`.
@@ -241,9 +241,9 @@ impl JsonPathQueryNodeType for JsonPathQueryNode {
     }
 
     #[inline(always)]
-    fn label(&self) -> Option<&Label> {
+    fn member_name(&self) -> Option<&JsonString> {
         match self {
-            Child(label, _) | Descendant(label, _) => Some(label),
+            Child(name, _) | Descendant(name, _) => Some(name),
             Root(_) | AnyChild(_) | AnyDescendant(_) | ArrayIndexChild(_, _) | ArrayIndexDescendant(_, _) => None,
         }
     }
@@ -288,8 +288,8 @@ impl<T: std::ops::Deref<Target = JsonPathQueryNode>> JsonPathQueryNodeType for O
     }
 
     #[inline(always)]
-    fn label(&self) -> Option<&Label> {
-        self.as_ref().and_then(|x| x.label())
+    fn member_name(&self) -> Option<&JsonString> {
+        self.as_ref().and_then(|x| x.member_name())
     }
 
     #[inline(always)]
