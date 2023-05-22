@@ -110,10 +110,7 @@ struct Executor<'q, 'b, I: Input> {
     has_any_array_item_transition_to_accepting: bool,
 }
 
-fn query_executor<'q, 'b, I: Input>(
-    automaton: &'b Automaton<'q>,
-    bytes: &'b I,
-) -> Executor<'q, 'b, I> {
+fn query_executor<'q, 'b, I: Input>(automaton: &'b Automaton<'q>, bytes: &'b I) -> Executor<'q, 'b, I> {
     Executor {
         depth: Depth::ZERO,
         state: automaton.initial_state(),
@@ -257,9 +254,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
 
         let is_next_opening = self.next_event.map_or(false, |s| s.is_opening());
 
-        let is_fallback_accepting = self
-            .automaton
-            .is_accepting(self.automaton[self.state].fallback_state());
+        let is_fallback_accepting = self.automaton.is_accepting(self.automaton[self.state].fallback_state());
 
         if !is_next_opening && self.is_list && is_fallback_accepting {
             debug!("Accepting on comma.");
@@ -351,11 +346,9 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
 
         if bracket_type == BracketType::Square {
             self.is_list = true;
-            self.has_any_array_item_transition =
-                self.automaton.has_any_array_item_transition(self.state);
-            self.has_any_array_item_transition_to_accepting = self
-                .automaton
-                .has_any_array_item_transition_to_accepting(self.state);
+            self.has_any_array_item_transition = self.automaton.has_any_array_item_transition(self.state);
+            self.has_any_array_item_transition_to_accepting =
+                self.automaton.has_any_array_item_transition_to_accepting(self.state);
 
             let fallback = self.automaton[self.state].fallback_state();
             let is_fallback_accepting = self.automaton.is_accepting(fallback);
@@ -367,19 +360,15 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
                 self.array_count = NonNegativeArrayIndex::ZERO;
                 debug!("Initialized array count to {}", self.array_count);
 
-                let wants_first_item = is_fallback_accepting
-                    || self
-                        .automaton
-                        .has_first_array_index_transition_to_accepting(self.state);
+                let wants_first_item =
+                    is_fallback_accepting || self.automaton.has_first_array_index_transition_to_accepting(self.state);
 
                 if wants_first_item {
                     self.next_event = classifier.next();
 
                     match self.next_event {
                         Some(Structural::Closing(_, close_idx)) => {
-                            if let Some((next_idx, _)) =
-                                self.bytes.seek_non_whitespace_forward(idx + 1)
-                            {
+                            if let Some((next_idx, _)) = self.bytes.seek_non_whitespace_forward(idx + 1) {
                                 if next_idx < close_idx {
                                     result.report(next_idx);
                                 }
@@ -411,11 +400,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
         Ok(())
     }
 
-    fn handle_closing<Q, S>(
-        &mut self,
-        classifier: &mut Classifier!(),
-        idx: usize,
-    ) -> Result<(), EngineError>
+    fn handle_closing<Q, S>(&mut self, classifier: &mut Classifier!(), idx: usize) -> Result<(), EngineError>
     where
         Q: QuoteClassifiedIterator<'b, I, BLOCK_SIZE>,
         S: StructuralIterator<'b, I, Q, BLOCK_SIZE>,
@@ -467,9 +452,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
         }
 
         if self.is_list
-            && (self
-                .automaton
-                .is_accepting(self.automaton[self.state].fallback_state())
+            && (self.automaton.is_accepting(self.automaton[self.state].fallback_state())
                 || self.has_any_array_item_transition)
         {
             classifier.turn_commas_on(idx);
@@ -505,8 +488,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
                 is_list: self.is_list,
                 array_count: self.array_count,
                 has_any_array_item_transition: self.has_any_array_item_transition,
-                has_any_array_item_transition_to_accepting: self
-                    .has_any_array_item_transition_to_accepting,
+                has_any_array_item_transition_to_accepting: self.has_any_array_item_transition_to_accepting,
             });
             self.state = target;
         }
@@ -535,9 +517,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
         }
 
         let start_idx = closing_quote_idx + 1 - len;
-        Ok(self
-            .bytes
-            .is_label_match(start_idx, closing_quote_idx + 1, label))
+        Ok(self.bytes.is_label_match(start_idx, closing_quote_idx + 1, label))
     }
 
     fn verify_subtree_closed(&self) -> Result<(), EngineError> {
@@ -575,9 +555,7 @@ struct SmallStack {
 
 impl SmallStack {
     fn new() -> Self {
-        Self {
-            contents: smallvec![],
-        }
+        Self { contents: smallvec![] }
     }
 
     #[inline]

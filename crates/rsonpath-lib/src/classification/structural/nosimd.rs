@@ -1,7 +1,5 @@
 use super::*;
-use crate::classification::{
-    quotes::QuoteClassifiedBlock, ResumeClassifierBlockState, ResumeClassifierState,
-};
+use crate::classification::{quotes::QuoteClassifiedBlock, ResumeClassifierBlockState, ResumeClassifierState};
 use crate::debug;
 use crate::input::IBlock;
 
@@ -79,9 +77,7 @@ pub(crate) struct SequentialClassifier<'a, I: Input, Q, const N: usize> {
     are_commas_on: bool,
 }
 
-impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize>
-    SequentialClassifier<'a, I, Q, N>
-{
+impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> SequentialClassifier<'a, I, Q, N> {
     #[inline(always)]
     pub(crate) fn new(iter: Q) -> Self {
         Self {
@@ -122,8 +118,8 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> std::it
 {
 }
 
-impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize>
-    StructuralIterator<'a, I, Q, N> for SequentialClassifier<'a, I, Q, N>
+impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> StructuralIterator<'a, I, Q, N>
+    for SequentialClassifier<'a, I, Q, N>
 {
     fn turn_commas_on(&mut self, idx: usize) {
         if !self.are_commas_on {
@@ -135,12 +131,7 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize>
                 let block_idx = (idx + 1) % N;
 
                 if block_idx != 0 {
-                    let new_block = Block::from_idx(
-                        quote_classified_block,
-                        block_idx,
-                        self.are_colons_on,
-                        true,
-                    );
+                    let new_block = Block::from_idx(quote_classified_block, block_idx, self.are_colons_on, true);
                     self.block = Some(new_block);
                 }
             }
@@ -162,12 +153,7 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize>
                 let block_idx = (idx + 1) % N;
 
                 if block_idx != 0 {
-                    let new_block = Block::from_idx(
-                        quote_classified_block,
-                        block_idx,
-                        true,
-                        self.are_commas_on,
-                    );
+                    let new_block = Block::from_idx(quote_classified_block, block_idx, true, self.are_commas_on);
                     self.block = Some(new_block);
                 }
             }

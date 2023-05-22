@@ -96,20 +96,14 @@ impl JsonPathQueryBuilder {
 
         for node in self.nodes.into_iter().rev() {
             last = match node {
-                NodeTemplate::ArrayIndexChild(i) => {
-                    Some(Box::new(JsonPathQueryNode::ArrayIndexChild(i, last)))
-                }
+                NodeTemplate::ArrayIndexChild(i) => Some(Box::new(JsonPathQueryNode::ArrayIndexChild(i, last))),
                 NodeTemplate::ArrayIndexDescendant(i) => {
                     Some(Box::new(JsonPathQueryNode::ArrayIndexDescendant(i, last)))
                 }
                 NodeTemplate::Child(label) => Some(Box::new(JsonPathQueryNode::Child(label, last))),
                 NodeTemplate::AnyChild => Some(Box::new(JsonPathQueryNode::AnyChild(last))),
-                NodeTemplate::Descendant(label) => {
-                    Some(Box::new(JsonPathQueryNode::Descendant(label, last)))
-                }
-                NodeTemplate::AnyDescendant => {
-                    Some(Box::new(JsonPathQueryNode::AnyDescendant(last)))
-                }
+                NodeTemplate::Descendant(label) => Some(Box::new(JsonPathQueryNode::Descendant(label, last))),
+                NodeTemplate::AnyDescendant => Some(Box::new(JsonPathQueryNode::AnyDescendant(last))),
             };
         }
 

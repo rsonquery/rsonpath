@@ -64,14 +64,9 @@ impl<'a, I: Input, const N: usize> Iterator for SequentialQuoteClassifier<'a, I,
     }
 }
 
-impl<'a, I: Input, const N: usize> std::iter::FusedIterator
-    for SequentialQuoteClassifier<'a, I, N>
-{
-}
+impl<'a, I: Input, const N: usize> std::iter::FusedIterator for SequentialQuoteClassifier<'a, I, N> {}
 
-impl<'a, I: Input, const N: usize> QuoteClassifiedIterator<'a, I, N>
-    for SequentialQuoteClassifier<'a, I, N>
-{
+impl<'a, I: Input, const N: usize> QuoteClassifiedIterator<'a, I, N> for SequentialQuoteClassifier<'a, I, N> {
     fn get_offset(&self) -> usize {
         self.offset.unwrap_or(0)
     }

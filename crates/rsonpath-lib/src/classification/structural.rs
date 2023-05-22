@@ -158,9 +158,7 @@ impl Structural {
 
 /// Trait for classifier iterators, i.e. finite iterators of [`Structural`] characters
 /// that hold a reference to the JSON document valid for `'a`.
-pub trait StructuralIterator<'a, I: Input, Q, const N: usize>:
-    Iterator<Item = Structural> + 'a
-{
+pub trait StructuralIterator<'a, I: Input, Q, const N: usize>: Iterator<Item = Structural> + 'a {
     /// Stop classification and return a state object that can be used to resume
     /// a classifier from the place in which the current one was stopped.
     fn stop(self) -> ResumeClassifierState<'a, I, Q, N>;
@@ -208,11 +206,7 @@ cfg_if! {
 /// Walk through the JSON document represented by `bytes` and iterate over all
 /// occurrences of structural characters in it.
 #[inline(always)]
-pub fn classify_structural_characters<
-    'a,
-    I: Input + 'a,
-    Q: QuoteClassifiedIterator<'a, I, BLOCK_SIZE>,
->(
+pub fn classify_structural_characters<'a, I: Input + 'a, Q: QuoteClassifiedIterator<'a, I, BLOCK_SIZE>>(
     iter: Q,
 ) -> impl StructuralIterator<'a, I, Q, BLOCK_SIZE> {
     ClassifierImpl::new(iter)
@@ -221,11 +215,7 @@ pub fn classify_structural_characters<
 /// Resume classification using a state retrieved from a previously
 /// used classifier via the `stop` function.
 #[inline(always)]
-pub fn resume_structural_classification<
-    'a,
-    I: Input,
-    Q: QuoteClassifiedIterator<'a, I, BLOCK_SIZE>,
->(
+pub fn resume_structural_classification<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, BLOCK_SIZE>>(
     state: ResumeClassifierState<'a, I, Q, BLOCK_SIZE>,
 ) -> impl StructuralIterator<'a, I, Q, BLOCK_SIZE> {
     ClassifierImpl::resume(state)

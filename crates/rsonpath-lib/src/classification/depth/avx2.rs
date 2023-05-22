@@ -53,9 +53,7 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> Iterator for VectorIte
     }
 }
 
-impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> DepthIterator<'a, I, Q, 64>
-    for VectorIterator<'a, I, Q>
-{
+impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> DepthIterator<'a, I, Q, 64> for VectorIterator<'a, I, Q> {
     type Block = Vector<'a, I>;
 
     fn stop(self, block: Option<Self::Block>) -> ResumeClassifierState<'a, I, Q, 64> {
@@ -80,10 +78,7 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> DepthIterator<'a, I, Q
         }
     }
 
-    fn resume(
-        state: ResumeClassifierState<'a, I, Q, 64>,
-        opening: BracketType,
-    ) -> (Option<Self::Block>, Self) {
+    fn resume(state: ResumeClassifierState<'a, I, Q, 64>, opening: BracketType) -> (Option<Self::Block>, Self) {
         let classifier = DelimiterClassifierImpl::new(opening);
         let first_block = state.block.and_then(|b| {
             if b.idx == 64 {
@@ -116,10 +111,7 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> DepthIterator<'a, I, Q
 /// more quickly than precise depth calculation.
 #[cfg_attr(
     docsrs,
-    doc(cfg(all(
-        target_feature = "avx2",
-        any(target_arch = "x86", target_arch = "x86_64")
-    )))
+    doc(cfg(all(target_feature = "avx2", any(target_arch = "x86", target_arch = "x86_64"))))
 )]
 
 pub(crate) struct Vector<'a, I: Input + 'a> {
@@ -133,10 +125,7 @@ pub(crate) struct Vector<'a, I: Input + 'a> {
 
 impl<'a, I: Input> Vector<'a, I> {
     #[inline]
-    fn new(
-        bytes: QuoteClassifiedBlock<IBlock<'a, I, 64>, 64>,
-        classifier: &DelimiterClassifierImpl,
-    ) -> Self {
+    fn new(bytes: QuoteClassifiedBlock<IBlock<'a, I, 64>, 64>, classifier: &DelimiterClassifierImpl) -> Self {
         Self::new_from(bytes, classifier, 0)
     }
 
@@ -159,20 +148,16 @@ impl<'a, I: Input> Vector<'a, I> {
     ) -> Self {
         let idx_mask = 0xFFFF_FFFF_FFFF_FFFF_u64 << start_idx;
         let (first_block, second_block) = bytes.block.halves();
-        let (first_opening_vector, first_closing_vector) =
-            classifier.get_opening_and_closing_vectors(first_block);
-        let (second_opening_vector, second_closing_vector) =
-            classifier.get_opening_and_closing_vectors(second_block);
+        let (first_opening_vector, first_closing_vector) = classifier.get_opening_and_closing_vectors(first_block);
+        let (second_opening_vector, second_closing_vector) = classifier.get_opening_and_closing_vectors(second_block);
 
         let first_opening_mask = _mm256_movemask_epi8(first_opening_vector) as u32;
         let first_closing_mask = _mm256_movemask_epi8(first_closing_vector) as u32;
         let second_opening_mask = _mm256_movemask_epi8(second_opening_vector) as u32;
         let second_closing_mask = _mm256_movemask_epi8(second_closing_vector) as u32;
 
-        let combined_opening_mask =
-            u64::from(first_opening_mask) | (u64::from(second_opening_mask) << 32);
-        let combined_closing_mask =
-            u64::from(first_closing_mask) | (u64::from(second_closing_mask) << 32);
+        let combined_opening_mask = u64::from(first_opening_mask) | (u64::from(second_opening_mask) << 32);
+        let combined_closing_mask = u64::from(first_closing_mask) | (u64::from(second_closing_mask) << 32);
 
         let opening_mask = combined_opening_mask & (!bytes.within_quotes_mask) & idx_mask;
         let closing_mask = combined_closing_mask & (!bytes.within_quotes_mask) & idx_mask;
@@ -229,8 +214,7 @@ impl<'a, I: Input> DepthBlock<'a> for Vector<'a, I> {
 
     #[inline(always)]
     fn depth_at_end(&self) -> isize {
-        (((self.opening_count as i32) - (self.closing_mask.count_ones() as i32)) + self.depth)
-            as isize
+        (((self.opening_count as i32) - (self.closing_mask.count_ones() as i32)) + self.depth) as isize
     }
 
     #[inline(always)]

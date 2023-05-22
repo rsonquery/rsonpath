@@ -45,10 +45,7 @@ impl<'a, I: Input> Avx2QuoteClassifier<'a, I> {
 }
 
 impl<'a, I: Input> Iterator for Avx2QuoteClassifier<'a, I> {
-    type Item = QuoteClassifiedBlock<
-        <<I as Input>::BlockIterator<'a, 64> as InputBlockIterator<'a, 64>>::Block,
-        64,
-    >;
+    type Item = QuoteClassifiedBlock<<<I as Input>::BlockIterator<'a, 64> as InputBlockIterator<'a, 64>>::Block, 64>;
 
     #[inline(always)]
     fn next(&mut self) -> Option<Self::Item> {
@@ -122,11 +119,9 @@ struct BlockClassification {
 
 impl BlockAvx2Classifier {
     /// Bitmask selecting bits on even positions when indexing from zero.
-    const ODD: u64 =
-        0b0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_u64;
+    const ODD: u64 = 0b0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_u64;
     /// Bitmask selecting bits on odd positions when indexing from zero.
-    const EVEN: u64 =
-        0b1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_u64;
+    const EVEN: u64 = 0b1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_u64;
 
     /// Set the inter-block state based on slash overflow and the quotes mask.
     fn update_prev_block_mask(&mut self, set_slash_mask: bool, quotes: u64) {
@@ -191,8 +186,7 @@ impl BlockAvx2Classifier {
 
         // Masks are combined by shifting the latter block's 32-bit masks left by 32 bits.
         // From now on when we refer to a "block" we mean the combined 64 bytes of the input.
-        let slashes =
-            u64::from(classification1.slashes) | (u64::from(classification2.slashes) << 32);
+        let slashes = u64::from(classification1.slashes) | (u64::from(classification2.slashes) << 32);
         let quotes = u64::from(classification1.quotes) | (u64::from(classification2.quotes) << 32);
 
         let (escaped, set_prev_slash_mask) = if slashes == 0 {
@@ -273,9 +267,8 @@ impl BlockAvx2Classifier {
              *  prev_slash          | 00000000 10000000 |
              *  escaped             | 01000000 10000100 |
              */
-            let escaped = (ends_of_odd_starts & Self::EVEN)
-                | (ends_of_even_starts & Self::ODD)
-                | self.get_prev_slash_mask();
+            let escaped =
+                (ends_of_odd_starts & Self::EVEN) | (ends_of_even_starts & Self::ODD) | self.get_prev_slash_mask();
 
             (escaped, set_prev_slash_mask)
         };

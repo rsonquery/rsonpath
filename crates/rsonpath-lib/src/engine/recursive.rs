@@ -63,13 +63,7 @@ impl Engine for RecursiveEngine<'_> {
             Some(Structural::Opening(b, idx)) => {
                 let mut result = R::default();
                 let mut execution_ctx = ExecutionContext::new(&self.automaton, input);
-                execution_ctx.run(
-                    &mut classifier,
-                    self.automaton.initial_state(),
-                    idx,
-                    b,
-                    &mut result,
-                )?;
+                execution_ctx.run(&mut classifier, self.automaton.initial_state(), idx, b, &mut result)?;
                 Ok(result)
             }
             _ => Ok(R::default()),
@@ -176,10 +170,7 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
 
         let searching_list = self.automaton.has_any_array_item_transition(state);
 
-        let is_accepting_list_item = is_list
-            && self
-                .automaton
-                .has_any_array_item_transition_to_accepting(state);
+        let is_accepting_list_item = is_list && self.automaton.has_any_array_item_transition_to_accepting(state);
         let needs_commas = is_list && (is_fallback_accepting || searching_list);
         let needs_colons = !is_list && self.automaton.has_transition_to_accepting(state);
 
@@ -245,9 +236,7 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
 
                     // Once we are in comma search, we have already considered the option that the first item in the list is a match.  Iterate on the remaining items.
 
-                    if let Err(ArrayIndexError::ExceedsUpperLimitError(_)) =
-                        array_count.try_increment()
-                    {
+                    if let Err(ArrayIndexError::ExceedsUpperLimitError(_)) = array_count.try_increment() {
                         debug!("Exceeded possible array match in content.");
                         continue;
                     }
@@ -274,8 +263,7 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
                         for &(label, target) in self.automaton[state].transitions() {
                             match label {
                                 TransitionLabel::ObjectMember(label)
-                                    if self.automaton.is_accepting(target)
-                                        && self.is_match(idx, label)? =>
+                                    if self.automaton.is_accepting(target) && self.is_match(idx, label)? =>
                                 {
                                     debug!("Accept {idx}");
                                     result.report(idx);
@@ -292,8 +280,7 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
                         }
                         #[cfg(feature = "unique-labels")]
                         {
-                            let is_next_closing =
-                                matches!(next_event, Some(Structural::Closing(_, _)));
+                            let is_next_closing = matches!(next_event, Some(Structural::Closing(_, _)));
                             if any_matched && !is_next_closing && self.automaton.is_unitary(state) {
                                 let bracket_type = if is_list {
                                     BracketType::Square
@@ -413,9 +400,7 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
         }
 
         let start_idx = closing_quote_idx + 1 - len;
-        Ok(self
-            .bytes
-            .is_label_match(start_idx, closing_quote_idx + 1, label))
+        Ok(self.bytes.is_label_match(start_idx, closing_quote_idx + 1, label))
     }
 }
 
@@ -443,13 +428,7 @@ impl<'q, 'b, I: Input> CanHeadSkip<'b, I, BLOCK_SIZE> for ExecutionContext<'q, '
             _ => Err(InternalRsonpathError::from_expectation("")),
         }?;
 
-        self.run_on_subtree(
-            &mut classifier,
-            state,
-            next_event.idx(),
-            bracket_type,
-            result,
-        )?;
+        self.run_on_subtree(&mut classifier, state, next_event.idx(), bracket_type, result)?;
 
         Ok(classifier.stop())
     }

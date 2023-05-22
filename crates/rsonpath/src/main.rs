@@ -68,8 +68,7 @@ fn main() -> Result<()> {
 
     configure_logger(args.verbose)?;
 
-    run_with_args(&args)
-        .map_err(|err| err.with_note(|| format!("Query string: '{}'.", args.query.dimmed())))
+    run_with_args(&args).map_err(|err| err.with_note(|| format!("Query string: '{}'.", args.query.dimmed())))
 }
 
 fn run_with_args(args: &Args) -> Result<()> {
@@ -100,20 +99,18 @@ fn compile(query: &JsonPathQuery) -> Result<()> {
 fn run<R: QueryResult>(query: &JsonPathQuery, input: &OwnedBytes, engine: EngineArg) -> Result<()> {
     match engine {
         EngineArg::Main => {
-            let result = run_engine::<MainEngine, R>(query, input)
-                .wrap_err("Error running the main engine.")?;
+            let result = run_engine::<MainEngine, R>(query, input).wrap_err("Error running the main engine.")?;
             println!("{result}");
         }
         EngineArg::Recursive => {
-            let result = run_engine::<RecursiveEngine, R>(query, input)
-                .wrap_err("Error running the recursive engine.")?;
+            let result =
+                run_engine::<RecursiveEngine, R>(query, input).wrap_err("Error running the recursive engine.")?;
             println!("{result}");
         }
         EngineArg::VerifyBoth => {
-            let main_result = run_engine::<MainEngine, R>(query, input)
-                .wrap_err("Error running the main engine.")?;
-            let recursive_result = run_engine::<RecursiveEngine, R>(query, input)
-                .wrap_err("Error running the recursive engine.")?;
+            let main_result = run_engine::<MainEngine, R>(query, input).wrap_err("Error running the main engine.")?;
+            let recursive_result =
+                run_engine::<RecursiveEngine, R>(query, input).wrap_err("Error running the recursive engine.")?;
 
             if recursive_result != main_result {
                 return Err(eyre!("Result mismatch!"));
@@ -140,9 +137,8 @@ fn run_engine<C: Compiler, R: QueryResult>(query: &JsonPathQuery, input: &OwnedB
 }
 
 fn parse_query(query_string: &str) -> Result<JsonPathQuery> {
-    JsonPathQuery::parse(query_string).map_err(|err| {
-        report_parser_error(query_string, err).wrap_err("Could not parse JSONPath query.")
-    })
+    JsonPathQuery::parse(query_string)
+        .map_err(|err| report_parser_error(query_string, err).wrap_err("Could not parse JSONPath query."))
 }
 
 fn get_contents(file_path: Option<&str>) -> Result<String> {
@@ -162,11 +158,7 @@ fn get_contents(file_path: Option<&str>) -> Result<String> {
 
 fn configure_logger(verbose: bool) -> Result<()> {
     SimpleLogger::new()
-        .with_level(if verbose {
-            LevelFilter::Trace
-        } else {
-            LevelFilter::Warn
-        })
+        .with_level(if verbose { LevelFilter::Trace } else { LevelFilter::Warn })
         .init()
         .wrap_err("Logger configuration error.")
 }

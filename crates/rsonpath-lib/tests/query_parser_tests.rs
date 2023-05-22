@@ -139,9 +139,7 @@ fn escaped_single_quote_in_single_quote_label() {
 #[test]
 fn unescaped_double_quote_in_single_quote_label() {
     let input = r#"['"']"#;
-    let expected_query = JsonPathQueryBuilder::new()
-        .child(Label::new(r#"\""#))
-        .into();
+    let expected_query = JsonPathQueryBuilder::new().child(Label::new(r#"\""#)).into();
 
     let result = JsonPathQuery::parse(input).expect("expected Ok");
 
@@ -255,21 +253,17 @@ mod proptests {
 
     // .label or ['label']
     fn any_child() -> impl Strategy<Value = Selector> {
-        prop_oneof![any_label().prop_map(|x| (format!(".{x}"), x)), any_index(),].prop_map(
-            |(s, l)| Selector {
-                string: s,
-                tag: SelectorTag::Child(l),
-            },
-        )
+        prop_oneof![any_label().prop_map(|x| (format!(".{x}"), x)), any_index(),].prop_map(|(s, l)| Selector {
+            string: s,
+            tag: SelectorTag::Child(l),
+        })
     }
 
     // ..label or ..['label']
     fn any_descendant() -> impl Strategy<Value = Selector> {
-        prop_oneof![any_label().prop_map(|x| (x.clone(), x)), any_index(),].prop_map(|(x, l)| {
-            Selector {
-                string: format!("..{x}"),
-                tag: SelectorTag::Descendant(l),
-            }
+        prop_oneof![any_label().prop_map(|x| (x.clone(), x)), any_index(),].prop_map(|(x, l)| Selector {
+            string: format!("..{x}"),
+            tag: SelectorTag::Descendant(l),
         })
     }
 

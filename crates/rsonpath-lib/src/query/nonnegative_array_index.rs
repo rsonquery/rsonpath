@@ -56,9 +56,7 @@ impl NonNegativeArrayIndex {
             self.0 = new_index;
             Ok(())
         } else {
-            Err(ArrayIndexError::ExceedsUpperLimitError(
-                new_index.to_string(),
-            ))
+            Err(ArrayIndexError::ExceedsUpperLimitError(new_index.to_string()))
         }
     }
 
@@ -95,8 +93,7 @@ mod tests {
 
     #[test]
     fn index_ulimit_parse_check() {
-        NonNegativeArrayIndex::try_from(ARRAY_INDEX_ULIMIT)
-            .expect("Array index ulimit should be convertible.");
+        NonNegativeArrayIndex::try_from(ARRAY_INDEX_ULIMIT).expect("Array index ulimit should be convertible.");
 
         NonNegativeArrayIndex::try_from(ARRAY_INDEX_ULIMIT + 1)
             .expect_err("Values in excess of array index ulimit should not be convertible.");

@@ -244,11 +244,7 @@ impl JsonPathQueryNodeType for JsonPathQueryNode {
     fn label(&self) -> Option<&Label> {
         match self {
             Child(label, _) | Descendant(label, _) => Some(label),
-            Root(_)
-            | AnyChild(_)
-            | AnyDescendant(_)
-            | ArrayIndexChild(_, _)
-            | ArrayIndexDescendant(_, _) => None,
+            Root(_) | AnyChild(_) | AnyDescendant(_) | ArrayIndexChild(_, _) | ArrayIndexDescendant(_, _) => None,
         }
     }
 
