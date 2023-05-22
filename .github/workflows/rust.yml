@@ -1,6 +1,7 @@
 name: Rust
 
 on:
+  workflow_dispatch:
   push:
     branches: [ "main" ]
   pull_request:
@@ -34,12 +35,12 @@ jobs:
           - os: ubuntu-latest
             triple: aarch64-unknown-linux-gnu
             target-features: ''
-            prologue-script: sudo apt install gcc-aarch64-linux-gnu
+            prologue-script: sudo apt update && sudo apt install gcc-aarch64-linux-gnu
             can-run: false
           - os: ubuntu-latest
             triple: i686-unknown-linux-gnu
             target-features: ''
-            prologue-script: sudo apt install gcc-multilib
+            prologue-script: sudo apt update && sudo apt install gcc-multilib
             can-run: true
           - os: ubuntu-latest
             triple: x86_64-unknown-linux-gnu
