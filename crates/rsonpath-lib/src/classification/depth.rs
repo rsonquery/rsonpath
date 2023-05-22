@@ -125,18 +125,13 @@ pub trait DepthBlock<'a>: Sized {
 
 /// Trait for depth iterators, i.e. finite iterators returning depth information
 /// about JSON documents.
-pub trait DepthIterator<'a, I: Input, Q, const N: usize>:
-    Iterator<Item = Self::Block> + 'a
-{
+pub trait DepthIterator<'a, I: Input, Q, const N: usize>: Iterator<Item = Self::Block> + 'a {
     /// Type of the [`DepthBlock`] implementation used by this iterator.
     type Block: DepthBlock<'a>;
 
     /// Resume classification from a state retrieved by a previous
     /// [`DepthIterator::stop`] or [`StructuralIterator::stop`](`crate::classification::structural::StructuralIterator::stop`) invocation.
-    fn resume(
-        state: ResumeClassifierState<'a, I, Q, N>,
-        opening: BracketType,
-    ) -> (Option<Self::Block>, Self);
+    fn resume(state: ResumeClassifierState<'a, I, Q, N>, opening: BracketType) -> (Option<Self::Block>, Self);
 
     /// Stop classification and return a state object that can be used to resume
     /// a classifier from the place in which the current one was stopped.
@@ -165,10 +160,7 @@ cfg_if! {
 
 /// Enrich quote classified blocks with depth information.
 #[inline(always)]
-pub fn classify_depth<'a, I, Q>(
-    iter: Q,
-    opening: BracketType,
-) -> impl DepthIterator<'a, I, Q, BLOCK_SIZE>
+pub fn classify_depth<'a, I, Q>(iter: Q, opening: BracketType) -> impl DepthIterator<'a, I, Q, BLOCK_SIZE>
 where
     I: Input + 'a,
     Q: QuoteClassifiedIterator<'a, I, BLOCK_SIZE>,

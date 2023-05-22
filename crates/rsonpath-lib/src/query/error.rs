@@ -147,10 +147,7 @@ impl ParseErrorReport {
     }
 
     fn add_new(&mut self, idx: usize) {
-        self.errors.push(ParseError {
-            start_idx: idx,
-            len: 1,
-        })
+        self.errors.push(ParseError { start_idx: idx, len: 1 })
     }
 }
 

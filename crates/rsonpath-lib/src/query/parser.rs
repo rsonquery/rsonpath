@@ -1,11 +1,7 @@
 use super::error::{ArrayIndexError, ParseErrorReport, ParserError};
 use crate::debug;
-use crate::query::{
-    JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label, NonNegativeArrayIndex,
-};
-use nom::{
-    branch::*, bytes::complete::*, character::complete::*, combinator::*, multi::*, sequence::*, *,
-};
+use crate::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label, NonNegativeArrayIndex};
+use nom::{branch::*, bytes::complete::*, character::complete::*, combinator::*, multi::*, sequence::*, *};
 use std::borrow::Borrow;
 use std::fmt::{self, Display};
 
@@ -78,18 +74,13 @@ pub(crate) fn parse_json_path_query(query_string: &str) -> Result<JsonPathQuery,
             debug!(
                 "Parsed tokens: {}",
                 root_token.map_or(String::new(), |x| format!("{x}"))
-                    + &tokens
-                        .iter()
-                        .map(|x| format!("({x:?})"))
-                        .collect::<String>()
+                    + &tokens.iter().map(|x| format!("({x:?})")).collect::<String>()
             );
             let node = tokens_to_node(&mut tokens.into_iter())?;
             Ok(match node {
                 None => JsonPathQuery::new(Box::new(JsonPathQueryNode::Root(None))),
                 Some(node) if node.is_root() => JsonPathQuery::new(Box::new(node)),
-                Some(node) => {
-                    JsonPathQuery::new(Box::new(JsonPathQueryNode::Root(Some(Box::new(node)))))
-                }
+                Some(node) => JsonPathQuery::new(Box::new(JsonPathQueryNode::Root(Some(Box::new(node))))),
             })
         }
         _ => {
@@ -97,51 +88,34 @@ pub(crate) fn parse_json_path_query(query_string: &str) -> Result<JsonPathQuery,
             let mut continuation = finished.map(|x| x.0);
             loop {
                 match continuation {
-                    Ok("") => {
-                        return Err(ParserError::SyntaxError {
-                            report: parse_errors,
-                        })
-                    }
+                    Ok("") => return Err(ParserError::SyntaxError { report: parse_errors }),
                     Ok(remaining) => {
                         let error_character_index = query_string.len() - remaining.len();
                         parse_errors.record_at(error_character_index);
                         continuation = non_root()(&remaining[1..]).finish().map(|x| x.0);
                     }
-                    Err(e) => {
-                        return Err(nom::error::Error::new(query_string.to_owned(), e.code).into())
-                    }
+                    Err(e) => return Err(nom::error::Error::new(query_string.to_owned(), e.code).into()),
                 }
             }
         }
     }
 }
 
-fn tokens_to_node<'a, I: Iterator<Item = Token<'a>>>(
-    tokens: &mut I,
-) -> Result<Option<JsonPathQueryNode>, ParserError> {
+fn tokens_to_node<'a, I: Iterator<Item = Token<'a>>>(tokens: &mut I) -> Result<Option<JsonPathQueryNode>, ParserError> {
     match tokens.next() {
         Some(token) => {
             let child_node = tokens_to_node(tokens)?.map(Box::new);
             match token {
                 Token::Root => Ok(Some(JsonPathQueryNode::Root(child_node))),
-                Token::Child(label) => Ok(Some(JsonPathQueryNode::Child(
-                    Label::new(label.borrow()),
-                    child_node,
-                ))),
-                Token::ArrayIndexChild(i) => {
-                    Ok(Some(JsonPathQueryNode::ArrayIndexChild(i, child_node)))
-                }
+                Token::Child(label) => Ok(Some(JsonPathQueryNode::Child(Label::new(label.borrow()), child_node))),
+                Token::ArrayIndexChild(i) => Ok(Some(JsonPathQueryNode::ArrayIndexChild(i, child_node))),
                 Token::WildcardChild() => Ok(Some(JsonPathQueryNode::AnyChild(child_node))),
                 Token::Descendant(label) => Ok(Some(JsonPathQueryNode::Descendant(
                     Label::new(label.borrow()),
                     child_node,
                 ))),
-                Token::ArrayIndexDescendant(i) => {
-                    Ok(Some(JsonPathQueryNode::ArrayIndexDescendant(i, child_node)))
-                }
-                Token::WildcardDescendant() => {
-                    Ok(Some(JsonPathQueryNode::AnyDescendant(child_node)))
-                }
+                Token::ArrayIndexDescendant(i) => Ok(Some(JsonPathQueryNode::ArrayIndexDescendant(i, child_node))),
+                Token::WildcardDescendant() => Ok(Some(JsonPathQueryNode::AnyDescendant(child_node))),
             }
         }
         _ => Ok(None),
@@ -181,10 +155,9 @@ fn non_root<'a>() -> impl Parser<'a, Vec<Token<'a>>> {
 }
 
 fn wildcard_child_selector<'a>() -> impl Parser<'a, Token<'a>> {
-    map(
-        alt((dot_wildcard_selector(), index_wildcard_selector())),
-        |_| Token::WildcardChild(),
-    )
+    map(alt((dot_wildcard_selector(), index_wildcard_selector())), |_| {
+        Token::WildcardChild()
+    })
 }
 
 fn child_selector<'a>() -> impl Parser<'a, Token<'a>> {
@@ -210,10 +183,9 @@ fn descendant_selector<'a>() -> impl Parser<'a, Token<'a>> {
 }
 
 fn wildcard_descendant_selector<'a>() -> impl Parser<'a, Token<'a>> {
-    map(
-        preceded(tag(".."), alt((char('*'), index_wildcard_selector()))),
-        |_| Token::WildcardDescendant(),
-    )
+    map(preceded(tag(".."), alt((char('*'), index_wildcard_selector()))), |_| {
+        Token::WildcardDescendant()
+    })
 }
 
 fn index_selector<'a>() -> impl Parser<'a, LabelString<'a>> {
@@ -236,9 +208,7 @@ fn label_first<'a>() -> impl Parser<'a, char> {
 }
 
 fn label_character<'a>() -> impl Parser<'a, char> {
-    verify(anychar, |&x| {
-        x.is_alphanumeric() || x == '_' || !x.is_ascii()
-    })
+    verify(anychar, |&x| x.is_alphanumeric() || x == '_' || !x.is_ascii())
 }
 
 fn array_index_child_selector<'a>() -> impl Parser<'a, Token<'a>> {
@@ -261,8 +231,7 @@ fn parsed_array_index<'a>() -> impl Parser<'a, u64> {
     map_res(length_limited_array_index(), str::parse)
 }
 
-const ARRAY_INDEX_ULIMIT_BASE_10_DIGIT_COUNT: usize =
-    NonNegativeArrayIndex::MAX.get_index().ilog10() as usize;
+const ARRAY_INDEX_ULIMIT_BASE_10_DIGIT_COUNT: usize = NonNegativeArrayIndex::MAX.get_index().ilog10() as usize;
 fn length_limited_array_index<'a>() -> impl Parser<'a, &'a str> {
     map_res(digit1, |cs: &str| {
         if cs.len() > (ARRAY_INDEX_ULIMIT_BASE_10_DIGIT_COUNT + 1) {
@@ -280,11 +249,7 @@ fn quoted_label<'a>() -> impl Parser<'a, LabelString<'a>> {
             map(opt(single_quoted_label()), LabelString::from),
             char('\''),
         ),
-        delimited(
-            char('"'),
-            map(opt(double_quoted_label()), LabelString::from),
-            char('"'),
-        ),
+        delimited(char('"'), map(opt(double_quoted_label()), LabelString::from), char('"')),
     ))
 }
 
@@ -481,8 +446,7 @@ mod tests {
     #[test]
     fn should_infer_root_from_empty_string() {
         let input = "";
-        let expected_query =
-            JsonPathQuery::new(Box::new(crate::query::JsonPathQueryNode::Root(None)));
+        let expected_query = JsonPathQuery::new(Box::new(crate::query::JsonPathQueryNode::Root(None)));
 
         let result = parse_json_path_query(input).expect("expected Ok");
 
@@ -492,8 +456,7 @@ mod tests {
     #[test]
     fn root() {
         let input = "$";
-        let expected_query =
-            JsonPathQuery::new(Box::new(crate::query::JsonPathQueryNode::Root(None)));
+        let expected_query = JsonPathQuery::new(Box::new(crate::query::JsonPathQueryNode::Root(None)));
 
         let result = parse_json_path_query(input).expect("expected Ok");
 

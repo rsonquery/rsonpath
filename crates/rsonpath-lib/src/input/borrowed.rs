@@ -61,10 +61,7 @@ impl<'a, const N: usize> BorrowedBytesBlockIterator<'a, N> {
     #[must_use]
     #[inline(always)]
     pub(super) fn new(bytes: &'a [u8]) -> Self {
-        Self {
-            input: bytes,
-            idx: 0,
-        }
+        Self { input: bytes, idx: 0 }
     }
 }
 

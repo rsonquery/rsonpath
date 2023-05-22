@@ -119,14 +119,8 @@ impl<'q> PartialEq for StateTable<'q> {
     fn eq(&self, other: &Self) -> bool {
         self.fallback_state == other.fallback_state
             && self.transitions.len() == other.transitions.len()
-            && self
-                .transitions
-                .iter()
-                .all(|x| other.transitions.contains(x))
-            && other
-                .transitions
-                .iter()
-                .all(|x| self.transitions.contains(x))
+            && self.transitions.iter().all(|x| other.transitions.contains(x))
+            && other.transitions.iter().all(|x| self.transitions.contains(x))
             && self.attributes == other.attributes
     }
 }
@@ -313,11 +307,7 @@ impl<'q> Automaton<'q> {
     /// ```
     #[must_use]
     #[inline(always)]
-    pub fn has_array_index_transition_to_accepting(
-        &self,
-        state: State,
-        match_index: &NonNegativeArrayIndex,
-    ) -> bool {
+    pub fn has_array_index_transition_to_accepting(&self, state: State, match_index: &NonNegativeArrayIndex) -> bool {
         self[state].transitions().iter().any(|t| match t {
             (TransitionLabel::ArrayIndex(i), s) => i.eq(match_index) && self.is_accepting(*s),
             _ => false,
@@ -433,14 +423,7 @@ impl<'q> Display for Automaton<'q> {
                 color_two = "";
             }
 
-            let attrs = vec![
-                shape,
-                "style=filled",
-                "gradientangle=45",
-                color_one,
-                color_two,
-            ]
-            .join(" ");
+            let attrs = vec![shape, "style=filled", "gradientangle=45", color_one, color_two].join(" ");
 
             writeln!(f, "node [{attrs}]; {i}")?;
         }

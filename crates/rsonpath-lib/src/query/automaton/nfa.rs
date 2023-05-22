@@ -68,17 +68,11 @@ impl<'q> NondeterministicAutomaton<'q> {
             .iter()
             .filter_map(|node| match node {
                 JsonPathQueryNode::Root(_) => None,
-                JsonPathQueryNode::Descendant(label, _) => {
-                    Some(Ok(Recursive(Transition::Labelled(label.into()))))
-                }
-                JsonPathQueryNode::Child(label, _) => {
-                    Some(Ok(Direct(Transition::Labelled(label.into()))))
-                }
+                JsonPathQueryNode::Descendant(label, _) => Some(Ok(Recursive(Transition::Labelled(label.into())))),
+                JsonPathQueryNode::Child(label, _) => Some(Ok(Direct(Transition::Labelled(label.into())))),
                 JsonPathQueryNode::AnyChild(_) => Some(Ok(Direct(Transition::Wildcard))),
                 JsonPathQueryNode::AnyDescendant(_) => Some(Ok(Recursive(Transition::Wildcard))),
-                JsonPathQueryNode::ArrayIndexChild(index, _) => {
-                    Some(Ok(Direct(Transition::Labelled((*index).into()))))
-                }
+                JsonPathQueryNode::ArrayIndexChild(index, _) => Some(Ok(Direct(Transition::Labelled((*index).into())))),
                 JsonPathQueryNode::ArrayIndexDescendant(index, _) => {
                     Some(Ok(Recursive(Transition::Labelled((*index).into()))))
                 }
@@ -92,9 +86,7 @@ impl<'q> NondeterministicAutomaton<'q> {
         if let Err(err) = accepting_state {
             Err(CompilerError::QueryTooComplex(Some(err)))
         } else {
-            Ok(NondeterministicAutomaton {
-                ordered_states: states,
-            })
+            Ok(NondeterministicAutomaton { ordered_states: states })
         }
     }
 
@@ -122,15 +114,14 @@ impl<'q> Display for NondeterministicAutomaton<'q> {
     // This is the format for https://paperman.name/semigroup/
     // for easy debugging of minimization.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let all_labels: Vec<_> =
-            self.ordered_states
-                .iter()
-                .filter_map(|s| match s {
-                    Direct(Transition::Labelled(label))
-                    | Recursive(Transition::Labelled(label)) => Some(*label),
-                    _ => None,
-                })
-                .collect();
+        let all_labels: Vec<_> = self
+            .ordered_states
+            .iter()
+            .filter_map(|s| match s {
+                Direct(Transition::Labelled(label)) | Recursive(Transition::Labelled(label)) => Some(*label),
+                _ => None,
+            })
+            .collect();
 
         for (i, state) in self.ordered_states.iter().enumerate() {
             match state {

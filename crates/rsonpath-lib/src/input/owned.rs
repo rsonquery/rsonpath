@@ -140,8 +140,7 @@ impl OwnedBytes {
 
     #[inline(always)]
     fn get_layout(size: usize) -> Result<alloc::Layout, InputError> {
-        alloc::Layout::from_size_align(size, MAX_BLOCK_SIZE)
-            .map_err(|_err| InputError::AllocationSizeExceeded)
+        alloc::Layout::from_size_align(size, MAX_BLOCK_SIZE).map_err(|_err| InputError::AllocationSizeExceeded)
     }
 }
 
@@ -198,8 +197,7 @@ impl Drop for OwnedBytes {
 
         // This should never happen and if it did it would cause a memory leak.
         #[allow(clippy::expect_used)]
-        let layout = Self::get_layout(self.capacity)
-            .expect("layout for existing OwnedBytes must never change");
+        let layout = Self::get_layout(self.capacity).expect("layout for existing OwnedBytes must never change");
 
         // SAFETY:
         // `ptr` is allocated in `new` and layout is constructed using the same function

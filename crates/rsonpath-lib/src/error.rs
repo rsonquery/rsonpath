@@ -4,8 +4,7 @@ use thiserror::Error;
 
 pub(crate) const FEATURE_REQUEST_URL: &str =
     "https://github.com/V0ldek/rsonpath/issues/new?template=feature_request.md";
-pub(crate) const BUG_REPORT_URL: &str =
-    "https://github.com/V0ldek/rsonpath/issues/new?template=bug_report.md";
+pub(crate) const BUG_REPORT_URL: &str = "https://github.com/V0ldek/rsonpath/issues/new?template=bug_report.md";
 
 /// Internal irrecoverable error. These are caused solely
 /// by bugs &ndash; broken invariants or assertions in internal logic &ndash;
@@ -43,17 +42,11 @@ impl std::error::Error for InternalErrorSource {
 impl InternalRsonpathError {
     #[allow(unused)]
     pub(crate) fn from_expectation(details: &'static str) -> Self {
-        Self {
-            details,
-            source: None,
-        }
+        Self { details, source: None }
     }
 
     #[allow(unused)]
-    pub(crate) fn from_error<E: std::error::Error + Send + Sync + 'static>(
-        err: E,
-        details: &'static str,
-    ) -> Self {
+    pub(crate) fn from_error<E: std::error::Error + Send + Sync + 'static>(err: E, details: &'static str) -> Self {
         Self {
             details,
             source: Some(InternalErrorSource(Box::new(err))),
@@ -105,10 +98,7 @@ impl UnsupportedFeatureError {
     #[must_use]
     #[inline(always)]
     fn untracked(feature: &'static str) -> Self {
-        Self {
-            issue: None,
-            feature,
-        }
+        Self { issue: None, feature }
     }
 
     /// Large JSON Depths feature &ndash; supporting JSON documents

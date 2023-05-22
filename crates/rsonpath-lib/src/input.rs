@@ -53,8 +53,7 @@ use std::ops::Deref;
 ///
 /// Typing `IBlock<'a, I, N>` is a bit more ergonomic than
 /// `<<I as Input>::BlockIterator<'a, N> as InputBlockIterator<'a, N>>::Block`.
-pub type IBlock<'a, I, const N: usize> =
-    <<I as Input>::BlockIterator<'a, N> as InputBlockIterator<'a, N>>::Block;
+pub type IBlock<'a, I, const N: usize> = <<I as Input>::BlockIterator<'a, N> as InputBlockIterator<'a, N>>::Block;
 
 /// Global padding guarantee for all [`Input`] implementations.
 /// Iterating over blocks of at most this size is guaranteed

@@ -12,12 +12,8 @@ cfg_if::cfg_if! {
     }
 }
 
-use crate::classification::structural::{
-    BracketType, QuoteClassifiedIterator, Structural, StructuralIterator,
-};
-use crate::classification::{
-    QuoteClassifiedBlock, ResumeClassifierBlockState, ResumeClassifierState,
-};
+use crate::classification::structural::{BracketType, QuoteClassifiedIterator, Structural, StructuralIterator};
+use crate::classification::{QuoteClassifiedBlock, ResumeClassifierBlockState, ResumeClassifierState};
 use crate::input::{IBlock, Input, InputBlock};
 use crate::{bin, debug};
 
@@ -139,10 +135,7 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> Iterator for Avx2Class
     }
 }
 
-impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> std::iter::FusedIterator
-    for Avx2Classifier<'a, I, Q>
-{
-}
+impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> std::iter::FusedIterator for Avx2Classifier<'a, I, Q> {}
 
 impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> StructuralIterator<'a, I, Q, 64>
     for Avx2Classifier<'a, I, Q>
@@ -270,43 +263,31 @@ struct BlockClassification {
 
 impl BlockAvx2Classifier {
     const LOWER_NIBBLE_MASK_ARRAY: [u8; 32] = [
-        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x03, 0x01, 0x02, 0x01, 0xff,
-        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x03, 0x01, 0x02, 0x01,
-        0xff, 0xff,
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x03, 0x01, 0x02, 0x01, 0xff, 0xff, 0xff, 0xff,
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x03, 0x01, 0x02, 0x01, 0xff, 0xff,
     ];
     const UPPER_NIBBLE_MASK_ARRAY: [u8; 32] = [
-        0xfe, 0xfe, 0x10, 0x10, 0xfe, 0x01, 0xfe, 0x01, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe,
-        0xfe, 0xfe, 0xfe, 0x10, 0x10, 0xfe, 0x01, 0xfe, 0x01, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe,
-        0xfe, 0xfe,
+        0xfe, 0xfe, 0x10, 0x10, 0xfe, 0x01, 0xfe, 0x01, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe,
+        0x10, 0x10, 0xfe, 0x01, 0xfe, 0x01, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe,
     ];
     const COMMAS_TOGGLE_MASK_ARRAY: [u8; 32] = [
-        0x00, 0x00, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00,
+        0x00, 0x00, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     ];
     const COLON_TOGGLE_MASK_ARRAY: [u8; 32] = [
-        0x00, 0x00, 0x00, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00,
+        0x00, 0x00, 0x00, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     ];
 
     #[target_feature(enable = "avx2")]
     #[inline]
     unsafe fn new() -> Self {
         Self {
-            lower_nibble_mask: _mm256_loadu_si256(
-                Self::LOWER_NIBBLE_MASK_ARRAY.as_ptr().cast::<__m256i>(),
-            ),
-            upper_nibble_mask: _mm256_loadu_si256(
-                Self::UPPER_NIBBLE_MASK_ARRAY.as_ptr().cast::<__m256i>(),
-            ),
+            lower_nibble_mask: _mm256_loadu_si256(Self::LOWER_NIBBLE_MASK_ARRAY.as_ptr().cast::<__m256i>()),
+            upper_nibble_mask: _mm256_loadu_si256(Self::UPPER_NIBBLE_MASK_ARRAY.as_ptr().cast::<__m256i>()),
             upper_nibble_zeroing_mask: _mm256_set1_epi8(0x0F),
-            commas_toggle_mask: _mm256_loadu_si256(
-                Self::COMMAS_TOGGLE_MASK_ARRAY.as_ptr().cast::<__m256i>(),
-            ),
-            colons_toggle_mask: _mm256_loadu_si256(
-                Self::COLON_TOGGLE_MASK_ARRAY.as_ptr().cast::<__m256i>(),
-            ),
+            commas_toggle_mask: _mm256_loadu_si256(Self::COMMAS_TOGGLE_MASK_ARRAY.as_ptr().cast::<__m256i>()),
+            colons_toggle_mask: _mm256_loadu_si256(Self::COLON_TOGGLE_MASK_ARRAY.as_ptr().cast::<__m256i>()),
         }
     }
 
@@ -332,8 +313,7 @@ impl BlockAvx2Classifier {
         let classification1 = self.classify_block(block1);
         let classification2 = self.classify_block(block2);
 
-        let structural =
-            u64::from(classification1.structural) | (u64::from(classification2.structural) << 32);
+        let structural = u64::from(classification1.structural) | (u64::from(classification2.structural) << 32);
 
         let nonquoted_structural = structural & !quote_classified_block.within_quotes_mask;
 
@@ -348,11 +328,9 @@ impl BlockAvx2Classifier {
     unsafe fn classify_block(&self, block: &[u8]) -> BlockClassification {
         let byte_vector = _mm256_loadu_si256(block.as_ptr().cast::<__m256i>());
         let shifted_byte_vector = _mm256_srli_epi16::<4>(byte_vector);
-        let upper_nibble_byte_vector =
-            _mm256_and_si256(shifted_byte_vector, self.upper_nibble_zeroing_mask);
+        let upper_nibble_byte_vector = _mm256_and_si256(shifted_byte_vector, self.upper_nibble_zeroing_mask);
         let lower_nibble_lookup = _mm256_shuffle_epi8(self.lower_nibble_mask, byte_vector);
-        let upper_nibble_lookup =
-            _mm256_shuffle_epi8(self.upper_nibble_mask, upper_nibble_byte_vector);
+        let upper_nibble_lookup = _mm256_shuffle_epi8(self.upper_nibble_mask, upper_nibble_byte_vector);
         let structural_vector = _mm256_cmpeq_epi8(lower_nibble_lookup, upper_nibble_lookup);
         let structural = _mm256_movemask_epi8(structural_vector) as u32;
 
