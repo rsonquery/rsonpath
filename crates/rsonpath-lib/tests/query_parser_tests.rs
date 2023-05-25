@@ -204,6 +204,7 @@ mod transform_json_escape_sequences_tests {
 mod proptests {
     use super::*;
     use proptest::prelude::*;
+    use rsonpath_lib::query::NonNegativeArrayIndex;
 
     /* Approach: we generate a sequence of Selectors, each having its generated string
      * and a tag describing what selector it represents, and, optionally, what string is attached.
@@ -217,6 +218,8 @@ mod proptests {
         Child(String),
         WildcardDescendant,
         Descendant(String),
+        ArrayIndexChild(NonNegativeArrayIndex),
+        ArrayIndexDescendant(NonNegativeArrayIndex),
     }
 
     #[derive(Debug, Clone)]
@@ -232,6 +235,8 @@ mod proptests {
             any_child(),
             any_wildcard_descendant(),
             any_descendant(),
+            any_array_index_child(),
+            any_array_index_descendant(),
         ]
     }
 
@@ -253,7 +258,7 @@ mod proptests {
 
     // .label or ['label']
     fn any_child() -> impl Strategy<Value = Selector> {
-        prop_oneof![any_member().prop_map(|x| (format!(".{x}"), x)), any_index(),].prop_map(|(s, l)| Selector {
+        prop_oneof![any_member().prop_map(|x| (format!(".{x}"), x)), any_name(),].prop_map(|(s, l)| Selector {
             string: s,
             tag: SelectorTag::Child(l),
         })
@@ -261,9 +266,23 @@ mod proptests {
 
     // ..label or ..['label']
     fn any_descendant() -> impl Strategy<Value = Selector> {
-        prop_oneof![any_member().prop_map(|x| (x.clone(), x)), any_index(),].prop_map(|(x, l)| Selector {
+        prop_oneof![any_member().prop_map(|x| (x.clone(), x)), any_name(),].prop_map(|(x, l)| Selector {
             string: format!("..{x}"),
             tag: SelectorTag::Descendant(l),
+        })
+    }
+
+    fn any_array_index_child() -> impl Strategy<Value = Selector> {
+        any_non_negative_array_index().prop_map(|i| Selector {
+            string: format!("[{}]", i.get_index()),
+            tag: SelectorTag::ArrayIndexChild(i),
+        })
+    }
+
+    fn any_array_index_descendant() -> impl Strategy<Value = Selector> {
+        any_non_negative_array_index().prop_map(|i| Selector {
+            string: format!("..[{}]", i.get_index()),
+            tag: SelectorTag::ArrayIndexDescendant(i),
         })
     }
 
@@ -271,7 +290,7 @@ mod proptests {
         r#"([A-Za-z]|_|[^\u0000-\u007F])([A-Za-z0-9]|_|[^\u0000-\u007F])*"#
     }
 
-    fn any_index() -> impl Strategy<Value = (String, String)> {
+    fn any_name() -> impl Strategy<Value = (String, String)> {
         any_quoted_member().prop_map(|(s, l)| (format!("[{s}]"), l))
     }
 
@@ -288,6 +307,11 @@ mod proptests {
 
     fn any_double_quoted_member() -> impl Strategy<Value = String> {
         r#"([^'"\\\u0000-\u001F]|(\\[btnfr/\\])|[']|(\\"))*"#
+    }
+
+    fn any_non_negative_array_index() -> impl Strategy<Value = NonNegativeArrayIndex> {
+        const MAX: u64 = (1 << 53) - 1;
+        (0..MAX).prop_map(NonNegativeArrayIndex::new)
     }
     // Cspell: enable
 
@@ -308,6 +332,8 @@ mod proptests {
                     SelectorTag::Child(name) => query.child(JsonString::new(&transform_json_escape_sequences(name))),
                     SelectorTag::WildcardDescendant => query.any_descendant(),
                     SelectorTag::Descendant(name) => query.descendant(JsonString::new(&transform_json_escape_sequences(name))),
+                    SelectorTag::ArrayIndexChild(idx) => query.array_index_child(idx),
+                    SelectorTag::ArrayIndexDescendant(idx) => query.array_index_descendant(idx)
                 };
             }
 
