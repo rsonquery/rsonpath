@@ -44,12 +44,12 @@ jobs:
             triple: aarch64-unknown-linux-gnu
             target-features: ''
             artifact-suffix: nosimd
-            prologue-script: sudo apt install gcc-aarch64-linux-gnu
+            prologue-script: sudo apt update && sudo apt install gcc-aarch64-linux-gnu
           - os: ubuntu-latest
             triple: i686-unknown-linux-gnu
             target-features: ''
             artifact-suffix: nosimd
-            prologue-script: sudo apt install gcc-multilib
+            prologue-script: sudo apt update && sudo apt install gcc-multilib
           - os: ubuntu-latest
             triple: x86_64-unknown-linux-gnu
             target-features: +avx2,+pclmulqdq

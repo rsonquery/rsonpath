@@ -1,4 +1,6 @@
 //! Input sourced from a borrowed buffer.
+use crate::query::JsonString;
+
 use super::*;
 
 /// Input wrapping a borrowed [`[u8]`] buffer.
@@ -61,10 +63,7 @@ impl<'a, const N: usize> BorrowedBytesBlockIterator<'a, N> {
     #[must_use]
     #[inline(always)]
     pub(super) fn new(bytes: &'a [u8]) -> Self {
-        Self {
-            input: bytes,
-            idx: 0,
-        }
+        Self { input: bytes, idx: 0 }
     }
 }
 
@@ -96,13 +95,13 @@ impl<'a> Input for BorrowedBytes<'a> {
 
     #[inline]
     #[cfg(feature = "head-skip")]
-    fn find_label(&self, from: usize, label: &Label) -> Option<usize> {
-        in_slice::find_label(self.bytes, from, label)
+    fn find_member(&self, from: usize, member: &JsonString) -> Option<usize> {
+        in_slice::find_member(self.bytes, from, member)
     }
 
     #[inline]
-    fn is_label_match(&self, from: usize, to: usize, label: &Label) -> bool {
-        in_slice::is_label_match(self.bytes, from, to, label)
+    fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> bool {
+        in_slice::is_member_match(self.bytes, from, to, member)
     }
 }
 

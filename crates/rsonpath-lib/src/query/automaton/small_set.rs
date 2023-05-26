@@ -120,9 +120,7 @@ impl SmallSet<u8> for SmallSet128 {
     }
 
     fn iter(&self) -> SmallSet128Iter {
-        SmallSet128Iter {
-            bitmask: self.bitmask,
-        }
+        SmallSet128Iter { bitmask: self.bitmask }
     }
 
     fn singleton(&self) -> Option<u8> {
@@ -213,9 +211,7 @@ impl Iterator for SmallSet256Iter {
     type Item = u8;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.half_1
-            .next()
-            .or_else(|| self.half_2.next().map(|x| x + 128))
+        self.half_1.next().or_else(|| self.half_2.next().map(|x| x + 128))
     }
 }
 

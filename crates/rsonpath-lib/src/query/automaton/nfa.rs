@@ -1,10 +1,8 @@
 //! Definition of a nondeterministic automaton that can be directly
 //! obtained from a JsonPath query. This is then turned into
 //! a DFA with the minimizer.
-use crate::{
-    error::UnsupportedFeatureError,
-    query::{error::CompilerError, JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label},
-};
+use super::TransitionLabel;
+use crate::query::{error::CompilerError, JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType};
 use std::{fmt::Display, ops::Index};
 
 /// An NFA representing a query. It is always a directed path
@@ -31,8 +29,8 @@ use NfaState::*;
 /// A transition in the NFA mapped from a [`JsonPathQuery`] selector.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(super) enum Transition<'q> {
-    /// A transition matching a specific [`Label`] only.
-    Labelled(&'q Label),
+    /// A transition matching a specific label.
+    Labelled(TransitionLabel<'q>),
     /// A transition matching anything.
     Wildcard,
 }
@@ -70,15 +68,14 @@ impl<'q> NondeterministicAutomaton<'q> {
             .iter()
             .filter_map(|node| match node {
                 JsonPathQueryNode::Root(_) => None,
-                JsonPathQueryNode::Descendant(label, _) => {
-                    Some(Ok(Recursive(Transition::Labelled(label))))
-                }
-                JsonPathQueryNode::Child(label, _) => Some(Ok(Direct(Transition::Labelled(label)))),
+                JsonPathQueryNode::Descendant(name, _) => Some(Ok(Recursive(Transition::Labelled(name.into())))),
+                JsonPathQueryNode::Child(name, _) => Some(Ok(Direct(Transition::Labelled(name.into())))),
                 JsonPathQueryNode::AnyChild(_) => Some(Ok(Direct(Transition::Wildcard))),
                 JsonPathQueryNode::AnyDescendant(_) => Some(Ok(Recursive(Transition::Wildcard))),
-                JsonPathQueryNode::ArrayIndex(_, _) => Some(Err(CompilerError::NotSupported(
-                    UnsupportedFeatureError::array_index(),
-                ))),
+                JsonPathQueryNode::ArrayIndexChild(index, _) => Some(Ok(Direct(Transition::Labelled((*index).into())))),
+                JsonPathQueryNode::ArrayIndexDescendant(index, _) => {
+                    Some(Ok(Recursive(Transition::Labelled((*index).into()))))
+                }
             })
             .collect();
         let mut states = states_result?;
@@ -89,9 +86,7 @@ impl<'q> NondeterministicAutomaton<'q> {
         if let Err(err) = accepting_state {
             Err(CompilerError::QueryTooComplex(Some(err)))
         } else {
-            Ok(NondeterministicAutomaton {
-                ordered_states: states,
-            })
+            Ok(NondeterministicAutomaton { ordered_states: states })
         }
     }
 
@@ -119,37 +114,36 @@ impl<'q> Display for NondeterministicAutomaton<'q> {
     // This is the format for https://paperman.name/semigroup/
     // for easy debugging of minimization.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let all_labels: Vec<_> =
-            self.ordered_states
-                .iter()
-                .filter_map(|s| match s {
-                    Direct(Transition::Labelled(label))
-                    | Recursive(Transition::Labelled(label)) => Some(*label),
-                    _ => None,
-                })
-                .collect();
+        let all_labels: Vec<_> = self
+            .ordered_states
+            .iter()
+            .filter_map(|s| match s {
+                Direct(Transition::Labelled(label)) | Recursive(Transition::Labelled(label)) => Some(*label),
+                _ => None,
+            })
+            .collect();
 
         for (i, state) in self.ordered_states.iter().enumerate() {
             match state {
                 Direct(Transition::Labelled(label)) => {
-                    writeln!(f, "s{i}.{} -> s{};", label.display(), i + 1)?;
+                    writeln!(f, "s{i}.{} -> s{};", label, i + 1)?;
                 }
                 Direct(Transition::Wildcard) => {
                     for label in &all_labels {
-                        writeln!(f, "s{i}.{} -> s{};", label.display(), i + 1)?;
+                        writeln!(f, "s{i}.{} -> s{};", label, i + 1)?;
                     }
                     writeln!(f, "s{i}.X -> s{};", i + 1)?;
                 }
                 Recursive(Transition::Labelled(label)) => {
-                    writeln!(f, "s{i}.{} -> s{i}, s{};", label.display(), i + 1)?;
+                    writeln!(f, "s{i}.{} -> s{i}, s{};", label, i + 1)?;
                     for label in all_labels.iter().filter(|&l| l != label) {
-                        writeln!(f, "s{i}.{} -> s{i};", label.display())?;
+                        writeln!(f, "s{i}.{} -> s{i};", label)?;
                     }
                     writeln!(f, "s{i}.X -> s{i};")?;
                 }
                 Recursive(Transition::Wildcard) => {
                     for label in &all_labels {
-                        writeln!(f, "s{i}.{} -> s{i}, s{};", label.display(), i + 1)?;
+                        writeln!(f, "s{i}.{} -> s{i}, s{};", label, i + 1)?;
                     }
                     writeln!(f, "s{i}.X -> s{i}, s{};", i + 1)?;
                 }

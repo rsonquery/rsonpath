@@ -47,7 +47,7 @@ pub use borrowed::BorrowedBytes;
 pub use buffered::BufferedInput;
 pub use owned::OwnedBytes;
 
-use crate::query::Label;
+use crate::query::JsonString;
 use std::ops::Deref;
 
 /// Shorthand for the associated [`InputBlock`] type for given
@@ -55,8 +55,7 @@ use std::ops::Deref;
 ///
 /// Typing `IBlock<'a, I, N>` is a bit more ergonomic than
 /// `<<I as Input>::BlockIterator<'a, N> as InputBlockIterator<'a, N>>::Block`.
-pub type IBlock<'a, I, const N: usize> =
-    <<I as Input>::BlockIterator<'a, N> as InputBlockIterator<'a, N>>::Block;
+pub type IBlock<'a, I, const N: usize> = <<I as Input>::BlockIterator<'a, N> as InputBlockIterator<'a, N>>::Block;
 
 #[macro_export]
 macro_rules! repr_align_block_size {
@@ -111,27 +110,27 @@ pub trait Input: Sized {
     #[must_use]
     fn seek_non_whitespace_backward(&self, from: usize) -> Option<(usize, u8)>;
 
-    /// Search the input for the first occurrence of `label`
+    /// Search the input for the first occurrence of member name `member`
     /// (comparing bitwise, including double quotes delimiters)
     /// starting from `from`. Returns the index of the first occurrence,
     /// or `None` if no occurrence was found.
     ///
     /// This will also check if the leading double quote is not
     /// escaped by a backslash character, but will ignore any other
-    /// structural properties of the input. In particular, the label
+    /// structural properties of the input. In particular, the member
     /// might be found at an arbitrary depth.
     #[cfg(feature = "head-skip")]
     #[must_use]
-    fn find_label(&self, from: usize, label: &Label) -> Option<usize>;
+    fn find_member(&self, from: usize, member: &JsonString) -> Option<usize>;
 
     /// Decide whether the slice of input between `from` (inclusive)
-    /// and `to` (exclusive) matches the `label` (comparing bitwise,
+    /// and `to` (exclusive) matches the `member` (comparing bitwise,
     /// including double quotes delimiters).
     ///
     /// This will also check if the leading double quote is not
     /// escaped by a backslash character.
     #[must_use]
-    fn is_label_match(&self, from: usize, to: usize, label: &Label) -> bool;
+    fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> bool;
 }
 
 /// An iterator over blocks of input of size `N`.
@@ -162,7 +161,7 @@ impl<'a, const N: usize> InputBlock<'a, N> for &'a [u8] {
 }
 
 pub(super) mod in_slice {
-    use crate::query::Label;
+    use crate::query::JsonString;
 
     #[inline]
     pub(super) fn seek_backward(bytes: &[u8], from: usize, needle: u8) -> Option<usize> {
@@ -213,10 +212,10 @@ pub(super) mod in_slice {
 
     #[inline]
     #[cfg(feature = "head-skip")]
-    pub(super) fn find_label(bytes: &[u8], from: usize, label: &Label) -> Option<usize> {
+    pub(super) fn find_member(bytes: &[u8], from: usize, member: &JsonString) -> Option<usize> {
         use memchr::memmem;
 
-        let finder = memmem::Finder::new(label.bytes_with_quotes());
+        let finder = memmem::Finder::new(member.bytes_with_quotes());
         let mut idx = from;
         let brr = bytes.len();
 
@@ -227,7 +226,7 @@ pub(super) mod in_slice {
                     if bytes[starting_quote_idx - 1] != b'\\' {
                         return Some(starting_quote_idx);
                     } else {
-                        idx = starting_quote_idx + label.bytes_with_quotes().len() + 1;
+                        idx = starting_quote_idx + member.bytes_with_quotes().len() + 1;
                     }
                 }
                 None => return None,
@@ -236,8 +235,8 @@ pub(super) mod in_slice {
     }
 
     #[inline]
-    pub(super) fn is_label_match(bytes: &[u8], from: usize, to: usize, label: &Label) -> bool {
+    pub(super) fn is_member_match(bytes: &[u8], from: usize, to: usize, member: &JsonString) -> bool {
         let slice = &bytes[from..to];
-        label.bytes_with_quotes() == slice && (from == 0 || bytes[from - 1] != b'\\')
+        member.bytes_with_quotes() == slice && (from == 0 || bytes[from - 1] != b'\\')
     }
 }

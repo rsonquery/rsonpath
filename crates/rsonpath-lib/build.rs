@@ -12,7 +12,9 @@ fn main() -> eyre::Result<()> {
             }
         }
 
-        Err(eyre::eyre!("Target architecture is not supported by SIMD features of this crate. Disable the default `simd` feature."))
+        Err(eyre::eyre!(
+            "Target architecture is not supported by SIMD features of this crate. Disable the default `simd` feature."
+        ))
     }
     #[cfg(not(feature = "simd"))]
     {

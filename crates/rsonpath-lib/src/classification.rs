@@ -85,9 +85,7 @@ pub struct ResumeClassifierBlockState<'a, I: Input + 'a, const N: usize> {
     pub idx: usize,
 }
 
-impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize>
-    ResumeClassifierState<'a, I, Q, N>
-{
+impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> ResumeClassifierState<'a, I, Q, N> {
     /// Get the index in the original bytes input at which classification has stopped.
     #[inline(always)]
     pub fn get_idx(&self) -> usize {
@@ -118,8 +116,7 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize>
             _ => {
                 let blocks_to_advance = (count - remaining_in_block) / N;
 
-                let remainder =
-                    (self.block.as_ref().map_or(0, |b| b.idx) + count - blocks_to_advance * N) % N;
+                let remainder = (self.block.as_ref().map_or(0, |b| b.idx) + count - blocks_to_advance * N) % N;
 
                 self.iter.offset(blocks_to_advance as isize);
                 let next_block = self.iter.next();
@@ -131,9 +128,6 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize>
             }
         }
 
-        debug!(
-            "offset_bytes({count}) results in idx moved to {}",
-            self.get_idx()
-        );
+        debug!("offset_bytes({count}) results in idx moved to {}", self.get_idx());
     }
 }

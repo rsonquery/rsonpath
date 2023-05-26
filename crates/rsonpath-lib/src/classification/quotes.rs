@@ -105,8 +105,6 @@ cfg_if! {
 /// and classify quoted sequences.
 #[must_use]
 #[inline(always)]
-pub fn classify_quoted_sequences<I: Input>(
-    bytes: &I,
-) -> impl QuoteClassifiedIterator<I, BLOCK_SIZE> {
+pub fn classify_quoted_sequences<I: Input>(bytes: &I) -> impl QuoteClassifiedIterator<I, BLOCK_SIZE> {
     ClassifierImpl::new(bytes)
 }

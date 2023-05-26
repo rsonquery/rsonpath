@@ -6,11 +6,11 @@ mod state;
 
 pub use state::{State, StateAttributes};
 
-use super::{error::CompilerError, JsonPathQuery, Label};
+use super::{error::CompilerError, JsonPathQuery, JsonString, NonNegativeArrayIndex};
 use crate::debug;
 use nfa::NondeterministicAutomaton;
 use smallvec::SmallVec;
-use std::{fmt::Display, ops::Index};
+use std::{borrow::Borrow, fmt::Display, ops::Index};
 
 /// A minimal, deterministic automaton representing a JSONPath query.
 #[derive(Debug, PartialEq, Eq)]
@@ -18,13 +18,84 @@ pub struct Automaton<'q> {
     states: Vec<StateTable<'q>>,
 }
 
+/// Represent the distinct methods of moving on a match between states.
+#[derive(Debug, Copy, PartialEq, Clone, Eq)]
+pub enum TransitionLabel<'q> {
+    /// Transition when a JSON member name matches a [`JsonString`]i.
+    ObjectMember(&'q JsonString),
+    /// Transition on the n-th element of an array, with n specified by a [`NonNegativeArrayIndex`].
+    ArrayIndex(NonNegativeArrayIndex),
+}
+
+impl<'q> TransitionLabel<'q> {
+    ///Return the textual [`JsonString`] being wrapped if so. Returns [`None`] otherwise.
+    #[must_use]
+    #[inline(always)]
+    pub fn get_member_name(&self) -> Option<&'q JsonString> {
+        match self {
+            TransitionLabel::ObjectMember(name) => Some(name),
+            TransitionLabel::ArrayIndex(_) => None,
+        }
+    }
+
+    ///Return the [`NonNegativeArrayIndex`] being wrapped if so. Returns [`None`] otherwise.
+    #[must_use]
+    #[inline(always)]
+    pub fn get_array_index(&'q self) -> Option<&'q NonNegativeArrayIndex> {
+        match self {
+            TransitionLabel::ArrayIndex(name) => Some(name),
+            TransitionLabel::ObjectMember(_) => None,
+        }
+    }
+
+    /// Wraps a [`JsonString`] in a [`TransitionLabel`].
+    #[must_use]
+    #[inline(always)]
+    pub fn new_object_member(member_name: &'q JsonString) -> Self {
+        TransitionLabel::ObjectMember(member_name)
+    }
+
+    /// Wraps a [`NonNegativeArrayIndex`] in a [`TransitionLabel`].
+    #[must_use]
+    #[inline(always)]
+    pub fn new_array_index(index: NonNegativeArrayIndex) -> Self {
+        TransitionLabel::ArrayIndex(index)
+    }
+}
+
+impl<'q> From<&'q JsonString> for TransitionLabel<'q> {
+    #[must_use]
+    #[inline(always)]
+    fn from(member_name: &'q JsonString) -> Self {
+        TransitionLabel::new_object_member(member_name)
+    }
+}
+
+impl Display for TransitionLabel<'_> {
+    #[inline(always)]
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TransitionLabel::ObjectMember(name) => write!(f, "{}", name.display()),
+            TransitionLabel::ArrayIndex(index) => write!(f, "{}", index.get_index()),
+        }
+    }
+}
+
+impl<T: Borrow<NonNegativeArrayIndex>> From<T> for TransitionLabel<'_> {
+    #[must_use]
+    #[inline(always)]
+    fn from(index: T) -> Self {
+        TransitionLabel::new_array_index(*index.borrow())
+    }
+}
+
 /// A single transition of an [`Automaton`].
-type Transition<'q> = (&'q Label, State);
+type Transition<'q> = (TransitionLabel<'q>, State);
 
 /// A transition table of a single [`State`] of an [`Automaton`].
 ///
-/// Contains transitions triggered by matching labels, and a fallback transition
-/// triggered when none of the label transitions match.
+/// Contains transitions triggered by matching member names or array indices, and a fallback transition
+/// triggered when none of the labelled transitions match.
 #[derive(Debug)]
 pub struct StateTable<'q> {
     attributes: StateAttributes,
@@ -48,14 +119,8 @@ impl<'q> PartialEq for StateTable<'q> {
     fn eq(&self, other: &Self) -> bool {
         self.fallback_state == other.fallback_state
             && self.transitions.len() == other.transitions.len()
-            && self
-                .transitions
-                .iter()
-                .all(|x| other.transitions.contains(x))
-            && other
-                .transitions
-                .iter()
-                .all(|x| self.transitions.contains(x))
+            && self.transitions.iter().all(|x| other.transitions.contains(x))
+            && other.transitions.iter().all(|x| self.transitions.contains(x))
             && self.attributes == other.attributes
     }
 }
@@ -156,6 +221,99 @@ impl<'q> Automaton<'q> {
         self[state].attributes.is_accepting()
     }
 
+    /// Returns whether the given state transitions to any list.
+    ///
+    /// # Example
+    /// ```rust
+    /// # use rsonpath_lib::query::*;
+    /// # use rsonpath_lib::query::automaton::*;
+    /// let query = JsonPathQuery::parse("$[2]").unwrap();
+    /// let automaton = Automaton::new(&query).unwrap();
+    /// let state = automaton.initial_state();
+    ///
+    /// assert!(automaton.has_any_array_item_transition(state));
+    /// ```
+    #[must_use]
+    #[inline(always)]
+    pub fn has_any_array_item_transition(&self, state: State) -> bool {
+        self[state]
+            .transitions()
+            .iter()
+            .any(|t| matches!(t, (TransitionLabel::ArrayIndex(_), _)))
+    }
+
+    /// Returns whether the given state is accepting an item in a list.
+    ///
+    /// # Example
+    /// ```rust
+    /// # use rsonpath_lib::query::*;
+    /// # use rsonpath_lib::query::automaton::*;
+    /// let query = JsonPathQuery::parse("$[2]").unwrap();
+    /// let automaton = Automaton::new(&query).unwrap();
+    /// let state = automaton.initial_state();
+    ///
+    /// assert!(automaton.has_any_array_item_transition_to_accepting(state));
+    /// ```
+    #[must_use]
+    #[inline(always)]
+    pub fn has_any_array_item_transition_to_accepting(&self, state: State) -> bool {
+        self[state].transitions().iter().any(|t| match t {
+            (TransitionLabel::ArrayIndex(_), s) => self.is_accepting(*s),
+            _ => false,
+        })
+    }
+
+    /// Returns whether the given state is accepting the first item in a list.
+    ///
+    /// # Example
+    /// ```rust
+    /// # use rsonpath_lib::query::*;
+    /// # use rsonpath_lib::query::automaton::*;
+    /// let query = JsonPathQuery::parse("$[0]").unwrap();
+    /// let automaton = Automaton::new(&query).unwrap();
+    /// let state = automaton.initial_state();
+    ///
+    /// assert!(automaton.has_first_array_index_transition_to_accepting(state));
+    /// ```
+    /// ```rust
+    /// # use rsonpath_lib::query::*;
+    /// # use rsonpath_lib::query::automaton::*;
+    /// let query = JsonPathQuery::parse("$[1]").unwrap();
+    /// let automaton = Automaton::new(&query).unwrap();
+    /// let state = automaton.initial_state();
+    ///
+    /// assert!(!automaton.has_first_array_index_transition_to_accepting(state));
+    /// ```
+    #[must_use]
+    #[inline(always)]
+    pub fn has_first_array_index_transition_to_accepting(&self, state: State) -> bool {
+        self.has_array_index_transition_to_accepting(state, &NonNegativeArrayIndex::ZERO)
+    }
+
+    /// Returns whether the given state is accepting the item at a given index in a list.
+    ///
+    /// # Example
+    /// ```rust
+    /// # use rsonpath_lib::query::*;
+    /// # use rsonpath_lib::query::automaton::*;
+    /// let query = JsonPathQuery::parse("$[1]").unwrap();
+    /// let automaton = Automaton::new(&query).unwrap();
+    /// let state = automaton.initial_state();
+    /// let match_index_1 = NonNegativeArrayIndex::new(1);
+    /// let match_index_2 = NonNegativeArrayIndex::new(2);
+    ///
+    /// assert!(automaton.has_array_index_transition_to_accepting(state, &match_index_1));
+    /// assert!(!automaton.has_array_index_transition_to_accepting(state, &match_index_2));
+    /// ```
+    #[must_use]
+    #[inline(always)]
+    pub fn has_array_index_transition_to_accepting(&self, state: State, match_index: &NonNegativeArrayIndex) -> bool {
+        self[state].transitions().iter().any(|t| match t {
+            (TransitionLabel::ArrayIndex(i), s) => i.eq(match_index) && self.is_accepting(*s),
+            _ => false,
+        })
+    }
+
     /// Returns whether the given state has any transitions
     /// (labelled or fallback) to an accepting state.
     ///
@@ -232,7 +390,7 @@ impl<'q> StateTable<'q> {
 
     /// Returns the collection of labelled transitions from this state.
     ///
-    /// A transition is triggered if the [`Label`] is matched and leads
+    /// A transition is triggered if the [`TransitionLabel`] is matched and leads
     /// to the contained [`State`].
     #[must_use]
     #[inline(always)]
@@ -265,21 +423,14 @@ impl<'q> Display for Automaton<'q> {
                 color_two = "";
             }
 
-            let attrs = vec![
-                shape,
-                "style=filled",
-                "gradientangle=45",
-                color_one,
-                color_two,
-            ]
-            .join(" ");
+            let attrs = vec![shape, "style=filled", "gradientangle=45", color_one, color_two].join(" ");
 
             writeln!(f, "node [{attrs}]; {i}")?;
         }
 
         for (i, transitions) in self.states.iter().enumerate() {
             for (label, state) in transitions.transitions.iter() {
-                writeln!(f, "  {i} -> {} [label=\"{}\"]", state.0, label.display(),)?
+                writeln!(f, "  {i} -> {} [label=\"{}\"]", state.0, label,)?
             }
             writeln!(f, "  {i} -> {} [label=\"*\"]", transitions.fallback_state.0)?;
         }

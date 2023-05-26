@@ -1,27 +1,23 @@
 use super::error::{ArrayIndexError, ParseErrorReport, ParserError};
-use super::ARRAY_INDEX_ULIMIT;
 use crate::debug;
-use crate::query::{
-    JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, Label, NonNegativeArrayIndex,
-};
-use nom::{
-    branch::*, bytes::complete::*, character::complete::*, combinator::*, multi::*, sequence::*, *,
-};
+use crate::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, JsonString, NonNegativeArrayIndex};
+use nom::{branch::*, bytes::complete::*, character::complete::*, combinator::*, multi::*, sequence::*, *};
 use std::borrow::Borrow;
 use std::fmt::{self, Display};
 
 #[derive(Debug, Clone)]
 enum Token<'a> {
     Root,
-    Child(LabelString<'a>),
-    ArrayIndex(NonNegativeArrayIndex),
+    Child(MemberString<'a>),
+    ArrayIndexChild(NonNegativeArrayIndex),
     WildcardChild(),
-    Descendant(LabelString<'a>),
+    Descendant(MemberString<'a>),
+    ArrayIndexDescendant(NonNegativeArrayIndex),
     WildcardDescendant(),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-enum LabelString<'a> {
+enum MemberString<'a> {
     Borrowed(&'a str),
     Owned(String),
 }
@@ -30,39 +26,40 @@ impl Display for Token<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Token::Root => write!(f, "$"),
-            Token::Child(label) => write!(f, "['{label}']"),
-            Token::ArrayIndex(i) => write!(f, "[{i}]"),
+            Token::Child(member) => write!(f, "['{member}']"),
+            Token::ArrayIndexChild(i) => write!(f, "[{i}]"),
             Token::WildcardChild() => write!(f, "[*]"),
-            Token::Descendant(label) => write!(f, "..['{label}']"),
+            Token::Descendant(member) => write!(f, "..['{member}']"),
             Token::WildcardDescendant() => write!(f, "..[*]"),
+            Token::ArrayIndexDescendant(i) => write!(f, "..[{i}]"),
         }
     }
 }
 
-impl Display for LabelString<'_> {
+impl Display for MemberString<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            LabelString::Borrowed(label) => write!(f, "{label}"),
-            LabelString::Owned(label) => write!(f, "{label}"),
+            MemberString::Borrowed(member) => write!(f, "{member}"),
+            MemberString::Owned(member) => write!(f, "{member}"),
         }
     }
 }
 
-impl<'a> Borrow<str> for LabelString<'a> {
+impl<'a> Borrow<str> for MemberString<'a> {
     fn borrow(&self) -> &str {
         match self {
-            LabelString::Borrowed(label) => label,
-            LabelString::Owned(label) => label,
+            MemberString::Borrowed(member) => member,
+            MemberString::Owned(member) => member,
         }
     }
 }
 
-impl<'a> From<Option<String>> for LabelString<'a> {
+impl<'a> From<Option<String>> for MemberString<'a> {
     #[inline]
     fn from(value: Option<String>) -> Self {
         match value {
-            Some(label) => LabelString::Owned(label),
-            None => LabelString::Borrowed(""),
+            Some(member) => MemberString::Owned(member),
+            None => MemberString::Borrowed(""),
         }
     }
 }
@@ -77,18 +74,13 @@ pub(crate) fn parse_json_path_query(query_string: &str) -> Result<JsonPathQuery,
             debug!(
                 "Parsed tokens: {}",
                 root_token.map_or(String::new(), |x| format!("{x}"))
-                    + &tokens
-                        .iter()
-                        .map(|x| format!("({x:?})"))
-                        .collect::<String>()
+                    + &tokens.iter().map(|x| format!("({x:?})")).collect::<String>()
             );
             let node = tokens_to_node(&mut tokens.into_iter())?;
             Ok(match node {
                 None => JsonPathQuery::new(Box::new(JsonPathQueryNode::Root(None))),
                 Some(node) if node.is_root() => JsonPathQuery::new(Box::new(node)),
-                Some(node) => {
-                    JsonPathQuery::new(Box::new(JsonPathQueryNode::Root(Some(Box::new(node)))))
-                }
+                Some(node) => JsonPathQuery::new(Box::new(JsonPathQueryNode::Root(Some(Box::new(node))))),
             })
         }
         _ => {
@@ -96,46 +88,37 @@ pub(crate) fn parse_json_path_query(query_string: &str) -> Result<JsonPathQuery,
             let mut continuation = finished.map(|x| x.0);
             loop {
                 match continuation {
-                    Ok("") => {
-                        return Err(ParserError::SyntaxError {
-                            report: parse_errors,
-                        })
-                    }
+                    Ok("") => return Err(ParserError::SyntaxError { report: parse_errors }),
                     Ok(remaining) => {
                         let error_character_index = query_string.len() - remaining.len();
                         parse_errors.record_at(error_character_index);
                         continuation = non_root()(&remaining[1..]).finish().map(|x| x.0);
                     }
-                    Err(e) => {
-                        return Err(nom::error::Error::new(query_string.to_owned(), e.code).into())
-                    }
+                    Err(e) => return Err(nom::error::Error::new(query_string.to_owned(), e.code).into()),
                 }
             }
         }
     }
 }
 
-fn tokens_to_node<'a, I: Iterator<Item = Token<'a>>>(
-    tokens: &mut I,
-) -> Result<Option<JsonPathQueryNode>, ParserError> {
+fn tokens_to_node<'a, I: Iterator<Item = Token<'a>>>(tokens: &mut I) -> Result<Option<JsonPathQueryNode>, ParserError> {
     match tokens.next() {
         Some(token) => {
             let child_node = tokens_to_node(tokens)?.map(Box::new);
             match token {
                 Token::Root => Ok(Some(JsonPathQueryNode::Root(child_node))),
-                Token::Child(label) => Ok(Some(JsonPathQueryNode::Child(
-                    Label::new(label.borrow()),
+                Token::Child(member) => Ok(Some(JsonPathQueryNode::Child(
+                    JsonString::new(member.borrow()),
                     child_node,
                 ))),
-                Token::ArrayIndex(i) => Ok(Some(JsonPathQueryNode::ArrayIndex(i, child_node))),
+                Token::ArrayIndexChild(i) => Ok(Some(JsonPathQueryNode::ArrayIndexChild(i, child_node))),
                 Token::WildcardChild() => Ok(Some(JsonPathQueryNode::AnyChild(child_node))),
-                Token::Descendant(label) => Ok(Some(JsonPathQueryNode::Descendant(
-                    Label::new(label.borrow()),
+                Token::Descendant(member) => Ok(Some(JsonPathQueryNode::Descendant(
+                    JsonString::new(member.borrow()),
                     child_node,
                 ))),
-                Token::WildcardDescendant() => {
-                    Ok(Some(JsonPathQueryNode::AnyDescendant(child_node)))
-                }
+                Token::ArrayIndexDescendant(i) => Ok(Some(JsonPathQueryNode::ArrayIndexDescendant(i, child_node))),
+                Token::WildcardDescendant() => Ok(Some(JsonPathQueryNode::AnyDescendant(child_node))),
             }
         }
         _ => Ok(None),
@@ -147,8 +130,8 @@ trait Parser<'a, Out>: FnMut(&'a str) -> IResult<&'a str, Out> {}
 impl<'a, Out, T: FnMut(&'a str) -> IResult<&'a str, Out>> Parser<'a, Out> for T {}
 
 /// Helper type for parsers that might return a character that must be escaped
-/// when initialized in a [`Label`]. For example, an unescaped double quote
-/// must always be escaped in a label.
+/// when initialized in a [`JsonString`]. For example, an unescaped double quote
+/// must always be escaped in a string.
 enum MaybeEscapedChar {
     Char(char),
     Escaped(char),
@@ -175,18 +158,17 @@ fn non_root<'a>() -> impl Parser<'a, Vec<Token<'a>>> {
 }
 
 fn wildcard_child_selector<'a>() -> impl Parser<'a, Token<'a>> {
-    map(
-        alt((dot_wildcard_selector(), index_wildcard_selector())),
-        |_| Token::WildcardChild(),
-    )
+    map(alt((dot_wildcard_selector(), index_wildcard_selector())), |_| {
+        Token::WildcardChild()
+    })
 }
 
 fn child_selector<'a>() -> impl Parser<'a, Token<'a>> {
     map(alt((dot_selector(), index_selector())), Token::Child)
 }
 
-fn dot_selector<'a>() -> impl Parser<'a, LabelString<'a>> {
-    preceded(char('.'), label())
+fn dot_selector<'a>() -> impl Parser<'a, MemberString<'a>> {
+    preceded(char('.'), member())
 }
 
 fn dot_wildcard_selector<'a>() -> impl Parser<'a, char> {
@@ -194,46 +176,50 @@ fn dot_wildcard_selector<'a>() -> impl Parser<'a, char> {
 }
 
 fn descendant_selector<'a>() -> impl Parser<'a, Token<'a>> {
-    map(
-        preceded(tag(".."), alt((label(), index_selector()))),
-        Token::Descendant,
+    preceded(
+        tag(".."),
+        alt((
+            map(alt((member(), index_selector())), Token::Descendant),
+            array_index_descendant_selector(),
+        )),
     )
 }
 
 fn wildcard_descendant_selector<'a>() -> impl Parser<'a, Token<'a>> {
-    map(
-        preceded(tag(".."), alt((char('*'), index_wildcard_selector()))),
-        |_| Token::WildcardDescendant(),
-    )
+    map(preceded(tag(".."), alt((char('*'), index_wildcard_selector()))), |_| {
+        Token::WildcardDescendant()
+    })
 }
 
-fn index_selector<'a>() -> impl Parser<'a, LabelString<'a>> {
-    delimited(char('['), quoted_label(), char(']'))
+fn index_selector<'a>() -> impl Parser<'a, MemberString<'a>> {
+    delimited(char('['), quoted_member(), char(']'))
 }
 
 fn index_wildcard_selector<'a>() -> impl Parser<'a, char> {
     delimited(char('['), char('*'), char(']'))
 }
 
-fn label<'a>() -> impl Parser<'a, LabelString<'a>> {
+fn member<'a>() -> impl Parser<'a, MemberString<'a>> {
     map(
-        recognize(pair(label_first(), many0(label_character()))),
-        LabelString::Borrowed,
+        recognize(pair(member_first(), many0(member_character()))),
+        MemberString::Borrowed,
     )
 }
 
-fn label_first<'a>() -> impl Parser<'a, char> {
+fn member_first<'a>() -> impl Parser<'a, char> {
     verify(anychar, |&x| x.is_alpha() || x == '_' || !x.is_ascii())
 }
 
-fn label_character<'a>() -> impl Parser<'a, char> {
-    verify(anychar, |&x| {
-        x.is_alphanumeric() || x == '_' || !x.is_ascii()
-    })
+fn member_character<'a>() -> impl Parser<'a, char> {
+    verify(anychar, |&x| x.is_alphanumeric() || x == '_' || !x.is_ascii())
 }
 
 fn array_index_child_selector<'a>() -> impl Parser<'a, Token<'a>> {
-    map(array_index_selector(), Token::ArrayIndex)
+    map(array_index_selector(), Token::ArrayIndexChild)
+}
+
+fn array_index_descendant_selector<'a>() -> impl Parser<'a, Token<'a>> {
+    map(array_index_selector(), Token::ArrayIndexDescendant)
 }
 
 fn array_index_selector<'a>() -> impl Parser<'a, NonNegativeArrayIndex> {
@@ -248,7 +234,7 @@ fn parsed_array_index<'a>() -> impl Parser<'a, u64> {
     map_res(length_limited_array_index(), str::parse)
 }
 
-const ARRAY_INDEX_ULIMIT_BASE_10_DIGIT_COUNT: usize = ARRAY_INDEX_ULIMIT.ilog10() as usize;
+const ARRAY_INDEX_ULIMIT_BASE_10_DIGIT_COUNT: usize = NonNegativeArrayIndex::MAX.get_index().ilog10() as usize;
 fn length_limited_array_index<'a>() -> impl Parser<'a, &'a str> {
     map_res(digit1, |cs: &str| {
         if cs.len() > (ARRAY_INDEX_ULIMIT_BASE_10_DIGIT_COUNT + 1) {
@@ -259,25 +245,25 @@ fn length_limited_array_index<'a>() -> impl Parser<'a, &'a str> {
     })
 }
 
-fn quoted_label<'a>() -> impl Parser<'a, LabelString<'a>> {
+fn quoted_member<'a>() -> impl Parser<'a, MemberString<'a>> {
     alt((
         delimited(
             char('\''),
-            map(opt(single_quoted_label()), LabelString::from),
+            map(opt(single_quoted_member()), MemberString::from),
             char('\''),
         ),
         delimited(
             char('"'),
-            map(opt(double_quoted_label()), LabelString::from),
+            map(opt(double_quoted_member()), MemberString::from),
             char('"'),
         ),
     ))
 }
 
-fn single_quoted_label<'a>() -> impl Parser<'a, String> {
+fn single_quoted_member<'a>() -> impl Parser<'a, String> {
     escaped_transform(
-        // If ['"'] is parsed, we want the label to be \", not ", since
-        // in a valid JSON document the only way to represent a double quote in a label is with an escape.
+        // If ['"'] is parsed, we want the string to be \", not ", since
+        // in a valid JSON document the only way to represent a double quote in a string is with an escape.
         map(
             many1(alt((
                 map(unescaped(), MaybeEscapedChar::Char),
@@ -290,11 +276,11 @@ fn single_quoted_label<'a>() -> impl Parser<'a, String> {
     )
 }
 
-fn double_quoted_label<'a>() -> impl Parser<'a, String> {
+fn double_quoted_member<'a>() -> impl Parser<'a, String> {
     escaped_transform(
         recognize(many1(alt((unescaped(), char('\''))))),
         '\\',
-        // If ["\""] is parsed the label must be \". Same reason as in single_quoted_label.
+        // If ["\""] is parsed the string must be \". Same reason as in single_quoted_member.
         alt((escaped(), value("\\\"", tag("\"")))),
     )
 }
@@ -343,70 +329,70 @@ impl nom::ExtendInto for MaybeEscapedCharVec {
 #[cfg(test)]
 mod tests {
     use super::parse_json_path_query;
-    use crate::query::{parser::LabelString, JsonPathQuery};
+    use crate::query::{parser::MemberString, JsonPathQuery};
     use pretty_assertions::assert_eq;
 
     #[test]
-    fn single_quoted_label() {
+    fn single_quoted_member() {
         let input = "a";
 
-        let result = super::single_quoted_label()(input);
+        let result = super::single_quoted_member()(input);
 
         assert_eq!(result, Ok(("", "a".to_owned())));
     }
 
     #[test]
-    fn double_quoted_label() {
+    fn double_quoted_member() {
         let input = "a";
 
-        let result = super::double_quoted_label()(input);
+        let result = super::double_quoted_member()(input);
 
         assert_eq!(result, Ok(("", "a".to_owned())));
     }
 
     #[test]
-    fn single_quoted_label_should_not_unescape_backslashes() {
+    fn single_quoted_member_should_not_unescape_backslashes() {
         let input = r#"\\x"#;
 
-        let result = super::single_quoted_label()(input);
+        let result = super::single_quoted_member()(input);
 
         assert_eq!(result, Ok(("", r#"\\x"#.to_owned())));
     }
 
     #[test]
-    fn double_quoted_label_should_not_unescape_backslashes() {
+    fn double_quoted_member_should_not_unescape_backslashes() {
         let input = r#"\\x"#;
 
-        let result = super::double_quoted_label()(input);
+        let result = super::double_quoted_member()(input);
 
         assert_eq!(result, Ok(("", r#"\\x"#.to_owned())));
     }
 
     #[test]
-    fn single_quoted_label_should_escape_double_quotes() {
+    fn single_quoted_member_should_escape_double_quotes() {
         let input = r#"""#;
 
-        let result = super::single_quoted_label()(input);
+        let result = super::single_quoted_member()(input);
 
         assert_eq!(result, Ok(("", r#"\""#.to_owned())));
     }
 
     #[test]
-    fn double_quoted_label_should_not_unescape_double_quotes() {
+    fn double_quoted_member_should_not_unescape_double_quotes() {
         let input = r#"\""#;
 
-        let result = super::double_quoted_label()(input);
+        let result = super::double_quoted_member()(input);
 
         assert_eq!(result, Ok(("", r#"\""#.to_owned())));
     }
 
     #[test]
-    fn quoted_label() {
+    fn quoted_member() {
         let input = "'a'";
 
-        let result = super::quoted_label()(input);
+        let result = super::quoted_member()(input);
 
-        assert_eq!(result, Ok(("", LabelString::Owned("a".to_string()))));
+        assert_eq!(result, Ok(("", MemberString::Owned("a".to_string()))));
     }
 
     #[test]
@@ -467,8 +453,7 @@ mod tests {
     #[test]
     fn should_infer_root_from_empty_string() {
         let input = "";
-        let expected_query =
-            JsonPathQuery::new(Box::new(crate::query::JsonPathQueryNode::Root(None)));
+        let expected_query = JsonPathQuery::new(Box::new(crate::query::JsonPathQueryNode::Root(None)));
 
         let result = parse_json_path_query(input).expect("expected Ok");
 
@@ -478,8 +463,7 @@ mod tests {
     #[test]
     fn root() {
         let input = "$";
-        let expected_query =
-            JsonPathQuery::new(Box::new(crate::query::JsonPathQueryNode::Root(None)));
+        let expected_query = JsonPathQuery::new(Box::new(crate::query::JsonPathQueryNode::Root(None)));
 
         let result = parse_json_path_query(input).expect("expected Ok");
 

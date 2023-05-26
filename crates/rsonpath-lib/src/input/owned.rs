@@ -1,6 +1,6 @@
 //! Input sourced from an owned buffer of bytes, without growing.
-use super::{*, error::InputError, borrowed::BorrowedBytesBlockIterator};
-use crate::query::Label;
+use super::{borrowed::BorrowedBytesBlockIterator, error::InputError, *};
+use crate::query::JsonString;
 use std::{alloc, ptr, slice};
 
 /// Input into a query engine.
@@ -136,8 +136,7 @@ impl OwnedBytes {
 
     #[inline(always)]
     fn get_layout(size: usize) -> Result<alloc::Layout, InputError> {
-        alloc::Layout::from_size_align(size, MAX_BLOCK_SIZE)
-            .map_err(|_err| InputError::AllocationSizeExceeded)
+        alloc::Layout::from_size_align(size, MAX_BLOCK_SIZE).map_err(|_err| InputError::AllocationSizeExceeded)
     }
 }
 
@@ -194,8 +193,7 @@ impl Drop for OwnedBytes {
 
         // This should never happen and if it did it would cause a memory leak.
         #[allow(clippy::expect_used)]
-        let layout = Self::get_layout(self.capacity)
-            .expect("layout for existing OwnedBytes must never change");
+        let layout = Self::get_layout(self.capacity).expect("layout for existing OwnedBytes must never change");
 
         // SAFETY:
         // `ptr` is allocated in `new` and layout is constructed using the same function
@@ -230,12 +228,12 @@ impl Input for OwnedBytes {
 
     #[inline]
     #[cfg(feature = "head-skip")]
-    fn find_label(&self, from: usize, label: &Label) -> Option<usize> {
-        in_slice::find_label(self.as_slice(), from, label)
+    fn find_member(&self, from: usize, label: &JsonString) -> Option<usize> {
+        in_slice::find_member(self.as_slice(), from, label)
     }
 
     #[inline]
-    fn is_label_match(&self, from: usize, to: usize, label: &Label) -> bool {
-        in_slice::is_label_match(self.as_slice(), from, to, label)
+    fn is_member_match(&self, from: usize, to: usize, label: &JsonString) -> bool {
+        in_slice::is_member_match(self.as_slice(), from, to, label)
     }
 }

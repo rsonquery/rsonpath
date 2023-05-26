@@ -75,15 +75,15 @@
 //! wildcard child = ".*" | "[*]"
 //! wildcard descendant = "..*" | "..[*]"
 //! child = dot | index
-//! dot = "." , label
-//! descendant = ".." , ( label | index )
-//! index = "[" , quoted label , "]"
-//! label = label first , { label character }
-//! label first = ALPHA | "_" | NONASCII
-//! label character = ALPHANUMERIC | "_" | NONASCII
-//! quoted label = ("'" , single quoted label , "'") | ('"' , double quoted label , '"')
-//! single quoted label = { UNESCAPED | ESCAPED | '"' | "\'" }
-//! double quoted label = { UNESCAPED | ESCAPED | "'" | '\"' }
+//! dot = "." , member
+//! descendant = ".." , ( member | index )
+//! index = "[" , quoted member , "]"
+//! member = member first , { member character }
+//! member first = ALPHA | "_" | NONASCII
+//! member character = ALPHANUMERIC | "_" | NONASCII
+//! quoted member = ("'" , single quoted member , "'") | ('"' , double quoted member , '"')
+//! single quoted member = { UNESCAPED | ESCAPED | '"' | "\'" }
+//! double quoted member = { UNESCAPED | ESCAPED | "'" | '\"' }
 //!
 //! ALPHA = ? [A-Za-z] ?
 //! ALPHANUMERIC = ? [A-Za-z0-9] ?
@@ -103,7 +103,7 @@
 //! It matches the root object or array. Thus the query "$" gives either 1 or 0 results, if the JSON
 //! is empty or non-empty, respectively.
 //!
-//! ### Child selector (`.<label>`, `[<label>]`)
+//! ### Child selector (`.<member>`, `[<member>]`)
 //! Matches any value under a specified key in the current object
 //! and then executes the rest of the query on that value.
 //!
@@ -111,7 +111,7 @@
 //! Matches any value regardless of key in the current object, or any value within the current array,
 //! and then executes the rest of the query on that value.
 //!
-//! ### Descendant selector (`..<label>`, `..[<label>]`)
+//! ### Descendant selector (`..<member>`, `..[<member>]`)
 //! Switches the engine into a recursive descent mode.
 //! Looks for the specified key in every value nested in the current object or array,
 //! recursively, and then executes the rest of the query on that value..
@@ -187,12 +187,7 @@
 // Panic-free lints (disabled for tests).
 #![cfg_attr(
     not(test),
-    warn(
-        clippy::expect_used,
-        clippy::panic,
-        clippy::panic_in_result_fn,
-        clippy::unwrap_used
-    )
+    warn(clippy::expect_used, clippy::panic, clippy::panic_in_result_fn, clippy::unwrap_used)
 )]
 // IO hygiene, only on --release.
 #![cfg_attr(

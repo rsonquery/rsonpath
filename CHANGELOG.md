@@ -89,9 +89,9 @@ All notable changes to this project will be documented in this file.
   - Large overhaul to the query engines to enable processing the wildcard child selector. This closes the #9 epic of wildcard child support.
   - Both `main` and `recursive` engines now support wildcard child selectors.
   - The `commas` feature flag was removed.
-  - Feature flags of `head-skip`, `tail-skip`, and `unique-labels` were introduced to guard optimization paths.
+  - Feature flags of `head-skip`, `tail-skip`, and `unique-members` were introduced to guard optimization paths.
     - The `head-skip` and `tail-skip` features make the code faster without significant tradeoffs.
-    - The `unique-labels` feature utilizes the assumption of key uniqueness within a single JSON object to speed up query execution, but it will not work correctly when an object with duplicate keys is given. Currently only the first occurence of such a key will be processed.
+    - The `unique-members` feature utilizes the assumption of key uniqueness within a single JSON object to speed up query execution, but it will not work correctly when an object with duplicate keys is given. Currently only the first occurence of such a key will be processed.
   - Many changes to the library structure and module visibility.
 
 ### Bug Fixes

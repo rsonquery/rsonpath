@@ -1,4 +1,5 @@
 use super::{in_slice, Input, InputBlock, InputBlockIterator, MAX_BLOCK_SIZE};
+use crate::query::JsonString;
 use crate::repr_align_block_size;
 use std::{cell::RefCell, cmp, io::Read, ops::Deref, slice};
 
@@ -81,10 +82,7 @@ impl<R: Read> Input for BufferedInput<R> {
 
     #[inline(always)]
     fn iter_blocks<const N: usize>(&self) -> Self::BlockIterator<'_, N> {
-        BufferedInputBlockIterator {
-            input: self,
-            idx: 0,
-        }
+        BufferedInputBlockIterator { input: self, idx: 0 }
     }
 
     #[inline(always)]
@@ -124,21 +122,17 @@ impl<R: Read> Input for BufferedInput<R> {
 
     #[cfg(feature = "head-skip")]
     #[inline]
-    fn find_label(&self, from: usize, label: &crate::query::Label) -> Option<usize> {
+    fn find_member(&self, from: usize, member: &JsonString) -> Option<usize> {
         let mut buf = self.0.borrow_mut();
         let mut moving_from = from;
 
         loop {
             let res = {
                 let slice = buf.as_slice();
-                in_slice::find_label(slice, moving_from, label)
+                in_slice::find_member(slice, moving_from, member)
             };
 
-            moving_from = cmp::min(
-                from,
-                buf.len()
-                    .saturating_sub(label.bytes_with_quotes().len() - 1),
-            );
+            moving_from = cmp::min(from, buf.len().saturating_sub(member.bytes_with_quotes().len() - 1));
 
             if res.is_some() {
                 return res;
@@ -149,10 +143,10 @@ impl<R: Read> Input for BufferedInput<R> {
     }
 
     #[inline(always)]
-    fn is_label_match(&self, from: usize, to: usize, label: &crate::query::Label) -> bool {
+    fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> bool {
         let buf = self.0.borrow();
         let slice = buf.as_slice();
-        in_slice::is_label_match(slice, from, to, label)
+        in_slice::is_member_match(slice, from, to, member)
     }
 }
 
@@ -183,9 +177,7 @@ impl<'a, R: Read, const N: usize> Iterator for BufferedInputBlockIterator<'a, R,
     }
 }
 
-impl<'a, R: Read, const N: usize> InputBlockIterator<'a, N>
-    for BufferedInputBlockIterator<'a, R, N>
-{
+impl<'a, R: Read, const N: usize> InputBlockIterator<'a, N> for BufferedInputBlockIterator<'a, R, N> {
     type Block = BufferedInputBlock<N>;
 
     #[inline(always)]

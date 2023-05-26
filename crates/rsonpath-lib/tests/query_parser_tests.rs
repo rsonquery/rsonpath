@@ -1,5 +1,5 @@
 use pretty_assertions::assert_eq;
-use rsonpath_lib::query::{builder::JsonPathQueryBuilder, JsonPathQuery, Label};
+use rsonpath_lib::query::{builder::JsonPathQueryBuilder, JsonPathQuery, JsonString};
 
 #[test]
 fn should_infer_root_from_empty_string() {
@@ -26,8 +26,20 @@ fn wildcard_child_selector() {
     let input = "$.*.a.*";
     let expected_query = JsonPathQueryBuilder::new()
         .any_child()
-        .child(Label::new("a"))
+        .child(JsonString::new("a"))
         .any_child()
+        .into();
+
+    let result = JsonPathQuery::parse(input).expect("expected Ok");
+
+    assert_eq!(result, expected_query);
+}
+
+#[test]
+fn descendant_nonnegative_array_indexed_selector() {
+    let input = "$..[5]";
+    let expected_query = JsonPathQueryBuilder::new()
+        .array_index_descendant(5.try_into().unwrap())
         .into();
 
     let result = JsonPathQuery::parse(input).expect("expected Ok");
@@ -39,7 +51,7 @@ fn wildcard_child_selector() {
 fn nonnegative_array_indexed_selector() {
     let input = "$[5]";
     let expected_query = JsonPathQueryBuilder::new()
-        .array_index(5.try_into().unwrap())
+        .array_index_child(5.try_into().unwrap())
         .into();
 
     let result = JsonPathQuery::parse(input).expect("expected Ok");
@@ -51,8 +63,8 @@ fn nonnegative_array_indexed_selector() {
 fn multiple_nonnegative_array_indexed_selector() {
     let input = "$[5][2]";
     let expected_query = JsonPathQueryBuilder::new()
-        .array_index(5.try_into().unwrap())
-        .array_index(2.try_into().unwrap())
+        .array_index_child(5.try_into().unwrap())
+        .array_index_child(2.try_into().unwrap())
         .into();
 
     let result = JsonPathQuery::parse(input).expect("expected Ok");
@@ -64,7 +76,7 @@ fn multiple_nonnegative_array_indexed_selector() {
 fn zeroth_array_indexed_selector() {
     let input = "$[0]";
     let expected_query = JsonPathQueryBuilder::new()
-        .array_index(0.try_into().unwrap())
+        .array_index_child(0.try_into().unwrap())
         .into();
 
     let result = JsonPathQuery::parse(input).expect("expected Ok");
@@ -77,8 +89,8 @@ fn indexed_wildcard_child_selector() {
     let input = r#"$[*]['*']["*"]"#;
     let expected_query = JsonPathQueryBuilder::new()
         .any_child()
-        .child(Label::new("*"))
-        .child(Label::new("*"))
+        .child(JsonString::new("*"))
+        .child(JsonString::new("*"))
         .into();
 
     let result = JsonPathQuery::parse(input).expect("expected Ok");
@@ -91,7 +103,7 @@ fn wildcard_descendant_selector_test() {
     let input = "$..*.a..*";
     let expected_query = JsonPathQueryBuilder::new()
         .any_descendant()
-        .child(Label::new("a"))
+        .child(JsonString::new("a"))
         .any_descendant()
         .into();
 
@@ -105,8 +117,8 @@ fn indexed_wildcard_descendant_selector_nested_test() {
     let input = r#"$..[*]..['*']..["*"]"#;
     let expected_query = JsonPathQueryBuilder::new()
         .any_descendant()
-        .descendant(Label::new("*"))
-        .descendant(Label::new("*"))
+        .descendant(JsonString::new("*"))
+        .descendant(JsonString::new("*"))
         .into();
 
     let result = JsonPathQuery::parse(input).expect("expected Ok");
@@ -115,9 +127,9 @@ fn indexed_wildcard_descendant_selector_nested_test() {
 }
 
 #[test]
-fn escaped_single_quote_in_single_quote_label() {
+fn escaped_single_quote_in_single_quote_member() {
     let input = r#"['\'']"#;
-    let expected_query = JsonPathQueryBuilder::new().child(Label::new("'")).into();
+    let expected_query = JsonPathQueryBuilder::new().child(JsonString::new("'")).into();
 
     let result = JsonPathQuery::parse(input).expect("expected Ok");
 
@@ -125,11 +137,9 @@ fn escaped_single_quote_in_single_quote_label() {
 }
 
 #[test]
-fn unescaped_double_quote_in_single_quote_label() {
+fn unescaped_double_quote_in_single_quote_member() {
     let input = r#"['"']"#;
-    let expected_query = JsonPathQueryBuilder::new()
-        .child(Label::new(r#"\""#))
-        .into();
+    let expected_query = JsonPathQueryBuilder::new().child(JsonString::new(r#"\""#)).into();
 
     let result = JsonPathQuery::parse(input).expect("expected Ok");
 
@@ -139,7 +149,7 @@ fn unescaped_double_quote_in_single_quote_label() {
 /// Turn escapes of `'` and `\` into unescaped forms, and unescaped
 /// `"` into escaped. So `\'` becomes `'`, and `"` into `\"`, but `\n` stays as `\n`.
 ///
-/// This is how we expect labels to be parsed.
+/// This is how we expect strings to be parsed.
 fn transform_json_escape_sequences(str: String) -> String {
     let mut result = String::new();
     let mut escaped = false;
@@ -194,9 +204,10 @@ mod transform_json_escape_sequences_tests {
 mod proptests {
     use super::*;
     use proptest::prelude::*;
+    use rsonpath_lib::query::NonNegativeArrayIndex;
 
     /* Approach: we generate a sequence of Selectors, each having its generated string
-     * and a tag describing what selector it represents, and, optionally, what label is attached.
+     * and a tag describing what selector it represents, and, optionally, what string is attached.
      * This can then easily be turned into the input (the string is attached) and the expected
      * parser result (transform the sequence of tags).
      */
@@ -207,6 +218,8 @@ mod proptests {
         Child(String),
         WildcardDescendant,
         Descendant(String),
+        ArrayIndexChild(NonNegativeArrayIndex),
+        ArrayIndexDescendant(NonNegativeArrayIndex),
     }
 
     #[derive(Debug, Clone)]
@@ -222,6 +235,8 @@ mod proptests {
             any_child(),
             any_wildcard_descendant(),
             any_descendant(),
+            any_array_index_child(),
+            any_array_index_descendant(),
         ]
     }
 
@@ -243,45 +258,60 @@ mod proptests {
 
     // .label or ['label']
     fn any_child() -> impl Strategy<Value = Selector> {
-        prop_oneof![any_label().prop_map(|x| (format!(".{x}"), x)), any_index(),].prop_map(
-            |(s, l)| Selector {
-                string: s,
-                tag: SelectorTag::Child(l),
-            },
-        )
+        prop_oneof![any_member().prop_map(|x| (format!(".{x}"), x)), any_name(),].prop_map(|(s, l)| Selector {
+            string: s,
+            tag: SelectorTag::Child(l),
+        })
     }
 
     // ..label or ..['label']
     fn any_descendant() -> impl Strategy<Value = Selector> {
-        prop_oneof![any_label().prop_map(|x| (x.clone(), x)), any_index(),].prop_map(|(x, l)| {
-            Selector {
-                string: format!("..{x}"),
-                tag: SelectorTag::Descendant(l),
-            }
+        prop_oneof![any_member().prop_map(|x| (x.clone(), x)), any_name(),].prop_map(|(x, l)| Selector {
+            string: format!("..{x}"),
+            tag: SelectorTag::Descendant(l),
         })
     }
 
-    fn any_label() -> impl Strategy<Value = String> {
+    fn any_array_index_child() -> impl Strategy<Value = Selector> {
+        any_non_negative_array_index().prop_map(|i| Selector {
+            string: format!("[{}]", i.get_index()),
+            tag: SelectorTag::ArrayIndexChild(i),
+        })
+    }
+
+    fn any_array_index_descendant() -> impl Strategy<Value = Selector> {
+        any_non_negative_array_index().prop_map(|i| Selector {
+            string: format!("..[{}]", i.get_index()),
+            tag: SelectorTag::ArrayIndexDescendant(i),
+        })
+    }
+
+    fn any_member() -> impl Strategy<Value = String> {
         r#"([A-Za-z]|_|[^\u0000-\u007F])([A-Za-z0-9]|_|[^\u0000-\u007F])*"#
     }
 
-    fn any_index() -> impl Strategy<Value = (String, String)> {
-        any_quoted_label().prop_map(|(s, l)| (format!("[{s}]"), l))
+    fn any_name() -> impl Strategy<Value = (String, String)> {
+        any_quoted_member().prop_map(|(s, l)| (format!("[{s}]"), l))
     }
 
-    fn any_quoted_label() -> impl Strategy<Value = (String, String)> {
+    fn any_quoted_member() -> impl Strategy<Value = (String, String)> {
         prop_oneof![
-            any_single_quoted_label().prop_map(|x| (format!("'{x}'"), x)),
-            any_double_quoted_label().prop_map(|x| (format!("\"{x}\""), x))
+            any_single_quoted_member().prop_map(|x| (format!("'{x}'"), x)),
+            any_double_quoted_member().prop_map(|x| (format!("\"{x}\""), x))
         ]
     }
 
-    fn any_single_quoted_label() -> impl Strategy<Value = String> {
+    fn any_single_quoted_member() -> impl Strategy<Value = String> {
         r#"([^'"\\\u0000-\u001F]|(\\[btnfr/\\])|["]|(\\'))*"#
     }
 
-    fn any_double_quoted_label() -> impl Strategy<Value = String> {
+    fn any_double_quoted_member() -> impl Strategy<Value = String> {
         r#"([^'"\\\u0000-\u001F]|(\\[btnfr/\\])|[']|(\\"))*"#
+    }
+
+    fn any_non_negative_array_index() -> impl Strategy<Value = NonNegativeArrayIndex> {
+        const MAX: u64 = (1 << 53) - 1;
+        (0..MAX).prop_map(NonNegativeArrayIndex::new)
     }
     // Cspell: enable
 
@@ -299,9 +329,11 @@ mod proptests {
 
                 query = match selector.tag {
                     SelectorTag::WildcardChild => query.any_child(),
-                    SelectorTag::Child(label) => query.child(Label::new(&transform_json_escape_sequences(label))),
+                    SelectorTag::Child(name) => query.child(JsonString::new(&transform_json_escape_sequences(name))),
                     SelectorTag::WildcardDescendant => query.any_descendant(),
-                    SelectorTag::Descendant(label) => query.descendant(Label::new(&transform_json_escape_sequences(label))),
+                    SelectorTag::Descendant(name) => query.descendant(JsonString::new(&transform_json_escape_sequences(name))),
+                    SelectorTag::ArrayIndexChild(idx) => query.array_index_child(idx),
+                    SelectorTag::ArrayIndexDescendant(idx) => query.array_index_descendant(idx)
                 };
             }
 

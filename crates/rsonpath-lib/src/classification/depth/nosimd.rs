@@ -24,9 +24,7 @@ impl<'a, I: Input, Q, const N: usize> VectorIterator<'a, I, Q, N> {
     }
 }
 
-impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> Iterator
-    for VectorIterator<'a, I, Q, N>
-{
+impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> Iterator for VectorIterator<'a, I, Q, N> {
     type Item = Vector<'a, I, N>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -61,13 +59,8 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> DepthIt
         }
     }
 
-    fn resume(
-        state: ResumeClassifierState<'a, I, Q, N>,
-        opening: BracketType,
-    ) -> (Option<Self::Block>, Self) {
-        let first_block = state
-            .block
-            .map(|b| Vector::new_from(b.block, opening, b.idx));
+    fn resume(state: ResumeClassifierState<'a, I, Q, N>, opening: BracketType) -> (Option<Self::Block>, Self) {
+        let first_block = state.block.map(|b| Vector::new_from(b.block, opening, b.idx));
 
         (
             first_block,
@@ -91,19 +84,12 @@ pub(crate) struct Vector<'a, I: Input + 'a, const N: usize> {
 
 impl<'a, I: Input, const N: usize> Vector<'a, I, N> {
     #[inline]
-    pub(crate) fn new(
-        bytes: QuoteClassifiedBlock<IBlock<'a, I, N>, N>,
-        opening: BracketType,
-    ) -> Self {
+    pub(crate) fn new(bytes: QuoteClassifiedBlock<IBlock<'a, I, N>, N>, opening: BracketType) -> Self {
         Self::new_from(bytes, opening, 0)
     }
 
     #[inline]
-    fn new_from(
-        bytes: QuoteClassifiedBlock<IBlock<'a, I, N>, N>,
-        opening: BracketType,
-        idx: usize,
-    ) -> Self {
+    fn new_from(bytes: QuoteClassifiedBlock<IBlock<'a, I, N>, N>, opening: BracketType, idx: usize) -> Self {
         Self {
             quote_classified: bytes,
             depth: 0,

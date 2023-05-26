@@ -12,10 +12,6 @@ use super::head_skipping::{CanHeadSkip, HeadSkip};
 use super::Compiler;
 #[cfg(feature = "head-skip")]
 use crate::classification::ResumeClassifierState;
-use crate::classification::{
-    quotes::{classify_quoted_sequences, QuoteClassifiedIterator},
-    structural::{classify_structural_characters, BracketType, Structural, StructuralIterator},
-};
 use crate::debug;
 use crate::engine::depth::Depth;
 use crate::engine::error::EngineError;
@@ -24,9 +20,16 @@ use crate::engine::tail_skipping::TailSkip;
 use crate::engine::{Engine, Input};
 use crate::query::automaton::{Automaton, State};
 use crate::query::error::CompilerError;
-use crate::query::{JsonPathQuery, Label};
+use crate::query::{JsonPathQuery, JsonString, NonNegativeArrayIndex};
 use crate::result::QueryResult;
 use crate::BLOCK_SIZE;
+use crate::{
+    classification::{
+        quotes::{classify_quoted_sequences, QuoteClassifiedIterator},
+        structural::{classify_structural_characters, BracketType, Structural, StructuralIterator},
+    },
+    query::automaton::TransitionLabel,
+};
 use smallvec::{smallvec, SmallVec};
 
 /// Main engine for a fixed JSONPath query.
@@ -102,12 +105,12 @@ struct Executor<'q, 'b, I: Input> {
     bytes: &'b I,
     next_event: Option<Structural>,
     is_list: bool,
+    array_count: NonNegativeArrayIndex,
+    has_any_array_item_transition: bool,
+    has_any_array_item_transition_to_accepting: bool,
 }
 
-fn query_executor<'q, 'b, I: Input>(
-    automaton: &'b Automaton<'q>,
-    bytes: &'b I,
-) -> Executor<'q, 'b, I> {
+fn query_executor<'q, 'b, I: Input>(automaton: &'b Automaton<'q>, bytes: &'b I) -> Executor<'q, 'b, I> {
     Executor {
         depth: Depth::ZERO,
         state: automaton.initial_state(),
@@ -116,6 +119,9 @@ fn query_executor<'q, 'b, I: Input>(
         bytes,
         next_event: None,
         is_list: false,
+        array_count: NonNegativeArrayIndex::ZERO,
+        has_any_array_item_transition: false,
+        has_any_array_item_transition_to_accepting: false,
     }
 }
 
@@ -203,17 +209,22 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
             let mut any_matched = false;
 
             for &(label, target) in self.automaton[self.state].transitions() {
-                if self.automaton.is_accepting(target) && self.is_match(idx, label)? {
-                    result.report(idx);
-                    any_matched = true;
-                    break;
+                match label {
+                    TransitionLabel::ArrayIndex(_) => {}
+                    TransitionLabel::ObjectMember(member_name) => {
+                        if self.automaton.is_accepting(target) && self.is_match(idx, member_name)? {
+                            result.report(idx);
+                            any_matched = true;
+                            break;
+                        }
+                    }
                 }
             }
             let fallback_state = self.automaton[self.state].fallback_state();
             if !any_matched && self.automaton.is_accepting(fallback_state) {
                 result.report(idx);
             }
-            #[cfg(feature = "unique-labels")]
+            #[cfg(feature = "unique-members")]
             {
                 let is_next_closing = self.next_event.map_or(false, |s| s.is_closing());
                 if any_matched && !is_next_closing && self.automaton.is_unitary(self.state) {
@@ -240,13 +251,30 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
         R: QueryResult,
     {
         self.next_event = classifier.next();
+
         let is_next_opening = self.next_event.map_or(false, |s| s.is_opening());
 
-        if !is_next_opening {
-            let fallback_state = self.automaton[self.state].fallback_state();
-            if self.is_list && self.automaton.is_accepting(fallback_state) {
-                result.report(idx);
-            }
+        let is_fallback_accepting = self.automaton.is_accepting(self.automaton[self.state].fallback_state());
+
+        if !is_next_opening && self.is_list && is_fallback_accepting {
+            debug!("Accepting on comma.");
+            result.report(idx);
+        }
+
+        // After wildcard, check for a matching array index.
+        // If the index increment exceeds the field's limit, give up.
+        if self.is_list && self.array_count.try_increment().is_err() {
+            return Ok(());
+        }
+        debug!("Incremented array count to {}", self.array_count);
+
+        let match_index = self
+            .automaton
+            .has_array_index_transition_to_accepting(self.state, &self.array_count);
+
+        if !is_next_opening && match_index {
+            debug!("Accepting on list item.");
+            result.report(idx);
         }
 
         Ok(())
@@ -267,15 +295,32 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
         debug!("Opening {bracket_type:?}, increasing depth and pushing stack.",);
         let mut any_matched = false;
 
-        if let Some(colon_idx) = self.find_preceding_colon(idx) {
-            for &(label, target) in self.automaton[self.state].transitions() {
-                if self.is_match(colon_idx, label)? {
-                    any_matched = true;
-                    self.transition_to(target, bracket_type);
-                    if self.automaton.is_accepting(target) {
-                        result.report(colon_idx);
+        let colon_idx = self.find_preceding_colon(idx);
+
+        for &(label, target) in self.automaton[self.state].transitions() {
+            match label {
+                TransitionLabel::ArrayIndex(i) => {
+                    if self.is_list && i.eq(&self.array_count) {
+                        any_matched = true;
+                        self.transition_to(target, bracket_type);
+                        if self.automaton.is_accepting(target) {
+                            debug!("Accept {idx}");
+                            result.report(idx);
+                        }
+                        break;
                     }
-                    break;
+                }
+                TransitionLabel::ObjectMember(member_name) => {
+                    if let Some(colon_idx) = colon_idx {
+                        if self.is_match(colon_idx, member_name)? {
+                            any_matched = true;
+                            self.transition_to(target, bracket_type);
+                            if self.automaton.is_accepting(target) {
+                                result.report(colon_idx);
+                            }
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -301,29 +346,45 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
 
         if bracket_type == BracketType::Square {
             self.is_list = true;
+            self.has_any_array_item_transition = self.automaton.has_any_array_item_transition(self.state);
+            self.has_any_array_item_transition_to_accepting =
+                self.automaton.has_any_array_item_transition_to_accepting(self.state);
 
             let fallback = self.automaton[self.state].fallback_state();
-            if self.automaton.is_accepting(fallback) {
+            let is_fallback_accepting = self.automaton.is_accepting(fallback);
+
+            let searching_list = is_fallback_accepting || self.has_any_array_item_transition;
+
+            if searching_list {
                 classifier.turn_commas_on(idx);
-                self.next_event = classifier.next();
-                match self.next_event {
-                    Some(Structural::Closing(_, close_idx)) => {
-                        if let Some((next_idx, _)) = self.bytes.seek_non_whitespace_forward(idx + 1)
-                        {
-                            if next_idx < close_idx {
-                                result.report(next_idx);
+                self.array_count = NonNegativeArrayIndex::ZERO;
+                debug!("Initialized array count to {}", self.array_count);
+
+                let wants_first_item =
+                    is_fallback_accepting || self.automaton.has_first_array_index_transition_to_accepting(self.state);
+
+                if wants_first_item {
+                    self.next_event = classifier.next();
+
+                    match self.next_event {
+                        Some(Structural::Closing(_, close_idx)) => {
+                            if let Some((next_idx, _)) = self.bytes.seek_non_whitespace_forward(idx + 1) {
+                                if next_idx < close_idx {
+                                    result.report(next_idx);
+                                }
                             }
                         }
+                        Some(Structural::Comma(_)) => {
+                            result.report(idx + 1);
+                        }
+                        _ => (),
                     }
-                    Some(Structural::Comma(_)) => {
-                        result.report(idx + 1);
-                    }
-                    _ => (),
                 }
             } else {
                 classifier.turn_commas_off();
             }
         } else {
+            classifier.turn_commas_off();
             self.is_list = false;
         }
 
@@ -339,18 +400,14 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
         Ok(())
     }
 
-    fn handle_closing<Q, S>(
-        &mut self,
-        classifier: &mut Classifier!(),
-        idx: usize,
-    ) -> Result<(), EngineError>
+    fn handle_closing<Q, S>(&mut self, classifier: &mut Classifier!(), idx: usize) -> Result<(), EngineError>
     where
         Q: QuoteClassifiedIterator<'b, I, BLOCK_SIZE>,
         S: StructuralIterator<'b, I, Q, BLOCK_SIZE>,
     {
         debug!("Closing, decreasing depth and popping stack.");
 
-        #[cfg(feature = "unique-labels")]
+        #[cfg(feature = "unique-members")]
         {
             self.depth
                 .decrement()
@@ -359,6 +416,12 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
             if let Some(stack_frame) = self.stack.pop_if_at_or_below(*self.depth) {
                 self.state = stack_frame.state;
                 self.is_list = stack_frame.is_list;
+                self.array_count = stack_frame.array_count;
+                self.has_any_array_item_transition = stack_frame.has_any_array_item_transition;
+                self.has_any_array_item_transition_to_accepting =
+                    stack_frame.has_any_array_item_transition_to_accepting;
+
+                debug!("Restored array count to {}", self.array_count);
 
                 if self.automaton.is_unitary(self.state) {
                     let bracket_type = self.current_node_bracket_type();
@@ -369,7 +432,8 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
                 }
             }
         }
-        #[cfg(not(feature = "unique-labels"))]
+
+        #[cfg(not(feature = "unique-members"))]
         {
             self.depth
                 .decrement()
@@ -378,13 +442,18 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
             if let Some(stack_frame) = self.stack.pop_if_at_or_below(*self.depth) {
                 self.state = stack_frame.state;
                 self.is_list = stack_frame.is_list;
+                self.array_count = stack_frame.array_count;
+                self.has_any_array_item_transition = stack_frame.has_any_array_item_transition;
+                self.has_any_array_item_transition_to_accepting =
+                    stack_frame.has_any_array_item_transition_to_accepting;
+
+                debug!("Restored array count to {}", self.array_count);
             }
         }
 
         if self.is_list
-            && self
-                .automaton
-                .is_accepting(self.automaton[self.state].fallback_state())
+            && (self.automaton.is_accepting(self.automaton[self.state].fallback_state())
+                || self.has_any_array_item_transition)
         {
             classifier.turn_commas_on(idx);
         } else {
@@ -402,15 +471,24 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
 
     fn transition_to(&mut self, target: State, opening: BracketType) {
         let target_is_list = opening == BracketType::Square;
-        if target != self.state || target_is_list != self.is_list {
+
+        let fallback = self.automaton[self.state].fallback_state();
+        let is_fallback_accepting = self.automaton.is_accepting(fallback);
+        let searching_list = is_fallback_accepting || self.has_any_array_item_transition;
+
+        if target != self.state || target_is_list != self.is_list || searching_list {
             debug!(
-                "push {}, goto {target}, is_list = {target_is_list}",
-                self.state
+                "push {}, goto {target}, is_list = {target_is_list}, array_count: {}",
+                self.state, self.array_count
             );
+
             self.stack.push(StackFrame {
                 depth: *self.depth,
                 state: self.state,
                 is_list: self.is_list,
+                array_count: self.array_count,
+                has_any_array_item_transition: self.has_any_array_item_transition,
+                has_any_array_item_transition_to_accepting: self.has_any_array_item_transition_to_accepting,
             });
             self.state = target;
         }
@@ -426,12 +504,12 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
         }
     }
 
-    fn is_match(&self, idx: usize, label: &Label) -> Result<bool, EngineError> {
-        let len = label.bytes_with_quotes().len();
+    fn is_match(&self, idx: usize, member_name: &JsonString) -> Result<bool, EngineError> {
+        let len = member_name.bytes_with_quotes().len();
 
         let closing_quote_idx = match self.bytes.seek_backward(idx - 1, b'"') {
             Some(x) => x,
-            None => return Err(EngineError::MalformedLabelQuotes(idx - 1)),
+            None => return Err(EngineError::MalformedStringQuotes(idx - 1)),
         };
 
         if closing_quote_idx + 1 < len {
@@ -441,7 +519,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
         let start_idx = closing_quote_idx + 1 - len;
         Ok(self
             .bytes
-            .is_label_match(start_idx, closing_quote_idx + 1, label))
+            .is_member_match(start_idx, closing_quote_idx + 1, member_name))
     }
 
     fn verify_subtree_closed(&self) -> Result<(), EngineError> {
@@ -452,7 +530,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
         }
     }
 
-    #[cfg(feature = "unique-labels")]
+    #[cfg(feature = "unique-members")]
     fn current_node_bracket_type(&self) -> BracketType {
         if self.is_list {
             BracketType::Square
@@ -467,6 +545,9 @@ struct StackFrame {
     depth: u8,
     state: State,
     is_list: bool,
+    array_count: NonNegativeArrayIndex,
+    has_any_array_item_transition: bool,
+    has_any_array_item_transition_to_accepting: bool,
 }
 
 #[derive(Debug)]
@@ -476,9 +557,7 @@ struct SmallStack {
 
 impl SmallStack {
     fn new() -> Self {
-        Self {
-            contents: smallvec![],
-        }
+        Self { contents: smallvec![] }
     }
 
     #[inline]

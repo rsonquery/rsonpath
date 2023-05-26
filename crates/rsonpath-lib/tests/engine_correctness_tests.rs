@@ -4,8 +4,8 @@ use rsonpath_lib::engine::{Compiler, Engine};
 use rsonpath_lib::input::BufferedInput;
 use rsonpath_lib::query::JsonPathQuery;
 use rsonpath_lib::result::{CountResult, IndexResult};
-use std::{fs, cmp};
 use std::io::Read;
+use std::{cmp, fs};
 use test_case::test_case;
 
 const ROOT_TEST_DIRECTORY: &str = "./tests/data";
@@ -20,8 +20,7 @@ impl Read for ReadString {
             buf[..size].copy_from_slice(&self.0.as_bytes()[self.1..self.1 + size]);
             self.1 += size;
             Ok(size)
-        }
-        else {
+        } else {
             Ok(0)
         }
     }
@@ -40,9 +39,29 @@ macro_rules! count_test_cases {
         #[test_case("basic/atomic_descendant.json", "$..a..b" => 0; "atomic_descendant.json $..a..b")]
         #[test_case("basic/atomic_descendant.json", "$..*..b" => 1; "atomic_descendant.json any descendant $..*..b")]
         #[test_case("basic/atomic_descendant.json", "$..*" => 4; "atomic_descendant.json any descendant $..*")]
+        #[test_case("basic/atomic_descendant.json", "$.b[0]" => 1; "atomic_descendant.json nneg array index")]
+        #[test_case("basic/atomic_descendant.json", "$.b[1]" => 0; "atomic_descendant.json nonexistent nneg array index")]
+        #[test_case("basic/atomic_descendant.json", "$..[0]" => 1; "atomic_descendant.json descendant nneg array index")]
+        #[test_case("basic/atomic_descendant.json", "$.b[0].b" => 1; "atomic_descendant.json nested nneg array index")]
         #[test_case("basic/atomic_after_complex.json", "$.a..b" => 1; "atomic_after_complex.json $.a..b")]
+        #[test_case("basic/atomic_after_complex.json", "$.a[0]" => 1; "atomic_after_complex.json nneg array index")]
+        #[test_case("basic/atomic_after_complex.json", "$.a[0].c.d[2]" => 1; "atomic_after_complex.json nneg last array index")]
+        #[test_case("basic/atomic_after_complex.json", "$.a[0].c.d[3]" => 0; "atomic_after_complex.json nneg nonexistent array index")]
+        #[test_case("basic/atomic_after_complex.json", "$..*[2]" => 1; "atomic_after_complex.json any desc nneg nonexistent array index")]
+        #[test_case("basic/atomic_descendant.json", "$[1]" => 0; "atomic_descendant.json nneg nonexistent array index")]
         #[test_case("basic/array_root.json", "$" => 1; "array_root.json $")]
         #[test_case("basic/array_root.json", "" => 1; "array_root.json")]
+        #[test_case("basic/array_root_nested.json", "$[0]" => 1; "array_root_nested.json nneg array top")]
+        #[test_case("basic/array_root_nested.json", "$[0].*" => 1; "array_root_nested.json nneg array inner any child")]
+        #[test_case("basic/array_root_nested.json", "$.*[0]" => 2; "array_root_nested.json any nneg array inner")]
+        #[test_case("basic/array_root_nested.json", "$[2][1][0][1]" => 1; "array_root_nested.json any nneg array inner inner inner")]
+        #[test_case("basic/array_root_nested.json", "$[2][1].*" => 3; "array_root_nested.json any nneg array inner inner child")]
+        #[test_case("basic/array_root_nested.json", "$[2].*[1]" => 1; "array_root_nested.json nneg array child inner")]
+        #[test_case("basic/array_root_nested.json", "$[2][1]..*[1]" => 3; "array_root_nested.json nneg nneg anydesc nneg")]
+        #[test_case("basic/array_root_nested.json", "$[2]..*" => 11; "array_root_nested.json nneg array anydesc")]
+        #[test_case("basic/array_root_nested.json", "$..*[0]" => 7; "array_root_nested.json anydesc nneg array")]
+        #[test_case("basic/array_root_nested.json", "$[2][0]" => 1; "array_root_nested.json nneg array direct first")]
+        #[test_case("basic/array_root_nested.json", "$[2][1]" => 1; "array_root_nested.json nneg array direct second")]
         #[test_case("basic/child.json", "$..a..b.c..d" => 3; "child.json $..a..b.c..d")]
         #[test_case("basic/child_hell.json", "$..x..a.b.a.b.c" => 6; "child_hell.json $..x..a.b.a.b.c")]
         #[test_case("basic/empty.json", "" => 0; "empty.json")]
@@ -179,6 +198,10 @@ macro_rules! count_test_cases {
             "wikidata_properties.json $..*.value (child) any desc"
         )]
         #[test_case(
+            "wikidata/wikidata_properties.json", "$..*[5]" => 2511;
+            "wikidata_properties.json $..*[5] (child) any desc nneg array index"
+        )]
+        #[test_case(
             "wikidata/wikidata_properties.json", "$..P7103.claims.P31..references..snaks.P4656..hash" => 1;
             "wikidata_properties.json $..P7103.claims.P31..references..snaks.P4656..hash"
         )]
@@ -198,8 +221,12 @@ macro_rules! indices_test_cases {
         #[test_case("basic/atomic_descendant.json", "$..*" => vec![9,24,34,51]; "atomic_descendant.json any descendant $..*")]
         #[test_case("basic/atomic_descendant.json", "$..a..b" => Vec::<usize>::new(); "atomic_descendant.json $..a..b")]
         #[test_case("basic/atomic_after_complex.json", "$.a..b" => vec![174]; "atomic_after_complex.json $.a..b")]
+        #[test_case("basic/atomic_after_complex.json", "$..d[2]" => vec![111]; "atomic_after_complex.json named desc nneg nonexistent array index")]
+        #[test_case("basic/atomic_after_complex.json", "$..*[2]" => vec![111]; "atomic_after_complex.json any desc nneg nonexistent array index")]
         #[test_case("basic/array_root.json", "$" => vec![0]; "array_root.json $")]
         #[test_case("basic/array_root.json", "" => vec![0]; "array_root.json")]
+        #[test_case("basic/array_root.json", "$[0]" => Vec::<usize>::new(); "array_root.json nneg array index simple")]
+        #[test_case("basic/array_root_singleton.json", "$[0]" => vec![1]; "array_root_singleton.json nneg array index simple")]
         #[test_case("basic/child.json", "$..a..b.c..d" => vec![984, 1297, 1545]; "child.json $..a..b.c..d")]
         #[test_case("basic/child_hell.json", "$..x..a.b.a.b.c" => vec![198, 756, 1227, 1903, 2040, 2207]; "child_hell.json $..x..a.b.a.b.c")]
         #[test_case("basic/empty.json", "" => Vec::<usize>::new(); "empty.json")]
@@ -249,6 +276,11 @@ macro_rules! indices_test_cases {
         #[test_case("basic/compressed/singletons_and_empties.json", r#"$.*.*"# => vec![6, 15]; "compressed singletons_and_empties.json")]
         #[test_case("basic/compressed/skipping.json", r#"$.a.b"# => vec![452]; "compressed skipping")]
         #[test_case("basic/compressed/small_no_list.json", "$..person..phoneNumber..number" => vec![176, 380]; "compressed small_no_list.json $..person..phoneNumber..number")]
+        #[test_case("basic/small.json", "$..person..*[1].type" => vec![402, 1028]; "small.json nneg array $..person..*[1].type")]
+        #[test_case("basic/compressed/small.json", "$..person..*[1].type" => vec![203, 451]; "compressed anydesc small.json $..person..*[1].type")]
+        #[test_case("basic/compressed/small.json", "$..person..[1].type" => vec![203, 451]; "compressed nneg array small.json $..person..[1].type nneg")]
+        #[test_case("basic/compressed/small.json", "$..person.phoneNumber[1].type" => vec![203, 451]; "compressed nneg array direct small.json $..person..[1].type")]
+        #[test_case("basic/compressed/small.json", "$..person.phoneNumber[0].type" => vec![159, 407]; "compressed nneg array direct small.json $..person..[0].type")]
         #[test_case("basic/compressed/small.json", "$..person..phoneNumber..number" => vec![177, 219, 425, 467]; "compressed small.json $..person..phoneNumber..number")]
         #[test_case(
             "twitter/compressed/twitter.json",
@@ -261,11 +293,26 @@ macro_rules! indices_test_cases {
                 => vec![3487, 9835, 12717, 52573, 64602, 77996, 119306, 121917, 201072, 212697, 215342, 241825, 288268, 310029, 312971, 445430, 454459, 464575];
             "compressed twitter.json $..user..entities.url (child)")]
         #[test_case("twitter/compressed/twitter_urls.json", "$..entities..urls..url" => vec![145, 326]; "compressed twitter_urls.json $..entities..urls..url")]
+        #[test_case("twitter/compressed/twitter_urls.json", "$..[0]" => vec![1, 139, 183, 249, 320, 364]; "compressed twitter_urls.json nneg array first descendent")]
+        #[test_case("twitter/compressed/twitter_urls.json", "$[0]" => vec![1]; "compressed twitter_urls.json nneg array first root only")]
         #[test_case("twitter/compressed/twitter_urls.json", "$..entities.urls..url" => vec![145, 326]; "compressed twitter_urls.json $..entities.urls..url (child)")]
         #[test_case(
             "wikidata/wikidata_properties.json", "$..P7103.claims.P31..references..snaks.P4656..hash" => vec![22639033];
             "wikidata_properties.json $..P7103.claims.P31..references..snaks.P4656..hash"
         )]
+        #[test_case("basic/array_root_nested.json", "$[0]" => vec![6]; "array_root_nested.json nneg array top")]
+        #[test_case("basic/array_root_nested.json", "$[0].*" => vec![16]; "array_root_nested.json nneg array inner any child")]
+        #[test_case("basic/array_root_nested.json", "$.*[0]" => vec![16,49]; "array_root_nested.json any nneg array inner")]
+        #[test_case("basic/array_root_nested.json", "$[2][1][0][1]" => vec![95]; "array_root_nested.json any nneg array inner inner inner")]
+        #[test_case("basic/array_root_nested.json", "$[2][1].*" => vec![75, 142, 209]; "array_root_nested.json any nneg array inner inner child")]
+        #[test_case("basic/array_root_nested.json", "$[2].*[1]" => vec![142]; "array_root_nested.json nneg array child inner")]
+        #[test_case("basic/array_root_nested.json", "$[2]..*[1]" => vec![95, 142, 162, 229]; "array_root_nested.json nneg array anydesc inner")]
+        #[test_case("basic/array_root_nested.json", "$[2][1].*[1]" => vec![95, 162, 229]; "array_root_nested.json nneg nneg any nneg")]
+        #[test_case("basic/array_root_nested.json", "$[2]..*" => vec![49, 61, 75, 93, 95, 142, 160, 162, 209, 227, 229]; "array_root_nested.json nneg array anydesc")]
+        #[test_case("basic/array_root_nested.json", "$..*[0]" => vec![16,17,49,75,93,160,227]; "array_root_nested.json anydesc nneg array first")]
+        #[test_case("basic/array_root_nested.json", "$..*[2]" => vec![209]; "array_root_nested.json anydesc nneg array third")]
+        #[test_case("basic/array_root_nested.json", "$[2][0]" => vec![49]; "array_root_nested.json nneg array direct first")]
+        #[test_case("basic/array_root_nested.json", "$[2][1]" => vec![61]; "array_root_nested.json nneg array direct second")]
         fn $test_name(test_path: &str, query_string: &str) -> Vec<usize> {
             let contents = get_contents(test_path);
             let query = JsonPathQuery::parse(query_string).unwrap();
