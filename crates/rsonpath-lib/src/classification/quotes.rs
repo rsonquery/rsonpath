@@ -17,6 +17,7 @@
 //! ```
 //! use rsonpath_lib::classification::quotes::{classify_quoted_sequences, QuoteClassifiedIterator};
 //! use rsonpath_lib::input::OwnedBytes;
+//! use rsonpath_lib::FallibleIterator;
 //!
 //! let json = r#"{"x": "string", "y": {"z": "\"escaped\""}}"#.to_owned();
 //! //            011000111111100011000011000111111111111000
@@ -25,12 +26,13 @@
 //! let input = OwnedBytes::try_from(json).unwrap();
 //! let mut quote_classifier = classify_quoted_sequences(&input);
 //!
-//! let block = quote_classifier.next().unwrap();
+//! let block = quote_classifier.next().unwrap().unwrap();
 //! assert_eq!(expd, block.within_quotes_mask);
 //! ```
 
+use crate::input::error::InputError;
 use crate::input::{IBlock, Input, InputBlock};
-use crate::BLOCK_SIZE;
+use crate::{FallibleIterator, BLOCK_SIZE};
 use cfg_if::cfg_if;
 
 /// Input block with a bitmask signifying which characters are within quotes.
@@ -52,7 +54,7 @@ pub struct QuoteClassifiedBlock<B, const N: usize> {
 /// enriching blocks of input with quote bitmasks.
 /// Iterator is allowed to hold a reference to the JSON document valid for `'a`.
 pub trait QuoteClassifiedIterator<'a, I: Input + 'a, const N: usize>:
-    Iterator<Item = QuoteClassifiedBlock<IBlock<'a, I, N>, N>> + 'a
+    FallibleIterator<Item = QuoteClassifiedBlock<IBlock<'a, I, N>, N>, Error = InputError> + 'a
 {
     /// Get the total offset in bytes from the beginning of input.
     fn get_offset(&self) -> usize;

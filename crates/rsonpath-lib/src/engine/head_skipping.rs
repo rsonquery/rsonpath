@@ -8,6 +8,7 @@ use crate::query::{
     JsonString,
 };
 use crate::result::QueryResult;
+use crate::FallibleIterator;
 use crate::BLOCK_SIZE;
 use crate::{
     classification::{
@@ -117,7 +118,7 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
 
         let mut idx = 0;
 
-        while let Some(starting_quote_idx) = self.bytes.find_member(idx, self.member_name) {
+        while let Some(starting_quote_idx) = self.bytes.find_member(idx, self.member_name)? {
             idx = starting_quote_idx;
             classifier_state.are_colons_on = false;
             classifier_state.are_commas_on = false;
@@ -125,12 +126,12 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
 
             let seek_start_idx = idx + self.member_name.bytes_with_quotes().len();
 
-            match self.bytes.seek_non_whitespace_forward(seek_start_idx) {
+            match self.bytes.seek_non_whitespace_forward(seek_start_idx)? {
                 Some((colon_idx, char)) if char == b':' => {
                     let distance = colon_idx - classifier_state.get_idx();
                     debug!("Actual match with colon at {colon_idx}");
                     debug!("Distance skipped: {distance}");
-                    classifier_state.offset_bytes(distance as isize);
+                    classifier_state.offset_bytes(distance as isize)?;
 
                     if self.is_accepting {
                         result.report(colon_idx);
@@ -147,16 +148,16 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
                         }
                     }
 
-                    classifier_state.offset_bytes(1);
+                    classifier_state.offset_bytes(1)?;
 
                     let mut classifier = resume_structural_classification(classifier_state);
-                    let next_event = classifier.next();
+                    let next_event = classifier.next()?;
 
                     classifier_state = match next_event {
                         Some(opening @ Structural::Opening(_, opening_idx))
                             if self
                                 .bytes
-                                .seek_non_whitespace_forward(colon_idx + 1)
+                                .seek_non_whitespace_forward(colon_idx + 1)?
                                 .map_or(false, |(x, _)| x == opening_idx) =>
                         {
                             engine.run_on_subtree(opening, self.state, classifier, result)?

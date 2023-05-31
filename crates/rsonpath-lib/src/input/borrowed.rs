@@ -84,8 +84,8 @@ impl<'a> Input for BorrowedBytes<'a> {
     }
 
     #[inline]
-    fn seek_non_whitespace_forward(&self, from: usize) -> Option<(usize, u8)> {
-        in_slice::seek_non_whitespace_forward(self.bytes, from)
+    fn seek_non_whitespace_forward(&self, from: usize) -> Result<Option<(usize, u8)>, InputError> {
+        Ok(in_slice::seek_non_whitespace_forward(self.bytes, from))
     }
 
     #[inline]
@@ -95,8 +95,8 @@ impl<'a> Input for BorrowedBytes<'a> {
 
     #[inline]
     #[cfg(feature = "head-skip")]
-    fn find_member(&self, from: usize, member: &JsonString) -> Option<usize> {
-        in_slice::find_member(self.bytes, from, member)
+    fn find_member(&self, from: usize, member: &JsonString) -> Result<Option<usize>, InputError> {
+        Ok(in_slice::find_member(self.bytes, from, member))
     }
 
     #[inline]
@@ -105,24 +105,25 @@ impl<'a> Input for BorrowedBytes<'a> {
     }
 }
 
-impl<'a, const N: usize> Iterator for BorrowedBytesBlockIterator<'a, N> {
+impl<'a, const N: usize> FallibleIterator for BorrowedBytesBlockIterator<'a, N> {
     type Item = &'a [u8];
+    type Error = InputError;
 
     #[inline]
-    fn next(&mut self) -> Option<Self::Item> {
+    fn next(&mut self) -> Result<Option<Self::Item>, Self::Error> {
         if self.idx >= self.input.len() {
-            None
+            Ok(None)
         } else {
             let block = &self.input[self.idx..self.idx + N];
             self.idx += N;
 
-            Some(block)
+            Ok(Some(block))
         }
     }
 }
 
 impl<'a, const N: usize> InputBlockIterator<'a, N> for BorrowedBytesBlockIterator<'a, N> {
-    type Block = Self::Item;
+    type Block = &'a [u8];
 
     #[inline(always)]
     fn offset(&mut self, count: isize) {

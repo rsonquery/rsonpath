@@ -10,6 +10,8 @@ pub enum InputError {
     /// (e.g. [`OwnedBytes`](super::OwnedBytes)) would allocate more than the global limit of [isize::MAX].
     #[error("owned buffer size exceeded the hard system limit of isize::MAX")]
     AllocationSizeExceeded,
+    #[error(transparent)]
+    IoError(#[from] std::io::Error),
     /// Irrecoverable error due to a broken invariant or assumption.
     /// Preferred over panicking.
     #[error("InputError: {0}")]

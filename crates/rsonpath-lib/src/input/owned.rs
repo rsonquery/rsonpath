@@ -217,8 +217,8 @@ impl Input for OwnedBytes {
     }
 
     #[inline]
-    fn seek_non_whitespace_forward(&self, from: usize) -> Option<(usize, u8)> {
-        in_slice::seek_non_whitespace_forward(self.as_slice(), from)
+    fn seek_non_whitespace_forward(&self, from: usize) -> Result<Option<(usize, u8)>, InputError> {
+        Ok(in_slice::seek_non_whitespace_forward(self.as_slice(), from))
     }
 
     #[inline]
@@ -228,8 +228,8 @@ impl Input for OwnedBytes {
 
     #[inline]
     #[cfg(feature = "head-skip")]
-    fn find_member(&self, from: usize, label: &JsonString) -> Option<usize> {
-        in_slice::find_member(self.as_slice(), from, label)
+    fn find_member(&self, from: usize, label: &JsonString) -> Result<Option<usize>, InputError> {
+        Ok(in_slice::find_member(self.as_slice(), from, label))
     }
 
     #[inline]

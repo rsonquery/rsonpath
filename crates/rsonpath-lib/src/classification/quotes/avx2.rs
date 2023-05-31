@@ -16,6 +16,7 @@ use super::*;
 use crate::bin;
 use crate::debug;
 use crate::input::{Input, InputBlock, InputBlockIterator};
+use crate::FallibleIterator;
 
 #[cfg(target_arch = "x86")]
 use core::arch::x86::*;
@@ -44,12 +45,12 @@ impl<'a, I: Input> Avx2QuoteClassifier<'a, I> {
     }
 }
 
-impl<'a, I: Input> Iterator for Avx2QuoteClassifier<'a, I> {
+impl<'a, I: Input + 'a> FallibleIterator for Avx2QuoteClassifier<'a, I> {
     type Item = QuoteClassifiedBlock<<<I as Input>::BlockIterator<'a, 64> as InputBlockIterator<'a, 64>>::Block, 64>;
+    type Error = InputError;
 
-    #[inline(always)]
-    fn next(&mut self) -> Option<Self::Item> {
-        match self.iter.next() {
+    fn next(&mut self) -> Result<Option<Self::Item>, Self::Error> {
+        match self.iter.next()? {
             Some(block) => {
                 if let Some(offset) = self.offset {
                     self.offset = Some(offset + block.len());
@@ -63,14 +64,12 @@ impl<'a, I: Input> Iterator for Avx2QuoteClassifier<'a, I> {
                     block,
                     within_quotes_mask: mask,
                 };
-                Some(classified_block)
+                Ok(Some(classified_block))
             }
-            None => None,
+            None => Ok(None),
         }
     }
 }
-
-impl<I: Input> std::iter::FusedIterator for Avx2QuoteClassifier<'_, I> {}
 
 impl<'a, I: Input + 'a> QuoteClassifiedIterator<'a, I, 64> for Avx2QuoteClassifier<'a, I> {
     fn get_offset(&self) -> usize {
@@ -357,7 +356,7 @@ impl BlockAvx2Classifier {
 #[cfg(test)]
 mod tests {
     use super::Avx2QuoteClassifier;
-    use crate::input::OwnedBytes;
+    use crate::{input::OwnedBytes, FallibleIterator};
     use test_case::test_case;
 
     #[test_case("" => None)]
@@ -371,6 +370,6 @@ mod tests {
         let owned_str = str.to_owned();
         let input = OwnedBytes::new(&owned_str).unwrap();
         let mut classifier = Avx2QuoteClassifier::new(&input);
-        classifier.next().map(|x| x.within_quotes_mask)
+        classifier.next().unwrap().map(|x| x.within_quotes_mask)
     }
 }

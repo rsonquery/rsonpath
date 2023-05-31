@@ -16,6 +16,7 @@
 //! ```rust
 //! use rsonpath_lib::classification::structural::{BracketType, Structural, classify_structural_characters};
 //! use rsonpath_lib::input::OwnedBytes;
+//! use rsonpath_lib::FallibleIterator;
 //!
 //! let json = r#"{"x": [{"y": 42}, {}]}""#.to_owned();
 //! let aligned = OwnedBytes::try_from(json).unwrap();
@@ -30,13 +31,14 @@
 //!     Structural::Closing(BracketType::Curly, 21)
 //! ];
 //! let quote_classifier = rsonpath_lib::classification::quotes::classify_quoted_sequences(&aligned);
-//! let actual = classify_structural_characters(quote_classifier).collect::<Vec<Structural>>();
+//! let actual = classify_structural_characters(quote_classifier).collect::<Vec<Structural>>().unwrap();
 //! assert_eq!(expected, actual);
 //! ```
 //! ```rust
 //! use rsonpath_lib::classification::structural::{BracketType, Structural, classify_structural_characters};
 //! use rsonpath_lib::classification::quotes::classify_quoted_sequences;
 //! use rsonpath_lib::input::OwnedBytes;
+//! use rsonpath_lib::FallibleIterator;
 //!
 //! let json = r#"{"x": "[\"\"]"}""#.to_owned();
 //! let aligned = OwnedBytes::try_from(json).unwrap();
@@ -45,13 +47,13 @@
 //!     Structural::Closing(BracketType::Curly, 14)
 //! ];
 //! let quote_classifier = classify_quoted_sequences(&aligned);
-//! let actual = classify_structural_characters(quote_classifier).collect::<Vec<Structural>>();
+//! let actual = classify_structural_characters(quote_classifier).collect::<Vec<Structural>>().unwrap();
 //! assert_eq!(expected, actual);
 //! ```
 use crate::{
     classification::{quotes::QuoteClassifiedIterator, ResumeClassifierState},
-    input::Input,
-    BLOCK_SIZE,
+    input::{error::InputError, Input},
+    FallibleIterator, BLOCK_SIZE,
 };
 use cfg_if::cfg_if;
 
@@ -158,7 +160,9 @@ impl Structural {
 
 /// Trait for classifier iterators, i.e. finite iterators of [`Structural`] characters
 /// that hold a reference to the JSON document valid for `'a`.
-pub trait StructuralIterator<'a, I: Input, Q, const N: usize>: Iterator<Item = Structural> + 'a {
+pub trait StructuralIterator<'a, I: Input, Q, const N: usize>:
+    FallibleIterator<Item = Structural, Error = InputError> + 'a
+{
     /// Stop classification and return a state object that can be used to resume
     /// a classifier from the place in which the current one was stopped.
     fn stop(self) -> ResumeClassifierState<'a, I, Q, N>;
@@ -238,15 +242,15 @@ mod tests {
 
         let mut classifier = classify_structural_characters(quotes);
 
-        assert_eq!(Some(Opening(Curly, 0)), classifier.next());
-        assert_eq!(Some(Opening(Square, 6)), classifier.next());
+        assert_eq!(Some(Opening(Curly, 0)), classifier.next().unwrap());
+        assert_eq!(Some(Opening(Square, 6)), classifier.next().unwrap());
 
         let resume_state = classifier.stop();
 
         let mut resumed_classifier = resume_structural_classification(resume_state);
 
-        assert_eq!(Some(Opening(Curly, 15)), resumed_classifier.next());
-        assert_eq!(Some(Opening(Curly, 22)), resumed_classifier.next());
+        assert_eq!(Some(Opening(Curly, 15)), resumed_classifier.next().unwrap());
+        assert_eq!(Some(Opening(Curly, 22)), resumed_classifier.next().unwrap());
     }
 
     #[test]
@@ -262,18 +266,18 @@ mod tests {
         let mut classifier = classify_structural_characters(quotes);
         classifier.turn_commas_on(0);
 
-        assert_eq!(Some(Opening(Curly, 0)), classifier.next());
-        assert_eq!(Some(Opening(Square, 6)), classifier.next());
-        assert_eq!(Some(Comma(9)), classifier.next());
-        assert_eq!(Some(Comma(13)), classifier.next());
+        assert_eq!(Some(Opening(Curly, 0)), classifier.next().unwrap());
+        assert_eq!(Some(Opening(Square, 6)), classifier.next().unwrap());
+        assert_eq!(Some(Comma(9)), classifier.next().unwrap());
+        assert_eq!(Some(Comma(13)), classifier.next().unwrap());
 
         let resume_state = classifier.stop();
 
         let mut resumed_classifier = resume_structural_classification(resume_state);
 
-        assert_eq!(Some(Opening(Curly, 15)), resumed_classifier.next());
-        assert_eq!(Some(Opening(Curly, 22)), resumed_classifier.next());
-        assert_eq!(Some(Comma(30)), resumed_classifier.next());
+        assert_eq!(Some(Opening(Curly, 15)), resumed_classifier.next().unwrap());
+        assert_eq!(Some(Opening(Curly, 22)), resumed_classifier.next().unwrap());
+        assert_eq!(Some(Comma(30)), resumed_classifier.next().unwrap());
     }
 
     #[test]
@@ -289,18 +293,18 @@ mod tests {
         let mut classifier = classify_structural_characters(quotes);
         classifier.turn_colons_on(0);
 
-        assert_eq!(Some(Opening(Curly, 0)), classifier.next());
-        assert_eq!(Some(Colon(4)), classifier.next());
-        assert_eq!(Some(Opening(Square, 6)), classifier.next());
+        assert_eq!(Some(Opening(Curly, 0)), classifier.next().unwrap());
+        assert_eq!(Some(Colon(4)), classifier.next().unwrap());
+        assert_eq!(Some(Opening(Square, 6)), classifier.next().unwrap());
 
         let resume_state = classifier.stop();
 
         let mut resumed_classifier = resume_structural_classification(resume_state);
 
-        assert_eq!(Some(Opening(Curly, 15)), resumed_classifier.next());
-        assert_eq!(Some(Colon(20)), resumed_classifier.next());
-        assert_eq!(Some(Opening(Curly, 22)), resumed_classifier.next());
-        assert_eq!(Some(Colon(27)), resumed_classifier.next());
+        assert_eq!(Some(Opening(Curly, 15)), resumed_classifier.next().unwrap());
+        assert_eq!(Some(Colon(20)), resumed_classifier.next().unwrap());
+        assert_eq!(Some(Opening(Curly, 22)), resumed_classifier.next().unwrap());
+        assert_eq!(Some(Colon(27)), resumed_classifier.next().unwrap());
     }
 
     #[test]
@@ -317,20 +321,20 @@ mod tests {
         classifier.turn_commas_on(0);
         classifier.turn_colons_on(0);
 
-        assert_eq!(Some(Opening(Curly, 0)), classifier.next());
-        assert_eq!(Some(Colon(4)), classifier.next());
-        assert_eq!(Some(Opening(Square, 6)), classifier.next());
-        assert_eq!(Some(Comma(9)), classifier.next());
-        assert_eq!(Some(Comma(13)), classifier.next());
+        assert_eq!(Some(Opening(Curly, 0)), classifier.next().unwrap());
+        assert_eq!(Some(Colon(4)), classifier.next().unwrap());
+        assert_eq!(Some(Opening(Square, 6)), classifier.next().unwrap());
+        assert_eq!(Some(Comma(9)), classifier.next().unwrap());
+        assert_eq!(Some(Comma(13)), classifier.next().unwrap());
 
         let resume_state = classifier.stop();
 
         let mut resumed_classifier = resume_structural_classification(resume_state);
 
-        assert_eq!(Some(Opening(Curly, 15)), resumed_classifier.next());
-        assert_eq!(Some(Colon(20)), resumed_classifier.next());
-        assert_eq!(Some(Opening(Curly, 22)), resumed_classifier.next());
-        assert_eq!(Some(Colon(27)), resumed_classifier.next());
-        assert_eq!(Some(Comma(30)), resumed_classifier.next());
+        assert_eq!(Some(Opening(Curly, 15)), resumed_classifier.next().unwrap());
+        assert_eq!(Some(Colon(20)), resumed_classifier.next().unwrap());
+        assert_eq!(Some(Opening(Curly, 22)), resumed_classifier.next().unwrap());
+        assert_eq!(Some(Colon(27)), resumed_classifier.next().unwrap());
+        assert_eq!(Some(Comma(30)), resumed_classifier.next().unwrap());
     }
 }

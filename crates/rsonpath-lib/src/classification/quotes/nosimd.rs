@@ -1,5 +1,5 @@
 use super::*;
-use crate::input::InputBlockIterator;
+use crate::{input::InputBlockIterator, FallibleIterator};
 
 pub(crate) struct SequentialQuoteClassifier<'a, I: Input + 'a, const N: usize> {
     iter: I::BlockIterator<'a, N>,
@@ -20,12 +20,13 @@ impl<'a, I: Input, const N: usize> SequentialQuoteClassifier<'a, I, N> {
     }
 }
 
-impl<'a, I: Input, const N: usize> Iterator for SequentialQuoteClassifier<'a, I, N> {
+impl<'a, I: Input, const N: usize> FallibleIterator for SequentialQuoteClassifier<'a, I, N> {
     type Item = QuoteClassifiedBlock<IBlock<'a, I, N>, N>;
+    type Error = InputError;
 
     #[inline(always)]
-    fn next(&mut self) -> Option<Self::Item> {
-        match self.iter.next() {
+    fn next(&mut self) -> Result<Option<Self::Item>, InputError> {
+        match self.iter.next()? {
             Some(block) => {
                 let mut mask = 0_u64;
                 let mut idx_mask = 1;
@@ -54,17 +55,15 @@ impl<'a, I: Input, const N: usize> Iterator for SequentialQuoteClassifier<'a, I,
                     idx_mask <<= 1;
                 }
 
-                Some(QuoteClassifiedBlock {
+                Ok(Some(QuoteClassifiedBlock {
                     block,
                     within_quotes_mask: mask,
-                })
+                }))
             }
-            None => None,
+            None => Ok(None),
         }
     }
 }
-
-impl<'a, I: Input, const N: usize> std::iter::FusedIterator for SequentialQuoteClassifier<'a, I, N> {}
 
 impl<'a, I: Input, const N: usize> QuoteClassifiedIterator<'a, I, N> for SequentialQuoteClassifier<'a, I, N> {
     fn get_offset(&self) -> usize {

@@ -1,7 +1,10 @@
-use super::{in_slice, Input, InputBlock, InputBlockIterator, MAX_BLOCK_SIZE};
-use crate::query::JsonString;
+use super::{error::InputError, in_slice, Input, InputBlock, InputBlockIterator, MAX_BLOCK_SIZE};
+use crate::error::InternalRsonpathError;
 use crate::repr_align_block_size;
-use std::{cell::RefCell, cmp, io::Read, ops::Deref, slice};
+use crate::{query::JsonString, FallibleIterator};
+#[cfg(feature = "head-skip")]
+use std::cmp;
+use std::{cell::RefCell, io::Read, ops::Deref, slice};
 
 const BUF_SIZE: usize = 64 * 1024;
 
@@ -43,17 +46,21 @@ impl<R: Read> InternalBuffer<R> {
         self.bytes.len() * BUF_SIZE
     }
 
-    fn read_more(&mut self) -> bool {
+    fn read_more(&mut self) -> Result<bool, InputError> {
         if self.eof {
-            return false;
+            return Ok(false);
         }
 
         self.bytes.push(BufferedChunk([0; BUF_SIZE]));
-        let buf = &mut self.bytes.last_mut().unwrap().0;
+        let buf = &mut self
+            .bytes
+            .last_mut()
+            .ok_or(InternalRsonpathError::from_expectation("empty vec after push"))?
+            .0;
         let mut total = 0;
 
         while total < BUF_SIZE && !self.eof {
-            let size = self.source.read(&mut buf[total..]).unwrap();
+            let size = self.source.read(&mut buf[total..])?;
 
             if size == 0 {
                 self.eof = true;
@@ -62,7 +69,7 @@ impl<R: Read> InternalBuffer<R> {
             total += size;
         }
 
-        total > 0
+        Ok(total > 0)
     }
 }
 
@@ -93,7 +100,7 @@ impl<R: Read> Input for BufferedInput<R> {
     }
 
     #[inline]
-    fn seek_non_whitespace_forward(&self, from: usize) -> Option<(usize, u8)> {
+    fn seek_non_whitespace_forward(&self, from: usize) -> Result<Option<(usize, u8)>, InputError> {
         let mut buf = self.0.borrow_mut();
         let mut moving_from = from;
 
@@ -106,9 +113,9 @@ impl<R: Read> Input for BufferedInput<R> {
             moving_from = buf.len();
 
             if res.is_some() {
-                return res;
-            } else if !buf.read_more() {
-                return None;
+                return Ok(res);
+            } else if !buf.read_more()? {
+                return Ok(None);
             }
         }
     }
@@ -122,7 +129,7 @@ impl<R: Read> Input for BufferedInput<R> {
 
     #[cfg(feature = "head-skip")]
     #[inline]
-    fn find_member(&self, from: usize, member: &JsonString) -> Option<usize> {
+    fn find_member(&self, from: usize, member: &JsonString) -> Result<Option<usize>, InputError> {
         let mut buf = self.0.borrow_mut();
         let mut moving_from = from;
 
@@ -135,9 +142,9 @@ impl<R: Read> Input for BufferedInput<R> {
             moving_from = cmp::min(from, buf.len().saturating_sub(member.bytes_with_quotes().len() - 1));
 
             if res.is_some() {
-                return res;
-            } else if !buf.read_more() {
-                return None;
+                return Ok(res);
+            } else if !buf.read_more()? {
+                return Ok(None);
             }
         }
     }
@@ -150,25 +157,28 @@ impl<R: Read> Input for BufferedInput<R> {
     }
 }
 
-impl<'a, R: Read, const N: usize> Iterator for BufferedInputBlockIterator<'a, R, N> {
+impl<'a, R: Read, const N: usize> FallibleIterator for BufferedInputBlockIterator<'a, R, N> {
     type Item = BufferedInputBlock<N>;
+    type Error = InputError;
 
     #[inline]
-    fn next(&mut self) -> Option<Self::Item> {
+    fn next(&mut self) -> Result<Option<Self::Item>, Self::Error> {
         let buf = self.input.0.borrow();
 
         if self.idx + N < buf.len() {
             let slice = &buf.as_slice()[self.idx..self.idx + N];
-            let block: [u8; N] = slice.try_into().unwrap();
+            let block: [u8; N] = slice
+                .try_into()
+                .map_err(|err| InternalRsonpathError::from_error(err, "slice of size N is not of size N"))?;
             self.idx += N;
 
-            Some(BufferedInputBlock(block))
+            Ok(Some(BufferedInputBlock(block)))
         } else {
             drop(buf);
             let mut buf_mut = self.input.0.borrow_mut();
 
-            if !buf_mut.read_more() {
-                None
+            if !buf_mut.read_more()? {
+                Ok(None)
             } else {
                 drop(buf_mut);
                 self.next()

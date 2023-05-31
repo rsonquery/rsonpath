@@ -259,3 +259,36 @@ macro_rules! bin {
 #[allow(unused_imports)]
 pub(crate) use bin;
 pub(crate) use debug;
+
+pub trait FallibleIterator {
+    type Item;
+    type Error: std::error::Error;
+
+    /// Advances the iterator and returns the next value.
+    fn next(&mut self) -> Result<Option<Self::Item>, Self::Error>;
+
+    #[inline]
+    fn collect<B>(self) -> Result<B, Self::Error>
+    where
+        B: FromIterator<Self::Item>,
+        Self: Sized,
+    {
+        let iter = FallibleIntoIter { src: self };
+        iter.collect()
+    }
+}
+
+struct FallibleIntoIter<F> {
+    src: F,
+}
+
+impl<F: FallibleIterator> Iterator for FallibleIntoIter<F> {
+    type Item = Result<F::Item, F::Error>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.src.next() {
+            Ok(item) => item.map(Ok),
+            Err(e) => Some(Err(e)),
+        }
+    }
+}

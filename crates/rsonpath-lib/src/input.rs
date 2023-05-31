@@ -47,8 +47,10 @@ pub use borrowed::BorrowedBytes;
 pub use buffered::BufferedInput;
 pub use owned::OwnedBytes;
 
-use crate::query::JsonString;
+use crate::{query::JsonString, FallibleIterator};
 use std::ops::Deref;
+
+use self::error::InputError;
 
 /// Shorthand for the associated [`InputBlock`] type for given
 /// [`Input`]'s iterator.
@@ -100,8 +102,7 @@ pub trait Input: Sized {
     /// starting from `from`. Returns a pair: the index of first such byte,
     /// and the byte itself; or `None` if no non-whitespace characters
     /// were found.
-    #[must_use]
-    fn seek_non_whitespace_forward(&self, from: usize) -> Option<(usize, u8)>;
+    fn seek_non_whitespace_forward(&self, from: usize) -> Result<Option<(usize, u8)>, InputError>;
 
     /// Search for the first byte in the input that is not ASCII whitespace
     /// starting from `from` and looking back. Returns a pair:
@@ -120,8 +121,7 @@ pub trait Input: Sized {
     /// structural properties of the input. In particular, the member
     /// might be found at an arbitrary depth.
     #[cfg(feature = "head-skip")]
-    #[must_use]
-    fn find_member(&self, from: usize, member: &JsonString) -> Option<usize>;
+    fn find_member(&self, from: usize, member: &JsonString) -> Result<Option<usize>, InputError>;
 
     /// Decide whether the slice of input between `from` (inclusive)
     /// and `to` (exclusive) matches the `member` (comparing bitwise,
@@ -136,7 +136,7 @@ pub trait Input: Sized {
 /// An iterator over blocks of input of size `N`.
 /// Implementations MUST guarantee that the blocks returned from `next`
 /// are *exactly* of size `N`.
-pub trait InputBlockIterator<'a, const N: usize>: Iterator<Item = Self::Block> {
+pub trait InputBlockIterator<'a, const N: usize>: FallibleIterator<Item = Self::Block, Error = InputError> {
     /// The type of blocks returned.
     type Block: InputBlock<'a, N>;
 
