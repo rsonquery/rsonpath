@@ -46,6 +46,8 @@ pub mod owned;
 pub use borrowed::BorrowedBytes;
 pub use buffered::BufferedInput;
 pub use owned::OwnedBytes;
+pub mod mmap;
+pub use mmap::MmapInput;
 
 use crate::{query::JsonString, FallibleIterator};
 use std::ops::Deref;

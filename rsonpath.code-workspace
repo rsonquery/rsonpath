@@ -29,6 +29,8 @@
 			"mainsnak",
 			"Mateusz",
 			"memchr",
+			"memmap",
+			"Mmap",
 			"movemask",
 			"nonescaped",
 			"nonoverlapping",
