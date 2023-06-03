@@ -1,16 +1,23 @@
-use super::{borrowed::BorrowedBytesBlockIterator, error::InputError, in_slice, Input};
+use super::{borrowed::BorrowedBytesBlockIterator, error::InputError, in_slice, Input, MAX_BLOCK_SIZE};
 use crate::query::JsonString;
 use memmap2::Mmap;
 use std::fs::File;
 
 pub struct MmapInput {
     mmap: Mmap,
+    last_block: [u8; MAX_BLOCK_SIZE],
 }
 
 impl MmapInput {
-    pub fn map_file(file: File) -> Result<Self, InputError> {
-        match unsafe { Mmap::map(&file) } {
-            Ok(mmap) => Ok(Self { mmap }),
+    pub fn map_file(file: &File) -> Result<Self, InputError> {
+        match unsafe { Mmap::map(file) } {
+            Ok(mmap) => {
+                let last_block = in_slice::pad_last_block(&mmap);
+                Ok(Self {
+                    mmap,
+                    last_block,
+                })
+            }
             Err(err) => Err(err.into()),
         }
     }
@@ -21,7 +28,7 @@ impl Input for MmapInput {
 
     #[inline(always)]
     fn iter_blocks<const N: usize>(&self) -> Self::BlockIterator<'_, N> {
-        BorrowedBytesBlockIterator::new(&self.mmap)
+        BorrowedBytesBlockIterator::new(&self.mmap, &self.last_block)
     }
 
     #[inline]

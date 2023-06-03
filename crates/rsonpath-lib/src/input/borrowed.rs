@@ -6,11 +6,13 @@ use super::*;
 /// Input wrapping a borrowed [`[u8]`] buffer.
 pub struct BorrowedBytes<'a> {
     bytes: &'a [u8],
+    last_block: [u8; MAX_BLOCK_SIZE],
 }
 
 /// Iterator over blocks of [`BorrowedBytes`] of size exactly `N`.
 pub struct BorrowedBytesBlockIterator<'a, const N: usize> {
     input: &'a [u8],
+    last_block: &'a [u8; MAX_BLOCK_SIZE],
     idx: usize,
 }
 
@@ -34,7 +36,8 @@ impl<'a> BorrowedBytes<'a> {
     #[inline(always)]
     pub unsafe fn new(bytes: &'a [u8]) -> Self {
         assert_eq!(bytes.len() % MAX_BLOCK_SIZE, 0);
-        Self { bytes }
+        let last_block = in_slice::pad_last_block(bytes);
+        Self { bytes, last_block }
     }
 
     /// Get a reference to the bytes as a slice.
@@ -62,8 +65,12 @@ impl<'a> AsRef<[u8]> for BorrowedBytes<'a> {
 impl<'a, const N: usize> BorrowedBytesBlockIterator<'a, N> {
     #[must_use]
     #[inline(always)]
-    pub(super) fn new(bytes: &'a [u8]) -> Self {
-        Self { input: bytes, idx: 0 }
+    pub(super) fn new(bytes: &'a [u8], last_block: &'a [u8; MAX_BLOCK_SIZE]) -> Self {
+        Self {
+            input: bytes,
+            idx: 0,
+            last_block,
+        }
     }
 }
 
@@ -75,6 +82,7 @@ impl<'a> Input for BorrowedBytes<'a> {
         Self::BlockIterator {
             input: self.bytes,
             idx: 0,
+            last_block: &self.last_block,
         }
     }
 
@@ -113,6 +121,8 @@ impl<'a, const N: usize> FallibleIterator for BorrowedBytesBlockIterator<'a, N> 
     fn next(&mut self) -> Result<Option<Self::Item>, Self::Error> {
         if self.idx >= self.input.len() {
             Ok(None)
+        } else if self.input.len() < self.idx + N {
+            Ok(Some(&self.last_block[..N]))
         } else {
             let block = &self.input[self.idx..self.idx + N];
             self.idx += N;

@@ -164,10 +164,26 @@ impl<'a, const N: usize> InputBlock<'a, N> for &'a [u8] {
 
 pub(super) mod in_slice {
     use crate::query::JsonString;
+    use super::MAX_BLOCK_SIZE;
+
+    #[inline]
+    pub(super) fn pad_last_block(bytes: &[u8]) -> [u8; MAX_BLOCK_SIZE] {
+        let mut last_block_buf = [0; MAX_BLOCK_SIZE];
+        let last_block_start = (bytes.len() / MAX_BLOCK_SIZE) * MAX_BLOCK_SIZE;
+        let last_block_slice = &bytes[last_block_start..];
+
+        last_block_buf[..last_block_slice.len()].copy_from_slice(last_block_slice);
+
+        last_block_buf
+    }
 
     #[inline]
     pub(super) fn seek_backward(bytes: &[u8], from: usize, needle: u8) -> Option<usize> {
         let mut idx = from;
+
+        if idx >= bytes.len() {
+            return None;
+        }
 
         loop {
             if bytes[idx] == needle {
@@ -183,6 +199,10 @@ pub(super) mod in_slice {
     #[inline]
     pub(super) fn seek_non_whitespace_forward(bytes: &[u8], from: usize) -> Option<(usize, u8)> {
         let mut idx = from;
+
+        if idx >= bytes.len() {
+            return None;
+        }
 
         loop {
             let b = bytes[idx];
@@ -200,6 +220,10 @@ pub(super) mod in_slice {
     pub(super) fn seek_non_whitespace_backward(bytes: &[u8], from: usize) -> Option<(usize, u8)> {
         let mut idx = from;
 
+        if idx >= bytes.len() {
+            return None;
+        }
+        
         loop {
             let b = bytes[idx];
             if !b.is_ascii_whitespace() {
@@ -220,6 +244,10 @@ pub(super) mod in_slice {
         let finder = memmem::Finder::new(member.bytes_with_quotes());
         let mut idx = from;
         let brr = bytes.len();
+
+        if brr <= idx {
+            return None;
+        }
 
         loop {
             match finder.find(&bytes[idx..brr]) {

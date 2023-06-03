@@ -8,9 +8,22 @@ pub struct OwnedBytes {
     bytes_ptr: ptr::NonNull<u8>,
     len: usize,
     capacity: usize,
+    last_block: [u8; MAX_BLOCK_SIZE],
 }
 
 impl OwnedBytes {
+    fn finalize_new(ptr: ptr::NonNull<u8>, len: usize, cap: usize) -> Self {
+        let slice = unsafe { slice::from_raw_parts(ptr.as_ptr(), len) };
+        let last_block = in_slice::pad_last_block(slice);
+
+        Self {
+            bytes_ptr: ptr,
+            len,
+            capacity: cap,
+            last_block,
+        }
+    }
+
     /// Get a reference to the bytes as a slice.
     #[must_use]
     #[inline(always)]
@@ -47,11 +60,7 @@ impl OwnedBytes {
     #[must_use]
     #[inline(always)]
     pub unsafe fn from_raw_parts(ptr: ptr::NonNull<u8>, size: usize) -> Self {
-        Self {
-            bytes_ptr: ptr,
-            len: size,
-            capacity: size,
-        }
+        Self::finalize_new(ptr, size, size)
     }
 
     /// Copy a buffer of bytes and create a proper [`OwnedBytes`] instance.
@@ -71,11 +80,7 @@ impl OwnedBytes {
         let size = slice.len() + pad;
 
         if size == 0 {
-            return Ok(Self {
-                bytes_ptr: ptr::NonNull::dangling(),
-                len: 0,
-                capacity: 0,
-            });
+            return Ok(Self::finalize_new(ptr::NonNull::dangling(), 0, 0));
         }
 
         // Size overflow check happens in get_layout.
@@ -92,11 +97,7 @@ impl OwnedBytes {
             ptr::write_bytes(ptr.as_ptr().add(slice.len()), 0, pad);
         };
 
-        Ok(Self {
-            bytes_ptr: ptr,
-            len: size,
-            capacity: size,
-        })
+        Ok(Self::finalize_new(ptr, size, size))
     }
 
     /// Create a new instance of [`OwnedBytes`] from a buffer satisfying
@@ -115,11 +116,7 @@ impl OwnedBytes {
         let size = slice.len();
 
         if size == 0 {
-            return Self {
-                bytes_ptr: ptr::NonNull::dangling(),
-                len: 0,
-                capacity: 0,
-            };
+            return Self::finalize_new(ptr::NonNull::dangling(), 0, 0);
         }
 
         let layout = Self::get_layout(size).unwrap_unchecked();
@@ -127,11 +124,7 @@ impl OwnedBytes {
         let ptr = ptr::NonNull::new(raw_ptr).unwrap_or_else(|| alloc::handle_alloc_error(layout));
         ptr::copy_nonoverlapping(slice.as_ptr(), ptr.as_ptr(), slice.len());
 
-        Self {
-            bytes_ptr: ptr,
-            len: size,
-            capacity: size,
-        }
+        Self::finalize_new(ptr, size, size)
     }
 
     #[inline(always)]
@@ -208,7 +201,7 @@ impl Input for OwnedBytes {
 
     #[inline(always)]
     fn iter_blocks<const N: usize>(&self) -> Self::BlockIterator<'_, N> {
-        BorrowedBytesBlockIterator::new(self.as_slice())
+        BorrowedBytesBlockIterator::new(self.as_slice(), &self.last_block)
     }
 
     #[inline]
