@@ -1,22 +1,46 @@
+//! Uses [`Mmap`](memmap2) to map a file into memory with kernel support. Choose this implementation if:
+//!
+//! 1. Your platform supports memory maps.
+//! 2. The input data is in a file or comes from standard input:
+//!   a) if from a file, then you can guarantee that the file is not going to be modified
+//!      in or out of process while the input is alive;
+//!   b) if from stdin, then that the input lives in memory (for example comes via a pipe);
+//!      input from a tty is not memory-mappable.
+//!
+//! ## Performance characteristics
+//!
+//! A memory map is by far the fastest way to process a file. For some queries it is faster
+//! by an order of magnitude to execute the query on a memory map than it is to simply read the
+//! file into main memory.
+
 use super::{borrowed::BorrowedBytesBlockIterator, error::InputError, in_slice, Input, MAX_BLOCK_SIZE};
 use crate::query::JsonString;
 use memmap2::Mmap;
 use std::fs::File;
 
+/// Input wrapping a memory mapped file.
 pub struct MmapInput {
     mmap: Mmap,
     last_block: [u8; MAX_BLOCK_SIZE],
 }
 
 impl MmapInput {
-    pub fn map_file(file: &File) -> Result<Self, InputError> {
-        match unsafe { Mmap::map(file) } {
+    /// Map a file to memory.
+    ///
+    /// # Safety
+    ///
+    /// This operation is inherently unsafe, since the file can be modified
+    /// in or out of process. See [Mmap documentation](https://docs.rs/memmap2/latest/memmap2/struct.Mmap.html).
+    ///
+    /// # Errors
+    ///
+    /// Calling mmap might result in an IO error.
+    #[inline]
+    pub unsafe fn map_file(file: &File) -> Result<Self, InputError> {
+        match Mmap::map(file) {
             Ok(mmap) => {
                 let last_block = in_slice::pad_last_block(&mmap);
-                Ok(Self {
-                    mmap,
-                    last_block,
-                })
+                Ok(Self { mmap, last_block })
             }
             Err(err) => Err(err.into()),
         }

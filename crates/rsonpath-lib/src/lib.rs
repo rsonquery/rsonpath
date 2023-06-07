@@ -260,13 +260,24 @@ macro_rules! bin {
 pub(crate) use bin;
 pub(crate) use debug;
 
+/// Variation of the [`Iterator`] trait where each read can fail.
 pub trait FallibleIterator {
+    /// Type of items returned by this iterator.
     type Item;
+    /// Type of errors that can occur when reading from this iterator.
     type Error: std::error::Error;
 
     /// Advances the iterator and returns the next value.
+    ///
+    /// # Errors
+    /// May fail depending on the implementation.
     fn next(&mut self) -> Result<Option<Self::Item>, Self::Error>;
 
+    /// Transforms an iterator into a collection.
+    ///
+    /// # Errors
+    /// This consumes the iterator and reads from it. If any read fails,
+    /// the result is the first error encountered.
     #[inline]
     fn collect<B>(self) -> Result<B, Self::Error>
     where

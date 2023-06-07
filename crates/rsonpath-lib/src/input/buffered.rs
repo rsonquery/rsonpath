@@ -1,6 +1,22 @@
+//! Acquires a [`Read`](std::io::Read) instance and reads it in on-demand in a buffer.
+//! All of the bytes read are kept in memory. Choose this implementation if:
+//!
+//! 1. You have a [`Read`](std::io::Read) source that might contain relatively large amounts
+//! of data.
+//! 2. You want to run the JSONPath query on the input and then discard it.
+//!
+//! ## Performance characteristics
+//!
+//! This is the best choice for a relatively large read-once input that is not a file
+//! (or when memory maps are not supported). It is faster than first reading all of
+//! the contents and then passing them to [`BorrowedBytes`](`super::BorrowedBytes`). It is, however,
+//! slow compared to other choices. If you know the approximate length of input,
+//! use the [`with_capacity`](`BufferedInput::with_capacity`) function to avoid
+//! reallocating the internal buffers.
+
+use super::repr_align_block_size;
 use super::{error::InputError, in_slice, Input, InputBlock, InputBlockIterator, MAX_BLOCK_SIZE};
 use crate::error::InternalRsonpathError;
-use crate::repr_align_block_size;
 use crate::{query::JsonString, FallibleIterator};
 #[cfg(feature = "head-skip")]
 use std::cmp;
@@ -9,12 +25,15 @@ use std::{cell::RefCell, io::Read, ops::Deref, slice};
 const BUF_SIZE: usize = 64 * 1024;
 
 static_assertions::const_assert!(BUF_SIZE >= MAX_BLOCK_SIZE);
+static_assertions::const_assert!(BUF_SIZE % MAX_BLOCK_SIZE == 0);
 
+/// Input supporting a buffered read over a [`Read`] implementation.
 pub struct BufferedInput<R>(RefCell<InternalBuffer<R>>);
 
 struct InternalBuffer<R> {
     source: R,
     bytes: Vec<BufferedChunk>,
+    chunk_idx: usize,
     eof: bool,
 }
 
@@ -22,11 +41,13 @@ repr_align_block_size! {
     struct BufferedChunk([u8; BUF_SIZE]);
 }
 
+/// Iterator over a [`BufferedInput`].
 pub struct BufferedInputBlockIterator<'a, R, const N: usize> {
     input: &'a BufferedInput<R>,
     idx: usize,
 }
 
+/// Block returned from a [`BufferedInputBlockIterator`].
 pub struct BufferedInputBlock<const N: usize>([u8; N]);
 
 impl<R: Read> InternalBuffer<R> {
@@ -35,15 +56,15 @@ impl<R: Read> InternalBuffer<R> {
         let ptr = self.bytes.as_slice().as_ptr().cast();
 
         // SAFETY: BufferedChunk has the same layout as an array of bytes due to repr(C).
-        // `BUF_SIZE >= MAX_BLOCK_SIZE` (static assert at the top), so [BufferedChunk; N]
-        // has the same repr as [[u8; BUF_SIZE]; N],
+        // `BUF_SIZE >= MAX_BLOCK_SIZE`, and `BUF_SIZE` is a multiple of `MAX_BLOCK_SIZE`
+        // (static asserts at the top), so [BufferedChunk; N] has the same repr as [[u8; BUF_SIZE]; N],
         // which in turn is guaranteed to have the same repr as [u8; BUF_SIZE * N].
         // https://doc.rust-lang.org/reference/type-layout.html#array-layout
         unsafe { slice::from_raw_parts(ptr, len) }
     }
 
     fn len(&self) -> usize {
-        self.bytes.len() * BUF_SIZE
+        self.chunk_idx * BUF_SIZE
     }
 
     fn read_more(&mut self) -> Result<bool, InputError> {
@@ -51,13 +72,13 @@ impl<R: Read> InternalBuffer<R> {
             return Ok(false);
         }
 
-        self.bytes.push(BufferedChunk([0; BUF_SIZE]));
-        let buf = &mut self
-            .bytes
-            .last_mut()
-            .ok_or(InternalRsonpathError::from_expectation("empty vec after push"))?
-            .0;
+        if self.chunk_idx == self.bytes.len() {
+            self.bytes.push(BufferedChunk([0; BUF_SIZE]));
+        }
+
+        let buf = &mut self.bytes[self.chunk_idx].0;
         let mut total = 0;
+        self.chunk_idx += 1;
 
         while total < BUF_SIZE && !self.eof {
             let size = self.source.read(&mut buf[total..])?;
@@ -74,12 +95,27 @@ impl<R: Read> InternalBuffer<R> {
 }
 
 impl<R: Read> BufferedInput<R> {
+    /// Create a new [`BufferedInput`] reading from the given `source`.
     #[inline]
     pub fn new(source: R) -> Self {
         Self(RefCell::new(InternalBuffer {
             source,
             bytes: vec![],
             eof: false,
+            chunk_idx: 0,
+        }))
+    }
+
+    /// Create a new [`BufferedInput`] reading from the given `source`,
+    /// preallocating at least `capacity` bytes up front.
+    #[inline]
+    pub fn with_capacity(source: R, capacity: usize) -> Self {
+        let blocks_needed = capacity / MAX_BLOCK_SIZE + 1;
+        Self(RefCell::new(InternalBuffer {
+            source,
+            bytes: Vec::with_capacity(blocks_needed),
+            eof: false,
+            chunk_idx: 0,
         }))
     }
 }

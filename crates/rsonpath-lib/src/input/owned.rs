@@ -1,4 +1,16 @@
-//! Input sourced from an owned buffer of bytes, without growing.
+//! Takes ownership of the input data. Choose this implementation if:
+//! 1. You already have the data loaded in-memory, but it is not properly
+//! aligned, and its size is relatively small, so reallocating it is acceptable &ndash; use the
+//! [`new`](`OwnedBytes::new`) function for this.
+//!
+//! ## Performance characteristics
+//!
+//! Runtime performance is the same as for [`BorrowedBytes`]. The overhead comes from
+//! the input construction.
+//!
+//! For data of small length (around a megabyte) full copy is going to be faster still
+//! than using a buffered input stream.
+
 use super::{borrowed::BorrowedBytesBlockIterator, error::InputError, *};
 use crate::query::JsonString;
 use std::{alloc, ptr, slice};
@@ -12,8 +24,14 @@ pub struct OwnedBytes {
 }
 
 impl OwnedBytes {
-    fn finalize_new(ptr: ptr::NonNull<u8>, len: usize, cap: usize) -> Self {
-        let slice = unsafe { slice::from_raw_parts(ptr.as_ptr(), len) };
+    /// Finalize the initialization of bytes by computing the last_block
+    /// and producing the final instance.
+    ///
+    /// # Safety:
+    /// - `ptr` must represent an initialized block of bytes of length `cap`
+    /// - `len` <= cap
+    unsafe fn finalize_new(ptr: ptr::NonNull<u8>, len: usize, cap: usize) -> Self {
+        let slice = slice::from_raw_parts(ptr.as_ptr(), len);
         let last_block = in_slice::pad_last_block(slice);
 
         Self {
@@ -80,7 +98,8 @@ impl OwnedBytes {
         let size = slice.len() + pad;
 
         if size == 0 {
-            return Ok(Self::finalize_new(ptr::NonNull::dangling(), 0, 0));
+            // SAFETY: For len and cap 0 the dangling ptr always works.
+            return Ok(unsafe { Self::finalize_new(ptr::NonNull::dangling(), 0, 0) });
         }
 
         // Size overflow check happens in get_layout.
@@ -97,7 +116,8 @@ impl OwnedBytes {
             ptr::write_bytes(ptr.as_ptr().add(slice.len()), 0, pad);
         };
 
-        Ok(Self::finalize_new(ptr, size, size))
+        // SAFETY: At this point we allocated and initialized exactly `size` bytes.
+        Ok(unsafe { Self::finalize_new(ptr, size, size) })
     }
 
     /// Create a new instance of [`OwnedBytes`] from a buffer satisfying

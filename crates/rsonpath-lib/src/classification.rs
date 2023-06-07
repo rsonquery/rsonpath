@@ -101,6 +101,10 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> ResumeC
 
     /// Move the state forward by `count` bytes.
     ///
+    /// # Errors
+    /// If the offset crosses block boundaries, then a new block is read from the underlying
+    /// [`Input`] implementation, which can fail.
+    ///
     /// # Panics
     /// If the `count` is not positive.
     #[inline]

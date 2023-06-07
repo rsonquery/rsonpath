@@ -1,7 +1,14 @@
-//! Input sourced from a borrowed buffer.
-use crate::query::JsonString;
+//! Borrows a slice of bytes of the input document. Choose this implementation if:
+//!
+//! 1. You already have the data loaded in-memory and it is properly aligned.
+//!
+//! ## Performance characteristics
+//!
+//! This type of input is the fastest to process for the engine,
+//! since there is no additional overhead from loading anything to memory.
 
 use super::*;
+use crate::query::JsonString;
 
 /// Input wrapping a borrowed [`[u8]`] buffer.
 pub struct BorrowedBytes<'a> {
@@ -122,7 +129,9 @@ impl<'a, const N: usize> FallibleIterator for BorrowedBytesBlockIterator<'a, N> 
         if self.idx >= self.input.len() {
             Ok(None)
         } else if self.input.len() < self.idx + N {
-            Ok(Some(&self.last_block[..N]))
+            self.idx += N;
+
+            Ok(Some(&self.last_block[MAX_BLOCK_SIZE - N..]))
         } else {
             let block = &self.input[self.idx..self.idx + N];
             self.idx += N;

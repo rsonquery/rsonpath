@@ -2,43 +2,17 @@
 //!
 //! The engine itself is generic in the [`Input`] trait declared here.
 //! There are a couple of different built-in implementations, each
-//! suitable for a different scenario.
+//! suitable for a different scenario. Consult the module-level
+//! documentation of each type to determine which to use. Here's a quick
+//! cheat-sheet:
 //!
-//! ## [`BorrowedBytes`]
+//! |:Input scenario|Type to use|
+//! ----------------
+//! |file based | [`MmapInput`] |
+//! |memory based | [`OwnedBytes`] |
+//! |memory based, already aligned | [`BorrowedBytes`] |
+//! |[`Read`](std::io::Read) based | [`BufferedInput`] |
 //!
-//! Borrows a slice of bytes of the input document. Choose this implementation if:
-//!
-//! 1. You already have the data loaded in-memory and it is properly aligned and padded.
-//! The length of the buffer **MUST** be divisible by [`MAX_BLOCK_SIZE`].
-//!
-//! ### Performance characteristics
-//!
-//! This type of input is the fastest to process for the engine,
-//! since there is no additional overhead from loading anything to memory.
-//!
-//! ## [`OwnedBytes`]
-//!
-//! Takes ownership of the input data. Choose this implementation
-//! if:
-//! 1. You already have the data loaded in-memory, but it is not properly
-//! padded, and:
-//! a) it is in a [`Vec`] or [`String`] and you can transfer its ownership
-//! using one of the [`From`] implementations on [`OwnedBytes`]; OR
-//! b) its size is relatively small, so copying it is acceptable &ndash; use the
-//! [`new`](`OwnedBytes::new`) function for this.
-//!
-//! ### Performance characteristics
-//!
-//! Runtime performance is the same as for [`BorrowedBytes`]. The overhead comes from
-//! the input construction.
-//!
-//! The specialized [`From`] implementations are fast, since they take ownership
-//! of the data without copying &ndash; they do pad the data to [`MAX_BLOCK_SIZE`],
-//! which might cause a reallocation for a [`Vec`] or [`String`].
-//!
-//! For data of small length (around a megabyte) full copy is going to be faster still
-//! than using a buffered input stream.
-
 pub mod borrowed;
 pub mod buffered;
 pub mod error;
@@ -49,10 +23,9 @@ pub use owned::OwnedBytes;
 pub mod mmap;
 pub use mmap::MmapInput;
 
+use self::error::InputError;
 use crate::{query::JsonString, FallibleIterator};
 use std::ops::Deref;
-
-use self::error::InputError;
 
 /// Shorthand for the associated [`InputBlock`] type for given
 /// [`Input`]'s iterator.
@@ -61,13 +34,14 @@ use self::error::InputError;
 /// `<<I as Input>::BlockIterator<'a, N> as InputBlockIterator<'a, N>>::Block`.
 pub type IBlock<'a, I, const N: usize> = <<I as Input>::BlockIterator<'a, N> as InputBlockIterator<'a, N>>::Block;
 
-#[macro_export]
+/// Make the struct repr(C) with alignment equal to [`MAX_BLOCK_SIZE`].
 macro_rules! repr_align_block_size {
     ($it:item) => {
         #[repr(C, align(128))]
         $it
     };
 }
+pub(crate) use repr_align_block_size;
 
 /// Global padding guarantee for all [`Input`] implementations.
 /// Iterating over blocks of at most this size is guaranteed
@@ -104,6 +78,10 @@ pub trait Input: Sized {
     /// starting from `from`. Returns a pair: the index of first such byte,
     /// and the byte itself; or `None` if no non-whitespace characters
     /// were found.
+    ///
+    /// # Errors
+    /// This function can read more data from the input if no relevant characters are found
+    /// in the current buffer, which can fail.
     fn seek_non_whitespace_forward(&self, from: usize) -> Result<Option<(usize, u8)>, InputError>;
 
     /// Search for the first byte in the input that is not ASCII whitespace
@@ -122,6 +100,10 @@ pub trait Input: Sized {
     /// escaped by a backslash character, but will ignore any other
     /// structural properties of the input. In particular, the member
     /// might be found at an arbitrary depth.
+    ///
+    /// # Errors
+    /// This function can read more data from the input if no relevant characters are found
+    /// in the current buffer, which can fail.
     #[cfg(feature = "head-skip")]
     fn find_member(&self, from: usize, member: &JsonString) -> Result<Option<usize>, InputError>;
 
@@ -163,8 +145,8 @@ impl<'a, const N: usize> InputBlock<'a, N> for &'a [u8] {
 }
 
 pub(super) mod in_slice {
-    use crate::query::JsonString;
     use super::MAX_BLOCK_SIZE;
+    use crate::query::JsonString;
 
     #[inline]
     pub(super) fn pad_last_block(bytes: &[u8]) -> [u8; MAX_BLOCK_SIZE] {
@@ -223,7 +205,7 @@ pub(super) mod in_slice {
         if idx >= bytes.len() {
             return None;
         }
-        
+
         loop {
             let b = bytes[idx];
             if !b.is_ascii_whitespace() {

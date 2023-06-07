@@ -1,5 +1,3 @@
-#![forbid(unsafe_code)]
-
 use clap::{Parser, ValueEnum};
 use color_eyre::eyre::{eyre, Result, WrapErr};
 use color_eyre::Help;
@@ -8,11 +6,12 @@ use rsonpath::{report_compiler_error, report_engine_error, report_parser_error};
 use rsonpath_lib::engine::main::MainEngine;
 use rsonpath_lib::engine::recursive::RecursiveEngine;
 use rsonpath_lib::engine::{Compiler, Engine};
-use rsonpath_lib::input::BufferedInput;
+use rsonpath_lib::input::{BufferedInput, Input, MmapInput};
 use rsonpath_lib::query::automaton::Automaton;
 use rsonpath_lib::query::JsonPathQuery;
 use rsonpath_lib::result::{CountResult, IndexResult, QueryResult};
 use simple_logger::SimpleLogger;
+use std::fs;
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about)]
@@ -26,6 +25,9 @@ struct Args {
     /// Include verbose debug information.
     #[clap(short, long)]
     verbose: bool,
+    /// TODO: REMOVE
+    #[clap(short, long, default_value_t = false)]
+    use_mmap: bool,
     /// Engine to use for evaluating the query.
     #[clap(short, long, value_enum, default_value_t = EngineArg::Main)]
     engine: EngineArg,
@@ -77,13 +79,21 @@ fn run_with_args(args: &Args) -> Result<()> {
 
     if args.compile {
         compile(&query)
+    } else if args.use_mmap {
+        let file = fs::File::open(args.file_path.as_ref().unwrap())?;
+        let input = unsafe { MmapInput::map_file(&file) }?;
+
+        match args.result {
+            ResultArg::Bytes => run::<IndexResult, _>(&query, &input, args.engine),
+            ResultArg::Count => run::<CountResult, _>(&query, &input, args.engine),
+        }
     } else {
         let contents = get_contents(args.file_path.as_deref())?;
         let input = BufferedInput::new(ReadString(contents, 0));
 
         match args.result {
-            ResultArg::Bytes => run::<IndexResult>(&query, &input, args.engine),
-            ResultArg::Count => run::<CountResult>(&query, &input, args.engine),
+            ResultArg::Bytes => run::<IndexResult, _>(&query, &input, args.engine),
+            ResultArg::Count => run::<CountResult, _>(&query, &input, args.engine),
         }
     }
 }
@@ -96,21 +106,22 @@ fn compile(query: &JsonPathQuery) -> Result<()> {
     Ok(())
 }
 
-fn run<R: QueryResult>(query: &JsonPathQuery, input: &BufferedInput<ReadString>, engine: EngineArg) -> Result<()> {
+fn run<R: QueryResult, I: Input>(query: &JsonPathQuery, input: &I, engine: EngineArg) -> Result<()> {
     match engine {
         EngineArg::Main => {
-            let result = run_engine::<MainEngine, R>(query, input).wrap_err("Error running the main engine.")?;
+            let result = run_engine::<MainEngine, R, _>(query, input).wrap_err("Error running the main engine.")?;
             println!("{result}");
         }
         EngineArg::Recursive => {
             let result =
-                run_engine::<RecursiveEngine, R>(query, input).wrap_err("Error running the recursive engine.")?;
+                run_engine::<RecursiveEngine, R, _>(query, input).wrap_err("Error running the recursive engine.")?;
             println!("{result}");
         }
         EngineArg::VerifyBoth => {
-            let main_result = run_engine::<MainEngine, R>(query, input).wrap_err("Error running the main engine.")?;
+            let main_result =
+                run_engine::<MainEngine, R, _>(query, input).wrap_err("Error running the main engine.")?;
             let recursive_result =
-                run_engine::<RecursiveEngine, R>(query, input).wrap_err("Error running the recursive engine.")?;
+                run_engine::<RecursiveEngine, R, _>(query, input).wrap_err("Error running the recursive engine.")?;
 
             if recursive_result != main_result {
                 return Err(eyre!("Result mismatch!"));
@@ -123,7 +134,7 @@ fn run<R: QueryResult>(query: &JsonPathQuery, input: &BufferedInput<ReadString>,
     Ok(())
 }
 
-fn run_engine<C: Compiler, R: QueryResult>(query: &JsonPathQuery, input: &BufferedInput<ReadString>) -> Result<R> {
+fn run_engine<C: Compiler, R: QueryResult, I: Input>(query: &JsonPathQuery, input: &I) -> Result<R> {
     let engine = C::compile_query(query)
         .map_err(|err| report_compiler_error(query, err).wrap_err("Error compiling the query."))?;
     info!("Compilation finished, running...");
@@ -142,7 +153,6 @@ fn parse_query(query_string: &str) -> Result<JsonPathQuery> {
 }
 
 fn get_contents(file_path: Option<&str>) -> Result<String> {
-    use std::fs;
     use std::io::{self, Read};
     match file_path {
         Some(path) => fs::read_to_string(path).wrap_err("Reading from file failed."),
