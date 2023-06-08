@@ -8,8 +8,8 @@
 //! Retrieving the part of input that caused a parse error:
 //!
 //! ```rust
-//! use rsonpath_lib::query::JsonPathQuery;
-//! use rsonpath_lib::query::error::ParserError;
+//! use rsonpath::query::JsonPathQuery;
+//! use rsonpath::query::error::ParserError;
 //!
 //! let query_str =
 //!     "$.prop..invalid$chars.this_is_fine";

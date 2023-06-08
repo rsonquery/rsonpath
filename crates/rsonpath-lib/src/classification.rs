@@ -15,13 +15,13 @@
 //!
 //! # Examples
 //! ```rust
-//! use rsonpath_lib::classification::quotes::classify_quoted_sequences;
-//! use rsonpath_lib::classification::structural::{
+//! use rsonpath::classification::quotes::classify_quoted_sequences;
+//! use rsonpath::classification::structural::{
 //!     classify_structural_characters, resume_structural_classification,
 //!     BracketType, Structural, StructuralIterator,
 //! };
-//! use rsonpath_lib::input::OwnedBytes;
-//! use rsonpath_lib::FallibleIterator;
+//! use rsonpath::input::OwnedBytes;
+//! use rsonpath::FallibleIterator;
 //!
 //! let json = r#"{"a":[42, {}, 44]}"#.to_owned();
 //! let input = OwnedBytes::try_from(json).unwrap();

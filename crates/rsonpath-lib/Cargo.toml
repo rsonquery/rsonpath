@@ -13,7 +13,11 @@ categories = [
     "parser-implementations",
 ]
 repository = "https://github.com/V0ldek/rsonpath"
-rust-version = "1.65.0"
+rust-version = "1.67.1"
+
+[lib]
+bench = false
+name = "rsonpath"
 
 [package.metadata.docs.rs]
 rustdoc-args = ["--cfg", "docsrs"]
@@ -23,7 +27,7 @@ aligners = { version = "0.0.10", default-features = false }
 cfg-if = "1.0.0"
 log = "0.4.17"
 memchr = { version = "2.5.0", optional = true }
-memmap2 = "0.6.2"
+memmap2 = "0.7.0"
 nom = "7.1.3"
 page_size = "0.5.0"
 replace_with = { version = "0.1.7", optional = true }

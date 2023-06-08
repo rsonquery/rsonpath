@@ -1,9 +1,9 @@
-use rsonpath_lib::classification::quotes::classify_quoted_sequences;
-use rsonpath_lib::classification::structural::{
+use rsonpath::classification::quotes::classify_quoted_sequences;
+use rsonpath::classification::structural::{
     classify_structural_characters, BracketType, Structural, StructuralIterator,
 };
-use rsonpath_lib::input::OwnedBytes;
-use rsonpath_lib::FallibleIterator;
+use rsonpath::input::OwnedBytes;
+use rsonpath::FallibleIterator;
 
 fn classify_string(json: &str) -> Vec<Structural> {
     let json_string = json.to_owned();

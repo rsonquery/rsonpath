@@ -5,10 +5,10 @@
 //!
 //! # Examples
 //! ```rust
-//! use rsonpath_lib::engine::{Compiler, Engine, RsonpathEngine};
-//! use rsonpath_lib::input::OwnedBytes;
-//! use rsonpath_lib::query::JsonPathQuery;
-//! use rsonpath_lib::result::CountResult;
+//! use rsonpath::engine::{Compiler, Engine, RsonpathEngine};
+//! use rsonpath::input::OwnedBytes;
+//! use rsonpath::query::JsonPathQuery;
+//! use rsonpath::result::CountResult;
 //! # use std::error::Error;
 //!
 //! # fn main() -> Result<(), Box<dyn Error>> {

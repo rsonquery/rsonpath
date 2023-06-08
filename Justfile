@@ -37,9 +37,9 @@ alias b := build-bin
 # alias for build-all release
 build profile="release": (build-all profile)
 
-# Build the rsonpath binary.
+# Build the rq binary.
 build-bin profile="dev": (build-lib profile)
-    cargo build --bin rsonpath --profile {{profile}}
+    cargo build --bin rq --profile {{profile}}
 
 # Build the rsonpath-lib library.
 build-lib profile="dev":
@@ -59,12 +59,12 @@ alias r := run-debug
 # Run the CLI in debug profile. ARGS are passed to the rsonpath executable.
 [no-exit-message]
 run-debug *ARGS: (build-bin "dev")
-    ./target/debug/rsonpath {{ARGS}}
+    ./target/debug/rq {{ARGS}}
 
 # Run the CLI in release profile. ARGS are passed to the rsonpath executable.
 [no-exit-message]
 run *ARGS: (build-bin "release")
-    ./target/release/rsonpath {{ARGS}}
+    ./target/release/rq {{ARGS}}
 
 # === WATCH ===
 watch *ARGS:
@@ -212,6 +212,7 @@ assert-benchmarks-committed:
 
 # Perform release dry run for the given version.
 release-dry ver:
+    cargo update
     just release-patch {{ver}}
     just release-readme
     just commit 'release v{{ver}}'
@@ -219,6 +220,7 @@ release-dry ver:
 
 # Actually execute a release for the given version.
 release-execute ver:
+    cargo update
     just release-patch {{ver}}
     just release-readme
     just commit 'release v{{ver}}'

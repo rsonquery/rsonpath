@@ -8,7 +8,7 @@ use std::fmt::Display;
 /// # Examples
 ///
 /// ```
-/// # use rsonpath_lib::query::Label;
+/// # use rsonpath::query::Label;
 ///
 /// let label = Label::new("needle");
 ///

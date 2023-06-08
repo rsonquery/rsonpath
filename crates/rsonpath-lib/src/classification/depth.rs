@@ -11,13 +11,13 @@
 //!
 //! Illustrating how the skipping works:
 //! ```rust
-//! use rsonpath_lib::classification::quotes::classify_quoted_sequences;
-//! use rsonpath_lib::classification::depth::{
+//! use rsonpath::classification::quotes::classify_quoted_sequences;
+//! use rsonpath::classification::depth::{
 //!     classify_depth, DepthIterator, DepthBlock
 //! };
-//! use rsonpath_lib::classification::structural::BracketType;
-//! use rsonpath_lib::input::OwnedBytes;
-//! use rsonpath_lib::FallibleIterator;
+//! use rsonpath::classification::structural::BracketType;
+//! use rsonpath::input::OwnedBytes;
+//! use rsonpath::FallibleIterator;
 //!
 //! let json = r#"[42, {"b":[[]],"c":{}}, 44]}"#.to_owned();
 //! //                        ^^            ^
@@ -42,11 +42,11 @@
 //!
 //! Idiomatic usage for a high-performance skipping loop:
 //! ```rust
-//! use rsonpath_lib::classification::depth::{classify_depth, DepthBlock, DepthIterator};
-//! use rsonpath_lib::classification::quotes::classify_quoted_sequences;
-//! use rsonpath_lib::classification::structural::BracketType;
-//! use rsonpath_lib::input::OwnedBytes;
-//! use rsonpath_lib::FallibleIterator;
+//! use rsonpath::classification::depth::{classify_depth, DepthBlock, DepthIterator};
+//! use rsonpath::classification::quotes::classify_quoted_sequences;
+//! use rsonpath::classification::structural::BracketType;
+//! use rsonpath::input::OwnedBytes;
+//! use rsonpath::FallibleIterator;
 //!
 //! let json = r#"
 //!     "a": [

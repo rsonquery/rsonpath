@@ -14,9 +14,9 @@
 //!
 //! # Examples
 //! ```rust
-//! use rsonpath_lib::classification::structural::{BracketType, Structural, classify_structural_characters};
-//! use rsonpath_lib::input::OwnedBytes;
-//! use rsonpath_lib::FallibleIterator;
+//! use rsonpath::classification::structural::{BracketType, Structural, classify_structural_characters};
+//! use rsonpath::input::OwnedBytes;
+//! use rsonpath::FallibleIterator;
 //!
 //! let json = r#"{"x": [{"y": 42}, {}]}""#.to_owned();
 //! let aligned = OwnedBytes::try_from(json).unwrap();
@@ -30,15 +30,15 @@
 //!     Structural::Closing(BracketType::Square, 20),
 //!     Structural::Closing(BracketType::Curly, 21)
 //! ];
-//! let quote_classifier = rsonpath_lib::classification::quotes::classify_quoted_sequences(&aligned);
+//! let quote_classifier = rsonpath::classification::quotes::classify_quoted_sequences(&aligned);
 //! let actual = classify_structural_characters(quote_classifier).collect::<Vec<Structural>>().unwrap();
 //! assert_eq!(expected, actual);
 //! ```
 //! ```rust
-//! use rsonpath_lib::classification::structural::{BracketType, Structural, classify_structural_characters};
-//! use rsonpath_lib::classification::quotes::classify_quoted_sequences;
-//! use rsonpath_lib::input::OwnedBytes;
-//! use rsonpath_lib::FallibleIterator;
+//! use rsonpath::classification::structural::{BracketType, Structural, classify_structural_characters};
+//! use rsonpath::classification::quotes::classify_quoted_sequences;
+//! use rsonpath::input::OwnedBytes;
+//! use rsonpath::FallibleIterator;
 //!
 //! let json = r#"{"x": "[\"\"]"}""#.to_owned();
 //! let aligned = OwnedBytes::try_from(json).unwrap();
@@ -96,7 +96,7 @@ impl Structural {
     ///
     /// # Examples
     /// ```rust
-    /// # use rsonpath_lib::classification::structural::Structural;
+    /// # use rsonpath::classification::structural::Structural;
     ///
     /// let structural = Structural::Colon(42);
     /// let offset_structural = structural.offset(10);
@@ -120,7 +120,7 @@ impl Structural {
     ///
     /// # Examples
     /// ```rust
-    /// # use rsonpath_lib::classification::structural::{BracketType, Structural};
+    /// # use rsonpath::classification::structural::{BracketType, Structural};
     ///
     /// let brace = Structural::Closing(BracketType::Curly, 42);
     /// let bracket = Structural::Closing(BracketType::Square, 43);
@@ -141,7 +141,7 @@ impl Structural {
     ///
     /// # Examples
     /// ```rust
-    /// # use rsonpath_lib::classification::structural::{BracketType, Structural};
+    /// # use rsonpath::classification::structural::{BracketType, Structural};
     ///
     /// let brace = Structural::Opening(BracketType::Curly, 42);
     /// let bracket = Structural::Opening(BracketType::Square, 43);

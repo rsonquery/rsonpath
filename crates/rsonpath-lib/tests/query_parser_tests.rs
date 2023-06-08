@@ -1,5 +1,5 @@
 use pretty_assertions::assert_eq;
-use rsonpath_lib::query::{builder::JsonPathQueryBuilder, JsonPathQuery, JsonString};
+use rsonpath::query::{builder::JsonPathQueryBuilder, JsonPathQuery, JsonString};
 
 #[test]
 fn should_infer_root_from_empty_string() {
@@ -204,7 +204,7 @@ mod transform_json_escape_sequences_tests {
 mod proptests {
     use super::*;
     use proptest::prelude::*;
-    use rsonpath_lib::query::NonNegativeArrayIndex;
+    use rsonpath::query::NonNegativeArrayIndex;
 
     /* Approach: we generate a sequence of Selectors, each having its generated string
      * and a tag describing what selector it represents, and, optionally, what string is attached.

@@ -13,7 +13,7 @@ Experimental JSONPath engine for querying massive streamed datasets.
 
 ## Features
 
-The `rsonpath` crate provides a JSONPath parser and a query execution engine,
+The `rsonpath` crate provides a JSONPath parser and a query execution engine `rq`,
 which utilizes SIMD instructions to provide massive throughput improvements over conventional engines.
 
 Benchmarks of `rsonpath` against a reference no-SIMD engine on the
@@ -29,7 +29,7 @@ The project is actively developed and currently supports only a subset of the JS
 | Root                           | `$`                             | ✔️        | v0.1.0 |   |
 | Dot                            | `.<member>`                     | ✔️        | v0.1.0 |   |
 | Index (object member)          | `[<member>]`                    | ✔️        | v0.1.0 |   |
-| Index (array index)            | `[<index>]`                     | ❌        | -      | [#64](https://github.com/V0ldek/rsonpath/issues/64) |
+| Index (array index)            | `[<index>]`                     | ✔️        | v0.5.0 |   |
 | Index (array index from end)   | `[-<index>]`                    | ❌        | -      |   |
 | Descendant                     | `..`                            | ✔️        | v0.1.0 |   |
 | Child wildcard                 | `.*`, `.[*]`                    | ✔️        | v0.3.0 |   |
@@ -78,12 +78,12 @@ RUSTFLAGS="-C target-cpu=native" cargo install rsonpath
 To run a JSONPath query on a file execute:
 
 ```bash
-rsonpath '$..a.b' ./file.json
+rq '$..a.b' ./file.json
 ```
 
 If the file is omitted, the engine reads standard input.
 
-For details, consult `rsonpath --help`.
+For details, consult `rq --help`.
 
 ### Results
 
@@ -126,7 +126,7 @@ Behavior on duplicate keys is not guaranteed to be stable, but currently
 the engine will simply match the _first_ such key.
 
 ```bash
-> rsonpath '$.key'
+> rq '$.key'
 {"key":"value","key":"other value"}
 [6]
 ```
@@ -135,7 +135,7 @@ This behavior can be overriden with a custom installation of `rsonpath`, disabli
 
 ```bash
 > cargo install rsonpath --no-default-features -F simd -F head-skip -F tail-skip
-> rsonpath '$.key'
+> rq '$.key'
 {"key":"value","key":"other value"}
 [6, 20]
 ```

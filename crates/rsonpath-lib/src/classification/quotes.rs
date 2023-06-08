@@ -15,9 +15,9 @@
 //!
 //! # Examples
 //! ```
-//! use rsonpath_lib::classification::quotes::{classify_quoted_sequences, QuoteClassifiedIterator};
-//! use rsonpath_lib::input::OwnedBytes;
-//! use rsonpath_lib::FallibleIterator;
+//! use rsonpath::classification::quotes::{classify_quoted_sequences, QuoteClassifiedIterator};
+//! use rsonpath::input::OwnedBytes;
+//! use rsonpath::FallibleIterator;
 //!
 //! let json = r#"{"x": "string", "y": {"z": "\"escaped\""}}"#.to_owned();
 //! //            011000111111100011000011000111111111111000
