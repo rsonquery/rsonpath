@@ -3,7 +3,7 @@ name = "rsonpath"
 version = "0.4.0"
 authors = ["Mateusz Gienieczko <mat@gienieczko.com>"]
 edition = "2021"
-description = "Blazing fast JSONPath CLI tool powered by SIMD &ndash; `rq`"
+description = "Blazing fast JSONPath CLI tool powered by SIMD"
 readme = "../../README.md"
 license = "MIT"
 keywords = ["json", "jsonpath", "query", "simd", "cli"]
@@ -13,7 +13,8 @@ categories = [
     "parser-implementations",
 ]
 repository = "https://github.com/V0ldek/rsonpath"
-rust-version = "1.67.1"
+rust-version = "1.70"
+build = "build.rs"
 
 [[bin]]
 bench = false
@@ -34,6 +35,9 @@ eyre = "0.6.8"
 log = "0.4.17"
 rsonpath-lib = { package = "rsonpath-lib", version = "0.4.0", default-features = false }
 simple_logger = "4.1.0"
+
+[build-dependencies]
+vergen = { version = "8.2.1", features = ["git", "gitcl"] }
 
 [features]
 default = ["simd", "default-optimizations"]

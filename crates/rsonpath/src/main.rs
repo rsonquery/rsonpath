@@ -12,9 +12,23 @@ use rsonpath_lib::query::JsonPathQuery;
 use rsonpath_lib::result::{CountResult, IndexResult, QueryResult};
 use simple_logger::SimpleLogger;
 use std::fs;
+use std::sync::OnceLock;
+
+static LONG_VERSION: OnceLock<String> = OnceLock::new();
+
+fn get_long_version() -> &'static str {
+    LONG_VERSION.get_or_init(|| {
+        format!(
+            "{}\n\nCommit SHA: {}",
+            env!("CARGO_PKG_VERSION"),
+            env!("VERGEN_GIT_SHA")
+        )
+    })
+}
 
 #[derive(Parser, Debug)]
-#[clap(author, version, about)]
+#[clap(name = "rq", author, version, about)]
+#[clap(long_version = get_long_version())]
 struct Args {
     /// JSONPath query to run against the input JSON.
     query: String,
