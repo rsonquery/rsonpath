@@ -2,7 +2,7 @@ use clap::{Parser, ValueEnum};
 use color_eyre::eyre::{eyre, Result, WrapErr};
 use color_eyre::Help;
 use log::*;
-use rsonpath::{report_compiler_error, report_engine_error, report_parser_error};
+use rqlib::{report_compiler_error, report_engine_error, report_parser_error};
 use rsonpath_lib::engine::main::MainEngine;
 use rsonpath_lib::engine::recursive::RecursiveEngine;
 use rsonpath_lib::engine::{Compiler, Engine};

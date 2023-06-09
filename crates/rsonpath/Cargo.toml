@@ -20,6 +20,10 @@ bench = false
 path = "./src/main.rs"
 name = "rq"
 
+[lib]
+bench = false
+name = "rqlib"
+
 [package.metadata.docs.rs]
 rustdoc-args = ["--cfg", "docsrs"]
 

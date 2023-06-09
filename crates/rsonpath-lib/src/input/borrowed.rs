@@ -13,13 +13,13 @@ use crate::query::JsonString;
 /// Input wrapping a borrowed [`[u8]`] buffer.
 pub struct BorrowedBytes<'a> {
     bytes: &'a [u8],
-    last_block: [u8; MAX_BLOCK_SIZE],
+    last_block: LastBlock,
 }
 
 /// Iterator over blocks of [`BorrowedBytes`] of size exactly `N`.
 pub struct BorrowedBytesBlockIterator<'a, const N: usize> {
     input: &'a [u8],
-    last_block: &'a [u8; MAX_BLOCK_SIZE],
+    last_block: &'a LastBlock,
     idx: usize,
 }
 
@@ -72,7 +72,7 @@ impl<'a> AsRef<[u8]> for BorrowedBytes<'a> {
 impl<'a, const N: usize> BorrowedBytesBlockIterator<'a, N> {
     #[must_use]
     #[inline(always)]
-    pub(super) fn new(bytes: &'a [u8], last_block: &'a [u8; MAX_BLOCK_SIZE]) -> Self {
+    pub(super) fn new(bytes: &'a [u8], last_block: &'a LastBlock) -> Self {
         Self {
             input: bytes,
             idx: 0,
@@ -128,10 +128,11 @@ impl<'a, const N: usize> FallibleIterator for BorrowedBytesBlockIterator<'a, N> 
     fn next(&mut self) -> Result<Option<Self::Item>, Self::Error> {
         if self.idx >= self.input.len() {
             Ok(None)
-        } else if self.input.len() < self.idx + N {
+        } else if self.idx >= self.last_block.absolute_start {
+            let i = self.idx - self.last_block.absolute_start;
             self.idx += N;
 
-            Ok(Some(&self.last_block[MAX_BLOCK_SIZE - N..]))
+            Ok(Some(&self.last_block.bytes[i..i + N]))
         } else {
             let block = &self.input[self.idx..self.idx + N];
             self.idx += N;

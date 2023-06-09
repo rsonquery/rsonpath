@@ -144,19 +144,27 @@ impl<'a, const N: usize> InputBlock<'a, N> for &'a [u8] {
     }
 }
 
+struct LastBlock {
+    bytes: [u8; MAX_BLOCK_SIZE],
+    absolute_start: usize,
+}
+
 pub(super) mod in_slice {
-    use super::MAX_BLOCK_SIZE;
+    use super::{LastBlock, MAX_BLOCK_SIZE};
     use crate::query::JsonString;
 
     #[inline]
-    pub(super) fn pad_last_block(bytes: &[u8]) -> [u8; MAX_BLOCK_SIZE] {
+    pub(super) fn pad_last_block(bytes: &[u8]) -> LastBlock {
         let mut last_block_buf = [0; MAX_BLOCK_SIZE];
         let last_block_start = (bytes.len() / MAX_BLOCK_SIZE) * MAX_BLOCK_SIZE;
         let last_block_slice = &bytes[last_block_start..];
 
         last_block_buf[..last_block_slice.len()].copy_from_slice(last_block_slice);
 
-        last_block_buf
+        LastBlock {
+            bytes: last_block_buf,
+            absolute_start: last_block_start,
+        }
     }
 
     #[inline]

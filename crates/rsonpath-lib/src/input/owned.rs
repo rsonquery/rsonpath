@@ -20,7 +20,7 @@ pub struct OwnedBytes {
     bytes_ptr: ptr::NonNull<u8>,
     len: usize,
     capacity: usize,
-    last_block: [u8; MAX_BLOCK_SIZE],
+    last_block: LastBlock,
 }
 
 impl OwnedBytes {

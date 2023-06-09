@@ -13,7 +13,7 @@
 //! by an order of magnitude to execute the query on a memory map than it is to simply read the
 //! file into main memory.
 
-use super::{borrowed::BorrowedBytesBlockIterator, error::InputError, in_slice, Input, MAX_BLOCK_SIZE};
+use super::{borrowed::BorrowedBytesBlockIterator, error::InputError, in_slice, Input, LastBlock};
 use crate::query::JsonString;
 use memmap2::Mmap;
 use std::fs::File;
@@ -21,7 +21,7 @@ use std::fs::File;
 /// Input wrapping a memory mapped file.
 pub struct MmapInput {
     mmap: Mmap,
-    last_block: [u8; MAX_BLOCK_SIZE],
+    last_block: LastBlock,
 }
 
 impl MmapInput {
