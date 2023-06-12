@@ -97,6 +97,10 @@ test-classifier:
 test-engine:
     cargo test --test engine_correctness_tests -q
 
+# Run the input tests on default features.
+test-input:
+    cargo test --test input_implementation_tests -q
+
 # Run the query tests on default features.
 test-parser:
     cargo test --test query_parser_tests -q

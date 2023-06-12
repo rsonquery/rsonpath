@@ -6,6 +6,7 @@
         "benchsets",
         "bitmask",
         "bitmasks",
+        "canonicalize",
         "clippy",
         "clmulepi",
         "cmpeq",

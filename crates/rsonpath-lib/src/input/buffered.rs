@@ -1,6 +1,6 @@
 //! Acquires a [`Read`](std::io::Read) instance and reads it in on-demand in a buffer.
 //! All of the bytes read are kept in memory.
-//! 
+//!
 //! Choose this implementation if:
 //!
 //! 1. You have a [`Read`](std::io::Read) source that might contain relatively large amounts
@@ -16,10 +16,10 @@
 //! use the [`with_capacity`](`BufferedInput::with_capacity`) function to avoid
 //! reallocating the internal buffers.
 
-use super::repr_align_block_size;
-use super::{error::InputError, in_slice, Input, InputBlock, InputBlockIterator, MAX_BLOCK_SIZE};
-use crate::error::InternalRsonpathError;
-use crate::{query::JsonString, FallibleIterator};
+use super::{
+    error::InputError, in_slice, repr_align_block_size, Input, InputBlock, InputBlockIterator, MAX_BLOCK_SIZE,
+};
+use crate::{error::InternalRsonpathError, query::JsonString, FallibleIterator};
 #[cfg(feature = "head-skip")]
 use std::cmp;
 use std::{cell::RefCell, io::Read, ops::Deref, slice};

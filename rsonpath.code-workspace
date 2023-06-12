@@ -8,6 +8,7 @@
 	"settings": {
 		"cSpell.words": [
 			"bitmasks",
+			"canonicalize",
 			"clippy",
 			"clmulepi",
 			"cmpeq",
