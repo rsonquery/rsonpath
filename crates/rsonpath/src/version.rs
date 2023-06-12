@@ -1,0 +1,23 @@
+use std::sync::OnceLock;
+
+static LONG_VERSION: OnceLock<String> = OnceLock::new();
+
+pub fn get_long_version() -> &'static str {
+    LONG_VERSION.get_or_init(|| {
+        let mut res = env!("CARGO_PKG_VERSION").to_owned();
+        let details = [
+            ("Commit SHA:", env!("VERGEN_GIT_SHA")),
+            ("Features:", env!("VERGEN_CARGO_FEATURES")),
+            ("Opt level:", env!("VERGEN_CARGO_OPT_LEVEL")),
+            ("Target triple:", env!("VERGEN_CARGO_TARGET_TRIPLE")),
+            ("Codegen flags:", env!("RSONPATH_CODEGEN_FLAGS")),
+        ];
+
+        res += "\n";
+        for (k, v) in details {
+            res += &format!("\n{: <16} {}", k, v);
+        }
+
+        res
+    })
+}

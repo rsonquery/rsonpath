@@ -1,98 +1,30 @@
-use clap::{Parser, ValueEnum};
+use args::{Args, EngineArg, ResultArg};
+use clap::Parser;
 use color_eyre::{
     eyre::{eyre, Result, WrapErr},
     Help,
 };
+use error::{report_compiler_error, report_engine_error, report_parser_error};
 use log::*;
-use rqlib::{report_compiler_error, report_engine_error, report_parser_error};
 use rsonpath_lib::{
     engine::{main::MainEngine, recursive::RecursiveEngine, Compiler, Engine},
     input::{Input, MmapInput, OwnedBytes},
     query::{automaton::Automaton, JsonPathQuery},
     result::{CountResult, IndexResult, QueryResult},
 };
-use simple_logger::SimpleLogger;
-use std::{fs, sync::OnceLock};
+use std::fs;
 
-static LONG_VERSION: OnceLock<String> = OnceLock::new();
-
-fn get_long_version() -> &'static str {
-    LONG_VERSION.get_or_init(|| {
-        let mut res = env!("CARGO_PKG_VERSION").to_owned();
-        let details = [
-            ("Commit SHA:", env!("VERGEN_GIT_SHA")),
-            ("Features:", env!("VERGEN_CARGO_FEATURES")),
-            ("Opt level:", env!("VERGEN_CARGO_OPT_LEVEL")),
-            ("Target triple:", env!("VERGEN_CARGO_TARGET_TRIPLE")),
-            ("Codegen flags:", env!("RSONPATH_CODEGEN_FLAGS")),
-        ];
-
-        res += "\n";
-        for (k, v) in details {
-            res += &format!("\n{: <16} {}", k, v);
-        }
-
-        res
-    })
-}
-
-#[derive(Parser, Debug)]
-#[clap(name = "rq", author, version, about)]
-#[clap(long_version = get_long_version())]
-struct Args {
-    /// JSONPath query to run against the input JSON.
-    query: String,
-    /// Input JSON file to query.
-    ///
-    /// If not specified uses the standard input stream.
-    file_path: Option<String>,
-    /// Include verbose debug information.
-    #[clap(short, long)]
-    verbose: bool,
-    /// TODO: REMOVE
-    #[clap(short, long, default_value_t = false)]
-    use_mmap: bool,
-    /// Engine to use for evaluating the query.
-    #[clap(short, long, value_enum, default_value_t = EngineArg::Main)]
-    engine: EngineArg,
-    /// Only compile the query and output the automaton, do not run the engine.
-    ///
-    /// Cannot be used with --engine or FILE_PATH.
-    #[clap(short, long)]
-    #[arg(conflicts_with = "engine")]
-    #[arg(conflicts_with = "file_path")]
-    compile: bool,
-    /// Result reporting mode.
-    #[clap(short, long, value_enum, default_value_t = ResultArg::Bytes)]
-    result: ResultArg,
-}
-
-#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
-enum EngineArg {
-    /// Main SIMD-optimized iterative engine.
-    Main,
-    /// Alternative recursive engine.
-    Recursive,
-    /// Use both engines and verify that their outputs match.
-    ///
-    /// This is for testing purposes only.
-    VerifyBoth,
-}
-
-#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
-enum ResultArg {
-    /// Return a list of all bytes at which a match occurred.
-    Bytes,
-    /// Return only the number of matches.
-    Count,
-}
+mod args;
+mod error;
+mod logger;
+mod version;
 
 fn main() -> Result<()> {
     use color_eyre::owo_colors::OwoColorize;
     color_eyre::install()?;
     let args = Args::parse();
 
-    configure_logger(args.verbose)?;
+    logger::configure(args.verbose)?;
 
     run_with_args(&args).map_err(|err| err.with_note(|| format!("Query string: '{}'.", args.query.dimmed())))
 }
@@ -188,11 +120,4 @@ fn get_contents(file_path: Option<&str>) -> Result<String> {
             Ok(result)
         }
     }
-}
-
-fn configure_logger(verbose: bool) -> Result<()> {
-    SimpleLogger::new()
-        .with_level(if verbose { LevelFilter::Trace } else { LevelFilter::Warn })
-        .init()
-        .wrap_err("Logger configuration error.")
 }
