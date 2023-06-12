@@ -6,12 +6,12 @@
 //! documentation of each type to determine which to use. Here's a quick
 //! cheat-sheet:
 //!
-//! |:Input scenario|Type to use|
-//! ----------------
-//! |file based | [`MmapInput`] |
-//! |memory based | [`OwnedBytes`] |
-//! |memory based, already aligned | [`BorrowedBytes`] |
-//! |[`Read`](std::io::Read) based | [`BufferedInput`] |
+//! | Input scenario | Type to use    |
+//! |:---------------|:---------------|
+//! | file based     | [`MmapInput`]  |
+//! | memory based   | [`OwnedBytes`] |
+//! | memory based, already aligned | [`BorrowedBytes`] |
+//! | [`Read`](std::io::Read) based | [`BufferedInput`] |
 //!
 pub mod borrowed;
 pub mod buffered;
@@ -170,10 +170,7 @@ pub(super) mod in_slice {
     #[inline]
     pub(super) fn seek_backward(bytes: &[u8], from: usize, needle: u8) -> Option<usize> {
         let mut idx = from;
-
-        if idx >= bytes.len() {
-            return None;
-        }
+        assert!(idx < bytes.len());
 
         loop {
             if bytes[idx] == needle {
@@ -233,14 +230,13 @@ pub(super) mod in_slice {
 
         let finder = memmem::Finder::new(member.bytes_with_quotes());
         let mut idx = from;
-        let brr = bytes.len();
 
-        if brr <= idx {
+        if bytes.len() <= idx {
             return None;
         }
 
         loop {
-            match finder.find(&bytes[idx..brr]) {
+            match finder.find(&bytes[idx..bytes.len()]) {
                 Some(offset) => {
                     let starting_quote_idx = offset + idx;
                     if bytes[starting_quote_idx - 1] != b'\\' {
@@ -256,7 +252,264 @@ pub(super) mod in_slice {
 
     #[inline]
     pub(super) fn is_member_match(bytes: &[u8], from: usize, to: usize, member: &JsonString) -> bool {
-        let slice = &bytes[from..to];
+        let slice = &bytes[from..to + 1];
         member.bytes_with_quotes() == slice && (from == 0 || bytes[from - 1] != b'\\')
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{in_slice, MAX_BLOCK_SIZE};
+
+    mod input_block_impl_for_slice {
+        use pretty_assertions::assert_eq;
+
+        #[test]
+        fn halves_splits_in_half() {
+            use super::super::InputBlock;
+
+            let bytes = r#"0123456789abcdef"#.as_bytes();
+
+            let (half1, half2) = <&[u8] as InputBlock<16>>::halves(&bytes);
+
+            assert_eq!(half1, "01234567".as_bytes());
+            assert_eq!(half2, "89abcdef".as_bytes());
+        }
+    }
+
+    mod pad_last_block {
+        use super::*;
+        use pretty_assertions::assert_eq;
+
+        #[test]
+        fn on_empty_bytes_is_all_zero() {
+            let result = in_slice::pad_last_block(&[]);
+
+            assert_eq!(result.absolute_start, 0);
+            assert_eq!(result.bytes, [0; MAX_BLOCK_SIZE]);
+        }
+
+        #[test]
+        fn on_bytes_smaller_than_full_block_gives_entire_block() {
+            let bytes = r#"{"test":42}"#.as_bytes();
+
+            let result = in_slice::pad_last_block(bytes);
+
+            assert_eq!(result.absolute_start, 0);
+            assert_eq!(&result.bytes[0..11], bytes);
+            assert_eq!(&result.bytes[11..], [0; MAX_BLOCK_SIZE - 11]);
+        }
+
+        #[test]
+        fn on_bytes_equal_to_full_block_gives_all_zero() {
+            let bytes = [42; MAX_BLOCK_SIZE];
+
+            let result = in_slice::pad_last_block(&bytes);
+
+            assert_eq!(result.absolute_start, MAX_BLOCK_SIZE);
+            assert_eq!(result.bytes, [0; MAX_BLOCK_SIZE]);
+        }
+
+        #[test]
+        fn on_bytes_longer_than_full_block_gives_last_fragment_padded() {
+            let mut bytes = [42; 2 * MAX_BLOCK_SIZE + 77];
+            bytes[2 * MAX_BLOCK_SIZE..].fill(69);
+
+            let result = in_slice::pad_last_block(&bytes);
+
+            assert_eq!(result.absolute_start, 2 * MAX_BLOCK_SIZE);
+            assert_eq!(result.bytes[0..77], [69; 77]);
+            assert_eq!(result.bytes[77..], [0; MAX_BLOCK_SIZE - 77]);
+        }
+    }
+
+    mod seek_backward {
+        use super::*;
+        use pretty_assertions::assert_eq;
+
+        #[test]
+        fn seeking_from_before_first_occurrence_returns_none() {
+            let bytes = r#"{"seek":42}"#.as_bytes();
+
+            let result = in_slice::seek_backward(bytes, 6, b':');
+
+            assert_eq!(result, None);
+        }
+
+        #[test]
+        fn seeking_from_after_two_occurrences_returns_the_second_one() {
+            let bytes = r#"{"seek":42,"find":37}"#.as_bytes();
+
+            let result = in_slice::seek_backward(bytes, bytes.len() - 1, b':');
+
+            assert_eq!(result, Some(17));
+        }
+    }
+
+    mod seek_non_whitespace_forward {
+        use super::*;
+        use pretty_assertions::assert_eq;
+
+        #[test]
+        fn in_empty_slice_returns_none() {
+            let bytes = [];
+
+            let result = in_slice::seek_non_whitespace_forward(&bytes, 0);
+
+            assert_eq!(result, None);
+        }
+
+        #[test]
+        fn seeking_from_non_whitespace_returns_that() {
+            let bytes = r#"{"seek": 42}"#.as_bytes();
+
+            let result = in_slice::seek_non_whitespace_forward(bytes, 7);
+
+            assert_eq!(result, Some((7, b':')));
+        }
+
+        #[test]
+        fn seeking_from_whitespace_returns_next_non_whitespace() {
+            let bytes = "seek: \t\n42}".as_bytes();
+
+            let result = in_slice::seek_non_whitespace_forward(bytes, 5);
+
+            assert_eq!(result, Some((8, b'4')));
+        }
+    }
+
+    mod seek_non_whitespace_backward {
+        use super::*;
+        use pretty_assertions::assert_eq;
+
+        #[test]
+        fn in_empty_slice_returns_none() {
+            let bytes = [];
+
+            let result = in_slice::seek_non_whitespace_backward(&bytes, 0);
+
+            assert_eq!(result, None);
+        }
+
+        #[test]
+        fn seeking_from_non_whitespace_returns_that() {
+            let bytes = r#"{"seek": 42}"#.as_bytes();
+
+            let result = in_slice::seek_non_whitespace_backward(bytes, 7);
+
+            assert_eq!(result, Some((7, b':')));
+        }
+
+        #[test]
+        fn seeking_from_whitespace_returns_previous_non_whitespace() {
+            let bytes = "seek: \t\n42}".as_bytes();
+
+            let result = in_slice::seek_non_whitespace_backward(bytes, 7);
+
+            assert_eq!(result, Some((4, b':')));
+        }
+    }
+
+    #[cfg(feature = "head-skip")]
+    mod find_member {
+        use super::*;
+        use crate::query::JsonString;
+        use pretty_assertions::assert_eq;
+
+        #[test]
+        fn in_empty_slice_returns_none() {
+            let bytes = [];
+
+            let result = in_slice::find_member(&bytes, 0, &JsonString::new("abc"));
+
+            assert_eq!(result, None);
+        }
+
+        #[test]
+        fn starting_from_before_first_occurrence_returns_that() {
+            let bytes = r#"{"needle":42,"other":37}"#.as_bytes();
+
+            let result = in_slice::find_member(bytes, 0, &JsonString::new("needle"));
+
+            assert_eq!(result, Some(1));
+        }
+
+        #[test]
+        fn starting_from_exactly_first_occurrence_returns_that() {
+            let bytes = r#"{"needle":42,"other":37}"#.as_bytes();
+
+            let result = in_slice::find_member(bytes, 1, &JsonString::new("needle"));
+
+            assert_eq!(result, Some(1));
+        }
+
+        #[test]
+        fn starting_from_after_last_occurrence_returns_none() {
+            let bytes = r#"{"needle":42,"other":37}"#.as_bytes();
+
+            let result = in_slice::find_member(bytes, 2, &JsonString::new("needle"));
+
+            assert_eq!(result, None);
+        }
+
+        #[test]
+        fn when_match_is_partial_due_to_escaped_double_quote_returns_none() {
+            let bytes = r#"{"fake\"needle":42,"other":37}"#.as_bytes();
+
+            let result = in_slice::find_member(bytes, 0, &JsonString::new("needle"));
+
+            assert_eq!(result, None);
+        }
+
+        #[test]
+        fn when_looking_for_string_with_escaped_double_quote_returns_that() {
+            let bytes = r#"{"fake\"needle":42,"other":37}"#.as_bytes();
+
+            let result = in_slice::find_member(bytes, 0, &JsonString::new(r#"fake\"needle"#));
+
+            assert_eq!(result, Some(1));
+        }
+    }
+
+    mod is_member_match {
+        use super::*;
+        use crate::query::JsonString;
+        use pretty_assertions::assert_eq;
+
+        #[test]
+        fn on_exact_match_returns_true() {
+            let bytes = r#"{"needle":42,"other":37}"#.as_bytes();
+
+            let result = in_slice::is_member_match(bytes, 1, 8, &JsonString::new("needle"));
+
+            assert_eq!(result, true);
+        }
+
+        #[test]
+        fn matching_without_double_quotes_returns_false() {
+            let bytes = r#"{"needle":42,"other":37}"#.as_bytes();
+
+            let result = in_slice::is_member_match(bytes, 2, 7, &JsonString::new("needle"));
+
+            assert_eq!(result, false);
+        }
+
+        #[test]
+        fn when_match_is_partial_due_to_escaped_double_quote_returns_false() {
+            let bytes = r#"{"fake\"needle":42,"other":37}"#.as_bytes();
+
+            let result = in_slice::is_member_match(bytes, 7, 14, &JsonString::new("needle"));
+
+            assert_eq!(result, false);
+        }
+
+        #[test]
+        fn when_looking_for_string_with_escaped_double_quote_returns_true() {
+            let bytes = r#"{"fake\"needle":42,"other":37}"#.as_bytes();
+
+            let result = in_slice::is_member_match(bytes, 1, 14, &JsonString::new(r#"fake\"needle"#));
+
+            assert_eq!(result, true);
+        }
     }
 }

@@ -403,7 +403,7 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
         let start_idx = closing_quote_idx + 1 - len;
         Ok(self
             .bytes
-            .is_member_match(start_idx, closing_quote_idx + 1, member_name))
+            .is_member_match(start_idx, closing_quote_idx, member_name))
     }
 }
 

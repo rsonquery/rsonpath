@@ -1,28 +1,38 @@
 use clap::{Parser, ValueEnum};
-use color_eyre::eyre::{eyre, Result, WrapErr};
-use color_eyre::Help;
+use color_eyre::{
+    eyre::{eyre, Result, WrapErr},
+    Help,
+};
 use log::*;
 use rqlib::{report_compiler_error, report_engine_error, report_parser_error};
-use rsonpath_lib::engine::main::MainEngine;
-use rsonpath_lib::engine::recursive::RecursiveEngine;
-use rsonpath_lib::engine::{Compiler, Engine};
-use rsonpath_lib::input::{BufferedInput, Input, MmapInput};
-use rsonpath_lib::query::automaton::Automaton;
-use rsonpath_lib::query::JsonPathQuery;
-use rsonpath_lib::result::{CountResult, IndexResult, QueryResult};
+use rsonpath_lib::{
+    engine::{main::MainEngine, recursive::RecursiveEngine, Compiler, Engine},
+    input::{Input, MmapInput, OwnedBytes},
+    query::{automaton::Automaton, JsonPathQuery},
+    result::{CountResult, IndexResult, QueryResult},
+};
 use simple_logger::SimpleLogger;
-use std::fs;
-use std::sync::OnceLock;
+use std::{fs, sync::OnceLock};
 
 static LONG_VERSION: OnceLock<String> = OnceLock::new();
 
 fn get_long_version() -> &'static str {
     LONG_VERSION.get_or_init(|| {
-        format!(
-            "{}\n\nCommit SHA: {}",
-            env!("CARGO_PKG_VERSION"),
-            env!("VERGEN_GIT_SHA")
-        )
+        let mut res = env!("CARGO_PKG_VERSION").to_owned();
+        let details = [
+            ("Commit SHA:", env!("VERGEN_GIT_SHA")),
+            ("Features:", env!("VERGEN_CARGO_FEATURES")),
+            ("Opt level:", env!("VERGEN_CARGO_OPT_LEVEL")),
+            ("Target triple:", env!("VERGEN_CARGO_TARGET_TRIPLE")),
+            ("Codegen flags:", env!("RSONPATH_CODEGEN_FLAGS")),
+        ];
+
+        res += "\n";
+        for (k, v) in details {
+            res += &format!("\n{: <16} {}", k, v);
+        }
+
+        res
     })
 }
 
@@ -103,7 +113,7 @@ fn run_with_args(args: &Args) -> Result<()> {
         }
     } else {
         let contents = get_contents(args.file_path.as_deref())?;
-        let input = BufferedInput::new(ReadString(contents, 0));
+        let input = OwnedBytes::new(&contents)?;
 
         match args.result {
             ResultArg::Bytes => run::<IndexResult, _>(&query, &input, args.engine),
@@ -185,20 +195,4 @@ fn configure_logger(verbose: bool) -> Result<()> {
         .with_level(if verbose { LevelFilter::Trace } else { LevelFilter::Warn })
         .init()
         .wrap_err("Logger configuration error.")
-}
-
-struct ReadString(String, usize);
-
-impl std::io::Read for ReadString {
-    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-        let rem = self.0.as_bytes().len() - self.1;
-        if rem > 0 {
-            let size = std::cmp::min(1024, rem);
-            buf[..size].copy_from_slice(&self.0.as_bytes()[self.1..self.1 + size]);
-            self.1 += size;
-            Ok(size)
-        } else {
-            Ok(0)
-        }
-    }
 }

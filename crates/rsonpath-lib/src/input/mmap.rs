@@ -1,4 +1,6 @@
-//! Uses [`Mmap`](memmap2) to map a file into memory with kernel support. Choose this implementation if:
+//! Uses [`Mmap`](memmap2) to map a file into memory with kernel support.
+//! 
+//! Choose this implementation if:
 //!
 //! 1. Your platform supports memory maps.
 //! 2. The input data is in a file or comes from standard input:

@@ -1,4 +1,6 @@
-//! Borrows a slice of bytes of the input document. Choose this implementation if:
+//! Borrows a slice of bytes of the input document. 
+//! 
+//! Choose this implementation if:
 //!
 //! 1. You already have the data loaded in-memory and it is properly aligned.
 //!

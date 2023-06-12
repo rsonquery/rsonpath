@@ -1,5 +1,7 @@
 //! Acquires a [`Read`](std::io::Read) instance and reads it in on-demand in a buffer.
-//! All of the bytes read are kept in memory. Choose this implementation if:
+//! All of the bytes read are kept in memory.
+//! 
+//! Choose this implementation if:
 //!
 //! 1. You have a [`Read`](std::io::Read) source that might contain relatively large amounts
 //! of data.
