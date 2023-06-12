@@ -14,9 +14,6 @@ pub struct Args {
     /// Include verbose debug information.
     #[clap(short, long)]
     pub verbose: bool,
-    /// TODO: REMOVE
-    #[clap(short, long, default_value_t = false)]
-    pub use_mmap: bool,
     /// Engine to use for evaluating the query.
     #[clap(short, long, value_enum, default_value_t = EngineArg::Main)]
     pub engine: EngineArg,
@@ -30,6 +27,14 @@ pub struct Args {
     /// Result reporting mode.
     #[clap(short, long, value_enum, default_value_t = ResultArg::Bytes)]
     pub result: ResultArg,
+    /// Bypass automatic resolution of the input strategy and force a specific one.
+    ///
+    /// This is not recommended in general, since the app automatically picks a strategy
+    /// that will result in best performance. It might be useful, however, if the automatic
+    /// resolution picks a subpar strategy, or if it is known ahead of time that memory maps
+    /// are not available and there is no need for the app to try to create one.
+    #[clap(long)]
+    pub force_input: Option<InputArg>,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
@@ -38,10 +43,6 @@ pub enum EngineArg {
     Main,
     /// Alternative recursive engine.
     Recursive,
-    /// Use both engines and verify that their outputs match.
-    ///
-    /// This is for testing purposes only.
-    VerifyBoth,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
@@ -50,4 +51,17 @@ pub enum ResultArg {
     Bytes,
     /// Return only the number of matches.
     Count,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum InputArg {
+    /// Use a memory map over a file.
+    ///
+    /// This is preferred by default, if available on a given platform.
+    /// Forcing usage of mmap when it is not available will cause an error and will not try a different input.
+    Mmap,
+    /// Eagerly load all the input into memory before running the query.
+    Eager,
+    /// Read the input in chunks with a buffer.
+    Buffered,
 }

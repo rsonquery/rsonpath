@@ -525,9 +525,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
         }
 
         let start_idx = closing_quote_idx + 1 - len;
-        Ok(self
-            .bytes
-            .is_member_match(start_idx, closing_quote_idx, member_name))
+        Ok(self.bytes.is_member_match(start_idx, closing_quote_idx, member_name))
     }
 
     fn verify_subtree_closed(&self) -> Result<(), EngineError> {

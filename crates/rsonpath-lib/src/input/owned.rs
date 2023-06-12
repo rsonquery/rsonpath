@@ -1,7 +1,7 @@
 //! Takes ownership of the input data.
-//! 
+//!
 //! Choose this implementation if:
-//! 
+//!
 //! 1. You already have the data loaded in-memory, but it is not properly
 //! aligned, and its size is relatively small, so reallocating it is acceptable &ndash; use the
 //! [`new`](`OwnedBytes::new`) function for this.
