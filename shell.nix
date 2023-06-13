@@ -3,14 +3,14 @@ let
   stable = import (nixpkgs.fetchFromGitHub {
     owner = "NixOS";
     repo = "nixpkgs";
-    rev = "884e3b68be02ff9d61a042bc9bd9dd2a358f95da";
-    sha256 = "ISWz16oGxBhF7wqAxefMPwFag6SlsA9up8muV79V9ck=";
+    rev = "4ecab3273592f27479a583fb6d975d4aba3486fe";
+    sha256 = "btHN1czJ6rzteeCuE/PNrdssqYD2nIA4w48miQAFloM=";
   }) {};
   unstable = import (nixpkgs.fetchFromGitHub {
     owner = "NixOS";
     repo = "nixpkgs";
-    rev = "53dad94e874c9586e71decf82d972dfb640ef044";
-    sha256 = "9FNIqrxDZgSliGGN2XJJSvcDYmQbgOANaZA4UWnTdg4=";
+    rev = "7403dd3fe24c2133089bdeaef593ed02c34fcdae";
+    sha256 = "vfHkC88PjYIpI1rsAOa7Cr6fXvPXxKM3tDvMPlgv0NM=";
   }) {};
 in stable.mkShell rec {
   buildInputs =
