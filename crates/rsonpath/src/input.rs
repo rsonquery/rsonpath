@@ -19,11 +19,22 @@ pub enum ResolvedInputKind {
     Buffered,
 }
 
+#[cfg(unix)]
 impl os::fd::AsRawFd for FileOrStdin {
     fn as_raw_fd(&self) -> os::fd::RawFd {
         match self {
             FileOrStdin::File(f) => f.as_raw_fd(),
             FileOrStdin::Stdin(s) => s.as_raw_fd(),
+        }
+    }
+}
+
+#[cfg(windows)]
+impl os::windows::io::AsRawHandle for FileOrStdin {
+    fn as_raw_handle(&self) -> os::windows::io::RawHandle {
+        match self {
+            FileOrStdin::File(f) => f.as_raw_handle(),
+            FileOrStdin::Stdin(s) => s.as_raw_handle(),
         }
     }
 }

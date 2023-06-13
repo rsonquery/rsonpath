@@ -17,8 +17,7 @@
 
 use super::{borrowed::BorrowedBytesBlockIterator, error::InputError, in_slice, Input, LastBlock};
 use crate::query::JsonString;
-use memmap2::Mmap;
-use std::os;
+use memmap2::{Mmap, MmapAsRawDesc};
 
 /// Input wrapping a memory mapped file.
 pub struct MmapInput {
@@ -38,7 +37,7 @@ impl MmapInput {
     ///
     /// Calling mmap might result in an IO error.
     #[inline]
-    pub unsafe fn map_file<D: os::fd::AsRawFd>(file_desc: &D) -> Result<Self, InputError> {
+    pub unsafe fn map_file<D: MmapAsRawDesc>(file_desc: D) -> Result<Self, InputError> {
         match Mmap::map(file_desc) {
             Ok(mmap) => {
                 let last_block = in_slice::pad_last_block(&mmap);
