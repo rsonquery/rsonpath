@@ -1,5 +1,4 @@
 set windows-shell := ["pwsh.exe", "-Command"]
-export RUSTDOCFLAGS := "--cfg docsrs"
 
 [private]
 default: (build-all "release")
@@ -52,7 +51,7 @@ build-lib profile="dev":
 build-all profile="dev": (build-lib profile) (build-bin profile)
 
 # Build and open the library documentation.
-doc:
+doc $RUSTDOCFLAGS="--cfg docsrs":
     cargo +nightly doc --open --package rsonpath-lib
 
 # === RUN ===
@@ -126,7 +125,7 @@ install: (build-bin "release")
 
 # Uninstall the rsonpath binary.
 uninstall:
-	cargo uninstall rsonpath
+    cargo uninstall rsonpath
 
 # === VERIFICATION/LINTING ===
 
@@ -141,7 +140,7 @@ verify-quick: verify-fmt verify-check verify-bench
 
 # Run cargo check on non-benchmark packages.
 verify-check:
-	cargo check --workspace --all-features
+    cargo check --workspace --all-features
 
 # Run cargo check on the benchmark package
 verify-bench:
@@ -149,13 +148,13 @@ verify-bench:
 
 # Run clippy lints on all packages.
 verify-clippy: (build-all "release")
-	cargo +nightly clippy --workspace --no-default-features --release -- --deny warnings
-	cargo +nightly clippy --workspace --all-features --release -- --deny warnings
+    cargo +nightly clippy --workspace --no-default-features --release -- --deny warnings
+    cargo +nightly clippy --workspace --all-features --release -- --deny warnings
 
 # Verify that documentation successfully builds for rsonpath-lib.
-verify-doc: (build-bin "release")
-	RUSTDOCFLAGS='-Dwarnings --cfg docsrs' cargo +nightly doc --package rsonpath-lib --no-default-features --no-deps
-	RUSTDOCFLAGS='-Dwarnings --cfg docsrs' cargo +nightly doc --package rsonpath-lib --all-features --no-deps
+verify-doc $RUSTDOCFLAGS="--cfg docsrs": (build-bin "release")
+    cargo +nightly doc --package rsonpath-lib --no-default-features --no-deps
+    cargo +nightly doc --package rsonpath-lib --all-features --no-deps
 
 # Verify formatting rules are not violated.
 verify-fmt:
@@ -163,7 +162,11 @@ verify-fmt:
 
 # === CLEAN ===
 
-tmpdir := `mktemp -d -t criterion-reports-tmp-XXXXXXXX`
+tmpdir := if os() == "windows" {
+    `New-TemporaryFile`
+} else {
+    `mktemp -d -t criterion-reports-tmp-XXXXXXXX`
+}
 
 # Clean all build artifacts without deleting benchmark results.
 clean:
@@ -175,7 +178,7 @@ clean:
 
 # Delete benchmark results.
 clean-benches:
-	-rm -rf ./target/criterion/*
+    -rm -rf ./target/criterion/*
 
 # Clean all artifacts, including benchmark results.
 clean-all:
@@ -191,7 +194,11 @@ commit msg:
 
 # === HOOKS ===
 
-tmpdiff := `mktemp -t pre-commit-hook-diff-XXXXXXXX.$$`
+tmpdiff := if os() == "windows" {
+    `New-TemporaryFile`
+} else {
+    `mktemp -t pre-commit-hook-diff-XXXXXXXX.$$`
+}
 
 [private]
 hook-pre-commit: 

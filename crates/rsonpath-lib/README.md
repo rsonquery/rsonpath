@@ -50,14 +50,15 @@ cargo tree --package rsonpath-lib --edges normal --depth 1
 
 <!-- rsonpath-lib dependencies start -->
 ```ini
-rsonpath-lib v0.4.0 (/home/mat/rsonpath/crates/rsonpath-lib)
-├── aligners v0.0.10
+rsonpath-lib v0.5.0 (/home/mat/rsonpath/crates/rsonpath-lib)
 ├── cfg-if v1.0.0
-├── log v0.4.17
+├── log v0.4.19
 ├── memchr v2.5.0
+├── memmap2 v0.7.0
 ├── nom v7.1.3
 ├── replace_with v0.1.7
 ├── smallvec v1.10.0
+├── static_assertions v1.1.0
 ├── thiserror v1.0.40
 └── vector-map v1.0.1
 ```
@@ -65,12 +66,12 @@ rsonpath-lib v0.4.0 (/home/mat/rsonpath/crates/rsonpath-lib)
 
 ### Justification
 
-- `aligners` &ndash; SIMD operations require correct input data alignment, putting those requirements at type level makes our code more robust.
 - `cfg-if` &ndash; used to support SIMD and no-SIMD versions.
-- `log` &ndash; diagnostic logs during compilation and execution.
-- `memchr` &ndash; rapid, SIMDified substring search for fast-forwarding to specific members.
+- `memchr` &ndash; rapid, SIMDified substring search for fast-forwarding to labels.
+- `memmap2` &ndash; for fast reading of source files via a memory map instead of buffered copies.
 - `nom` &ndash; for parser implementation.
 - `replace_with` &ndash; for safe handling of internal classifier state when switching classifiers.
 - `smallvec` &ndash; crucial for small-stack performance.
+- `static_assertions` &ndash; additional reliability by some constant assumptions validated at compile time.
 - `thiserror` &ndash; idiomatic `Error` implementations.
 - `vector_map` &ndash; used in the query compiler for measurably better performance.

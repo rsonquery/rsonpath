@@ -29,7 +29,7 @@ jobs:
     - name: Override toolchain
       run: rustup override set stable
     - name: Install
-      run: cargo install --bin rsonpath --path ./crates/rsonpath
+      run: cargo install --bin rq --path ./crates/rsonpath
       env:
         RUSTFLAGS: "--deny warnings"
   
