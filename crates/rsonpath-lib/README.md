@@ -12,7 +12,8 @@
 Library for [`rsonpath`](https://crates.io/crates/rsonpath), the JSONPath engine for querying massive streamed datasets.
 
 The main target of this crate is the `rsonpath` CLI tool. Note that this API is unstable until we reach
-v1.0.0.
+v1.0.0. This *is* going to happen (we have a roadmap), but our dev resources are quite limited.
+Contributions are welcome and appreciated.
 
 ## Unsafe
 

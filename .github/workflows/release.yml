@@ -144,15 +144,15 @@ jobs:
         RUSTFLAGS: "-C target-feature=${{ matrix.target-features }} --deny warnings"
     - name: Rename binary (Unix)
       if: matrix.os != 'windows-latest'
-      run: mv "target/${{ matrix.triple }}/release/rsonpath" target/release/rsonpath-${{ matrix.triple }}-${{ matrix.artifact-suffix }}
+      run: mv "target/${{ matrix.triple }}/release/rq" target/release/rq-${{ matrix.triple }}-${{ matrix.artifact-suffix }}
     - name: Rename binary (Windows)
       if: matrix.os == 'windows-latest'
-      run: mv -Force "target/${{ matrix.triple }}/release/rsonpath.exe" target/release/rsonpath-${{ matrix.triple }}-${{ matrix.artifact-suffix }}.exe
+      run: mv -Force "target/${{ matrix.triple }}/release/rq.exe" target/release/rq-${{ matrix.triple }}-${{ matrix.artifact-suffix }}.exe
     - name: Upload the binary as artifact
       uses: actions/upload-artifact@v3.1.2
       with:
-        name: rsonpath-${{ matrix.triple }}-${{ matrix.artifact-suffix }}-${{ steps.metadata.outputs.version }}
-        path: target/release/rsonpath-${{ matrix.triple }}-${{ matrix.artifact-suffix }}*
+        name: rq-${{ matrix.triple }}-${{ matrix.artifact-suffix }}-${{ steps.metadata.outputs.version }}
+        path: target/release/rq-${{ matrix.triple }}-${{ matrix.artifact-suffix }}*
         if-no-files-found: error
     
   github-release:

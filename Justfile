@@ -1,3 +1,6 @@
+set windows-shell := ["pwsh.exe", "-Command"]
+export RUSTDOCFLAGS := "--cfg docsrs"
+
 [private]
 default: (build-all "release")
 
@@ -50,7 +53,7 @@ build-all profile="dev": (build-lib profile) (build-bin profile)
 
 # Build and open the library documentation.
 doc:
-	RUSTDOCFLAGS="--cfg docsrs" cargo +nightly doc --open --package rsonpath-lib
+    cargo +nightly doc --open --package rsonpath-lib
 
 # === RUN ===
 

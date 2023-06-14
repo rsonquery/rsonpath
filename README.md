@@ -20,23 +20,38 @@ Benchmarks of `rsonpath` against a reference no-SIMD engine on the
 [Pison dataset](https://github.com/AutomataLab/Pison). **NOTE: Scale is logarithmic!**
 ![Main throughput plot](/img/main-plot.svg)
 
-### Supported selectors
+### Query language
 
 The project is actively developed and currently supports only a subset of the JSONPath query language.
+A query is a sequence of segments, each containing one or more selectors.
 
-| Selector                       | Syntax                          | Supported | Since  | Tracking Issue |
-|--------------------------------|---------------------------------|-----------|--------|---------------:|
-| Root                           | `$`                             | ✔️        | v0.1.0 |   |
-| Dot                            | `.<member>`                     | ✔️        | v0.1.0 |   |
-| Index (object member)          | `[<member>]`                    | ✔️        | v0.1.0 |   |
-| Index (array index)            | `[<index>]`                     | ✔️        | v0.5.0 |   |
-| Index (array index from end)   | `[-<index>]`                    | ❌        | -      |   |
-| Descendant                     | `..`                            | ✔️        | v0.1.0 |   |
-| Child wildcard                 | `.*`, `.[*]`                    | ✔️        | v0.3.0 |   |
-| Descendant wildcard            | `..*`, `..[*]`                  | ✔️        | v0.4.0 |   |
-| Slice                          | `[<start>:<end>:<step>]`        | ❌        | -      |   |
-| List                           | `[<sel1>, <sel2>, ..., <selN>]` | ❌        | -      |   |
-| Filter                         | `[?(<expr>)]`                   | ❌        | -      |   |
+#### Supported segments
+
+| Segment                        | Syntax                           | Supported | Since  | Tracking Issue |
+|--------------------------------|----------------------------------|-----------|--------|---------------:|
+| Child segment (single)         | `[<selector>]`                   | ✔️        | v0.1.0 |                |
+| Child segment (multiple)       | `[<selector1>,...,<selectorN>]`  | ❌        |        |                |
+| Descendant segment (single)    | `..[<selector>]`                 | ✔️        | v0.1.0 |                |
+| Descendant segment (multiple)  | `..[<selector1>,...,<selectorN>]`| ❌        |        |                |
+
+#### Supported selectors
+
+| Selector                                 | Syntax                           | Supported | Since  | Tracking Issue |
+|------------------------------------------|----------------------------------|-----------|--------|---------------:|
+| Root                                     | `$`                              | ✔️        | v0.1.0 |                |
+| Name                                     | `.<member>`, `[<member>]`        | ✔️        | v0.1.0 |                |
+| Wildcard                                 | `.*`, `..*`, `[*]`               | ✔️        | v0.4.0 |                |
+| Index (array index)                      | `[<index>]`                      | ✔️        | v0.5.0 |                |
+| Index (array index from end)             | `[-<index>]`                     | ❌        |        |                |
+| Array slice (forward, positive bounds)   | `[<start>:<end>:<step>]`         | ❌        |        | [#152](https://github.com/V0ldek/rsonpath/issues/152) |
+| Array slice (forward, arbitrary bounds)  | `[<start>:<end>:<step>]`         | ❌        |        |                |
+| Array slice (backward, arbitrary bounds) | `[<start>:<end>:-<step>]`        | ❌        |        |                |
+| Filters &ndash; existential tests        | `[?<path>]`                      | ❌        |        | [#154](https://github.com/V0ldek/rsonpath/issues/154) |
+| Filters &ndash; constant comparisons     | `[?<path> <binop> <const>]`      | ❌        |        |                |
+| Filters &ndash; logical expressions      | `&&`, `||`, `!`                  | ❌        |        |                |
+| Filters &ndash; nesting                  | `[?<expr>[?<expr>]...]`          | ❌        |        |                |
+| Filters &ndash; arbitrary comparisons    | `[?<path> <binop> <path>]`       | ❌        |        |                |
+| Filters &ndash; function extensions      | `[?func(<path>)]`                | ❌        |        |                |
 
 ## Installation
 
@@ -144,9 +159,8 @@ This behavior can be overriden with a custom installation of `rsonpath`, disabli
 
 The engine does _not_ parse unicode escape sequences in member names.
 This means that a key `"a"` is different from a key `"\u0041"`, even though semantically they represent the same string.
-Parsing unicode sequences is costly, so the support for this was postponed
-in favour of high performance. It would be possible for a flag to exist
-to trigger this behaviour, but it is not currently worked on.
+This is actually as-designed with respect to the current JSONPath spec.
+It would be possible for a flag to exist to trigger this behavior, but it is not currently worked on.
 
 ## Build & test
 

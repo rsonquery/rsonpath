@@ -2,6 +2,41 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.0] - 2023-06-14
+
+### Features
+
+- Parser support for array index selector. ([#60](https://github.com/V0ldek/rsonpath/issues/60))
+  - Parser now recognizes the array index selector with positive index values conforming to the I-JSON specification.
+- Index selector engine support (#132). ([#132](https://github.com/V0ldek/rsonpath/issues/132)[#132](https://github.com/V0ldek/rsonpath/issues/132))
+  - The automaton transition model has been changed to incorporate index-labelled transitions.
+- Both engines now support queries with the index selector.
+- New `Input` API. ([#23](https://github.com/V0ldek/rsonpath/issues/23)[#23](https://github.com/V0ldek/rsonpath/issues/23))
+  - A more abstract API to access the underlying byte stream replacing the reliance of the engines on a direct `&[u8]` slice access, to allow adding buffered input streams (#23) in the future. Two types were added, `OwnedBytes` and `BorrowedBytes`, to support the current easy scenario of having the bytes already in memory.
+- Rename bin to `rq` and lib to `rsonpath`.
+- Add long version to CLI.
+- Mmap support. ([#23](https://github.com/V0ldek/rsonpath/issues/23))
+  - Added `MmapInput` which maps a file into memory on unix and windows.
+- The CLI app now automatically decides which input to use, favoring mmap in most cases. This can be overridden with `--force-input`.
+
+### Library
+
+- Rename `Label` to `JsonString` (#139). ([#139](https://github.com/V0ldek/rsonpath/issues/139)[#131](https://github.com/V0ldek/rsonpath/issues/131))
+  - `query::Label` is now `query::JsonString`
+- The `unique-labels` feature is now `unique-members`
+- `EngineError:MalformedLabelQuotes` renamed to `EngineError:MalformedStringQuotes`
+
+### Reliability
+
+- Proptests for parsing array indices queries. ([#51](https://github.com/V0ldek/rsonpath/issues/51))
+
+### Dependencies
+
+- Bump clap from 4.1.11 to 4.3.4.
+- Bump log from 0.4.17 to 0.4.19.
+- Bump proptest from 1.1.0 to 1.2.0.
+- Bump simple_logger from 4.1.0 to 4.2.0.
+
 ## [0.4.0] - 2023-04-20
 
 ### Features
