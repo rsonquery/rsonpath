@@ -1,16 +1,19 @@
 //! Error definitions and utilities for engine execution.
-use crate::error::InternalRsonpathError;
+use crate::{error::InternalRsonpathError, input::error::InputError};
 use thiserror::Error;
 
 /// Error enum for all types of errors that can be reported
 /// during engine execution.
 ///
-/// **NOTE**: These error are _not_ guaranteed to be raised for every
+/// **NOTE**: Most errors are _not_ guaranteed to be raised for every
 /// JSON document that is malformed in the respective manner.
 /// The engine may ignore such errors and simply produce incorrect results
 /// for invalid documents.
 #[derive(Debug, Error)]
 pub enum EngineError {
+    /// Error while reading from the supplied [`Input`](crate::input::Input) implementation.
+    #[error(transparent)]
+    InputError(#[from] InputError),
     /// Document depth fell below zero, which can only happen
     /// if there are more closing than opening braces.
     /// The inner [`usize`] value indicates the position of the mismatched closing character.

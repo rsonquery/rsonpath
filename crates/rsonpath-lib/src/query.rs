@@ -3,7 +3,7 @@
 //! # Examples
 //! To create a query from a query string:
 //! ```
-//! # use rsonpath_lib::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType};
+//! # use rsonpath::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType};
 //! # use std::error::Error;
 //! #
 //! # fn main() -> Result<(), Box<dyn Error>> {

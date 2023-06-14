@@ -22,6 +22,7 @@ use crate::query::automaton::{Automaton, State};
 use crate::query::error::CompilerError;
 use crate::query::{JsonPathQuery, JsonString, NonNegativeArrayIndex};
 use crate::result::QueryResult;
+use crate::FallibleIterator;
 use crate::BLOCK_SIZE;
 use crate::{
     classification::{
@@ -61,7 +62,7 @@ impl Engine for MainEngine<'_> {
     #[inline]
     fn run<I: Input, R: QueryResult>(&self, input: &I) -> Result<R, EngineError> {
         if self.automaton.is_empty_query() {
-            return Ok(empty_query(input));
+            return empty_query(input);
         }
 
         let mut result = R::default();
@@ -72,16 +73,16 @@ impl Engine for MainEngine<'_> {
     }
 }
 
-fn empty_query<I: Input, R: QueryResult>(bytes: &I) -> R {
+fn empty_query<I: Input, R: QueryResult>(bytes: &I) -> Result<R, EngineError> {
     let quote_classifier = classify_quoted_sequences(bytes);
     let mut block_event_source = classify_structural_characters(quote_classifier);
     let mut result = R::default();
 
-    if let Some(Structural::Opening(_, idx)) = block_event_source.next() {
+    if let Some(Structural::Opening(_, idx)) = block_event_source.next()? {
         result.report(idx);
     }
 
-    result
+    Ok(result)
 }
 
 #[cfg(feature = "tail-skip")]
@@ -163,26 +164,33 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
         classifier: &mut Classifier!(),
         result: &mut R,
     ) -> Result<(), EngineError> {
-        while let Some(event) = self.next_event.or_else(|| classifier.next()) {
-            debug!("====================");
-            debug!("Event = {:?}", event);
-            debug!("Depth = {:?}", self.depth);
-            debug!("Stack = {:?}", self.stack);
-            debug!("State = {:?}", self.state);
-            debug!("====================");
+        loop {
+            if self.next_event.is_none() {
+                self.next_event = classifier.next()?;
+            }
+            if let Some(event) = self.next_event {
+                debug!("====================");
+                debug!("Event = {:?}", event);
+                debug!("Depth = {:?}", self.depth);
+                debug!("Stack = {:?}", self.stack);
+                debug!("State = {:?}", self.state);
+                debug!("====================");
 
-            self.next_event = None;
-            match event {
-                Structural::Colon(idx) => self.handle_colon(classifier, idx, result)?,
-                Structural::Comma(idx) => self.handle_comma(classifier, idx, result)?,
-                Structural::Opening(b, idx) => self.handle_opening(classifier, b, idx, result)?,
-                Structural::Closing(_, idx) => {
-                    self.handle_closing(classifier, idx)?;
+                self.next_event = None;
+                match event {
+                    Structural::Colon(idx) => self.handle_colon(classifier, idx, result)?,
+                    Structural::Comma(idx) => self.handle_comma(classifier, idx, result)?,
+                    Structural::Opening(b, idx) => self.handle_opening(classifier, b, idx, result)?,
+                    Structural::Closing(_, idx) => {
+                        self.handle_closing(classifier, idx)?;
 
-                    if self.depth == Depth::ZERO {
-                        break;
+                        if self.depth == Depth::ZERO {
+                            break;
+                        }
                     }
                 }
+            } else {
+                break;
             }
         }
 
@@ -202,7 +210,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
     {
         debug!("Colon");
 
-        self.next_event = classifier.next();
+        self.next_event = classifier.next()?;
         let is_next_opening = self.next_event.map_or(false, |s| s.is_opening());
 
         if !is_next_opening {
@@ -230,7 +238,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
                 if any_matched && !is_next_closing && self.automaton.is_unitary(self.state) {
                     let bracket_type = self.current_node_bracket_type();
                     debug!("Skipping unique state from {bracket_type:?}");
-                    let stop_at = classifier.skip(bracket_type);
+                    let stop_at = classifier.skip(bracket_type)?;
                     self.next_event = Some(Structural::Closing(bracket_type, stop_at));
                 }
             }
@@ -250,7 +258,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
         S: StructuralIterator<'b, I, Q, BLOCK_SIZE>,
         R: QueryResult,
     {
-        self.next_event = classifier.next();
+        self.next_event = classifier.next()?;
 
         let is_next_opening = self.next_event.map_or(false, |s| s.is_opening());
 
@@ -331,7 +339,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
 
             #[cfg(feature = "tail-skip")]
             if self.automaton.is_rejecting(fallback) {
-                classifier.skip(bracket_type);
+                classifier.skip(bracket_type)?;
                 return Ok(());
             } else {
                 self.transition_to(fallback, bracket_type);
@@ -364,11 +372,11 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
                     is_fallback_accepting || self.automaton.has_first_array_index_transition_to_accepting(self.state);
 
                 if wants_first_item {
-                    self.next_event = classifier.next();
+                    self.next_event = classifier.next()?;
 
                     match self.next_event {
                         Some(Structural::Closing(_, close_idx)) => {
-                            if let Some((next_idx, _)) = self.bytes.seek_non_whitespace_forward(idx + 1) {
+                            if let Some((next_idx, _)) = self.bytes.seek_non_whitespace_forward(idx + 1)? {
                                 if next_idx < close_idx {
                                     result.report(next_idx);
                                 }
@@ -426,7 +434,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
                 if self.automaton.is_unitary(self.state) {
                     let bracket_type = self.current_node_bracket_type();
                     debug!("Skipping unique state from {bracket_type:?}");
-                    let close_idx = classifier.skip(bracket_type);
+                    let close_idx = classifier.skip(bracket_type)?;
                     self.next_event = Some(Structural::Closing(bracket_type, close_idx));
                     return Ok(());
                 }
@@ -517,9 +525,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
         }
 
         let start_idx = closing_quote_idx + 1 - len;
-        Ok(self
-            .bytes
-            .is_member_match(start_idx, closing_quote_idx + 1, member_name))
+        Ok(self.bytes.is_member_match(start_idx, closing_quote_idx, member_name))
     }
 
     fn verify_subtree_closed(&self) -> Result<(), EngineError> {

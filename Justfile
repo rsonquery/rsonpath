@@ -37,9 +37,9 @@ alias b := build-bin
 # alias for build-all release
 build profile="release": (build-all profile)
 
-# Build the rsonpath binary.
+# Build the rq binary.
 build-bin profile="dev": (build-lib profile)
-    cargo build --bin rsonpath --profile {{profile}}
+    cargo build --bin rq --profile {{profile}}
 
 # Build the rsonpath-lib library.
 build-lib profile="dev":
@@ -59,12 +59,12 @@ alias r := run-debug
 # Run the CLI in debug profile. ARGS are passed to the rsonpath executable.
 [no-exit-message]
 run-debug *ARGS: (build-bin "dev")
-    ./target/debug/rsonpath {{ARGS}}
+    ./target/debug/rq {{ARGS}}
 
 # Run the CLI in release profile. ARGS are passed to the rsonpath executable.
 [no-exit-message]
 run *ARGS: (build-bin "release")
-    ./target/release/rsonpath {{ARGS}}
+    ./target/release/rq {{ARGS}}
 
 # === WATCH ===
 watch *ARGS:
@@ -81,8 +81,8 @@ alias doctest := test-doc
 
 # Run the quick unit and doc tests of the library with all features.
 test-quick:
-    cargo test --lib
-    cargo test --doc
+    cargo test --lib -q
+    cargo test --doc -q
 
 # Run the quick unit tests of the library on feature powerset.
 test-unit:
@@ -91,15 +91,19 @@ test-unit:
 
 # Run the classifier tests on default features.
 test-classifier:
-    cargo test --test classifier_correctness_tests
+    cargo test --test classifier_correctness_tests -q
 
 # Run the main engine end-to-end tests on default features.
 test-engine:
-    cargo test --test engine_correctness_tests
+    cargo test --test engine_correctness_tests -q
+
+# Run the input tests on default features.
+test-input:
+    cargo test --test input_implementation_tests -q
 
 # Run the query tests on default features.
 test-parser:
-    cargo test --test query_parser_tests
+    cargo test --test query_parser_tests -q
 
 # Run all tests, including real dataset tests, on the feature powerset of the project.
 test-full:
@@ -212,6 +216,7 @@ assert-benchmarks-committed:
 
 # Perform release dry run for the given version.
 release-dry ver:
+    cargo update
     just release-patch {{ver}}
     just release-readme
     just commit 'release v{{ver}}'
@@ -219,6 +224,7 @@ release-dry ver:
 
 # Actually execute a release for the given version.
 release-execute ver:
+    cargo update
     just release-patch {{ver}}
     just release-readme
     just commit 'release v{{ver}}'

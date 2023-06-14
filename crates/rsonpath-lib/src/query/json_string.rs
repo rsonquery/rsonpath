@@ -9,7 +9,7 @@ use std::fmt::Display;
 /// # Examples
 ///
 /// ```
-/// # use rsonpath_lib::query::JsonString;
+/// # use rsonpath::query::JsonString;
 ///
 /// let needle = JsonString::new("needle");
 ///

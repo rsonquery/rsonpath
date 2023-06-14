@@ -8,7 +8,7 @@ use std::fmt::{self, Display, Formatter};
 /// # Examples
 ///
 /// ```
-/// # use rsonpath_lib::query::NonNegativeArrayIndex;
+/// # use rsonpath::query::NonNegativeArrayIndex;
 ///
 /// let idx = NonNegativeArrayIndex::new(2);
 ///

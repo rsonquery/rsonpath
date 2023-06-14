@@ -21,6 +21,7 @@ use crate::query::automaton::{Automaton, State, TransitionLabel};
 use crate::query::error::{ArrayIndexError, CompilerError};
 use crate::query::{JsonPathQuery, JsonString, NonNegativeArrayIndex};
 use crate::result::QueryResult;
+use crate::FallibleIterator;
 use crate::BLOCK_SIZE;
 
 /// Recursive implementation of the JSONPath query engine.
@@ -59,7 +60,7 @@ impl Engine for RecursiveEngine<'_> {
         #[cfg(not(feature = "tail-skip"))]
         let mut classifier = structural_classifier;
 
-        match classifier.next() {
+        match classifier.next()? {
             Some(Structural::Opening(b, idx)) => {
                 let mut result = R::default();
                 let mut execution_ctx = ExecutionContext::new(&self.automaton, input);
@@ -76,7 +77,7 @@ fn empty_query<R: QueryResult, I: Input>(input: &I) -> Result<R, EngineError> {
     let mut block_event_source = classify_structural_characters(quote_classifier);
     let mut result = R::default();
 
-    if let Some(Structural::Opening(_, idx)) = block_event_source.next() {
+    if let Some(Structural::Opening(_, idx)) = block_event_source.next()? {
         result.report(idx);
     }
 
@@ -201,9 +202,9 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
         }) || is_fallback_accepting;
 
         if is_list && wants_first_item {
-            next_event = classifier.next();
+            next_event = classifier.next()?;
             if let Some(Structural::Closing(_, close_idx)) = next_event {
-                if let Some((next_idx, _)) = self.bytes.seek_non_whitespace_forward(open_idx + 1) {
+                if let Some((next_idx, _)) = self.bytes.seek_non_whitespace_forward(open_idx + 1)? {
                     if next_idx < close_idx {
                         result.report(next_idx);
                     }
@@ -219,13 +220,13 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
 
         loop {
             if next_event.is_none() {
-                next_event = classifier.next();
+                next_event = classifier.next()?;
             }
             debug!("Event: {next_event:?}");
             match next_event {
                 Some(Structural::Comma(idx)) => {
                     latest_idx = idx;
-                    next_event = classifier.next();
+                    next_event = classifier.next()?;
 
                     let is_next_opening = next_event.map_or(false, |s| s.is_opening());
 
@@ -254,7 +255,7 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
                     debug!("Colon");
 
                     latest_idx = idx;
-                    next_event = classifier.next();
+                    next_event = classifier.next()?;
                     let is_next_opening = next_event.map_or(false, |s| s.is_opening());
 
                     if !is_next_opening {
@@ -288,7 +289,7 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
                                     BracketType::Curly
                                 };
                                 debug!("Skipping unique state from {:?}", bracket_type);
-                                let stop_at = classifier.skip(bracket_type);
+                                let stop_at = classifier.skip(bracket_type)?;
                                 next_event = Some(Structural::Opening(bracket_type, stop_at));
                             }
                         }
@@ -344,7 +345,7 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
 
                             #[cfg(feature = "tail-skip")]
                             if self.automaton.is_rejecting(fallback_state) {
-                                classifier.skip(b)
+                                classifier.skip(b)?
                             } else {
                                 self.run_on_subtree(classifier, fallback_state, idx, b, result)?
                             }
@@ -368,7 +369,7 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
                                 BracketType::Curly
                             };
                             debug!("Skipping unique state from {:?}", bracket_type);
-                            let stop_at = classifier.skip(bracket_type);
+                            let stop_at = classifier.skip(bracket_type)?;
                             latest_idx = stop_at;
                             break;
                         }
@@ -400,9 +401,7 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
         }
 
         let start_idx = closing_quote_idx + 1 - len;
-        Ok(self
-            .bytes
-            .is_member_match(start_idx, closing_quote_idx + 1, member_name))
+        Ok(self.bytes.is_member_match(start_idx, closing_quote_idx, member_name))
     }
 }
 

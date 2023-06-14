@@ -13,8 +13,9 @@ cfg_if::cfg_if! {
 }
 
 use crate::classification::{quotes::QuoteClassifiedBlock, ResumeClassifierBlockState};
+use crate::input::error::InputError;
 use crate::input::{IBlock, Input, InputBlock};
-use crate::{bin, debug};
+use crate::{bin, debug, FallibleIterator};
 use std::marker::PhantomData;
 
 use super::*;
@@ -43,13 +44,14 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> VectorIterator<'a, I, 
     }
 }
 
-impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> Iterator for VectorIterator<'a, I, Q> {
+impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> FallibleIterator for VectorIterator<'a, I, Q> {
     type Item = Vector<'a, I>;
+    type Error = InputError;
 
     #[inline(always)]
-    fn next(&mut self) -> Option<Self::Item> {
-        let quote_classified = self.iter.next();
-        quote_classified.map(|q| Vector::new(q, &self.classifier))
+    fn next(&mut self) -> Result<Option<Self::Item>, Self::Error> {
+        let quote_classified = self.iter.next()?;
+        Ok(quote_classified.map(|q| Vector::new(q, &self.classifier)))
     }
 }
 

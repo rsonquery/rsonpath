@@ -14,8 +14,9 @@ cfg_if::cfg_if! {
 
 use crate::classification::structural::{BracketType, QuoteClassifiedIterator, Structural, StructuralIterator};
 use crate::classification::{QuoteClassifiedBlock, ResumeClassifierBlockState, ResumeClassifierState};
+use crate::input::error::InputError;
 use crate::input::{IBlock, Input, InputBlock};
-use crate::{bin, debug};
+use crate::{bin, debug, FallibleIterator};
 
 #[cfg(target_arch = "x86")]
 use core::arch::x86::*;
@@ -111,13 +112,14 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> Avx2Classifier<'a, I, 
     }
 }
 
-impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> Iterator for Avx2Classifier<'a, I, Q> {
+impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> FallibleIterator for Avx2Classifier<'a, I, Q> {
     type Item = Structural;
+    type Error = InputError;
 
     #[inline(always)]
-    fn next(&mut self) -> Option<Structural> {
+    fn next(&mut self) -> Result<Option<Structural>, Self::Error> {
         while self.current_block_is_spent() {
-            match self.iter.next() {
+            match self.iter.next()? {
                 Some(block) => {
                     // SAFETY: target_feature invariant
                     self.block = unsafe { Some(self.classifier.classify(block)) };
@@ -129,13 +131,12 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> Iterator for Avx2Class
             }
         }
 
-        self.block
+        Ok(self
+            .block
             .as_mut()
-            .and_then(|b| b.next().map(|x| x.offset(self.iter.get_offset())))
+            .and_then(|b| b.next().map(|x| x.offset(self.iter.get_offset()))))
     }
 }
-
-impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> std::iter::FusedIterator for Avx2Classifier<'a, I, Q> {}
 
 impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> StructuralIterator<'a, I, Q, 64>
     for Avx2Classifier<'a, I, Q>
