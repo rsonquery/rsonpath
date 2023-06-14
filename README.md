@@ -11,8 +11,6 @@
 
 Experimental JSONPath engine for querying massive streamed datasets.
 
-## Features
-
 The `rsonpath` crate provides a JSONPath parser and a query execution engine `rq`,
 which utilizes SIMD instructions to provide massive throughput improvements over conventional engines.
 
@@ -20,12 +18,37 @@ Benchmarks of `rsonpath` against a reference no-SIMD engine on the
 [Pison dataset](https://github.com/AutomataLab/Pison). **NOTE: Scale is logarithmic!**
 ![Main throughput plot](/img/main-plot.svg)
 
-### Query language
+## Usage
+
+To run a JSONPath query on a file execute:
+
+```bash
+rq '$..a.b' ./file.json
+```
+
+If the file is omitted, the engine reads standard input.
+
+For details, consult `rq --help`.
+
+### Results
+
+The results are presented as an array of indices at which a colon of a matching record was found,
+the comma directly preceding the matched record in a list,
+or the opening bracket of the list in case of the first element in it.
+Alternatively, passing `--result count` returns only the number of matches.
+**Work to support more useful result reports is ongoing and prioritized ([#56](https://github.com/V0ldek/rsonpath/issues/56)).**
+
+### Engine
+
+By default, the main SIMD engine is used. On machines not supporting SIMD, the recursive implementation
+might be faster in some cases. To change the engine use `--engine recursive`.
+
+## Query language
 
 The project is actively developed and currently supports only a subset of the JSONPath query language.
 A query is a sequence of segments, each containing one or more selectors.
 
-#### Supported segments
+### Supported segments
 
 | Segment                        | Syntax                           | Supported | Since  | Tracking Issue |
 |--------------------------------|----------------------------------|-----------|--------|---------------:|
@@ -34,7 +57,7 @@ A query is a sequence of segments, each containing one or more selectors.
 | Descendant segment (single)    | `..[<selector>]`                 | ✔️        | v0.1.0 |                |
 | Descendant segment (multiple)  | `..[<selector1>,...,<selectorN>]`| ❌        |        |                |
 
-#### Supported selectors
+### Supported selectors
 
 | Selector                                 | Syntax                           | Supported | Since  | Tracking Issue |
 |------------------------------------------|----------------------------------|-----------|--------|---------------:|
@@ -88,31 +111,6 @@ To do this, run the following `cargo install` variant:
 RUSTFLAGS="-C target-cpu=native" cargo install rsonpath
 ```
 
-## Usage
-
-To run a JSONPath query on a file execute:
-
-```bash
-rq '$..a.b' ./file.json
-```
-
-If the file is omitted, the engine reads standard input.
-
-For details, consult `rq --help`.
-
-### Results
-
-The results are presented as an array of indices at which a colon of a matching record was found,
-the comma directly preceding the matched record in a list,
-or the opening bracket of the list in case of the first element in it.
-Alternatively, passing `--result count` returns only the number of matches.
-Work to support more useful result reports is ongoing.
-
-### Engine
-
-By default, the main SIMD engine is used. On machines not supporting SIMD, the recursive implementation
-might be faster in some cases. To change the engine use `--engine recursive`.
-
 ## Supported platforms
 
 The crate is continuously built for all Tier 1 Rust targets, and tests are continuously ran for targets that can be ran with GitHub action images. SIMD is supported only on x86-64 platforms for AVX2, while nosimd builds are always available for all targets.
@@ -162,7 +160,11 @@ This means that a key `"a"` is different from a key `"\u0041"`, even though sema
 This is actually as-designed with respect to the current JSONPath spec.
 It would be possible for a flag to exist to trigger this behavior, but it is not currently worked on.
 
-## Build & test
+## Contributing
+
+The gist is: fork, implement, make a PR back here. More details are in the [CONTRIBUTING](/CONTRIBUTING.md) doc.
+
+### Build & test
 
 The dev workflow utilizes [`just`](https://github.com/casey/just).
 Use the included `Justfile`. It will automatically install Rust for you using the `rustup` tool if it detects there is no Cargo in your environment.
