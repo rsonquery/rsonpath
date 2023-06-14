@@ -37,6 +37,7 @@ in stable.mkShell rec {
 
   RUST_SRC_PATH = "${nixpkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
   shellHook = ''
+    export RUSTUP_TOOLCHAIN="nightly";
     export PATH="$CARGO_HOME:$PATH";
     export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:${nixpkgs.lib.makeLibraryPath buildInputs}";
   '';
