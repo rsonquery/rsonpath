@@ -47,8 +47,8 @@ A query is a sequence of segments, each containing one or more selectors.
 | Array slice (forward, arbitrary bounds)  | `[<start>:<end>:<step>]`         | ❌        |        |                |
 | Array slice (backward, arbitrary bounds) | `[<start>:<end>:-<step>]`        | ❌        |        |                |
 | Filters &ndash; existential tests        | `[?<path>]`                      | ❌        |        | [#154](https://github.com/V0ldek/rsonpath/issues/154) |
-| Filters &ndash; constant comparisons     | `[?<path> <binop> <const>]`      | ❌        |        |                |
-| Filters &ndash; logical expressions      | `&&`, `||`, `!`                  | ❌        |        |                |
+| Filters &ndash; const atom comparisons   | `[?<path> <binop> <atom>]`       | ❌        |        | [#156](https://github.com/V0ldek/rsonpath/issues/156) |
+| Filters &ndash; logical expressions      | `&&`, `\|\|`, `!`                | ❌        |        |                |
 | Filters &ndash; nesting                  | `[?<expr>[?<expr>]...]`          | ❌        |        |                |
 | Filters &ndash; arbitrary comparisons    | `[?<path> <binop> <path>]`       | ❌        |        |                |
 | Filters &ndash; function extensions      | `[?func(<path>)]`                | ❌        |        |                |
