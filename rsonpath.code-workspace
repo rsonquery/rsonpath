@@ -8,6 +8,7 @@
 	"settings": {
 		"cSpell.words": [
 			"bitmasks",
+			"canonicalize",
 			"clippy",
 			"clmulepi",
 			"cmpeq",
@@ -29,6 +30,8 @@
 			"mainsnak",
 			"Mateusz",
 			"memchr",
+			"memmap",
+			"Mmap",
 			"movemask",
 			"nonescaped",
 			"nonoverlapping",
@@ -57,6 +60,7 @@
 			"Uninit",
 			"unseparated",
 			"vectorially",
+			"VERGEN",
 			"WHITESPACES"
 		],
 		"cSpell.language": "en-US",

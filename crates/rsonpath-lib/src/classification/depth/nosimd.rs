@@ -24,12 +24,15 @@ impl<'a, I: Input, Q, const N: usize> VectorIterator<'a, I, Q, N> {
     }
 }
 
-impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> Iterator for VectorIterator<'a, I, Q, N> {
+impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> FallibleIterator
+    for VectorIterator<'a, I, Q, N>
+{
     type Item = Vector<'a, I, N>;
+    type Error = InputError;
 
-    fn next(&mut self) -> Option<Self::Item> {
-        let quote_classified = self.iter.next();
-        quote_classified.map(|b| Vector::new(b, self.opening))
+    fn next(&mut self) -> Result<Option<Self::Item>, InputError> {
+        let quote_classified = self.iter.next()?;
+        Ok(quote_classified.map(|b| Vector::new(b, self.opening)))
     }
 }
 

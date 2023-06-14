@@ -9,6 +9,8 @@ exclude = [
     "crates/rsonpath-benchmarks"
 ]
 
+resolver = "2"
+
 [profile.dev]
 lto = false
 

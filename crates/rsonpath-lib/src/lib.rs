@@ -5,10 +5,10 @@
 //!
 //! # Examples
 //! ```rust
-//! use rsonpath_lib::engine::{Compiler, Engine, RsonpathEngine};
-//! use rsonpath_lib::input::OwnedBytes;
-//! use rsonpath_lib::query::JsonPathQuery;
-//! use rsonpath_lib::result::CountResult;
+//! use rsonpath::engine::{Compiler, Engine, RsonpathEngine};
+//! use rsonpath::input::OwnedBytes;
+//! use rsonpath::query::JsonPathQuery;
+//! use rsonpath::result::CountResult;
 //! # use std::error::Error;
 //!
 //! # fn main() -> Result<(), Box<dyn Error>> {
@@ -259,3 +259,47 @@ macro_rules! bin {
 #[allow(unused_imports)]
 pub(crate) use bin;
 pub(crate) use debug;
+
+/// Variation of the [`Iterator`] trait where each read can fail.
+pub trait FallibleIterator {
+    /// Type of items returned by this iterator.
+    type Item;
+    /// Type of errors that can occur when reading from this iterator.
+    type Error: std::error::Error;
+
+    /// Advances the iterator and returns the next value.
+    ///
+    /// # Errors
+    /// May fail depending on the implementation.
+    fn next(&mut self) -> Result<Option<Self::Item>, Self::Error>;
+
+    /// Transforms an iterator into a collection.
+    ///
+    /// # Errors
+    /// This consumes the iterator and reads from it. If any read fails,
+    /// the result is the first error encountered.
+    #[inline]
+    fn collect<B>(self) -> Result<B, Self::Error>
+    where
+        B: FromIterator<Self::Item>,
+        Self: Sized,
+    {
+        let iter = FallibleIntoIter { src: self };
+        iter.collect()
+    }
+}
+
+struct FallibleIntoIter<F> {
+    src: F,
+}
+
+impl<F: FallibleIterator> Iterator for FallibleIntoIter<F> {
+    type Item = Result<F::Item, F::Error>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.src.next() {
+            Ok(item) => item.map(Ok),
+            Err(e) => Some(Err(e)),
+        }
+    }
+}

@@ -89,33 +89,29 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> Sequent
     }
 }
 
-impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> Iterator
+impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> FallibleIterator
     for SequentialClassifier<'a, I, Q, N>
 {
     type Item = Structural;
+    type Error = InputError;
 
     #[inline(always)]
-    fn next(&mut self) -> Option<Structural> {
+    fn next(&mut self) -> Result<Option<Structural>, InputError> {
         let mut item = self.block.as_mut().and_then(Iterator::next);
 
         while item.is_none() {
-            match self.iter.next() {
+            match self.iter.next()? {
                 Some(block) => {
                     let mut block = Block::new(block, self.are_colons_on, self.are_commas_on);
                     item = block.next();
                     self.block = Some(block);
                 }
-                None => return None,
+                None => return Ok(None),
             }
         }
 
-        item.map(|x| x.offset(self.iter.get_offset()))
+        Ok(item.map(|x| x.offset(self.iter.get_offset())))
     }
-}
-
-impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> std::iter::FusedIterator
-    for SequentialClassifier<'a, I, Q, N>
-{
 }
 
 impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> StructuralIterator<'a, I, Q, N>

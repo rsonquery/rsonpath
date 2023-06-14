@@ -6,7 +6,7 @@ use super::{JsonPathQuery, JsonPathQueryNode, JsonString, NonNegativeArrayIndex}
 ///
 /// # Examples
 /// ```
-/// # use rsonpath_lib::query::{JsonPathQuery, JsonString, builder::JsonPathQueryBuilder};
+/// # use rsonpath::query::{JsonPathQuery, JsonString, builder::JsonPathQueryBuilder};
 /// let builder = JsonPathQueryBuilder::new()
 ///     .child(JsonString::new("a"))
 ///     .descendant(JsonString::new("b"))
@@ -28,7 +28,7 @@ impl JsonPathQueryBuilder {
     ///
     /// # Examples
     /// ```
-    /// # use rsonpath_lib::query::{JsonPathQuery, JsonPathQueryNode, builder::JsonPathQueryBuilder};
+    /// # use rsonpath::query::{JsonPathQuery, JsonPathQueryNode, builder::JsonPathQueryBuilder};
     /// let builder = JsonPathQueryBuilder::new();
     /// let query: JsonPathQuery = builder.into();
     ///

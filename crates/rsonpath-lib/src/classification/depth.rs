@@ -11,12 +11,13 @@
 //!
 //! Illustrating how the skipping works:
 //! ```rust
-//! use rsonpath_lib::classification::quotes::classify_quoted_sequences;
-//! use rsonpath_lib::classification::depth::{
+//! use rsonpath::classification::quotes::classify_quoted_sequences;
+//! use rsonpath::classification::depth::{
 //!     classify_depth, DepthIterator, DepthBlock
 //! };
-//! use rsonpath_lib::classification::structural::BracketType;
-//! use rsonpath_lib::input::OwnedBytes;
+//! use rsonpath::classification::structural::BracketType;
+//! use rsonpath::input::OwnedBytes;
+//! use rsonpath::FallibleIterator;
 //!
 //! let json = r#"[42, {"b":[[]],"c":{}}, 44]}"#.to_owned();
 //! //                        ^^            ^
@@ -27,7 +28,7 @@
 //! // We pass Square as the opening bracket type
 //! // to tell the classifier to consider only '[' and ']' characters.
 //! let mut depth_classifier = classify_depth(quote_classifier, BracketType::Square);
-//! let mut depth_block = depth_classifier.next().unwrap();
+//! let mut depth_block = depth_classifier.next().unwrap().unwrap();
 //!
 //! assert_eq!(depth_block.get_depth(), 0);
 //! assert!(depth_block.advance_to_next_depth_decrease()); // Advances to A.
@@ -41,10 +42,11 @@
 //!
 //! Idiomatic usage for a high-performance skipping loop:
 //! ```rust
-//! use rsonpath_lib::classification::depth::{classify_depth, DepthBlock, DepthIterator};
-//! use rsonpath_lib::classification::quotes::classify_quoted_sequences;
-//! use rsonpath_lib::classification::structural::BracketType;
-//! use rsonpath_lib::input::OwnedBytes;
+//! use rsonpath::classification::depth::{classify_depth, DepthBlock, DepthIterator};
+//! use rsonpath::classification::quotes::classify_quoted_sequences;
+//! use rsonpath::classification::structural::BracketType;
+//! use rsonpath::input::OwnedBytes;
+//! use rsonpath::FallibleIterator;
 //!
 //! let json = r#"
 //!     "a": [
@@ -66,7 +68,7 @@
 //! let mut depth_classifier = classify_depth(quote_classifier, BracketType::Curly);
 //! let mut current_depth = 1;
 //!
-//! while let Some(mut vector) = depth_classifier.next() {
+//! while let Some(mut vector) = depth_classifier.next().unwrap() {
 //!     vector.add_depth(current_depth);
 //!
 //!     if vector.estimate_lowest_possible_depth() <= 0 {
@@ -87,8 +89,8 @@
 use super::structural::BracketType;
 use crate::{
     classification::{quotes::QuoteClassifiedIterator, ResumeClassifierState},
-    input::Input,
-    BLOCK_SIZE,
+    input::{error::InputError, Input},
+    FallibleIterator, BLOCK_SIZE,
 };
 use cfg_if::cfg_if;
 
@@ -125,7 +127,9 @@ pub trait DepthBlock<'a>: Sized {
 
 /// Trait for depth iterators, i.e. finite iterators returning depth information
 /// about JSON documents.
-pub trait DepthIterator<'a, I: Input, Q, const N: usize>: Iterator<Item = Self::Block> + 'a {
+pub trait DepthIterator<'a, I: Input, Q, const N: usize>:
+    FallibleIterator<Item = Self::Block, Error = InputError> + 'a
+{
     /// Type of the [`DepthBlock`] implementation used by this iterator.
     type Block: DepthBlock<'a>;
 

@@ -15,12 +15,13 @@
 //!
 //! # Examples
 //! ```rust
-//! use rsonpath_lib::classification::quotes::classify_quoted_sequences;
-//! use rsonpath_lib::classification::structural::{
+//! use rsonpath::classification::quotes::classify_quoted_sequences;
+//! use rsonpath::classification::structural::{
 //!     classify_structural_characters, resume_structural_classification,
 //!     BracketType, Structural, StructuralIterator,
 //! };
-//! use rsonpath_lib::input::OwnedBytes;
+//! use rsonpath::input::OwnedBytes;
+//! use rsonpath::FallibleIterator;
 //!
 //! let json = r#"{"a":[42, {}, 44]}"#.to_owned();
 //! let input = OwnedBytes::try_from(json).unwrap();
@@ -31,11 +32,11 @@
 //!
 //! // Classify first two structural characters.
 //! assert_eq!(
-//!     structural_classifier.next(),
+//!     structural_classifier.next().unwrap(),
 //!     Some(Structural::Opening(BracketType::Curly, 0))
 //! );
 //! assert_eq!(
-//!     structural_classifier.next(),
+//!     structural_classifier.next().unwrap(),
 //!     Some(Structural::Colon(4))
 //! );
 //!
@@ -50,7 +51,7 @@
 //! // Resume.
 //! let mut structural_classifier_2 = resume_structural_classification(resume_state);
 //! assert_eq!(
-//!     structural_classifier_2.next(),
+//!     structural_classifier_2.next().unwrap(),
 //!     Some(Structural::Closing(BracketType::Curly, 11))
 //! );
 //! ```
@@ -60,7 +61,7 @@ pub mod structural;
 
 use crate::{
     debug,
-    input::{IBlock, Input},
+    input::{error::InputError, IBlock, Input},
 };
 use quotes::{QuoteClassifiedBlock, QuoteClassifiedIterator};
 
@@ -100,10 +101,15 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> ResumeC
 
     /// Move the state forward by `count` bytes.
     ///
+    /// # Errors
+    /// If the offset crosses block boundaries, then a new block is read from the underlying
+    /// [`Input`] implementation, which can fail.
+    ///
     /// # Panics
     /// If the `count` is not positive.
     #[inline]
-    pub fn offset_bytes(&mut self, count: isize) {
+    #[allow(clippy::panic_in_result_fn)]
+    pub fn offset_bytes(&mut self, count: isize) -> Result<(), InputError> {
         assert!(count > 0);
         let count = count as usize;
 
@@ -119,7 +125,7 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> ResumeC
                 let remainder = (self.block.as_ref().map_or(0, |b| b.idx) + count - blocks_to_advance * N) % N;
 
                 self.iter.offset(blocks_to_advance as isize);
-                let next_block = self.iter.next();
+                let next_block = self.iter.next()?;
 
                 self.block = next_block.map(|b| ResumeClassifierBlockState {
                     block: b,
@@ -129,5 +135,7 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> ResumeC
         }
 
         debug!("offset_bytes({count}) results in idx moved to {}", self.get_idx());
+
+        Ok(())
     }
 }
