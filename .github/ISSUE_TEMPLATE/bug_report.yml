@@ -1,0 +1,113 @@
+name: Bug report
+about: Create a report to help us improve
+title: ''
+labels: 'type: bug'
+assignees: ''
+body:
+- type: markdown
+  attributes:
+    value: "## Welcome!"
+- type: markdown
+  attributes:
+    value: |
+      Thanks for taking the time to fill out this bug! This form will guide you to provide all information we might need to quickly look into the issue and get it resolved. If your report is more of a usage question, then [Discussions](https://github.com/V0ldek/rsonpath/discussions) can get you real-time help.
+- type: dropdown
+  id: type
+  attributes:
+    label: Is this related to a CLI bug (running `rq`), or library (using `rsonpath-lib` in your Rust code)?
+    options:
+      - CLI (`rq`)
+      - Library (`rsonpath-lib`)
+    validations:
+      required: true
+- type: textarea
+  id: description
+  attributes:
+    label: Describe the bug
+    description: "Please give a clear and concise description of what the bug is."
+  validations:
+    required: true
+- type: textarea
+  id: mre
+  attributes:
+    label: Minimal Reproducible Example
+    description: |
+      https://stackoverflow.com/help/minimal-reproducible-example |
+      For CLI bugs, please include the `rq` command ran and preferably the input JSON, and the output of the app. |
+      |
+      For library bugs, it's best to write a small, self-contained Rust program using `rsonpath` that results in the incorrect behavior. |
+      If that's not feasible, then please include a snippet containing relevant code.
+  validations:
+    required: true
+- type: textarea
+  id: expected
+  attributes:
+    label: Expected behavior
+    description: "Please explain _why_ you consider this a bug and/or what behavior want to see instead."
+  validations:
+    required: true
+- type: textarea
+  id: workarounds
+  attributes:
+    label: Workarounds (optional)
+    description: "If you know of a mitigation of the issue, share it with us. It will help others while we work on the resolution of the bug."
+- type: textarea
+  id: solution
+  attributes:
+    label: Proposed solution (optional)
+    description: "Idea for an appropriate fix, if you have one."
+- type: markdown
+  id: environment
+  attributes:
+    value: |
+      ### Environment |
+      |
+      Please complete the following information about the platform this bug was found on. |
+      |
+      For the CLI you can find this information with `rq --version`. |
+      |
+      For the library, please check your `Cargo.toml` where `rsonpath-lib` is included as a dependency.
+- type: input
+  id: rustver
+  attributes:
+    label: Rust version
+    placeholder: e.g. 1.70.0, beta, nightly
+    validations:
+      required: true
+- type: input
+  id: triple
+  attributes:
+    label: Target triple
+    placeholder: e.g. x86_64-unknown-linux-gnu
+    validations:
+      required: true
+- type: input
+  id: features
+  attributes:
+    label: Features enabled
+    placeholder: "e.g. default, none, [default_optimizations]"
+    validations:
+      required: true
+- type: dropdown
+  id: version
+  attributes:
+    label: Version of `rsonpath`
+    options:
+      - v0.5.0
+      - v0.4.0
+      - v0.3.3
+      - v0.3.2
+      - v0.3.1
+      - v0.3.0
+      - v0.2.1
+      - v0.2.0
+      - v0.1.2
+      - v0.1.1
+      - v0.1.0
+    validations:
+      required: true
+- type: textarea
+  id: additional
+  attributes:
+    label: Additional context (optional)
+    description: "Any additional information that doesn't fit above."
