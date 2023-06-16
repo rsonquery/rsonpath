@@ -1,8 +1,6 @@
 name: Bug report
 about: Create a report to help us improve
-title: ''
 labels: 'type: bug'
-assignees: ''
 body:
 - type: markdown
   attributes:
@@ -18,8 +16,8 @@ body:
     options:
       - CLI (`rq`)
       - Library (`rsonpath-lib`)
-    validations:
-      required: true
+  validations:
+    required: true
 - type: textarea
   id: description
   attributes:
@@ -72,22 +70,22 @@ body:
   attributes:
     label: Rust version
     placeholder: e.g. 1.70.0, beta, nightly
-    validations:
-      required: true
+  validations:
+    required: true
 - type: input
   id: triple
   attributes:
     label: Target triple
     placeholder: e.g. x86_64-unknown-linux-gnu
-    validations:
-      required: true
+  validations:
+    required: true
 - type: input
   id: features
   attributes:
     label: Features enabled
     placeholder: "e.g. default, none, [default_optimizations]"
-    validations:
-      required: true
+  validations:
+    required: true
 - type: dropdown
   id: version
   attributes:
@@ -104,8 +102,8 @@ body:
       - v0.1.2
       - v0.1.1
       - v0.1.0
-    validations:
-      required: true
+  validations:
+    required: true
 - type: textarea
   id: additional
   attributes:
