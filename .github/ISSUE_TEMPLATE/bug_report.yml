@@ -12,10 +12,11 @@ body:
 - type: dropdown
   id: type
   attributes:
-    label: Is this related to a CLI bug (running `rq`), or library (using `rsonpath-lib` in your Rust code)?
+    label: Package
+    description: Is this related to a CLI bug (running `rq`), or library (using `rsonpath-lib` in your Rust code)?
     options:
-      - CLI (`rq`)
-      - Library (`rsonpath-lib`)
+      - CLI
+      - Library
   validations:
     required: true
 - type: textarea
@@ -30,10 +31,10 @@ body:
   attributes:
     label: Minimal Reproducible Example
     description: |
-      https://stackoverflow.com/help/minimal-reproducible-example |
-      For CLI bugs, please include the `rq` command ran and preferably the input JSON, and the output of the app. |
-      |
-      For library bugs, it's best to write a small, self-contained Rust program using `rsonpath` that results in the incorrect behavior. |
+      https://stackoverflow.com/help/minimal-reproducible-example
+      For CLI bugs, please include the `rq` command ran and preferably the input JSON, and the output of the app.
+      
+      For library bugs, it's best to write a small, self-contained Rust program using `rsonpath` that results in the incorrect behavior.
       If that's not feasible, then please include a snippet containing relevant code.
   validations:
     required: true
@@ -58,13 +59,31 @@ body:
   id: environment
   attributes:
     value: |
-      ### Environment |
-      |
-      Please complete the following information about the platform this bug was found on. |
-      |
-      For the CLI you can find this information with `rq --version`. |
-      |
+      ### Environment
+      
+      Please complete the following information about the platform this bug was found on.
+      
+      For the CLI you can find this information with `rq --version`.
+      
       For the library, please check your `Cargo.toml` where `rsonpath-lib` is included as a dependency.
+- type: dropdown
+  id: version
+  attributes:
+    label: Version of the release
+    options:
+      - v0.5.0
+      - v0.4.0
+      - v0.3.3
+      - v0.3.2
+      - v0.3.1
+      - v0.3.0
+      - v0.2.1
+      - v0.2.0
+      - v0.1.2
+      - v0.1.1
+      - v0.1.0
+  validations:
+    required: true
 - type: input
   id: rustver
   attributes:
@@ -86,24 +105,16 @@ body:
     placeholder: "e.g. default, none, [default_optimizations]"
   validations:
     required: true
-- type: dropdown
-  id: version
+- type: input
+  id: codegen
   attributes:
-    label: Version of `rsonpath`
-    options:
-      - v0.5.0
-      - v0.4.0
-      - v0.3.3
-      - v0.3.2
-      - v0.3.1
-      - v0.3.0
-      - v0.2.1
-      - v0.2.0
-      - v0.1.2
-      - v0.1.1
-      - v0.1.0
-  validations:
-    required: true
+    label: Codegen options
+    description: |
+      For `rq` use the value provided by `rq --version`.
+      
+      For the library, please tell us if you are compiling your code using `target-feature` style `rustc` flags.
+      Those might have a big impact on parts of our implementation. If not, leave blank.
+    placeholder: "e.g. `--target-cpu=native` or `--target-feature=+avx2`"
 - type: textarea
   id: additional
   attributes:
