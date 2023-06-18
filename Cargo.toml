@@ -2,7 +2,8 @@
 
 members = [
     "crates/rsonpath",
-    "crates/rsonpath-lib"
+    "crates/rsonpath-lib",
+    "crates/rsonpath-test"
 ]
 
 exclude = [

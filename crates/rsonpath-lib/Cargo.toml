@@ -39,6 +39,7 @@ itertools = "0.10.5"
 pretty_assertions = "1.3.0"
 proptest = "1.2.0"
 test-case = "3.1.0"
+rsonpath-test = { path = "../rsonpath-test" }
 
 [build-dependencies]
 eyre = "0.6.8"
@@ -49,3 +50,8 @@ simd = []
 head-skip = ["dep:memchr"]
 tail-skip = ["dep:replace_with"]
 unique-members = ["tail-skip"]
+
+[[test]]
+name = "end-to-end"
+path = "tests/end_to_end/main.rs"
+harness = false
