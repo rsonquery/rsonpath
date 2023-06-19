@@ -62,6 +62,11 @@ impl Input for MmapInput {
     }
 
     #[inline]
+    fn seek_forward<const N: usize>(&self, from: usize, needles: [u8; N]) -> Result<Option<(usize, u8)>, InputError> {
+        Ok(in_slice::seek_forward(&self.mmap, from, needles))
+    }
+
+    #[inline]
     fn seek_non_whitespace_forward(&self, from: usize) -> Result<Option<(usize, u8)>, InputError> {
         Ok(in_slice::seek_non_whitespace_forward(&self.mmap, from))
     }

@@ -29,6 +29,9 @@ pub enum EngineError {
     /// closing characters.
     #[error("Malformed input JSON; end of input was reached, but unmatched opening characters remained.")]
     MissingClosingCharacter(),
+    /// The engine found a query match, but no value associated with it.
+    #[error("Malformed input JSON; a query match was found, but there was no associated value")]
+    MissingItem(),
     /// An error occurred when trying to parse a member name terminated by a particular colon character.
     /// The inner [`usize`] value should be set to the byte index of the colon.
     #[error(

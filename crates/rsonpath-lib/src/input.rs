@@ -74,6 +74,15 @@ pub trait Input: Sized {
     #[must_use]
     fn seek_backward(&self, from: usize, needle: u8) -> Option<usize>;
 
+    /// Search for an occurrence of any of the `needles` in the input,
+    /// starting from `from` and looking forward. Returns the index
+    /// of the first occurrence and the needle found, or `None` if none of the `needles` were not found.
+    ///
+    /// # Errors
+    /// This function can read more data from the input if no relevant characters are found
+    /// in the current buffer, which can fail.
+    fn seek_forward<const N: usize>(&self, from: usize, needles: [u8; N]) -> Result<Option<(usize, u8)>, InputError>;
+
     /// Search for the first byte in the input that is not ASCII whitespace
     /// starting from `from`. Returns a pair: the index of first such byte,
     /// and the byte itself; or `None` if no non-whitespace characters
@@ -180,6 +189,27 @@ pub(super) mod in_slice {
                 return None;
             }
             idx -= 1;
+        }
+    }
+
+    #[inline]
+    pub(super) fn seek_forward<const N: usize>(bytes: &[u8], from: usize, needles: [u8; N]) -> Option<(usize, u8)> {
+        assert!(N > 0);
+        let mut idx = from;
+
+        if idx >= bytes.len() {
+            return None;
+        }
+
+        loop {
+            let b = bytes[idx];
+            if needles.contains(&b) {
+                return Some((idx, b));
+            }
+            idx += 1;
+            if idx == bytes.len() {
+                return None;
+            }
         }
     }
 
@@ -346,6 +376,107 @@ mod tests {
         }
     }
 
+    mod seek_forward_1 {
+        use super::*;
+        use pretty_assertions::assert_eq;
+
+        #[test]
+        fn in_empty_slice_returns_none() {
+            let bytes = [];
+
+            let result = in_slice::seek_forward(&bytes, 0, [0]);
+
+            assert_eq!(result, None);
+        }
+
+        #[test]
+        fn seeking_from_needle_returns_that() {
+            let bytes = r#"{"seek": 42}"#.as_bytes();
+
+            let result = in_slice::seek_forward(bytes, 7, [b':']);
+
+            assert_eq!(result, Some((7, b':')));
+        }
+
+        #[test]
+        fn seeking_from_not_needle_returns_next_needle() {
+            let bytes = "seek: \t\n42}".as_bytes();
+
+            let result = in_slice::seek_forward(bytes, 5, [b'2']);
+
+            assert_eq!(result, Some((9, b'2')));
+        }
+
+        #[test]
+        fn seeking_from_not_needle_when_there_is_no_needle_returns_none() {
+            let bytes = "seek: \t\n42}".as_bytes();
+
+            let result = in_slice::seek_forward(bytes, 5, [b'3']);
+
+            assert_eq!(result, None);
+        }
+    }
+
+    mod seek_forward_2 {
+
+        use super::*;
+        use pretty_assertions::assert_eq;
+
+        #[test]
+        fn in_empty_slice_returns_none() {
+            let bytes = [];
+
+            let result = in_slice::seek_forward(&bytes, 0, [0, 1]);
+
+            assert_eq!(result, None);
+        }
+
+        #[test]
+        fn seeking_from_needle_1_returns_that() {
+            let bytes = r#"{"seek": 42}"#.as_bytes();
+
+            let result = in_slice::seek_forward(bytes, 7, [b':', b'4']);
+
+            assert_eq!(result, Some((7, b':')));
+        }
+
+        #[test]
+        fn seeking_from_needle_2_returns_that() {
+            let bytes = r#"{"seek": 42}"#.as_bytes();
+
+            let result = in_slice::seek_forward(bytes, 7, [b'4', b':']);
+
+            assert_eq!(result, Some((7, b':')));
+        }
+
+        #[test]
+        fn seeking_from_not_needle_when_next_is_needle_1_returns_that() {
+            let bytes = "seek: \t\n42}".as_bytes();
+
+            let result = in_slice::seek_forward(bytes, 5, [b'4', b'2']);
+
+            assert_eq!(result, Some((8, b'4')));
+        }
+
+        #[test]
+        fn seeking_from_not_needle_when_next_is_needle_2_returns_that() {
+            let bytes = "seek: \t\n42}".as_bytes();
+
+            let result = in_slice::seek_forward(bytes, 5, [b'2', b'4']);
+
+            assert_eq!(result, Some((8, b'4')));
+        }
+
+        #[test]
+        fn seeking_from_not_needle_when_there_is_no_needle_returns_none() {
+            let bytes = "seek: \t\n42}".as_bytes();
+
+            let result = in_slice::seek_forward(bytes, 5, [b'3', b'0']);
+
+            assert_eq!(result, None);
+        }
+    }
+
     mod seek_non_whitespace_forward {
         use super::*;
         use pretty_assertions::assert_eq;
@@ -375,6 +506,15 @@ mod tests {
             let result = in_slice::seek_non_whitespace_forward(bytes, 5);
 
             assert_eq!(result, Some((8, b'4')));
+        }
+
+        #[test]
+        fn seeking_from_whitespace_when_there_is_no_more_non_whitespace_returns_none() {
+            let bytes = "seek: \t\n ".as_bytes();
+
+            let result = in_slice::seek_non_whitespace_forward(bytes, 5);
+
+            assert_eq!(result, None);
         }
     }
 

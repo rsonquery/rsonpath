@@ -9,27 +9,24 @@
 //! even on targets that do not support AVX2 SIMD operations.
 #[cfg(feature = "head-skip")]
 use super::head_skipping::{CanHeadSkip, HeadSkip};
-use super::Compiler;
 #[cfg(feature = "head-skip")]
 use crate::classification::ResumeClassifierState;
-use crate::debug;
-use crate::engine::depth::Depth;
-use crate::engine::error::EngineError;
 #[cfg(feature = "tail-skip")]
 use crate::engine::tail_skipping::TailSkip;
-use crate::engine::{Engine, Input};
-use crate::query::automaton::{Automaton, State};
-use crate::query::error::CompilerError;
-use crate::query::{JsonPathQuery, JsonString, NonNegativeArrayIndex};
-use crate::result::QueryResult;
-use crate::FallibleIterator;
-use crate::BLOCK_SIZE;
 use crate::{
     classification::{
         quotes::{classify_quoted_sequences, QuoteClassifiedIterator},
         structural::{classify_structural_characters, BracketType, Structural, StructuralIterator},
     },
-    query::automaton::TransitionLabel,
+    debug,
+    engine::{depth::Depth, error::EngineError, Compiler, Engine, Input},
+    query::{
+        automaton::{Automaton, State, TransitionLabel},
+        error::CompilerError,
+        JsonPathQuery, JsonString, NonNegativeArrayIndex,
+    },
+    result::{NodeTypeHint, QueryResult, QueryResultBuilder},
+    FallibleIterator, BLOCK_SIZE,
 };
 use smallvec::{smallvec, SmallVec};
 
@@ -65,24 +62,24 @@ impl Engine for MainEngine<'_> {
             return empty_query(input);
         }
 
-        let mut result = R::default();
+        let mut result = R::Builder::new(input);
         let executor = query_executor(&self.automaton, input);
         executor.run(&mut result)?;
 
-        Ok(result)
+        Ok(result.finish())
     }
 }
 
 fn empty_query<I: Input, R: QueryResult>(bytes: &I) -> Result<R, EngineError> {
     let quote_classifier = classify_quoted_sequences(bytes);
     let mut block_event_source = classify_structural_characters(quote_classifier);
-    let mut result = R::default();
+    let mut result = R::Builder::new(bytes);
 
     if let Some(Structural::Opening(_, idx)) = block_event_source.next()? {
-        result.report(idx);
+        result.report(idx, NodeTypeHint::AnyComplex)?;
     }
 
-    Ok(result)
+    Ok(result.finish())
 }
 
 #[cfg(feature = "tail-skip")]
@@ -128,7 +125,7 @@ fn query_executor<'q, 'b, I: Input>(automaton: &'b Automaton<'q>, bytes: &'b I) 
 
 impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
     #[cfg(feature = "head-skip")]
-    fn run<R: QueryResult>(mut self, result: &mut R) -> Result<(), EngineError> {
+    fn run<B: QueryResultBuilder<'b, I, R>, R: QueryResult>(mut self, result: &mut B) -> Result<(), EngineError> {
         let mb_head_skip = HeadSkip::new(self.bytes, self.automaton);
 
         match mb_head_skip {
@@ -138,11 +135,14 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
     }
 
     #[cfg(not(feature = "head-skip"))]
-    fn run<R: QueryResult>(self, result: &mut R) -> Result<(), EngineError> {
+    fn run<B: QueryResultBuilder<'b, I, R>, R: QueryResult>(self, result: &mut B) -> Result<(), EngineError> {
         self.run_and_exit(result)
     }
 
-    fn run_and_exit<R: QueryResult>(mut self, result: &mut R) -> Result<(), EngineError> {
+    fn run_and_exit<B: QueryResultBuilder<'b, I, R>, R: QueryResult>(
+        mut self,
+        result: &mut B,
+    ) -> Result<(), EngineError> {
         let quote_classifier = classify_quoted_sequences(self.bytes);
         let structural_classifier = classify_structural_characters(quote_classifier);
         #[cfg(feature = "tail-skip")]
@@ -158,11 +158,12 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
     fn run_on_subtree<
         Q: QuoteClassifiedIterator<'b, I, BLOCK_SIZE>,
         S: StructuralIterator<'b, I, Q, BLOCK_SIZE>,
+        B: QueryResultBuilder<'b, I, R>,
         R: QueryResult,
     >(
         &mut self,
         classifier: &mut Classifier!(),
-        result: &mut R,
+        result: &mut B,
     ) -> Result<(), EngineError> {
         loop {
             if self.next_event.is_none() {
@@ -197,15 +198,16 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
         Ok(())
     }
 
-    fn handle_colon<Q, S, R>(
+    fn handle_colon<Q, S, B, R>(
         &mut self,
         classifier: &mut Classifier!(),
         idx: usize,
-        result: &mut R,
+        result: &mut B,
     ) -> Result<(), EngineError>
     where
         Q: QuoteClassifiedIterator<'b, I, BLOCK_SIZE>,
         S: StructuralIterator<'b, I, Q, BLOCK_SIZE>,
+        B: QueryResultBuilder<'b, I, R>,
         R: QueryResult,
     {
         debug!("Colon");
@@ -221,7 +223,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
                     TransitionLabel::ArrayIndex(_) => {}
                     TransitionLabel::ObjectMember(member_name) => {
                         if self.automaton.is_accepting(target) && self.is_match(idx, member_name)? {
-                            result.report(idx);
+                            result.report(idx, NodeTypeHint::Atomic /* since is_next_opening is false */)?;
                             any_matched = true;
                             break;
                         }
@@ -230,7 +232,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
             }
             let fallback_state = self.automaton[self.state].fallback_state();
             if !any_matched && self.automaton.is_accepting(fallback_state) {
-                result.report(idx);
+                result.report(idx, NodeTypeHint::Atomic /* since is_next_opening is false */)?;
             }
             #[cfg(feature = "unique-members")]
             {
@@ -247,15 +249,16 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
         Ok(())
     }
 
-    fn handle_comma<Q, S, R>(
+    fn handle_comma<Q, S, B, R>(
         &mut self,
         classifier: &mut Classifier!(),
         idx: usize,
-        result: &mut R,
+        result: &mut B,
     ) -> Result<(), EngineError>
     where
         Q: QuoteClassifiedIterator<'b, I, BLOCK_SIZE>,
         S: StructuralIterator<'b, I, Q, BLOCK_SIZE>,
+        B: QueryResultBuilder<'b, I, R>,
         R: QueryResult,
     {
         self.next_event = classifier.next()?;
@@ -266,7 +269,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
 
         if !is_next_opening && self.is_list && is_fallback_accepting {
             debug!("Accepting on comma.");
-            result.report(idx);
+            result.report(idx, NodeTypeHint::Atomic /* since is_next_opening is false */)?;
         }
 
         // After wildcard, check for a matching array index.
@@ -282,22 +285,23 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
 
         if !is_next_opening && match_index {
             debug!("Accepting on list item.");
-            result.report(idx);
+            result.report(idx, NodeTypeHint::Atomic /* since is_next_opening is false */)?;
         }
 
         Ok(())
     }
 
-    fn handle_opening<Q, S, R>(
+    fn handle_opening<Q, S, B, R>(
         &mut self,
         classifier: &mut Classifier!(),
         bracket_type: BracketType,
         idx: usize,
-        result: &mut R,
+        result: &mut B,
     ) -> Result<(), EngineError>
     where
         Q: QuoteClassifiedIterator<'b, I, BLOCK_SIZE>,
         S: StructuralIterator<'b, I, Q, BLOCK_SIZE>,
+        B: QueryResultBuilder<'b, I, R>,
         R: QueryResult,
     {
         debug!("Opening {bracket_type:?}, increasing depth and pushing stack.",);
@@ -313,7 +317,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
                         self.transition_to(target, bracket_type);
                         if self.automaton.is_accepting(target) {
                             debug!("Accept {idx}");
-                            result.report(idx);
+                            result.report(idx, NodeTypeHint::Complex(bracket_type))?;
                         }
                         break;
                     }
@@ -324,7 +328,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
                             any_matched = true;
                             self.transition_to(target, bracket_type);
                             if self.automaton.is_accepting(target) {
-                                result.report(colon_idx);
+                                result.report(colon_idx, NodeTypeHint::Complex(bracket_type))?;
                             }
                             break;
                         }
@@ -348,7 +352,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
             self.transition_to(fallback, bracket_type);
 
             if self.automaton.is_accepting(fallback) {
-                result.report(idx);
+                result.report(idx, NodeTypeHint::Complex(bracket_type))?;
             }
         }
 
@@ -378,12 +382,18 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
                         Some(Structural::Closing(_, close_idx)) => {
                             if let Some((next_idx, _)) = self.bytes.seek_non_whitespace_forward(idx + 1)? {
                                 if next_idx < close_idx {
-                                    result.report(next_idx);
+                                    result.report(
+                                        next_idx,
+                                        NodeTypeHint::Atomic, /* since the next structural is the closing of the list */
+                                    )?;
                                 }
                             }
                         }
                         Some(Structural::Comma(_)) => {
-                            result.report(idx + 1);
+                            result.report(
+                                idx + 1,
+                                NodeTypeHint::Atomic, /* since the next structural is a ','*/
+                            )?;
                         }
                         _ => (),
                     }
@@ -589,15 +599,16 @@ impl SmallStack {
 
 #[cfg(feature = "head-skip")]
 impl<'q, 'b, I: Input> CanHeadSkip<'b, I, BLOCK_SIZE> for Executor<'q, 'b, I> {
-    fn run_on_subtree<'r, R, Q, S>(
+    fn run_on_subtree<'r, B, R, Q, S>(
         &mut self,
         next_event: Structural,
         state: State,
         structural_classifier: S,
-        result: &'r mut R,
+        result: &'r mut B,
     ) -> Result<ResumeClassifierState<'b, I, Q, BLOCK_SIZE>, EngineError>
     where
         Q: QuoteClassifiedIterator<'b, I, BLOCK_SIZE>,
+        B: QueryResultBuilder<'b, I, R>,
         R: QueryResult,
         S: StructuralIterator<'b, I, Q, BLOCK_SIZE>,
     {

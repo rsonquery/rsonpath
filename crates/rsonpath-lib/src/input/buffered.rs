@@ -138,6 +138,27 @@ impl<R: Read> Input for BufferedInput<R> {
     }
 
     #[inline]
+    fn seek_forward<const N: usize>(&self, from: usize, needles: [u8; N]) -> Result<Option<(usize, u8)>, InputError> {
+        let mut buf = self.0.borrow_mut();
+        let mut moving_from = from;
+
+        loop {
+            let res = {
+                let slice = buf.as_slice();
+                in_slice::seek_forward(slice, moving_from, needles)
+            };
+
+            moving_from = buf.len();
+
+            if res.is_some() {
+                return Ok(res);
+            } else if !buf.read_more()? {
+                return Ok(None);
+            }
+        }
+    }
+
+    #[inline]
     fn seek_non_whitespace_forward(&self, from: usize) -> Result<Option<(usize, u8)>, InputError> {
         let mut buf = self.0.borrow_mut();
         let mut moving_from = from;
