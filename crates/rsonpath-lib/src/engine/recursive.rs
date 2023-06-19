@@ -1,28 +1,28 @@
 //! Reference implementation of a JSONPath query engine with recursive descent.
 #[cfg(feature = "head-skip")]
 use super::head_skipping::{CanHeadSkip, HeadSkip};
-use crate::classification::quotes::QuoteClassifiedIterator;
-use crate::classification::structural::classify_structural_characters;
-use crate::classification::structural::BracketType;
-use crate::classification::structural::Structural;
-use crate::classification::structural::StructuralIterator;
 #[cfg(feature = "head-skip")]
 use crate::classification::ResumeClassifierState;
-use crate::debug;
-use crate::engine::error::EngineError;
 #[cfg(feature = "tail-skip")]
 use crate::engine::tail_skipping::TailSkip;
-use crate::engine::{Compiler, Engine};
 #[cfg(feature = "head-skip")]
 use crate::error::InternalRsonpathError;
-use crate::input::Input;
-use crate::query::automaton::{Automaton, State, TransitionLabel};
-use crate::query::error::{ArrayIndexError, CompilerError};
-use crate::query::{JsonPathQuery, JsonString, NonNegativeArrayIndex};
-use crate::result::{QueryResult, QueryResultBuilder};
-use crate::FallibleIterator;
-use crate::BLOCK_SIZE;
-use crate::{classification::quotes::classify_quoted_sequences, result::NodeTypeHint};
+use crate::{
+    classification::{
+        quotes::{classify_quoted_sequences, QuoteClassifiedIterator},
+        structural::{classify_structural_characters, BracketType, Structural, StructuralIterator},
+    },
+    debug,
+    engine::{error::EngineError, Compiler, Engine},
+    input::Input,
+    query::{
+        automaton::{Automaton, State, TransitionLabel},
+        error::{ArrayIndexError, CompilerError},
+        JsonPathQuery, JsonString, NonNegativeArrayIndex,
+    },
+    result::{NodeTypeHint, QueryResult, QueryResultBuilder},
+    FallibleIterator, BLOCK_SIZE,
+};
 
 /// Recursive implementation of the JSONPath query engine.
 pub struct RecursiveEngine<'q> {
