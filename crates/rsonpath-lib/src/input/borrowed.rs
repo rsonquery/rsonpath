@@ -101,6 +101,16 @@ impl<'a> Input for BorrowedBytes<'a> {
     }
 
     #[inline]
+    fn seek_forward(&self, from: usize, needle: u8) -> Result<Option<usize>, InputError> {
+        Ok(in_slice::seek_forward(self.bytes, from, needle))
+    }
+
+    #[inline]
+    fn seek_forward_2(&self, from: usize, needle_1: u8, needle_2: u8) -> Result<Option<usize>, InputError> {
+        Ok(in_slice::seek_forward_2(self.bytes, from, needle_1, needle_2))
+    }
+
+    #[inline]
     fn seek_non_whitespace_forward(&self, from: usize) -> Result<Option<(usize, u8)>, InputError> {
         Ok(in_slice::seek_non_whitespace_forward(self.bytes, from))
     }

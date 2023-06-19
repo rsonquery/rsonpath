@@ -68,7 +68,7 @@ pub enum ParserError {
     ArrayIndexError(#[from] ArrayIndexError),
 }
 
-///Errors raised trying to parse array indices.
+/// Errors raised trying to parse array indices.
 #[derive(Debug, Error)]
 pub enum ArrayIndexError {
     /// A value in excess of the permitted size was specified.

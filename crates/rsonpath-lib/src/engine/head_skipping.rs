@@ -1,22 +1,21 @@
 //! Engine decorator that performs **head skipping** &ndash; an extremely optimized search for
 //! the first matching member name in a query starting with a self-looping state.
 //! This happens in queries starting with a descendant selector.
-use super::error::EngineError;
-use crate::debug;
-use crate::query::{
-    automaton::{Automaton, State},
-    JsonString,
-};
-use crate::result::QueryResult;
-use crate::FallibleIterator;
-use crate::BLOCK_SIZE;
 use crate::{
     classification::{
         quotes::{classify_quoted_sequences, QuoteClassifiedIterator},
         structural::{resume_structural_classification, Structural, StructuralIterator},
         ResumeClassifierState,
     },
+    debug,
+    engine::EngineError,
     input::Input,
+    query::{
+        automaton::{Automaton, State},
+        JsonString,
+    },
+    result::{NodeTypeHint, QueryResult, QueryResultBuilder},
+    FallibleIterator, BLOCK_SIZE,
 };
 
 /// Trait that needs to be implemented by an [`Engine`](`super::Engine`) to use this submodule.
@@ -34,16 +33,17 @@ pub(super) trait CanHeadSkip<'b, I: Input, const N: usize> {
     /// and execute the query until a matching [`Structural::Closing`] character is encountered,
     /// using `classifier` for classification and `result` for reporting query results. The `classifier`
     /// must *not* be used to classify anything past the matching [`Structural::Closing`] character.
-    fn run_on_subtree<'r, R, Q, S>(
+    fn run_on_subtree<'r, B, R, Q, S>(
         &mut self,
         next_event: Structural,
         state: State,
         structural_classifier: S,
-        result: &'r mut R,
+        result: &'r mut B,
     ) -> Result<ResumeClassifierState<'b, I, Q, N>, EngineError>
     where
         I: Input,
         Q: QuoteClassifiedIterator<'b, I, N>,
+        B: QueryResultBuilder<'b, I, R>,
         R: QueryResult,
         S: StructuralIterator<'b, I, Q, N>;
 }
@@ -104,10 +104,15 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
 
     /// Run a preconfigured [`HeadSkip`] using the given `engine` and reporting
     /// to the `result`.
-    pub(super) fn run_head_skipping<'r, E: CanHeadSkip<'b, I, BLOCK_SIZE>, R: QueryResult>(
+    pub(super) fn run_head_skipping<
+        'r,
+        E: CanHeadSkip<'b, I, BLOCK_SIZE>,
+        B: QueryResultBuilder<'b, I, R>,
+        R: QueryResult,
+    >(
         &self,
         engine: &mut E,
-        result: &'r mut R,
+        result: &'r mut B,
     ) -> Result<(), EngineError> {
         let mut classifier_state = ResumeClassifierState {
             iter: classify_quoted_sequences(self.bytes),
@@ -134,7 +139,7 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
                     classifier_state.offset_bytes(distance as isize)?;
 
                     if self.is_accepting {
-                        result.report(colon_idx);
+                        result.report(colon_idx, NodeTypeHint::Any)?;
                     }
 
                     // Check if the colon is marked as within quotes.
