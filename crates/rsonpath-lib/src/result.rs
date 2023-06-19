@@ -77,8 +77,8 @@ pub trait QueryResultBuilder<'i, I: Input, R: QueryResult> {
     ///
     /// # Errors
     /// This function may access the input, which can raise an [`EngineError::InputError`].
-    /// Mo
-    ///
+    /// More errors can occur if the input JSON is malformed (for example the document abruptly ends),
+    /// but they are not guaranteed to be detected or reported.
     fn report(&mut self, index: usize, hint: NodeTypeHint) -> Result<(), EngineError>;
 
     /// Finish building the result and return it.
@@ -189,12 +189,13 @@ impl<'i, I: Input> QueryResultBuilder<'i, I, IndexResult> for IndexResultBuilder
         debug!("Reporting result: {item} with hint {hint:?}");
 
         let index = match hint {
-            NodeTypeHint::Complex(BracketType::Curly) => self.input.seek_forward(item, b'{')?,
-            NodeTypeHint::Complex(BracketType::Square) => self.input.seek_forward(item, b'[')?,
+            NodeTypeHint::Complex(BracketType::Curly) => self.input.seek_forward(item, [b'{'])?,
+            NodeTypeHint::Complex(BracketType::Square) => self.input.seek_forward(item, [b'['])?,
             NodeTypeHint::AnyComplex | NodeTypeHint::Any | NodeTypeHint::Atomic => {
-                self.input.seek_non_whitespace_forward(item)?.map(|x| x.0)
+                self.input.seek_non_whitespace_forward(item)?
             }
-        };
+        }
+        .map(|x| x.0);
 
         match index {
             Some(idx) => {

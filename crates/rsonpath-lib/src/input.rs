@@ -74,23 +74,14 @@ pub trait Input: Sized {
     #[must_use]
     fn seek_backward(&self, from: usize, needle: u8) -> Option<usize>;
 
-    /// Search for an occurrence of `needle` in the input,
-    /// starting from `from`` and looking back. Returns the index
-    /// of the first occurrence or `None` if the `needle` was not found.
+    /// Search for an occurrence of any of the `needles` in the input,
+    /// starting from `from` and looking forward. Returns the index
+    /// of the first occurrence and the needle found, or `None` if none of the `needles` were not found.
     ///
     /// # Errors
     /// This function can read more data from the input if no relevant characters are found
     /// in the current buffer, which can fail.
-    fn seek_forward(&self, from: usize, needle: u8) -> Result<Option<usize>, InputError>;
-
-    /// Search for an occurrence of `needle_1` or `needle_2` in the input,
-    /// starting from `from`` and looking back. Returns the index
-    /// of the first occurrence or `None` if neither `needle_1` nor `needle_2` was found.
-    ///
-    /// # Errors
-    /// This function can read more data from the input if no relevant characters are found
-    /// in the current buffer, which can fail.
-    fn seek_forward_2(&self, from: usize, needle_1: u8, needle_2: u8) -> Result<Option<usize>, InputError>;
+    fn seek_forward<const N: usize>(&self, from: usize, needles: [u8; N]) -> Result<Option<(usize, u8)>, InputError>;
 
     /// Search for the first byte in the input that is not ASCII whitespace
     /// starting from `from`. Returns a pair: the index of first such byte,
@@ -202,7 +193,8 @@ pub(super) mod in_slice {
     }
 
     #[inline]
-    pub(super) fn seek_forward(bytes: &[u8], from: usize, needle: u8) -> Option<usize> {
+    pub(super) fn seek_forward<const N: usize>(bytes: &[u8], from: usize, needles: [u8; N]) -> Option<(usize, u8)> {
+        assert!(N > 0);
         let mut idx = from;
 
         if idx >= bytes.len() {
@@ -211,28 +203,8 @@ pub(super) mod in_slice {
 
         loop {
             let b = bytes[idx];
-            if b == needle {
-                return Some(idx);
-            }
-            idx += 1;
-            if idx == bytes.len() {
-                return None;
-            }
-        }
-    }
-
-    #[inline]
-    pub(super) fn seek_forward_2(bytes: &[u8], from: usize, needle_1: u8, needle_2: u8) -> Option<usize> {
-        let mut idx = from;
-
-        if idx >= bytes.len() {
-            return None;
-        }
-
-        loop {
-            let b = bytes[idx];
-            if b == needle_1 || b == needle_2 {
-                return Some(idx);
+            if needles.contains(&b) {
+                return Some((idx, b));
             }
             idx += 1;
             if idx == bytes.len() {
@@ -404,7 +376,7 @@ mod tests {
         }
     }
 
-    mod seek_froward {
+    mod seek_forward_1 {
         use super::*;
         use pretty_assertions::assert_eq;
 
@@ -412,7 +384,7 @@ mod tests {
         fn in_empty_slice_returns_none() {
             let bytes = [];
 
-            let result = in_slice::seek_forward(&bytes, 0, 0);
+            let result = in_slice::seek_forward(&bytes, 0, [0]);
 
             assert_eq!(result, None);
         }
@@ -421,25 +393,25 @@ mod tests {
         fn seeking_from_needle_returns_that() {
             let bytes = r#"{"seek": 42}"#.as_bytes();
 
-            let result = in_slice::seek_forward(bytes, 7, b':');
+            let result = in_slice::seek_forward(bytes, 7, [b':']);
 
-            assert_eq!(result, Some(7));
+            assert_eq!(result, Some((7, b':')));
         }
 
         #[test]
         fn seeking_from_not_needle_returns_next_needle() {
             let bytes = "seek: \t\n42}".as_bytes();
 
-            let result = in_slice::seek_forward(bytes, 5, b'2');
+            let result = in_slice::seek_forward(bytes, 5, [b'2']);
 
-            assert_eq!(result, Some(9));
+            assert_eq!(result, Some((9, b'2')));
         }
 
         #[test]
         fn seeking_from_not_needle_when_there_is_no_needle_returns_none() {
             let bytes = "seek: \t\n42}".as_bytes();
 
-            let result = in_slice::seek_forward(bytes, 5, b'3');
+            let result = in_slice::seek_forward(bytes, 5, [b'3']);
 
             assert_eq!(result, None);
         }
@@ -454,7 +426,7 @@ mod tests {
         fn in_empty_slice_returns_none() {
             let bytes = [];
 
-            let result = in_slice::seek_forward_2(&bytes, 0, 0, 1);
+            let result = in_slice::seek_forward(&bytes, 0, [0, 1]);
 
             assert_eq!(result, None);
         }
@@ -463,43 +435,43 @@ mod tests {
         fn seeking_from_needle_1_returns_that() {
             let bytes = r#"{"seek": 42}"#.as_bytes();
 
-            let result = in_slice::seek_forward_2(bytes, 7, b':', b'4');
+            let result = in_slice::seek_forward(bytes, 7, [b':', b'4']);
 
-            assert_eq!(result, Some(7));
+            assert_eq!(result, Some((7, b':')));
         }
 
         #[test]
         fn seeking_from_needle_2_returns_that() {
             let bytes = r#"{"seek": 42}"#.as_bytes();
 
-            let result = in_slice::seek_forward_2(bytes, 7, b'4', b':');
+            let result = in_slice::seek_forward(bytes, 7, [b'4', b':']);
 
-            assert_eq!(result, Some(7));
+            assert_eq!(result, Some((7, b':')));
         }
 
         #[test]
         fn seeking_from_not_needle_when_next_is_needle_1_returns_that() {
             let bytes = "seek: \t\n42}".as_bytes();
 
-            let result = in_slice::seek_forward_2(bytes, 5, b'4', b'2');
+            let result = in_slice::seek_forward(bytes, 5, [b'4', b'2']);
 
-            assert_eq!(result, Some(8));
+            assert_eq!(result, Some((8, b'4')));
         }
 
         #[test]
         fn seeking_from_not_needle_when_next_is_needle_2_returns_that() {
             let bytes = "seek: \t\n42}".as_bytes();
 
-            let result = in_slice::seek_forward_2(bytes, 5, b'2', b'4');
+            let result = in_slice::seek_forward(bytes, 5, [b'2', b'4']);
 
-            assert_eq!(result, Some(8));
+            assert_eq!(result, Some((8, b'4')));
         }
 
         #[test]
         fn seeking_from_not_needle_when_there_is_no_needle_returns_none() {
             let bytes = "seek: \t\n42}".as_bytes();
 
-            let result = in_slice::seek_forward_2(bytes, 5, b'3', b'0');
+            let result = in_slice::seek_forward(bytes, 5, [b'3', b'0']);
 
             assert_eq!(result, None);
         }

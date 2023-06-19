@@ -233,13 +233,8 @@ impl Input for OwnedBytes {
     }
 
     #[inline]
-    fn seek_forward(&self, from: usize, needle: u8) -> Result<Option<usize>, InputError> {
-        Ok(in_slice::seek_forward(self.as_slice(), from, needle))
-    }
-
-    #[inline]
-    fn seek_forward_2(&self, from: usize, needle_1: u8, needle_2: u8) -> Result<Option<usize>, InputError> {
-        Ok(in_slice::seek_forward_2(self.as_slice(), from, needle_1, needle_2))
+    fn seek_forward<const N: usize>(&self, from: usize, needles: [u8; N]) -> Result<Option<(usize, u8)>, InputError> {
+        Ok(in_slice::seek_forward(self.as_slice(), from, needles))
     }
 
     #[inline]
