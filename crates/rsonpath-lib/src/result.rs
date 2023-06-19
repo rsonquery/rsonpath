@@ -45,20 +45,20 @@ pub trait QueryResultBuilder<'i, I: Input, R: QueryResult> {
 
     /// Report a match of the query. The `index` is guaranteed to be between the first character
     /// of the matched value and the previous structural character.
-    /// 
+    ///
     /// When the engine finds a match, it will usually occur at some structural character.
     /// It is guaranteed that `index` points to either:
     /// 1. the first character of the matched value; or
     /// 2. the colon or comma structural character directly preceding the matched value; or
     /// 3. a whitespace character before the matched value, such that the next non-whitespace
     /// character is the first character of the matched value.
-    /// 
+    ///
     /// The builder should use the `index` and the provided `hint` to find the start of the
     /// actual value being reported. Note that it is always possible to do so without the hint
     /// (or, equivalently, when [`NodeTypeHint::Any`] is given), but the hint can improve performance.
     /// For example, when the hint is [`NodeTypeHint::Complex`] with the curly bracket type, the
     /// result builder can do a quick direct search for the next '{' character.
-    /// 
+    ///
     /// ```json
     /// {
     ///   "match":       42
@@ -66,7 +66,7 @@ pub trait QueryResultBuilder<'i, I: Input, R: QueryResult> {
     ///   // any of these characters can be reported for the query $.match
     /// }
     /// ```
-    /// 
+    ///
     /// ```json
     /// {
     ///   "match": [42,     30]
@@ -74,11 +74,11 @@ pub trait QueryResultBuilder<'i, I: Input, R: QueryResult> {
     ///   // any of these characters can be reported for the query $.match[1]
     /// }
     /// ```
-    /// 
+    ///
     /// # Errors
     /// This function may access the input, which can raise an [`EngineError::InputError`].
     /// Mo
-    /// 
+    ///
     fn report(&mut self, index: usize, hint: NodeTypeHint) -> Result<(), EngineError>;
 
     /// Finish building the result and return it.
