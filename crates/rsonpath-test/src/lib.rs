@@ -1,25 +1,24 @@
-use console::style;
+use proc_macro2::TokenStream;
+use quote::quote;
 use std::{
-    error::Error,
     fmt::Display,
+    io,
     path::Path,
-    process::ExitCode,
     time::{Duration, Instant},
 };
 
-mod diff;
+mod codegen;
 mod discovery;
 mod model;
-mod runner;
 
-pub fn test<P: AsRef<Path>>(directory_path: P) -> Result<ExitCode, Box<dyn Error>> {
+pub fn test_source<P: AsRef<Path>>(directory_path: P) -> Result<TokenStream, io::Error> {
     println!("discovery...");
 
     let discovery_start = Instant::now();
     let all_documents = discovery::discover(directory_path)?;
     let discovery_elapsed = FormatDuration(discovery_start.elapsed());
 
-    let test_set = runner::TestSet::new(all_documents);
+    let test_set = codegen::TestSet::new(all_documents);
     let stats = test_set.stats();
 
     println!(
@@ -29,27 +28,14 @@ pub fn test<P: AsRef<Path>>(directory_path: P) -> Result<ExitCode, Box<dyn Error
         discovery_elapsed
     );
 
-    println!("running {} tests...", stats.number_of_test_runs());
+    let imports = codegen::generate_imports();
+    let sources = test_set.generate_test_fns();
 
-    let run_start = Instant::now();
-    let result = test_set.run();
-    let run_elapsed = FormatDuration(run_start.elapsed());
+    Ok(quote! {
+        #imports
 
-    if result.failed().is_empty() {
-        println!("test result: {}. finished in {}", style("ok").green(), run_elapsed);
-        println!();
-        Ok(ExitCode::SUCCESS)
-    } else {
-        println!("failures:");
-        for failure in result.failed() {
-            println!("\t{}", failure.case_name());
-            println!("\t\t{}", failure.reason());
-        }
-
-        println!("test result: {}. finished in {}", style("FAILED").red(), run_elapsed);
-        println!();
-        Ok(ExitCode::from(2))
-    }
+        #(#sources)*
+    })
 }
 
 struct FormatDuration(Duration);

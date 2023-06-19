@@ -1,7 +1,18 @@
-use crate::diff::Diff;
 use crate::model;
-use rsonpath::engine::Compiler;
+use proc_macro2::{Ident, TokenStream};
+use quote::{format_ident, quote};
 use std::{error::Error, fmt::Display};
+
+pub fn generate_imports() -> TokenStream {
+    quote! {
+        use rsonpath::engine::{Compiler, main::MainEngine, Engine};
+        use rsonpath::input::*;
+        use rsonpath::query::JsonPathQuery;
+        use rsonpath::result::*;
+        use pretty_assertions::assert_eq;
+        use std::error::Error;
+    }
+}
 
 pub struct TestSet {
     documents: Vec<model::NamedDocument>,
@@ -52,58 +63,126 @@ impl TestSet {
         }
     }
 
-    pub fn run(&self) -> SuiteResult {
-        let mut failed = vec![];
+    pub fn generate_test_fns(&self) -> Vec<TokenStream> {
+        let mut fns = vec![];
         for named_doc in &self.documents {
             for query in &named_doc.document.queries {
                 for input_type in [InputTypeToTest::Owned] {
                     for result_type in [ResultTypeToTest::Count, ResultTypeToTest::Bytes] {
-                        let name = format!(
+                        let fn_name = format_ident!(
+                            "{}",
+                            heck::AsSnakeCase(format!(
+                                "document_{}_query_{}_input_{}_result_{}",
+                                named_doc.document.input.description, query.description, input_type, result_type
+                            ))
+                            .to_string()
+                        );
+                        let full_description = format!(
                             r#"on document {} running the query {} ({}) with Input impl {} and result mode {}"#,
                             named_doc.name, query.query, query.description, input_type, result_type
                         );
-                        let res = std::panic::catch_unwind(|| {
-                            run_one(&named_doc.document.input, query, input_type, result_type)
-                        });
+                        let body = generate_body(
+                            full_description,
+                            &named_doc.document.input,
+                            query,
+                            input_type,
+                            result_type,
+                        );
 
-                        match res {
-                            Err(panic) => {
-                                let panic_msg = format_panic(panic);
-                                let failure = TestCaseFailure {
-                                    name,
-                                    reason: FailedReason::Panic(panic_msg),
-                                };
-                                failed.push(failure)
+                        let r#fn = quote! {
+                            #[test]
+                            fn #fn_name() -> Result<(), Box<dyn Error>> {
+                                #body
                             }
-                            Ok(Err(err)) => {
-                                let failure = TestCaseFailure {
-                                    name,
-                                    reason: FailedReason::Error(err),
-                                };
-                                failed.push(failure)
-                            }
-                            Ok(Ok(Some(diff))) => {
-                                let failure = TestCaseFailure {
-                                    name,
-                                    reason: FailedReason::IncorrectResult(diff),
-                                };
-                                failed.push(failure)
-                            }
-                            Ok(Ok(None)) => (),
-                        }
+                        };
+
+                        fns.push(r#fn);
                     }
                 }
             }
         }
 
-        return SuiteResult { failed };
+        return fns;
 
-        fn run_one(
+        fn generate_body(
+            full_description: String,
             input: &model::Input,
             query: &model::Query,
             input_type: InputTypeToTest,
             result_type: ResultTypeToTest,
-        ) -> Result<Option<Diff>, Box<dyn Error>> {
+        ) -> TokenStream {
+            let query_ident = format_ident!("jsonpath_query");
+            let query_string = &query.query;
+            let (input_ident, input_setup_code) = generate_input_setup(input, input_type);
+            let run_and_diff_code = generate_run_and_diff_code(query, result_type, query_ident, input_ident);
+
+            quote! {
+                println!(#full_description);
+                let jsonpath_query = JsonPathQuery::parse(#query_string)?;
+
+                #input_setup_code
+
+                #run_and_diff_code
+
+                Ok(())
+            }
+        }
+
+        fn generate_input_setup(input: &model::Input, input_type: InputTypeToTest) -> (Ident, TokenStream) {
+            let ident = format_ident!("input");
+            let raw_input = &input.json;
+
+            let code = match input_type {
+                InputTypeToTest::Owned => {
+                    quote! {
+                        let raw_json = #raw_input;
+                        let #ident = OwnedBytes::new(&raw_json.as_bytes())?;
+                    }
+                }
+            };
+
+            (ident, code)
+        }
+
+        fn generate_run_and_diff_code(
+            query: &model::Query,
+            result_type: ResultTypeToTest,
+            query_ident: Ident,
+            input_ident: Ident,
+        ) -> TokenStream {
+            let run_code = match result_type {
+                ResultTypeToTest::Count => {
+                    let count = query.results.count as usize;
+                    quote! {
+                        let result = engine.run::<_, CountResult>(&#input_ident)?;
+
+                        assert_eq!(result.get(), #count);
+                    }
+                }
+                ResultTypeToTest::Bytes => {
+                    let bytes = &query.results.bytes;
+                    quote! {
+                        let result = engine.run::<_, IndexResult>(&#input_ident)?;
+
+                        assert_eq!(result.get(), vec![#(#bytes,)*]);
+                    }
+                }
+            };
+
+            quote! {
+                let engine = MainEngine::compile_query(&#query_ident)?;
+
+                #run_code
+            }
+        }
+
+        /*
+        fn generate_body(
+            input: &model::Input,
+            query: &model::Query,
+            input_type: InputTypeToTest,
+            result_type: ResultTypeToTest,
+        ) -> TokenStream {
             use crate::diff::*;
             use rsonpath::engine::{main::MainEngine, Engine};
             use rsonpath::input::*;
@@ -148,7 +227,7 @@ impl TestSet {
 
                 Ok(expected.diff(&result))
             }
-        }
+        }*/
     }
 }
 
@@ -184,90 +263,5 @@ impl Display for ResultTypeToTest {
                 ResultTypeToTest::Bytes => "IndexResult",
             }
         )
-    }
-}
-
-pub enum FailedReason {
-    Error(Box<dyn Error>),
-    Panic(String),
-    IncorrectResult(Diff),
-}
-
-pub struct TestCaseFailure {
-    name: String,
-    reason: FailedReason,
-}
-
-impl TestCaseFailure {
-    pub fn case_name(&self) -> &str {
-        &self.name
-    }
-
-    pub fn reason(&self) -> &FailedReason {
-        &self.reason
-    }
-}
-
-impl Display for FailedReason {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            FailedReason::Error(err) => {
-                write!(f, "finished with error: {}", err)
-            },
-            FailedReason::Panic(panic_msg) => {
-                write!(f, "panicked at: {}", panic_msg)
-            }
-            FailedReason::IncorrectResult(diff) => {
-                write!(f, "finished with incorrect result: {}", diff)
-            },
-        }
-    }
-}
-
-pub struct SuiteResult {
-    failed: Vec<TestCaseFailure>,
-}
-
-impl SuiteResult {
-    pub fn failed(&self) -> &Vec<TestCaseFailure> {
-        &self.failed
-    }
-}
-
-fn format_panic(panic: Box<dyn std::any::Any + Send + 'static>) -> String {
-    if let Some(string) = panic.downcast_ref::<String>() {
-        string.clone()
-    } else if let Some(&str) = panic.downcast_ref::<&'static str>() {
-        str.to_owned()
-    } else {
-        "[opaque panic payload]".to_owned()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::format_panic;
-
-    #[test]
-    fn format_string_panic() {
-        let string = "Expected string.".to_owned();
-        let result = format_panic(Box::new(string));
-
-        assert_eq!(result, "Expected string.");
-    }
-
-    #[test]
-    fn format_str_panic() {
-        let str = "Expected string.";
-        let result = format_panic(Box::new(str));
-
-        assert_eq!(result, "Expected str.");
-    }
-
-    #[test]
-    fn format_something_else() {
-        let result = format_panic(Box::new(()));
-
-        assert_eq!(result, "[opaque panic payload]");
     }
 }

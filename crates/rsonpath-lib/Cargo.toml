@@ -43,6 +43,7 @@ rsonpath-test = { path = "../rsonpath-test" }
 
 [build-dependencies]
 eyre = "0.6.8"
+rsonpath-test = { path = "../rsonpath-test" }
 
 [features]
 default = ["simd", "head-skip", "tail-skip", "unique-members"]
@@ -50,8 +51,3 @@ simd = []
 head-skip = ["dep:memchr"]
 tail-skip = ["dep:replace_with"]
 unique-members = ["tail-skip"]
-
-[[test]]
-name = "end-to-end"
-path = "tests/end_to_end/main.rs"
-harness = false

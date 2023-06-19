@@ -1,5 +1,5 @@
 [input]
-description = "short json with objects and lists, given as an example on jsonpath.com"
+description = "short json with objects and lists, given as an example on jsonpath com"
 json = '''
 {
     "firstName": "John",
