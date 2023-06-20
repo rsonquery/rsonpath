@@ -29,10 +29,13 @@ pub fn test_source<P: AsRef<Path>>(directory_path: P) -> Result<TokenStream, io:
     );
 
     let imports = codegen::generate_imports();
+    let types = codegen::generate_helper_types();
     let sources = test_set.generate_test_fns();
 
     Ok(quote! {
         #imports
+
+        #types
 
         #(#sources)*
     })

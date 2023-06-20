@@ -1,18 +1,7 @@
 use crate::model;
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
-use std::{error::Error, fmt::Display};
-
-pub fn generate_imports() -> TokenStream {
-    quote! {
-        use rsonpath::engine::{Compiler, main::MainEngine, Engine};
-        use rsonpath::input::*;
-        use rsonpath::query::JsonPathQuery;
-        use rsonpath::result::*;
-        use pretty_assertions::assert_eq;
-        use std::error::Error;
-    }
-}
+use std::fmt::Display;
 
 pub struct TestSet {
     documents: Vec<model::NamedDocument>,
@@ -21,9 +10,6 @@ pub struct TestSet {
 pub struct Stats {
     total_documents: usize,
     total_queries: usize,
-    result_types: usize,
-    input_types: usize,
-    engine_types: usize,
 }
 
 impl Stats {
@@ -33,10 +19,6 @@ impl Stats {
 
     pub fn number_of_queries(&self) -> usize {
         self.total_queries
-    }
-
-    pub fn number_of_test_runs(&self) -> usize {
-        self.total_queries * self.result_types * self.input_types * self.engine_types
     }
 }
 
@@ -57,9 +39,6 @@ impl TestSet {
         Stats {
             total_documents,
             total_queries,
-            result_types: 2,
-            input_types: 1,
-            engine_types: 1,
         }
     }
 
@@ -67,36 +46,43 @@ impl TestSet {
         let mut fns = vec![];
         for named_doc in &self.documents {
             for query in &named_doc.document.queries {
-                for input_type in [InputTypeToTest::Owned] {
+                for input_type in [InputTypeToTest::Owned, InputTypeToTest::Buffered, InputTypeToTest::Mmap] {
                     for result_type in [ResultTypeToTest::Count, ResultTypeToTest::Bytes] {
-                        let fn_name = format_ident!(
-                            "{}",
-                            heck::AsSnakeCase(format!(
-                                "document_{}_query_{}_input_{}_result_{}",
-                                named_doc.document.input.description, query.description, input_type, result_type
-                            ))
-                            .to_string()
-                        );
-                        let full_description = format!(
-                            r#"on document {} running the query {} ({}) with Input impl {} and result mode {}"#,
-                            named_doc.name, query.query, query.description, input_type, result_type
-                        );
-                        let body = generate_body(
-                            full_description,
-                            &named_doc.document.input,
-                            query,
-                            input_type,
-                            result_type,
-                        );
+                        for engine_type in [EngineTypeToTest::Main, EngineTypeToTest::Recursive] {
+                            let fn_name = format_ident!(
+                                "{}",
+                                heck::AsSnakeCase(format!(
+                                    "{}_with_query_{}_with_{}_and_{}_using_{}",
+                                    named_doc.document.input.description,
+                                    query.description,
+                                    input_type,
+                                    result_type,
+                                    engine_type
+                                ))
+                                .to_string()
+                            );
+                            let full_description = format!(
+                                r#"on document {} running the query {} ({}) with Input impl {} and result mode {}"#,
+                                named_doc.name, query.query, query.description, input_type, result_type
+                            );
+                            let body = generate_body(
+                                full_description,
+                                &named_doc.document.input,
+                                query,
+                                input_type,
+                                result_type,
+                                engine_type,
+                            );
 
-                        let r#fn = quote! {
-                            #[test]
-                            fn #fn_name() -> Result<(), Box<dyn Error>> {
-                                #body
-                            }
-                        };
+                            let r#fn = quote! {
+                                #[test]
+                                fn #fn_name() -> Result<(), Box<dyn Error>> {
+                                    #body
+                                }
+                            };
 
-                        fns.push(r#fn);
+                            fns.push(r#fn);
+                        }
                     }
                 }
             }
@@ -110,17 +96,20 @@ impl TestSet {
             query: &model::Query,
             input_type: InputTypeToTest,
             result_type: ResultTypeToTest,
+            engine_type: EngineTypeToTest,
         ) -> TokenStream {
             let query_ident = format_ident!("jsonpath_query");
             let query_string = &query.query;
             let (input_ident, input_setup_code) = generate_input_setup(input, input_type);
-            let run_and_diff_code = generate_run_and_diff_code(query, result_type, query_ident, input_ident);
+            let (engine_ident, engine_setup_code) = generate_engine_setup(engine_type, &query_ident);
+            let run_and_diff_code = generate_run_and_diff_code(query, result_type, &engine_ident, &input_ident);
 
             quote! {
                 println!(#full_description);
                 let jsonpath_query = JsonPathQuery::parse(#query_string)?;
 
                 #input_setup_code
+                #engine_setup_code
 
                 #run_and_diff_code
 
@@ -139,6 +128,37 @@ impl TestSet {
                         let #ident = OwnedBytes::new(&raw_json.as_bytes())?;
                     }
                 }
+                InputTypeToTest::Buffered => {
+                    quote! {
+                        let read_string = ReadString::new(#raw_input.to_string());
+                        let #ident = BufferedInput::new(read_string);
+                    }
+                }
+                InputTypeToTest::Mmap => {
+                    quote! {
+                        let tmp_file = mmap_tmp_file::create_with_contents(#raw_input)?;
+                        let #ident = unsafe { MmapInput::map_file(&tmp_file)? };
+                    }
+                }
+            };
+
+            (ident, code)
+        }
+
+        fn generate_engine_setup(engine_type: EngineTypeToTest, query_ident: &Ident) -> (Ident, TokenStream) {
+            let ident = format_ident!("engine");
+
+            let code = match engine_type {
+                EngineTypeToTest::Main => {
+                    quote! {
+                        let #ident = MainEngine::compile_query(&#query_ident)?;
+                    }
+                }
+                EngineTypeToTest::Recursive => {
+                    quote! {
+                        let #ident = RecursiveEngine::compile_query(&#query_ident)?;
+                    }
+                }
             };
 
             (ident, code)
@@ -147,98 +167,101 @@ impl TestSet {
         fn generate_run_and_diff_code(
             query: &model::Query,
             result_type: ResultTypeToTest,
-            query_ident: Ident,
-            input_ident: Ident,
+            engine_ident: &Ident,
+            input_ident: &Ident,
         ) -> TokenStream {
-            let run_code = match result_type {
+            match result_type {
                 ResultTypeToTest::Count => {
-                    let count = query.results.count as usize;
+                    let count = query.results.count;
                     quote! {
-                        let result = engine.run::<_, CountResult>(&#input_ident)?;
+                        let result = #engine_ident.run::<_, CountResult>(&#input_ident)?;
 
-                        assert_eq!(result.get(), #count);
+                        assert_eq!(result.get(), #count, "result != expected");
                     }
                 }
                 ResultTypeToTest::Bytes => {
                     let bytes = &query.results.bytes;
                     quote! {
-                        let result = engine.run::<_, IndexResult>(&#input_ident)?;
+                        let result = #engine_ident.run::<_, IndexResult>(&#input_ident)?;
 
-                        assert_eq!(result.get(), vec![#(#bytes,)*]);
+                        assert_eq!(result.get(), vec![#(#bytes,)*], "result != expected");
                     }
                 }
-            };
+            }
+        }
+    }
+}
 
-            quote! {
-                let engine = MainEngine::compile_query(&#query_ident)?;
+pub fn generate_imports() -> TokenStream {
+    quote! {
+        use rsonpath::engine::{Compiler, Engine, main::MainEngine, recursive::RecursiveEngine};
+        use rsonpath::input::*;
+        use rsonpath::query::JsonPathQuery;
+        use rsonpath::result::*;
+        use pretty_assertions::assert_eq;
+        use std::cmp;
+        use std::error::Error;
+        use std::io::Read;
+    }
+}
 
-                #run_code
+pub fn generate_helper_types() -> TokenStream {
+    quote! {        
+        struct ReadString(String, usize);
+
+        impl ReadString {
+            fn new(string: String) -> Self {
+                Self(string, 0)
             }
         }
 
-        /*
-        fn generate_body(
-            input: &model::Input,
-            query: &model::Query,
-            input_type: InputTypeToTest,
-            result_type: ResultTypeToTest,
-        ) -> TokenStream {
-            use crate::diff::*;
-            use rsonpath::engine::{main::MainEngine, Engine};
-            use rsonpath::input::*;
-            use rsonpath::query::JsonPathQuery;
-            use rsonpath::result::*;
-
-            let jsonpath_query = JsonPathQuery::parse(&query.query)?;
-
-            return match input_type {
-                InputTypeToTest::Owned => {
-                    let owned_input = OwnedBytes::new(&input.json)?;
-                    run_with_input(query, &jsonpath_query, owned_input, result_type)
-                }
-            };
-
-            fn run_with_input<I: Input>(
-                query: &model::Query,
-                parsed_query: &JsonPathQuery,
-                input: I,
-                result_type: ResultTypeToTest,
-            ) -> Result<Option<Diff>, Box<dyn Error>> {
-                match result_type {
-                    ResultTypeToTest::Count => {
-                        let expected_result = ExpectCount::new(query.results.count);
-                        run_with_input_and_result::<_, CountResult, _>(parsed_query, input, expected_result)
-                    }
-                    ResultTypeToTest::Bytes => {
-                        let expected_result = ExpectBytes::new(&query.results.bytes);
-                        run_with_input_and_result::<_, IndexResult, _>(parsed_query, input, expected_result)
-                    }
+        impl Read for ReadString {
+            fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+                let rem = self.0.as_bytes().len() - self.1;
+                if rem > 0 {
+                    let size = cmp::min(1024, rem);
+                    buf[..size].copy_from_slice(&self.0.as_bytes()[self.1..self.1 + size]);
+                    self.1 += size;
+                    Ok(size)
+                } else {
+                    Ok(0)
                 }
             }
+        }
 
-            fn run_with_input_and_result<I: Input, R: QueryResult, E: Expect<R>>(
-                query: &JsonPathQuery,
-                input: I,
-                expected: E,
-            ) -> Result<Option<Diff>, Box<dyn Error>> {
-                let engine = MainEngine::compile_query(query)?;
+        mod mmap_tmp_file {
+            use std::fs::File;
+            use std::io::{Seek, SeekFrom, Write};
 
-                let result = engine.run::<I, R>(&input)?;
+            pub(super) fn create_with_contents(contents: &str) -> std::io::Result<File> {
+                let mut tmpfile = tempfile::tempfile()?;
 
-                Ok(expected.diff(&result))
+                write!(tmpfile, "{}", contents)?;
+                tmpfile.seek(SeekFrom::Start(0))?;
+
+                Ok(tmpfile)       
             }
-        }*/
+        }
     }
 }
 
 #[derive(Clone, Copy)]
 enum InputTypeToTest {
     Owned,
+    Buffered,
+    Mmap,
 }
 
+#[derive(Clone, Copy)]
 enum ResultTypeToTest {
     Count,
     Bytes,
+}
+
+#[derive(Clone, Copy)]
+enum EngineTypeToTest {
+    Main,
+    Recursive,
 }
 
 impl Display for InputTypeToTest {
@@ -247,7 +270,9 @@ impl Display for InputTypeToTest {
             f,
             "{}",
             match self {
-                InputTypeToTest::Owned => "OwnedInput",
+                InputTypeToTest::Owned => "OwnedBytes",
+                InputTypeToTest::Buffered => "BufferedInput",
+                InputTypeToTest::Mmap => "MmapInput",
             }
         )
     }
@@ -261,6 +286,19 @@ impl Display for ResultTypeToTest {
             match self {
                 ResultTypeToTest::Count => "CountResult",
                 ResultTypeToTest::Bytes => "IndexResult",
+            }
+        )
+    }
+}
+
+impl Display for EngineTypeToTest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                EngineTypeToTest::Main => "MainEngine",
+                EngineTypeToTest::Recursive => "RecursiveEngine",
             }
         )
     }

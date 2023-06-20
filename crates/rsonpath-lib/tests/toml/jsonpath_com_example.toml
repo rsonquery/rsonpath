@@ -30,9 +30,7 @@ query = "$.phoneNumbers[0].type"
 [queries.results]
 count = 1
 bytes = [239]
-nodes = [
-    "iPhone"
-]
+nodes = ['"iPhone"']
 
 [[queries]]
 description = "descendant search for 'number'"
@@ -41,7 +39,4 @@ query = "$..number"
 [queries.results]
 count = 2
 bytes = [271, 359]
-nodes = [
-    "0123-4567-8888",
-    "0123-4567-8910"
-]
+nodes = ['"0123-4567-8888"', '"0123-4567-8910"']

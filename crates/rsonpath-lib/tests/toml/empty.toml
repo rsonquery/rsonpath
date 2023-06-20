@@ -1,0 +1,21 @@
+[input]
+description = "empty document"
+json = ""
+
+[[queries]]
+query = ""
+description = "select the root (empty query)"
+
+[queries.results]
+count = 0
+bytes = []
+nodes = []
+
+[[queries]]
+query = "$"
+description = "select the root"
+
+[queries.results]
+count = 0
+bytes = []
+nodes = []

@@ -1,0 +1,4 @@
+#[test_case("basic/atomic_descendant.json", "$.b[0]" => 1; "atomic_descendant.json nneg array index")]
+#[test_case("basic/atomic_descendant.json", "$.b[1]" => 0; "atomic_descendant.json nonexistent nneg array index")]
+#[test_case("basic/atomic_descendant.json", "$.b[0].b" => 1; "atomic_descendant.json nested nneg array index")]
+#[test_case("basic/atomic_descendant.json", "$[1]" => 0; "atomic_descendant.json nneg nonexistent array index")]

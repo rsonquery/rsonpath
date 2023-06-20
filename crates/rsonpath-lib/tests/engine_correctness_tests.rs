@@ -3,7 +3,7 @@ use rsonpath::engine::recursive::RecursiveEngine;
 use rsonpath::engine::{Compiler, Engine};
 use rsonpath::input::BufferedInput;
 use rsonpath::query::JsonPathQuery;
-use rsonpath::result::{CountResult, IndexResult};
+use rsonpath::result::{CountResult};
 use std::io::Read;
 use std::{cmp, fs};
 use test_case::test_case;
@@ -35,22 +35,11 @@ fn get_contents(test_path: &str) -> BufferedInput<ReadString> {
 
 macro_rules! count_test_cases {
     ($test_name:ident, $impl:ident) => {
-        #[test_case("basic/atomic_descendant.json", "$..a" => 1; "atomic_descendant.json $..a")]
-        #[test_case("basic/atomic_descendant.json", "$..a..b" => 0; "atomic_descendant.json $..a..b")]
-        #[test_case("basic/atomic_descendant.json", "$..*..b" => 1; "atomic_descendant.json any descendant $..*..b")]
-        #[test_case("basic/atomic_descendant.json", "$..*" => 4; "atomic_descendant.json any descendant $..*")]
-        #[test_case("basic/atomic_descendant.json", "$.b[0]" => 1; "atomic_descendant.json nneg array index")]
-        #[test_case("basic/atomic_descendant.json", "$.b[1]" => 0; "atomic_descendant.json nonexistent nneg array index")]
-        #[test_case("basic/atomic_descendant.json", "$..[0]" => 1; "atomic_descendant.json descendant nneg array index")]
-        #[test_case("basic/atomic_descendant.json", "$.b[0].b" => 1; "atomic_descendant.json nested nneg array index")]
         #[test_case("basic/atomic_after_complex.json", "$.a..b" => 1; "atomic_after_complex.json $.a..b")]
         #[test_case("basic/atomic_after_complex.json", "$.a[0]" => 1; "atomic_after_complex.json nneg array index")]
         #[test_case("basic/atomic_after_complex.json", "$.a[0].c.d[2]" => 1; "atomic_after_complex.json nneg last array index")]
         #[test_case("basic/atomic_after_complex.json", "$.a[0].c.d[3]" => 0; "atomic_after_complex.json nneg nonexistent array index")]
         #[test_case("basic/atomic_after_complex.json", "$..*[2]" => 1; "atomic_after_complex.json any desc nneg nonexistent array index")]
-        #[test_case("basic/atomic_descendant.json", "$[1]" => 0; "atomic_descendant.json nneg nonexistent array index")]
-        #[test_case("basic/array_root.json", "$" => 1; "array_root.json $")]
-        #[test_case("basic/array_root.json", "" => 1; "array_root.json")]
         #[test_case("basic/array_root_nested.json", "$[0]" => 1; "array_root_nested.json nneg array top")]
         #[test_case("basic/array_root_nested.json", "$[0].*" => 1; "array_root_nested.json nneg array inner any child")]
         #[test_case("basic/array_root_nested.json", "$.*[0]" => 2; "array_root_nested.json any nneg array inner")]
@@ -64,8 +53,6 @@ macro_rules! count_test_cases {
         #[test_case("basic/array_root_nested.json", "$[2][1]" => 1; "array_root_nested.json nneg array direct second")]
         #[test_case("basic/child.json", "$..a..b.c..d" => 3; "child.json $..a..b.c..d")]
         #[test_case("basic/child_hell.json", "$..x..a.b.a.b.c" => 6; "child_hell.json $..x..a.b.a.b.c")]
-        #[test_case("basic/empty.json", "" => 0; "empty.json")]
-        #[test_case("basic/empty.json", "$" => 0; "empty.json $")]
         #[test_case("basic/escapes.json", r#"$..a..b..['label\\']"# => 1; "escapes.json existing label")]
         #[test_case("basic/escapes.json", r#"$..a..b..['label\\\\']"# => 0; "escapes.json nonexistent label")]
         #[test_case("basic/heterogeneous_list.json", r#"$.a.*"# => 3; "heterogeneous_list.json $.a.*")]
@@ -73,8 +60,6 @@ macro_rules! count_test_cases {
         #[test_case("basic/memchr_trap.json", r#"$..['"b']"# => 1; r#"memchr_trap.json $..['"b']"#)]
         #[test_case("basic/quote_escape.json", r#"$['x']"# => 1; "quote_escape.json without quote")]
         #[test_case("basic/quote_escape.json", r#"$['"x']"# => 1; "quote_escape.json with quote")]
-        #[test_case("basic/root.json", "$" => 1; "root.json $")]
-        #[test_case("basic/root.json", "" => 1; "root.json")]
         #[test_case("basic/singletons_and_empties.json", r#"$.*.*"# => 2; "singletons_and_empties.json $.*.*")]
         #[test_case("basic/singletons_and_empties.json", r#"$..*.*"# => 2; "singletons_and_empties.json any descendant $..*.*")]
         #[test_case("basic/skipping.json", r#"$.a.b"# => 1; "skipping")]
@@ -215,115 +200,5 @@ macro_rules! count_test_cases {
     };
 }
 
-macro_rules! indices_test_cases {
-    ($test_name:ident, $impl:ident) => {
-        #[test_case("basic/atomic_descendant.json", "$..a" => vec![9]; "atomic_descendant.json $..a")]
-        #[test_case("basic/atomic_descendant.json", "$..*" => vec![9,24,34,51]; "atomic_descendant.json any descendant $..*")]
-        #[test_case("basic/atomic_descendant.json", "$..a..b" => Vec::<usize>::new(); "atomic_descendant.json $..a..b")]
-        #[test_case("basic/atomic_after_complex.json", "$.a..b" => vec![174]; "atomic_after_complex.json $.a..b")]
-        #[test_case("basic/atomic_after_complex.json", "$..d[2]" => vec![111]; "atomic_after_complex.json named desc nneg nonexistent array index")]
-        #[test_case("basic/atomic_after_complex.json", "$..*[2]" => vec![111]; "atomic_after_complex.json any desc nneg nonexistent array index")]
-        #[test_case("basic/array_root.json", "$" => vec![0]; "array_root.json $")]
-        #[test_case("basic/array_root.json", "" => vec![0]; "array_root.json")]
-        #[test_case("basic/array_root.json", "$[0]" => Vec::<usize>::new(); "array_root.json nneg array index simple")]
-        #[test_case("basic/array_root_singleton.json", "$[0]" => vec![1]; "array_root_singleton.json nneg array index simple")]
-        #[test_case("basic/child.json", "$..a..b.c..d" => vec![984, 1297, 1545]; "child.json $..a..b.c..d")]
-        #[test_case("basic/child_hell.json", "$..x..a.b.a.b.c" => vec![198, 758, 1227, 1903, 2040, 2207]; "child_hell.json $..x..a.b.a.b.c")]
-        #[test_case("basic/empty.json", "" => Vec::<usize>::new(); "empty.json")]
-        #[test_case("basic/empty.json", "$" => Vec::<usize>::new(); "empty.json $")]
-        #[test_case("basic/escapes.json", r#"$..a..b..['label\\']"# => vec![609]; "escapes.json existing label")]
-        #[test_case("basic/escapes.json", r#"$..a..b..['label\\\\']"# => Vec::<usize>::new(); "escapes.json nonexistent label")]
-        #[test_case("basic/heterogeneous_list.json", r#"$.a.*"# => vec![15, 23, 44]; "heterogeneous_list.json $.a.*")]
-        #[test_case("basic/memchr_trap.json", "$..b" => vec![43]; "memchr_trap.json $..b")]
-        #[test_case("basic/memchr_trap.json", r#"$..['"b']"# => vec![26]; r#"memchr_trap.json $..['"b']"#)]
-        #[test_case("basic/quote_escape.json", r#"$['"x']"# => vec![11]; "quote_escape.json with quote")]
-        #[test_case("basic/quote_escape.json", r#"$['x']"# => vec![24]; "quote_escape.json without quote")]
-        #[test_case("basic/root.json", "$" => vec![0]; "root.json $")]
-        #[test_case("basic/root.json", "" => vec![0]; "root.json")]
-        #[test_case("basic/singletons_and_empties.json", r#"$.*.*"# => vec![21, 50]; "singletons_and_empties.json")]
-        #[test_case("basic/singletons_and_empties.json", r#"$..*..*"# => vec![21, 50]; "singletons_and_empties.json any descendant")]
-        #[test_case("basic/skipping.json", r#"$.a.b"# => vec![808]; "skipping")]
-        #[test_case("basic/small_no_list.json", "$..person..phoneNumber..number" => vec![310, 764]; "small_no_list.json $..person..phoneNumber..number")]
-        #[test_case("basic/small.json", "$..person..phoneNumber..number" => vec![332, 436, 934, 1070]; "small.json $..person..phoneNumber..number")]
-        #[test_case("basic/spaced_colon.json", r#"$..a..b..label"# => vec![106, 213]; "spaced colon")]
-        #[test_case("basic/wildcard_list.json", r#"$..a.*"# => vec![63, 64, 101, 121, 141, 287]; "wildcard_list.json $..a.*")]
-        #[test_case("basic/wildcard_list2.json", r#"$..a.*..b.*"# => vec![226, 401, 402, 479, 519, 559, 641, 881]; "wildcard_list2.json $..a.*..b.*")]
-        #[test_case("basic/wildcard_list2.json", r#"$..a..*..b..*"# => vec![226, 401, 402, 479, 519, 559, 601, 641, 881]; "wildcard_list2.json any descendant $..a..*..b..*")]
-        #[test_case("basic/wildcard_object.json", r#"$..a.*"# => vec![66, 91, 116, 143, 213, 238, 267]; "wildcard_object.json $..a.*")]
-        #[test_case("basic/wildcard_object2.json", r#"$..a.*.*..b.*.*"# => vec![652, 709, 751, 791, 855, 901, 1713, 1811, 1878]; "wildcard_object2.json $..a.*.*..b.*.*")]
-        #[test_case("basic/wildcard_object2.json", r#"$..a..*..*..b..*..*"# => vec![652, 709, 751, 791, 855, 901, 945, 1016, 1067, 1115, 1193, 1248, 1300, 1385, 1443, 1499, 1590, 1653, 1713, 1811, 1878, 1942, 2048]; "wildcard_object2.json any descendant $..a..*..*..b..*..*")]
-        #[test_case(
-            "twitter/twitter.json",
-            "$..user..entities..url"
-                => vec![5465, 5568, 9494, 9983, 18496, 18599, 23338, 23441, 24015, 89785, 89900, 112198, 112313, 134220, 134335, 134934, 201055, 201158, 205281, 205396, 206006, 333130, 333233, 352432, 352535, 353094, 357000, 357115, 399785, 399900, 451852, 475584, 475687, 511442, 511545, 516538, 516641, 728252, 728355, 743602, 743717, 762797, 762900, 763472];
-            "twitter.json $..user..entities..url (recursive)")]
-        #[test_case(
-            "twitter/twitter.json",
-            "$..user..entities.url"
-                => vec![5465, 18496, 23338, 89785, 112198, 134220, 201055, 205281, 333130, 352432, 357000, 399785, 475584, 511442, 516538, 728252, 743602, 762797];
-            "twitter.json $..user..entities.url (child)")]
-        #[test_case("twitter/twitter_urls.json", "$..entities..urls..url" => vec![321, 881]; "twitter_urls.json $..entities..urls..url")]
-        #[test_case("twitter/twitter_urls.json", "$..entities.urls..url" => vec![321, 881]; "twitter_urls.json $..entities.urls..url (child)")]
-        #[test_case("basic/compressed/child.json", "$..a..b.c..d" => vec![99, 132, 152]; "compressed child.json $..a..b.c..d")]
-        #[test_case("basic/compressed/child.json", "$..*..b.c..*" => vec![99, 128, 132, 152]; "compressed child.json any descendant $..*..b.c..*")]
-        #[test_case("basic/compressed/child_hell.json", "$..x..a.b.a.b.c" => vec![39, 109, 189, 240, 263, 280]; "compressed child_hell.json $..x..a.b.a.b.c")]
-        #[test_case("basic/compressed/escapes.json", r#"$..a..b..['label\\']"# => vec![524]; "compressed escapes.json existing label")]
-        #[test_case("basic/compressed/escapes.json", r#"$..a..b..['label\\\\']"# => Vec::<usize>::new(); "compressed escapes.json nonexistent label")]
-        #[test_case("basic/compressed/memchr_trap.json", "$..b" => vec![18]; "compressed memchr_trap.json $..b")]
-        #[test_case("basic/compressed/memchr_trap.json", r#"$..['"b']"# => vec![11]; r#"compressed memchr_trap.json $..['"b']"#)]
-        #[test_case("basic/compressed/quote_escape.json", r#"$['"x']"# => vec![6]; "compressed quote_escape.json with quote")]
-        #[test_case("basic/compressed/quote_escape.json", r#"$['x']"# => vec![13]; "compressed quote_escape.json without quote")]
-        #[test_case("basic/compressed/singletons_and_empties.json", r#"$.*.*"# => vec![6, 15]; "compressed singletons_and_empties.json")]
-        #[test_case("basic/compressed/skipping.json", r#"$.a.b"# => vec![452]; "compressed skipping")]
-        #[test_case("basic/compressed/small_no_list.json", "$..person..phoneNumber..number" => vec![176, 380]; "compressed small_no_list.json $..person..phoneNumber..number")]
-        #[test_case("basic/small.json", "$..person..*[1].type" => vec![402, 1028]; "small.json nneg array $..person..*[1].type")]
-        #[test_case("basic/compressed/small.json", "$..person..*[1].type" => vec![203, 451]; "compressed anydesc small.json $..person..*[1].type")]
-        #[test_case("basic/compressed/small.json", "$..person..[1].type" => vec![203, 451]; "compressed nneg array small.json $..person..[1].type nneg")]
-        #[test_case("basic/compressed/small.json", "$..person.phoneNumber[1].type" => vec![203, 451]; "compressed nneg array direct small.json $..person..[1].type")]
-        #[test_case("basic/compressed/small.json", "$..person.phoneNumber[0].type" => vec![159, 407]; "compressed nneg array direct small.json $..person..[0].type")]
-        #[test_case("basic/compressed/small.json", "$..person..phoneNumber..number" => vec![177, 219, 425, 467]; "compressed small.json $..person..phoneNumber..number")]
-        #[test_case(
-            "twitter/compressed/twitter.json",
-            "$..user..entities..url"
-                => vec![3488, 3503, 5802, 5954, 9836, 9851, 12718, 12733, 12912, 52574, 52589, 64603, 64618, 77997, 78012, 78164, 119307, 119322, 121918, 121933, 122096, 201073, 201088, 212698, 212713, 212877, 215343, 215358, 241826, 241841, 274277, 288269, 288284, 310030, 310045, 312972, 312987, 445431, 445446, 454460, 454475, 464576, 464591, 464768];
-            "compressed twitter.json $..user..entities..url (recursive)")]
-        #[test_case(
-            "twitter/compressed/twitter.json",
-            "$..user..entities.url"
-                => vec![3488, 9836, 12718, 52574, 64603, 77997, 119307, 121918, 201073, 212698, 215343, 241826, 288269, 310030, 312972, 445431, 454460, 464576];
-            "compressed twitter.json $..user..entities.url (child)")]
-        #[test_case("twitter/compressed/twitter_urls.json", "$..entities..urls..url" => vec![145, 326]; "compressed twitter_urls.json $..entities..urls..url")]
-        #[test_case("twitter/compressed/twitter_urls.json", "$..[0]" => vec![1, 139, 183, 249, 320, 364]; "compressed twitter_urls.json nneg array first descendent")]
-        #[test_case("twitter/compressed/twitter_urls.json", "$[0]" => vec![1]; "compressed twitter_urls.json nneg array first root only")]
-        #[test_case("twitter/compressed/twitter_urls.json", "$..entities.urls..url" => vec![145, 326]; "compressed twitter_urls.json $..entities.urls..url (child)")]
-        #[test_case(
-            "wikidata/wikidata_properties.json", "$..P7103.claims.P31..references..snaks.P4656..hash" => vec![22639033];
-            "wikidata_properties.json $..P7103.claims.P31..references..snaks.P4656..hash"
-        )]
-        #[test_case("basic/array_root_nested.json", "$[0]" => vec![6]; "array_root_nested.json nneg array top")]
-        #[test_case("basic/array_root_nested.json", "$[0].*" => vec![16]; "array_root_nested.json nneg array inner any child")]
-        #[test_case("basic/array_root_nested.json", "$.*[0]" => vec![16,49]; "array_root_nested.json any nneg array inner")]
-        #[test_case("basic/array_root_nested.json", "$[2][1][0][1]" => vec![95]; "array_root_nested.json any nneg array inner inner inner")]
-        #[test_case("basic/array_root_nested.json", "$[2][1].*" => vec![75, 142, 209]; "array_root_nested.json any nneg array inner inner child")]
-        #[test_case("basic/array_root_nested.json", "$[2].*[1]" => vec![142]; "array_root_nested.json nneg array child inner")]
-        #[test_case("basic/array_root_nested.json", "$[2]..*[1]" => vec![95, 142, 162, 229]; "array_root_nested.json nneg array anydesc inner")]
-        #[test_case("basic/array_root_nested.json", "$[2][1].*[1]" => vec![95, 162, 229]; "array_root_nested.json nneg nneg any nneg")]
-        #[test_case("basic/array_root_nested.json", "$[2]..*" => vec![49, 61, 75, 93, 95, 142, 160, 162, 209, 227, 229]; "array_root_nested.json nneg array anydesc")]
-        #[test_case("basic/array_root_nested.json", "$..*[0]" => vec![16,17,49,75,93,160,227]; "array_root_nested.json anydesc nneg array first")]
-        #[test_case("basic/array_root_nested.json", "$..*[2]" => vec![209]; "array_root_nested.json anydesc nneg array third")]
-        #[test_case("basic/array_root_nested.json", "$[2][0]" => vec![49]; "array_root_nested.json nneg array direct first")]
-        #[test_case("basic/array_root_nested.json", "$[2][1]" => vec![61]; "array_root_nested.json nneg array direct second")]
-        fn $test_name(test_path: &str, query_string: &str) -> Vec<usize> {
-            let contents = get_contents(test_path);
-            let query = JsonPathQuery::parse(query_string).unwrap();
-            let result = $impl::compile_query(&query).unwrap().run::<_, IndexResult>(&contents).unwrap();
-
-            result.into()
-        }
-    };
-}
-
 count_test_cases!(rsonpath_count_main, MainEngine);
 count_test_cases!(rsonpath_count_recursive, RecursiveEngine);
-indices_test_cases!(rsonpath_indices_main, MainEngine);
-indices_test_cases!(rsonpath_indices_recursive, RecursiveEngine);

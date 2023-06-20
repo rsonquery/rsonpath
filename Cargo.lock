@@ -852,6 +852,7 @@ dependencies = [
  "rsonpath-test",
  "smallvec",
  "static_assertions",
+ "tempfile",
  "test-case",
  "thiserror",
  "vector-map",

@@ -49,7 +49,7 @@ pub trait QueryResultBuilder<'i, I: Input, R: QueryResult> {
     /// When the engine finds a match, it will usually occur at some structural character.
     /// It is guaranteed that `index` points to either:
     /// 1. the first character of the matched value; or
-    /// 2. the colon or comma structural character directly preceding the matched value; or
+    /// 2. the character right after the colon or comma structural character directly preceding the matched value; or
     /// 3. a whitespace character before the matched value, such that the next non-whitespace
     /// character is the first character of the matched value.
     ///
@@ -62,7 +62,7 @@ pub trait QueryResultBuilder<'i, I: Input, R: QueryResult> {
     /// ```json
     /// {
     ///   "match":       42
-    ///   //     ^^^^^^^^^
+    ///   //      ^^^^^^^^
     ///   // any of these characters can be reported for the query $.match
     /// }
     /// ```
@@ -70,7 +70,7 @@ pub trait QueryResultBuilder<'i, I: Input, R: QueryResult> {
     /// ```json
     /// {
     ///   "match": [42,     30]
-    ///   //          ^^^^^^^
+    ///   //           ^^^^^^
     ///   // any of these characters can be reported for the query $.match[1]
     /// }
     /// ```
