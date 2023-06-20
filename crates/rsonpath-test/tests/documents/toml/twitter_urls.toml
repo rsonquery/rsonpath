@@ -1,0 +1,116 @@
+[input]
+description = "extract from twitter json containing urls with multiple escaped slashes"
+json = """
+[
+    {
+        "user": {
+            "url": "http:\\/\\/www.roadshowrigoletto.com\\/"
+        },
+        "retweeted_status": {
+            "user": {
+                "url": "http:\\/\\/www.thinkprogress.org"
+            },
+            "entities": {
+                "urls": [
+                    {
+                        "url": "https:\\/\\/t.co\\/B6T1jj2hST"
+                    }
+                ],
+                "media": [
+                    {
+                        "url": "https:\\/\\/t.co\\/blQy8JxViF"
+                    }
+                ]
+            },
+            "extended_entities": {
+                "media": [
+                    {
+                        "url": "https:\\/\\/t.co\\/blQy8JxViF"
+                    }
+                ]
+            }
+        },
+        "entities": {
+            "hashtags": [],
+            "urls": [
+                {
+                    "url": "https:\\/\\/t.co\\/B6T1jj2hST"
+                }
+            ],
+            "media": [
+                {
+                    "url": "https:\\/\\/t.co\\/blQy8JxViF"
+                }
+            ]
+        },
+        "url": "https:\\/\\/t.co\\/blQy8JxViF"
+    }
+]
+"""
+
+[[queries]]
+query = "$..url"
+description = "descendant search for url"
+
+[queries.results]
+count = 8
+bytes = [45, 170, 323, 473, 672, 883, 1013, 1100]
+nodes = [
+    "http:\\/\\/www.roadshowrigoletto.com\\/",
+    "http:\\/\\/www.thinkprogress.org",
+    "https:\\/\\/t.co\\/B6T1jj2hST",
+    "https:\\/\\/t.co\\/blQy8JxViF",
+    "https:\\/\\/t.co\\/blQy8JxViF",
+    "https:\\/\\/t.co\\/B6T1jj2hST",
+    "https:\\/\\/t.co\\/blQy8JxViF",
+    "https:\\/\\/t.co\\/blQy8JxViF",
+]
+
+[[queries]]
+query = "$..entities..url"
+description = "descendant entities then url"
+
+[queries.results]
+count = 4
+bytes = [323, 473, 883, 1013]
+nodes = [
+    "https:\\/\\/t.co\\/B6T1jj2hST",
+    "https:\\/\\/t.co\\/blQy8JxViF",
+    "https:\\/\\/t.co\\/B6T1jj2hST",
+    "https:\\/\\/t.co\\/blQy8JxViF",
+]
+
+[[queries]]
+query = "$..entities..urls..url"
+description = "descendant for url limited to urls arrays"
+
+[queries.results]
+count = 2
+bytes = [323, 883]
+nodes = [
+    "https:\\/\\/t.co\\/B6T1jj2hST",
+    "https:\\/\\/t.co\\/B6T1jj2hST",
+]
+
+[[queries]]
+query = "$..entities.urls..url"
+description = "descendant for url limited to direct urls arrays"
+
+[queries.results]
+count = 2
+bytes = [323, 883]
+nodes = [
+    "https:\\/\\/t.co\\/B6T1jj2hST",
+    "https:\\/\\/t.co\\/B6T1jj2hST",
+]
+
+[[queries]]
+query = "$[0].url"
+description = "direct path to the top-level url"
+
+[queries.results]
+count = 1
+bytes = [1100]
+nodes = [
+    "https:\\/\\/t.co\\/blQy8JxViF",
+]

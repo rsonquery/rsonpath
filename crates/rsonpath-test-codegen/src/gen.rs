@@ -1,10 +1,14 @@
+use crate::discovery::DiscoveredDocument;
 use crate::model;
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
-use std::fmt::Display;
+use std::{
+    fmt::Display,
+    path::{Path, PathBuf},
+};
 
 pub struct TestSet {
-    documents: Vec<model::NamedDocument>,
+    documents: Vec<DiscoveredDocument>,
 }
 
 pub struct Stats {
@@ -23,11 +27,11 @@ impl Stats {
 }
 
 impl TestSet {
-    pub fn new<I>(documents: I) -> TestSet
+    pub(crate) fn new<I>(documents: I) -> TestSet
     where
-        I: IntoIterator<Item = model::NamedDocument>,
+        I: IntoIterator<Item = DiscoveredDocument>,
     {
-        let documents: Vec<model::NamedDocument> = documents.into_iter().collect();
+        let documents: Vec<DiscoveredDocument> = documents.into_iter().collect();
 
         TestSet { documents }
     }
@@ -42,10 +46,35 @@ impl TestSet {
         }
     }
 
-    pub fn generate_test_fns(&self) -> Vec<TokenStream> {
+    pub fn get_required_test_files<'a, P: AsRef<Path> + 'a>(
+        &'a self,
+        target_dir: P,
+    ) -> impl IntoIterator<Item = (PathBuf, &'a str)> {
+        self.documents.iter().map(move |d| {
+            let new_path = Self::get_path_of_json_for_document(&target_dir, d);
+            let contents: &'a str = &d.document.input.json;
+
+            (new_path, contents)
+        })
+    }
+
+    fn get_path_of_json_for_document<P: AsRef<Path>>(dir: P, document: &DiscoveredDocument) -> PathBuf {
+        let file_name = document
+            .path
+            .file_name()
+            .expect("all documents should have a file path");
+        let mut new_path = dir.as_ref().to_path_buf();
+        new_path.push(file_name);
+        new_path.set_extension("json");
+
+        new_path
+    }
+
+    pub fn generate_test_fns<P: AsRef<Path>>(&self, json_files_dir: P) -> Vec<TokenStream> {
         let mut fns = vec![];
-        for named_doc in &self.documents {
-            for query in &named_doc.document.queries {
+        for discovered_doc in &self.documents {
+            let input_json = Self::get_path_of_json_for_document(&json_files_dir, discovered_doc);
+            for query in &discovered_doc.document.queries {
                 for input_type in [InputTypeToTest::Owned, InputTypeToTest::Buffered, InputTypeToTest::Mmap] {
                     for result_type in [ResultTypeToTest::Count, ResultTypeToTest::Bytes] {
                         for engine_type in [EngineTypeToTest::Main, EngineTypeToTest::Recursive] {
@@ -53,7 +82,7 @@ impl TestSet {
                                 "{}",
                                 heck::AsSnakeCase(format!(
                                     "{}_with_query_{}_with_{}_and_{}_using_{}",
-                                    named_doc.document.input.description,
+                                    discovered_doc.document.input.description,
                                     query.description,
                                     input_type,
                                     result_type,
@@ -63,11 +92,11 @@ impl TestSet {
                             );
                             let full_description = format!(
                                 r#"on document {} running the query {} ({}) with Input impl {} and result mode {}"#,
-                                named_doc.name, query.query, query.description, input_type, result_type
+                                discovered_doc.name, query.query, query.description, input_type, result_type
                             );
                             let body = generate_body(
                                 full_description,
-                                &named_doc.document.input,
+                                &input_json,
                                 query,
                                 input_type,
                                 result_type,
@@ -90,9 +119,9 @@ impl TestSet {
 
         return fns;
 
-        fn generate_body(
+        fn generate_body<P: AsRef<Path>>(
             full_description: String,
-            input: &model::Input,
+            input_json_path: P,
             query: &model::Query,
             input_type: InputTypeToTest,
             result_type: ResultTypeToTest,
@@ -100,7 +129,7 @@ impl TestSet {
         ) -> TokenStream {
             let query_ident = format_ident!("jsonpath_query");
             let query_string = &query.query;
-            let (input_ident, input_setup_code) = generate_input_setup(input, input_type);
+            let (input_ident, input_setup_code) = generate_input_setup(input_json_path, input_type);
             let (engine_ident, engine_setup_code) = generate_engine_setup(engine_type, &query_ident);
             let run_and_diff_code = generate_run_and_diff_code(query, result_type, &engine_ident, &input_ident);
 
@@ -117,27 +146,27 @@ impl TestSet {
             }
         }
 
-        fn generate_input_setup(input: &model::Input, input_type: InputTypeToTest) -> (Ident, TokenStream) {
+        fn generate_input_setup<P: AsRef<Path>>(input_path: P, input_type: InputTypeToTest) -> (Ident, TokenStream) {
             let ident = format_ident!("input");
-            let raw_input = &input.json;
+            let raw_input_path = input_path.as_ref().to_str().expect("supported unicode path");
 
             let code = match input_type {
                 InputTypeToTest::Owned => {
                     quote! {
-                        let raw_json = #raw_input;
+                        let raw_json = fs::read_to_string(#raw_input_path)?;
                         let #ident = OwnedBytes::new(&raw_json.as_bytes())?;
                     }
                 }
                 InputTypeToTest::Buffered => {
                     quote! {
-                        let read_string = ReadString::new(#raw_input.to_string());
-                        let #ident = BufferedInput::new(read_string);
+                        let json_file = fs::File::open(#raw_input_path)?;
+                        let #ident = BufferedInput::new(json_file);
                     }
                 }
                 InputTypeToTest::Mmap => {
                     quote! {
-                        let tmp_file = mmap_tmp_file::create_with_contents(#raw_input)?;
-                        let #ident = unsafe { MmapInput::map_file(&tmp_file)? };
+                        let json_file = fs::File::open(#raw_input_path)?;
+                        let #ident = unsafe { MmapInput::map_file(&json_file)? };
                     }
                 }
             };
@@ -199,49 +228,8 @@ pub fn generate_imports() -> TokenStream {
         use rsonpath::query::JsonPathQuery;
         use rsonpath::result::*;
         use pretty_assertions::assert_eq;
-        use std::cmp;
         use std::error::Error;
-        use std::io::Read;
-    }
-}
-
-pub fn generate_helper_types() -> TokenStream {
-    quote! {        
-        struct ReadString(String, usize);
-
-        impl ReadString {
-            fn new(string: String) -> Self {
-                Self(string, 0)
-            }
-        }
-
-        impl Read for ReadString {
-            fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-                let rem = self.0.as_bytes().len() - self.1;
-                if rem > 0 {
-                    let size = cmp::min(1024, rem);
-                    buf[..size].copy_from_slice(&self.0.as_bytes()[self.1..self.1 + size]);
-                    self.1 += size;
-                    Ok(size)
-                } else {
-                    Ok(0)
-                }
-            }
-        }
-
-        mod mmap_tmp_file {
-            use std::fs::File;
-            use std::io::{Seek, SeekFrom, Write};
-
-            pub(super) fn create_with_contents(contents: &str) -> std::io::Result<File> {
-                let mut tmpfile = tempfile::tempfile()?;
-
-                write!(tmpfile, "{}", contents)?;
-                tmpfile.seek(SeekFrom::Start(0))?;
-
-                Ok(tmpfile)       
-            }
-        }
+        use std::fs;
     }
 }
 

@@ -1,30 +1,5 @@
-use std::process::Command;
-use std::fs;
-
-use eyre::WrapErr;
-
 fn main() -> eyre::Result<()> {
     println!("cargo:rerun-if-changed=build.rs");
-    println!("cargo:rerun-if-changed=./tests/toml/*");
-    println!("cargo:rerun-if-changed=./tests/end_to_end.rs");
-    println!("cargo:rerun-if-changed=../rsonpath-test/*");
-
-    const CASE_DIRECTORY_PATH: &str = "./tests/toml";
-    const OUTPUT_FILE_PATH: &str = "./tests/end_to_end.rs";
-
-    let tokens = rsonpath_test::test_source(CASE_DIRECTORY_PATH).wrap_err("error generating end-to-end tests")?;
-    let source = format!("{}", tokens);
-
-    fs::write(OUTPUT_FILE_PATH, source).wrap_err("error writing to test file")?;
-
-    let rustfmt_status = Command::new("rustfmt").arg(OUTPUT_FILE_PATH).status()?;
-
-    assert!(
-        rustfmt_status.success(),
-        "'rustfmt {}' excited with code {}",
-        OUTPUT_FILE_PATH,
-        rustfmt_status
-    );
 
     #[cfg(feature = "simd")]
     {

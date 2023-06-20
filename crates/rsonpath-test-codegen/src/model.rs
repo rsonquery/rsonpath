@@ -1,10 +1,5 @@
 use serde::Deserialize;
 
-pub struct NamedDocument {
-    pub name: String,
-    pub document: Document,
-}
-
 #[derive(Deserialize)]
 pub struct Document {
     pub input: Input,

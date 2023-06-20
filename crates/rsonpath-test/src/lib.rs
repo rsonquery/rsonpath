@@ -1,50 +1,14 @@
-use proc_macro2::TokenStream;
-use quote::quote;
-use std::{
-    fmt::Display,
-    io,
-    path::Path,
-    time::{Duration, Instant},
-};
-
-mod codegen;
-mod discovery;
-mod model;
-
-pub fn test_source<P: AsRef<Path>>(directory_path: P) -> Result<TokenStream, io::Error> {
-    println!("discovery...");
-
-    let discovery_start = Instant::now();
-    let all_documents = discovery::discover(directory_path)?;
-    let discovery_elapsed = FormatDuration(discovery_start.elapsed());
-
-    let test_set = codegen::TestSet::new(all_documents);
-    let stats = test_set.stats();
-
-    println!(
-        "discovered {} documents with a total of {} queries; finished in {}",
-        stats.number_of_documents(),
-        stats.number_of_queries(),
-        discovery_elapsed
-    );
-
-    let imports = codegen::generate_imports();
-    let types = codegen::generate_helper_types();
-    let sources = test_set.generate_test_fns();
-
-    Ok(quote! {
-        #imports
-
-        #types
-
-        #(#sources)*
-    })
+pub fn add(left: usize, right: usize) -> usize {
+    left + right
 }
 
-struct FormatDuration(Duration);
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-impl Display for FormatDuration {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:.2}s", self.0.as_secs_f32())
+    #[test]
+    fn it_works() {
+        let result = add(2, 2);
+        assert_eq!(result, 4);
     }
 }
