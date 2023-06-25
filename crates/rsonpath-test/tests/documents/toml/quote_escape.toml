@@ -1,12 +1,14 @@
 [input]
 description = "object with two labels, 'x' and 'x' with a preceding escaped double quote"
 is_compressed = false
-json = """
+
+[input.source]
+json_string = '''
 {
-    "\\"x": 42,
+    "\"x": 42,
     "x": 17
 }
-"""
+'''
 
 [[queries]]
 query = "$['x']"

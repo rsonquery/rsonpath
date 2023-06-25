@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Clone)]
@@ -9,8 +11,16 @@ pub struct Document {
 #[derive(Deserialize, Serialize, Clone)]
 pub struct Input {
     pub description: String,
-    pub json: String,
     pub is_compressed: bool,
+    pub source: InputSource,
+}
+
+#[derive(Deserialize, Serialize, Clone)]
+pub enum InputSource {
+    #[serde(rename = "large_file")]
+    LargeFile(PathBuf),
+    #[serde(rename = "json_string")]
+    JsonString(String),
 }
 
 #[derive(Deserialize, Serialize, Clone)]
@@ -28,5 +38,9 @@ pub struct Results {
 }
 
 pub(crate) fn serialize(doc: &Document) -> String {
-    toml::to_string(doc).expect("toml files must be valid")
+    toml::to_string(doc).expect("generated toml must be valid")
+}
+
+pub(crate) fn deserialize<S: AsRef<str>>(contents: S) -> Document {
+    toml::from_str(contents.as_ref()).expect("configuration toml must be valid")
 }

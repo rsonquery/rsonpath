@@ -1,3 +1,6 @@
 /target
 /Cargo.lock
-/tests/documents/json
+/tests/documents/json/*
+!/tests/documents/json/large
+/tests/documents/json/large/compressed
+/tests/documents/toml/compressed

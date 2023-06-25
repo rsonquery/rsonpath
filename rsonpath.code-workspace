@@ -59,10 +59,12 @@
 			"Structurals",
 			"tempfile",
 			"thiserror",
+			"tomls",
 			"Uninit",
 			"unseparated",
 			"vectorially",
 			"VERGEN",
+			"walkdir",
 			"WHITESPACES"
 		],
 		"cSpell.language": "en-US",

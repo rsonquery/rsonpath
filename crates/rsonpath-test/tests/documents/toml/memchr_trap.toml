@@ -1,14 +1,16 @@
 [input]
 description = "label 'b' and '\"b' with escaped quote to trick naive string comparison"
 is_compressed = false
-json = """
+
+[input.source]
+json_string = '''
 {
     "a": {
-        "\\"b": 42,
+        "\"b": 42,
         "b": 43 
     }
 }
-"""
+'''
 
 [[queries]]
 query = "$..b"

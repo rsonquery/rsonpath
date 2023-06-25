@@ -1,7 +1,9 @@
 [input]
-description = ""
+description = "nested atomic member"
 is_compressed = false
-json = """
+
+[input.source]
+json_string = """
 {
     "a": 42,
     "b": [

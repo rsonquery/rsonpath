@@ -1,30 +1,28 @@
-use std::string::FromUtf8Error;
-
 use crate::{
-    discovery::DiscoveredDocument,
-    model::{self, Input},
-    paths,
+    files::Files,
+    model::{self},
+    DiscoveredDocument,
 };
+use std::{io, string::FromUtf8Error};
 
-pub(crate) fn get_compressed_toml_files(
-    docs: &[DiscoveredDocument],
-) -> impl IntoIterator<Item = DiscoveredDocument> + '_ {
-    docs.iter().filter(|doc| !doc.document.input.is_compressed).map(|doc| {
-        let path = paths::get_path_to_compressed(doc);
-        let name = format!("{}_compressed", doc.name);
-        let compressed_doc = compress_document(&doc.document);
+pub(crate) fn generate_compressed_documents(files: &mut Files) -> Result<(), io::Error> {
+    let original_documents: Vec<_> = files.documents().into_iter().cloned().collect();
 
-        DiscoveredDocument {
-            name,
-            relative_path: path,
-            document: compressed_doc,
-        }
-    })
+    original_documents
+        .into_iter()
+        .filter(|doc| !doc.document.input.is_compressed)
+        .try_for_each(|doc| compress_document(files, &doc))
 }
 
-fn compress_document(doc: &model::Document) -> model::Document {
-    let compressed_input = CompressedInput::new(&doc.input);
+fn compress_document(files: &mut Files, doc: &DiscoveredDocument) -> Result<(), io::Error> {
+    let (required_file, contents) = match &doc.document.input.source {
+        model::InputSource::LargeFile(f) => (Some(f), files.read_json(f)?),
+        model::InputSource::JsonString(c) => (None, c.clone()),
+    };
+
+    let compressed_input = CompressedInput::new(&contents);
     let queries = doc
+        .document
         .queries
         .iter()
         .map(|q| {
@@ -38,15 +36,30 @@ fn compress_document(doc: &model::Document) -> model::Document {
         })
         .collect();
 
-    model::Document {
-        input: compressed_input.into_model(),
+    let json_string = compressed_input.into_string();
+    let source = if let Some(f) = required_file {
+        let relative_path = files.add_compressed_large_json(f, json_string);
+        model::InputSource::LargeFile(relative_path)
+    } else {
+        model::InputSource::JsonString(json_string)
+    };
+
+    let compressed_doc = model::Document {
+        input: model::Input {
+            description: format!("{} (compressed)", doc.document.input.description),
+            is_compressed: true,
+            source,
+        },
         queries,
-    }
+    };
+
+    files.add_compressed_document(&doc.relative_path, doc.name.clone(), compressed_doc);
+
+    Ok(())
 }
 
 struct CompressedInput {
     json_string: JsonString,
-    description: String,
 }
 
 #[derive(Clone, Copy)]
@@ -73,21 +86,15 @@ impl TryFrom<JsonString> for String {
 }
 
 impl CompressedInput {
-    fn new(input: &Input) -> Self {
+    fn new(json: &str) -> Self {
         Self {
-            json_string: JsonString::new(&input.json),
-            description: input.description.clone(),
+            json_string: JsonString::new(json),
         }
     }
 
-    fn into_model(self) -> model::Input {
+    fn into_string(self) -> String {
         let bytes: Vec<u8> = self.json_string.into();
-        let json = String::from_utf8(bytes).expect("valid utf8 should be valid after compression");
-        model::Input {
-            description: self.description,
-            is_compressed: true,
-            json,
-        }
+        String::from_utf8(bytes).expect("valid utf8 should be valid after compression")
     }
 
     fn transform_results(&self, original_results: &model::Results) -> model::Results {

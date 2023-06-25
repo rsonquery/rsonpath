@@ -1,7 +1,9 @@
 [input]
 description = "short json with objects and lists, given as an example on jsonpath com"
 is_compressed = false
-json = '''
+
+[input.source]
+json_string = '''
 {
     "firstName": "John",
     "lastName": "doe",

@@ -1,7 +1,9 @@
 [input]
 description = "empty array root"
 is_compressed = false
-json = """
+
+[input.source]
+json_string = """
 []
 """
 

@@ -1,7 +1,9 @@
 [input]
 description = "whitespace separators between structurals to test correctness of index result handling"
 is_compressed = false
-json = """
+
+[input.source]
+json_string = """
 {"a"  :  [0  ,  1  ,  2]}
 """
 

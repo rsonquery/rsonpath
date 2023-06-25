@@ -1,7 +1,9 @@
 [input]
 description = "empty document"
 is_compressed = false
-json = ""
+
+[input.source]
+json_string = ""
 
 [[queries]]
 query = ""

@@ -1,7 +1,9 @@
 [input]
 description = "empty object root"
 is_compressed = false
-json = """
+
+[input.source]
+json_string = """
 {}
 """
 

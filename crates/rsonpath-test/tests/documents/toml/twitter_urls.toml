@@ -1,7 +1,9 @@
 [input]
 description = "extract from twitter json containing urls with multiple escaped slashes"
 is_compressed = false
-json = """
+
+[input.source]
+json_string = """
 [
     {
         "user": {
