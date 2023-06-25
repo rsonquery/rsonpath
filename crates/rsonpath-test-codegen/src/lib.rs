@@ -24,6 +24,8 @@ where
     let discovery_start = Instant::now();
     let all_documents: Vec<_> = discovery::discover(&toml_directory_path)?.into_iter().collect();
 
+    println!("generating compressed variants...");
+
     for compressed in compression::get_compressed_toml_files(&all_documents) {
         write_file(
             &toml_directory_path,
@@ -32,7 +34,8 @@ where
         )?;
     }
 
-    println!("generating compressed variants...");
+    // We rediscover, to make sure we pick up all the compressed documents as well.
+    let all_documents: Vec<_> = discovery::discover(&toml_directory_path)?.into_iter().collect();
 
     let test_set = gen::TestSet::new(all_documents);
     let stats = test_set.stats();

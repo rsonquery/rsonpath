@@ -48,7 +48,7 @@ impl TestSet {
 
     pub fn get_required_test_files(&self) -> impl IntoIterator<Item = (PathBuf, &str)> {
         self.documents.iter().map(move |d| {
-            let new_path = d.relative_path.clone();
+            let new_path = paths::get_relative_path_of_json_for_document(d);
             let contents: &'_ str = &d.document.input.json;
 
             (new_path, contents)
@@ -66,8 +66,13 @@ impl TestSet {
                             let fn_name = format_ident!(
                                 "{}",
                                 heck::AsSnakeCase(format!(
-                                    "{}_with_query_{}_with_{}_and_{}_using_{}",
+                                    "{}{}_with_query_{}_with_{}_and_{}_using_{}",
                                     discovered_doc.document.input.description,
+                                    if discovered_doc.document.input.is_compressed {
+                                        "_compressed"
+                                    } else {
+                                        ""
+                                    },
                                     query.description,
                                     input_type,
                                     result_type,

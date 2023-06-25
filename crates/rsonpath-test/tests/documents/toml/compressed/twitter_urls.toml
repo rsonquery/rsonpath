@@ -1,0 +1,49 @@
+[input]
+description = "extract from twitter json containing urls with multiple escaped slashes"
+json = '[{"user":{"url":"http:\/\/www.roadshowrigoletto.com\/"},"retweeted_status":{"user":{"url":"http:\/\/www.thinkprogress.org"},"entities":{"urls":[{"url":"https:\/\/t.co\/B6T1jj2hST"}],"media":[{"url":"https:\/\/t.co\/blQy8JxViF"}]},"extended_entities":{"media":[{"url":"https:\/\/t.co\/blQy8JxViF"}]}},"entities":{"hashtags":[],"urls":[{"url":"https:\/\/t.co\/B6T1jj2hST"}],"media":[{"url":"https:\/\/t.co\/blQy8JxViF"}]},"url":"https:\/\/t.co\/blQy8JxViF"}]'
+is_compressed = true
+
+[[queries]]
+description = "descendant search for url"
+query = "$..url"
+
+[queries.results]
+count = 8
+bytes = [16, 90, 151, 198, 267, 341, 388, 426]
+nodes = ['http:\/\/www.roadshowrigoletto.com\/', 'http:\/\/www.thinkprogress.org', 'https:\/\/t.co\/B6T1jj2hST', 'https:\/\/t.co\/blQy8JxViF', 'https:\/\/t.co\/blQy8JxViF', 'https:\/\/t.co\/B6T1jj2hST', 'https:\/\/t.co\/blQy8JxViF', 'https:\/\/t.co\/blQy8JxViF']
+
+[[queries]]
+description = "descendant entities then url"
+query = "$..entities..url"
+
+[queries.results]
+count = 4
+bytes = [151, 198, 341, 388]
+nodes = ['https:\/\/t.co\/B6T1jj2hST', 'https:\/\/t.co\/blQy8JxViF', 'https:\/\/t.co\/B6T1jj2hST', 'https:\/\/t.co\/blQy8JxViF']
+
+[[queries]]
+description = "descendant for url limited to urls arrays"
+query = "$..entities..urls..url"
+
+[queries.results]
+count = 2
+bytes = [151, 341]
+nodes = ['https:\/\/t.co\/B6T1jj2hST', 'https:\/\/t.co\/B6T1jj2hST']
+
+[[queries]]
+description = "descendant for url limited to direct urls arrays"
+query = "$..entities.urls..url"
+
+[queries.results]
+count = 2
+bytes = [151, 341]
+nodes = ['https:\/\/t.co\/B6T1jj2hST', 'https:\/\/t.co\/B6T1jj2hST']
+
+[[queries]]
+description = "direct path to the top-level url"
+query = "$[0].url"
+
+[queries.results]
+count = 1
+bytes = [426]
+nodes = ['https:\/\/t.co\/blQy8JxViF']

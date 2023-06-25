@@ -15,8 +15,15 @@ pub(crate) fn get_path_to_compressed(doc: &DiscoveredDocument) -> PathBuf {
 
 pub(crate) fn get_path_of_json_for_document<P: AsRef<Path>>(json_dir: P, document: &DiscoveredDocument) -> PathBuf {
     let mut new_path = json_dir.as_ref().to_path_buf();
-    new_path.push(&document.relative_path);
-    new_path.set_extension("json");
+    new_path.push(get_relative_path_of_json_for_document(document));
+
+    new_path
+}
+
+pub(crate) fn get_relative_path_of_json_for_document(document: &DiscoveredDocument) -> PathBuf {
+    let mut new_path = document.relative_path.to_path_buf();
+
+    assert!(new_path.set_extension("json"));
 
     new_path
 }

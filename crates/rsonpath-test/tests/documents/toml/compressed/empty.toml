@@ -1,11 +1,11 @@
 [input]
 description = "empty document"
-is_compressed = false
 json = ""
+is_compressed = true
 
 [[queries]]
-query = ""
 description = "select the root (empty query)"
+query = ""
 
 [queries.results]
 count = 0
@@ -13,8 +13,8 @@ bytes = []
 nodes = []
 
 [[queries]]
-query = "$"
 description = "select the root"
+query = "$"
 
 [queries.results]
 count = 0

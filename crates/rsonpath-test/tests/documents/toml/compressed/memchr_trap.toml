@@ -1,29 +1,22 @@
 [input]
 description = "label 'b' and '\"b' with escaped quote to trick naive string comparison"
-is_compressed = false
-json = """
-{
-    "a": {
-        "\\"b": 42,
-        "b": 43 
-    }
-}
-"""
+json = '{"a":{"\"b":42,"b":43}}'
+is_compressed = true
 
 [[queries]]
-query = "$..b"
 description = "descendant search for 'b'"
+query = "$..b"
 
 [queries.results]
 count = 1
-bytes = [45]
+bytes = [19]
 nodes = ["43"]
 
 [[queries]]
-query = """$..['"b']"""
 description = "descendant search for 'b' with a leading quote"
+query = "$..['\"b']"
 
 [queries.results]
 count = 1
-bytes = [28]
+bytes = [12]
 nodes = ["42"]

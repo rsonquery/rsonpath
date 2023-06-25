@@ -10,6 +10,7 @@ pub struct Document {
 pub struct Input {
     pub description: String,
     pub json: String,
+    pub is_compressed: bool,
 }
 
 #[derive(Deserialize, Serialize, Clone)]

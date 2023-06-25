@@ -1,9 +1,7 @@
 [input]
 description = "whitespace separators between structurals to test correctness of index result handling"
-is_compressed = false
-json = """
-{"a"  :  [0  ,  1  ,  2]}
-"""
+json = "{\"a\":[0,1,2]}"
+is_compressed = true
 
 [[queries]]
 description = "select root"
@@ -12,7 +10,7 @@ query = "$"
 [queries.results]
 count = 1
 bytes = [0]
-nodes = ['{"a"  :  [0  ,  1  ,  2]}']
+nodes = ["{\"a\":[0,1,2]}"]
 
 [[queries]]
 description = "select a by child"
@@ -20,8 +18,8 @@ query = "$.a"
 
 [queries.results]
 count = 1
-bytes = [9]
-nodes = ["[0  ,  1  ,  2]"]
+bytes = [5]
+nodes = ["[0,1,2]"]
 
 [[queries]]
 description = "select a by descendant"
@@ -29,8 +27,8 @@ query = "$..a"
 
 [queries.results]
 count = 1
-bytes = [9]
-nodes = ["[0  ,  1  ,  2]"]
+bytes = [5]
+nodes = ["[0,1,2]"]
 
 [[queries]]
 description = "select each item on the list with wildcard"
@@ -38,5 +36,5 @@ query = "$.a[*]"
 
 [queries.results]
 count = 3
-bytes = [10, 16, 22]
+bytes = [6, 8, 10]
 nodes = ["0", "1", "2"]

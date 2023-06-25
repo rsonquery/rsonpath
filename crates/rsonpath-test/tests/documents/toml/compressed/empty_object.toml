@@ -1,13 +1,11 @@
 [input]
 description = "empty object root"
-is_compressed = false
-json = """
-{}
-"""
+json = "{}"
+is_compressed = true
 
 [[queries]]
-query = ""
 description = "select the root (empty query)"
+query = ""
 
 [queries.results]
 count = 1
@@ -15,8 +13,8 @@ bytes = [0]
 nodes = ["[]"]
 
 [[queries]]
-query = "$"
 description = "select the root"
+query = "$"
 
 [queries.results]
 count = 1
@@ -24,8 +22,8 @@ bytes = [0]
 nodes = ["{}"]
 
 [[queries]]
-query = "$.a"
 description = "select the child named 'a' (which does not exist)"
+query = "$.a"
 
 [queries.results]
 count = 0
@@ -33,8 +31,8 @@ bytes = []
 nodes = []
 
 [[queries]]
-query = "$.*"
 description = "select any child (there are none)"
+query = "$.*"
 
 [queries.results]
 count = 0
@@ -42,8 +40,8 @@ bytes = []
 nodes = []
 
 [[queries]]
-query = "$..*"
 description = "select any descendant (there are none)"
+query = "$..*"
 
 [queries.results]
 count = 0

@@ -1,29 +1,20 @@
 [input]
 description = ""
-is_compressed = false
-json = """
-{
-    "a": 42,
-    "b": [
-        {
-            "b": 43
-        }
-    ]
-}
-"""
+json = "{\"a\":42,\"b\":[{\"b\":43}]}"
+is_compressed = true
 
 [[queries]]
-query = "$..a"
 description = "select a number that is a child"
+query = "$..a"
 
 [queries.results]
 count = 1
-bytes = [11]
+bytes = [5]
 nodes = ["42"]
 
 [[queries]]
-query = "$..a..b"
 description = "look for descendants of an atomic value"
+query = "$..a..b"
 
 [queries.results]
 count = 0
@@ -31,49 +22,28 @@ bytes = []
 nodes = []
 
 [[queries]]
-query = "$..*..b"
 description = "look for 'b' on at least one level of nesting"
+query = "$..*..b"
 
 [queries.results]
 count = 1
-bytes = [53]
+bytes = [18]
 nodes = ["43"]
 
 [[queries]]
-query = "$..*"
 description = "select all decsendants"
+query = "$..*"
 
 [queries.results]
 count = 4
-bytes = [11, 24, 34, 53]
-nodes = [
-    "42",
-    """
-[
-        {
-            "b": 43
-        }
-    ]
-    """,
-    """
-{
-            "b": 43
-        }
-    """,
-    "43"
-]
+bytes = [5, 12, 13, 18]
+nodes = ["42", "[{\"b\":43}]", "{\"b\":43}", "43"]
 
 [[queries]]
-query = "$..[0]"
 description = "select first item from list descendants"
+query = "$..[0]"
 
 [queries.results]
 count = 1
-bytes = [34]
-nodes = [
-    """
-{
-            "b": 43
-        }
-    """
-]
+bytes = [13]
+nodes = ["{\"b\":43}"]
