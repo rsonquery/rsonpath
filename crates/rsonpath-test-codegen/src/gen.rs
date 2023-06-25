@@ -1,5 +1,5 @@
-use crate::discovery::DiscoveredDocument;
 use crate::model;
+use crate::{discovery::DiscoveredDocument, paths};
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
 use std::{
@@ -46,37 +46,22 @@ impl TestSet {
         }
     }
 
-    pub fn get_required_test_files<'a, P: AsRef<Path> + 'a>(
-        &'a self,
-        target_dir: P,
-    ) -> impl IntoIterator<Item = (PathBuf, &'a str)> {
+    pub fn get_required_test_files(&self) -> impl IntoIterator<Item = (PathBuf, &str)> {
         self.documents.iter().map(move |d| {
-            let new_path = Self::get_path_of_json_for_document(&target_dir, d);
-            let contents: &'a str = &d.document.input.json;
+            let new_path = d.relative_path.clone();
+            let contents: &'_ str = &d.document.input.json;
 
             (new_path, contents)
         })
     }
 
-    fn get_path_of_json_for_document<P: AsRef<Path>>(dir: P, document: &DiscoveredDocument) -> PathBuf {
-        let file_name = document
-            .path
-            .file_name()
-            .expect("all documents should have a file path");
-        let mut new_path = dir.as_ref().to_path_buf();
-        new_path.push(file_name);
-        new_path.set_extension("json");
-
-        new_path
-    }
-
-    pub fn generate_test_fns<P: AsRef<Path>>(&self, json_files_dir: P) -> Vec<TokenStream> {
+    pub fn generate_test_fns<P: AsRef<Path>>(&self, json_files_dir: P) -> impl IntoIterator<Item = TokenStream> {
         let mut fns = vec![];
         for discovered_doc in &self.documents {
-            let input_json = Self::get_path_of_json_for_document(&json_files_dir, discovered_doc);
+            let input_json = paths::get_path_of_json_for_document(json_files_dir.as_ref(), discovered_doc);
             for query in &discovered_doc.document.queries {
                 for input_type in [InputTypeToTest::Owned, InputTypeToTest::Buffered, InputTypeToTest::Mmap] {
-                    for result_type in [ResultTypeToTest::Count, ResultTypeToTest::Bytes] {
+                    for result_type in Self::get_available_results(query) {
                         for engine_type in [EngineTypeToTest::Main, EngineTypeToTest::Recursive] {
                             let fn_name = format_ident!(
                                 "{}",
@@ -110,14 +95,16 @@ impl TestSet {
                                 }
                             };
 
-                            fns.push(r#fn);
+                            fns.push((fn_name, r#fn));
                         }
                     }
                 }
             }
         }
 
-        return fns;
+        fns.sort_by(|x, y| x.0.cmp(&y.0));
+
+        return fns.into_iter().map(|x| x.1);
 
         fn generate_body<P: AsRef<Path>>(
             full_description: String,
@@ -209,7 +196,11 @@ impl TestSet {
                     }
                 }
                 ResultTypeToTest::Bytes => {
-                    let bytes = &query.results.bytes;
+                    let bytes = query
+                        .results
+                        .bytes
+                        .as_ref()
+                        .expect("result without data in toml should be filtered out in get_available_results");
                     quote! {
                         let result = #engine_ident.run::<_, IndexResult>(&#input_ident)?;
 
@@ -218,6 +209,16 @@ impl TestSet {
                 }
             }
         }
+    }
+
+    fn get_available_results(query: &model::Query) -> Vec<ResultTypeToTest> {
+        let mut res = vec![ResultTypeToTest::Count];
+
+        if query.results.bytes.is_some() {
+            res.push(ResultTypeToTest::Bytes)
+        }
+
+        res
     }
 }
 

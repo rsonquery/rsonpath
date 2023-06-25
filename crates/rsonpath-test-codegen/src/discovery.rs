@@ -6,7 +6,7 @@ use std::{
 
 pub(crate) struct DiscoveredDocument {
     pub name: String,
-    pub path: PathBuf,
+    pub relative_path: PathBuf,
     pub document: model::Document,
 }
 
@@ -35,7 +35,7 @@ fn read_document<P: AsRef<Path>>(f: P) -> DiscoveredDocument {
 
     DiscoveredDocument {
         name: file_name.to_string(),
-        path: f.as_ref().to_owned(),
+        relative_path: f.as_ref().to_owned(),
         document,
     }
 }
