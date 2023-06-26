@@ -116,7 +116,6 @@ impl<'a> Input for BorrowedBytes<'a> {
     }
 
     #[inline]
-    #[cfg(feature = "head-skip")]
     fn find_member(&self, from: usize, member: &JsonString) -> Result<Option<usize>, InputError> {
         Ok(in_slice::find_member(self.bytes, from, member))
     }
