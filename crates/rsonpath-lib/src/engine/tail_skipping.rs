@@ -1,17 +1,15 @@
-use super::error::EngineError;
-use crate::classification::depth::{
-    resume_depth_classification, DepthBlock, DepthIterator, DepthIteratorResumeOutcome,
+use crate::{
+    classification::{
+        depth::{resume_depth_classification, DepthBlock, DepthIterator, DepthIteratorResumeOutcome},
+        quotes::QuoteClassifiedIterator,
+        structural::{BracketType, StructuralIterator},
+        ResumeClassifierState,
+    },
+    debug,
+    engine::error::EngineError,
+    input::Input,
+    FallibleIterator, BLOCK_SIZE,
 };
-#[cfg(feature = "head-skip")]
-use crate::classification::ResumeClassifierState;
-use crate::classification::{
-    quotes::QuoteClassifiedIterator,
-    structural::{BracketType, StructuralIterator},
-};
-use crate::debug;
-use crate::input::Input;
-use crate::FallibleIterator;
-use crate::BLOCK_SIZE;
 use replace_with::replace_with_or_abort;
 use std::marker::PhantomData;
 
@@ -101,7 +99,6 @@ where
         }
     }
 
-    #[cfg(feature = "head-skip")]
     pub(crate) fn stop(self) -> ResumeClassifierState<'b, I, Q, BLOCK_SIZE> {
         self.classifier.stop()
     }

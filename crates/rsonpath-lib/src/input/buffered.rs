@@ -20,7 +20,6 @@ use super::{
     error::InputError, in_slice, repr_align_block_size, Input, InputBlock, InputBlockIterator, MAX_BLOCK_SIZE,
 };
 use crate::{error::InternalRsonpathError, query::JsonString, FallibleIterator};
-#[cfg(feature = "head-skip")]
 use std::cmp;
 use std::{cell::RefCell, io::Read, ops::Deref, slice};
 
@@ -186,7 +185,6 @@ impl<R: Read> Input for BufferedInput<R> {
         in_slice::seek_non_whitespace_backward(slice, from)
     }
 
-    #[cfg(feature = "head-skip")]
     #[inline]
     fn find_member(&self, from: usize, member: &JsonString) -> Result<Option<usize>, InputError> {
         let mut buf = self.0.borrow_mut();
