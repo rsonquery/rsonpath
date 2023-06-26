@@ -1,0 +1,36 @@
+[input]
+description = "members with escaped double quotes and braces and brackets"
+is_compressed = false
+
+[input.source]
+json_string = '''
+{
+    "a": {
+        "b": {
+            "label\":with\"escapes": "key\":with\"escapes",
+            "label}}]]with braces": "key}}]]with braces",
+            "label\":with\"escapes very long 1234567890123456789012345678901234567890123456789012345678901234567890": "key\":with\"escapes very long 1234567890123456789012345678901234567890123456789012345678901234567890",
+            "label}}]]with braces very long 1234567890123456789012345678901234567890123456789012345678901234567890": "key}}]]with braces very long 1234567890123456789012345678901234567890123456789012345678901234567890",
+            "label\\": 42
+        }
+    }
+}
+'''
+
+[[queries]]
+query = '''$..a..b..['label\\']'''
+description = "select label with one actual backslash, which is two backslashes in the query"
+
+[queries.results]
+count = 1
+bytes = [611]
+nodes = ["42"]
+
+[[queries]]
+query = '''$..a..b..['label\\\\']'''
+description = "select label with two actual backslashes (four backslashes in the query), which does not exist"
+
+[queries.results]
+count = 0
+bytes = []
+nodes = []

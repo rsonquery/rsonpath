@@ -1,0 +1,84 @@
+[input]
+description = "object with a list of integers followed by an atomic integer member"
+is_compressed = false
+
+[input.source]
+json_string = '''
+{
+    "a": [
+        {
+            "c": {
+                "d": [
+                    42,
+                    43,
+                    44
+                ],
+                "b": 45
+            }
+        }
+    ]
+}
+'''
+
+[[queries]]
+query = "$..b"
+description = "select the atomic integer by descendant"
+
+[queries.results]
+count = 1
+bytes = [176]
+nodes = ["45"]
+
+[[queries]]
+query = "$.a..b"
+description = "select the 'a' object and then the atomic integer by descendant"
+
+[queries.results]
+count = 1
+bytes = [176]
+nodes = ["45"]
+
+[[queries]]
+query = "$.a[0]"
+description = "select the first and only element of the 'a' list"
+
+[queries.results]
+count = 1
+bytes = [21]
+nodes = ['''{
+            "c": {
+                "d": [
+                    42,
+                    43,
+                    44
+                ],
+                "b": 45
+            }
+        }''']
+
+[[queries]]
+query = "$.a[0].c.d[2]"
+description = "select the third and last element of the deeply nested list"
+
+[queries.results]
+count = 1
+bytes = [133]
+nodes = ["44"]
+
+[[queries]]
+query = "$..*[2]"
+description = "select the third element of each list (only the deeply nested one has a third element)"
+
+[queries.results]
+count = 1
+bytes = [133]
+nodes = ["44"]
+
+[[queries]]
+query = "$.a[0].c.d[3]"
+description = "select the fourth element of the deeply nested list (which does not exist)"
+
+[queries.results]
+count = 0
+bytes = []
+nodes = []

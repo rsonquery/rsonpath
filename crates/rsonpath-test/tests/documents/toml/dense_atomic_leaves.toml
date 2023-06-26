@@ -1,0 +1,54 @@
+[input]
+description = "dense integer atomic leaves without lists"
+is_compressed = false
+
+[input.source]
+json_string = '''
+{
+    "x": {
+        "y": {
+            "a": {
+                "b": 42,
+                "c": 43,
+                "d": 44,
+                "e": {
+                    "x": 45
+                },
+                "a": {
+                    "a": 46,
+                    "x": 47
+                }
+            }
+        }
+    }
+}
+'''
+
+[[queries]]
+query = "$..a.*"
+description = "descendant search for 'a' and then take all children"
+
+[queries.results]
+count = 7
+bytes = [68, 93, 118, 143, 213, 240, 269]
+nodes = ["42", "43", "44", '''{
+                    "x": 45
+                }''', '''{
+                    "a": 46,
+                    "x": 47
+                }''', "46", "47"]
+
+[[queries]]
+query = "$..a..*"
+description = "descendant search for 'a' and then all subdocuments"
+
+[queries.results]
+count = 8
+bytes = [68, 93, 118, 143, 170, 213, 240, 269]
+nodes = ["42", "43", "44", '''{
+                    "x": 45
+                }''', "45", '''{
+                    "a": 46,
+                    "x": 47
+                }''']
+

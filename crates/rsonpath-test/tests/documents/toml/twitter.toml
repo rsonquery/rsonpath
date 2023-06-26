@@ -50,53 +50,78 @@ bytes = [
     762902,
     763474,
 ]
-nodes = [
-    "http://t.co/Yg9e1Fl8wd",
-    "http://t.co/QMLJeFmfMT",
-    "http://t.co/LU8T7vmU3h",
-    "http://t.co/5EclbQiRX4",
-    "http://t.co/JTFjV89eaN",
-    "http://t.co/ANSFlYXERJ",
-    "http://t.co/LruVPk5x4K",
-    "http://t.co/SXoYWH98as",
-    "http://t.co/SXoYWH98as",
-    "http://t.co/LFX2XOzb0l",
-    "http://t.co/9oH5cgpy1q",
-    "http://t.co/9oH5cgpy1q",
-    "http://t.co/AEOCATaNZc",
-    "http://t.co/96UqoCo0oU",
-    "http://t.co/mM1dG54NiO",
-    "http://t.co/K3Oi83wM3w",
-    "http://t.co/jVqBoBEc",
-    "http://t.co/4WK1f6V2n6",
-    "https://t.co/3sB1NDnd0m",
-    "http://t.co/ll2yu78DGR",
-    "http://t.co/ezuHyjF4Qy",
-    "http://t.co/Cn1tPTsBGY",
-    "http://t.co/kKCCwHTaph",
-    "http://t.co/ZkU4TZCGPG",
-    "http://t.co/lmlgp38fgZ",
-    "http://t.co/nuUvfUVD",
-    "http://t.co/ZkU4TZCGPG",
-    "http://t.co/lmlgp38fgZ",
-    "http://t.co/toQgVlXPyH",
-    "http://t.co/SQLZnvjVxB",
-    "http://t.co/jRWJt8IrSB",
-    "http://t.co/wR0Qb76TbB",
-    "http://t.co/5R4dzpbWX2",
-    "http://t.co/fXIgRt4ffH",
-    "http://t.co/RNdqIHmTby",
-    "http://t.co/4hbyB1rbQ7",
-    "http://t.co/V4oyL0xtZk",
-    "http://t.co/SXoYWH98as",
-    "http://t.co/SXoYWH98as",
-    "http://t.co/LFX2XOzb0l",
-    "http://t.co/HLX9mHcQwe",
-    "http://t.co/HLX9mHcQwe",
-    "http://t.co/PjL9if8OZC",
-    "http://t.co/ulD2e9mcwb",
-    "http://t.co/8E91tqoeKX",
+
+[[queries]]
+query = "$..user..entities.url"
+description = "descendant user entities, then child url"
+
+[queries.results]
+count = 18
+bytes = [
+    5465,
+    18496,
+    23338,
+    89785,
+    112198,
+    134220,
+    201055,
+    205281,
+    333130,
+    352432,
+    357000,
+    399785,
+    475584,
+    511442,
+    516538,
+    728252,
+    743602,
+    762797,
 ]
+
+[[queries]]
+query = "$.search_metadata.count"
+description = "select metadata count directly"
+
+[queries.results]
+count = 1
+bytes = [767233]
+nodes = ["100"]
+
+[[queries]]
+query = "$..search_metadata.count"
+description = "select metadata count by descendant (should use memchr)"
+
+[queries.results]
+count = 1
+bytes = [767233]
+nodes = ["100"]
+
+[[queries]]
+query = "$.search_metadata..count"
+description = "select metadata directly, and then count by descendant"
+
+[queries.results]
+count = 1
+bytes = [767233]
+nodes = ["100"]
+
+[[queries]]
+query = "$..search_metadata..count"
+description = "select metadata and count by descendant (should use memchr)"
+
+[queries.results]
+count = 1
+bytes = [767233]
+nodes = ["100"]
+
+[[queries]]
+query = "$..count"
+description = "select count by descendant (should use memchr)"
+
+[queries.results]
+count = 1
+bytes = [767233]
+nodes = ["100"]
 
 [input]
 description = "twitter json from simdjson github example"

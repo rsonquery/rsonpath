@@ -1,0 +1,27 @@
+[input]
+description = "list with mixed atomic integers and objects"
+is_compressed = false
+
+[input.source]
+json_string = '''
+{
+  "a": [
+    42,
+    {
+      "b": 43
+    },
+    44
+  ]
+}
+'''
+
+[[queries]]
+query = "$.a.*"
+description = "select all elements on the list"
+
+[queries.results]
+count = 3
+bytes = [15, 23, 50]
+nodes = ["42", '''{
+      "b": 43
+    }''', "44"]

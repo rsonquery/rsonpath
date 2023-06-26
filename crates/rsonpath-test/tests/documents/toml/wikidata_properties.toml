@@ -1,0 +1,56 @@
+[input]
+description = "large wikidata dump (properties)"
+is_compressed = false
+
+[input.source]
+large_file = "large/wikidata_properties.json"
+
+[[queries]]
+query = "$..qualifiers..datavalue..id"
+description = "descendant search for qualifiers datavalue id"
+
+[queries.results]
+count = 18219
+
+[[queries]]
+query = "$..en..value"
+description = "descendant search for en value"
+
+[queries.results]
+count = 4504
+
+[[queries]]
+query = "$..en.value"
+description = "descendant search for en, and then its 'value' child"
+
+[queries.results]
+count = 1760
+
+[[queries]]
+query = "$..*.value"
+description = "descendant search for any node and then its 'value' child"
+
+[queries.results]
+count = 132188
+
+[[queries]]
+query = "$..*[5]"
+description = "descendant search for the fifth array element of any node"
+
+[queries.results]
+count = 2511
+
+[[queries]]
+query = "$..P7103.claims.P31..references..snaks.P4656..hash"
+description = "path to P7103 claims P31 references snaks P4656 hash with descendants"
+
+[queries.results]
+count = 1
+bytes = [22639035]
+
+[[queries]]
+query = "$..*"
+description = "all nodes"
+
+[queries.results]
+count = 922519

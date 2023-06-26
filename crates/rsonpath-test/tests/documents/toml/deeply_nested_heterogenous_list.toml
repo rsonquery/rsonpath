@@ -1,0 +1,68 @@
+[input]
+description = "deeply nested list with all data types"
+is_compressed = false
+
+[input.source]
+json_string = '''
+{
+    "x": {
+        "y": {
+            "a": [
+                {
+                    "x": [
+                        [
+                            {
+                                "b": {
+                                    "c": 42
+                                }
+                            },
+                            {
+                                "b": [
+                                    1,
+                                    2,
+                                    {},
+                                    [],
+                                    [
+                                        []
+                                    ],
+                                    "xyz",
+                                    true,
+                                    false,
+                                    null
+                                ]
+                            }
+                        ]
+                    ]
+                },
+                {
+                    "b": [
+                        42
+                    ]
+                }
+            ]
+        }
+    }
+}
+'''
+
+[[queries]]
+query = "$..a.*..b.*"
+description = "select all nodes in bs with mixed segments"
+
+[queries.results]
+count = 11
+bytes = [228, 401, 440, 479, 519, 559, 679, 722, 764, 807, 1012]
+nodes = ["42", "1", "2", "{}", "[]", '''[
+                                        []
+                                    ]''', '"xyz"', "true", "false", "null", "42"]
+
+[[queries]]
+query = "$..a..*..b..*"
+description = "select all nodes in bs with descendant segments"
+
+[queries.results]
+count = 12
+bytes = [228, 401, 440, 479, 519, 559, 601, 679, 722, 764, 807, 1012]
+nodes = ["42", "1", "2", "{}", "[]", '''[
+                                        []
+                                    ]''', "[]", '"xyz"', "true", "false", "null", "42"]

@@ -1,0 +1,90 @@
+[input]
+description = "large wikidata dump (person)"
+is_compressed = false
+
+[input.source]
+large_file = "large/wikidata_person.json"
+
+[[queries]]
+query = "$..claims..references..hash"
+description = "descendant search for claims references hash"
+
+[queries.results]
+count = 37736
+
+[[queries]]
+query = "$..references..snaks..datavalue"
+description = "descendant search for references snaks datavalue"
+
+[queries.results]
+count = 25118
+
+[[queries]]
+query = "$..references..snaks..datavalue..value"
+description = "descendant search for references snaks datavalue value"
+
+[queries.results]
+count = 25118
+
+[[queries]]
+query = "$..references..snaks..datavalue..value..id"
+description = "descendant search for references snaks datavalue value id"
+
+[queries.results]
+count = 11113
+
+[[queries]]
+query = "$..snaks..datavalue..value"
+description = "descendant search for snaks datavalue value"
+
+[queries.results]
+count = 25118
+
+[[queries]]
+query = "$..snaks..*.id"
+description = "descendant search for snaks, then any descendant and its id child"
+
+[queries.results]
+count = 11113
+
+[[queries]]
+query = "$..datavalue..value..id"
+description = "descendant search for datavalue value id"
+
+[queries.results]
+count = 25093
+
+[[queries]]
+query = "$..mainsnak..datavalue..value"
+description = "descendant search for mainsnak datavalue value"
+
+[queries.results]
+count = 26115
+
+[[queries]]
+query = "$..mainsnak..datavalue..value..id"
+description = "descendant search for mainsnak datavalue value id"
+
+[queries.results]
+count = 12958
+
+[[queries]]
+query = "$..*"
+description = "select all nodes"
+
+[queries.results]
+count = 970442
+
+[[queries]]
+query = "$..en..value"
+description = "descendant search for en value"
+
+[queries.results]
+count = 2360
+
+[[queries]]
+query = "$..en.value"
+description = "descendant search for en, then directly for value"
+
+[queries.results]
+count = 1753

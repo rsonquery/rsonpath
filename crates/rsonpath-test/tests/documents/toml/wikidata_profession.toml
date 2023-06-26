@@ -1,0 +1,42 @@
+[input]
+description = "large wikidata dump (profession)"
+is_compressed = false
+
+[input.source]
+large_file = "large/wikidata_profession.json"
+
+[[queries]]
+query = "$..claims..mainsnak..value"
+description = "descendant search for claims mainsnak value"
+
+[queries.results]
+count = 59112
+
+[[queries]]
+query = "$..*"
+description = "all nodes"
+
+[queries.results]
+count = 1702482
+
+[[queries]]
+query = "$..en..value"
+description = "descendant search for en value"
+
+[queries.results]
+count = 13634
+
+[[queries]]
+query = "$..*.id"
+description = "descendant search for any node and then its 'id' child"
+
+[queries.results]
+count = 98805
+
+[[queries]]
+query = "$..en.value"
+description = "descendant search for en, then its 'value' child"
+
+[queries.results]
+count = 9452
+

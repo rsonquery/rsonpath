@@ -43,3 +43,15 @@ query = "$..number"
 count = 2
 bytes = [271, 359]
 nodes = ['"0123-4567-8888"', '"0123-4567-8910"']
+
+[[queries]]
+description = "select first number directly"
+query = "$.phoneNumbers[0]"
+
+[queries.results]
+count = 1
+bytes = [217]
+nodes = ['''{
+            "type": "iPhone",
+            "number": "0123-4567-8888"
+        }''']

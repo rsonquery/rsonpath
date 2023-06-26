@@ -1,0 +1,53 @@
+[input]
+description = "artificial JSON with excessive whitespace between structural colons"
+is_compressed = false
+
+[input.source]
+json_string = '''
+{
+    "z"    
+         :
+               [],
+    "a" : {
+        "b"    
+        
+                         : [
+            {
+                "label" : 42
+            },
+            {
+                "label"    
+                
+                            : 42
+            }
+        ]
+    }
+}
+'''
+
+[[queries]]
+query = "$..a..b..label"
+description = "select leaves"
+
+[queries.results]
+count = 2
+bytes = [150, 257]
+nodes = ["42", "42"]
+
+[[queries]]
+query = "$..label"
+description = "select leaves by memchr"
+
+[queries.results]
+count = 2
+bytes = [150, 257]
+nodes = ["42", "42"]
+
+[[queries]]
+query = "$.a..label"
+description = "select leaves tail-skipping the first element"
+
+[queries.results]
+count = 2
+bytes = [150, 257]
+nodes = ["42", "42"]
