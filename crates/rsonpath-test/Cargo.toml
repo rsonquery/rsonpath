@@ -17,10 +17,18 @@ repository = "https://github.com/V0ldek/rsonpath"
 
 [dev-dependencies]
 pretty_assertions = "1.3.0"
-rsonpath-lib = { path = "../rsonpath-lib" }
+rsonpath-lib = { version = "0.5.0", default-features = false }
 tempfile = "3.6.0"
 
 [build-dependencies]
 eyre = "0.6.8"
 md5 = "0.7.0"
 rsonpath-test-codegen = { path = "../rsonpath-test-codegen" }
+
+[features]
+default = ["simd", "default-optimizations"]
+simd = ["rsonpath-lib/simd"]
+head-skip = ["rsonpath-lib/head-skip"]
+tail-skip = ["rsonpath-lib/tail-skip"]
+unique-members = ["tail-skip", "rsonpath-lib/unique-members"]
+default-optimizations = ["head-skip", "tail-skip", "unique-members"]
