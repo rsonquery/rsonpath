@@ -18,7 +18,8 @@ fn main() -> eyre::Result<()> {
 
     let tokens = rsonpath_test_codegen::generate_tests(TOML_DIRECTORY_PATH, JSON_DIRECTORY_PATH)
         .wrap_err("error generating end-to-end tests")?;
-    let source = format!("{}", tokens);
+    // Format and normalize line endings, so that MD5 sums agree between platforms.
+    let source = format!("{}", tokens).replace("\r\n", "\n");
 
     let new_md5 = md5::compute(&source);
     let old_comment = read_md5_from_comment(OUTPUT_FILE_PATH)?;
