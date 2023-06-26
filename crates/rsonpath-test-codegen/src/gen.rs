@@ -9,12 +9,8 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> impl IntoIterator<Item = T
     let docs = files.documents().into_iter().cloned().collect::<Vec<_>>();
     for discovered_doc in docs {
         let input_json = match &discovered_doc.document.input.source {
-            model::InputSource::LargeFile(f) => {
-                files.get_json_source_path(f)
-            },
-            model::InputSource::JsonString(contents) => {
-                files.add_json_source(&discovered_doc, contents.clone())
-            }
+            model::InputSource::LargeFile(f) => files.get_json_source_path(f),
+            model::InputSource::JsonString(contents) => files.add_json_source(&discovered_doc, contents.clone()),
         };
         for query in &discovered_doc.document.queries {
             for input_type in [InputTypeToTest::Owned, InputTypeToTest::Buffered, InputTypeToTest::Mmap] {

@@ -276,8 +276,10 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
                                     if self.automaton.is_accepting(target) && self.is_match(idx, member_name)? =>
                                 {
                                     debug!("Accept {idx}");
-                                    result
-                                        .report(idx + 1, NodeTypeHint::Atomic /* since is_next_opening is false */)?;
+                                    result.report(
+                                        idx + 1,
+                                        NodeTypeHint::Atomic, /* since is_next_opening is false */
+                                    )?;
                                     any_matched = true;
                                     break;
                                 }

@@ -766,7 +766,7 @@ dependencies = [
 
 [[package]]
 name = "rsonpath-test"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "eyre",
  "md5",
@@ -778,7 +778,7 @@ dependencies = [
 
 [[package]]
 name = "rsonpath-test-codegen"
-version = "0.1.0"
+version = "0.5.0"
 dependencies = [
  "heck",
  "pretty_assertions",

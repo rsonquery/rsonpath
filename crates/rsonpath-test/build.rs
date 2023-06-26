@@ -1,9 +1,9 @@
+use eyre::WrapErr;
 use std::{fs, io, path::Path};
 use std::{
     io::{BufRead, BufReader, ErrorKind},
     process::Command,
 };
-use eyre::WrapErr;
 
 fn main() -> eyre::Result<()> {
     println!("cargo:rerun-if-changed=build.rs");

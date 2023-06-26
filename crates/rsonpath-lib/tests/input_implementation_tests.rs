@@ -7,16 +7,16 @@ use std::{cmp, fs, iter};
 use std::{fs::File, io::Read};
 use test_case::test_case;
 
-const ROOT_TEST_DIRECTORY: &str = "./tests/data";
+const ROOT_TEST_DIRECTORY: &str = "../rsonpath-test/tests/documents/json/large";
 const BLOCK_SIZE: usize = 64;
 
 macro_rules! file_test_cases {
     ($test_name:ident, $impl:expr) => {
-        #[test_case("twitter/twitter.json"; "twitter_json")]
-        #[test_case("twitter/compressed/twitter.json"; "compressed_twitter_json")]
-        #[test_case("wikidata/wikidata_person.json"; "wikidata_person_json")]
-        #[test_case("wikidata/wikidata_profession.json"; "wikidata_profession_json")]
-        #[test_case("wikidata/wikidata_properties.json"; "wikidata_properties_json")]
+        #[test_case("twitter.json"; "twitter_json")]
+        #[test_case("compressed/twitter.json"; "compressed_twitter_json")]
+        #[test_case("wikidata_person.json"; "wikidata_person_json")]
+        #[test_case("wikidata_profession.json"; "wikidata_profession_json")]
+        #[test_case("wikidata_properties.json"; "wikidata_properties_json")]
         fn $test_name(test_path: &str) {
             $impl.test_on_file(test_path);
         }

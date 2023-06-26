@@ -1,7 +1,17 @@
 [package]
 name = "rsonpath-test"
-version = "0.1.0"
+version = "0.5.0"
+authors = ["Mateusz Gienieczko <mat@gienieczko.com>"]
 edition = "2021"
+description = "Blazing fast JSONPath query engine powered by SIMD. E2E test suite for rsonpath-lib."
+readme = "README.md"
+license = "MIT"
+keywords = ["json", "jsonpath", "query", "simd", "parser"]
+exclude = ["/tests"]
+categories = [
+    "text-processing",
+]
+repository = "https://github.com/V0ldek/rsonpath"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
