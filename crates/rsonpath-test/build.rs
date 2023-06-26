@@ -3,7 +3,6 @@ use std::{
     io::{BufRead, BufReader, ErrorKind},
     process::Command,
 };
-
 use eyre::WrapErr;
 
 fn main() -> eyre::Result<()> {
