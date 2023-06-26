@@ -1,19 +1,18 @@
 //! Reference implementation of a JSONPath query engine with recursive descent.
-#[cfg(feature = "head-skip")]
-use super::head_skipping::{CanHeadSkip, HeadSkip};
-#[cfg(feature = "head-skip")]
-use crate::classification::ResumeClassifierState;
-#[cfg(feature = "tail-skip")]
-use crate::engine::tail_skipping::TailSkip;
-#[cfg(feature = "head-skip")]
-use crate::error::InternalRsonpathError;
 use crate::{
     classification::{
         quotes::{classify_quoted_sequences, QuoteClassifiedIterator},
         structural::{classify_structural_characters, BracketType, Structural, StructuralIterator},
+        ResumeClassifierState,
     },
     debug,
-    engine::{error::EngineError, Compiler, Engine},
+    engine::{
+        error::EngineError,
+        head_skipping::{CanHeadSkip, HeadSkip},
+        tail_skipping::TailSkip,
+        Compiler, Engine,
+    },
+    error::InternalRsonpathError,
     input::Input,
     query::{
         automaton::{Automaton, State, TransitionLabel},
@@ -55,10 +54,7 @@ impl Engine for RecursiveEngine<'_> {
 
         let quote_classifier = classify_quoted_sequences(input);
         let structural_classifier = classify_structural_characters(quote_classifier);
-        #[cfg(feature = "tail-skip")]
         let mut classifier = TailSkip::new(structural_classifier);
-        #[cfg(not(feature = "tail-skip"))]
-        let mut classifier = structural_classifier;
 
         match classifier.next()? {
             Some(Structural::Opening(b, idx)) => {
@@ -89,16 +85,9 @@ struct ExecutionContext<'q, 'b, I: Input> {
     bytes: &'b I,
 }
 
-#[cfg(feature = "tail-skip")]
 macro_rules! Classifier {
     () => {
         TailSkip<'b, I, Q, S, BLOCK_SIZE>
-    };
-}
-#[cfg(not(feature = "tail-skip"))]
-macro_rules! Classifier {
-    () => {
-        S
     };
 }
 
@@ -107,7 +96,6 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
         Self { automaton, bytes }
     }
 
-    #[cfg(feature = "head-skip")]
     fn run<'r, Q, S, B, R>(
         &mut self,
         classifier: &mut Classifier!(),
@@ -130,25 +118,6 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
                 .run_on_subtree(classifier, state, open_idx, bracket_type, result)
                 .map(|_| ()),
         }
-    }
-
-    #[cfg(not(feature = "head-skip"))]
-    fn run<'r, Q, S, B, R>(
-        &mut self,
-        classifier: &mut Classifier!(),
-        state: State,
-        open_idx: usize,
-        bracket_type: BracketType,
-        result: &'r mut B,
-    ) -> Result<(), EngineError>
-    where
-        Q: QuoteClassifiedIterator<'b, I, BLOCK_SIZE>,
-        S: StructuralIterator<'b, I, Q, BLOCK_SIZE>,
-        B: QueryResultBuilder<'b, I, R>,
-        R: QueryResult,
-    {
-        self.run_on_subtree(classifier, state, open_idx, bracket_type, result)
-            .map(|_| ())
     }
 
     fn run_on_subtree<'r, Q, S, B, R>(
@@ -355,14 +324,9 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
                                 result.report(idx, NodeTypeHint::Complex(b))?;
                             }
 
-                            #[cfg(feature = "tail-skip")]
                             if self.automaton.is_rejecting(fallback_state) {
                                 classifier.skip(b)?
                             } else {
-                                self.run_on_subtree(classifier, fallback_state, idx, b, result)?
-                            }
-                            #[cfg(not(feature = "tail-skip"))]
-                            {
                                 self.run_on_subtree(classifier, fallback_state, idx, b, result)?
                             }
                         }
@@ -417,7 +381,6 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
     }
 }
 
-#[cfg(feature = "head-skip")]
 impl<'q, 'b, I: Input> CanHeadSkip<'b, I, BLOCK_SIZE> for ExecutionContext<'q, 'b, I> {
     fn run_on_subtree<'r, B, R, Q, S>(
         &mut self,
@@ -432,10 +395,7 @@ impl<'q, 'b, I: Input> CanHeadSkip<'b, I, BLOCK_SIZE> for ExecutionContext<'q, '
         R: QueryResult,
         S: StructuralIterator<'b, I, Q, BLOCK_SIZE>,
     {
-        #[cfg(feature = "tail-skip")]
         let mut classifier = TailSkip::new(structural_classifier);
-        #[cfg(not(feature = "tail-skip"))]
-        let mut classifier = structural_classifier;
 
         let bracket_type = match next_event {
             Structural::Closing(b, _) | Structural::Opening(b, _) => Ok(b),

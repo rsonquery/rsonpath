@@ -113,7 +113,6 @@ pub trait Input: Sized {
     /// # Errors
     /// This function can read more data from the input if no relevant characters are found
     /// in the current buffer, which can fail.
-    #[cfg(feature = "head-skip")]
     fn find_member(&self, from: usize, member: &JsonString) -> Result<Option<usize>, InputError>;
 
     /// Decide whether the slice of input between `from` (inclusive)
@@ -254,7 +253,6 @@ pub(super) mod in_slice {
     }
 
     #[inline]
-    #[cfg(feature = "head-skip")]
     pub(super) fn find_member(bytes: &[u8], from: usize, member: &JsonString) -> Option<usize> {
         use memchr::memmem;
 
@@ -550,7 +548,6 @@ mod tests {
         }
     }
 
-    #[cfg(feature = "head-skip")]
     mod find_member {
         use super::*;
         use crate::query::JsonString;
