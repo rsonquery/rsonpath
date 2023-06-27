@@ -26,9 +26,6 @@ md5 = "0.7.0"
 rsonpath-test-codegen = { path = "../rsonpath-test-codegen" }
 
 [features]
-default = ["simd", "default-optimizations"]
+default = ["simd", "unique-members"]
 simd = ["rsonpath-lib/simd"]
-head-skip = ["rsonpath-lib/head-skip"]
-tail-skip = ["rsonpath-lib/tail-skip"]
-unique-members = ["tail-skip", "rsonpath-lib/unique-members"]
-default-optimizations = ["head-skip", "tail-skip", "unique-members"]
+unique-members = ["rsonpath-lib/unique-members"]
