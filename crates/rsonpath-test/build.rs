@@ -5,13 +5,28 @@ use std::{
     process::Command,
 };
 
+const ENV_TRIGGER: &str = "RSONPATH_TEST_ALLOW_GENERATION";
+
 fn main() -> eyre::Result<()> {
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=./tests/documents/toml/*");
     println!("cargo:rerun-if-changed=./tests/documents/json/large/*");
     println!("cargo:rerun-if-changed=./tests/end_to_end.rs");
     println!("cargo:rerun-if-changed=../rsonpath-test-codegen/**/*");
+    println!("cargo:rerun-if-env-changed={ENV_TRIGGER}");
 
+    if std::env::var(ENV_TRIGGER).is_ok_and(|f| f == "1") {
+        eprintln!("env trigger detected, executing codegen");
+        generate()?;
+    }
+    else {
+        eprintln!("env trigger disabled, skipping codegen");
+    }
+    
+    Ok(())
+}
+
+fn generate() -> eyre::Result<()> {
     const TOML_DIRECTORY_PATH: &str = "./tests/documents/toml";
     const JSON_DIRECTORY_PATH: &str = "./tests/documents/json";
     const OUTPUT_FILE_PATH: &str = "./tests/end_to_end.rs";
