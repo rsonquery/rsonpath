@@ -1,0 +1,56 @@
+name: rsonpath-test codegen
+
+on:
+  workflow_call:
+    outputs:
+      artifact-name:
+        description: Name of the produced artifact.
+        value: rsonpath-test-documents
+      artifact-path:
+        description: Path to which the artifact should be extracted.
+        value: crates/rsonpath-test/tests/documents
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  # Run the test codegen build step once and save the artifact to be used for all other steps.
+  # This cuts down on CI time, since otherwise we'd regenerate tests on every step of the feature powerset test run.
+  test-gen:
+    name: Generate rsonpath-test cases
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install lld
+        run: sudo apt install lld
+      - name: Checkout sources
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: Install Rust toolchain (stable)
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          target: x86_64-unknown-linux-gnu
+      - name: Override toolchain
+        run: rustup override set stable
+      - name: Cache restore (Cargo)
+        id: cache-restore-cargo
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: x86_64-unknown-linux-gnu-x86_64-unknown-linux-gnu--cargo-${{ hashFiles('**/Cargo.toml') }}
+      - name: Build with test codegen
+        id: build-test-codegen
+        run: cargo build -p rsonpath-test -vv
+      - name: Upload generated tests as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: rsonpath-test-documents
+          path: crates/rsonpath-test/tests/documents
+          retention-days: 1
