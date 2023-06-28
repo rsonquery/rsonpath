@@ -8,7 +8,7 @@ on:
         value: rsonpath-test-documents
       artifact-path:
         description: Path to which the artifact should be extracted.
-        value: crates/rsonpath-test/tests/documents
+        value: crates/rsonpath-lib/tests/documents
 
 env:
   CARGO_TERM_COLOR: always
@@ -52,5 +52,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: rsonpath-test-documents
-          path: crates/rsonpath-test/tests/documents
+          path: crates/rsonpath-lib/tests/documents
           retention-days: 1
