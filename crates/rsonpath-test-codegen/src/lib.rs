@@ -13,13 +13,20 @@ mod files;
 mod gen;
 mod model;
 
+/// Parsed TOML document declaration annotated with its name and path.
 #[derive(Clone)]
 pub(crate) struct DiscoveredDocument {
+    /// Name of the file.
     pub name: String,
+    /// Path relative to the source TOML directory.
     pub relative_path: PathBuf,
+    /// Parsed TOML document.
     pub document: model::Document,
 }
 
+/// Generate the source of end-to-end tests based on the TOML configuration in `toml_directory_path`.
+/// As a side-effect, JSON files are written to `output_json_directory_path`, and additional variants
+/// with compressed inputs of TOML configs are generated.
 pub fn generate_tests<P1, P2>(toml_directory_path: P1, output_json_directory_path: P2) -> Result<TokenStream, io::Error>
 where
     P1: AsRef<Path>,
@@ -59,6 +66,7 @@ where
     })
 }
 
+/// Wrapper implementing [`Display`] for [`Duration`] which shows the duration in seconds.
 struct FormatDuration(Duration);
 
 impl Display for FormatDuration {

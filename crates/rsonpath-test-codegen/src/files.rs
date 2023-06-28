@@ -1,3 +1,8 @@
+//! Filesystem context for registering files that need to be written.
+//! 
+//! The decision to create a new file can be taken in many different places during codegen,
+//! so we pass around a [`Files`] context that can register those requests. Then the file writing
+//! is performed all at once at the end of the generation.
 use crate::{model, DiscoveredDocument};
 use std::{
     collections::HashMap,
@@ -12,6 +17,7 @@ struct FileToWrite {
     contents: String,
 }
 
+/// Filesystem context.
 pub(crate) struct Files {
     json_dir: PathBuf,
     toml_dir: PathBuf,
@@ -35,6 +41,7 @@ impl Stats {
 }
 
 impl Files {
+    /// Create a new context that can read and write files to the TOML and JSON dirs.
     pub(crate) fn new<P1: AsRef<Path>, P2: AsRef<Path>>(json_dir: P1, toml_dir: P2) -> Result<Self, io::Error> {
         let all_document_files = get_document_files(toml_dir.as_ref());
         let discovery = all_document_files
@@ -51,6 +58,7 @@ impl Files {
         })
     }
 
+    /// Returns a list of all available TOML configurations parsed into [`DiscoveredDocument`].
     pub(crate) fn documents(&self) -> impl IntoIterator<Item = &DiscoveredDocument> {
         self.toml_documents.values()
     }
@@ -65,12 +73,17 @@ impl Files {
         }
     }
 
+    /// Read a JSON using a path relative to the JSON directory.
     pub(crate) fn read_json<P: AsRef<Path>>(&self, relative_path: P) -> Result<String, io::Error> {
         let full_path = Path::join(&self.json_dir, relative_path);
         fs::read_to_string(full_path)
     }
-
+    
+    /// Get the path to a file-based input source from a relative path.
     pub(crate) fn get_json_source_path<P: AsRef<Path>>(&self, relative_path: P) -> PathBuf {
+        // This is a bit of a hack, compressed files are passed with a non-relative path
+        // by `compression`, and we need to support that. So we only append the JSON base dir
+        // if it is not already there.
         if !relative_path.as_ref().starts_with(&self.json_dir) {
             Path::join(&self.json_dir, relative_path)
         } else {
@@ -78,6 +91,7 @@ impl Files {
         }
     }
 
+    /// Register a JSON file to write that is a compressed version of the file at `original_path`.
     pub(crate) fn add_compressed_large_json<P: AsRef<Path>>(
         &mut self,
         original_path: P,
@@ -99,6 +113,7 @@ impl Files {
         new_path
     }
 
+    /// Register a JSON file to write that is a copy of the inline json string in the `doc`.
     pub(crate) fn add_json_source(&mut self, doc: &DiscoveredDocument, json_string: String) -> PathBuf {
         let file_name = doc
             .relative_path
@@ -120,6 +135,7 @@ impl Files {
         new_path
     }
 
+    /// Register a TOML file to write that is a version of an existing TOML file but with compressed input.
     pub(crate) fn add_compressed_document<P: AsRef<Path>>(
         &mut self,
         relative_path: P,
@@ -147,6 +163,7 @@ impl Files {
         new_path
     }
 
+    /// Write all registered files to the filesystem.
     pub(crate) fn flush(&mut self) -> Result<(), io::Error> {
         for file_to_write in self.file_buf.drain(..) {
             write_file(file_to_write.full_path, file_to_write.contents)?;
@@ -176,7 +193,9 @@ fn read_document<P1: AsRef<Path>, P2: AsRef<Path>>(base_dir: P1, f: P2) -> Disco
     let file_name = f.as_ref().file_name().unwrap().to_string_lossy();
     let contents = fs::read_to_string(f.as_ref()).unwrap();
 
-    let document: model::Document = model::deserialize(contents);
+    let document: model::Document =
+        model::deserialize(contents).unwrap_or_else(|err| panic!("invalid document {file_name}: {err}"));
+
     let relative_path = f
         .as_ref()
         .strip_prefix(base_dir)

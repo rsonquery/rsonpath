@@ -1,3 +1,8 @@
+//! Compressing JSON files while maintaining integrity of expected results.
+//! 
+//! We first compress by mapping each byte with information on whether it is significant
+//! or should be removed. Using that annotation we can figure out the expected byte offsets
+//! of results in the compressed version with respect to the original.
 use crate::{
     files::Files,
     model::{self},
@@ -5,6 +10,7 @@ use crate::{
 };
 use std::{io, string::FromUtf8Error};
 
+/// Read all existing TOML documents and generate the compressed variants.
 pub(crate) fn generate_compressed_documents(files: &mut Files) -> Result<(), io::Error> {
     let original_documents: Vec<_> = files.documents().into_iter().cloned().collect();
 
@@ -58,16 +64,21 @@ fn compress_document(files: &mut Files, doc: &DiscoveredDocument) -> Result<(), 
     Ok(())
 }
 
+/// Compressed JSON input.
 struct CompressedInput {
     json_string: JsonString,
 }
 
+/// Categorization of JSON bytes into whitespace and significant bytes.
 #[derive(Clone, Copy)]
 enum JsonByte {
+    /// The byte is significant and should be preserved.
     Significant(u8),
+    /// The byte is some whitespace and does not matter.
     Whitespace,
 }
 
+/// Wrapper over a vec of bytes to implement traits.
 struct JsonString(Vec<JsonByte>);
 
 impl From<JsonString> for Vec<u8> {
@@ -106,6 +117,8 @@ impl CompressedInput {
     }
 
     fn transform_byte_results(&self, bytes: &[usize]) -> Vec<usize> {
+        // To get byte results we annotate the significant bytes in the JSON string
+        // with the indices at which they will end up after compression.
         let mut st = 0_usize;
         let new_indices: Vec<_> = self
             .json_string
@@ -121,10 +134,13 @@ impl CompressedInput {
             })
             .collect();
 
+        // Now we can use the map to convert expected offsets to compressed offsets.
         bytes.iter().copied().map(|b| new_indices[b]).collect()
     }
 
     fn transform_node_results(&self, nodes: &[String]) -> Vec<String> {
+        // The results will be the same, but also compressed.
+        // We directly compress each result.
         nodes
             .iter()
             .map(|n| {
@@ -156,8 +172,11 @@ impl JsonByte {
 
 impl JsonString {
     fn new(json: &str) -> Self {
+        // Compression needs to keep track of whether we are within quotes and handle escaped characters.
         struct State {
+            // Whether the currently processed character is escaped.
             is_escaped: bool,
+            // Whether the currently processed character is quoted.
             within_string: bool,
         }
         let mut st = State {

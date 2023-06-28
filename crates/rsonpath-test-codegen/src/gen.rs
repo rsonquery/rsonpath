@@ -1,17 +1,21 @@
-use crate::files::Files;
-use crate::model;
+//! Main codegen logic, creating all test functions from TOML documents.
+use crate::{files::Files, model};
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
 use std::{fmt::Display, path::Path};
 
+/// Generate the source file and register all required files.
 pub(crate) fn generate_test_fns(files: &mut Files) -> impl IntoIterator<Item = TokenStream> {
     let mut fns = vec![];
+    // Clone the collection, since we need to mutate the files.
     let docs = files.documents().into_iter().cloned().collect::<Vec<_>>();
     for discovered_doc in docs {
+        // The input JSON either already exists when large_file is used, or needs to be generated if it is inline.
         let input_json = match &discovered_doc.document.input.source {
             model::InputSource::LargeFile(f) => files.get_json_source_path(f),
             model::InputSource::JsonString(contents) => files.add_json_source(&discovered_doc, contents.clone()),
         };
+        // For each query generate cases using each combination of input mode, result type, and engine type.
         for query in &discovered_doc.document.queries {
             for input_type in [InputTypeToTest::Owned, InputTypeToTest::Buffered, InputTypeToTest::Mmap] {
                 for result_type in get_available_results(query) {
