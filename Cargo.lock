@@ -750,6 +750,7 @@ dependencies = [
  "eyre",
  "itertools",
  "log",
+ "md5",
  "memchr",
  "memmap2",
  "nom",
@@ -762,18 +763,6 @@ dependencies = [
  "test-case",
  "thiserror",
  "vector-map",
-]
-
-[[package]]
-name = "rsonpath-test"
-version = "0.5.0"
-dependencies = [
- "eyre",
- "md5",
- "pretty_assertions",
- "rsonpath-lib",
- "rsonpath-test-codegen",
- "tempfile",
 ]
 
 [[package]]

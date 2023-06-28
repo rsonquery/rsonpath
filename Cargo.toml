@@ -3,7 +3,6 @@
 members = [
     "crates/rsonpath",
     "crates/rsonpath-lib",
-    "crates/rsonpath-test",
     "crates/rsonpath-test-codegen"
 ]
 
