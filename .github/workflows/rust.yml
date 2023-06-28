@@ -15,7 +15,7 @@ env:
 
 jobs:
   test-gen:
-    uses: v0ldek/rsonpath/.github/workflows/test-codegen.yml
+    uses: ./.github/workflows/test-codegen.yml
 
   test:
     name: Test matrix
