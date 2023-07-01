@@ -130,6 +130,39 @@ fn block_boundary() {
 mod prop_test {
     use super::{classify_string, BracketType, Structural};
     use proptest::{self, collection, prelude::*};
+    use std::fmt::Debug;
+
+    /// A string inside quotes (quotes included)
+    #[derive(Clone)]
+    struct QuotedString(String);
+
+    impl QuotedString {
+        /// Create a quoted string by escaping `value`.
+        fn new(value: &str) -> Self {
+            let escaped_string: String = value
+                .chars()
+                .map(|c| match c {
+                    '\\' => String::from(r#"\\"#),
+                    '"' => String::from(r#"\""#),
+                    x => x.to_string(),
+                })
+                .collect();
+            QuotedString(format!(r#""{}""#, escaped_string))
+        }
+    }
+
+    impl<S: AsRef<str>> From<S> for QuotedString {
+        fn from(value: S) -> Self {
+            Self::new(value.as_ref())
+        }
+    }
+
+    // Derived Debug trait prints too many backslashes, this will print the string raw.
+    impl Debug for QuotedString {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            f.write_fmt(format_args!(r#"QuotedString('{}')"#, self.0))
+        }
+    }
 
     #[derive(Debug, Clone)]
     enum Token {
@@ -140,9 +173,11 @@ mod prop_test {
         ClosingBrace,
         ClosingBracket,
         Garbage(String),
+        Quoted(QuotedString),
     }
 
-    fn token_strategy() -> impl Strategy<Value = Token> {
+    /// Strategy for generating tokens using only ASCII characters.
+    fn token_strategy_ascii() -> impl Strategy<Value = Token> {
         prop_oneof![
             Just(Token::Comma),
             Just(Token::Colon),
@@ -150,12 +185,35 @@ mod prop_test {
             Just(Token::OpeningBracket),
             Just(Token::ClosingBrace),
             Just(Token::ClosingBracket),
-            r#"[^"\\,:{\[\}\]]+"#.prop_map(Token::Garbage)
+            r#"[ -!#-+\--9;-Z^-z|~]+"#.prop_map(Token::Garbage), // ascii characters except structural
+            "[ -~]".prop_map(|x| Token::Quoted(QuotedString::from(&x)))  // all ascii characters
         ]
     }
 
-    fn tokens_strategy() -> impl Strategy<Value = Vec<Token>> {
-        collection::vec(token_strategy(), collection::SizeRange::default())
+    #[allow(dead_code)]
+    /// Strategy for generating tokens using all possible characters.
+    fn token_strategy_all() -> impl Strategy<Value = Token> {
+        prop_oneof![
+            Just(Token::Comma),
+            Just(Token::Colon),
+            Just(Token::OpeningBrace),
+            Just(Token::OpeningBracket),
+            Just(Token::ClosingBrace),
+            Just(Token::ClosingBracket),
+            r#"[^"\\,:{\[\}\]]+"#.prop_map(Token::Garbage), // all characters except structural
+            ".*".prop_map(|x| Token::Quoted(QuotedString::from(&x)))  // all characters
+        ]
+    }
+
+    /// Strategy for generating vector of tokens using only ASCII characters.
+    fn tokens_strategy_ascii_chars() -> impl Strategy<Value = Vec<Token>> {
+        collection::vec(token_strategy_ascii(), collection::SizeRange::default())
+    }
+
+    #[allow(dead_code)]
+    /// Strategy for generating vector of tokens using all possible characters.
+    fn tokens_strategy_all_chars() -> impl Strategy<Value = Vec<Token>> {
+        collection::vec(token_strategy_all(), collection::SizeRange::default())
     }
 
     fn tokens_into_string(tokens: &[Token]) -> String {
@@ -169,6 +227,7 @@ mod prop_test {
                 Token::ClosingBrace => "}",
                 Token::ClosingBracket => "]",
                 Token::Garbage(string) => string,
+                Token::Quoted(QuotedString(string)) => string,
             })
             .collect::<String>()
     }
@@ -188,6 +247,7 @@ mod prop_test {
                 };
                 match x {
                     Token::Garbage(string) => *idx += string.len(),
+                    Token::Quoted(QuotedString(string)) => *idx += string.len(),
                     _ => *idx += 1,
                 }
                 Some(expected)
@@ -196,13 +256,24 @@ mod prop_test {
             .collect::<Vec<_>>()
     }
 
-    fn input_string() -> impl Strategy<Value = (String, Vec<Structural>)> {
-        tokens_strategy().prop_map(|x| (tokens_into_string(&x), tokens_into_structurals(&x)))
+    fn input_string_ascii() -> impl Strategy<Value = (String, Vec<Structural>)> {
+        tokens_strategy_ascii_chars().prop_map(|x| (tokens_into_string(&x), tokens_into_structurals(&x)))
+    }
+
+    fn input_string_all() -> impl Strategy<Value = (String, Vec<Structural>)> {
+        tokens_strategy_all_chars().prop_map(|x| (tokens_into_string(&x), tokens_into_structurals(&x)))
     }
 
     proptest! {
         #[test]
-        fn classifies_correctly((input, expected) in input_string()) {
+        fn classifies_correctly_ascii((input, expected) in input_string_ascii()) {
+            let result = classify_string(&input);
+
+            assert_eq!(expected, result);
+        }
+
+        #[test]
+        fn classifies_correctly_all((input, expected) in input_string_all()) {
             let result = classify_string(&input);
 
             assert_eq!(expected, result);
