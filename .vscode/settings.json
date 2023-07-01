@@ -42,6 +42,7 @@
         "nonoverlapping",
         "nonquoted",
         "nosimd",
+        "oneof",
         "owo_colors",
         "pclmulqdq",
         "Peekable",
