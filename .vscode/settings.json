@@ -37,6 +37,7 @@
         "Mmap",
         "movemask",
         "ndash",
+        "nondescendant",
         "nonescaped",
         "nonexistent",
         "nonoverlapping",
