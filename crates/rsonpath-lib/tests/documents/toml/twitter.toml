@@ -1,0 +1,131 @@
+[[queries]]
+query = "$..user..entities..url"
+description = "descendant user entities url"
+
+[queries.results]
+count = 44
+bytes = [
+    5465,
+    5570,
+    9496,
+    9985,
+    18496,
+    18601,
+    23338,
+    23443,
+    24017,
+    89785,
+    89902,
+    112198,
+    112315,
+    134220,
+    134337,
+    134936,
+    201055,
+    201160,
+    205281,
+    205398,
+    206008,
+    333130,
+    333235,
+    352432,
+    352537,
+    353096,
+    357000,
+    357117,
+    399785,
+    399902,
+    451854,
+    475584,
+    475689,
+    511442,
+    511547,
+    516538,
+    516643,
+    728252,
+    728357,
+    743602,
+    743719,
+    762797,
+    762902,
+    763474,
+]
+
+[[queries]]
+query = "$..user..entities.url"
+description = "descendant user entities, then child url"
+
+[queries.results]
+count = 18
+bytes = [
+    5465,
+    18496,
+    23338,
+    89785,
+    112198,
+    134220,
+    201055,
+    205281,
+    333130,
+    352432,
+    357000,
+    399785,
+    475584,
+    511442,
+    516538,
+    728252,
+    743602,
+    762797,
+]
+
+[[queries]]
+query = "$.search_metadata.count"
+description = "select metadata count directly"
+
+[queries.results]
+count = 1
+bytes = [767233]
+nodes = ["100"]
+
+[[queries]]
+query = "$..search_metadata.count"
+description = "select metadata count by descendant (should use memchr)"
+
+[queries.results]
+count = 1
+bytes = [767233]
+nodes = ["100"]
+
+[[queries]]
+query = "$.search_metadata..count"
+description = "select metadata directly, and then count by descendant"
+
+[queries.results]
+count = 1
+bytes = [767233]
+nodes = ["100"]
+
+[[queries]]
+query = "$..search_metadata..count"
+description = "select metadata and count by descendant (should use memchr)"
+
+[queries.results]
+count = 1
+bytes = [767233]
+nodes = ["100"]
+
+[[queries]]
+query = "$..count"
+description = "select count by descendant (should use memchr)"
+
+[queries.results]
+count = 1
+bytes = [767233]
+nodes = ["100"]
+
+[input]
+description = "twitter json from simdjson github example"
+is_compressed = false
+
+[input.source]
+large_file = "large/twitter.json"

@@ -208,7 +208,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
                     TransitionLabel::ArrayIndex(_) => {}
                     TransitionLabel::ObjectMember(member_name) => {
                         if self.automaton.is_accepting(target) && self.is_match(idx, member_name)? {
-                            result.report(idx, NodeTypeHint::Atomic /* since is_next_opening is false */)?;
+                            result.report(idx + 1, NodeTypeHint::Atomic /* since is_next_opening is false */)?;
                             any_matched = true;
                             break;
                         }
@@ -217,7 +217,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
             }
             let fallback_state = self.automaton[self.state].fallback_state();
             if !any_matched && self.automaton.is_accepting(fallback_state) {
-                result.report(idx, NodeTypeHint::Atomic /* since is_next_opening is false */)?;
+                result.report(idx + 1, NodeTypeHint::Atomic /* since is_next_opening is false */)?;
             }
             #[cfg(feature = "unique-members")]
             {
@@ -254,7 +254,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
 
         if !is_next_opening && self.is_list && is_fallback_accepting {
             debug!("Accepting on comma.");
-            result.report(idx, NodeTypeHint::Atomic /* since is_next_opening is false */)?;
+            result.report(idx + 1, NodeTypeHint::Atomic /* since is_next_opening is false */)?;
         }
 
         // After wildcard, check for a matching array index.
@@ -270,7 +270,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
 
         if !is_next_opening && match_index {
             debug!("Accepting on list item.");
-            result.report(idx, NodeTypeHint::Atomic /* since is_next_opening is false */)?;
+            result.report(idx + 1, NodeTypeHint::Atomic /* since is_next_opening is false */)?;
         }
 
         Ok(())
@@ -313,7 +313,7 @@ impl<'q, 'b, I: Input> Executor<'q, 'b, I> {
                             any_matched = true;
                             self.transition_to(target, bracket_type);
                             if self.automaton.is_accepting(target) {
-                                result.report(colon_idx, NodeTypeHint::Complex(bracket_type))?;
+                                result.report(colon_idx + 1, NodeTypeHint::Complex(bracket_type))?;
                             }
                             break;
                         }

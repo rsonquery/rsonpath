@@ -139,7 +139,7 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
                     classifier_state.offset_bytes(distance as isize)?;
 
                     if self.is_accepting {
-                        result.report(colon_idx, NodeTypeHint::Any)?;
+                        result.report(colon_idx + 1, NodeTypeHint::Any)?;
                     }
 
                     // Check if the colon is marked as within quotes.

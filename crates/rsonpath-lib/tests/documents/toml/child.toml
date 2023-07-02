@@ -1,0 +1,70 @@
+[input]
+description = "artificial JSON with deep nesting and repeating member names"
+is_compressed = false
+
+[input.source]
+json_string = '''
+{
+    "x": {
+        "x": [
+            {
+                "a": {
+                    "x": {
+                        "a": {
+                            "b": {
+                                "x": [
+                                    1,
+                                    2,
+                                    3
+                                ],
+                                "y": {
+                                    "x": [
+                                        1,
+                                        2,
+                                        3
+                                    ]
+                                },
+                                "b": {
+                                    "x": {
+                                        "c": {
+                                            "d": "miss1"
+                                        }
+                                    },
+                                    "c": {
+                                        "d": "hit1"
+                                    }
+                                },
+                                "z": {
+                                    "b": {
+                                        "c": {
+                                            "x": {
+                                                "d": "hit2"
+                                            }
+                                        }
+                                    }
+                                },
+                                "c": {
+                                    "d": "hit3"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
+'''
+
+[[queries]]
+query = "$..a..b.c..d"
+description = "mix descendant and child names"
+
+[queries.results]
+count = 3
+bytes = [986, 1299, 1547]
+nodes = [
+    '"hit1"',
+    '"hit2"',
+    '"hit3"'
+]

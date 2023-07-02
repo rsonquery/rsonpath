@@ -1,0 +1,79 @@
+[input]
+description = "the example on jsonpath com extended with another nested person object"
+is_compressed = false
+
+[input.source]
+json_string = '''
+{
+    "person": {
+        "firstName": "John",
+        "lastName": "doe",
+        "age": 26,
+        "address": {
+            "streetAddress": "naist street",
+            "city": "Nara",
+            "postalCode": "630-0192"
+        },
+        "phoneNumber": [
+            {
+                "type": "iPhone",
+                "number": "0123-4567-8888"
+            },
+            {
+                "type": "home",
+                "number": "0123-4567-8910"
+            }
+        ],
+        "spouse": {
+            "person": {
+                "firstName": "Jane",
+                "lastName": "doe",
+                "age": 26,
+                "address": {
+                    "streetAddress": "naist street",
+                    "city": "Nara",
+                    "postalCode": "630-0192"
+                },
+                "phoneNumber": [
+                    {
+                        "type": "iPhone",
+                        "number": "0123-4567-9999"
+                    },
+                    {
+                        "type": "home",
+                        "number": "0123-4567-9012"
+                    }
+                ]
+            }
+        }
+    }
+}
+'''
+
+[[queries]]
+query = "$..person..phoneNumber..number"
+description = "descendant search for person phoneNumber number"
+
+[queries.results]
+count = 4
+bytes = [334, 438, 936, 1072]
+nodes = [
+    '"0123-4567-8888"',
+    '"0123-4567-8910"',
+    '"0123-4567-9999"',
+    '"0123-4567-9012"',
+]
+
+[[queries]]
+query = "$..person..*..type"
+description = "descendant search for person, then any node, then type"
+
+[queries.results]
+count = 4
+bytes = [298, 404, 892, 1030]
+nodes = [
+    '"iPhone"',
+    '"home',
+    '"iPhone"',
+    '"home',
+]

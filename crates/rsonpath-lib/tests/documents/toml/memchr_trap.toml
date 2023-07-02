@@ -1,0 +1,31 @@
+[input]
+description = "label 'b' and '\"b' with escaped quote to trick naive string comparison"
+is_compressed = false
+
+[input.source]
+json_string = '''
+{
+    "a": {
+        "\"b": 42,
+        "b": 43 
+    }
+}
+'''
+
+[[queries]]
+query = "$..b"
+description = "descendant search for 'b'"
+
+[queries.results]
+count = 1
+bytes = [45]
+nodes = ["43"]
+
+[[queries]]
+query = """$..['"b']"""
+description = "descendant search for 'b' with a leading quote"
+
+[queries.results]
+count = 1
+bytes = [28]
+nodes = ["42"]

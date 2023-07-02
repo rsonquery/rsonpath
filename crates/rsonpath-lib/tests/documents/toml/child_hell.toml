@@ -1,0 +1,99 @@
+[input]
+description = "artificial JSON with many equal member names nested in each other to stress test child name selectors"
+is_compressed = false
+
+[input.source]
+json_string = '''
+{
+    "x": {
+        "a": {
+            "a": {
+                "a": {
+                    "b": {
+                        "a": {
+                            "b": {
+                                "c": "value1"
+                            }
+                        }
+                    }
+                },
+                "b": {
+                    "a": {
+                        "b": {
+                            "a": {
+                                "b": {
+                                    "a": {
+                                        "b": {
+                                            "a": {
+                                                "c": "miss"
+                                            },
+                                            "c": {
+                                                "v": "this c is also a hit",
+                                                "c": "but this one is a miss",
+                                                "a": {
+                                                    "b": {
+                                                        "a": {
+                                                            "b": {
+                                                                "c": "value2"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "b": {
+                "a": {
+                    "b": {
+                        "a": {
+                            "b": {
+                                "c": "value3",
+                                "a": {
+                                    "b": {
+                                        "c": "value4"
+                                    }
+                                }
+                            }
+                        },
+                        "c": "value5"
+                    }
+                }
+            }
+        }
+    }
+}
+'''
+
+[[queries]]
+query = "$..x..a.b.a.b.c"
+description = "select the path ababc with repeating members"
+
+[queries.results]
+count = 6
+bytes = [200, 758, 1229, 1905, 2042, 2209]
+nodes = [
+    '"value1"',
+    '''{
+                                                "v": "this c is also a hit",
+                                                "c": "but this one is a miss",
+                                                "a": {
+                                                    "b": {
+                                                        "a": {
+                                                            "b": {
+                                                                "c": "value2"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }''',
+    '"value2"',
+    '"value3"',
+    '"value4"',
+    '"value5"',
+]

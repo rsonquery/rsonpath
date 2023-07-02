@@ -1,0 +1,250 @@
+[input]
+description = "only lists and integers nested in each other"
+is_compressed = false
+
+[input.source]
+json_string = '''
+[
+    [
+        [0]
+    ],
+    [],
+    [
+        [],
+        [
+            [
+                [],
+                0
+            ],
+            [
+                [],
+                0
+            ],
+            [
+                [],
+                0
+            ]
+        ]
+    ]
+]
+'''
+
+[[queries]]
+query = "$..*"
+description = "select all non-root nodes"
+
+[queries.results]
+count = 16
+bytes = [6, 16, 17, 31, 39, 49, 61, 75, 93, 113, 142, 160, 180, 209, 227, 247]
+nodes = ['''[
+        [0]
+    ]''', "[0]", "0", "[]", '''[
+        [],
+        [
+            [
+                [],
+                0
+            ],
+            [
+                [],
+                0
+            ],
+            [
+                [],
+                0
+            ]
+        ]
+    ]''', "[]", '''[
+            [
+                [],
+                0
+            ],
+            [
+                [],
+                0
+            ],
+            [
+                [],
+                0
+            ]
+        ]''', '''[
+                [],
+                0
+            ]''', "[]", "0", '''[
+                [],
+                0
+            ]''', "[]", "0", '''[
+                [],
+                0
+            ]''', "[]", "0"]
+
+
+[[queries]]
+query = "$[0]"
+description = "select the first element"
+
+[queries.results]
+count = 1
+bytes = [6]
+nodes = ['''[
+        [0]
+    ]''']
+
+[[queries]]
+query = "$[0].*"
+description = "select the first element and then all its children"
+
+[queries.results]
+count = 1
+bytes = [16]
+nodes = ["[0]"]
+
+[[queries]]
+query = "$.*[0]"
+description = "select all nodes at depth one and then their first list element"
+
+[queries.results]
+count = 2
+bytes = [16, 49]
+nodes = ["[0]", "[]"]
+
+[[queries]]
+query = "$[2][1][0][1]"
+description = "direct path 2-1-0-1"
+
+[queries.results]
+count = 1
+bytes = [113]
+nodes = ["0"]
+
+[[queries]]
+query = "$[2][1].*"
+description = "direct path 2-1 and then any child"
+
+[queries.results]
+count = 3
+bytes = [75, 142, 209]
+nodes = ['''[
+                [],
+                0
+            ]''', '''[
+                [],
+                0
+            ]''', '''[
+                [],
+                0
+            ]''']
+
+[[queries]]
+query = "$[2].*[1]"
+description = "select the long list, then in each sublist select the second element"
+
+[queries.results]
+count = 1
+bytes = [142]
+nodes = ['''[
+                [],
+                0
+            ]''']
+
+[[queries]]
+query = "$[2].*.*[1]"
+description = "select the long list, then go two levels down and select the second element"
+
+[queries.results]
+count = 3
+bytes = [113, 180, 247]
+nodes = ["0", "0", "0"]
+
+[[queries]]
+query = "$[2][1]..*[1]"
+description = "select the path 2-1, then in any subtree select the second list element"
+
+[queries.results]
+count = 3
+bytes = [113, 180, 247]
+nodes = ["0", "0", "0"]
+
+[[queries]]
+query = "$[2]..*"
+description = "select the long list and then its every subdocument"
+
+[queries.results]
+count = 11
+bytes = [49, 61, 75, 93, 113, 142, 160, 180, 209, 227, 247]
+nodes = ["[]", '''[
+            [
+                [],
+                0
+            ],
+            [
+                [],
+                0
+            ],
+            [
+                [],
+                0
+            ]
+        ]''', '''[
+                [],
+                0
+            ]''', "[]", "0", '''[
+                [],
+                0
+            ]''', "[]", "0", '''[
+                [],
+                0
+            ]''', "[]", "0"]
+
+[[queries]]
+query = "$..*[0]"
+description = "select the first element of every nested list"
+
+[queries.results]
+count = 7
+bytes = [16, 17, 49, 75, 93, 160, 227]
+nodes = [
+    "[0]",
+    "0",
+    "[]",
+    '''[
+                [],
+                0
+            ]''',
+    "[]",
+    "[]",
+    "[]",
+]
+
+[[queries]]
+query = "$[2][0]"
+description = "select the first element of the long list"
+
+[queries.results]
+count = 1
+bytes = [49]
+nodes = ["[]"]
+
+[[queries]]
+query = "$[2][1]"
+description = "select the second element of the long list"
+
+[queries.results]
+count = 1
+bytes = [61]
+nodes = [
+    '''[
+            [
+                [],
+                0
+            ],
+            [
+                [],
+                0
+            ],
+            [
+                [],
+                0
+            ]
+        ]'''
+]

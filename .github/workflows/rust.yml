@@ -11,11 +11,16 @@ env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
   CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: "aarch64-linux-gnu-gcc"
+  RSONPATH_TEST_ALLOW_GENERATION: 0
 
 jobs:
+  test-gen:
+    uses: ./.github/workflows/test-codegen.yml
+
   test:
     name: Test matrix
     runs-on: ${{ matrix.os }}
+    needs: test-gen
     strategy:
       fail-fast: false
       matrix:
@@ -124,6 +129,11 @@ jobs:
         run: cargo hack build --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --exclude-features simd --target ${{ matrix.triple }}
         env:
           RUSTFLAGS: "--deny warnings"
+      - name: Download rsonpath-test artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ needs.test-gen.outputs.artifact-name }}
+          path: ${{ needs.test-gen.outputs.artifact-path }}
       - name: Test all feature sets with target-feature=${{ matrix.target-features }}
         if: matrix.can-run && matrix.target-features != ''
         run: cargo hack test --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --target ${{ matrix.triple }}

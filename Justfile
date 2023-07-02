@@ -97,7 +97,7 @@ test-classifier:
 
 # Run the main engine end-to-end tests on default features.
 test-engine:
-    cargo test --test engine_correctness_tests -q
+    cargo test --test end_to_end -q
 
 # Run the input tests on default features.
 test-input:

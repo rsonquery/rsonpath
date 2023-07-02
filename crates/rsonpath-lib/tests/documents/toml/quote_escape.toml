@@ -1,0 +1,29 @@
+[input]
+description = "object with two labels, 'x' and 'x' with a preceding escaped double quote"
+is_compressed = false
+
+[input.source]
+json_string = '''
+{
+    "\"x": 42,
+    "x": 17
+}
+'''
+
+[[queries]]
+query = "$['x']"
+description = "select 'x' directly"
+
+[queries.results]
+count = 1
+bytes = [26]
+nodes = ["17"]
+
+[[queries]]
+query = """$['"x']"""
+description = "select 'x' with quote directly"
+
+[queries.results]
+count = 1
+bytes = [13]
+nodes = ["42"]

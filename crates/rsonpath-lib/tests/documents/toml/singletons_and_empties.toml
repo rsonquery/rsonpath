@@ -1,0 +1,61 @@
+[input]
+description = "single-element lists, empty lists, and empty objects"
+is_compressed = false
+
+[input.source]
+json_string = '''
+{
+    "a": [
+        {}
+    ],
+    "b": [
+        []
+    ],
+    "c": [],
+    "d": {}
+}
+'''
+
+[[queries]]
+query = "$.*"
+description = "select all nodes at depth exactly 1"
+
+[queries.results]
+count = 4
+bytes = [11, 40, 69, 82]
+nodes = ['''[
+        {}
+    ]''', '''[
+        []
+    ]''', "[]", "{}"]
+
+[[queries]]
+query = "$.*.*"
+description = "select all nodes at depth exactly 2"
+
+[queries.results]
+count = 2
+bytes = [21, 50]
+nodes = ["{}", "[]"]
+
+[[queries]]
+query = "$..*.*"
+description = "select all nodes at depth at least 2"
+
+[queries.results]
+count = 2
+bytes = [21, 50]
+nodes = ["{}", "[]"]
+
+[[queries]]
+query = "$..*"
+description = "select all nodes"
+
+[queries.results]
+count = 6
+bytes = [11, 21, 40, 50, 69, 82]
+nodes = ['''[
+        {}
+    ]''', "{}", '''[
+        []
+    ]''', "[]", "[]", "{}"]

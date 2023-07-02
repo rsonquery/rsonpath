@@ -210,7 +210,7 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
 
                     if !is_next_opening && is_list && is_fallback_accepting {
                         debug!("Accepting on comma.");
-                        result.report(idx, NodeTypeHint::Atomic /* since is_next_opening is false */)?;
+                        result.report(idx + 1, NodeTypeHint::Atomic /* since is_next_opening is false */)?;
                     }
 
                     // Once we are in comma search, we have already considered the option that the first item in the list is a match.  Iterate on the remaining items.
@@ -226,7 +226,7 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
 
                     if is_accepting_list_item && !is_next_opening && match_index {
                         debug!("Accepting on list item.");
-                        result.report(idx, NodeTypeHint::Atomic /* since is_next_opening is false */)?;
+                        result.report(idx + 1, NodeTypeHint::Atomic /* since is_next_opening is false */)?;
                     }
                 }
                 Some(Structural::Colon(idx)) => {
@@ -245,8 +245,10 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
                                     if self.automaton.is_accepting(target) && self.is_match(idx, member_name)? =>
                                 {
                                     debug!("Accept {idx}");
-                                    result
-                                        .report(idx, NodeTypeHint::Atomic /* since is_next_opening is false */)?;
+                                    result.report(
+                                        idx + 1,
+                                        NodeTypeHint::Atomic, /* since is_next_opening is false */
+                                    )?;
                                     any_matched = true;
                                     break;
                                 }
@@ -256,7 +258,7 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
                         let fallback_state = self.automaton[state].fallback_state();
                         if !any_matched && self.automaton.is_accepting(fallback_state) {
                             debug!("Value accepted by fallback.");
-                            result.report(idx, NodeTypeHint::Atomic /* since is_next_opening is false */)?;
+                            result.report(idx + 1, NodeTypeHint::Atomic /* since is_next_opening is false */)?;
                         }
                         #[cfg(feature = "unique-members")]
                         {
@@ -291,7 +293,7 @@ impl<'q, 'b, I: Input> ExecutionContext<'q, 'b, I> {
                                         if self.automaton.is_accepting(target) {
                                             debug!("Accept Object Member {}", member_name.display());
                                             debug!("Accept {idx}");
-                                            result.report(colon_idx, NodeTypeHint::Complex(b))?;
+                                            result.report(colon_idx + 1, NodeTypeHint::Complex(b))?;
                                         }
                                         break;
                                     }

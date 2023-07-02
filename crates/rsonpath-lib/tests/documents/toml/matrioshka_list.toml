@@ -1,0 +1,63 @@
+[input]
+description = "deeply nested lists"
+is_compressed = false
+
+[input.source]
+json_string = '''
+{
+    "x": {
+        "y": {
+            "a": [
+                1,
+                2,
+                {},
+                [],
+                [
+                    [
+                        [
+                            []
+                        ]
+                    ]
+                ],
+                3
+            ]
+        }
+    }
+}
+'''
+
+[[queries]]
+query = "$..a.*"
+description = "select all nodes in the top-level list"
+
+[queries.results]
+count = 6
+bytes = [63, 82, 101, 121, 141, 305]
+nodes = ["1", "2", "{}", "[]", '''[
+                    [
+                        [
+                            []
+                        ]
+                    ]
+                ]''', "3"]
+
+[[queries]]
+query = "$..a..*"
+description = "select all nodes in the top-level list and below"
+
+[queries.results]
+count = 9
+bytes = [63, 82, 101, 121, 141, 163, 189, 219, 305]
+nodes = ["1", "2", "{}", "[]", '''[
+                    [
+                        [
+                            []
+                        ]
+                    ]
+                ]''', '''[
+                        [
+                            []
+                        ]
+                    ]''', '''[
+                            []
+                        ]''', "[]", "3"]

@@ -15,6 +15,10 @@ label. Only cosmetic PRs are exempt from this rule, i.e._
 
 _In those cases, remove the **Issue** section and replace it with a justification._
 
+## Short description
+
+...
+
 ## Issue
 
 Resolves: #

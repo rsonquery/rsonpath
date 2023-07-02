@@ -1,0 +1,57 @@
+[input]
+description = "short json with objects and lists, given as an example on jsonpath com"
+is_compressed = false
+
+[input.source]
+json_string = '''
+{
+    "firstName": "John",
+    "lastName": "doe",
+    "age": 26,
+    "address": {
+        "streetAddress": "naist street",
+        "city": "Nara",
+        "postalCode": "630-0192"
+    },
+    "phoneNumbers": [
+        {
+            "type": "iPhone",
+            "number": "0123-4567-8888"
+        },
+        {
+            "type": "home",
+            "number": "0123-4567-8910"
+        }
+    ]
+}
+'''
+
+[[queries]]
+description = "select exact path with name and index selectors"
+query = "$.phoneNumbers[0].type"
+
+[queries.results]
+count = 1
+bytes = [239]
+nodes = ['"iPhone"']
+
+[[queries]]
+description = "descendant search for 'number'"
+query = "$..number"
+
+[queries.results]
+count = 2
+bytes = [271, 359]
+nodes = ['"0123-4567-8888"', '"0123-4567-8910"']
+
+[[queries]]
+description = "select first number directly"
+query = "$.phoneNumbers[0]"
+
+[queries.results]
+count = 1
+bytes = [217]
+nodes = ['''{
+            "type": "iPhone",
+            "number": "0123-4567-8888"
+        }''']
