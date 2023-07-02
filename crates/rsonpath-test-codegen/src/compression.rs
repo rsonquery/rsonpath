@@ -1,13 +1,9 @@
 //! Compressing JSON files while maintaining integrity of expected results.
-//! 
+//!
 //! We first compress by mapping each byte with information on whether it is significant
 //! or should be removed. Using that annotation we can figure out the expected byte offsets
 //! of results in the compressed version with respect to the original.
-use crate::{
-    files::Files,
-    model::{self},
-    DiscoveredDocument,
-};
+use crate::{files::Files, model, DiscoveredDocument};
 use std::{io, string::FromUtf8Error};
 
 /// Read all existing TOML documents and generate the compressed variants.
@@ -59,7 +55,7 @@ fn compress_document(files: &mut Files, doc: &DiscoveredDocument) -> Result<(), 
         queries,
     };
 
-    files.add_compressed_document(&doc.relative_path, doc.name.clone(), compressed_doc);
+    files.add_compressed_document(&doc.relative_path, &doc.name, compressed_doc);
 
     Ok(())
 }
@@ -83,7 +79,7 @@ struct JsonString(Vec<JsonByte>);
 
 impl From<JsonString> for Vec<u8> {
     fn from(value: JsonString) -> Self {
-        value.0.into_iter().filter_map(|x| x.byte()).collect()
+        value.0.into_iter().filter_map(JsonByte::byte).collect()
     }
 }
 
@@ -92,7 +88,7 @@ impl TryFrom<JsonString> for String {
 
     fn try_from(value: JsonString) -> Result<Self, Self::Error> {
         let bytes: Vec<u8> = value.into();
-        String::from_utf8(bytes)
+        Self::from_utf8(bytes)
     }
 }
 
@@ -111,7 +107,7 @@ impl CompressedInput {
     fn transform_results(&self, original_results: &model::Results) -> model::Results {
         let count = original_results.count; // Count is obviously unchanged.
         let bytes = original_results.bytes.as_ref().map(|r| self.transform_byte_results(r));
-        let nodes = original_results.nodes.as_ref().map(|n| self.transform_node_results(n));
+        let nodes = original_results.nodes.as_ref().map(|n| Self::transform_node_results(n));
 
         model::Results { count, bytes, nodes }
     }
@@ -138,7 +134,7 @@ impl CompressedInput {
         bytes.iter().copied().map(|b| new_indices[b]).collect()
     }
 
-    fn transform_node_results(&self, nodes: &[String]) -> Vec<String> {
+    fn transform_node_results(nodes: &[String]) -> Vec<String> {
         // The results will be the same, but also compressed.
         // We directly compress each result.
         nodes
@@ -153,7 +149,7 @@ impl CompressedInput {
 
 impl JsonByte {
     fn is_significant(&self) -> bool {
-        matches!(self, JsonByte::Significant(_))
+        matches!(self, Self::Significant(_))
     }
 
     fn is_whitespace_byte(byte: u8) -> bool {
@@ -164,8 +160,8 @@ impl JsonByte {
 
     fn byte(self) -> Option<u8> {
         match self {
-            JsonByte::Significant(b) => Some(b),
-            JsonByte::Whitespace => None,
+            Self::Significant(b) => Some(b),
+            Self::Whitespace => None,
         }
     }
 }
@@ -203,7 +199,7 @@ impl JsonString {
             })
             .collect();
 
-        JsonString(vec)
+        Self(vec)
     }
 }
 

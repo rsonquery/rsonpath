@@ -37,7 +37,7 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> impl IntoIterator<Item = T
                             discovered_doc.name, query.query, query.description, input_type, result_type
                         );
                         let body = generate_body(
-                            full_description,
+                            &full_description,
                             &input_json,
                             query,
                             input_type,
@@ -64,7 +64,7 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> impl IntoIterator<Item = T
     return fns.into_iter().map(|x| x.1);
 
     fn generate_body<P: AsRef<Path>>(
-        full_description: String,
+        full_description: &str,
         input_json_path: P,
         query: &model::Query,
         input_type: InputTypeToTest,
@@ -178,7 +178,7 @@ fn get_available_results(query: &model::Query) -> Vec<ResultTypeToTest> {
     res
 }
 
-pub fn generate_imports() -> TokenStream {
+pub(crate) fn generate_imports() -> TokenStream {
     quote! {
         use rsonpath::engine::{Compiler, Engine, main::MainEngine, recursive::RecursiveEngine};
         use rsonpath::input::*;
@@ -215,9 +215,9 @@ impl Display for InputTypeToTest {
             f,
             "{}",
             match self {
-                InputTypeToTest::Owned => "OwnedBytes",
-                InputTypeToTest::Buffered => "BufferedInput",
-                InputTypeToTest::Mmap => "MmapInput",
+                Self::Owned => "OwnedBytes",
+                Self::Buffered => "BufferedInput",
+                Self::Mmap => "MmapInput",
             }
         )
     }
@@ -229,8 +229,8 @@ impl Display for ResultTypeToTest {
             f,
             "{}",
             match self {
-                ResultTypeToTest::Count => "CountResult",
-                ResultTypeToTest::Bytes => "IndexResult",
+                Self::Count => "CountResult",
+                Self::Bytes => "IndexResult",
             }
         )
     }
@@ -242,8 +242,8 @@ impl Display for EngineTypeToTest {
             f,
             "{}",
             match self {
-                EngineTypeToTest::Main => "MainEngine",
-                EngineTypeToTest::Recursive => "RecursiveEngine",
+                Self::Main => "MainEngine",
+                Self::Recursive => "RecursiveEngine",
             }
         )
     }

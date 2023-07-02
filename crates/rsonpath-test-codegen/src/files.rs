@@ -1,5 +1,5 @@
 //! Filesystem context for registering files that need to be written.
-//! 
+//!
 //! The decision to create a new file can be taken in many different places during codegen,
 //! so we pass around a [`Files`] context that can register those requests. Then the file writing
 //! is performed all at once at the end of the generation.
@@ -31,11 +31,11 @@ pub(crate) struct Stats {
 }
 
 impl Stats {
-    pub fn number_of_documents(&self) -> usize {
+    pub(crate) fn number_of_documents(&self) -> usize {
         self.total_documents
     }
 
-    pub fn number_of_queries(&self) -> usize {
+    pub(crate) fn number_of_queries(&self) -> usize {
         self.total_queries
     }
 }
@@ -78,7 +78,7 @@ impl Files {
         let full_path = Path::join(&self.json_dir, relative_path);
         fs::read_to_string(full_path)
     }
-    
+
     /// Get the path to a file-based input source from a relative path.
     pub(crate) fn get_json_source_path<P: AsRef<Path>>(&self, relative_path: P) -> PathBuf {
         // This is a bit of a hack, compressed files are passed with a non-relative path
@@ -139,7 +139,7 @@ impl Files {
     pub(crate) fn add_compressed_document<P: AsRef<Path>>(
         &mut self,
         relative_path: P,
-        name: String,
+        name: &str,
         compressed_doc: model::Document,
     ) -> PathBuf {
         let file_name = relative_path
@@ -184,7 +184,7 @@ impl Files {
 fn get_document_files(dir_path: &Path) -> impl IntoIterator<Item = PathBuf> {
     WalkDir::new(dir_path)
         .into_iter()
-        .filter_map(|x| x.ok())
+        .filter_map(Result::ok)
         .filter(|x| x.file_type().is_file() && x.path().extension().is_some_and(|e| e == "toml"))
         .map(|x| x.path().to_path_buf())
 }
