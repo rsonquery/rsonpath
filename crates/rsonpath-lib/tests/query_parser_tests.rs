@@ -1,5 +1,6 @@
 use pretty_assertions::assert_eq;
 use rsonpath::query::{builder::JsonPathQueryBuilder, JsonPathQuery, JsonString};
+use test_case::test_case;
 
 #[test]
 fn should_infer_root_from_empty_string() {
@@ -15,6 +16,26 @@ fn should_infer_root_from_empty_string() {
 fn root() {
     let input = "$";
     let expected_query = JsonPathQueryBuilder::new().into();
+
+    let result = JsonPathQuery::parse(input).expect("expected Ok");
+
+    assert_eq!(result, expected_query);
+}
+
+#[test_case("$.*"; "asterisk")]
+#[test_case("$[*]"; "bracketed asterisk")]
+fn child_wildcard_selector_test(input: &str) {
+    let expected_query = JsonPathQueryBuilder::new().any_child().into();
+
+    let result = JsonPathQuery::parse(input).expect("expected Ok");
+
+    assert_eq!(result, expected_query);
+}
+
+#[test_case("$..*"; "asterisk")]
+#[test_case("$..[*]"; "bracketed asterisk")]
+fn descendant_wildcard_selector(input: &str) {
+    let expected_query = JsonPathQueryBuilder::new().any_descendant().into();
 
     let result = JsonPathQuery::parse(input).expect("expected Ok");
 
@@ -99,7 +120,7 @@ fn indexed_wildcard_child_selector() {
 }
 
 #[test]
-fn wildcard_descendant_selector_test() {
+fn wildcard_descendant_selector() {
     let input = "$..*.a..*";
     let expected_query = JsonPathQueryBuilder::new()
         .any_descendant()
@@ -113,7 +134,7 @@ fn wildcard_descendant_selector_test() {
 }
 
 #[test]
-fn indexed_wildcard_descendant_selector_nested_test() {
+fn indexed_wildcard_descendant_selector_nested() {
     let input = r#"$..[*]..['*']..["*"]"#;
     let expected_query = JsonPathQueryBuilder::new()
         .any_descendant()
@@ -140,6 +161,25 @@ fn escaped_single_quote_in_single_quote_member() {
 fn unescaped_double_quote_in_single_quote_member() {
     let input = r#"['"']"#;
     let expected_query = JsonPathQueryBuilder::new().child(JsonString::new(r#"\""#)).into();
+
+    let result = JsonPathQuery::parse(input).expect("expected Ok");
+
+    assert_eq!(result, expected_query);
+}
+
+#[test]
+fn name_and_wildcard_selectors_bracketed_and_raw() {
+    let input = "$.a['b']..c..['d'].*[*]..*..[*]";
+    let expected_query = JsonPathQueryBuilder::new()
+        .child(JsonString::new("a"))
+        .child(JsonString::new("b"))
+        .descendant(JsonString::new("c"))
+        .descendant(JsonString::new("d"))
+        .any_child()
+        .any_child()
+        .any_descendant()
+        .any_descendant()
+        .into();
 
     let result = JsonPathQuery::parse(input).expect("expected Ok");
 

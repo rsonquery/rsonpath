@@ -1,9 +1,9 @@
 //! Highly optimized set collections useful during automaton minimization.
-//! Provides the [`SmallSet256`] set that is optimised for operations
+//! Provides the [`SmallSet256`] set that is optimized for operations
 //! over [`u8`] elements.
 use std::{collections::BTreeSet, fmt::Debug};
 
-/// Traits for highly optimised sets of elements of type `T`,
+/// Traits for highly optimized sets of elements of type `T`,
 /// which are assumed to be relatively small elements that can be ordered.
 pub(crate) trait SmallSet<T: Copy + PartialOrd + Ord>: IntoIterator<Item = T> {
     /// Returns the number of elements in the set.
