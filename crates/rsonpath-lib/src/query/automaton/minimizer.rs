@@ -292,7 +292,7 @@ impl<'q> Minimizer<'q> {
         }
 
         normalize_one(self, &mut transitions.wildcard, current_checkpoint)?;
-        for (_, state) in transitions.labelled.iter_mut() {
+        for (_, state) in &mut transitions.labelled {
             normalize_one(self, state, current_checkpoint)?;
         }
 

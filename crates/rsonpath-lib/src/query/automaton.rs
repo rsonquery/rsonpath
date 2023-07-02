@@ -423,13 +423,13 @@ impl<'q> Display for Automaton<'q> {
                 color_two = "";
             }
 
-            let attrs = vec![shape, "style=filled", "gradientangle=45", color_one, color_two].join(" ");
+            let attrs = [shape, "style=filled", "gradientangle=45", color_one, color_two].join(" ");
 
             writeln!(f, "node [{attrs}]; {i}")?;
         }
 
         for (i, transitions) in self.states.iter().enumerate() {
-            for (label, state) in transitions.transitions.iter() {
+            for (label, state) in &transitions.transitions {
                 writeln!(f, "  {i} -> {} [label=\"{}\"]", state.0, label,)?
             }
             writeln!(f, "  {i} -> {} [label=\"*\"]", transitions.fallback_state.0)?;

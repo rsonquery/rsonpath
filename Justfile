@@ -47,12 +47,15 @@ build-bin profile="dev": (build-lib profile)
 build-lib profile="dev":
     cargo build --package rsonpath-lib --profile {{profile}}
 
-# Build all rsonpath parts, the binary, library, and benches.
-build-all profile="dev": (build-lib profile) (build-bin profile)
+# Build all rsonpath parts, the binary and library.
+build-all profile="dev": (build-lib profile) (build-bin profile) (gen-tests)
 
 # Build and open the library documentation.
 doc $RUSTDOCFLAGS="--cfg docsrs":
     cargo +nightly doc --open --package rsonpath-lib
+
+gen-tests:
+    cargo build --package rsonpath-lib -F gen-tests
 
 # === RUN ===
 
@@ -96,7 +99,7 @@ test-classifier:
     cargo test --test classifier_correctness_tests -q
 
 # Run the main engine end-to-end tests on default features.
-test-engine:
+test-engine: (gen-tests)
     cargo test --test end_to_end -q
 
 # Run the input tests on default features.
@@ -108,7 +111,7 @@ test-parser:
     cargo test --test query_parser_tests -q
 
 # Run all tests, including real dataset tests, on the feature powerset of the project.
-test-full:
+test-full: (gen-tests)
     -cargo install cargo-hack
     cargo rsontest
 
@@ -244,7 +247,7 @@ release-execute ver:
 release-patch ver:
     #!/usr/bin/env nu
     let ver = "{{ver}}";
-    let crates = ["rsonpath", "rsonpath-lib", "rsonpath-benchmarks"];
+    let crates = ["rsonpath", "rsonpath-lib", "rsonpath-benchmarks", "rsonpath-test-codegen"];
     $crates | each { |cr|
         let path = $"./crates/($cr)/Cargo.toml";
         sed -i $'s/^version = "[^"]*"/version = "($ver)"/;s/^rsonpath-lib = { version = "[^"]*"/rsonpath-lib = { version = "($ver)"/' $path;

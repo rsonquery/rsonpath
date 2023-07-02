@@ -2,8 +2,7 @@
 rustflags = ["-C", "target-cpu=native", "-C", "link-arg=-fuse-ld=lld"]
 
 [alias]
-rsontest = "hack test -q --feature-powerset --skip default --skip default-optimizations"
+rsontest = "hack test -q --feature-powerset --exclude-features gen-tests --skip default --skip default-optimizations"
 
 [env]
 RUST_BACKTRACE = "1"
-RSONPATH_TEST_ALLOW_GENERATION = "1"

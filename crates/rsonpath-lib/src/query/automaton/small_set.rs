@@ -153,7 +153,7 @@ impl IntoIterator for SmallSet128 {
 
 impl<const N: usize> From<[u8; N]> for SmallSet256 {
     fn from(arr: [u8; N]) -> Self {
-        Self::from_iter(arr.into_iter())
+        Self::from_iter(arr)
     }
 }
 

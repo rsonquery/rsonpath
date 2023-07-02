@@ -2,6 +2,72 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.1] - 2023-07-03
+
+### Features
+
+- Consistent index result output. ([#161](https://github.com/V0ldek/rsonpath/issues/161))
+  - The `--result bytes` mode now consistently reports the first byte of the value it matched. This can be used to extract the actual value from the JSON by parsing from the reported byte.
+
+### Bug Fixes
+
+- Remove SHA from --version on crates.io. ([#157](https://github.com/V0ldek/rsonpath/issues/157))
+  - The Commit SHA part was incorrect, and there seems to be no way to get it when the crate is in registry
+
+### Library
+
+- [**breaking**] Remove `tail-skip` and `head-skip` features.
+  - These are now non-optional and integrated into the engines.
+
+### Reliability
+
+- Generate strings in classifier tests. ([#173](https://github.com/V0ldek/rsonpath/issues/173), [#20](https://github.com/V0ldek/rsonpath/issues/20))
+  - Improve classifier correctness tests by including quoted strings with escapes
+in the generated proptest cases.
+
+- More tests for wildcard compilation.
+  - Added more cases for compiling the NFA and minimizing
+for queries with wildcards.
+
+- Automated declarative end-to-end engine tests. ([#134](https://github.com/V0ldek/rsonpath/issues/134))
+  - Engine tests were rewritten to use declarative TOML configurations
+for ease of creating new tests, maintenance and debugging ease.
+Test coverage was increased, since compressed variants of inputs are
+automatically generated and tested, and we now test all combinations
+of input-engine-result types.
+
+### Dependencies
+
+- Bump addr2line from v0.19.0 to v0.20.0
+- Bump anstyle from v1.0.0 to v1.0.1
+- Bump anstyle-parse from v0.2.0 to v0.2.1
+- Bump backtrace from v0.3.67 to v0.3.68
+- Bump clap from 4.3.4 to 4.3.10.
+- Bump gimli from v0.27.2 to v0.27.3
+- Bump hashbrown from v0.12.3 to v0.14.0
+- Bump indexmap from v1.9.3 to v2.0.0
+- Bump is-terminal from v0.4.7 to v0.4.8
+- Bump libc from v0.2.146 to v0.2.147
+- Bump memmap2 from 0.7.0 to 0.7.1.
+- Bump miniz_oxide from v0.6.2 to v0.7.1
+- Bump object from v0.30.4 to v0.31.1
+- Bump proc-macro2 from v1.0.60 to v1.0.63
+- Bump quote from v1.0.28 to v1.0.29
+- Bump serde_spanned from v0.6.2 to v0.6.3
+- Bump syn from v2.0.18 to v2.0.22
+- Bump toml from v0.7.4 to v0.7.5
+- Bump toml_datetime from v0.6.2 to v0.6.3
+- Bump toml_edit from v0.19.10 to v0.19.11
+- Bump vergen from v8.2.1 to v8.2.3
+- Bump windows-targets from v0.48.0 to v0.48.1
+
+### Documentation
+
+- Rearrange readme to put usage first.
+- Update bug report issue form.
+  - Changed the issue form to be more streamlined and use more polite language.
+- Add MSRV to README.
+
 ## [0.5.0] - 2023-06-14
 
 ### Features
