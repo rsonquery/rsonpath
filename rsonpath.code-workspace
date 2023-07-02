@@ -33,6 +33,7 @@
 			"memmap",
 			"Mmap",
 			"movemask",
+			"nondescendant",
 			"nonescaped",
 			"nonoverlapping",
 			"nonquoted",

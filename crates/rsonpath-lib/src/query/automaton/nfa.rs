@@ -153,3 +153,45 @@ impl<'q> Display for NondeterministicAutomaton<'q> {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::query::{builder::JsonPathQueryBuilder, JsonString};
+
+    #[test]
+    fn nfa_test() {
+        let label_a = JsonString::new("a");
+        let label_b = JsonString::new("b");
+        let label_c = JsonString::new("c");
+        let label_d = JsonString::new("d");
+
+        let query = JsonPathQueryBuilder::new()
+            .child(label_a.clone())
+            .child(label_b.clone())
+            .descendant(label_c.clone())
+            .descendant(label_d.clone())
+            .any_child()
+            .any_child()
+            .any_descendant()
+            .any_descendant()
+            .build();
+
+        let expected_automaton = NondeterministicAutomaton {
+            ordered_states: vec![
+                NfaState::Direct(Transition::Labelled((&label_a).into())),
+                NfaState::Direct(Transition::Labelled((&label_b).into())),
+                NfaState::Recursive(Transition::Labelled((&label_c).into())),
+                NfaState::Recursive(Transition::Labelled((&label_d).into())),
+                NfaState::Direct(Transition::Wildcard),
+                NfaState::Direct(Transition::Wildcard),
+                NfaState::Recursive(Transition::Wildcard),
+                NfaState::Recursive(Transition::Wildcard),
+                NfaState::Accepting,
+            ],
+        };
+        let automaton = NondeterministicAutomaton::new(&query).unwrap();
+
+        assert_eq!(expected_automaton, automaton);
+    }
+}

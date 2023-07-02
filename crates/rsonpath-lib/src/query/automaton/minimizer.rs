@@ -324,7 +324,7 @@ mod tests {
     use smallvec::smallvec;
 
     #[test]
-    fn empty_query_test() {
+    fn empty_query() {
         // Query = $
         let nfa = NondeterministicAutomaton {
             ordered_states: vec![NfaState::Accepting],
@@ -350,7 +350,7 @@ mod tests {
     }
 
     #[test]
-    fn simple_wildcard_test() {
+    fn simple_wildcard() {
         // Query = $.*
         let nfa = NondeterministicAutomaton {
             ordered_states: vec![NfaState::Direct(nfa::Transition::Wildcard), NfaState::Accepting],
@@ -381,7 +381,7 @@ mod tests {
     }
 
     #[test]
-    fn simple_nonnegative_indexed_test() {
+    fn simple_nonnegative_indexed() {
         // Query = $[0]
         let label = TransitionLabel::ArrayIndex(0.try_into().unwrap());
 
@@ -414,7 +414,7 @@ mod tests {
     }
 
     #[test]
-    fn simple_descendant_wildcard_test() {
+    fn simple_descendant_wildcard() {
         // Query = $..*
         let nfa = NondeterministicAutomaton {
             ordered_states: vec![NfaState::Recursive(nfa::Transition::Wildcard), NfaState::Accepting],
@@ -445,7 +445,7 @@ mod tests {
     }
 
     #[test]
-    fn interstitial_descendant_wildcard_test() {
+    fn interstitial_descendant_wildcard() {
         // Query = $..a.b..*.a..b
         let label_a = JsonString::new("a");
         let label_a = (&label_a).into();
@@ -509,7 +509,7 @@ mod tests {
     }
 
     #[test]
-    fn interstitial_nondescendant_wildcard_test() {
+    fn interstitial_nondescendant_wildcard() {
         // Query = $..a.b.*.a..b
         let label_a = JsonString::new("a");
         let label_a = (&label_a).into();
@@ -578,7 +578,7 @@ mod tests {
     }
 
     #[test]
-    fn simple_multi_accepting_test() {
+    fn simple_multi_accepting() {
         // Query = $..a.*
         let label = JsonString::new("a");
         let label = (&label).into();
@@ -626,7 +626,7 @@ mod tests {
     }
 
     #[test]
-    fn simple_multi_accepting_nneg_index_test() {
+    fn simple_multi_accepting_nneg_index() {
         // Query = $..[3]
         let label = TransitionLabel::ArrayIndex(0.try_into().unwrap());
 
@@ -662,7 +662,7 @@ mod tests {
     }
 
     #[test]
-    fn chained_wildcard_children_test() {
+    fn chained_wildcard_children() {
         // Query = $.a.*.*.*
         let label = JsonString::new("a");
         let label = (&label).into();
@@ -717,7 +717,7 @@ mod tests {
     }
 
     #[test]
-    fn chained_wildcard_children_after_descendant_test() {
+    fn chained_wildcard_children_after_descendant() {
         // Query = $..a.*.*
         let label = JsonString::new("a");
         let label = (&label).into();
@@ -786,7 +786,7 @@ mod tests {
     }
 
     #[test]
-    fn child_and_descendant_test() {
+    fn child_and_descendant() {
         // Query = $.x..a.b.a.b.c..d
         let label_a = JsonString::new("a");
         let label_a = (&label_a).into();
@@ -871,7 +871,7 @@ mod tests {
     }
 
     #[test]
-    fn child_descendant_and_child_wildcard_test() {
+    fn child_descendant_and_child_wildcard() {
         // Query = $.x.*..a.*.b
         let label_a = JsonString::new("a");
         let label_a = (&label_a).into();
@@ -943,6 +943,79 @@ mod tests {
                 },
             ],
         };
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn all_name_and_wildcard_selectors() {
+        // Query = $.a.b..c..d.*..*
+        let label_a = JsonString::new("a");
+        let label_a = (&label_a).into();
+        let label_b = JsonString::new("b");
+        let label_b = (&label_b).into();
+        let label_c = JsonString::new("c");
+        let label_c = (&label_c).into();
+        let label_d = JsonString::new("d");
+        let label_d = (&label_d).into();
+
+        let nfa = NondeterministicAutomaton {
+            ordered_states: vec![
+                NfaState::Direct(nfa::Transition::Labelled(label_a)),
+                NfaState::Direct(nfa::Transition::Labelled(label_b)),
+                NfaState::Recursive(nfa::Transition::Labelled(label_c)),
+                NfaState::Recursive(nfa::Transition::Labelled(label_d)),
+                NfaState::Direct(nfa::Transition::Wildcard),
+                NfaState::Recursive(nfa::Transition::Wildcard),
+                NfaState::Accepting,
+            ],
+        };
+        let expected = Automaton {
+            states: vec![
+                StateTable {
+                    transitions: smallvec![],
+                    fallback_state: State(0),
+                    attributes: StateAttributes::REJECTING,
+                },
+                StateTable {
+                    transitions: smallvec![(label_a, State(2)),],
+                    fallback_state: State(0),
+                    attributes: StateAttributes::UNITARY,
+                },
+                StateTable {
+                    transitions: smallvec![(label_b, State(3))],
+                    fallback_state: State(0),
+                    attributes: StateAttributes::UNITARY,
+                },
+                StateTable {
+                    transitions: smallvec![(label_c, State(4))],
+                    fallback_state: State(3),
+                    attributes: StateAttributes::EMPTY,
+                },
+                StateTable {
+                    transitions: smallvec![(label_d, State(5))],
+                    fallback_state: State(4),
+                    attributes: StateAttributes::EMPTY,
+                },
+                StateTable {
+                    transitions: smallvec![(label_d, State(6))],
+                    fallback_state: State(6),
+                    attributes: StateAttributes::EMPTY,
+                },
+                StateTable {
+                    transitions: smallvec![],
+                    fallback_state: State(7),
+                    attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING,
+                },
+                StateTable {
+                    transitions: smallvec![],
+                    fallback_state: State(7),
+                    attributes: StateAttributes::ACCEPTING | StateAttributes::TRANSITIONS_TO_ACCEPTING,
+                },
+            ],
+        };
+
+        let result = minimize(nfa).unwrap();
 
         assert_eq!(result, expected);
     }
