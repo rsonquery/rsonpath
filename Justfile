@@ -55,7 +55,7 @@ doc $RUSTDOCFLAGS="--cfg docsrs":
     cargo +nightly doc --open --package rsonpath-lib
 
 gen-tests:
-    cargo build --package rsonpath-lib -F gen-tests
+    RSONPATH_ENABLE_TEST_CODEGEN=1 cargo build --package rsonpath-test
 
 # === RUN ===
 

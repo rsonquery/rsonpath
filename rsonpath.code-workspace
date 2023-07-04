@@ -75,7 +75,6 @@
 		"lldb.dereferencePointers": true,
 		"lldb.consoleMode": "commands",
 		"rust-analyzer.cargo.features": [
-			"gen-tests",
 			"simd",
 			"unique-members",
 		],

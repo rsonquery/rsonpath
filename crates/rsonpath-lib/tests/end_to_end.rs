@@ -1,4 +1,4 @@
-// 0d12fee2ab849bb88d19dc8b6b30aa76
+// bb34a4245e060e6f2147fa652c267816
 use pretty_assertions::assert_eq;
 use rsonpath::engine::{main::MainEngine, Compiler, Engine};
 use rsonpath::input::*;
@@ -11,7 +11,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/skipping.toml running the query $.a.b (look for the atomic value, forcing a tail-skip of the large object) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a.b")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/skipping.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/skipping.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -23,7 +23,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/skipping.toml running the query $.a.b (look for the atomic value, forcing a tail-skip of the large object) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a.b")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/skipping.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/skipping.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -35,7 +35,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/skipping.toml running the query $.a.b (look for the atomic value, forcing a tail-skip of the large object) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a.b")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/skipping.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/skipping.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -47,7 +47,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/skipping.toml running the query $.a.b (look for the atomic value, forcing a tail-skip of the large object) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a.b")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/skipping.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/skipping.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -59,7 +59,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/skipping.toml running the query $.a.b (look for the atomic value, forcing a tail-skip of the large object) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a.b")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/skipping.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/skipping.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -71,7 +71,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/skipping.toml running the query $.a.b (look for the atomic value, forcing a tail-skip of the large object) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a.b")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/skipping.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/skipping.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -83,7 +83,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/skipping.toml running the query $..b (look for the atomic value with descendant, forcing memchr) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/skipping.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/skipping.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -95,7 +95,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/skipping.toml running the query $..b (look for the atomic value with descendant, forcing memchr) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/skipping.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/skipping.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -107,7 +107,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/skipping.toml running the query $..b (look for the atomic value with descendant, forcing memchr) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/skipping.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/skipping.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -119,7 +119,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/skipping.toml running the query $..b (look for the atomic value with descendant, forcing memchr) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/skipping.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/skipping.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -131,7 +131,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/skipping.toml running the query $..b (look for the atomic value with descendant, forcing memchr) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/skipping.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/skipping.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -143,7 +143,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/skipping.toml running the query $..b (look for the atomic value with descendant, forcing memchr) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/skipping.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/skipping.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -155,7 +155,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document skipping.toml running the query $.a.b (look for the atomic value, forcing a tail-skip of the large object) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a.b")?;
-    let json_file = fs::File::open("./tests/documents/json/skipping.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/skipping.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -167,7 +167,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document skipping.toml running the query $.a.b (look for the atomic value, forcing a tail-skip of the large object) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a.b")?;
-    let json_file = fs::File::open("./tests/documents/json/skipping.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/skipping.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -179,7 +179,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document skipping.toml running the query $.a.b (look for the atomic value, forcing a tail-skip of the large object) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a.b")?;
-    let json_file = fs::File::open("./tests/documents/json/skipping.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/skipping.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -191,7 +191,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document skipping.toml running the query $.a.b (look for the atomic value, forcing a tail-skip of the large object) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a.b")?;
-    let json_file = fs::File::open("./tests/documents/json/skipping.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/skipping.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -203,7 +203,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document skipping.toml running the query $.a.b (look for the atomic value, forcing a tail-skip of the large object) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a.b")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/skipping.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/skipping.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -215,7 +215,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document skipping.toml running the query $.a.b (look for the atomic value, forcing a tail-skip of the large object) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a.b")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/skipping.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/skipping.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -227,7 +227,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document skipping.toml running the query $..b (look for the atomic value with descendant, forcing memchr) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let json_file = fs::File::open("./tests/documents/json/skipping.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/skipping.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -239,7 +239,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document skipping.toml running the query $..b (look for the atomic value with descendant, forcing memchr) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let json_file = fs::File::open("./tests/documents/json/skipping.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/skipping.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -251,7 +251,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document skipping.toml running the query $..b (look for the atomic value with descendant, forcing memchr) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let json_file = fs::File::open("./tests/documents/json/skipping.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/skipping.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -263,7 +263,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document skipping.toml running the query $..b (look for the atomic value with descendant, forcing memchr) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let json_file = fs::File::open("./tests/documents/json/skipping.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/skipping.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -275,7 +275,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document skipping.toml running the query $..b (look for the atomic value with descendant, forcing memchr) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/skipping.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/skipping.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -287,7 +287,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document skipping.toml running the query $..b (look for the atomic value with descendant, forcing memchr) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/skipping.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/skipping.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -299,7 +299,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_compressed_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/child.toml running the query $..a..b.c..d (mix descendant and child names) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b.c..d")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/child.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/child.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -311,7 +311,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_compressed_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/child.toml running the query $..a..b.c..d (mix descendant and child names) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b.c..d")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/child.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/child.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -323,7 +323,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_compressed_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/child.toml running the query $..a..b.c..d (mix descendant and child names) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b.c..d")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/child.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/child.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -335,7 +335,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_compressed_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/child.toml running the query $..a..b.c..d (mix descendant and child names) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b.c..d")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/child.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/child.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -347,7 +347,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_compressed_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/child.toml running the query $..a..b.c..d (mix descendant and child names) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b.c..d")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/child.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/child.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -359,7 +359,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_compressed_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/child.toml running the query $..a..b.c..d (mix descendant and child names) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b.c..d")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/child.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/child.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -371,7 +371,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_with_query_mix_d
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document child.toml running the query $..a..b.c..d (mix descendant and child names) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b.c..d")?;
-    let json_file = fs::File::open("./tests/documents/json/child.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/child.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -383,7 +383,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_with_query_mix_d
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document child.toml running the query $..a..b.c..d (mix descendant and child names) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b.c..d")?;
-    let json_file = fs::File::open("./tests/documents/json/child.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/child.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -399,7 +399,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_with_query_mix_d
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document child.toml running the query $..a..b.c..d (mix descendant and child names) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b.c..d")?;
-    let json_file = fs::File::open("./tests/documents/json/child.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/child.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -411,7 +411,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_with_query_mix_d
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document child.toml running the query $..a..b.c..d (mix descendant and child names) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b.c..d")?;
-    let json_file = fs::File::open("./tests/documents/json/child.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/child.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -427,7 +427,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_with_query_mix_d
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document child.toml running the query $..a..b.c..d (mix descendant and child names) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b.c..d")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/child.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/child.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -439,7 +439,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_with_query_mix_d
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document child.toml running the query $..a..b.c..d (mix descendant and child names) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b.c..d")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/child.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/child.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -455,7 +455,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/spaced_colon.toml running the query $..label (select leaves by memchr) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..label")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/spaced_colon.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -467,7 +467,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/spaced_colon.toml running the query $..label (select leaves by memchr) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..label")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/spaced_colon.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -479,7 +479,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/spaced_colon.toml running the query $..label (select leaves by memchr) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..label")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/spaced_colon.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -491,7 +491,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/spaced_colon.toml running the query $..label (select leaves by memchr) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..label")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/spaced_colon.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -503,7 +503,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/spaced_colon.toml running the query $..label (select leaves by memchr) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..label")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/spaced_colon.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -515,7 +515,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/spaced_colon.toml running the query $..label (select leaves by memchr) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..label")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/spaced_colon.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -527,7 +527,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/spaced_colon.toml running the query $.a..label (select leaves tail-skipping the first element) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a..label")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/spaced_colon.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -539,7 +539,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/spaced_colon.toml running the query $.a..label (select leaves tail-skipping the first element) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a..label")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/spaced_colon.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -551,7 +551,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/spaced_colon.toml running the query $.a..label (select leaves tail-skipping the first element) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a..label")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/spaced_colon.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -563,7 +563,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/spaced_colon.toml running the query $.a..label (select leaves tail-skipping the first element) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a..label")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/spaced_colon.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -575,7 +575,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/spaced_colon.toml running the query $.a..label (select leaves tail-skipping the first element) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a..label")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/spaced_colon.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -587,7 +587,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/spaced_colon.toml running the query $.a..label (select leaves tail-skipping the first element) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a..label")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/spaced_colon.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -599,7 +599,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/spaced_colon.toml running the query $..a..b..label (select leaves) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..label")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/spaced_colon.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -611,7 +611,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/spaced_colon.toml running the query $..a..b..label (select leaves) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..label")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/spaced_colon.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -623,7 +623,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/spaced_colon.toml running the query $..a..b..label (select leaves) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..label")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/spaced_colon.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -635,7 +635,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/spaced_colon.toml running the query $..a..b..label (select leaves) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..label")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/spaced_colon.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -647,7 +647,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/spaced_colon.toml running the query $..a..b..label (select leaves) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..label")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/spaced_colon.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -659,7 +659,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/spaced_colon.toml running the query $..a..b..label (select leaves) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..label")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/spaced_colon.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -671,7 +671,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document spaced_colon.toml running the query $..label (select leaves by memchr) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..label")?;
-    let json_file = fs::File::open("./tests/documents/json/spaced_colon.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -683,7 +683,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document spaced_colon.toml running the query $..label (select leaves by memchr) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..label")?;
-    let json_file = fs::File::open("./tests/documents/json/spaced_colon.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -695,7 +695,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document spaced_colon.toml running the query $..label (select leaves by memchr) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..label")?;
-    let json_file = fs::File::open("./tests/documents/json/spaced_colon.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -707,7 +707,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document spaced_colon.toml running the query $..label (select leaves by memchr) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..label")?;
-    let json_file = fs::File::open("./tests/documents/json/spaced_colon.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -719,7 +719,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document spaced_colon.toml running the query $..label (select leaves by memchr) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..label")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/spaced_colon.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -731,7 +731,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document spaced_colon.toml running the query $..label (select leaves by memchr) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..label")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/spaced_colon.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -743,7 +743,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document spaced_colon.toml running the query $.a..label (select leaves tail-skipping the first element) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a..label")?;
-    let json_file = fs::File::open("./tests/documents/json/spaced_colon.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -755,7 +755,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document spaced_colon.toml running the query $.a..label (select leaves tail-skipping the first element) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a..label")?;
-    let json_file = fs::File::open("./tests/documents/json/spaced_colon.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -767,7 +767,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document spaced_colon.toml running the query $.a..label (select leaves tail-skipping the first element) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a..label")?;
-    let json_file = fs::File::open("./tests/documents/json/spaced_colon.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -779,7 +779,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document spaced_colon.toml running the query $.a..label (select leaves tail-skipping the first element) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a..label")?;
-    let json_file = fs::File::open("./tests/documents/json/spaced_colon.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -791,7 +791,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document spaced_colon.toml running the query $.a..label (select leaves tail-skipping the first element) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a..label")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/spaced_colon.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -803,7 +803,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document spaced_colon.toml running the query $.a..label (select leaves tail-skipping the first element) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a..label")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/spaced_colon.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -815,7 +815,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document spaced_colon.toml running the query $..a..b..label (select leaves) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..label")?;
-    let json_file = fs::File::open("./tests/documents/json/spaced_colon.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -827,7 +827,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document spaced_colon.toml running the query $..a..b..label (select leaves) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..label")?;
-    let json_file = fs::File::open("./tests/documents/json/spaced_colon.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -839,7 +839,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document spaced_colon.toml running the query $..a..b..label (select leaves) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..label")?;
-    let json_file = fs::File::open("./tests/documents/json/spaced_colon.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -851,7 +851,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document spaced_colon.toml running the query $..a..b..label (select leaves) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..label")?;
-    let json_file = fs::File::open("./tests/documents/json/spaced_colon.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -863,7 +863,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document spaced_colon.toml running the query $..a..b..label (select leaves) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..label")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/spaced_colon.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -875,7 +875,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document spaced_colon.toml running the query $..a..b..label (select leaves) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..label")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/spaced_colon.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -887,7 +887,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/child_hell.toml running the query $..x..a.b.a.b.c (select the path ababc with repeating members) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..x..a.b.a.b.c")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/child_hell.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/child_hell.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -899,7 +899,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/child_hell.toml running the query $..x..a.b.a.b.c (select the path ababc with repeating members) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..x..a.b.a.b.c")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/child_hell.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/child_hell.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -915,7 +915,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/child_hell.toml running the query $..x..a.b.a.b.c (select the path ababc with repeating members) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..x..a.b.a.b.c")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/child_hell.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/child_hell.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -927,7 +927,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/child_hell.toml running the query $..x..a.b.a.b.c (select the path ababc with repeating members) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..x..a.b.a.b.c")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/child_hell.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/child_hell.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -943,7 +943,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/child_hell.toml running the query $..x..a.b.a.b.c (select the path ababc with repeating members) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..x..a.b.a.b.c")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/child_hell.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/child_hell.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -955,7 +955,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/child_hell.toml running the query $..x..a.b.a.b.c (select the path ababc with repeating members) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..x..a.b.a.b.c")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/child_hell.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/child_hell.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -971,7 +971,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document child_hell.toml running the query $..x..a.b.a.b.c (select the path ababc with repeating members) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..x..a.b.a.b.c")?;
-    let json_file = fs::File::open("./tests/documents/json/child_hell.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/child_hell.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -983,7 +983,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document child_hell.toml running the query $..x..a.b.a.b.c (select the path ababc with repeating members) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..x..a.b.a.b.c")?;
-    let json_file = fs::File::open("./tests/documents/json/child_hell.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/child_hell.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -999,7 +999,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document child_hell.toml running the query $..x..a.b.a.b.c (select the path ababc with repeating members) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..x..a.b.a.b.c")?;
-    let json_file = fs::File::open("./tests/documents/json/child_hell.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/child_hell.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1011,7 +1011,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document child_hell.toml running the query $..x..a.b.a.b.c (select the path ababc with repeating members) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..x..a.b.a.b.c")?;
-    let json_file = fs::File::open("./tests/documents/json/child_hell.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/child_hell.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1027,7 +1027,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document child_hell.toml running the query $..x..a.b.a.b.c (select the path ababc with repeating members) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..x..a.b.a.b.c")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/child_hell.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/child_hell.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1039,7 +1039,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document child_hell.toml running the query $..x..a.b.a.b.c (select the path ababc with repeating members) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..x..a.b.a.b.c")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/child_hell.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/child_hell.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1055,7 +1055,8 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/deeply_nested_heterogenous_list.toml running the query $..a..*..b..* (select all nodes in bs with descendant segments) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*..b..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1067,7 +1068,8 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/deeply_nested_heterogenous_list.toml running the query $..a..*..b..* (select all nodes in bs with descendant segments) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*..b..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1085,7 +1087,8 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/deeply_nested_heterogenous_list.toml running the query $..a..*..b..* (select all nodes in bs with descendant segments) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*..b..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1097,7 +1100,8 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/deeply_nested_heterogenous_list.toml running the query $..a..*..b..* (select all nodes in bs with descendant segments) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*..b..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1115,7 +1119,8 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/deeply_nested_heterogenous_list.toml running the query $..a..*..b..* (select all nodes in bs with descendant segments) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*..b..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1127,7 +1132,8 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/deeply_nested_heterogenous_list.toml running the query $..a..*..b..* (select all nodes in bs with descendant segments) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*..b..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1145,7 +1151,8 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/deeply_nested_heterogenous_list.toml running the query $..a.*..b.* (select all nodes in bs with mixed segments) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*..b.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1157,7 +1164,8 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/deeply_nested_heterogenous_list.toml running the query $..a.*..b.* (select all nodes in bs with mixed segments) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*..b.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1173,7 +1181,8 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/deeply_nested_heterogenous_list.toml running the query $..a.*..b.* (select all nodes in bs with mixed segments) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*..b.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1185,7 +1194,8 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/deeply_nested_heterogenous_list.toml running the query $..a.*..b.* (select all nodes in bs with mixed segments) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*..b.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1201,7 +1211,8 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/deeply_nested_heterogenous_list.toml running the query $..a.*..b.* (select all nodes in bs with mixed segments) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*..b.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1213,7 +1224,8 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/deeply_nested_heterogenous_list.toml running the query $..a.*..b.* (select all nodes in bs with mixed segments) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*..b.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1229,7 +1241,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document deeply_nested_heterogenous_list.toml running the query $..a..*..b..* (select all nodes in bs with descendant segments) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*..b..*")?;
-    let json_file = fs::File::open("./tests/documents/json/deeply_nested_heterogenous_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/deeply_nested_heterogenous_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1241,7 +1253,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document deeply_nested_heterogenous_list.toml running the query $..a..*..b..* (select all nodes in bs with descendant segments) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*..b..*")?;
-    let json_file = fs::File::open("./tests/documents/json/deeply_nested_heterogenous_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/deeply_nested_heterogenous_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1260,7 +1272,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document deeply_nested_heterogenous_list.toml running the query $..a..*..b..* (select all nodes in bs with descendant segments) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*..b..*")?;
-    let json_file = fs::File::open("./tests/documents/json/deeply_nested_heterogenous_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/deeply_nested_heterogenous_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1272,7 +1284,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document deeply_nested_heterogenous_list.toml running the query $..a..*..b..* (select all nodes in bs with descendant segments) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*..b..*")?;
-    let json_file = fs::File::open("./tests/documents/json/deeply_nested_heterogenous_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/deeply_nested_heterogenous_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1291,7 +1303,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document deeply_nested_heterogenous_list.toml running the query $..a..*..b..* (select all nodes in bs with descendant segments) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*..b..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/deeply_nested_heterogenous_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/deeply_nested_heterogenous_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1303,7 +1315,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document deeply_nested_heterogenous_list.toml running the query $..a..*..b..* (select all nodes in bs with descendant segments) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*..b..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/deeply_nested_heterogenous_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/deeply_nested_heterogenous_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1322,7 +1334,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document deeply_nested_heterogenous_list.toml running the query $..a.*..b.* (select all nodes in bs with mixed segments) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*..b.*")?;
-    let json_file = fs::File::open("./tests/documents/json/deeply_nested_heterogenous_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/deeply_nested_heterogenous_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1334,7 +1346,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document deeply_nested_heterogenous_list.toml running the query $..a.*..b.* (select all nodes in bs with mixed segments) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*..b.*")?;
-    let json_file = fs::File::open("./tests/documents/json/deeply_nested_heterogenous_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/deeply_nested_heterogenous_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1353,7 +1365,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document deeply_nested_heterogenous_list.toml running the query $..a.*..b.* (select all nodes in bs with mixed segments) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*..b.*")?;
-    let json_file = fs::File::open("./tests/documents/json/deeply_nested_heterogenous_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/deeply_nested_heterogenous_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1365,7 +1377,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document deeply_nested_heterogenous_list.toml running the query $..a.*..b.* (select all nodes in bs with mixed segments) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*..b.*")?;
-    let json_file = fs::File::open("./tests/documents/json/deeply_nested_heterogenous_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/deeply_nested_heterogenous_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1384,7 +1396,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document deeply_nested_heterogenous_list.toml running the query $..a.*..b.* (select all nodes in bs with mixed segments) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*..b.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/deeply_nested_heterogenous_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/deeply_nested_heterogenous_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1396,7 +1408,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document deeply_nested_heterogenous_list.toml running the query $..a.*..b.* (select all nodes in bs with mixed segments) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*..b.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/deeply_nested_heterogenous_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/deeply_nested_heterogenous_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1415,7 +1427,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/matrioshka_list.toml running the query $..a..* (select all nodes in the top-level list and below) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/matrioshka_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/matrioshka_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1427,7 +1439,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/matrioshka_list.toml running the query $..a..* (select all nodes in the top-level list and below) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/matrioshka_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/matrioshka_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1443,7 +1455,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/matrioshka_list.toml running the query $..a..* (select all nodes in the top-level list and below) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/matrioshka_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/matrioshka_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1455,7 +1467,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/matrioshka_list.toml running the query $..a..* (select all nodes in the top-level list and below) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/matrioshka_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/matrioshka_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1471,7 +1483,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/matrioshka_list.toml running the query $..a..* (select all nodes in the top-level list and below) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/matrioshka_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/matrioshka_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1483,7 +1495,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/matrioshka_list.toml running the query $..a..* (select all nodes in the top-level list and below) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/matrioshka_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/matrioshka_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1499,7 +1511,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/matrioshka_list.toml running the query $..a.* (select all nodes in the top-level list) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/matrioshka_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/matrioshka_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1511,7 +1523,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/matrioshka_list.toml running the query $..a.* (select all nodes in the top-level list) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/matrioshka_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/matrioshka_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1527,7 +1539,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/matrioshka_list.toml running the query $..a.* (select all nodes in the top-level list) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/matrioshka_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/matrioshka_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1539,7 +1551,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/matrioshka_list.toml running the query $..a.* (select all nodes in the top-level list) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/matrioshka_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/matrioshka_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1555,7 +1567,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/matrioshka_list.toml running the query $..a.* (select all nodes in the top-level list) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/matrioshka_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/matrioshka_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1567,7 +1579,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/matrioshka_list.toml running the query $..a.* (select all nodes in the top-level list) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/matrioshka_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/matrioshka_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1583,7 +1595,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_and_bel
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document matrioshka_list.toml running the query $..a..* (select all nodes in the top-level list and below) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*")?;
-    let json_file = fs::File::open("./tests/documents/json/matrioshka_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/matrioshka_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1595,7 +1607,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_and_bel
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document matrioshka_list.toml running the query $..a..* (select all nodes in the top-level list and below) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*")?;
-    let json_file = fs::File::open("./tests/documents/json/matrioshka_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/matrioshka_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1611,7 +1623,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_and_bel
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document matrioshka_list.toml running the query $..a..* (select all nodes in the top-level list and below) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*")?;
-    let json_file = fs::File::open("./tests/documents/json/matrioshka_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/matrioshka_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1623,7 +1635,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_and_bel
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document matrioshka_list.toml running the query $..a..* (select all nodes in the top-level list and below) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*")?;
-    let json_file = fs::File::open("./tests/documents/json/matrioshka_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/matrioshka_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1639,7 +1651,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_and_bel
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document matrioshka_list.toml running the query $..a..* (select all nodes in the top-level list and below) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/matrioshka_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/matrioshka_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1651,7 +1663,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_and_bel
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document matrioshka_list.toml running the query $..a..* (select all nodes in the top-level list and below) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/matrioshka_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/matrioshka_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1667,7 +1679,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_with_bu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document matrioshka_list.toml running the query $..a.* (select all nodes in the top-level list) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*")?;
-    let json_file = fs::File::open("./tests/documents/json/matrioshka_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/matrioshka_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1679,7 +1691,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_with_bu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document matrioshka_list.toml running the query $..a.* (select all nodes in the top-level list) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*")?;
-    let json_file = fs::File::open("./tests/documents/json/matrioshka_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/matrioshka_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1695,7 +1707,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_with_mm
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document matrioshka_list.toml running the query $..a.* (select all nodes in the top-level list) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*")?;
-    let json_file = fs::File::open("./tests/documents/json/matrioshka_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/matrioshka_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1707,7 +1719,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_with_mm
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document matrioshka_list.toml running the query $..a.* (select all nodes in the top-level list) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*")?;
-    let json_file = fs::File::open("./tests/documents/json/matrioshka_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/matrioshka_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1723,7 +1735,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_with_ow
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document matrioshka_list.toml running the query $..a.* (select all nodes in the top-level list) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/matrioshka_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/matrioshka_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1735,7 +1747,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_with_ow
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document matrioshka_list.toml running the query $..a.* (select all nodes in the top-level list) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/matrioshka_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/matrioshka_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1751,7 +1763,7 @@ fn deeply_nested_object_with_path_annotations_compressed_with_query_descendant_a
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/long_path.toml running the query $..a.*.*..b.*.* (descendant a star star, then descendant b star star) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*.*..b.*.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/long_path.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/long_path.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1763,7 +1775,7 @@ fn deeply_nested_object_with_path_annotations_compressed_with_query_descendant_a
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/long_path.toml running the query $..a.*.*..b.*.* (descendant a star star, then descendant b star star) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*.*..b.*.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/long_path.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/long_path.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1779,7 +1791,7 @@ fn deeply_nested_object_with_path_annotations_compressed_with_query_descendant_a
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/long_path.toml running the query $..a.*.*..b.*.* (descendant a star star, then descendant b star star) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*.*..b.*.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/long_path.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/long_path.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1791,7 +1803,7 @@ fn deeply_nested_object_with_path_annotations_compressed_with_query_descendant_a
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/long_path.toml running the query $..a.*.*..b.*.* (descendant a star star, then descendant b star star) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*.*..b.*.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/long_path.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/long_path.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1807,7 +1819,7 @@ fn deeply_nested_object_with_path_annotations_compressed_with_query_descendant_a
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/long_path.toml running the query $..a.*.*..b.*.* (descendant a star star, then descendant b star star) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*.*..b.*.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/long_path.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/long_path.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1819,7 +1831,7 @@ fn deeply_nested_object_with_path_annotations_compressed_with_query_descendant_a
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/long_path.toml running the query $..a.*.*..b.*.* (descendant a star star, then descendant b star star) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*.*..b.*.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/long_path.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/long_path.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1835,7 +1847,7 @@ fn deeply_nested_object_with_path_annotations_with_query_descendant_a_star_star_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document long_path.toml running the query $..a.*.*..b.*.* (descendant a star star, then descendant b star star) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*.*..b.*.*")?;
-    let json_file = fs::File::open("./tests/documents/json/long_path.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/long_path.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1847,7 +1859,7 @@ fn deeply_nested_object_with_path_annotations_with_query_descendant_a_star_star_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document long_path.toml running the query $..a.*.*..b.*.* (descendant a star star, then descendant b star star) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*.*..b.*.*")?;
-    let json_file = fs::File::open("./tests/documents/json/long_path.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/long_path.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1863,7 +1875,7 @@ fn deeply_nested_object_with_path_annotations_with_query_descendant_a_star_star_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document long_path.toml running the query $..a.*.*..b.*.* (descendant a star star, then descendant b star star) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*.*..b.*.*")?;
-    let json_file = fs::File::open("./tests/documents/json/long_path.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/long_path.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1875,7 +1887,7 @@ fn deeply_nested_object_with_path_annotations_with_query_descendant_a_star_star_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document long_path.toml running the query $..a.*.*..b.*.* (descendant a star star, then descendant b star star) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*.*..b.*.*")?;
-    let json_file = fs::File::open("./tests/documents/json/long_path.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/long_path.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1891,7 +1903,7 @@ fn deeply_nested_object_with_path_annotations_with_query_descendant_a_star_star_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document long_path.toml running the query $..a.*.*..b.*.* (descendant a star star, then descendant b star star) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*.*..b.*.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/long_path.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/long_path.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1903,7 +1915,7 @@ fn deeply_nested_object_with_path_annotations_with_query_descendant_a_star_star_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document long_path.toml running the query $..a.*.*..b.*.* (descendant a star star, then descendant b star star) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*.*..b.*.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/long_path.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/long_path.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1919,7 +1931,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/dense_atomic_leaves.toml running the query $..a..* (descendant search for 'a' and then all subdocuments) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/dense_atomic_leaves.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/dense_atomic_leaves.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1931,7 +1943,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/dense_atomic_leaves.toml running the query $..a..* (descendant search for 'a' and then all subdocuments) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/dense_atomic_leaves.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/dense_atomic_leaves.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1947,7 +1959,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/dense_atomic_leaves.toml running the query $..a..* (descendant search for 'a' and then all subdocuments) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/dense_atomic_leaves.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/dense_atomic_leaves.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1959,7 +1971,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/dense_atomic_leaves.toml running the query $..a..* (descendant search for 'a' and then all subdocuments) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/dense_atomic_leaves.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/dense_atomic_leaves.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -1975,7 +1987,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/dense_atomic_leaves.toml running the query $..a..* (descendant search for 'a' and then all subdocuments) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/dense_atomic_leaves.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/dense_atomic_leaves.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -1987,7 +1999,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/dense_atomic_leaves.toml running the query $..a..* (descendant search for 'a' and then all subdocuments) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/dense_atomic_leaves.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/dense_atomic_leaves.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2003,7 +2015,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/dense_atomic_leaves.toml running the query $..a.* (descendant search for 'a' and then take all children) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/dense_atomic_leaves.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/dense_atomic_leaves.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2015,7 +2027,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/dense_atomic_leaves.toml running the query $..a.* (descendant search for 'a' and then take all children) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/dense_atomic_leaves.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/dense_atomic_leaves.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2031,7 +2043,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/dense_atomic_leaves.toml running the query $..a.* (descendant search for 'a' and then take all children) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/dense_atomic_leaves.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/dense_atomic_leaves.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2043,7 +2055,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/dense_atomic_leaves.toml running the query $..a.* (descendant search for 'a' and then take all children) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/dense_atomic_leaves.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/dense_atomic_leaves.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2059,7 +2071,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/dense_atomic_leaves.toml running the query $..a.* (descendant search for 'a' and then take all children) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/dense_atomic_leaves.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/dense_atomic_leaves.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2071,7 +2083,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/dense_atomic_leaves.toml running the query $..a.* (descendant search for 'a' and then take all children) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/dense_atomic_leaves.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/dense_atomic_leaves.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2087,7 +2099,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document dense_atomic_leaves.toml running the query $..a..* (descendant search for 'a' and then all subdocuments) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*")?;
-    let json_file = fs::File::open("./tests/documents/json/dense_atomic_leaves.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/dense_atomic_leaves.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2099,7 +2111,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document dense_atomic_leaves.toml running the query $..a..* (descendant search for 'a' and then all subdocuments) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*")?;
-    let json_file = fs::File::open("./tests/documents/json/dense_atomic_leaves.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/dense_atomic_leaves.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2115,7 +2127,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document dense_atomic_leaves.toml running the query $..a..* (descendant search for 'a' and then all subdocuments) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*")?;
-    let json_file = fs::File::open("./tests/documents/json/dense_atomic_leaves.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/dense_atomic_leaves.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2127,7 +2139,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document dense_atomic_leaves.toml running the query $..a..* (descendant search for 'a' and then all subdocuments) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*")?;
-    let json_file = fs::File::open("./tests/documents/json/dense_atomic_leaves.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/dense_atomic_leaves.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2143,7 +2155,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document dense_atomic_leaves.toml running the query $..a..* (descendant search for 'a' and then all subdocuments) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/dense_atomic_leaves.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/dense_atomic_leaves.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2155,7 +2167,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document dense_atomic_leaves.toml running the query $..a..* (descendant search for 'a' and then all subdocuments) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/dense_atomic_leaves.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/dense_atomic_leaves.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2171,7 +2183,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document dense_atomic_leaves.toml running the query $..a.* (descendant search for 'a' and then take all children) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*")?;
-    let json_file = fs::File::open("./tests/documents/json/dense_atomic_leaves.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/dense_atomic_leaves.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2183,7 +2195,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document dense_atomic_leaves.toml running the query $..a.* (descendant search for 'a' and then take all children) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*")?;
-    let json_file = fs::File::open("./tests/documents/json/dense_atomic_leaves.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/dense_atomic_leaves.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2199,7 +2211,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document dense_atomic_leaves.toml running the query $..a.* (descendant search for 'a' and then take all children) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*")?;
-    let json_file = fs::File::open("./tests/documents/json/dense_atomic_leaves.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/dense_atomic_leaves.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2211,7 +2223,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document dense_atomic_leaves.toml running the query $..a.* (descendant search for 'a' and then take all children) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*")?;
-    let json_file = fs::File::open("./tests/documents/json/dense_atomic_leaves.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/dense_atomic_leaves.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2227,7 +2239,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document dense_atomic_leaves.toml running the query $..a.* (descendant search for 'a' and then take all children) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/dense_atomic_leaves.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/dense_atomic_leaves.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2239,7 +2251,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document dense_atomic_leaves.toml running the query $..a.* (descendant search for 'a' and then take all children) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/dense_atomic_leaves.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/dense_atomic_leaves.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2255,7 +2267,7 @@ fn empty_array_root_compressed_with_query_select_any_descendant_there_are_none_w
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_array.toml running the query $..* (select any descendant (there are none)) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2267,7 +2279,7 @@ fn empty_array_root_compressed_with_query_select_any_descendant_there_are_none_w
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_array.toml running the query $..* (select any descendant (there are none)) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2279,7 +2291,7 @@ fn empty_array_root_compressed_with_query_select_any_descendant_there_are_none_w
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_array.toml running the query $..* (select any descendant (there are none)) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2291,7 +2303,7 @@ fn empty_array_root_compressed_with_query_select_any_descendant_there_are_none_w
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_array.toml running the query $..* (select any descendant (there are none)) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2303,7 +2315,7 @@ fn empty_array_root_compressed_with_query_select_any_descendant_there_are_none_w
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_array.toml running the query $..* (select any descendant (there are none)) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/empty_array.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2315,7 +2327,7 @@ fn empty_array_root_compressed_with_query_select_any_descendant_there_are_none_w
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_array.toml running the query $..* (select any descendant (there are none)) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/empty_array.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2327,7 +2339,7 @@ fn empty_array_root_compressed_with_query_select_any_item_there_are_none_with_bu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_array.toml running the query $[*] (select any item (there are none)) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[*]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2339,7 +2351,7 @@ fn empty_array_root_compressed_with_query_select_any_item_there_are_none_with_bu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_array.toml running the query $[*] (select any item (there are none)) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[*]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2351,7 +2363,7 @@ fn empty_array_root_compressed_with_query_select_any_item_there_are_none_with_mm
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_array.toml running the query $[*] (select any item (there are none)) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[*]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2363,7 +2375,7 @@ fn empty_array_root_compressed_with_query_select_any_item_there_are_none_with_mm
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_array.toml running the query $[*] (select any item (there are none)) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[*]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2375,7 +2387,7 @@ fn empty_array_root_compressed_with_query_select_any_item_there_are_none_with_ow
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_array.toml running the query $[*] (select any item (there are none)) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[*]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/empty_array.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2387,7 +2399,7 @@ fn empty_array_root_compressed_with_query_select_any_item_there_are_none_with_ow
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_array.toml running the query $[*] (select any item (there are none)) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[*]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/empty_array.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2399,7 +2411,7 @@ fn empty_array_root_compressed_with_query_select_the_first_item_which_does_not_e
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_array.toml running the query $[0] (select the first item (which does not exist)) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2411,7 +2423,7 @@ fn empty_array_root_compressed_with_query_select_the_first_item_which_does_not_e
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_array.toml running the query $[0] (select the first item (which does not exist)) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2423,7 +2435,7 @@ fn empty_array_root_compressed_with_query_select_the_first_item_which_does_not_e
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_array.toml running the query $[0] (select the first item (which does not exist)) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2435,7 +2447,7 @@ fn empty_array_root_compressed_with_query_select_the_first_item_which_does_not_e
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_array.toml running the query $[0] (select the first item (which does not exist)) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2447,7 +2459,7 @@ fn empty_array_root_compressed_with_query_select_the_first_item_which_does_not_e
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_array.toml running the query $[0] (select the first item (which does not exist)) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/empty_array.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2459,7 +2471,7 @@ fn empty_array_root_compressed_with_query_select_the_first_item_which_does_not_e
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_array.toml running the query $[0] (select the first item (which does not exist)) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/empty_array.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2471,7 +2483,7 @@ fn empty_array_root_compressed_with_query_select_the_root_empty_query_with_buffe
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_array.toml running the query  (select the root (empty query)) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2483,7 +2495,7 @@ fn empty_array_root_compressed_with_query_select_the_root_empty_query_with_buffe
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_array.toml running the query  (select the root (empty query)) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2495,7 +2507,7 @@ fn empty_array_root_compressed_with_query_select_the_root_empty_query_with_mmap_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_array.toml running the query  (select the root (empty query)) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2507,7 +2519,7 @@ fn empty_array_root_compressed_with_query_select_the_root_empty_query_with_mmap_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_array.toml running the query  (select the root (empty query)) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2519,7 +2531,7 @@ fn empty_array_root_compressed_with_query_select_the_root_empty_query_with_owned
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_array.toml running the query  (select the root (empty query)) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/empty_array.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2531,7 +2543,7 @@ fn empty_array_root_compressed_with_query_select_the_root_empty_query_with_owned
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_array.toml running the query  (select the root (empty query)) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/empty_array.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2543,7 +2555,7 @@ fn empty_array_root_compressed_with_query_select_the_root_with_buffered_input_an
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_array.toml running the query $ (select the root) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2555,7 +2567,7 @@ fn empty_array_root_compressed_with_query_select_the_root_with_buffered_input_an
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_array.toml running the query $ (select the root) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2567,7 +2579,7 @@ fn empty_array_root_compressed_with_query_select_the_root_with_mmap_input_and_co
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_array.toml running the query $ (select the root) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2579,7 +2591,7 @@ fn empty_array_root_compressed_with_query_select_the_root_with_mmap_input_and_in
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_array.toml running the query $ (select the root) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2591,7 +2603,7 @@ fn empty_array_root_compressed_with_query_select_the_root_with_owned_bytes_and_c
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_array.toml running the query $ (select the root) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/empty_array.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2603,7 +2615,7 @@ fn empty_array_root_compressed_with_query_select_the_root_with_owned_bytes_and_i
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_array.toml running the query $ (select the root) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/empty_array.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2615,7 +2627,7 @@ fn empty_array_root_with_query_select_any_descendant_there_are_none_with_buffere
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_array.toml running the query $..* (select any descendant (there are none)) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2627,7 +2639,7 @@ fn empty_array_root_with_query_select_any_descendant_there_are_none_with_buffere
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_array.toml running the query $..* (select any descendant (there are none)) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2639,7 +2651,7 @@ fn empty_array_root_with_query_select_any_descendant_there_are_none_with_mmap_in
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_array.toml running the query $..* (select any descendant (there are none)) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2651,7 +2663,7 @@ fn empty_array_root_with_query_select_any_descendant_there_are_none_with_mmap_in
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_array.toml running the query $..* (select any descendant (there are none)) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2663,7 +2675,7 @@ fn empty_array_root_with_query_select_any_descendant_there_are_none_with_owned_b
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_array.toml running the query $..* (select any descendant (there are none)) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/empty_array.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2675,7 +2687,7 @@ fn empty_array_root_with_query_select_any_descendant_there_are_none_with_owned_b
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_array.toml running the query $..* (select any descendant (there are none)) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/empty_array.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2687,7 +2699,7 @@ fn empty_array_root_with_query_select_any_item_there_are_none_with_buffered_inpu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_array.toml running the query $[*] (select any item (there are none)) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[*]")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2699,7 +2711,7 @@ fn empty_array_root_with_query_select_any_item_there_are_none_with_buffered_inpu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_array.toml running the query $[*] (select any item (there are none)) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[*]")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2711,7 +2723,7 @@ fn empty_array_root_with_query_select_any_item_there_are_none_with_mmap_input_an
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_array.toml running the query $[*] (select any item (there are none)) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[*]")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2723,7 +2735,7 @@ fn empty_array_root_with_query_select_any_item_there_are_none_with_mmap_input_an
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_array.toml running the query $[*] (select any item (there are none)) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[*]")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2735,7 +2747,7 @@ fn empty_array_root_with_query_select_any_item_there_are_none_with_owned_bytes_a
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_array.toml running the query $[*] (select any item (there are none)) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[*]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/empty_array.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2747,7 +2759,7 @@ fn empty_array_root_with_query_select_any_item_there_are_none_with_owned_bytes_a
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_array.toml running the query $[*] (select any item (there are none)) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[*]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/empty_array.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2759,7 +2771,7 @@ fn empty_array_root_with_query_select_the_first_item_which_does_not_exist_with_b
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_array.toml running the query $[0] (select the first item (which does not exist)) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2771,7 +2783,7 @@ fn empty_array_root_with_query_select_the_first_item_which_does_not_exist_with_b
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_array.toml running the query $[0] (select the first item (which does not exist)) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2783,7 +2795,7 @@ fn empty_array_root_with_query_select_the_first_item_which_does_not_exist_with_m
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_array.toml running the query $[0] (select the first item (which does not exist)) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2795,7 +2807,7 @@ fn empty_array_root_with_query_select_the_first_item_which_does_not_exist_with_m
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_array.toml running the query $[0] (select the first item (which does not exist)) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2807,7 +2819,7 @@ fn empty_array_root_with_query_select_the_first_item_which_does_not_exist_with_o
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_array.toml running the query $[0] (select the first item (which does not exist)) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/empty_array.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2819,7 +2831,7 @@ fn empty_array_root_with_query_select_the_first_item_which_does_not_exist_with_o
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_array.toml running the query $[0] (select the first item (which does not exist)) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/empty_array.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2831,7 +2843,7 @@ fn empty_array_root_with_query_select_the_root_empty_query_with_buffered_input_a
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_array.toml running the query  (select the root (empty query)) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2843,7 +2855,7 @@ fn empty_array_root_with_query_select_the_root_empty_query_with_buffered_input_a
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_array.toml running the query  (select the root (empty query)) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2855,7 +2867,7 @@ fn empty_array_root_with_query_select_the_root_empty_query_with_mmap_input_and_c
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_array.toml running the query  (select the root (empty query)) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2867,7 +2879,7 @@ fn empty_array_root_with_query_select_the_root_empty_query_with_mmap_input_and_i
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_array.toml running the query  (select the root (empty query)) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2879,7 +2891,7 @@ fn empty_array_root_with_query_select_the_root_empty_query_with_owned_bytes_and_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_array.toml running the query  (select the root (empty query)) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/empty_array.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2891,7 +2903,7 @@ fn empty_array_root_with_query_select_the_root_empty_query_with_owned_bytes_and_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_array.toml running the query  (select the root (empty query)) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/empty_array.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2903,7 +2915,7 @@ fn empty_array_root_with_query_select_the_root_with_buffered_input_and_count_res
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_array.toml running the query $ (select the root) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2915,7 +2927,7 @@ fn empty_array_root_with_query_select_the_root_with_buffered_input_and_index_res
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_array.toml running the query $ (select the root) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2927,7 +2939,7 @@ fn empty_array_root_with_query_select_the_root_with_mmap_input_and_count_result_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_array.toml running the query $ (select the root) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2939,7 +2951,7 @@ fn empty_array_root_with_query_select_the_root_with_mmap_input_and_index_result_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_array.toml running the query $ (select the root) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_array.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2951,7 +2963,7 @@ fn empty_array_root_with_query_select_the_root_with_owned_bytes_and_count_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_array.toml running the query $ (select the root) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/empty_array.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2963,7 +2975,7 @@ fn empty_array_root_with_query_select_the_root_with_owned_bytes_and_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_array.toml running the query $ (select the root) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/empty_array.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2975,7 +2987,7 @@ fn empty_document_compressed_with_query_select_the_root_empty_query_with_buffere
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty.toml running the query  (select the root (empty query)) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -2987,7 +2999,7 @@ fn empty_document_compressed_with_query_select_the_root_empty_query_with_buffere
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty.toml running the query  (select the root (empty query)) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -2999,7 +3011,7 @@ fn empty_document_compressed_with_query_select_the_root_empty_query_with_mmap_in
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty.toml running the query  (select the root (empty query)) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3011,7 +3023,7 @@ fn empty_document_compressed_with_query_select_the_root_empty_query_with_mmap_in
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty.toml running the query  (select the root (empty query)) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3023,7 +3035,7 @@ fn empty_document_compressed_with_query_select_the_root_empty_query_with_owned_b
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty.toml running the query  (select the root (empty query)) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/empty.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3035,7 +3047,7 @@ fn empty_document_compressed_with_query_select_the_root_empty_query_with_owned_b
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty.toml running the query  (select the root (empty query)) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/empty.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3047,7 +3059,7 @@ fn empty_document_compressed_with_query_select_the_root_with_buffered_input_and_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty.toml running the query $ (select the root) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3059,7 +3071,7 @@ fn empty_document_compressed_with_query_select_the_root_with_buffered_input_and_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty.toml running the query $ (select the root) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3071,7 +3083,7 @@ fn empty_document_compressed_with_query_select_the_root_with_mmap_input_and_coun
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty.toml running the query $ (select the root) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3083,7 +3095,7 @@ fn empty_document_compressed_with_query_select_the_root_with_mmap_input_and_inde
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty.toml running the query $ (select the root) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3095,7 +3107,7 @@ fn empty_document_compressed_with_query_select_the_root_with_owned_bytes_and_cou
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty.toml running the query $ (select the root) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/empty.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3107,7 +3119,7 @@ fn empty_document_compressed_with_query_select_the_root_with_owned_bytes_and_ind
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty.toml running the query $ (select the root) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/empty.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3119,7 +3131,7 @@ fn empty_document_with_query_select_the_root_empty_query_with_buffered_input_and
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty.toml running the query  (select the root (empty query)) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let json_file = fs::File::open("./tests/documents/json/empty.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3131,7 +3143,7 @@ fn empty_document_with_query_select_the_root_empty_query_with_buffered_input_and
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty.toml running the query  (select the root (empty query)) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let json_file = fs::File::open("./tests/documents/json/empty.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3143,7 +3155,7 @@ fn empty_document_with_query_select_the_root_empty_query_with_mmap_input_and_cou
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty.toml running the query  (select the root (empty query)) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let json_file = fs::File::open("./tests/documents/json/empty.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3155,7 +3167,7 @@ fn empty_document_with_query_select_the_root_empty_query_with_mmap_input_and_ind
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty.toml running the query  (select the root (empty query)) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let json_file = fs::File::open("./tests/documents/json/empty.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3167,7 +3179,7 @@ fn empty_document_with_query_select_the_root_empty_query_with_owned_bytes_and_co
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty.toml running the query  (select the root (empty query)) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/empty.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3179,7 +3191,7 @@ fn empty_document_with_query_select_the_root_empty_query_with_owned_bytes_and_in
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty.toml running the query  (select the root (empty query)) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/empty.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3191,7 +3203,7 @@ fn empty_document_with_query_select_the_root_with_buffered_input_and_count_resul
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty.toml running the query $ (select the root) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let json_file = fs::File::open("./tests/documents/json/empty.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3203,7 +3215,7 @@ fn empty_document_with_query_select_the_root_with_buffered_input_and_index_resul
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty.toml running the query $ (select the root) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let json_file = fs::File::open("./tests/documents/json/empty.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3215,7 +3227,7 @@ fn empty_document_with_query_select_the_root_with_mmap_input_and_count_result_us
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty.toml running the query $ (select the root) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let json_file = fs::File::open("./tests/documents/json/empty.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3227,7 +3239,7 @@ fn empty_document_with_query_select_the_root_with_mmap_input_and_index_result_us
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty.toml running the query $ (select the root) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let json_file = fs::File::open("./tests/documents/json/empty.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3239,7 +3251,7 @@ fn empty_document_with_query_select_the_root_with_owned_bytes_and_count_result_u
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty.toml running the query $ (select the root) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/empty.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3251,7 +3263,7 @@ fn empty_document_with_query_select_the_root_with_owned_bytes_and_index_result_u
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty.toml running the query $ (select the root) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/empty.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3263,7 +3275,7 @@ fn empty_object_root_compressed_with_query_select_any_child_there_are_none_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_object.toml running the query $.* (select any child (there are none)) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3275,7 +3287,7 @@ fn empty_object_root_compressed_with_query_select_any_child_there_are_none_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_object.toml running the query $.* (select any child (there are none)) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3287,7 +3299,7 @@ fn empty_object_root_compressed_with_query_select_any_child_there_are_none_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_object.toml running the query $.* (select any child (there are none)) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3299,7 +3311,7 @@ fn empty_object_root_compressed_with_query_select_any_child_there_are_none_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_object.toml running the query $.* (select any child (there are none)) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3311,7 +3323,7 @@ fn empty_object_root_compressed_with_query_select_any_child_there_are_none_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_object.toml running the query $.* (select any child (there are none)) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/empty_object.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3323,7 +3335,7 @@ fn empty_object_root_compressed_with_query_select_any_child_there_are_none_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_object.toml running the query $.* (select any child (there are none)) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/empty_object.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3335,7 +3347,7 @@ fn empty_object_root_compressed_with_query_select_any_descendant_there_are_none_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_object.toml running the query $..* (select any descendant (there are none)) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3347,7 +3359,7 @@ fn empty_object_root_compressed_with_query_select_any_descendant_there_are_none_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_object.toml running the query $..* (select any descendant (there are none)) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3359,7 +3371,7 @@ fn empty_object_root_compressed_with_query_select_any_descendant_there_are_none_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_object.toml running the query $..* (select any descendant (there are none)) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3371,7 +3383,7 @@ fn empty_object_root_compressed_with_query_select_any_descendant_there_are_none_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_object.toml running the query $..* (select any descendant (there are none)) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3383,7 +3395,7 @@ fn empty_object_root_compressed_with_query_select_any_descendant_there_are_none_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_object.toml running the query $..* (select any descendant (there are none)) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/empty_object.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3395,7 +3407,7 @@ fn empty_object_root_compressed_with_query_select_any_descendant_there_are_none_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_object.toml running the query $..* (select any descendant (there are none)) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/empty_object.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3407,7 +3419,7 @@ fn empty_object_root_compressed_with_query_select_the_child_named_a_which_does_n
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_object.toml running the query $.a (select the child named 'a' (which does not exist)) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3419,7 +3431,7 @@ fn empty_object_root_compressed_with_query_select_the_child_named_a_which_does_n
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_object.toml running the query $.a (select the child named 'a' (which does not exist)) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3431,7 +3443,7 @@ fn empty_object_root_compressed_with_query_select_the_child_named_a_which_does_n
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_object.toml running the query $.a (select the child named 'a' (which does not exist)) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3443,7 +3455,7 @@ fn empty_object_root_compressed_with_query_select_the_child_named_a_which_does_n
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_object.toml running the query $.a (select the child named 'a' (which does not exist)) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3455,7 +3467,7 @@ fn empty_object_root_compressed_with_query_select_the_child_named_a_which_does_n
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_object.toml running the query $.a (select the child named 'a' (which does not exist)) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/empty_object.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3467,7 +3479,7 @@ fn empty_object_root_compressed_with_query_select_the_child_named_a_which_does_n
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_object.toml running the query $.a (select the child named 'a' (which does not exist)) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/empty_object.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3479,7 +3491,7 @@ fn empty_object_root_compressed_with_query_select_the_root_empty_query_with_buff
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_object.toml running the query  (select the root (empty query)) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3491,7 +3503,7 @@ fn empty_object_root_compressed_with_query_select_the_root_empty_query_with_buff
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_object.toml running the query  (select the root (empty query)) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3503,7 +3515,7 @@ fn empty_object_root_compressed_with_query_select_the_root_empty_query_with_mmap
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_object.toml running the query  (select the root (empty query)) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3515,7 +3527,7 @@ fn empty_object_root_compressed_with_query_select_the_root_empty_query_with_mmap
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_object.toml running the query  (select the root (empty query)) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3527,7 +3539,7 @@ fn empty_object_root_compressed_with_query_select_the_root_empty_query_with_owne
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_object.toml running the query  (select the root (empty query)) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/empty_object.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3539,7 +3551,7 @@ fn empty_object_root_compressed_with_query_select_the_root_empty_query_with_owne
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_object.toml running the query  (select the root (empty query)) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/empty_object.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3551,7 +3563,7 @@ fn empty_object_root_compressed_with_query_select_the_root_with_buffered_input_a
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_object.toml running the query $ (select the root) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3563,7 +3575,7 @@ fn empty_object_root_compressed_with_query_select_the_root_with_buffered_input_a
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_object.toml running the query $ (select the root) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3575,7 +3587,7 @@ fn empty_object_root_compressed_with_query_select_the_root_with_mmap_input_and_c
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_object.toml running the query $ (select the root) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3587,7 +3599,7 @@ fn empty_object_root_compressed_with_query_select_the_root_with_mmap_input_and_i
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_object.toml running the query $ (select the root) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3599,7 +3611,7 @@ fn empty_object_root_compressed_with_query_select_the_root_with_owned_bytes_and_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_object.toml running the query $ (select the root) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/empty_object.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3611,7 +3623,7 @@ fn empty_object_root_compressed_with_query_select_the_root_with_owned_bytes_and_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/empty_object.toml running the query $ (select the root) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/empty_object.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3623,7 +3635,7 @@ fn empty_object_root_with_query_select_any_child_there_are_none_with_buffered_in
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_object.toml running the query $.* (select any child (there are none)) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.*")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3635,7 +3647,7 @@ fn empty_object_root_with_query_select_any_child_there_are_none_with_buffered_in
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_object.toml running the query $.* (select any child (there are none)) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.*")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3647,7 +3659,7 @@ fn empty_object_root_with_query_select_any_child_there_are_none_with_mmap_input_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_object.toml running the query $.* (select any child (there are none)) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.*")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3659,7 +3671,7 @@ fn empty_object_root_with_query_select_any_child_there_are_none_with_mmap_input_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_object.toml running the query $.* (select any child (there are none)) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.*")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3671,7 +3683,7 @@ fn empty_object_root_with_query_select_any_child_there_are_none_with_owned_bytes
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_object.toml running the query $.* (select any child (there are none)) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/empty_object.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3683,7 +3695,7 @@ fn empty_object_root_with_query_select_any_child_there_are_none_with_owned_bytes
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_object.toml running the query $.* (select any child (there are none)) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/empty_object.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3695,7 +3707,7 @@ fn empty_object_root_with_query_select_any_descendant_there_are_none_with_buffer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_object.toml running the query $..* (select any descendant (there are none)) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3707,7 +3719,7 @@ fn empty_object_root_with_query_select_any_descendant_there_are_none_with_buffer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_object.toml running the query $..* (select any descendant (there are none)) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3719,7 +3731,7 @@ fn empty_object_root_with_query_select_any_descendant_there_are_none_with_mmap_i
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_object.toml running the query $..* (select any descendant (there are none)) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3731,7 +3743,7 @@ fn empty_object_root_with_query_select_any_descendant_there_are_none_with_mmap_i
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_object.toml running the query $..* (select any descendant (there are none)) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3743,7 +3755,7 @@ fn empty_object_root_with_query_select_any_descendant_there_are_none_with_owned_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_object.toml running the query $..* (select any descendant (there are none)) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/empty_object.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3755,7 +3767,7 @@ fn empty_object_root_with_query_select_any_descendant_there_are_none_with_owned_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_object.toml running the query $..* (select any descendant (there are none)) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/empty_object.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3767,7 +3779,7 @@ fn empty_object_root_with_query_select_the_child_named_a_which_does_not_exist_wi
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_object.toml running the query $.a (select the child named 'a' (which does not exist)) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3779,7 +3791,7 @@ fn empty_object_root_with_query_select_the_child_named_a_which_does_not_exist_wi
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_object.toml running the query $.a (select the child named 'a' (which does not exist)) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3791,7 +3803,7 @@ fn empty_object_root_with_query_select_the_child_named_a_which_does_not_exist_wi
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_object.toml running the query $.a (select the child named 'a' (which does not exist)) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3803,7 +3815,7 @@ fn empty_object_root_with_query_select_the_child_named_a_which_does_not_exist_wi
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_object.toml running the query $.a (select the child named 'a' (which does not exist)) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3815,7 +3827,7 @@ fn empty_object_root_with_query_select_the_child_named_a_which_does_not_exist_wi
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_object.toml running the query $.a (select the child named 'a' (which does not exist)) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/empty_object.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3827,7 +3839,7 @@ fn empty_object_root_with_query_select_the_child_named_a_which_does_not_exist_wi
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_object.toml running the query $.a (select the child named 'a' (which does not exist)) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/empty_object.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3839,7 +3851,7 @@ fn empty_object_root_with_query_select_the_root_empty_query_with_buffered_input_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_object.toml running the query  (select the root (empty query)) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3851,7 +3863,7 @@ fn empty_object_root_with_query_select_the_root_empty_query_with_buffered_input_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_object.toml running the query  (select the root (empty query)) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3863,7 +3875,7 @@ fn empty_object_root_with_query_select_the_root_empty_query_with_mmap_input_and_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_object.toml running the query  (select the root (empty query)) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3875,7 +3887,7 @@ fn empty_object_root_with_query_select_the_root_empty_query_with_mmap_input_and_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_object.toml running the query  (select the root (empty query)) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3887,7 +3899,7 @@ fn empty_object_root_with_query_select_the_root_empty_query_with_owned_bytes_and
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_object.toml running the query  (select the root (empty query)) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/empty_object.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3899,7 +3911,7 @@ fn empty_object_root_with_query_select_the_root_empty_query_with_owned_bytes_and
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_object.toml running the query  (select the root (empty query)) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/empty_object.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3911,7 +3923,7 @@ fn empty_object_root_with_query_select_the_root_with_buffered_input_and_count_re
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_object.toml running the query $ (select the root) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3923,7 +3935,7 @@ fn empty_object_root_with_query_select_the_root_with_buffered_input_and_index_re
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_object.toml running the query $ (select the root) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3935,7 +3947,7 @@ fn empty_object_root_with_query_select_the_root_with_mmap_input_and_count_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_object.toml running the query $ (select the root) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3947,7 +3959,7 @@ fn empty_object_root_with_query_select_the_root_with_mmap_input_and_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_object.toml running the query $ (select the root) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let json_file = fs::File::open("./tests/documents/json/empty_object.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3959,7 +3971,7 @@ fn empty_object_root_with_query_select_the_root_with_owned_bytes_and_count_resul
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_object.toml running the query $ (select the root) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/empty_object.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3971,7 +3983,7 @@ fn empty_object_root_with_query_select_the_root_with_owned_bytes_and_index_resul
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document empty_object.toml running the query $ (select the root) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/empty_object.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -3983,7 +3995,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter_urls.toml running the query $..entities..url (descendant entities then url) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities..url")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -3995,7 +4007,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter_urls.toml running the query $..entities..url (descendant entities then url) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities..url")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4011,7 +4023,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter_urls.toml running the query $..entities..url (descendant entities then url) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities..url")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4023,7 +4035,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter_urls.toml running the query $..entities..url (descendant entities then url) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities..url")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4039,7 +4051,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter_urls.toml running the query $..entities..url (descendant entities then url) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities..url")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/twitter_urls.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4051,7 +4063,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter_urls.toml running the query $..entities..url (descendant entities then url) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities..url")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/twitter_urls.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4067,7 +4079,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter_urls.toml running the query $..entities.urls..url (descendant for url limited to direct urls arrays) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities.urls..url")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4079,7 +4091,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter_urls.toml running the query $..entities.urls..url (descendant for url limited to direct urls arrays) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities.urls..url")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4091,7 +4103,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter_urls.toml running the query $..entities.urls..url (descendant for url limited to direct urls arrays) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities.urls..url")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4103,7 +4115,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter_urls.toml running the query $..entities.urls..url (descendant for url limited to direct urls arrays) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities.urls..url")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4115,7 +4127,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter_urls.toml running the query $..entities.urls..url (descendant for url limited to direct urls arrays) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities.urls..url")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/twitter_urls.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4127,7 +4139,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter_urls.toml running the query $..entities.urls..url (descendant for url limited to direct urls arrays) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities.urls..url")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/twitter_urls.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4139,7 +4151,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter_urls.toml running the query $..entities..urls..url (descendant for url limited to urls arrays) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities..urls..url")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4151,7 +4163,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter_urls.toml running the query $..entities..urls..url (descendant for url limited to urls arrays) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities..urls..url")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4163,7 +4175,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter_urls.toml running the query $..entities..urls..url (descendant for url limited to urls arrays) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities..urls..url")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4175,7 +4187,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter_urls.toml running the query $..entities..urls..url (descendant for url limited to urls arrays) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities..urls..url")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4187,7 +4199,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter_urls.toml running the query $..entities..urls..url (descendant for url limited to urls arrays) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities..urls..url")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/twitter_urls.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4199,7 +4211,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter_urls.toml running the query $..entities..urls..url (descendant for url limited to urls arrays) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities..urls..url")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/twitter_urls.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4211,7 +4223,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter_urls.toml running the query $..url (descendant search for url) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..url")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4223,7 +4235,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter_urls.toml running the query $..url (descendant search for url) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..url")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4239,7 +4251,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter_urls.toml running the query $..url (descendant search for url) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..url")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4251,7 +4263,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter_urls.toml running the query $..url (descendant search for url) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..url")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4267,7 +4279,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter_urls.toml running the query $..url (descendant search for url) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..url")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/twitter_urls.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4279,7 +4291,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter_urls.toml running the query $..url (descendant search for url) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..url")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/twitter_urls.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4295,7 +4307,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter_urls.toml running the query $[0].url (direct path to the top-level url) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[0].url")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4307,7 +4319,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter_urls.toml running the query $[0].url (direct path to the top-level url) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[0].url")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4319,7 +4331,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter_urls.toml running the query $[0].url (direct path to the top-level url) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[0].url")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4331,7 +4343,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter_urls.toml running the query $[0].url (direct path to the top-level url) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[0].url")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4343,7 +4355,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter_urls.toml running the query $[0].url (direct path to the top-level url) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[0].url")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/twitter_urls.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4355,7 +4367,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter_urls.toml running the query $[0].url (direct path to the top-level url) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[0].url")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/twitter_urls.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4367,7 +4379,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter_urls.toml running the query $..entities..url (descendant entities then url) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities..url")?;
-    let json_file = fs::File::open("./tests/documents/json/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4379,7 +4391,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter_urls.toml running the query $..entities..url (descendant entities then url) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities..url")?;
-    let json_file = fs::File::open("./tests/documents/json/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4395,7 +4407,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter_urls.toml running the query $..entities..url (descendant entities then url) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities..url")?;
-    let json_file = fs::File::open("./tests/documents/json/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4407,7 +4419,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter_urls.toml running the query $..entities..url (descendant entities then url) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities..url")?;
-    let json_file = fs::File::open("./tests/documents/json/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4423,7 +4435,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter_urls.toml running the query $..entities..url (descendant entities then url) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities..url")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/twitter_urls.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4435,7 +4447,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter_urls.toml running the query $..entities..url (descendant entities then url) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities..url")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/twitter_urls.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4451,7 +4463,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter_urls.toml running the query $..entities.urls..url (descendant for url limited to direct urls arrays) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities.urls..url")?;
-    let json_file = fs::File::open("./tests/documents/json/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4463,7 +4475,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter_urls.toml running the query $..entities.urls..url (descendant for url limited to direct urls arrays) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities.urls..url")?;
-    let json_file = fs::File::open("./tests/documents/json/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4475,7 +4487,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter_urls.toml running the query $..entities.urls..url (descendant for url limited to direct urls arrays) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities.urls..url")?;
-    let json_file = fs::File::open("./tests/documents/json/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4487,7 +4499,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter_urls.toml running the query $..entities.urls..url (descendant for url limited to direct urls arrays) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities.urls..url")?;
-    let json_file = fs::File::open("./tests/documents/json/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4499,7 +4511,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter_urls.toml running the query $..entities.urls..url (descendant for url limited to direct urls arrays) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities.urls..url")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/twitter_urls.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4511,7 +4523,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter_urls.toml running the query $..entities.urls..url (descendant for url limited to direct urls arrays) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities.urls..url")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/twitter_urls.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4523,7 +4535,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter_urls.toml running the query $..entities..urls..url (descendant for url limited to urls arrays) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities..urls..url")?;
-    let json_file = fs::File::open("./tests/documents/json/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4535,7 +4547,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter_urls.toml running the query $..entities..urls..url (descendant for url limited to urls arrays) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities..urls..url")?;
-    let json_file = fs::File::open("./tests/documents/json/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4547,7 +4559,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter_urls.toml running the query $..entities..urls..url (descendant for url limited to urls arrays) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities..urls..url")?;
-    let json_file = fs::File::open("./tests/documents/json/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4559,7 +4571,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter_urls.toml running the query $..entities..urls..url (descendant for url limited to urls arrays) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities..urls..url")?;
-    let json_file = fs::File::open("./tests/documents/json/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4571,7 +4583,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter_urls.toml running the query $..entities..urls..url (descendant for url limited to urls arrays) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities..urls..url")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/twitter_urls.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4583,7 +4595,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter_urls.toml running the query $..entities..urls..url (descendant for url limited to urls arrays) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..entities..urls..url")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/twitter_urls.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4595,7 +4607,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter_urls.toml running the query $..url (descendant search for url) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..url")?;
-    let json_file = fs::File::open("./tests/documents/json/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4607,7 +4619,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter_urls.toml running the query $..url (descendant search for url) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..url")?;
-    let json_file = fs::File::open("./tests/documents/json/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4623,7 +4635,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter_urls.toml running the query $..url (descendant search for url) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..url")?;
-    let json_file = fs::File::open("./tests/documents/json/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4635,7 +4647,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter_urls.toml running the query $..url (descendant search for url) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..url")?;
-    let json_file = fs::File::open("./tests/documents/json/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4651,7 +4663,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter_urls.toml running the query $..url (descendant search for url) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..url")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/twitter_urls.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4663,7 +4675,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter_urls.toml running the query $..url (descendant search for url) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..url")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/twitter_urls.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4679,7 +4691,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter_urls.toml running the query $[0].url (direct path to the top-level url) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[0].url")?;
-    let json_file = fs::File::open("./tests/documents/json/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4691,7 +4703,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter_urls.toml running the query $[0].url (direct path to the top-level url) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[0].url")?;
-    let json_file = fs::File::open("./tests/documents/json/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4703,7 +4715,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter_urls.toml running the query $[0].url (direct path to the top-level url) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[0].url")?;
-    let json_file = fs::File::open("./tests/documents/json/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4715,7 +4727,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter_urls.toml running the query $[0].url (direct path to the top-level url) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[0].url")?;
-    let json_file = fs::File::open("./tests/documents/json/twitter_urls.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4727,7 +4739,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter_urls.toml running the query $[0].url (direct path to the top-level url) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[0].url")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/twitter_urls.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4739,7 +4751,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter_urls.toml running the query $[0].url (direct path to the top-level url) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[0].url")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/twitter_urls.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4751,7 +4763,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/memchr_trap.toml running the query $..['\"b'] (descendant search for 'b' with a leading quote) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..['\"b']")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/memchr_trap.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/memchr_trap.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4763,7 +4775,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/memchr_trap.toml running the query $..['\"b'] (descendant search for 'b' with a leading quote) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..['\"b']")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/memchr_trap.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/memchr_trap.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4775,7 +4787,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/memchr_trap.toml running the query $..['\"b'] (descendant search for 'b' with a leading quote) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..['\"b']")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/memchr_trap.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/memchr_trap.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4787,7 +4799,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/memchr_trap.toml running the query $..['\"b'] (descendant search for 'b' with a leading quote) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..['\"b']")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/memchr_trap.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/memchr_trap.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4799,7 +4811,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/memchr_trap.toml running the query $..['\"b'] (descendant search for 'b' with a leading quote) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..['\"b']")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/memchr_trap.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/memchr_trap.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4811,7 +4823,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/memchr_trap.toml running the query $..['\"b'] (descendant search for 'b' with a leading quote) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..['\"b']")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/memchr_trap.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/memchr_trap.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4823,7 +4835,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/memchr_trap.toml running the query $..b (descendant search for 'b') with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/memchr_trap.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/memchr_trap.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4835,7 +4847,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/memchr_trap.toml running the query $..b (descendant search for 'b') with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/memchr_trap.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/memchr_trap.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4847,7 +4859,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/memchr_trap.toml running the query $..b (descendant search for 'b') with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/memchr_trap.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/memchr_trap.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4859,7 +4871,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/memchr_trap.toml running the query $..b (descendant search for 'b') with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/memchr_trap.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/memchr_trap.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4871,7 +4883,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/memchr_trap.toml running the query $..b (descendant search for 'b') with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/memchr_trap.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/memchr_trap.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4883,7 +4895,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/memchr_trap.toml running the query $..b (descendant search for 'b') with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/memchr_trap.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/memchr_trap.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4895,7 +4907,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document memchr_trap.toml running the query $..['\"b'] (descendant search for 'b' with a leading quote) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..['\"b']")?;
-    let json_file = fs::File::open("./tests/documents/json/memchr_trap.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/memchr_trap.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4907,7 +4919,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document memchr_trap.toml running the query $..['\"b'] (descendant search for 'b' with a leading quote) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..['\"b']")?;
-    let json_file = fs::File::open("./tests/documents/json/memchr_trap.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/memchr_trap.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4919,7 +4931,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document memchr_trap.toml running the query $..['\"b'] (descendant search for 'b' with a leading quote) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..['\"b']")?;
-    let json_file = fs::File::open("./tests/documents/json/memchr_trap.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/memchr_trap.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4931,7 +4943,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document memchr_trap.toml running the query $..['\"b'] (descendant search for 'b' with a leading quote) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..['\"b']")?;
-    let json_file = fs::File::open("./tests/documents/json/memchr_trap.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/memchr_trap.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4943,7 +4955,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document memchr_trap.toml running the query $..['\"b'] (descendant search for 'b' with a leading quote) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..['\"b']")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/memchr_trap.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/memchr_trap.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4955,7 +4967,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document memchr_trap.toml running the query $..['\"b'] (descendant search for 'b' with a leading quote) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..['\"b']")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/memchr_trap.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/memchr_trap.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4967,7 +4979,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document memchr_trap.toml running the query $..b (descendant search for 'b') with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let json_file = fs::File::open("./tests/documents/json/memchr_trap.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/memchr_trap.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -4979,7 +4991,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document memchr_trap.toml running the query $..b (descendant search for 'b') with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let json_file = fs::File::open("./tests/documents/json/memchr_trap.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/memchr_trap.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -4991,7 +5003,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document memchr_trap.toml running the query $..b (descendant search for 'b') with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let json_file = fs::File::open("./tests/documents/json/memchr_trap.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/memchr_trap.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5003,7 +5015,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document memchr_trap.toml running the query $..b (descendant search for 'b') with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let json_file = fs::File::open("./tests/documents/json/memchr_trap.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/memchr_trap.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -5015,7 +5027,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document memchr_trap.toml running the query $..b (descendant search for 'b') with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/memchr_trap.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/memchr_trap.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5027,7 +5039,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document memchr_trap.toml running the query $..b (descendant search for 'b') with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/memchr_trap.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/memchr_trap.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -5039,7 +5051,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_claims
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..claims..references..hash (descendant search for claims references hash) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..claims..references..hash")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5051,7 +5063,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_claims
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..claims..references..hash (descendant search for claims references hash) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..claims..references..hash")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5063,7 +5075,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_claims
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..claims..references..hash (descendant search for claims references hash) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..claims..references..hash")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5075,7 +5087,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_datava
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..datavalue..value..id (descendant search for datavalue value id) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..datavalue..value..id")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5087,7 +5099,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_datava
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..datavalue..value..id (descendant search for datavalue value id) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..datavalue..value..id")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5099,7 +5111,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_datava
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..datavalue..value..id (descendant search for datavalue value id) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..datavalue..value..id")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5111,7 +5123,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_en_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..en.value (descendant search for en, then directly for value) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en.value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5123,7 +5135,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_en_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..en.value (descendant search for en, then directly for value) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en.value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5135,7 +5147,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_en_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..en.value (descendant search for en, then directly for value) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en.value")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5147,7 +5159,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_en_val
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..en..value (descendant search for en value) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en..value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5159,7 +5171,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_en_val
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..en..value (descendant search for en value) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en..value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5171,7 +5183,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_en_val
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..en..value (descendant search for en value) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en..value")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5183,7 +5195,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_mainsn
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..mainsnak..datavalue..value..id (descendant search for mainsnak datavalue value id) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..mainsnak..datavalue..value..id")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5195,7 +5207,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_mainsn
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..mainsnak..datavalue..value..id (descendant search for mainsnak datavalue value id) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..mainsnak..datavalue..value..id")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5207,7 +5219,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_mainsn
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..mainsnak..datavalue..value..id (descendant search for mainsnak datavalue value id) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..mainsnak..datavalue..value..id")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5219,7 +5231,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_mainsn
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..mainsnak..datavalue..value (descendant search for mainsnak datavalue value) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..mainsnak..datavalue..value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5231,7 +5243,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_mainsn
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..mainsnak..datavalue..value (descendant search for mainsnak datavalue value) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..mainsnak..datavalue..value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5243,7 +5255,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_mainsn
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..mainsnak..datavalue..value (descendant search for mainsnak datavalue value) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..mainsnak..datavalue..value")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5255,7 +5267,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_refere
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..references..snaks..datavalue..value..id (descendant search for references snaks datavalue value id) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..references..snaks..datavalue..value..id")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5267,7 +5279,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_refere
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..references..snaks..datavalue..value..id (descendant search for references snaks datavalue value id) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..references..snaks..datavalue..value..id")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5279,7 +5291,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_refere
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..references..snaks..datavalue..value..id (descendant search for references snaks datavalue value id) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..references..snaks..datavalue..value..id")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5291,7 +5303,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_refere
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..references..snaks..datavalue..value (descendant search for references snaks datavalue value) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..references..snaks..datavalue..value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5303,7 +5315,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_refere
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..references..snaks..datavalue..value (descendant search for references snaks datavalue value) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..references..snaks..datavalue..value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5315,7 +5327,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_refere
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..references..snaks..datavalue..value (descendant search for references snaks datavalue value) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..references..snaks..datavalue..value")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5327,7 +5339,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_refere
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..references..snaks..datavalue (descendant search for references snaks datavalue) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..references..snaks..datavalue")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5339,7 +5351,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_refere
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..references..snaks..datavalue (descendant search for references snaks datavalue) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..references..snaks..datavalue")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5351,7 +5363,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_refere
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..references..snaks..datavalue (descendant search for references snaks datavalue) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..references..snaks..datavalue")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5363,7 +5375,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_snaks_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..snaks..datavalue..value (descendant search for snaks datavalue value) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..snaks..datavalue..value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5375,7 +5387,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_snaks_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..snaks..datavalue..value (descendant search for snaks datavalue value) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..snaks..datavalue..value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5387,7 +5399,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_snaks_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..snaks..datavalue..value (descendant search for snaks datavalue value) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..snaks..datavalue..value")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5399,7 +5411,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_snaks_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..snaks..*.id (descendant search for snaks, then any descendant and its id child) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..snaks..*.id")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5411,7 +5423,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_snaks_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..snaks..*.id (descendant search for snaks, then any descendant and its id child) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..snaks..*.id")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5423,7 +5435,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_snaks_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..snaks..*.id (descendant search for snaks, then any descendant and its id child) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..snaks..*.id")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5435,7 +5447,7 @@ fn large_wikidata_dump_person_compressed_with_query_select_all_nodes_with_buffer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..* (select all nodes) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5447,7 +5459,7 @@ fn large_wikidata_dump_person_compressed_with_query_select_all_nodes_with_mmap_i
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..* (select all nodes) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5459,7 +5471,7 @@ fn large_wikidata_dump_person_compressed_with_query_select_all_nodes_with_owned_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_person.toml running the query $..* (select all nodes) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/wikidata_person.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5471,7 +5483,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_claims_references
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..claims..references..hash (descendant search for claims references hash) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..claims..references..hash")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5483,7 +5495,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_claims_references
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..claims..references..hash (descendant search for claims references hash) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..claims..references..hash")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5495,7 +5507,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_claims_references
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..claims..references..hash (descendant search for claims references hash) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..claims..references..hash")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/wikidata_person.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5507,7 +5519,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_datavalue_value_i
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..datavalue..value..id (descendant search for datavalue value id) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..datavalue..value..id")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5519,7 +5531,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_datavalue_value_i
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..datavalue..value..id (descendant search for datavalue value id) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..datavalue..value..id")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5531,7 +5543,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_datavalue_value_i
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..datavalue..value..id (descendant search for datavalue value id) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..datavalue..value..id")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/wikidata_person.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5543,7 +5555,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_en_then_directly_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..en.value (descendant search for en, then directly for value) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en.value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5555,7 +5567,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_en_then_directly_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..en.value (descendant search for en, then directly for value) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en.value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5567,7 +5579,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_en_then_directly_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..en.value (descendant search for en, then directly for value) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en.value")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/wikidata_person.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5579,7 +5591,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_en_value_with_buf
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..en..value (descendant search for en value) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en..value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5591,7 +5603,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_en_value_with_mma
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..en..value (descendant search for en value) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en..value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5603,7 +5615,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_en_value_with_own
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..en..value (descendant search for en value) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en..value")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/wikidata_person.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5615,7 +5627,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_mainsnak_datavalu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..mainsnak..datavalue..value..id (descendant search for mainsnak datavalue value id) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..mainsnak..datavalue..value..id")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5627,7 +5639,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_mainsnak_datavalu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..mainsnak..datavalue..value..id (descendant search for mainsnak datavalue value id) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..mainsnak..datavalue..value..id")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5639,7 +5651,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_mainsnak_datavalu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..mainsnak..datavalue..value..id (descendant search for mainsnak datavalue value id) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..mainsnak..datavalue..value..id")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/wikidata_person.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5651,7 +5663,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_mainsnak_datavalu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..mainsnak..datavalue..value (descendant search for mainsnak datavalue value) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..mainsnak..datavalue..value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5663,7 +5675,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_mainsnak_datavalu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..mainsnak..datavalue..value (descendant search for mainsnak datavalue value) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..mainsnak..datavalue..value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5675,7 +5687,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_mainsnak_datavalu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..mainsnak..datavalue..value (descendant search for mainsnak datavalue value) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..mainsnak..datavalue..value")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/wikidata_person.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5687,7 +5699,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_references_snaks_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..references..snaks..datavalue..value..id (descendant search for references snaks datavalue value id) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..references..snaks..datavalue..value..id")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5699,7 +5711,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_references_snaks_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..references..snaks..datavalue..value..id (descendant search for references snaks datavalue value id) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..references..snaks..datavalue..value..id")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5711,7 +5723,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_references_snaks_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..references..snaks..datavalue..value..id (descendant search for references snaks datavalue value id) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..references..snaks..datavalue..value..id")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/wikidata_person.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5723,7 +5735,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_references_snaks_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..references..snaks..datavalue..value (descendant search for references snaks datavalue value) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..references..snaks..datavalue..value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5735,7 +5747,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_references_snaks_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..references..snaks..datavalue..value (descendant search for references snaks datavalue value) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..references..snaks..datavalue..value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5747,7 +5759,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_references_snaks_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..references..snaks..datavalue..value (descendant search for references snaks datavalue value) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..references..snaks..datavalue..value")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/wikidata_person.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5759,7 +5771,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_references_snaks_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..references..snaks..datavalue (descendant search for references snaks datavalue) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..references..snaks..datavalue")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5771,7 +5783,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_references_snaks_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..references..snaks..datavalue (descendant search for references snaks datavalue) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..references..snaks..datavalue")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5783,7 +5795,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_references_snaks_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..references..snaks..datavalue (descendant search for references snaks datavalue) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..references..snaks..datavalue")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/wikidata_person.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5795,7 +5807,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_snaks_datavalue_v
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..snaks..datavalue..value (descendant search for snaks datavalue value) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..snaks..datavalue..value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5807,7 +5819,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_snaks_datavalue_v
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..snaks..datavalue..value (descendant search for snaks datavalue value) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..snaks..datavalue..value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5819,7 +5831,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_snaks_datavalue_v
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..snaks..datavalue..value (descendant search for snaks datavalue value) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..snaks..datavalue..value")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/wikidata_person.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5831,7 +5843,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_snaks_then_any_de
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..snaks..*.id (descendant search for snaks, then any descendant and its id child) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..snaks..*.id")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5843,7 +5855,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_snaks_then_any_de
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..snaks..*.id (descendant search for snaks, then any descendant and its id child) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..snaks..*.id")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5855,7 +5867,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_snaks_then_any_de
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..snaks..*.id (descendant search for snaks, then any descendant and its id child) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..snaks..*.id")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/wikidata_person.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5867,7 +5879,7 @@ fn large_wikidata_dump_person_with_query_select_all_nodes_with_buffered_input_an
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..* (select all nodes) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5879,7 +5891,7 @@ fn large_wikidata_dump_person_with_query_select_all_nodes_with_mmap_input_and_co
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..* (select all nodes) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_person.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5891,7 +5903,7 @@ fn large_wikidata_dump_person_with_query_select_all_nodes_with_owned_bytes_and_c
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_person.toml running the query $..* (select all nodes) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/wikidata_person.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5903,7 +5915,7 @@ fn large_wikidata_dump_profession_compressed_with_query_all_nodes_with_buffered_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_profession.toml running the query $..* (all nodes) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_profession.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_profession.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5915,7 +5927,7 @@ fn large_wikidata_dump_profession_compressed_with_query_all_nodes_with_mmap_inpu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_profession.toml running the query $..* (all nodes) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_profession.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_profession.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5927,7 +5939,8 @@ fn large_wikidata_dump_profession_compressed_with_query_all_nodes_with_owned_byt
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_profession.toml running the query $..* (all nodes) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/wikidata_profession.json")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_profession.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5939,7 +5952,7 @@ fn large_wikidata_dump_profession_compressed_with_query_descendant_search_for_an
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_profession.toml running the query $..*.id (descendant search for any node and then its 'id' child) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*.id")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_profession.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_profession.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5951,7 +5964,7 @@ fn large_wikidata_dump_profession_compressed_with_query_descendant_search_for_an
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_profession.toml running the query $..*.id (descendant search for any node and then its 'id' child) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*.id")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_profession.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_profession.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5963,7 +5976,8 @@ fn large_wikidata_dump_profession_compressed_with_query_descendant_search_for_an
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_profession.toml running the query $..*.id (descendant search for any node and then its 'id' child) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*.id")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/wikidata_profession.json")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_profession.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5975,7 +5989,7 @@ fn large_wikidata_dump_profession_compressed_with_query_descendant_search_for_cl
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_profession.toml running the query $..claims..mainsnak..value (descendant search for claims mainsnak value) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..claims..mainsnak..value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_profession.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_profession.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5987,7 +6001,7 @@ fn large_wikidata_dump_profession_compressed_with_query_descendant_search_for_cl
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_profession.toml running the query $..claims..mainsnak..value (descendant search for claims mainsnak value) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..claims..mainsnak..value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_profession.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_profession.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -5999,7 +6013,8 @@ fn large_wikidata_dump_profession_compressed_with_query_descendant_search_for_cl
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_profession.toml running the query $..claims..mainsnak..value (descendant search for claims mainsnak value) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..claims..mainsnak..value")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/wikidata_profession.json")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_profession.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6011,7 +6026,7 @@ fn large_wikidata_dump_profession_compressed_with_query_descendant_search_for_en
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_profession.toml running the query $..en.value (descendant search for en, then its 'value' child) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en.value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_profession.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_profession.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6023,7 +6038,7 @@ fn large_wikidata_dump_profession_compressed_with_query_descendant_search_for_en
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_profession.toml running the query $..en.value (descendant search for en, then its 'value' child) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en.value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_profession.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_profession.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6035,7 +6050,8 @@ fn large_wikidata_dump_profession_compressed_with_query_descendant_search_for_en
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_profession.toml running the query $..en.value (descendant search for en, then its 'value' child) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en.value")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/wikidata_profession.json")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_profession.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6047,7 +6063,7 @@ fn large_wikidata_dump_profession_compressed_with_query_descendant_search_for_en
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_profession.toml running the query $..en..value (descendant search for en value) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en..value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_profession.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_profession.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6059,7 +6075,7 @@ fn large_wikidata_dump_profession_compressed_with_query_descendant_search_for_en
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_profession.toml running the query $..en..value (descendant search for en value) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en..value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_profession.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_profession.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6071,7 +6087,8 @@ fn large_wikidata_dump_profession_compressed_with_query_descendant_search_for_en
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_profession.toml running the query $..en..value (descendant search for en value) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en..value")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/wikidata_profession.json")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_profession.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6083,7 +6100,7 @@ fn large_wikidata_dump_profession_with_query_all_nodes_with_buffered_input_and_c
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_profession.toml running the query $..* (all nodes) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_profession.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_profession.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6095,7 +6112,7 @@ fn large_wikidata_dump_profession_with_query_all_nodes_with_mmap_input_and_count
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_profession.toml running the query $..* (all nodes) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_profession.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_profession.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6107,7 +6124,7 @@ fn large_wikidata_dump_profession_with_query_all_nodes_with_owned_bytes_and_coun
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_profession.toml running the query $..* (all nodes) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/wikidata_profession.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_profession.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6119,7 +6136,7 @@ fn large_wikidata_dump_profession_with_query_descendant_search_for_any_node_and_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_profession.toml running the query $..*.id (descendant search for any node and then its 'id' child) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*.id")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_profession.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_profession.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6131,7 +6148,7 @@ fn large_wikidata_dump_profession_with_query_descendant_search_for_any_node_and_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_profession.toml running the query $..*.id (descendant search for any node and then its 'id' child) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*.id")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_profession.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_profession.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6143,7 +6160,7 @@ fn large_wikidata_dump_profession_with_query_descendant_search_for_any_node_and_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_profession.toml running the query $..*.id (descendant search for any node and then its 'id' child) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*.id")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/wikidata_profession.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_profession.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6155,7 +6172,7 @@ fn large_wikidata_dump_profession_with_query_descendant_search_for_claims_mainsn
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_profession.toml running the query $..claims..mainsnak..value (descendant search for claims mainsnak value) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..claims..mainsnak..value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_profession.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_profession.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6167,7 +6184,7 @@ fn large_wikidata_dump_profession_with_query_descendant_search_for_claims_mainsn
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_profession.toml running the query $..claims..mainsnak..value (descendant search for claims mainsnak value) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..claims..mainsnak..value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_profession.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_profession.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6179,7 +6196,7 @@ fn large_wikidata_dump_profession_with_query_descendant_search_for_claims_mainsn
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_profession.toml running the query $..claims..mainsnak..value (descendant search for claims mainsnak value) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..claims..mainsnak..value")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/wikidata_profession.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_profession.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6191,7 +6208,7 @@ fn large_wikidata_dump_profession_with_query_descendant_search_for_en_then_its_v
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_profession.toml running the query $..en.value (descendant search for en, then its 'value' child) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en.value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_profession.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_profession.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6203,7 +6220,7 @@ fn large_wikidata_dump_profession_with_query_descendant_search_for_en_then_its_v
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_profession.toml running the query $..en.value (descendant search for en, then its 'value' child) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en.value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_profession.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_profession.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6215,7 +6232,7 @@ fn large_wikidata_dump_profession_with_query_descendant_search_for_en_then_its_v
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_profession.toml running the query $..en.value (descendant search for en, then its 'value' child) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en.value")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/wikidata_profession.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_profession.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6227,7 +6244,7 @@ fn large_wikidata_dump_profession_with_query_descendant_search_for_en_value_with
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_profession.toml running the query $..en..value (descendant search for en value) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en..value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_profession.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_profession.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6239,7 +6256,7 @@ fn large_wikidata_dump_profession_with_query_descendant_search_for_en_value_with
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_profession.toml running the query $..en..value (descendant search for en value) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en..value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_profession.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_profession.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6251,7 +6268,7 @@ fn large_wikidata_dump_profession_with_query_descendant_search_for_en_value_with
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_profession.toml running the query $..en..value (descendant search for en value) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en..value")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/wikidata_profession.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_profession.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6263,7 +6280,7 @@ fn large_wikidata_dump_properties_compressed_with_query_all_nodes_with_buffered_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_properties.toml running the query $..* (all nodes) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_properties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6275,7 +6292,7 @@ fn large_wikidata_dump_properties_compressed_with_query_all_nodes_with_mmap_inpu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_properties.toml running the query $..* (all nodes) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_properties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6287,7 +6304,8 @@ fn large_wikidata_dump_properties_compressed_with_query_all_nodes_with_owned_byt
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_properties.toml running the query $..* (all nodes) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/wikidata_properties.json")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6299,7 +6317,7 @@ fn large_wikidata_dump_properties_compressed_with_query_descendant_search_for_an
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_properties.toml running the query $..*.value (descendant search for any node and then its 'value' child) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*.value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_properties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6311,7 +6329,7 @@ fn large_wikidata_dump_properties_compressed_with_query_descendant_search_for_an
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_properties.toml running the query $..*.value (descendant search for any node and then its 'value' child) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*.value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_properties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6323,7 +6341,8 @@ fn large_wikidata_dump_properties_compressed_with_query_descendant_search_for_an
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_properties.toml running the query $..*.value (descendant search for any node and then its 'value' child) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*.value")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/wikidata_properties.json")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6335,7 +6354,7 @@ fn large_wikidata_dump_properties_compressed_with_query_descendant_search_for_en
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_properties.toml running the query $..en.value (descendant search for en, and then its 'value' child) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en.value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_properties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6347,7 +6366,7 @@ fn large_wikidata_dump_properties_compressed_with_query_descendant_search_for_en
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_properties.toml running the query $..en.value (descendant search for en, and then its 'value' child) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en.value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_properties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6359,7 +6378,8 @@ fn large_wikidata_dump_properties_compressed_with_query_descendant_search_for_en
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_properties.toml running the query $..en.value (descendant search for en, and then its 'value' child) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en.value")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/wikidata_properties.json")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6371,7 +6391,7 @@ fn large_wikidata_dump_properties_compressed_with_query_descendant_search_for_en
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_properties.toml running the query $..en..value (descendant search for en value) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en..value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_properties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6383,7 +6403,7 @@ fn large_wikidata_dump_properties_compressed_with_query_descendant_search_for_en
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_properties.toml running the query $..en..value (descendant search for en value) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en..value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_properties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6395,7 +6415,8 @@ fn large_wikidata_dump_properties_compressed_with_query_descendant_search_for_en
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_properties.toml running the query $..en..value (descendant search for en value) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en..value")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/wikidata_properties.json")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6407,7 +6428,7 @@ fn large_wikidata_dump_properties_compressed_with_query_descendant_search_for_qu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_properties.toml running the query $..qualifiers..datavalue..id (descendant search for qualifiers datavalue id) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..qualifiers..datavalue..id")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_properties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6419,7 +6440,7 @@ fn large_wikidata_dump_properties_compressed_with_query_descendant_search_for_qu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_properties.toml running the query $..qualifiers..datavalue..id (descendant search for qualifiers datavalue id) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..qualifiers..datavalue..id")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_properties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6431,7 +6452,8 @@ fn large_wikidata_dump_properties_compressed_with_query_descendant_search_for_qu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_properties.toml running the query $..qualifiers..datavalue..id (descendant search for qualifiers datavalue id) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..qualifiers..datavalue..id")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/wikidata_properties.json")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6443,7 +6465,7 @@ fn large_wikidata_dump_properties_compressed_with_query_descendant_search_for_th
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_properties.toml running the query $..*[5] (descendant search for the fifth array element of any node) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*[5]")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_properties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6455,7 +6477,7 @@ fn large_wikidata_dump_properties_compressed_with_query_descendant_search_for_th
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_properties.toml running the query $..*[5] (descendant search for the fifth array element of any node) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*[5]")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_properties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6467,7 +6489,8 @@ fn large_wikidata_dump_properties_compressed_with_query_descendant_search_for_th
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_properties.toml running the query $..*[5] (descendant search for the fifth array element of any node) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*[5]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/wikidata_properties.json")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6479,7 +6502,7 @@ fn large_wikidata_dump_properties_compressed_with_query_path_to_p7103_claims_p31
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_properties.toml running the query $..P7103.claims.P31..references..snaks.P4656..hash (path to P7103 claims P31 references snaks P4656 hash with descendants) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..P7103.claims.P31..references..snaks.P4656..hash")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_properties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6491,7 +6514,7 @@ fn large_wikidata_dump_properties_compressed_with_query_path_to_p7103_claims_p31
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_properties.toml running the query $..P7103.claims.P31..references..snaks.P4656..hash (path to P7103 claims P31 references snaks P4656 hash with descendants) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..P7103.claims.P31..references..snaks.P4656..hash")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_properties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -6503,7 +6526,7 @@ fn large_wikidata_dump_properties_compressed_with_query_path_to_p7103_claims_p31
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_properties.toml running the query $..P7103.claims.P31..references..snaks.P4656..hash (path to P7103 claims P31 references snaks P4656 hash with descendants) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..P7103.claims.P31..references..snaks.P4656..hash")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_properties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6515,7 +6538,7 @@ fn large_wikidata_dump_properties_compressed_with_query_path_to_p7103_claims_p31
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_properties.toml running the query $..P7103.claims.P31..references..snaks.P4656..hash (path to P7103 claims P31 references snaks P4656 hash with descendants) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..P7103.claims.P31..references..snaks.P4656..hash")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/wikidata_properties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -6527,7 +6550,8 @@ fn large_wikidata_dump_properties_compressed_with_query_path_to_p7103_claims_p31
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_properties.toml running the query $..P7103.claims.P31..references..snaks.P4656..hash (path to P7103 claims P31 references snaks P4656 hash with descendants) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..P7103.claims.P31..references..snaks.P4656..hash")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/wikidata_properties.json")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6539,7 +6563,8 @@ fn large_wikidata_dump_properties_compressed_with_query_path_to_p7103_claims_p31
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/wikidata_properties.toml running the query $..P7103.claims.P31..references..snaks.P4656..hash (path to P7103 claims P31 references snaks P4656 hash with descendants) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..P7103.claims.P31..references..snaks.P4656..hash")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/wikidata_properties.json")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -6551,7 +6576,7 @@ fn large_wikidata_dump_properties_with_query_all_nodes_with_buffered_input_and_c
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_properties.toml running the query $..* (all nodes) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_properties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6563,7 +6588,7 @@ fn large_wikidata_dump_properties_with_query_all_nodes_with_mmap_input_and_count
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_properties.toml running the query $..* (all nodes) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_properties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6575,7 +6600,7 @@ fn large_wikidata_dump_properties_with_query_all_nodes_with_owned_bytes_and_coun
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_properties.toml running the query $..* (all nodes) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/wikidata_properties.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6587,7 +6612,7 @@ fn large_wikidata_dump_properties_with_query_descendant_search_for_any_node_and_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_properties.toml running the query $..*.value (descendant search for any node and then its 'value' child) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*.value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_properties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6599,7 +6624,7 @@ fn large_wikidata_dump_properties_with_query_descendant_search_for_any_node_and_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_properties.toml running the query $..*.value (descendant search for any node and then its 'value' child) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*.value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_properties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6611,7 +6636,7 @@ fn large_wikidata_dump_properties_with_query_descendant_search_for_any_node_and_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_properties.toml running the query $..*.value (descendant search for any node and then its 'value' child) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*.value")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/wikidata_properties.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6623,7 +6648,7 @@ fn large_wikidata_dump_properties_with_query_descendant_search_for_en_and_then_i
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_properties.toml running the query $..en.value (descendant search for en, and then its 'value' child) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en.value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_properties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6635,7 +6660,7 @@ fn large_wikidata_dump_properties_with_query_descendant_search_for_en_and_then_i
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_properties.toml running the query $..en.value (descendant search for en, and then its 'value' child) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en.value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_properties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6647,7 +6672,7 @@ fn large_wikidata_dump_properties_with_query_descendant_search_for_en_and_then_i
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_properties.toml running the query $..en.value (descendant search for en, and then its 'value' child) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en.value")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/wikidata_properties.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6659,7 +6684,7 @@ fn large_wikidata_dump_properties_with_query_descendant_search_for_en_value_with
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_properties.toml running the query $..en..value (descendant search for en value) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en..value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_properties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6671,7 +6696,7 @@ fn large_wikidata_dump_properties_with_query_descendant_search_for_en_value_with
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_properties.toml running the query $..en..value (descendant search for en value) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en..value")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_properties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6683,7 +6708,7 @@ fn large_wikidata_dump_properties_with_query_descendant_search_for_en_value_with
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_properties.toml running the query $..en..value (descendant search for en value) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..en..value")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/wikidata_properties.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6695,7 +6720,7 @@ fn large_wikidata_dump_properties_with_query_descendant_search_for_qualifiers_da
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_properties.toml running the query $..qualifiers..datavalue..id (descendant search for qualifiers datavalue id) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..qualifiers..datavalue..id")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_properties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6707,7 +6732,7 @@ fn large_wikidata_dump_properties_with_query_descendant_search_for_qualifiers_da
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_properties.toml running the query $..qualifiers..datavalue..id (descendant search for qualifiers datavalue id) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..qualifiers..datavalue..id")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_properties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6719,7 +6744,7 @@ fn large_wikidata_dump_properties_with_query_descendant_search_for_qualifiers_da
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_properties.toml running the query $..qualifiers..datavalue..id (descendant search for qualifiers datavalue id) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..qualifiers..datavalue..id")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/wikidata_properties.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6731,7 +6756,7 @@ fn large_wikidata_dump_properties_with_query_descendant_search_for_the_fifth_arr
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_properties.toml running the query $..*[5] (descendant search for the fifth array element of any node) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*[5]")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_properties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6743,7 +6768,7 @@ fn large_wikidata_dump_properties_with_query_descendant_search_for_the_fifth_arr
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_properties.toml running the query $..*[5] (descendant search for the fifth array element of any node) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*[5]")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_properties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6755,7 +6780,7 @@ fn large_wikidata_dump_properties_with_query_descendant_search_for_the_fifth_arr
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_properties.toml running the query $..*[5] (descendant search for the fifth array element of any node) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*[5]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/wikidata_properties.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6767,7 +6792,7 @@ fn large_wikidata_dump_properties_with_query_path_to_p7103_claims_p31_references
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_properties.toml running the query $..P7103.claims.P31..references..snaks.P4656..hash (path to P7103 claims P31 references snaks P4656 hash with descendants) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..P7103.claims.P31..references..snaks.P4656..hash")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_properties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6779,7 +6804,7 @@ fn large_wikidata_dump_properties_with_query_path_to_p7103_claims_p31_references
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_properties.toml running the query $..P7103.claims.P31..references..snaks.P4656..hash (path to P7103 claims P31 references snaks P4656 hash with descendants) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..P7103.claims.P31..references..snaks.P4656..hash")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_properties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -6791,7 +6816,7 @@ fn large_wikidata_dump_properties_with_query_path_to_p7103_claims_p31_references
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_properties.toml running the query $..P7103.claims.P31..references..snaks.P4656..hash (path to P7103 claims P31 references snaks P4656 hash with descendants) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..P7103.claims.P31..references..snaks.P4656..hash")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_properties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6803,7 +6828,7 @@ fn large_wikidata_dump_properties_with_query_path_to_p7103_claims_p31_references
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_properties.toml running the query $..P7103.claims.P31..references..snaks.P4656..hash (path to P7103 claims P31 references snaks P4656 hash with descendants) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..P7103.claims.P31..references..snaks.P4656..hash")?;
-    let json_file = fs::File::open("./tests/documents/json/large/wikidata_properties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -6815,7 +6840,7 @@ fn large_wikidata_dump_properties_with_query_path_to_p7103_claims_p31_references
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_properties.toml running the query $..P7103.claims.P31..references..snaks.P4656..hash (path to P7103 claims P31 references snaks P4656 hash with descendants) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..P7103.claims.P31..references..snaks.P4656..hash")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/wikidata_properties.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6827,7 +6852,7 @@ fn large_wikidata_dump_properties_with_query_path_to_p7103_claims_p31_references
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document wikidata_properties.toml running the query $..P7103.claims.P31..references..snaks.P4656..hash (path to P7103 claims P31 references snaks P4656 hash with descendants) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..P7103.claims.P31..references..snaks.P4656..hash")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/wikidata_properties.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -6839,7 +6864,7 @@ fn list_with_mixed_atomic_integers_and_objects_compressed_with_query_select_all_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/heterogenous_list.toml running the query $.a.* (select all elements on the list) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/heterogenous_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/heterogenous_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6851,7 +6876,7 @@ fn list_with_mixed_atomic_integers_and_objects_compressed_with_query_select_all_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/heterogenous_list.toml running the query $.a.* (select all elements on the list) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/heterogenous_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/heterogenous_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -6863,7 +6888,7 @@ fn list_with_mixed_atomic_integers_and_objects_compressed_with_query_select_all_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/heterogenous_list.toml running the query $.a.* (select all elements on the list) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/heterogenous_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/heterogenous_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6875,7 +6900,7 @@ fn list_with_mixed_atomic_integers_and_objects_compressed_with_query_select_all_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/heterogenous_list.toml running the query $.a.* (select all elements on the list) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/heterogenous_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/heterogenous_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -6887,7 +6912,7 @@ fn list_with_mixed_atomic_integers_and_objects_compressed_with_query_select_all_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/heterogenous_list.toml running the query $.a.* (select all elements on the list) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/heterogenous_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/heterogenous_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6899,7 +6924,7 @@ fn list_with_mixed_atomic_integers_and_objects_compressed_with_query_select_all_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/heterogenous_list.toml running the query $.a.* (select all elements on the list) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/heterogenous_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/heterogenous_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -6911,7 +6936,7 @@ fn list_with_mixed_atomic_integers_and_objects_with_query_select_all_elements_on
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document heterogenous_list.toml running the query $.a.* (select all elements on the list) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a.*")?;
-    let json_file = fs::File::open("./tests/documents/json/heterogenous_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/heterogenous_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6923,7 +6948,7 @@ fn list_with_mixed_atomic_integers_and_objects_with_query_select_all_elements_on
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document heterogenous_list.toml running the query $.a.* (select all elements on the list) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a.*")?;
-    let json_file = fs::File::open("./tests/documents/json/heterogenous_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/heterogenous_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -6935,7 +6960,7 @@ fn list_with_mixed_atomic_integers_and_objects_with_query_select_all_elements_on
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document heterogenous_list.toml running the query $.a.* (select all elements on the list) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a.*")?;
-    let json_file = fs::File::open("./tests/documents/json/heterogenous_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/heterogenous_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6947,7 +6972,7 @@ fn list_with_mixed_atomic_integers_and_objects_with_query_select_all_elements_on
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document heterogenous_list.toml running the query $.a.* (select all elements on the list) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a.*")?;
-    let json_file = fs::File::open("./tests/documents/json/heterogenous_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/heterogenous_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -6959,7 +6984,7 @@ fn list_with_mixed_atomic_integers_and_objects_with_query_select_all_elements_on
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document heterogenous_list.toml running the query $.a.* (select all elements on the list) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/heterogenous_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/heterogenous_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6971,7 +6996,7 @@ fn list_with_mixed_atomic_integers_and_objects_with_query_select_all_elements_on
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document heterogenous_list.toml running the query $.a.* (select all elements on the list) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/heterogenous_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/heterogenous_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -6983,7 +7008,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/escapes.toml running the query $..a..b..['label\\\\'] (select label with one actual backslash, which is two backslashes in the query) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..['label\\\\']")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/escapes.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/escapes.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -6995,7 +7020,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/escapes.toml running the query $..a..b..['label\\\\'] (select label with one actual backslash, which is two backslashes in the query) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..['label\\\\']")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/escapes.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/escapes.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7007,7 +7032,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/escapes.toml running the query $..a..b..['label\\\\'] (select label with one actual backslash, which is two backslashes in the query) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..['label\\\\']")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/escapes.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/escapes.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7019,7 +7044,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/escapes.toml running the query $..a..b..['label\\\\'] (select label with one actual backslash, which is two backslashes in the query) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..['label\\\\']")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/escapes.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/escapes.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7031,7 +7056,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/escapes.toml running the query $..a..b..['label\\\\'] (select label with one actual backslash, which is two backslashes in the query) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..['label\\\\']")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/escapes.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/escapes.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7043,7 +7068,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/escapes.toml running the query $..a..b..['label\\\\'] (select label with one actual backslash, which is two backslashes in the query) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..['label\\\\']")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/escapes.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/escapes.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7055,7 +7080,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/escapes.toml running the query $..a..b..['label\\\\\\\\'] (select label with two actual backslashes (four backslashes in the query), which does not exist) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..['label\\\\\\\\']")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/escapes.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/escapes.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7067,7 +7092,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/escapes.toml running the query $..a..b..['label\\\\\\\\'] (select label with two actual backslashes (four backslashes in the query), which does not exist) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..['label\\\\\\\\']")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/escapes.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/escapes.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7079,7 +7104,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/escapes.toml running the query $..a..b..['label\\\\\\\\'] (select label with two actual backslashes (four backslashes in the query), which does not exist) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..['label\\\\\\\\']")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/escapes.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/escapes.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7091,7 +7116,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/escapes.toml running the query $..a..b..['label\\\\\\\\'] (select label with two actual backslashes (four backslashes in the query), which does not exist) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..['label\\\\\\\\']")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/escapes.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/escapes.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7103,7 +7128,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/escapes.toml running the query $..a..b..['label\\\\\\\\'] (select label with two actual backslashes (four backslashes in the query), which does not exist) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..['label\\\\\\\\']")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/escapes.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/escapes.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7115,7 +7140,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/escapes.toml running the query $..a..b..['label\\\\\\\\'] (select label with two actual backslashes (four backslashes in the query), which does not exist) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..['label\\\\\\\\']")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/escapes.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/escapes.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7127,7 +7152,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document escapes.toml running the query $..a..b..['label\\\\'] (select label with one actual backslash, which is two backslashes in the query) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..['label\\\\']")?;
-    let json_file = fs::File::open("./tests/documents/json/escapes.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/escapes.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7139,7 +7164,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document escapes.toml running the query $..a..b..['label\\\\'] (select label with one actual backslash, which is two backslashes in the query) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..['label\\\\']")?;
-    let json_file = fs::File::open("./tests/documents/json/escapes.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/escapes.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7151,7 +7176,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document escapes.toml running the query $..a..b..['label\\\\'] (select label with one actual backslash, which is two backslashes in the query) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..['label\\\\']")?;
-    let json_file = fs::File::open("./tests/documents/json/escapes.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/escapes.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7163,7 +7188,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document escapes.toml running the query $..a..b..['label\\\\'] (select label with one actual backslash, which is two backslashes in the query) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..['label\\\\']")?;
-    let json_file = fs::File::open("./tests/documents/json/escapes.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/escapes.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7175,7 +7200,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document escapes.toml running the query $..a..b..['label\\\\'] (select label with one actual backslash, which is two backslashes in the query) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..['label\\\\']")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/escapes.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/escapes.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7187,7 +7212,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document escapes.toml running the query $..a..b..['label\\\\'] (select label with one actual backslash, which is two backslashes in the query) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..['label\\\\']")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/escapes.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/escapes.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7199,7 +7224,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document escapes.toml running the query $..a..b..['label\\\\\\\\'] (select label with two actual backslashes (four backslashes in the query), which does not exist) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..['label\\\\\\\\']")?;
-    let json_file = fs::File::open("./tests/documents/json/escapes.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/escapes.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7211,7 +7236,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document escapes.toml running the query $..a..b..['label\\\\\\\\'] (select label with two actual backslashes (four backslashes in the query), which does not exist) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..['label\\\\\\\\']")?;
-    let json_file = fs::File::open("./tests/documents/json/escapes.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/escapes.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7223,7 +7248,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document escapes.toml running the query $..a..b..['label\\\\\\\\'] (select label with two actual backslashes (four backslashes in the query), which does not exist) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..['label\\\\\\\\']")?;
-    let json_file = fs::File::open("./tests/documents/json/escapes.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/escapes.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7235,7 +7260,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document escapes.toml running the query $..a..b..['label\\\\\\\\'] (select label with two actual backslashes (four backslashes in the query), which does not exist) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..['label\\\\\\\\']")?;
-    let json_file = fs::File::open("./tests/documents/json/escapes.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/escapes.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7247,7 +7272,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document escapes.toml running the query $..a..b..['label\\\\\\\\'] (select label with two actual backslashes (four backslashes in the query), which does not exist) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..['label\\\\\\\\']")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/escapes.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/escapes.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7259,7 +7284,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document escapes.toml running the query $..a..b..['label\\\\\\\\'] (select label with two actual backslashes (four backslashes in the query), which does not exist) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b..['label\\\\\\\\']")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/escapes.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/escapes.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7271,7 +7296,7 @@ fn nested_atomic_member_compressed_with_query_look_for_b_on_at_least_one_level_o
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $..*..b (look for 'b' on at least one level of nesting) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*..b")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7283,7 +7308,7 @@ fn nested_atomic_member_compressed_with_query_look_for_b_on_at_least_one_level_o
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $..*..b (look for 'b' on at least one level of nesting) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*..b")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7295,7 +7320,7 @@ fn nested_atomic_member_compressed_with_query_look_for_b_on_at_least_one_level_o
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $..*..b (look for 'b' on at least one level of nesting) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*..b")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7307,7 +7332,7 @@ fn nested_atomic_member_compressed_with_query_look_for_b_on_at_least_one_level_o
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $..*..b (look for 'b' on at least one level of nesting) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*..b")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7319,7 +7344,7 @@ fn nested_atomic_member_compressed_with_query_look_for_b_on_at_least_one_level_o
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $..*..b (look for 'b' on at least one level of nesting) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*..b")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7331,7 +7356,7 @@ fn nested_atomic_member_compressed_with_query_look_for_b_on_at_least_one_level_o
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $..*..b (look for 'b' on at least one level of nesting) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*..b")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7343,7 +7368,7 @@ fn nested_atomic_member_compressed_with_query_look_for_descendants_of_an_atomic_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $..a..b (look for descendants of an atomic value) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7355,7 +7380,7 @@ fn nested_atomic_member_compressed_with_query_look_for_descendants_of_an_atomic_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $..a..b (look for descendants of an atomic value) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7367,7 +7392,7 @@ fn nested_atomic_member_compressed_with_query_look_for_descendants_of_an_atomic_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $..a..b (look for descendants of an atomic value) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7379,7 +7404,7 @@ fn nested_atomic_member_compressed_with_query_look_for_descendants_of_an_atomic_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $..a..b (look for descendants of an atomic value) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7391,7 +7416,7 @@ fn nested_atomic_member_compressed_with_query_look_for_descendants_of_an_atomic_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $..a..b (look for descendants of an atomic value) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7403,7 +7428,7 @@ fn nested_atomic_member_compressed_with_query_look_for_descendants_of_an_atomic_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $..a..b (look for descendants of an atomic value) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7415,7 +7440,7 @@ fn nested_atomic_member_compressed_with_query_select_a_number_that_is_a_child_wi
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $..a (select a number that is a child) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7427,7 +7452,7 @@ fn nested_atomic_member_compressed_with_query_select_a_number_that_is_a_child_wi
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $..a (select a number that is a child) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7439,7 +7464,7 @@ fn nested_atomic_member_compressed_with_query_select_a_number_that_is_a_child_wi
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $..a (select a number that is a child) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7451,7 +7476,7 @@ fn nested_atomic_member_compressed_with_query_select_a_number_that_is_a_child_wi
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $..a (select a number that is a child) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7463,7 +7488,7 @@ fn nested_atomic_member_compressed_with_query_select_a_number_that_is_a_child_wi
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $..a (select a number that is a child) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7475,7 +7500,7 @@ fn nested_atomic_member_compressed_with_query_select_a_number_that_is_a_child_wi
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $..a (select a number that is a child) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7487,7 +7512,7 @@ fn nested_atomic_member_compressed_with_query_select_all_decsendants_with_buffer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $..* (select all decsendants) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7499,7 +7524,7 @@ fn nested_atomic_member_compressed_with_query_select_all_decsendants_with_buffer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $..* (select all decsendants) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7515,7 +7540,7 @@ fn nested_atomic_member_compressed_with_query_select_all_decsendants_with_mmap_i
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $..* (select all decsendants) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7527,7 +7552,7 @@ fn nested_atomic_member_compressed_with_query_select_all_decsendants_with_mmap_i
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $..* (select all decsendants) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7543,7 +7568,7 @@ fn nested_atomic_member_compressed_with_query_select_all_decsendants_with_owned_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $..* (select all decsendants) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7555,7 +7580,7 @@ fn nested_atomic_member_compressed_with_query_select_all_decsendants_with_owned_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $..* (select all decsendants) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7571,7 +7596,7 @@ fn nested_atomic_member_compressed_with_query_select_first_item_from_list_descen
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $..[0] (select first item from list descendants) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7583,7 +7608,7 @@ fn nested_atomic_member_compressed_with_query_select_first_item_from_list_descen
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $..[0] (select first item from list descendants) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7595,7 +7620,7 @@ fn nested_atomic_member_compressed_with_query_select_first_item_from_list_descen
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $..[0] (select first item from list descendants) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7607,7 +7632,7 @@ fn nested_atomic_member_compressed_with_query_select_first_item_from_list_descen
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $..[0] (select first item from list descendants) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7619,7 +7644,7 @@ fn nested_atomic_member_compressed_with_query_select_first_item_from_list_descen
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $..[0] (select first item from list descendants) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..[0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7631,7 +7656,7 @@ fn nested_atomic_member_compressed_with_query_select_first_item_from_list_descen
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $..[0] (select first item from list descendants) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..[0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7643,7 +7668,7 @@ fn nested_atomic_member_compressed_with_query_select_the_first_element_of_b_with
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $.b[0] (select the first element of 'b') with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7655,7 +7680,7 @@ fn nested_atomic_member_compressed_with_query_select_the_first_element_of_b_with
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $.b[0] (select the first element of 'b') with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7667,7 +7692,7 @@ fn nested_atomic_member_compressed_with_query_select_the_first_element_of_b_with
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $.b[0] (select the first element of 'b') with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7679,7 +7704,7 @@ fn nested_atomic_member_compressed_with_query_select_the_first_element_of_b_with
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $.b[0] (select the first element of 'b') with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7691,7 +7716,7 @@ fn nested_atomic_member_compressed_with_query_select_the_first_element_of_b_with
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $.b[0] (select the first element of 'b') with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7703,7 +7728,7 @@ fn nested_atomic_member_compressed_with_query_select_the_first_element_of_b_with
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $.b[0] (select the first element of 'b') with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7715,7 +7740,7 @@ fn nested_atomic_member_compressed_with_query_select_the_nested_b_directly_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $.b[0].b (select the nested 'b' directly) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[0].b")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7727,7 +7752,7 @@ fn nested_atomic_member_compressed_with_query_select_the_nested_b_directly_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $.b[0].b (select the nested 'b' directly) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[0].b")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7739,7 +7764,7 @@ fn nested_atomic_member_compressed_with_query_select_the_nested_b_directly_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $.b[0].b (select the nested 'b' directly) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[0].b")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7751,7 +7776,7 @@ fn nested_atomic_member_compressed_with_query_select_the_nested_b_directly_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $.b[0].b (select the nested 'b' directly) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[0].b")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7763,7 +7788,7 @@ fn nested_atomic_member_compressed_with_query_select_the_nested_b_directly_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $.b[0].b (select the nested 'b' directly) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[0].b")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7775,7 +7800,7 @@ fn nested_atomic_member_compressed_with_query_select_the_nested_b_directly_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $.b[0].b (select the nested 'b' directly) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[0].b")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7787,7 +7812,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_b_whi
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $.b[1] (select the second element of 'b' (which does not exist)) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7799,7 +7824,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_b_whi
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $.b[1] (select the second element of 'b' (which does not exist)) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7811,7 +7836,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_b_whi
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $.b[1] (select the second element of 'b' (which does not exist)) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7823,7 +7848,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_b_whi
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $.b[1] (select the second element of 'b' (which does not exist)) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7835,7 +7860,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_b_whi
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $.b[1] (select the second element of 'b' (which does not exist)) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[1]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7847,7 +7872,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_b_whi
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $.b[1] (select the second element of 'b' (which does not exist)) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[1]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7859,7 +7884,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_the_r
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $[1] (select the second element of the root (which is not an array, so result should be empty)) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7871,7 +7896,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_the_r
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $[1] (select the second element of the root (which is not an array, so result should be empty)) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7883,7 +7908,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_the_r
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $[1] (select the second element of the root (which is not an array, so result should be empty)) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7895,7 +7920,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_the_r
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $[1] (select the second element of the root (which is not an array, so result should be empty)) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7907,7 +7932,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_the_r
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $[1] (select the second element of the root (which is not an array, so result should be empty)) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[1]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7919,7 +7944,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_the_r
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_descendant.toml running the query $[1] (select the second element of the root (which is not an array, so result should be empty)) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[1]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7931,7 +7956,7 @@ fn nested_atomic_member_with_query_look_for_b_on_at_least_one_level_of_nesting_w
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $..*..b (look for 'b' on at least one level of nesting) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*..b")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7943,7 +7968,7 @@ fn nested_atomic_member_with_query_look_for_b_on_at_least_one_level_of_nesting_w
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $..*..b (look for 'b' on at least one level of nesting) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*..b")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7955,7 +7980,7 @@ fn nested_atomic_member_with_query_look_for_b_on_at_least_one_level_of_nesting_w
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $..*..b (look for 'b' on at least one level of nesting) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*..b")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7967,7 +7992,7 @@ fn nested_atomic_member_with_query_look_for_b_on_at_least_one_level_of_nesting_w
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $..*..b (look for 'b' on at least one level of nesting) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*..b")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -7979,7 +8004,7 @@ fn nested_atomic_member_with_query_look_for_b_on_at_least_one_level_of_nesting_w
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $..*..b (look for 'b' on at least one level of nesting) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*..b")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -7991,7 +8016,7 @@ fn nested_atomic_member_with_query_look_for_b_on_at_least_one_level_of_nesting_w
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $..*..b (look for 'b' on at least one level of nesting) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*..b")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8003,7 +8028,7 @@ fn nested_atomic_member_with_query_look_for_descendants_of_an_atomic_value_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $..a..b (look for descendants of an atomic value) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8015,7 +8040,7 @@ fn nested_atomic_member_with_query_look_for_descendants_of_an_atomic_value_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $..a..b (look for descendants of an atomic value) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8027,7 +8052,7 @@ fn nested_atomic_member_with_query_look_for_descendants_of_an_atomic_value_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $..a..b (look for descendants of an atomic value) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8039,7 +8064,7 @@ fn nested_atomic_member_with_query_look_for_descendants_of_an_atomic_value_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $..a..b (look for descendants of an atomic value) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8051,7 +8076,7 @@ fn nested_atomic_member_with_query_look_for_descendants_of_an_atomic_value_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $..a..b (look for descendants of an atomic value) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8063,7 +8088,7 @@ fn nested_atomic_member_with_query_look_for_descendants_of_an_atomic_value_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $..a..b (look for descendants of an atomic value) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a..b")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8075,7 +8100,7 @@ fn nested_atomic_member_with_query_select_a_number_that_is_a_child_with_buffered
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $..a (select a number that is a child) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8087,7 +8112,7 @@ fn nested_atomic_member_with_query_select_a_number_that_is_a_child_with_buffered
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $..a (select a number that is a child) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8099,7 +8124,7 @@ fn nested_atomic_member_with_query_select_a_number_that_is_a_child_with_mmap_inp
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $..a (select a number that is a child) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8111,7 +8136,7 @@ fn nested_atomic_member_with_query_select_a_number_that_is_a_child_with_mmap_inp
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $..a (select a number that is a child) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8123,7 +8148,7 @@ fn nested_atomic_member_with_query_select_a_number_that_is_a_child_with_owned_by
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $..a (select a number that is a child) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8135,7 +8160,7 @@ fn nested_atomic_member_with_query_select_a_number_that_is_a_child_with_owned_by
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $..a (select a number that is a child) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8147,7 +8172,7 @@ fn nested_atomic_member_with_query_select_all_decsendants_with_buffered_input_an
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $..* (select all decsendants) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8159,7 +8184,7 @@ fn nested_atomic_member_with_query_select_all_decsendants_with_buffered_input_an
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $..* (select all decsendants) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8175,7 +8200,7 @@ fn nested_atomic_member_with_query_select_all_decsendants_with_mmap_input_and_co
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $..* (select all decsendants) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8187,7 +8212,7 @@ fn nested_atomic_member_with_query_select_all_decsendants_with_mmap_input_and_in
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $..* (select all decsendants) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8203,7 +8228,7 @@ fn nested_atomic_member_with_query_select_all_decsendants_with_owned_bytes_and_c
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $..* (select all decsendants) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8215,7 +8240,7 @@ fn nested_atomic_member_with_query_select_all_decsendants_with_owned_bytes_and_i
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $..* (select all decsendants) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8231,7 +8256,7 @@ fn nested_atomic_member_with_query_select_first_item_from_list_descendants_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $..[0] (select first item from list descendants) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8243,7 +8268,7 @@ fn nested_atomic_member_with_query_select_first_item_from_list_descendants_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $..[0] (select first item from list descendants) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8255,7 +8280,7 @@ fn nested_atomic_member_with_query_select_first_item_from_list_descendants_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $..[0] (select first item from list descendants) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8267,7 +8292,7 @@ fn nested_atomic_member_with_query_select_first_item_from_list_descendants_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $..[0] (select first item from list descendants) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8279,7 +8304,7 @@ fn nested_atomic_member_with_query_select_first_item_from_list_descendants_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $..[0] (select first item from list descendants) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..[0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8291,7 +8316,7 @@ fn nested_atomic_member_with_query_select_first_item_from_list_descendants_with_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $..[0] (select first item from list descendants) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..[0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8303,7 +8328,7 @@ fn nested_atomic_member_with_query_select_the_first_element_of_b_with_buffered_i
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $.b[0] (select the first element of 'b') with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8315,7 +8340,7 @@ fn nested_atomic_member_with_query_select_the_first_element_of_b_with_buffered_i
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $.b[0] (select the first element of 'b') with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8327,7 +8352,7 @@ fn nested_atomic_member_with_query_select_the_first_element_of_b_with_mmap_input
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $.b[0] (select the first element of 'b') with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8339,7 +8364,7 @@ fn nested_atomic_member_with_query_select_the_first_element_of_b_with_mmap_input
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $.b[0] (select the first element of 'b') with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8351,7 +8376,7 @@ fn nested_atomic_member_with_query_select_the_first_element_of_b_with_owned_byte
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $.b[0] (select the first element of 'b') with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8363,7 +8388,7 @@ fn nested_atomic_member_with_query_select_the_first_element_of_b_with_owned_byte
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $.b[0] (select the first element of 'b') with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8375,7 +8400,7 @@ fn nested_atomic_member_with_query_select_the_nested_b_directly_with_buffered_in
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $.b[0].b (select the nested 'b' directly) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[0].b")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8387,7 +8412,7 @@ fn nested_atomic_member_with_query_select_the_nested_b_directly_with_buffered_in
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $.b[0].b (select the nested 'b' directly) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[0].b")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8399,7 +8424,7 @@ fn nested_atomic_member_with_query_select_the_nested_b_directly_with_mmap_input_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $.b[0].b (select the nested 'b' directly) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[0].b")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8411,7 +8436,7 @@ fn nested_atomic_member_with_query_select_the_nested_b_directly_with_mmap_input_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $.b[0].b (select the nested 'b' directly) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[0].b")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8423,7 +8448,7 @@ fn nested_atomic_member_with_query_select_the_nested_b_directly_with_owned_bytes
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $.b[0].b (select the nested 'b' directly) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[0].b")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8435,7 +8460,7 @@ fn nested_atomic_member_with_query_select_the_nested_b_directly_with_owned_bytes
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $.b[0].b (select the nested 'b' directly) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[0].b")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8447,7 +8472,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_b_which_does_not
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $.b[1] (select the second element of 'b' (which does not exist)) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8459,7 +8484,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_b_which_does_not
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $.b[1] (select the second element of 'b' (which does not exist)) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8471,7 +8496,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_b_which_does_not
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $.b[1] (select the second element of 'b' (which does not exist)) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8483,7 +8508,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_b_which_does_not
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $.b[1] (select the second element of 'b' (which does not exist)) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8495,7 +8520,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_b_which_does_not
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $.b[1] (select the second element of 'b' (which does not exist)) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[1]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8507,7 +8532,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_b_which_does_not
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $.b[1] (select the second element of 'b' (which does not exist)) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.b[1]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8519,7 +8544,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_the_root_which_i
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $[1] (select the second element of the root (which is not an array, so result should be empty)) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8531,7 +8556,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_the_root_which_i
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $[1] (select the second element of the root (which is not an array, so result should be empty)) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8543,7 +8568,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_the_root_which_i
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $[1] (select the second element of the root (which is not an array, so result should be empty)) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8555,7 +8580,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_the_root_which_i
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $[1] (select the second element of the root (which is not an array, so result should be empty)) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_descendant.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8567,7 +8592,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_the_root_which_i
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $[1] (select the second element of the root (which is not an array, so result should be empty)) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[1]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8579,7 +8604,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_the_root_which_i
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_descendant.toml running the query $[1] (select the second element of the root (which is not an array, so result should be empty)) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[1]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/atomic_descendant.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8591,7 +8616,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $.a..b (select the 'a' object and then the atomic integer by descendant) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a..b")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8603,7 +8628,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $.a..b (select the 'a' object and then the atomic integer by descendant) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a..b")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8615,7 +8640,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $.a..b (select the 'a' object and then the atomic integer by descendant) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a..b")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8627,7 +8652,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $.a..b (select the 'a' object and then the atomic integer by descendant) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a..b")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8639,7 +8664,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $.a..b (select the 'a' object and then the atomic integer by descendant) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a..b")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8651,7 +8676,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $.a..b (select the 'a' object and then the atomic integer by descendant) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a..b")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8663,7 +8688,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $..b (select the atomic integer by descendant) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8675,7 +8700,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $..b (select the atomic integer by descendant) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8687,7 +8712,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $..b (select the atomic integer by descendant) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8699,7 +8724,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $..b (select the atomic integer by descendant) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8711,7 +8736,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $..b (select the atomic integer by descendant) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8723,7 +8748,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $..b (select the atomic integer by descendant) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8735,7 +8760,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $.a[0] (select the first and only element of the 'a' list) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8747,7 +8772,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $.a[0] (select the first and only element of the 'a' list) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8759,7 +8784,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $.a[0] (select the first and only element of the 'a' list) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8771,7 +8796,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $.a[0] (select the first and only element of the 'a' list) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8783,7 +8808,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $.a[0] (select the first and only element of the 'a' list) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8795,7 +8820,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $.a[0] (select the first and only element of the 'a' list) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8807,7 +8832,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $.a[0].c.d[3] (select the fourth element of the deeply nested list (which does not exist)) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0].c.d[3]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8819,7 +8844,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $.a[0].c.d[3] (select the fourth element of the deeply nested list (which does not exist)) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0].c.d[3]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8831,7 +8856,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $.a[0].c.d[3] (select the fourth element of the deeply nested list (which does not exist)) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0].c.d[3]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8843,7 +8868,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $.a[0].c.d[3] (select the fourth element of the deeply nested list (which does not exist)) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0].c.d[3]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8855,7 +8880,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $.a[0].c.d[3] (select the fourth element of the deeply nested list (which does not exist)) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0].c.d[3]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8867,7 +8892,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $.a[0].c.d[3] (select the fourth element of the deeply nested list (which does not exist)) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0].c.d[3]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8879,7 +8904,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $.a[0].c.d[2] (select the third and last element of the deeply nested list) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0].c.d[2]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8891,7 +8916,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $.a[0].c.d[2] (select the third and last element of the deeply nested list) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0].c.d[2]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8903,7 +8928,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $.a[0].c.d[2] (select the third and last element of the deeply nested list) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0].c.d[2]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8915,7 +8940,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $.a[0].c.d[2] (select the third and last element of the deeply nested list) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0].c.d[2]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8927,7 +8952,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $.a[0].c.d[2] (select the third and last element of the deeply nested list) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0].c.d[2]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8939,7 +8964,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $.a[0].c.d[2] (select the third and last element of the deeply nested list) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0].c.d[2]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8951,7 +8976,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $..*[2] (select the third element of each list (only the deeply nested one has a third element)) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*[2]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8963,7 +8988,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $..*[2] (select the third element of each list (only the deeply nested one has a third element)) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*[2]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8975,7 +9000,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $..*[2] (select the third element of each list (only the deeply nested one has a third element)) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*[2]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -8987,7 +9012,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $..*[2] (select the third element of each list (only the deeply nested one has a third element)) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*[2]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -8999,7 +9024,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $..*[2] (select the third element of each list (only the deeply nested one has a third element)) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*[2]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9011,7 +9036,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/atomic_after_list.toml running the query $..*[2] (select the third element of each list (only the deeply nested one has a third element)) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*[2]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/atomic_after_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9023,7 +9048,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $.a..b (select the 'a' object and then the atomic integer by descendant) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a..b")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9035,7 +9060,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $.a..b (select the 'a' object and then the atomic integer by descendant) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a..b")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9047,7 +9072,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $.a..b (select the 'a' object and then the atomic integer by descendant) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a..b")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9059,7 +9084,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $.a..b (select the 'a' object and then the atomic integer by descendant) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a..b")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9071,7 +9096,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $.a..b (select the 'a' object and then the atomic integer by descendant) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a..b")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/atomic_after_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9083,7 +9108,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $.a..b (select the 'a' object and then the atomic integer by descendant) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a..b")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/atomic_after_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9095,7 +9120,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $..b (select the atomic integer by descendant) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9107,7 +9132,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $..b (select the atomic integer by descendant) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9119,7 +9144,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $..b (select the atomic integer by descendant) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9131,7 +9156,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $..b (select the atomic integer by descendant) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9143,7 +9168,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $..b (select the atomic integer by descendant) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/atomic_after_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9155,7 +9180,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $..b (select the atomic integer by descendant) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..b")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/atomic_after_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9167,7 +9192,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $.a[0] (select the first and only element of the 'a' list) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9179,7 +9204,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $.a[0] (select the first and only element of the 'a' list) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9191,7 +9216,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $.a[0] (select the first and only element of the 'a' list) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9203,7 +9228,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $.a[0] (select the first and only element of the 'a' list) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9215,7 +9240,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $.a[0] (select the first and only element of the 'a' list) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/atomic_after_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9227,7 +9252,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $.a[0] (select the first and only element of the 'a' list) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/atomic_after_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9239,7 +9264,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $.a[0].c.d[3] (select the fourth element of the deeply nested list (which does not exist)) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0].c.d[3]")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9251,7 +9276,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $.a[0].c.d[3] (select the fourth element of the deeply nested list (which does not exist)) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0].c.d[3]")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9263,7 +9288,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $.a[0].c.d[3] (select the fourth element of the deeply nested list (which does not exist)) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0].c.d[3]")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9275,7 +9300,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $.a[0].c.d[3] (select the fourth element of the deeply nested list (which does not exist)) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0].c.d[3]")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9287,7 +9312,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $.a[0].c.d[3] (select the fourth element of the deeply nested list (which does not exist)) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0].c.d[3]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/atomic_after_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9299,7 +9324,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $.a[0].c.d[3] (select the fourth element of the deeply nested list (which does not exist)) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0].c.d[3]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/atomic_after_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9311,7 +9336,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $.a[0].c.d[2] (select the third and last element of the deeply nested list) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0].c.d[2]")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9323,7 +9348,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $.a[0].c.d[2] (select the third and last element of the deeply nested list) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0].c.d[2]")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9335,7 +9360,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $.a[0].c.d[2] (select the third and last element of the deeply nested list) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0].c.d[2]")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9347,7 +9372,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $.a[0].c.d[2] (select the third and last element of the deeply nested list) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0].c.d[2]")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9359,7 +9384,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $.a[0].c.d[2] (select the third and last element of the deeply nested list) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0].c.d[2]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/atomic_after_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9371,7 +9396,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $.a[0].c.d[2] (select the third and last element of the deeply nested list) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[0].c.d[2]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/atomic_after_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9383,7 +9408,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $..*[2] (select the third element of each list (only the deeply nested one has a third element)) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*[2]")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9395,7 +9420,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $..*[2] (select the third element of each list (only the deeply nested one has a third element)) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*[2]")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9407,7 +9432,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $..*[2] (select the third element of each list (only the deeply nested one has a third element)) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*[2]")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9419,7 +9444,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $..*[2] (select the third element of each list (only the deeply nested one has a third element)) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*[2]")?;
-    let json_file = fs::File::open("./tests/documents/json/atomic_after_list.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9431,7 +9456,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $..*[2] (select the third element of each list (only the deeply nested one has a third element)) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*[2]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/atomic_after_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9443,7 +9468,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document atomic_after_list.toml running the query $..*[2] (select the third element of each list (only the deeply nested one has a third element)) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*[2]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/atomic_after_list.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9455,7 +9480,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/quote_escape.toml running the query $['x'] (select 'x' directly) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$['x']")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/quote_escape.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/quote_escape.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9467,7 +9492,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/quote_escape.toml running the query $['x'] (select 'x' directly) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$['x']")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/quote_escape.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/quote_escape.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9479,7 +9504,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/quote_escape.toml running the query $['x'] (select 'x' directly) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$['x']")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/quote_escape.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/quote_escape.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9491,7 +9516,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/quote_escape.toml running the query $['x'] (select 'x' directly) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$['x']")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/quote_escape.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/quote_escape.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9503,7 +9528,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/quote_escape.toml running the query $['x'] (select 'x' directly) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$['x']")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/quote_escape.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/quote_escape.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9515,7 +9540,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/quote_escape.toml running the query $['x'] (select 'x' directly) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$['x']")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/quote_escape.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/quote_escape.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9527,7 +9552,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/quote_escape.toml running the query $['\"x'] (select 'x' with quote directly) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$['\"x']")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/quote_escape.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/quote_escape.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9539,7 +9564,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/quote_escape.toml running the query $['\"x'] (select 'x' with quote directly) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$['\"x']")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/quote_escape.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/quote_escape.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9551,7 +9576,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/quote_escape.toml running the query $['\"x'] (select 'x' with quote directly) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$['\"x']")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/quote_escape.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/quote_escape.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9563,7 +9588,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/quote_escape.toml running the query $['\"x'] (select 'x' with quote directly) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$['\"x']")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/quote_escape.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/quote_escape.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9575,7 +9600,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/quote_escape.toml running the query $['\"x'] (select 'x' with quote directly) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$['\"x']")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/quote_escape.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/quote_escape.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9587,7 +9612,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/quote_escape.toml running the query $['\"x'] (select 'x' with quote directly) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$['\"x']")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/quote_escape.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/quote_escape.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9599,7 +9624,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document quote_escape.toml running the query $['x'] (select 'x' directly) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$['x']")?;
-    let json_file = fs::File::open("./tests/documents/json/quote_escape.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/quote_escape.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9611,7 +9636,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document quote_escape.toml running the query $['x'] (select 'x' directly) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$['x']")?;
-    let json_file = fs::File::open("./tests/documents/json/quote_escape.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/quote_escape.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9623,7 +9648,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document quote_escape.toml running the query $['x'] (select 'x' directly) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$['x']")?;
-    let json_file = fs::File::open("./tests/documents/json/quote_escape.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/quote_escape.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9635,7 +9660,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document quote_escape.toml running the query $['x'] (select 'x' directly) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$['x']")?;
-    let json_file = fs::File::open("./tests/documents/json/quote_escape.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/quote_escape.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9647,7 +9672,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document quote_escape.toml running the query $['x'] (select 'x' directly) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$['x']")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/quote_escape.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/quote_escape.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9659,7 +9684,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document quote_escape.toml running the query $['x'] (select 'x' directly) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$['x']")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/quote_escape.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/quote_escape.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9671,7 +9696,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document quote_escape.toml running the query $['\"x'] (select 'x' with quote directly) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$['\"x']")?;
-    let json_file = fs::File::open("./tests/documents/json/quote_escape.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/quote_escape.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9683,7 +9708,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document quote_escape.toml running the query $['\"x'] (select 'x' with quote directly) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$['\"x']")?;
-    let json_file = fs::File::open("./tests/documents/json/quote_escape.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/quote_escape.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9695,7 +9720,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document quote_escape.toml running the query $['\"x'] (select 'x' with quote directly) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$['\"x']")?;
-    let json_file = fs::File::open("./tests/documents/json/quote_escape.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/quote_escape.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9707,7 +9732,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document quote_escape.toml running the query $['\"x'] (select 'x' with quote directly) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$['\"x']")?;
-    let json_file = fs::File::open("./tests/documents/json/quote_escape.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/quote_escape.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9719,7 +9744,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document quote_escape.toml running the query $['\"x'] (select 'x' with quote directly) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$['\"x']")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/quote_escape.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/quote_escape.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9731,7 +9756,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document quote_escape.toml running the query $['\"x'] (select 'x' with quote directly) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$['\"x']")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/quote_escape.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/quote_escape.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9743,7 +9768,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2][1][0][1] (direct path 2-1-0-1) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1][0][1]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9755,7 +9780,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2][1][0][1] (direct path 2-1-0-1) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1][0][1]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9767,7 +9792,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2][1][0][1] (direct path 2-1-0-1) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1][0][1]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9779,7 +9804,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2][1][0][1] (direct path 2-1-0-1) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1][0][1]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9791,7 +9816,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2][1][0][1] (direct path 2-1-0-1) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1][0][1]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9803,7 +9828,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2][1][0][1] (direct path 2-1-0-1) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1][0][1]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9815,7 +9840,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2][1].* (direct path 2-1 and then any child) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1].*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9827,7 +9852,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2][1].* (direct path 2-1 and then any child) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1].*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9839,7 +9864,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2][1].* (direct path 2-1 and then any child) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1].*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9851,7 +9876,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2][1].* (direct path 2-1 and then any child) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1].*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9863,7 +9888,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2][1].* (direct path 2-1 and then any child) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1].*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9875,7 +9900,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2][1].* (direct path 2-1 and then any child) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1].*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9887,7 +9912,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $.*[0] (select all nodes at depth one and then their first list element) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.*[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9899,7 +9924,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $.*[0] (select all nodes at depth one and then their first list element) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.*[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9911,7 +9936,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $.*[0] (select all nodes at depth one and then their first list element) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.*[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9923,7 +9948,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $.*[0] (select all nodes at depth one and then their first list element) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.*[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9935,7 +9960,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $.*[0] (select all nodes at depth one and then their first list element) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.*[0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9947,7 +9972,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $.*[0] (select all nodes at depth one and then their first list element) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.*[0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9959,7 +9984,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $..* (select all non-root nodes) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -9971,7 +9996,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $..* (select all non-root nodes) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -9990,7 +10015,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $..* (select all non-root nodes) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10002,7 +10027,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $..* (select all non-root nodes) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10021,7 +10046,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $..* (select all non-root nodes) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10033,7 +10058,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $..* (select all non-root nodes) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10052,7 +10077,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[0].* (select the first element and then all its children) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[0].*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10064,7 +10089,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[0].* (select the first element and then all its children) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[0].*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10076,7 +10101,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[0].* (select the first element and then all its children) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[0].*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10088,7 +10113,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[0].* (select the first element and then all its children) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[0].*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10100,7 +10125,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[0].* (select the first element and then all its children) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[0].*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10112,7 +10137,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[0].* (select the first element and then all its children) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[0].*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10124,7 +10149,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $..*[0] (select the first element of every nested list) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10136,7 +10161,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $..*[0] (select the first element of every nested list) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10152,7 +10177,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $..*[0] (select the first element of every nested list) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10164,7 +10189,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $..*[0] (select the first element of every nested list) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10180,7 +10205,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $..*[0] (select the first element of every nested list) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*[0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10192,7 +10217,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $..*[0] (select the first element of every nested list) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*[0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10208,7 +10233,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2][0] (select the first element of the long list) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10220,7 +10245,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2][0] (select the first element of the long list) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10232,7 +10257,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2][0] (select the first element of the long list) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10244,7 +10269,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2][0] (select the first element of the long list) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10256,7 +10281,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2][0] (select the first element of the long list) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10268,7 +10293,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2][0] (select the first element of the long list) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10280,7 +10305,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[0] (select the first element) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10292,7 +10317,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[0] (select the first element) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10304,7 +10329,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[0] (select the first element) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10316,7 +10341,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[0] (select the first element) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10328,7 +10353,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[0] (select the first element) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10340,7 +10365,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[0] (select the first element) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10352,7 +10377,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2]..* (select the long list and then its every subdocument) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2]..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10364,7 +10389,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2]..* (select the long list and then its every subdocument) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2]..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10380,7 +10405,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2]..* (select the long list and then its every subdocument) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2]..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10392,7 +10417,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2]..* (select the long list and then its every subdocument) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2]..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10408,7 +10433,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2]..* (select the long list and then its every subdocument) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2]..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10420,7 +10445,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2]..* (select the long list and then its every subdocument) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2]..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10436,7 +10461,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2].*.*[1] (select the long list, then go two levels down and select the second element) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2].*.*[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10448,7 +10473,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2].*.*[1] (select the long list, then go two levels down and select the second element) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2].*.*[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10460,7 +10485,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2].*.*[1] (select the long list, then go two levels down and select the second element) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2].*.*[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10472,7 +10497,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2].*.*[1] (select the long list, then go two levels down and select the second element) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2].*.*[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10484,7 +10509,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2].*.*[1] (select the long list, then go two levels down and select the second element) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2].*.*[1]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10496,7 +10521,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2].*.*[1] (select the long list, then go two levels down and select the second element) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2].*.*[1]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10508,7 +10533,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2].*[1] (select the long list, then in each sublist select the second element) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2].*[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10520,7 +10545,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2].*[1] (select the long list, then in each sublist select the second element) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2].*[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10532,7 +10557,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2].*[1] (select the long list, then in each sublist select the second element) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2].*[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10544,7 +10569,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2].*[1] (select the long list, then in each sublist select the second element) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2].*[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10556,7 +10581,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2].*[1] (select the long list, then in each sublist select the second element) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2].*[1]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10568,7 +10593,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2].*[1] (select the long list, then in each sublist select the second element) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2].*[1]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10580,7 +10605,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2][1]..*[1] (select the path 2-1, then in any subtree select the second list element) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1]..*[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10592,7 +10617,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2][1]..*[1] (select the path 2-1, then in any subtree select the second list element) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1]..*[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10604,7 +10629,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2][1]..*[1] (select the path 2-1, then in any subtree select the second list element) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1]..*[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10616,7 +10641,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2][1]..*[1] (select the path 2-1, then in any subtree select the second list element) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1]..*[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10628,7 +10653,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2][1]..*[1] (select the path 2-1, then in any subtree select the second list element) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1]..*[1]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10640,7 +10665,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2][1]..*[1] (select the path 2-1, then in any subtree select the second list element) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1]..*[1]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10652,7 +10677,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2][1] (select the second element of the long list) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10664,7 +10689,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2][1] (select the second element of the long list) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10676,7 +10701,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2][1] (select the second element of the long list) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10688,7 +10713,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2][1] (select the second element of the long list) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10700,7 +10725,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2][1] (select the second element of the long list) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10712,7 +10737,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/lists.toml running the query $[2][1] (select the second element of the long list) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10724,7 +10749,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_0_1_w
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2][1][0][1] (direct path 2-1-0-1) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1][0][1]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10736,7 +10761,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_0_1_w
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2][1][0][1] (direct path 2-1-0-1) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1][0][1]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10748,7 +10773,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_0_1_w
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2][1][0][1] (direct path 2-1-0-1) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1][0][1]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10760,7 +10785,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_0_1_w
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2][1][0][1] (direct path 2-1-0-1) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1][0][1]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10772,7 +10797,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_0_1_w
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2][1][0][1] (direct path 2-1-0-1) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1][0][1]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10784,7 +10809,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_0_1_w
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2][1][0][1] (direct path 2-1-0-1) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1][0][1]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10796,7 +10821,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_and_t
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2][1].* (direct path 2-1 and then any child) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1].*")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10808,7 +10833,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_and_t
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2][1].* (direct path 2-1 and then any child) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1].*")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10820,7 +10845,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_and_t
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2][1].* (direct path 2-1 and then any child) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1].*")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10832,7 +10857,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_and_t
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2][1].* (direct path 2-1 and then any child) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1].*")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10844,7 +10869,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_and_t
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2][1].* (direct path 2-1 and then any child) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1].*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10856,7 +10881,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_and_t
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2][1].* (direct path 2-1 and then any child) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1].*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10868,7 +10893,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_nodes_at_d
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $.*[0] (select all nodes at depth one and then their first list element) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.*[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10880,7 +10905,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_nodes_at_d
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $.*[0] (select all nodes at depth one and then their first list element) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.*[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10892,7 +10917,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_nodes_at_d
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $.*[0] (select all nodes at depth one and then their first list element) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.*[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10904,7 +10929,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_nodes_at_d
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $.*[0] (select all nodes at depth one and then their first list element) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.*[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10916,7 +10941,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_nodes_at_d
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $.*[0] (select all nodes at depth one and then their first list element) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.*[0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10928,7 +10953,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_nodes_at_d
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $.*[0] (select all nodes at depth one and then their first list element) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.*[0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10940,7 +10965,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_non_root_n
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $..* (select all non-root nodes) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10952,7 +10977,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_non_root_n
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $..* (select all non-root nodes) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -10971,7 +10996,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_non_root_n
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $..* (select all non-root nodes) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -10983,7 +11008,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_non_root_n
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $..* (select all non-root nodes) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11002,7 +11027,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_non_root_n
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $..* (select all non-root nodes) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11014,7 +11039,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_non_root_n
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $..* (select all non-root nodes) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11033,7 +11058,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[0].* (select the first element and then all its children) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[0].*")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11045,7 +11070,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[0].* (select the first element and then all its children) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[0].*")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11057,7 +11082,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[0].* (select the first element and then all its children) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[0].*")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11069,7 +11094,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[0].* (select the first element and then all its children) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[0].*")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11081,7 +11106,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[0].* (select the first element and then all its children) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[0].*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11093,7 +11118,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[0].* (select the first element and then all its children) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[0].*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11105,7 +11130,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $..*[0] (select the first element of every nested list) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11117,7 +11142,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $..*[0] (select the first element of every nested list) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11133,7 +11158,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $..*[0] (select the first element of every nested list) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11145,7 +11170,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $..*[0] (select the first element of every nested list) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11161,7 +11186,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $..*[0] (select the first element of every nested list) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*[0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11173,7 +11198,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $..*[0] (select the first element of every nested list) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*[0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11189,7 +11214,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2][0] (select the first element of the long list) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][0]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11201,7 +11226,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2][0] (select the first element of the long list) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][0]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11213,7 +11238,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2][0] (select the first element of the long list) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][0]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11225,7 +11250,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2][0] (select the first element of the long list) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][0]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11237,7 +11262,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2][0] (select the first element of the long list) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11249,7 +11274,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2][0] (select the first element of the long list) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11261,7 +11286,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[0] (select the first element) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11273,7 +11298,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[0] (select the first element) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11285,7 +11310,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[0] (select the first element) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11297,7 +11322,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[0] (select the first element) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11309,7 +11334,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[0] (select the first element) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11321,7 +11346,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[0] (select the first element) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11333,7 +11358,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2]..* (select the long list and then its every subdocument) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2]..*")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11345,7 +11370,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2]..* (select the long list and then its every subdocument) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2]..*")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11361,7 +11386,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2]..* (select the long list and then its every subdocument) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2]..*")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11373,7 +11398,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2]..* (select the long list and then its every subdocument) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2]..*")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11389,7 +11414,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2]..* (select the long list and then its every subdocument) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2]..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11401,7 +11426,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2]..* (select the long list and then its every subdocument) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2]..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11417,7 +11442,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2].*.*[1] (select the long list, then go two levels down and select the second element) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2].*.*[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11429,7 +11454,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2].*.*[1] (select the long list, then go two levels down and select the second element) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2].*.*[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11441,7 +11466,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2].*.*[1] (select the long list, then go two levels down and select the second element) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2].*.*[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11453,7 +11478,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2].*.*[1] (select the long list, then go two levels down and select the second element) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2].*.*[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11465,7 +11490,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2].*.*[1] (select the long list, then go two levels down and select the second element) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2].*.*[1]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11477,7 +11502,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2].*.*[1] (select the long list, then go two levels down and select the second element) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2].*.*[1]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11489,7 +11514,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2].*[1] (select the long list, then in each sublist select the second element) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2].*[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11501,7 +11526,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2].*[1] (select the long list, then in each sublist select the second element) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2].*[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11513,7 +11538,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2].*[1] (select the long list, then in each sublist select the second element) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2].*[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11525,7 +11550,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2].*[1] (select the long list, then in each sublist select the second element) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2].*[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11537,7 +11562,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2].*[1] (select the long list, then in each sublist select the second element) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2].*[1]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11549,7 +11574,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2].*[1] (select the long list, then in each sublist select the second element) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2].*[1]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11561,7 +11586,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_path_2_1_t
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2][1]..*[1] (select the path 2-1, then in any subtree select the second list element) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1]..*[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11573,7 +11598,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_path_2_1_t
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2][1]..*[1] (select the path 2-1, then in any subtree select the second list element) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1]..*[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11585,7 +11610,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_path_2_1_t
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2][1]..*[1] (select the path 2-1, then in any subtree select the second list element) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1]..*[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11597,7 +11622,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_path_2_1_t
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2][1]..*[1] (select the path 2-1, then in any subtree select the second list element) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1]..*[1]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11609,7 +11634,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_path_2_1_t
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2][1]..*[1] (select the path 2-1, then in any subtree select the second list element) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1]..*[1]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11621,7 +11646,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_path_2_1_t
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2][1]..*[1] (select the path 2-1, then in any subtree select the second list element) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1]..*[1]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11633,7 +11658,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_second_ele
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2][1] (select the second element of the long list) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11645,7 +11670,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_second_ele
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2][1] (select the second element of the long list) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11657,7 +11682,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_second_ele
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2][1] (select the second element of the long list) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11669,7 +11694,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_second_ele
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2][1] (select the second element of the long list) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1]")?;
-    let json_file = fs::File::open("./tests/documents/json/lists.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11681,7 +11706,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_second_ele
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2][1] (select the second element of the long list) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11693,7 +11718,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_second_ele
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document lists.toml running the query $[2][1] (select the second element of the long list) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$[2][1]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/lists.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11705,7 +11730,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/jsonpath_com_example.toml running the query $..number (descendant search for 'number') with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..number")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/jsonpath_com_example.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11717,7 +11742,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/jsonpath_com_example.toml running the query $..number (descendant search for 'number') with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..number")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/jsonpath_com_example.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11729,7 +11754,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/jsonpath_com_example.toml running the query $..number (descendant search for 'number') with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..number")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/jsonpath_com_example.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11741,7 +11766,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/jsonpath_com_example.toml running the query $..number (descendant search for 'number') with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..number")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/jsonpath_com_example.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11753,7 +11778,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/jsonpath_com_example.toml running the query $..number (descendant search for 'number') with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..number")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/jsonpath_com_example.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11765,7 +11790,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/jsonpath_com_example.toml running the query $..number (descendant search for 'number') with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..number")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/jsonpath_com_example.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11777,7 +11802,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/jsonpath_com_example.toml running the query $.phoneNumbers[0].type (select exact path with name and index selectors) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.phoneNumbers[0].type")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/jsonpath_com_example.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11789,7 +11814,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/jsonpath_com_example.toml running the query $.phoneNumbers[0].type (select exact path with name and index selectors) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.phoneNumbers[0].type")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/jsonpath_com_example.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11801,7 +11826,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/jsonpath_com_example.toml running the query $.phoneNumbers[0].type (select exact path with name and index selectors) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.phoneNumbers[0].type")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/jsonpath_com_example.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11813,7 +11838,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/jsonpath_com_example.toml running the query $.phoneNumbers[0].type (select exact path with name and index selectors) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.phoneNumbers[0].type")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/jsonpath_com_example.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11825,7 +11850,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/jsonpath_com_example.toml running the query $.phoneNumbers[0].type (select exact path with name and index selectors) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.phoneNumbers[0].type")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/jsonpath_com_example.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11837,7 +11862,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/jsonpath_com_example.toml running the query $.phoneNumbers[0].type (select exact path with name and index selectors) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.phoneNumbers[0].type")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/jsonpath_com_example.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11849,7 +11874,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/jsonpath_com_example.toml running the query $.phoneNumbers[0] (select first number directly) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.phoneNumbers[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/jsonpath_com_example.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11861,7 +11886,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/jsonpath_com_example.toml running the query $.phoneNumbers[0] (select first number directly) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.phoneNumbers[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/jsonpath_com_example.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11873,7 +11898,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/jsonpath_com_example.toml running the query $.phoneNumbers[0] (select first number directly) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.phoneNumbers[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/jsonpath_com_example.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11885,7 +11910,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/jsonpath_com_example.toml running the query $.phoneNumbers[0] (select first number directly) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.phoneNumbers[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/jsonpath_com_example.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11897,7 +11922,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/jsonpath_com_example.toml running the query $.phoneNumbers[0] (select first number directly) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.phoneNumbers[0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/jsonpath_com_example.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11909,7 +11934,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/jsonpath_com_example.toml running the query $.phoneNumbers[0] (select first number directly) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.phoneNumbers[0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/jsonpath_com_example.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11921,7 +11946,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document jsonpath_com_example.toml running the query $..number (descendant search for 'number') with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..number")?;
-    let json_file = fs::File::open("./tests/documents/json/jsonpath_com_example.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11933,7 +11958,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document jsonpath_com_example.toml running the query $..number (descendant search for 'number') with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..number")?;
-    let json_file = fs::File::open("./tests/documents/json/jsonpath_com_example.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11945,7 +11970,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document jsonpath_com_example.toml running the query $..number (descendant search for 'number') with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..number")?;
-    let json_file = fs::File::open("./tests/documents/json/jsonpath_com_example.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11957,7 +11982,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document jsonpath_com_example.toml running the query $..number (descendant search for 'number') with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..number")?;
-    let json_file = fs::File::open("./tests/documents/json/jsonpath_com_example.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11969,7 +11994,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document jsonpath_com_example.toml running the query $..number (descendant search for 'number') with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..number")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/jsonpath_com_example.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -11981,7 +12006,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document jsonpath_com_example.toml running the query $..number (descendant search for 'number') with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..number")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/jsonpath_com_example.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -11993,7 +12018,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document jsonpath_com_example.toml running the query $.phoneNumbers[0].type (select exact path with name and index selectors) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.phoneNumbers[0].type")?;
-    let json_file = fs::File::open("./tests/documents/json/jsonpath_com_example.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12005,7 +12030,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document jsonpath_com_example.toml running the query $.phoneNumbers[0].type (select exact path with name and index selectors) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.phoneNumbers[0].type")?;
-    let json_file = fs::File::open("./tests/documents/json/jsonpath_com_example.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12017,7 +12042,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document jsonpath_com_example.toml running the query $.phoneNumbers[0].type (select exact path with name and index selectors) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.phoneNumbers[0].type")?;
-    let json_file = fs::File::open("./tests/documents/json/jsonpath_com_example.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12029,7 +12054,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document jsonpath_com_example.toml running the query $.phoneNumbers[0].type (select exact path with name and index selectors) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.phoneNumbers[0].type")?;
-    let json_file = fs::File::open("./tests/documents/json/jsonpath_com_example.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12041,7 +12066,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document jsonpath_com_example.toml running the query $.phoneNumbers[0].type (select exact path with name and index selectors) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.phoneNumbers[0].type")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/jsonpath_com_example.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12053,7 +12078,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document jsonpath_com_example.toml running the query $.phoneNumbers[0].type (select exact path with name and index selectors) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.phoneNumbers[0].type")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/jsonpath_com_example.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12065,7 +12090,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document jsonpath_com_example.toml running the query $.phoneNumbers[0] (select first number directly) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.phoneNumbers[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/jsonpath_com_example.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12077,7 +12102,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document jsonpath_com_example.toml running the query $.phoneNumbers[0] (select first number directly) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.phoneNumbers[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/jsonpath_com_example.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12089,7 +12114,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document jsonpath_com_example.toml running the query $.phoneNumbers[0] (select first number directly) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.phoneNumbers[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/jsonpath_com_example.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12101,7 +12126,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document jsonpath_com_example.toml running the query $.phoneNumbers[0] (select first number directly) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.phoneNumbers[0]")?;
-    let json_file = fs::File::open("./tests/documents/json/jsonpath_com_example.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12113,7 +12138,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document jsonpath_com_example.toml running the query $.phoneNumbers[0] (select first number directly) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.phoneNumbers[0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/jsonpath_com_example.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12125,7 +12150,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document jsonpath_com_example.toml running the query $.phoneNumbers[0] (select first number directly) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.phoneNumbers[0]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/jsonpath_com_example.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12137,7 +12162,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/singletons_and_empties.toml running the query $..*.* (select all nodes at depth at least 2) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/singletons_and_empties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12149,7 +12174,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/singletons_and_empties.toml running the query $..*.* (select all nodes at depth at least 2) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/singletons_and_empties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12161,7 +12186,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/singletons_and_empties.toml running the query $..*.* (select all nodes at depth at least 2) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/singletons_and_empties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12173,7 +12198,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/singletons_and_empties.toml running the query $..*.* (select all nodes at depth at least 2) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/singletons_and_empties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12185,7 +12210,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/singletons_and_empties.toml running the query $..*.* (select all nodes at depth at least 2) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/singletons_and_empties.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12197,7 +12222,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/singletons_and_empties.toml running the query $..*.* (select all nodes at depth at least 2) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/singletons_and_empties.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12209,7 +12234,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/singletons_and_empties.toml running the query $.* (select all nodes at depth exactly 1) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/singletons_and_empties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12221,7 +12246,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/singletons_and_empties.toml running the query $.* (select all nodes at depth exactly 1) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/singletons_and_empties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12237,7 +12262,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/singletons_and_empties.toml running the query $.* (select all nodes at depth exactly 1) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/singletons_and_empties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12249,7 +12274,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/singletons_and_empties.toml running the query $.* (select all nodes at depth exactly 1) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/singletons_and_empties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12265,7 +12290,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/singletons_and_empties.toml running the query $.* (select all nodes at depth exactly 1) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/singletons_and_empties.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12277,7 +12302,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/singletons_and_empties.toml running the query $.* (select all nodes at depth exactly 1) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/singletons_and_empties.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12293,7 +12318,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/singletons_and_empties.toml running the query $.*.* (select all nodes at depth exactly 2) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.*.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/singletons_and_empties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12305,7 +12330,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/singletons_and_empties.toml running the query $.*.* (select all nodes at depth exactly 2) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.*.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/singletons_and_empties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12317,7 +12342,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/singletons_and_empties.toml running the query $.*.* (select all nodes at depth exactly 2) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.*.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/singletons_and_empties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12329,7 +12354,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/singletons_and_empties.toml running the query $.*.* (select all nodes at depth exactly 2) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.*.*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/singletons_and_empties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12341,7 +12366,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/singletons_and_empties.toml running the query $.*.* (select all nodes at depth exactly 2) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.*.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/singletons_and_empties.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12353,7 +12378,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/singletons_and_empties.toml running the query $.*.* (select all nodes at depth exactly 2) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.*.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/singletons_and_empties.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12365,7 +12390,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/singletons_and_empties.toml running the query $..* (select all nodes) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/singletons_and_empties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12377,7 +12402,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/singletons_and_empties.toml running the query $..* (select all nodes) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/singletons_and_empties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12393,7 +12418,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/singletons_and_empties.toml running the query $..* (select all nodes) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/singletons_and_empties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12405,7 +12430,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/singletons_and_empties.toml running the query $..* (select all nodes) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/singletons_and_empties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12421,7 +12446,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/singletons_and_empties.toml running the query $..* (select all nodes) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/singletons_and_empties.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12433,7 +12458,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/singletons_and_empties.toml running the query $..* (select all nodes) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/singletons_and_empties.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12449,7 +12474,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document singletons_and_empties.toml running the query $..*.* (select all nodes at depth at least 2) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*.*")?;
-    let json_file = fs::File::open("./tests/documents/json/singletons_and_empties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12461,7 +12486,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document singletons_and_empties.toml running the query $..*.* (select all nodes at depth at least 2) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*.*")?;
-    let json_file = fs::File::open("./tests/documents/json/singletons_and_empties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12473,7 +12498,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document singletons_and_empties.toml running the query $..*.* (select all nodes at depth at least 2) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*.*")?;
-    let json_file = fs::File::open("./tests/documents/json/singletons_and_empties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12485,7 +12510,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document singletons_and_empties.toml running the query $..*.* (select all nodes at depth at least 2) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*.*")?;
-    let json_file = fs::File::open("./tests/documents/json/singletons_and_empties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12497,7 +12522,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document singletons_and_empties.toml running the query $..*.* (select all nodes at depth at least 2) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/singletons_and_empties.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12509,7 +12534,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document singletons_and_empties.toml running the query $..*.* (select all nodes at depth at least 2) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/singletons_and_empties.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12521,7 +12546,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document singletons_and_empties.toml running the query $.* (select all nodes at depth exactly 1) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.*")?;
-    let json_file = fs::File::open("./tests/documents/json/singletons_and_empties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12533,7 +12558,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document singletons_and_empties.toml running the query $.* (select all nodes at depth exactly 1) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.*")?;
-    let json_file = fs::File::open("./tests/documents/json/singletons_and_empties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12549,7 +12574,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document singletons_and_empties.toml running the query $.* (select all nodes at depth exactly 1) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.*")?;
-    let json_file = fs::File::open("./tests/documents/json/singletons_and_empties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12561,7 +12586,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document singletons_and_empties.toml running the query $.* (select all nodes at depth exactly 1) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.*")?;
-    let json_file = fs::File::open("./tests/documents/json/singletons_and_empties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12577,7 +12602,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document singletons_and_empties.toml running the query $.* (select all nodes at depth exactly 1) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/singletons_and_empties.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12589,7 +12614,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document singletons_and_empties.toml running the query $.* (select all nodes at depth exactly 1) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/singletons_and_empties.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12605,7 +12630,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document singletons_and_empties.toml running the query $.*.* (select all nodes at depth exactly 2) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.*.*")?;
-    let json_file = fs::File::open("./tests/documents/json/singletons_and_empties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12617,7 +12642,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document singletons_and_empties.toml running the query $.*.* (select all nodes at depth exactly 2) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.*.*")?;
-    let json_file = fs::File::open("./tests/documents/json/singletons_and_empties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12629,7 +12654,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document singletons_and_empties.toml running the query $.*.* (select all nodes at depth exactly 2) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.*.*")?;
-    let json_file = fs::File::open("./tests/documents/json/singletons_and_empties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12641,7 +12666,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document singletons_and_empties.toml running the query $.*.* (select all nodes at depth exactly 2) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.*.*")?;
-    let json_file = fs::File::open("./tests/documents/json/singletons_and_empties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12653,7 +12678,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document singletons_and_empties.toml running the query $.*.* (select all nodes at depth exactly 2) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.*.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/singletons_and_empties.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12665,7 +12690,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document singletons_and_empties.toml running the query $.*.* (select all nodes at depth exactly 2) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.*.*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/singletons_and_empties.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12677,7 +12702,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document singletons_and_empties.toml running the query $..* (select all nodes) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/singletons_and_empties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12689,7 +12714,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document singletons_and_empties.toml running the query $..* (select all nodes) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/singletons_and_empties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12705,7 +12730,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document singletons_and_empties.toml running the query $..* (select all nodes) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/singletons_and_empties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12717,7 +12742,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document singletons_and_empties.toml running the query $..* (select all nodes) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let json_file = fs::File::open("./tests/documents/json/singletons_and_empties.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12733,7 +12758,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document singletons_and_empties.toml running the query $..* (select all nodes) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/singletons_and_empties.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12745,7 +12770,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document singletons_and_empties.toml running the query $..* (select all nodes) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..*")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/singletons_and_empties.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12761,7 +12786,8 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/jsonpath_com_example_extended.toml running the query $..person..phoneNumber..number (descendant search for person phoneNumber number) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..person..phoneNumber..number")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12773,7 +12799,8 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/jsonpath_com_example_extended.toml running the query $..person..phoneNumber..number (descendant search for person phoneNumber number) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..person..phoneNumber..number")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12789,7 +12816,8 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/jsonpath_com_example_extended.toml running the query $..person..phoneNumber..number (descendant search for person phoneNumber number) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..person..phoneNumber..number")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12801,7 +12829,8 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/jsonpath_com_example_extended.toml running the query $..person..phoneNumber..number (descendant search for person phoneNumber number) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..person..phoneNumber..number")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12817,7 +12846,8 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/jsonpath_com_example_extended.toml running the query $..person..phoneNumber..number (descendant search for person phoneNumber number) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..person..phoneNumber..number")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12829,7 +12859,8 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/jsonpath_com_example_extended.toml running the query $..person..phoneNumber..number (descendant search for person phoneNumber number) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..person..phoneNumber..number")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12845,7 +12876,8 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/jsonpath_com_example_extended.toml running the query $..person..*..type (descendant search for person, then any node, then type) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..person..*..type")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12857,7 +12889,8 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/jsonpath_com_example_extended.toml running the query $..person..*..type (descendant search for person, then any node, then type) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..person..*..type")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12873,7 +12906,8 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/jsonpath_com_example_extended.toml running the query $..person..*..type (descendant search for person, then any node, then type) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..person..*..type")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12885,7 +12919,8 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/jsonpath_com_example_extended.toml running the query $..person..*..type (descendant search for person, then any node, then type) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..person..*..type")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12901,7 +12936,8 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/jsonpath_com_example_extended.toml running the query $..person..*..type (descendant search for person, then any node, then type) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..person..*..type")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12913,7 +12949,8 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/jsonpath_com_example_extended.toml running the query $..person..*..type (descendant search for person, then any node, then type) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..person..*..type")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12929,7 +12966,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document jsonpath_com_example_extended.toml running the query $..person..phoneNumber..number (descendant search for person phoneNumber number) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..person..phoneNumber..number")?;
-    let json_file = fs::File::open("./tests/documents/json/jsonpath_com_example_extended.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example_extended.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12941,7 +12978,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document jsonpath_com_example_extended.toml running the query $..person..phoneNumber..number (descendant search for person phoneNumber number) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..person..phoneNumber..number")?;
-    let json_file = fs::File::open("./tests/documents/json/jsonpath_com_example_extended.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example_extended.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12957,7 +12994,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document jsonpath_com_example_extended.toml running the query $..person..phoneNumber..number (descendant search for person phoneNumber number) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..person..phoneNumber..number")?;
-    let json_file = fs::File::open("./tests/documents/json/jsonpath_com_example_extended.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example_extended.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12969,7 +13006,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document jsonpath_com_example_extended.toml running the query $..person..phoneNumber..number (descendant search for person phoneNumber number) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..person..phoneNumber..number")?;
-    let json_file = fs::File::open("./tests/documents/json/jsonpath_com_example_extended.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example_extended.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -12985,7 +13022,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document jsonpath_com_example_extended.toml running the query $..person..phoneNumber..number (descendant search for person phoneNumber number) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..person..phoneNumber..number")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/jsonpath_com_example_extended.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/jsonpath_com_example_extended.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -12997,7 +13034,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document jsonpath_com_example_extended.toml running the query $..person..phoneNumber..number (descendant search for person phoneNumber number) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..person..phoneNumber..number")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/jsonpath_com_example_extended.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/jsonpath_com_example_extended.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -13013,7 +13050,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document jsonpath_com_example_extended.toml running the query $..person..*..type (descendant search for person, then any node, then type) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..person..*..type")?;
-    let json_file = fs::File::open("./tests/documents/json/jsonpath_com_example_extended.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example_extended.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -13025,7 +13062,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document jsonpath_com_example_extended.toml running the query $..person..*..type (descendant search for person, then any node, then type) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..person..*..type")?;
-    let json_file = fs::File::open("./tests/documents/json/jsonpath_com_example_extended.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example_extended.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -13041,7 +13078,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document jsonpath_com_example_extended.toml running the query $..person..*..type (descendant search for person, then any node, then type) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..person..*..type")?;
-    let json_file = fs::File::open("./tests/documents/json/jsonpath_com_example_extended.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example_extended.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -13053,7 +13090,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document jsonpath_com_example_extended.toml running the query $..person..*..type (descendant search for person, then any node, then type) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..person..*..type")?;
-    let json_file = fs::File::open("./tests/documents/json/jsonpath_com_example_extended.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example_extended.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -13069,7 +13106,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document jsonpath_com_example_extended.toml running the query $..person..*..type (descendant search for person, then any node, then type) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..person..*..type")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/jsonpath_com_example_extended.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/jsonpath_com_example_extended.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -13081,7 +13118,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document jsonpath_com_example_extended.toml running the query $..person..*..type (descendant search for person, then any node, then type) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..person..*..type")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/jsonpath_com_example_extended.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/jsonpath_com_example_extended.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -13097,7 +13134,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_descendant_us
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $..user..entities.url (descendant user entities, then child url) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..user..entities.url")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -13109,7 +13146,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_descendant_us
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $..user..entities.url (descendant user entities, then child url) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..user..entities.url")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -13144,7 +13181,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_descendant_us
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $..user..entities.url (descendant user entities, then child url) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..user..entities.url")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -13156,7 +13193,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_descendant_us
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $..user..entities.url (descendant user entities, then child url) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..user..entities.url")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -13191,7 +13228,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_descendant_us
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $..user..entities.url (descendant user entities, then child url) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..user..entities.url")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/twitter.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -13203,7 +13240,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_descendant_us
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $..user..entities.url (descendant user entities, then child url) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..user..entities.url")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/twitter.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -13238,7 +13275,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_descendant_us
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $..user..entities..url (descendant user entities url) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..user..entities..url")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -13250,7 +13287,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_descendant_us
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $..user..entities..url (descendant user entities url) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..user..entities..url")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -13311,7 +13348,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_descendant_us
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $..user..entities..url (descendant user entities url) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..user..entities..url")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -13323,7 +13360,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_descendant_us
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $..user..entities..url (descendant user entities url) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..user..entities..url")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -13384,7 +13421,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_descendant_us
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $..user..entities..url (descendant user entities url) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..user..entities..url")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/twitter.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -13396,7 +13433,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_descendant_us
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $..user..entities..url (descendant user entities url) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..user..entities..url")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/twitter.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -13457,7 +13494,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_count_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $..count (select count by descendant (should use memchr)) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -13469,7 +13506,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_count_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $..count (select count by descendant (should use memchr)) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -13481,7 +13518,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_count_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $..count (select count by descendant (should use memchr)) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -13493,7 +13530,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_count_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $..count (select count by descendant (should use memchr)) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -13505,7 +13542,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_count_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $..count (select count by descendant (should use memchr)) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..count")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/twitter.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -13517,7 +13554,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_count_
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $..count (select count by descendant (should use memchr)) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..count")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/twitter.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -13529,7 +13566,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $..search_metadata..count (select metadata and count by descendant (should use memchr)) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..search_metadata..count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -13541,7 +13578,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $..search_metadata..count (select metadata and count by descendant (should use memchr)) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..search_metadata..count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -13553,7 +13590,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $..search_metadata..count (select metadata and count by descendant (should use memchr)) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..search_metadata..count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -13565,7 +13602,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $..search_metadata..count (select metadata and count by descendant (should use memchr)) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..search_metadata..count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -13577,7 +13614,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $..search_metadata..count (select metadata and count by descendant (should use memchr)) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..search_metadata..count")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/twitter.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -13589,7 +13626,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $..search_metadata..count (select metadata and count by descendant (should use memchr)) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..search_metadata..count")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/twitter.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -13601,7 +13638,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $..search_metadata.count (select metadata count by descendant (should use memchr)) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..search_metadata.count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -13613,7 +13650,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $..search_metadata.count (select metadata count by descendant (should use memchr)) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..search_metadata.count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -13625,7 +13662,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $..search_metadata.count (select metadata count by descendant (should use memchr)) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..search_metadata.count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -13637,7 +13674,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $..search_metadata.count (select metadata count by descendant (should use memchr)) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..search_metadata.count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -13649,7 +13686,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $..search_metadata.count (select metadata count by descendant (should use memchr)) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..search_metadata.count")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/twitter.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -13661,7 +13698,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $..search_metadata.count (select metadata count by descendant (should use memchr)) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..search_metadata.count")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/twitter.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -13673,7 +13710,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $.search_metadata.count (select metadata count directly) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.search_metadata.count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -13685,7 +13722,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $.search_metadata.count (select metadata count directly) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.search_metadata.count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -13697,7 +13734,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $.search_metadata.count (select metadata count directly) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.search_metadata.count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -13709,7 +13746,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $.search_metadata.count (select metadata count directly) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.search_metadata.count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -13721,7 +13758,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $.search_metadata.count (select metadata count directly) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.search_metadata.count")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/twitter.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -13733,7 +13770,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $.search_metadata.count (select metadata count directly) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.search_metadata.count")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/twitter.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -13745,7 +13782,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $.search_metadata..count (select metadata directly, and then count by descendant) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.search_metadata..count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -13757,7 +13794,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $.search_metadata..count (select metadata directly, and then count by descendant) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.search_metadata..count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -13769,7 +13806,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $.search_metadata..count (select metadata directly, and then count by descendant) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.search_metadata..count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -13781,7 +13818,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $.search_metadata..count (select metadata directly, and then count by descendant) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.search_metadata..count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/compressed/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -13793,7 +13830,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $.search_metadata..count (select metadata directly, and then count by descendant) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.search_metadata..count")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/twitter.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -13805,7 +13842,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/twitter.toml running the query $.search_metadata..count (select metadata directly, and then count by descendant) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.search_metadata..count")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/compressed/twitter.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -13817,7 +13854,7 @@ fn twitter_json_from_simdjson_github_example_with_query_descendant_user_entities
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $..user..entities.url (descendant user entities, then child url) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..user..entities.url")?;
-    let json_file = fs::File::open("./tests/documents/json/large/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -13829,7 +13866,7 @@ fn twitter_json_from_simdjson_github_example_with_query_descendant_user_entities
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $..user..entities.url (descendant user entities, then child url) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..user..entities.url")?;
-    let json_file = fs::File::open("./tests/documents/json/large/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -13864,7 +13901,7 @@ fn twitter_json_from_simdjson_github_example_with_query_descendant_user_entities
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $..user..entities.url (descendant user entities, then child url) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..user..entities.url")?;
-    let json_file = fs::File::open("./tests/documents/json/large/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -13876,7 +13913,7 @@ fn twitter_json_from_simdjson_github_example_with_query_descendant_user_entities
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $..user..entities.url (descendant user entities, then child url) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..user..entities.url")?;
-    let json_file = fs::File::open("./tests/documents/json/large/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -13911,7 +13948,7 @@ fn twitter_json_from_simdjson_github_example_with_query_descendant_user_entities
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $..user..entities.url (descendant user entities, then child url) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..user..entities.url")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/twitter.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -13923,7 +13960,7 @@ fn twitter_json_from_simdjson_github_example_with_query_descendant_user_entities
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $..user..entities.url (descendant user entities, then child url) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..user..entities.url")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/twitter.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -13958,7 +13995,7 @@ fn twitter_json_from_simdjson_github_example_with_query_descendant_user_entities
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $..user..entities..url (descendant user entities url) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..user..entities..url")?;
-    let json_file = fs::File::open("./tests/documents/json/large/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -13970,7 +14007,7 @@ fn twitter_json_from_simdjson_github_example_with_query_descendant_user_entities
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $..user..entities..url (descendant user entities url) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..user..entities..url")?;
-    let json_file = fs::File::open("./tests/documents/json/large/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14031,7 +14068,7 @@ fn twitter_json_from_simdjson_github_example_with_query_descendant_user_entities
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $..user..entities..url (descendant user entities url) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..user..entities..url")?;
-    let json_file = fs::File::open("./tests/documents/json/large/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14043,7 +14080,7 @@ fn twitter_json_from_simdjson_github_example_with_query_descendant_user_entities
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $..user..entities..url (descendant user entities url) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..user..entities..url")?;
-    let json_file = fs::File::open("./tests/documents/json/large/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14104,7 +14141,7 @@ fn twitter_json_from_simdjson_github_example_with_query_descendant_user_entities
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $..user..entities..url (descendant user entities url) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..user..entities..url")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/twitter.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14116,7 +14153,7 @@ fn twitter_json_from_simdjson_github_example_with_query_descendant_user_entities
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $..user..entities..url (descendant user entities url) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..user..entities..url")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/twitter.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14177,7 +14214,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_count_by_descenda
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $..count (select count by descendant (should use memchr)) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14189,7 +14226,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_count_by_descenda
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $..count (select count by descendant (should use memchr)) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14201,7 +14238,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_count_by_descenda
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $..count (select count by descendant (should use memchr)) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14213,7 +14250,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_count_by_descenda
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $..count (select count by descendant (should use memchr)) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14225,7 +14262,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_count_by_descenda
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $..count (select count by descendant (should use memchr)) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..count")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/twitter.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14237,7 +14274,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_count_by_descenda
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $..count (select count by descendant (should use memchr)) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..count")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/twitter.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14249,7 +14286,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_and_coun
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $..search_metadata..count (select metadata and count by descendant (should use memchr)) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..search_metadata..count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14261,7 +14298,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_and_coun
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $..search_metadata..count (select metadata and count by descendant (should use memchr)) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..search_metadata..count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14273,7 +14310,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_and_coun
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $..search_metadata..count (select metadata and count by descendant (should use memchr)) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..search_metadata..count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14285,7 +14322,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_and_coun
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $..search_metadata..count (select metadata and count by descendant (should use memchr)) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..search_metadata..count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14297,7 +14334,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_and_coun
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $..search_metadata..count (select metadata and count by descendant (should use memchr)) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..search_metadata..count")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/twitter.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14309,7 +14346,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_and_coun
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $..search_metadata..count (select metadata and count by descendant (should use memchr)) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..search_metadata..count")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/twitter.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14321,7 +14358,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_by
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $..search_metadata.count (select metadata count by descendant (should use memchr)) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..search_metadata.count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14333,7 +14370,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_by
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $..search_metadata.count (select metadata count by descendant (should use memchr)) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..search_metadata.count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14345,7 +14382,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_by
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $..search_metadata.count (select metadata count by descendant (should use memchr)) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..search_metadata.count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14357,7 +14394,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_by
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $..search_metadata.count (select metadata count by descendant (should use memchr)) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..search_metadata.count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14369,7 +14406,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_by
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $..search_metadata.count (select metadata count by descendant (should use memchr)) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..search_metadata.count")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/twitter.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14381,7 +14418,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_by
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $..search_metadata.count (select metadata count by descendant (should use memchr)) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..search_metadata.count")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/twitter.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14393,7 +14430,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_di
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $.search_metadata.count (select metadata count directly) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.search_metadata.count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14405,7 +14442,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_di
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $.search_metadata.count (select metadata count directly) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.search_metadata.count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14417,7 +14454,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_di
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $.search_metadata.count (select metadata count directly) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.search_metadata.count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14429,7 +14466,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_di
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $.search_metadata.count (select metadata count directly) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.search_metadata.count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14441,7 +14478,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_di
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $.search_metadata.count (select metadata count directly) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.search_metadata.count")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/twitter.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14453,7 +14490,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_di
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $.search_metadata.count (select metadata count directly) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.search_metadata.count")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/twitter.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14465,7 +14502,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_directly
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $.search_metadata..count (select metadata directly, and then count by descendant) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.search_metadata..count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14477,7 +14514,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_directly
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $.search_metadata..count (select metadata directly, and then count by descendant) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.search_metadata..count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14489,7 +14526,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_directly
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $.search_metadata..count (select metadata directly, and then count by descendant) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.search_metadata..count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14501,7 +14538,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_directly
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $.search_metadata..count (select metadata directly, and then count by descendant) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.search_metadata..count")?;
-    let json_file = fs::File::open("./tests/documents/json/large/twitter.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14513,7 +14550,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_directly
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $.search_metadata..count (select metadata directly, and then count by descendant) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.search_metadata..count")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/twitter.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14525,7 +14562,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_directly
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document twitter.toml running the query $.search_metadata..count (select metadata directly, and then count by descendant) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.search_metadata..count")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/large/twitter.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14537,7 +14574,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/index_result.toml running the query $.a (select a by child) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/index_result.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14549,7 +14586,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/index_result.toml running the query $.a (select a by child) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/index_result.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14561,7 +14598,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/index_result.toml running the query $.a (select a by child) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/index_result.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14573,7 +14610,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/index_result.toml running the query $.a (select a by child) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/index_result.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14585,7 +14622,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/index_result.toml running the query $.a (select a by child) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/index_result.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14597,7 +14634,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/index_result.toml running the query $.a (select a by child) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/index_result.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14609,7 +14646,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/index_result.toml running the query $..a (select a by descendant) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/index_result.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14621,7 +14658,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/index_result.toml running the query $..a (select a by descendant) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/index_result.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14633,7 +14670,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/index_result.toml running the query $..a (select a by descendant) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/index_result.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14645,7 +14682,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/index_result.toml running the query $..a (select a by descendant) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/index_result.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14657,7 +14694,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/index_result.toml running the query $..a (select a by descendant) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/index_result.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14669,7 +14706,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/index_result.toml running the query $..a (select a by descendant) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/index_result.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14681,7 +14718,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/index_result.toml running the query $.a[*] (select each item on the list with wildcard) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[*]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/index_result.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14693,7 +14730,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/index_result.toml running the query $.a[*] (select each item on the list with wildcard) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[*]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/index_result.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14705,7 +14742,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/index_result.toml running the query $.a[*] (select each item on the list with wildcard) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[*]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/index_result.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14717,7 +14754,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/index_result.toml running the query $.a[*] (select each item on the list with wildcard) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[*]")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/index_result.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14729,7 +14766,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/index_result.toml running the query $.a[*] (select each item on the list with wildcard) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[*]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/index_result.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14741,7 +14778,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/index_result.toml running the query $.a[*] (select each item on the list with wildcard) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[*]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/index_result.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14753,7 +14790,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/index_result.toml running the query $ (select root) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/index_result.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14765,7 +14802,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/index_result.toml running the query $ (select root) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/index_result.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14777,7 +14814,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/index_result.toml running the query $ (select root) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/index_result.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14789,7 +14826,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/index_result.toml running the query $ (select root) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let json_file = fs::File::open("./tests/documents/json/compressed/index_result.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14801,7 +14838,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/index_result.toml running the query $ (select root) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/index_result.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14813,7 +14850,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/index_result.toml running the query $ (select root) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/compressed/index_result.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14825,7 +14862,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document index_result.toml running the query $.a (select a by child) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a")?;
-    let json_file = fs::File::open("./tests/documents/json/index_result.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14837,7 +14874,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document index_result.toml running the query $.a (select a by child) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a")?;
-    let json_file = fs::File::open("./tests/documents/json/index_result.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14849,7 +14886,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document index_result.toml running the query $.a (select a by child) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a")?;
-    let json_file = fs::File::open("./tests/documents/json/index_result.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14861,7 +14898,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document index_result.toml running the query $.a (select a by child) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a")?;
-    let json_file = fs::File::open("./tests/documents/json/index_result.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14873,7 +14910,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document index_result.toml running the query $.a (select a by child) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/index_result.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14885,7 +14922,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document index_result.toml running the query $.a (select a by child) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/index_result.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14897,7 +14934,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document index_result.toml running the query $..a (select a by descendant) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a")?;
-    let json_file = fs::File::open("./tests/documents/json/index_result.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14909,7 +14946,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document index_result.toml running the query $..a (select a by descendant) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a")?;
-    let json_file = fs::File::open("./tests/documents/json/index_result.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14921,7 +14958,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document index_result.toml running the query $..a (select a by descendant) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a")?;
-    let json_file = fs::File::open("./tests/documents/json/index_result.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14933,7 +14970,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document index_result.toml running the query $..a (select a by descendant) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a")?;
-    let json_file = fs::File::open("./tests/documents/json/index_result.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14945,7 +14982,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document index_result.toml running the query $..a (select a by descendant) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$..a")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/index_result.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14957,7 +14994,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document index_result.toml running the query $..a (select a by descendant) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$..a")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/index_result.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14969,7 +15006,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document index_result.toml running the query $.a[*] (select each item on the list with wildcard) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[*]")?;
-    let json_file = fs::File::open("./tests/documents/json/index_result.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -14981,7 +15018,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document index_result.toml running the query $.a[*] (select each item on the list with wildcard) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[*]")?;
-    let json_file = fs::File::open("./tests/documents/json/index_result.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -14993,7 +15030,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document index_result.toml running the query $.a[*] (select each item on the list with wildcard) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[*]")?;
-    let json_file = fs::File::open("./tests/documents/json/index_result.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -15005,7 +15042,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document index_result.toml running the query $.a[*] (select each item on the list with wildcard) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[*]")?;
-    let json_file = fs::File::open("./tests/documents/json/index_result.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -15017,7 +15054,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document index_result.toml running the query $.a[*] (select each item on the list with wildcard) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[*]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/index_result.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -15029,7 +15066,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document index_result.toml running the query $.a[*] (select each item on the list with wildcard) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$.a[*]")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/index_result.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -15041,7 +15078,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document index_result.toml running the query $ (select root) with Input impl BufferedInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let json_file = fs::File::open("./tests/documents/json/index_result.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -15053,7 +15090,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document index_result.toml running the query $ (select root) with Input impl BufferedInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let json_file = fs::File::open("./tests/documents/json/index_result.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -15065,7 +15102,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document index_result.toml running the query $ (select root) with Input impl MmapInput and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let json_file = fs::File::open("./tests/documents/json/index_result.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -15077,7 +15114,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document index_result.toml running the query $ (select root) with Input impl MmapInput and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let json_file = fs::File::open("./tests/documents/json/index_result.json")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
@@ -15089,7 +15126,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document index_result.toml running the query $ (select root) with Input impl OwnedBytes and result mode CountResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/index_result.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountResult>(&input)?;
@@ -15101,7 +15138,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document index_result.toml running the query $ (select root) with Input impl OwnedBytes and result mode IndexResult");
     let jsonpath_query = JsonPathQuery::parse("$")?;
-    let raw_json = fs::read_to_string("./tests/documents/json/index_result.json")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, IndexResult>(&input)?;
