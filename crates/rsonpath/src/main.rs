@@ -37,7 +37,7 @@ fn run_with_args(args: &Args) -> Result<()> {
     } else {
         // Actual query execution.
         let input = runner::resolve_input(args.file_path.as_deref(), args.force_input.as_ref())?;
-        let engine = runner::resolve_engine(args.engine);
+        let engine = runner::resolve_engine();
         let output = runner::resolve_output(args.result);
 
         Runner {

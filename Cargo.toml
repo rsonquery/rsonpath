@@ -21,3 +21,4 @@ debug = 1
 
 [patch.crates-io]
 rsonpath-lib = { path = "./crates/rsonpath-lib" }
+rsonpath-test-codegen = { path = "./crates/rsonpath-test-codegen" }

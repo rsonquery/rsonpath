@@ -7,7 +7,6 @@ mod depth;
 pub mod error;
 mod head_skipping;
 pub mod main;
-pub mod recursive;
 mod tail_skipping;
 pub use main::MainEngine as RsonpathEngine;
 

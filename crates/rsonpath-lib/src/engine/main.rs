@@ -4,9 +4,6 @@
 //! [Stackless Processing of Streamed Trees](https://hal.archives-ouvertes.fr/hal-03021960) paper.
 //! Entire query execution is done without recursion or an explicit stack, linearly through
 //! the JSON structure, which allows efficient SIMD operations and optimized register usage.
-//!
-//! This implementation should be more performant than [`recursive`](super::recursive::RecursiveEngine)
-//! even on targets that do not support AVX2 SIMD operations.
 use crate::{
     classification::{
         quotes::{classify_quoted_sequences, QuoteClassifiedIterator},

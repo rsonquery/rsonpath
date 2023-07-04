@@ -19,41 +19,39 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> impl IntoIterator<Item = T
         for query in &discovered_doc.document.queries {
             for input_type in [InputTypeToTest::Owned, InputTypeToTest::Buffered, InputTypeToTest::Mmap] {
                 for result_type in get_available_results(query) {
-                    for engine_type in [EngineTypeToTest::Main, EngineTypeToTest::Recursive] {
-                        let fn_name = format_ident!(
-                            "{}",
-                            heck::AsSnakeCase(format!(
-                                "{}_with_query_{}_with_{}_and_{}_using_{}",
-                                discovered_doc.document.input.description,
-                                query.description,
-                                input_type,
-                                result_type,
-                                engine_type
-                            ))
-                            .to_string()
-                        );
-                        let full_description = format!(
-                            r#"on document {} running the query {} ({}) with Input impl {} and result mode {}"#,
-                            discovered_doc.name, query.query, query.description, input_type, result_type
-                        );
-                        let body = generate_body(
-                            &full_description,
-                            &input_json,
-                            query,
+                    let fn_name = format_ident!(
+                        "{}",
+                        heck::AsSnakeCase(format!(
+                            "{}_with_query_{}_with_{}_and_{}_using_{}",
+                            discovered_doc.document.input.description,
+                            query.description,
                             input_type,
                             result_type,
-                            engine_type,
-                        );
+                            EngineTypeToTest::Main,
+                        ))
+                        .to_string()
+                    );
+                    let full_description = format!(
+                        r#"on document {} running the query {} ({}) with Input impl {} and result mode {}"#,
+                        discovered_doc.name, query.query, query.description, input_type, result_type
+                    );
+                    let body = generate_body(
+                        &full_description,
+                        &input_json,
+                        query,
+                        input_type,
+                        result_type,
+                        EngineTypeToTest::Main,
+                    );
 
-                        let r#fn = quote! {
-                            #[test]
-                            fn #fn_name() -> Result<(), Box<dyn Error>> {
-                                #body
-                            }
-                        };
+                    let r#fn = quote! {
+                        #[test]
+                        fn #fn_name() -> Result<(), Box<dyn Error>> {
+                            #body
+                        }
+                    };
 
-                        fns.push((fn_name, r#fn));
-                    }
+                    fns.push((fn_name, r#fn));
                 }
             }
         }
@@ -127,11 +125,6 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> impl IntoIterator<Item = T
                     let #ident = MainEngine::compile_query(&#query_ident)?;
                 }
             }
-            EngineTypeToTest::Recursive => {
-                quote! {
-                    let #ident = RecursiveEngine::compile_query(&#query_ident)?;
-                }
-            }
         };
 
         (ident, code)
@@ -180,7 +173,7 @@ fn get_available_results(query: &model::Query) -> Vec<ResultTypeToTest> {
 
 pub(crate) fn generate_imports() -> TokenStream {
     quote! {
-        use rsonpath::engine::{Compiler, Engine, main::MainEngine, recursive::RecursiveEngine};
+        use rsonpath::engine::{Compiler, Engine, main::MainEngine};
         use rsonpath::input::*;
         use rsonpath::query::JsonPathQuery;
         use rsonpath::result::*;
@@ -206,7 +199,6 @@ enum ResultTypeToTest {
 #[derive(Clone, Copy)]
 enum EngineTypeToTest {
     Main,
-    Recursive,
 }
 
 impl Display for InputTypeToTest {
@@ -243,7 +235,6 @@ impl Display for EngineTypeToTest {
             "{}",
             match self {
                 Self::Main => "MainEngine",
-                Self::Recursive => "RecursiveEngine",
             }
         )
     }
