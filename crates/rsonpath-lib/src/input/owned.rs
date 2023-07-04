@@ -220,11 +220,16 @@ impl Drop for OwnedBytes {
 }
 
 impl Input for OwnedBytes {
-    type BlockIterator<'a, const N: usize> = BorrowedBytesBlockIterator<'a, N>;
+    type BlockIterator<'a, 'r, const N: usize, R: InputRecorder + 'r> = BorrowedBytesBlockIterator<'a, 'r, N, R>;
+
+    type Block<'a, const N: usize> = &'a [u8];
 
     #[inline(always)]
-    fn iter_blocks<const N: usize>(&self) -> Self::BlockIterator<'_, N> {
-        BorrowedBytesBlockIterator::new(self.as_slice(), &self.last_block)
+    fn iter_blocks<'a, 'r, R: InputRecorder, const N: usize>(
+        &'a self,
+        recorder: &'r R,
+    ) -> Self::BlockIterator<'a, 'r, N, R> {
+        BorrowedBytesBlockIterator::new(&self.as_slice(), &self.last_block, recorder)
     }
 
     #[inline]

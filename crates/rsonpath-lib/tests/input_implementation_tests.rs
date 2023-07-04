@@ -1,7 +1,7 @@
 use pretty_assertions::assert_eq;
 use rsonpath::{
     input::{error::InputError, *},
-    FallibleIterator,
+    FallibleIterator, recorder::EmptyRecorder,
 };
 use std::{cmp, fs, iter};
 use std::{fs::File, io::Read};
@@ -140,7 +140,7 @@ fn test_equivalence<I: Input>(original_contents: &[u8], input: I) {
 
 fn read_input_to_end<I: Input>(input: I) -> Result<Vec<u8>, InputError> {
     let mut result: Vec<u8> = vec![];
-    let mut iter = input.iter_blocks::<BLOCK_SIZE>();
+    let mut iter = input.iter_blocks::<_, BLOCK_SIZE>(&EmptyRecorder);
 
     while let Some(block) = iter.next()? {
         result.extend_from_slice(&block)

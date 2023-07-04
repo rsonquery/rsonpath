@@ -61,7 +61,7 @@ pub mod structural;
 
 use crate::{
     debug,
-    input::{error::InputError, IBlock, Input},
+    input::{error::InputError, Input},
 };
 use quotes::{QuoteClassifiedBlock, QuoteClassifiedIterator};
 
@@ -81,7 +81,7 @@ pub struct ResumeClassifierState<'a, I: Input, Q, const N: usize> {
 /// State of the block at which classification was stopped.
 pub struct ResumeClassifierBlockState<'a, I: Input + 'a, const N: usize> {
     /// Quote classified information about the block.
-    pub block: QuoteClassifiedBlock<IBlock<'a, I, N>, N>,
+    pub block: QuoteClassifiedBlock<I::Block<'a, N>, N>,
     /// The index at which classification was stopped.
     pub idx: usize,
 }

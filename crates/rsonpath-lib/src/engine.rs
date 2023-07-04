@@ -11,13 +11,12 @@ mod tail_skipping;
 pub use main::MainEngine as RsonpathEngine;
 
 use self::error::EngineError;
-use crate::input::Input;
+use crate::{input::Input, recorder::Recorder};
 use crate::query::{automaton::Automaton, error::CompilerError, JsonPathQuery};
-use crate::result::QueryResult;
 
-/// Trait for an engine that can run its query on a given input.
+/// An engine that can run its query on a given input.
 pub trait Engine {
-    /// Compute the [`QueryResult`] on given [`Input`].
+    /// Compute a [`QueryResult`] on given [`Input`].
     ///
     /// # Errors
     /// An appropriate [`EngineError`] is returned if the JSON input is malformed
@@ -27,10 +26,10 @@ pub trait Engine {
     /// Some glaring errors like mismatched braces or double quotes are raised,
     /// but in general the result of an engine run on an invalid JSON is undefined.
     /// It _is_ guaranteed that the computation terminates and does not panic.
-    fn run<I: Input, R: QueryResult>(&self, input: &I) -> Result<R, EngineError>;
+    fn run<I: Input, R: Recorder>(&self, input: &I) -> Result<R::Result, EngineError>;
 }
 
-/// Trait for an engine that can be created by compiling a [`JsonPathQuery`].
+/// An engine that can be created by compiling a [`JsonPathQuery`].
 pub trait Compiler {
     /// Concrete type of the [`Engines`](`Engine`) created,
     /// parameterized with the lifetime of the input query.

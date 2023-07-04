@@ -24,15 +24,8 @@ pub mod mmap;
 pub use mmap::MmapInput;
 
 use self::error::InputError;
-use crate::{query::JsonString, FallibleIterator};
+use crate::{query::JsonString, recorder::InputRecorder, FallibleIterator};
 use std::ops::Deref;
-
-/// Shorthand for the associated [`InputBlock`] type for given
-/// [`Input`]'s iterator.
-///
-/// Typing `IBlock<'a, I, N>` is a bit more ergonomic than
-/// `<<I as Input>::BlockIterator<'a, N> as InputBlockIterator<'a, N>>::Block`.
-pub type IBlock<'a, I, const N: usize> = <<I as Input>::BlockIterator<'a, N> as InputBlockIterator<'a, N>>::Block;
 
 /// Make the struct repr(C) with alignment equal to [`MAX_BLOCK_SIZE`].
 macro_rules! repr_align_block_size {
@@ -59,14 +52,22 @@ pub const MAX_BLOCK_SIZE: usize = 128;
 pub trait Input: Sized {
     /// Type of the iterator used by [`iter_blocks`](Input::iter_blocks), parameterized
     /// by the lifetime of source input and the size of the block.
-    type BlockIterator<'a, const N: usize>: InputBlockIterator<'a, N>
+    type BlockIterator<'a, 'r, const N: usize, R: InputRecorder>: InputBlockIterator<'a, N, Block = Self::Block<'a, N>>
+    where
+        Self: 'a, R: 'r;
+
+    /// Type of the blocks returned by the `BlockIterator`.
+    type Block<'a, const N: usize>: InputBlock<'a, N>
     where
         Self: 'a;
 
     /// Iterate over blocks of size `N` of the input.
     /// `N` has to be a power of two larger than 1.
     #[must_use]
-    fn iter_blocks<const N: usize>(&self) -> Self::BlockIterator<'_, N>;
+    fn iter_blocks<'a, 'r, R: InputRecorder, const N: usize>(
+        &'a self,
+        recorder: &'r R,
+    ) -> Self::BlockIterator<'a, 'r, N, R>;
 
     /// Search for an occurrence of `needle` in the input,
     /// starting from `from` and looking back. Returns the index

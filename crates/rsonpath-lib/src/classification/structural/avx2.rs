@@ -15,7 +15,7 @@ cfg_if::cfg_if! {
 use crate::classification::structural::{BracketType, QuoteClassifiedIterator, Structural, StructuralIterator};
 use crate::classification::{QuoteClassifiedBlock, ResumeClassifierBlockState, ResumeClassifierState};
 use crate::input::error::InputError;
-use crate::input::{IBlock, Input, InputBlock};
+use crate::input::{Input, InputBlock};
 use crate::{bin, debug, FallibleIterator};
 
 #[cfg(target_arch = "x86")]
@@ -24,13 +24,13 @@ use core::arch::x86::*;
 use core::arch::x86_64::*;
 
 struct StructuralsBlock<'a, I: Input + 'a> {
-    quote_classified: QuoteClassifiedBlock<IBlock<'a, I, 64>, 64>,
+    quote_classified: QuoteClassifiedBlock<I::Block<'a, 64>, 64>,
     structural_mask: u64,
 }
 
 impl<'a, I: Input> StructuralsBlock<'a, I> {
     #[inline(always)]
-    fn new(block: QuoteClassifiedBlock<IBlock<'a, I, 64>, 64>, structural_mask: u64) -> Self {
+    fn new(block: QuoteClassifiedBlock<I::Block<'a, 64>, 64>, structural_mask: u64) -> Self {
         Self {
             quote_classified: block,
             structural_mask,
@@ -308,7 +308,7 @@ impl BlockAvx2Classifier {
     #[inline]
     unsafe fn classify<'a, I: Input>(
         &mut self,
-        quote_classified_block: QuoteClassifiedBlock<IBlock<'a, I, 64>, 64>,
+        quote_classified_block: QuoteClassifiedBlock<<I as Input>::Block<'a, 64>, 64>,
     ) -> StructuralsBlock<'a, I> {
         let (block1, block2) = quote_classified_block.block.halves();
         let classification1 = self.classify_block(block1);

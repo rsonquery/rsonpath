@@ -228,7 +228,7 @@ pub fn resume_structural_classification<'a, I: Input, Q: QuoteClassifiedIterator
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{classification::quotes::classify_quoted_sequences, input::OwnedBytes};
+    use crate::{classification::quotes::classify_quoted_sequences, input::OwnedBytes, recorder::EmptyRecorder};
 
     #[test]
     fn resumption_without_commas_or_colons() {
@@ -238,7 +238,7 @@ mod tests {
         let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
         let json_string = json.to_owned();
         let input = OwnedBytes::new(&json_string).unwrap();
-        let quotes = classify_quoted_sequences(&input);
+        let quotes = classify_quoted_sequences(&input, &EmptyRecorder);
 
         let mut classifier = classify_structural_characters(quotes);
 
@@ -261,7 +261,7 @@ mod tests {
         let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
         let json_string = json.to_owned();
         let input = OwnedBytes::new(&json_string).unwrap();
-        let quotes = classify_quoted_sequences(&input);
+        let quotes = classify_quoted_sequences(&input, &EmptyRecorder);
 
         let mut classifier = classify_structural_characters(quotes);
         classifier.turn_commas_on(0);
@@ -288,7 +288,7 @@ mod tests {
         let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
         let json_string = json.to_owned();
         let input = OwnedBytes::new(&json_string).unwrap();
-        let quotes = classify_quoted_sequences(&input);
+        let quotes = classify_quoted_sequences(&input, &EmptyRecorder);
 
         let mut classifier = classify_structural_characters(quotes);
         classifier.turn_colons_on(0);
@@ -315,7 +315,7 @@ mod tests {
         let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
         let json_string = json.to_owned();
         let input = OwnedBytes::new(&json_string).unwrap();
-        let quotes = classify_quoted_sequences(&input);
+        let quotes = classify_quoted_sequences(&input, &EmptyRecorder);
 
         let mut classifier = classify_structural_characters(quotes);
         classifier.turn_commas_on(0);

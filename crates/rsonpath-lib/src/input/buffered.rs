@@ -19,7 +19,7 @@
 use super::{
     error::InputError, in_slice, repr_align_block_size, Input, InputBlock, InputBlockIterator, MAX_BLOCK_SIZE,
 };
-use crate::{error::InternalRsonpathError, query::JsonString, FallibleIterator};
+use crate::{error::InternalRsonpathError, query::JsonString, recorder::InputRecorder, FallibleIterator};
 use std::cmp;
 use std::{cell::RefCell, io::Read, ops::Deref, slice};
 
@@ -121,11 +121,16 @@ impl<R: Read> BufferedInput<R> {
     }
 }
 
-impl<R: Read> Input for BufferedInput<R> {
-    type BlockIterator<'a, const N: usize> = BufferedInputBlockIterator<'a, R, N> where Self: 'a;
+impl<R: Read + 'static> Input for BufferedInput<R> {
+    type BlockIterator<'a, 'r, const N: usize, IR: InputRecorder + 'r> = BufferedInputBlockIterator<'a, R, N>;
+
+    type Block<'a, const N: usize> = BufferedInputBlock<N>;
 
     #[inline(always)]
-    fn iter_blocks<const N: usize>(&self) -> Self::BlockIterator<'_, N> {
+    fn iter_blocks<'a, 'r, IR: InputRecorder, const N: usize>(
+        &'a self,
+        recorder: &'r IR,
+    ) -> Self::BlockIterator<'a, 'r, N, IR> {
         BufferedInputBlockIterator { input: self, idx: 0 }
     }
 

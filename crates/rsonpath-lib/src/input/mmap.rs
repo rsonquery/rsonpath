@@ -16,7 +16,7 @@
 //! file into main memory.
 
 use super::{borrowed::BorrowedBytesBlockIterator, error::InputError, in_slice, Input, LastBlock};
-use crate::query::JsonString;
+use crate::{query::JsonString, recorder::InputRecorder};
 use memmap2::{Mmap, MmapAsRawDesc};
 
 /// Input wrapping a memory mapped file.
@@ -49,11 +49,16 @@ impl MmapInput {
 }
 
 impl Input for MmapInput {
-    type BlockIterator<'a, const N: usize> = BorrowedBytesBlockIterator<'a, N>;
+    type BlockIterator<'a, 'r, const N: usize, R: InputRecorder + 'r> = BorrowedBytesBlockIterator<'a, 'r, N, R>;
+
+    type Block<'a, const N: usize> = &'a [u8];
 
     #[inline(always)]
-    fn iter_blocks<const N: usize>(&self) -> Self::BlockIterator<'_, N> {
-        BorrowedBytesBlockIterator::new(&self.mmap, &self.last_block)
+    fn iter_blocks<'a, 'r, R: InputRecorder, const N: usize>(
+        &'a self,
+        recorder: &'r R,
+    ) -> Self::BlockIterator<'a, 'r, N, R> {
+        BorrowedBytesBlockIterator::new(&self.mmap, &self.last_block, recorder)
     }
 
     #[inline]

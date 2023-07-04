@@ -14,7 +14,7 @@ cfg_if::cfg_if! {
 
 use crate::classification::{quotes::QuoteClassifiedBlock, ResumeClassifierBlockState};
 use crate::input::error::InputError;
-use crate::input::{IBlock, Input, InputBlock};
+use crate::input::{Input, InputBlock};
 use crate::{bin, debug, FallibleIterator};
 use std::marker::PhantomData;
 
@@ -117,7 +117,7 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> DepthIterator<'a, I, Q
 )]
 
 pub(crate) struct Vector<'a, I: Input + 'a> {
-    quote_classified: QuoteClassifiedBlock<IBlock<'a, I, 64>, 64>,
+    quote_classified: QuoteClassifiedBlock<I::Block<'a, 64>, 64>,
     opening_mask: u64,
     opening_count: u32,
     closing_mask: u64,
@@ -127,13 +127,13 @@ pub(crate) struct Vector<'a, I: Input + 'a> {
 
 impl<'a, I: Input> Vector<'a, I> {
     #[inline]
-    fn new(bytes: QuoteClassifiedBlock<IBlock<'a, I, 64>, 64>, classifier: &DelimiterClassifierImpl) -> Self {
+    fn new(bytes: QuoteClassifiedBlock<I::Block<'a, 64>, 64>, classifier: &DelimiterClassifierImpl) -> Self {
         Self::new_from(bytes, classifier, 0)
     }
 
     #[inline]
     fn new_from(
-        bytes: QuoteClassifiedBlock<IBlock<'a, I, 64>, 64>,
+        bytes: QuoteClassifiedBlock<I::Block<'a, 64>, 64>,
         classifier: &DelimiterClassifierImpl,
         idx: usize,
     ) -> Self {
@@ -144,7 +144,7 @@ impl<'a, I: Input> Vector<'a, I> {
     #[target_feature(enable = "avx2")]
     #[inline]
     unsafe fn new_avx2(
-        bytes: QuoteClassifiedBlock<IBlock<'a, I, 64>, 64>,
+        bytes: QuoteClassifiedBlock<I::Block<'a, 64>, 64>,
         classifier: &DelimiterClassifierImpl,
         start_idx: usize,
     ) -> Self {

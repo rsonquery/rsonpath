@@ -30,8 +30,8 @@
 //! assert_eq!(expd, block.within_quotes_mask);
 //! ```
 
-use crate::input::error::InputError;
-use crate::input::{IBlock, Input, InputBlock};
+use crate::input::{Input, InputBlock};
+use crate::{input::error::InputError, recorder::InputRecorder};
 use crate::{FallibleIterator, BLOCK_SIZE};
 use cfg_if::cfg_if;
 
@@ -54,7 +54,7 @@ pub struct QuoteClassifiedBlock<B, const N: usize> {
 /// enriching blocks of input with quote bitmasks.
 /// Iterator is allowed to hold a reference to the JSON document valid for `'a`.
 pub trait QuoteClassifiedIterator<'a, I: Input + 'a, const N: usize>:
-    FallibleIterator<Item = QuoteClassifiedBlock<IBlock<'a, I, N>, N>, Error = InputError> + 'a
+    FallibleIterator<Item = QuoteClassifiedBlock<I::Block<'a, N>, N>, Error = InputError> + 'a
 {
     /// Get the total offset in bytes from the beginning of input.
     fn get_offset(&self) -> usize;
@@ -96,7 +96,7 @@ cfg_if! {
     }
     else if #[cfg(simd = "avx2")] {
         mod avx2;
-        type ClassifierImpl<'a, I> = avx2::Avx2QuoteClassifier<'a, I>;
+        type ClassifierImpl<'a, 'r, I, R> = avx2::Avx2QuoteClassifier<'a, 'r, I, R>;
     }
     else {
         compile_error!("Target architecture is not supported by SIMD features of this crate. Disable the default `simd` feature.");
@@ -107,6 +107,9 @@ cfg_if! {
 /// and classify quoted sequences.
 #[must_use]
 #[inline(always)]
-pub fn classify_quoted_sequences<I: Input>(bytes: &I) -> impl QuoteClassifiedIterator<I, BLOCK_SIZE> {
-    ClassifierImpl::new(bytes)
+pub fn classify_quoted_sequences<'a, I: Input, R: InputRecorder>(
+    bytes: &'a I,
+    recorder: &'a R,
+) -> impl QuoteClassifiedIterator<'a, I, BLOCK_SIZE> {
+    ClassifierImpl::new(bytes, recorder)
 }

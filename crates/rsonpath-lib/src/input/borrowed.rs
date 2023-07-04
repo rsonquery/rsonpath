@@ -10,7 +10,7 @@
 //! since there is no additional overhead from loading anything to memory.
 
 use super::*;
-use crate::query::JsonString;
+use crate::{query::JsonString, recorder::InputRecorder};
 
 /// Input wrapping a borrowed [`[u8]`] buffer.
 pub struct BorrowedBytes<'a> {
@@ -19,10 +19,11 @@ pub struct BorrowedBytes<'a> {
 }
 
 /// Iterator over blocks of [`BorrowedBytes`] of size exactly `N`.
-pub struct BorrowedBytesBlockIterator<'a, const N: usize> {
+pub struct BorrowedBytesBlockIterator<'a, 'r, const N: usize, R> {
     input: &'a [u8],
     last_block: &'a LastBlock,
     idx: usize,
+    recorder: &'r R,
 }
 
 impl<'a> BorrowedBytes<'a> {
@@ -71,27 +72,34 @@ impl<'a> AsRef<[u8]> for BorrowedBytes<'a> {
     }
 }
 
-impl<'a, const N: usize> BorrowedBytesBlockIterator<'a, N> {
+impl<'a, 'r, const N: usize, R: InputRecorder> BorrowedBytesBlockIterator<'a, 'r, N, R> {
     #[must_use]
     #[inline(always)]
-    pub(super) fn new(bytes: &'a [u8], last_block: &'a LastBlock) -> Self {
+    pub(super) fn new(bytes: &'a [u8], last_block: &'a LastBlock, recorder: &'r R) -> Self {
         Self {
             input: bytes,
             idx: 0,
             last_block,
+            recorder,
         }
     }
 }
 
 impl<'a> Input for BorrowedBytes<'a> {
-    type BlockIterator<'b, const N: usize> = BorrowedBytesBlockIterator<'b, N> where Self: 'b;
+    type BlockIterator<'b, 'r, const N: usize, R: InputRecorder + 'r> = BorrowedBytesBlockIterator<'b, 'r, N, R> where Self: 'b;
+
+    type Block<'b, const N: usize> = &'b [u8] where Self: 'b;
 
     #[inline(always)]
-    fn iter_blocks<const N: usize>(&self) -> Self::BlockIterator<'_, N> {
+    fn iter_blocks<'b, 'r, R: InputRecorder, const N: usize>(
+        &'b self,
+        recorder: &'r R,
+    ) -> Self::BlockIterator<'b, 'r, N, R> {
         Self::BlockIterator {
             input: self.bytes,
             idx: 0,
             last_block: &self.last_block,
+            recorder,
         }
     }
 
@@ -126,7 +134,7 @@ impl<'a> Input for BorrowedBytes<'a> {
     }
 }
 
-impl<'a, const N: usize> FallibleIterator for BorrowedBytesBlockIterator<'a, N> {
+impl<'a, 'r, const N: usize, R: InputRecorder> FallibleIterator for BorrowedBytesBlockIterator<'a, 'r, N, R> {
     type Item = &'a [u8];
     type Error = InputError;
 
@@ -148,7 +156,7 @@ impl<'a, const N: usize> FallibleIterator for BorrowedBytesBlockIterator<'a, N> 
     }
 }
 
-impl<'a, const N: usize> InputBlockIterator<'a, N> for BorrowedBytesBlockIterator<'a, N> {
+impl<'a, 'r, const N: usize, R: InputRecorder> InputBlockIterator<'a, N> for BorrowedBytesBlockIterator<'a, 'r, N, R> {
     type Block = &'a [u8];
 
     #[inline(always)]

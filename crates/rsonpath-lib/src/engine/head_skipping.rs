@@ -14,12 +14,12 @@ use crate::{
         automaton::{Automaton, State},
         JsonString,
     },
-    result::{NodeTypeHint, QueryResult, QueryResultBuilder},
+    recorder::Recorder,
     FallibleIterator, BLOCK_SIZE,
 };
 
 /// Trait that needs to be implemented by an [`Engine`](`super::Engine`) to use this submodule.
-pub(super) trait CanHeadSkip<'b, I: Input, const N: usize> {
+pub(super) trait CanHeadSkip<'b, 'r, I: Input, R: Recorder, const N: usize> {
     /// Function called when head-skipping finds a member name at which normal query execution
     /// should resume.
     ///
@@ -33,19 +33,18 @@ pub(super) trait CanHeadSkip<'b, I: Input, const N: usize> {
     /// and execute the query until a matching [`Structural::Closing`] character is encountered,
     /// using `classifier` for classification and `result` for reporting query results. The `classifier`
     /// must *not* be used to classify anything past the matching [`Structural::Closing`] character.
-    fn run_on_subtree<'r, B, R, Q, S>(
+    fn run_on_subtree<Q, S>(
         &mut self,
         next_event: Structural,
         state: State,
         structural_classifier: S,
-        result: &'r mut B,
     ) -> Result<ResumeClassifierState<'b, I, Q, N>, EngineError>
     where
         I: Input,
         Q: QuoteClassifiedIterator<'b, I, N>,
-        B: QueryResultBuilder<'b, I, R>,
-        R: QueryResult,
         S: StructuralIterator<'b, I, Q, N>;
+
+    fn recorder(&mut self) -> &'r R;
 }
 
 /// Configuration of the head-skipping decorator.
@@ -80,6 +79,8 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
     ///
     /// In all other cases, head-skipping is not supported.
     pub(super) fn new(bytes: &'b I, automaton: &'b Automaton<'q>) -> Option<Self> {
+        std::env::var_os("RSONPATH_ENABLE_HEAD_SKIP")?; // HACK: temporarily disable head-skip
+
         let initial_state = automaton.initial_state();
         let fallback_state = automaton[initial_state].fallback_state();
         let transitions = automaton[initial_state].transitions();
@@ -104,18 +105,16 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
 
     /// Run a preconfigured [`HeadSkip`] using the given `engine` and reporting
     /// to the `result`.
-    pub(super) fn run_head_skipping<
-        'r,
-        E: CanHeadSkip<'b, I, BLOCK_SIZE>,
-        B: QueryResultBuilder<'b, I, R>,
-        R: QueryResult,
-    >(
+    pub(super) fn run_head_skipping<'r, E: CanHeadSkip<'b, 'r, I, R, BLOCK_SIZE>, R: Recorder>(
         &self,
         engine: &mut E,
-        result: &'r mut B,
-    ) -> Result<(), EngineError> {
+    ) -> Result<(), EngineError>
+    where
+        R: 'r,
+        'r: 'b,
+    {
         let mut classifier_state = ResumeClassifierState {
-            iter: classify_quoted_sequences(self.bytes),
+            iter: classify_quoted_sequences(self.bytes, engine.recorder()),
             block: None,
             are_commas_on: false,
             are_colons_on: false,
@@ -139,7 +138,8 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
                     classifier_state.offset_bytes(distance as isize)?;
 
                     if self.is_accepting {
-                        result.report(colon_idx + 1, NodeTypeHint::Any)?;
+                        // FIXME
+                        engine.recorder().record_match(colon_idx + 1);
                     }
 
                     // Check if the colon is marked as within quotes.
@@ -165,7 +165,7 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
                                 .seek_non_whitespace_forward(colon_idx + 1)?
                                 .map_or(false, |(x, _)| x == opening_idx) =>
                         {
-                            engine.run_on_subtree(opening, self.state, classifier, result)?
+                            engine.run_on_subtree(opening, self.state, classifier)?
                         }
                         _ => classifier.stop(),
                     };
