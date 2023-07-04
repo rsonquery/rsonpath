@@ -40,13 +40,7 @@ pretty_assertions = "1.3.0"
 proptest = "1.2.0"
 test-case = "3.1.0"
 
-[build-dependencies]
-eyre = "0.6.8"
-md5 = "0.7.0"
-rsonpath-test-codegen = { version = "0.5.1", optional = true }
-
 [features]
 default = ["simd", "unique-members"]
 simd = []
 unique-members = []
-gen-tests = ["dep:rsonpath-test-codegen"]

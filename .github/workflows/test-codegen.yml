@@ -13,6 +13,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
+  RSONPATH_ENABLE_TEST_CODEGEN: 1
 
 jobs:
   # Run the test codegen build step once and save the artifact to be used for all other steps.
@@ -47,7 +48,7 @@ jobs:
           key: x86_64-unknown-linux-gnu-x86_64-unknown-linux-gnu--cargo-${{ hashFiles('**/Cargo.toml') }}
       - name: Build with test codegen
         id: build-test-codegen
-        run: cargo build -p rsonpath-lib -F gen-tests -vv
+        run: cargo build -p rsonpath-test -vv
       - name: Upload generated tests as artifact
         uses: actions/upload-artifact@v3
         with:

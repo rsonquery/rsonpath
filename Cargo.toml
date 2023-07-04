@@ -3,6 +3,7 @@
 members = [
     "crates/rsonpath",
     "crates/rsonpath-lib",
+    "crates/rsonpath-test",
     "crates/rsonpath-test-codegen"
 ]
 
@@ -21,4 +22,3 @@ debug = 1
 
 [patch.crates-io]
 rsonpath-lib = { path = "./crates/rsonpath-lib" }
-rsonpath-test-codegen = { path = "./crates/rsonpath-test-codegen" }

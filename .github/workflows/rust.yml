@@ -120,12 +120,12 @@ jobs:
           CARGO_TARGET_DIR: target/
       - name: Build all feature sets with target-feature=${{ matrix.target-features }}
         if: matrix.target-features != ''
-        run: cargo hack build --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --exclude-features gen-tests --target ${{ matrix.triple }}
+        run: cargo hack build --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --target ${{ matrix.triple }}
         env:
           RUSTFLAGS: "-C target-feature=${{ matrix.target-features }} --deny warnings"
       - name: Build without simd
         if: matrix.target-features == ''
-        run: cargo hack build --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --exclude-features simd --exclude-features gen-tests --target ${{ matrix.triple }}
+        run: cargo hack build --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --exclude-features simd --target ${{ matrix.triple }}
         env:
           RUSTFLAGS: "--deny warnings"
       - name: Download rsonpath-test artifact
@@ -135,12 +135,12 @@ jobs:
           path: ${{ needs.test-gen.outputs.artifact-path }}
       - name: Test all feature sets with target-feature=${{ matrix.target-features }}
         if: matrix.can-run && matrix.target-features != ''
-        run: cargo hack test --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --exclude-features gen-tests --target ${{ matrix.triple }}
+        run: cargo hack test --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --target ${{ matrix.triple }}
         env:
           RUSTFLAGS: "-C target-feature=${{ matrix.target-features }} --deny warnings"
       - name: Test without simd
         if: matrix.can-run && matrix.target-features == ''
-        run: cargo hack test --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --exclude-features simd --exclude-features gen-tests --target ${{ matrix.triple }}
+        run: cargo hack test --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --exclude-features simd --target ${{ matrix.triple }}
         env:
           RUSTFLAGS: "--deny warnings"
 
