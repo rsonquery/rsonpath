@@ -773,7 +773,7 @@ dependencies = [
  "pretty_assertions",
  "proptest",
  "replace_with",
- "rsonpath-test-codegen 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rsonpath-test-codegen",
  "smallvec",
  "static_assertions",
  "test-case",
@@ -787,20 +787,6 @@ version = "0.5.1"
 dependencies = [
  "heck",
  "pretty_assertions",
- "proc-macro2",
- "quote",
- "serde",
- "toml",
- "walkdir",
-]
-
-[[package]]
-name = "rsonpath-test-codegen"
-version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "148e71a98060bca7a5cf832fc148ed68a402f7730c0cbaac1dbd20787a6151e4"
-dependencies = [
- "heck",
  "proc-macro2",
  "quote",
  "serde",

@@ -1,12 +1,12 @@
 use crate::input::{self, FileOrStdin, ResolvedInputKind};
 use crate::{
-    args::{EngineArg, InputArg, ResultArg},
+    args::{InputArg, ResultArg},
     error::report_engine_error,
 };
 use eyre::{Result, WrapErr};
 use log::warn;
 use rsonpath_lib::{
-    engine::{error::EngineError, main::MainEngine, recursive::RecursiveEngine, Compiler, Engine},
+    engine::{error::EngineError, main::MainEngine, Compiler, Engine},
     input::{BufferedInput, Input, MmapInput, OwnedBytes},
     query::automaton::Automaton,
     result::{CountResult, IndexResult},
@@ -27,12 +27,6 @@ pub struct Runner<'q> {
 impl<'q> Runner<'q> {
     pub fn run(self) -> Result<()> {
         match self.with_engine {
-            ResolvedEngine::Recursive => {
-                let engine = RecursiveEngine::from_compiled_query(self.with_compiled_query);
-                self.with_input
-                    .run_engine(engine, self.with_output)
-                    .wrap_err("Error running the recursive engine.")
-            }
             ResolvedEngine::Main => {
                 let engine = MainEngine::from_compiled_query(self.with_compiled_query);
                 self.with_input
@@ -65,15 +59,11 @@ pub fn resolve_output(result_arg: ResultArg) -> ResolvedOutput {
     }
 }
 
-pub fn resolve_engine(engine_arg: EngineArg) -> ResolvedEngine {
-    match engine_arg {
-        EngineArg::Main => ResolvedEngine::Main,
-        EngineArg::Recursive => ResolvedEngine::Recursive,
-    }
+pub fn resolve_engine() -> ResolvedEngine {
+    ResolvedEngine::Main
 }
 
 pub enum ResolvedEngine {
-    Recursive,
     Main,
 }
 

@@ -14,14 +14,10 @@ pub struct Args {
     /// Include verbose debug information.
     #[clap(short, long)]
     pub verbose: bool,
-    /// Engine to use for evaluating the query.
-    #[clap(short, long, value_enum, default_value_t = EngineArg::Main)]
-    pub engine: EngineArg,
     /// Only compile the query and output the automaton, do not run the engine.
     ///
-    /// Cannot be used with --engine or FILE_PATH.
+    /// Cannot be used with FILE_PATH.
     #[clap(short, long)]
-    #[arg(conflicts_with = "engine")]
     #[arg(conflicts_with = "file_path")]
     pub compile: bool,
     /// Result reporting mode.
@@ -35,14 +31,6 @@ pub struct Args {
     /// are not available and there is no need for the app to try to create one.
     #[clap(long)]
     pub force_input: Option<InputArg>,
-}
-
-#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
-pub enum EngineArg {
-    /// Main SIMD-optimized iterative engine.
-    Main,
-    /// Alternative recursive engine.
-    Recursive,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
