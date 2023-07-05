@@ -1,5 +1,8 @@
 use super::*;
-use std::{fmt::{self, Display}, cell::RefCell};
+use std::{
+    cell::RefCell,
+    fmt::{self, Display},
+};
 
 /// Query result containing all indices of colons that constitute a match.
 #[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -49,7 +52,7 @@ impl Recorder for IndexRecorder {
     #[inline]
     fn new() -> Self {
         Self {
-            indices: RefCell::new(vec![])
+            indices: RefCell::new(vec![]),
         }
     }
 
@@ -66,7 +69,7 @@ impl Recorder for IndexRecorder {
     #[inline]
     fn finish(self) -> Self::Result {
         IndexResult {
-            indices: self.indices.into_inner()
+            indices: self.indices.into_inner(),
         }
     }
 }

@@ -10,8 +10,8 @@ mod tail_skipping;
 pub use main::MainEngine as RsonpathEngine;
 
 use self::error::EngineError;
-use crate::{input::Input, result::Recorder};
 use crate::query::{automaton::Automaton, error::CompilerError, JsonPathQuery};
+use crate::{input::Input, result::Recorder};
 
 /// An engine that can run its query on a given input.
 pub trait Engine {

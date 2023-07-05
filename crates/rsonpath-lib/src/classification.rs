@@ -57,9 +57,9 @@
 //! );
 //! ```
 pub mod depth;
+pub mod memmem;
 pub mod quotes;
 pub mod structural;
-pub mod memmem;
 
 use crate::{
     debug,

@@ -172,7 +172,7 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> impl IntoIterator<Item = T
 
                     utf8.sort();
                     expected.sort();
-                    
+
                     assert_eq!(utf8, expected, "result != expected");
                 }
             }

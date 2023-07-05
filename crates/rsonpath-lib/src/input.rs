@@ -54,7 +54,8 @@ pub trait Input: Sized {
     /// by the lifetime of source input and the size of the block.
     type BlockIterator<'a, 'r, const N: usize, R: InputRecorder>: InputBlockIterator<'a, N, Block = Self::Block<'a, N>>
     where
-        Self: 'a, R: 'r;
+        Self: 'a,
+        R: 'r;
 
     /// Type of the blocks returned by the `BlockIterator`.
     type Block<'a, const N: usize>: InputBlock<'a, N>

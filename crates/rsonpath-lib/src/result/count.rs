@@ -59,6 +59,8 @@ impl Recorder for CountRecorder {
 
     #[inline]
     fn finish(self) -> Self::Result {
-        CountResult { count: self.count.into_inner() }
+        CountResult {
+            count: self.count.into_inner(),
+        }
     }
 }

@@ -12,11 +12,11 @@ cfg_if::cfg_if! {
 
 use super::*;
 use crate::debug;
-use crate::input::{Input, InputBlock, InputBlockIterator};
-use crate::FallibleIterator;
 use crate::input::error::InputError;
+use crate::input::{Input, InputBlock, InputBlockIterator};
+use crate::query::JsonString;
+use crate::FallibleIterator;
 use crate::{bin, result::InputRecorder};
-use crate::query::{JsonString};
 
 #[cfg(target_arch = "x86")]
 use core::arch::x86::*;
@@ -44,10 +44,9 @@ where
         }
     }
 
-    fn find_letter(&mut self, c: u8) -> Result<Option<usize>, InputError>{
+    fn find_letter(&mut self, c: u8) -> Result<Option<usize>, InputError> {
         // This should be memchr
         todo!()
-
     }
     // Output the relative offsets
     #[target_feature(enable = "avx2")]
@@ -60,23 +59,25 @@ where
         }
         let first = _mm256_set1_epi8(label.bytes()[0] as i8);
         let second = _mm256_set1_epi8(label.bytes()[1] as i8);
-        let mut previous_block : u32 = 0;
-        while let Some(block) = self.iter.next()?{
+        let mut previous_block: u32 = 0;
+        while let Some(block) = self.iter.next()? {
             let byte_vector = _mm256_loadu_si256(block.as_ptr().cast::<__m256i>());
-            let first_bitmask = _mm256_movemask_epi8( _mm256_cmpeq_epi8(byte_vector, first)) as u32;
-            let second_bitmask = _mm256_movemask_epi8( _mm256_cmpeq_epi8(byte_vector, second)) as u32;
-            let mut result = ((previous_block | (first_bitmask<<1)) & second_bitmask);
-            while result != 0{
+            let first_bitmask = _mm256_movemask_epi8(_mm256_cmpeq_epi8(byte_vector, first)) as u32;
+            let second_bitmask = _mm256_movemask_epi8(_mm256_cmpeq_epi8(byte_vector, second)) as u32;
+            let mut result = ((previous_block | (first_bitmask << 1)) & second_bitmask);
+            while result != 0 {
                 let idx = result.trailing_zeros() as usize;
-                if self.input.is_member_match(offset+idx-1, offset+idx-1+label_size, label){
-                    return Ok(Some(offset + idx-1));
+                if self
+                    .input
+                    .is_member_match(offset + idx - 1, offset + idx - 1 + label_size, label)
+                {
+                    return Ok(Some(offset + idx - 1));
                 }
                 result &= (!(1 << idx));
             }
             offset += SIZE;
-            previous_block = first_bitmask << (SIZE-1);
-        }   
+            previous_block = first_bitmask << (SIZE - 1);
+        }
         return Ok(None);
-
     }
 }
