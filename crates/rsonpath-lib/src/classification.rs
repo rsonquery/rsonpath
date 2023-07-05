@@ -59,6 +59,7 @@
 pub mod depth;
 pub mod quotes;
 pub mod structural;
+pub mod memmem;
 
 use crate::{
     debug,
