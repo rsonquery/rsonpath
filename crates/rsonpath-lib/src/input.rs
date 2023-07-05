@@ -24,7 +24,7 @@ pub mod mmap;
 pub use mmap::MmapInput;
 
 use self::error::InputError;
-use crate::{query::JsonString, recorder::InputRecorder, FallibleIterator};
+use crate::{query::JsonString, result::InputRecorder, FallibleIterator};
 use std::ops::Deref;
 
 /// Make the struct repr(C) with alignment equal to [`MAX_BLOCK_SIZE`].

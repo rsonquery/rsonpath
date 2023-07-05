@@ -140,7 +140,7 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> impl IntoIterator<Item = T
             ResultTypeToTest::Count => {
                 let count = query.results.count;
                 quote! {
-                    let result = #engine_ident.run::<_, CountResult>(&#input_ident)?;
+                    let result = #engine_ident.run::<_, CountRecorder>(&#input_ident)?;
 
                     assert_eq!(result.get(), #count, "result != expected");
                 }
@@ -152,9 +152,28 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> impl IntoIterator<Item = T
                     .as_ref()
                     .expect("result without data in toml should be filtered out in get_available_results");
                 quote! {
-                    let result = #engine_ident.run::<_, IndexResult>(&#input_ident)?;
+                    let result = #engine_ident.run::<_, IndexRecorder>(&#input_ident)?;
 
                     assert_eq!(result.get(), vec![#(#bytes,)*], "result != expected");
+                }
+            }
+            // FIXME: order matters
+            ResultTypeToTest::Nodes => {
+                let node_strings = query
+                    .results
+                    .nodes
+                    .as_ref()
+                    .expect("result without data in toml should be filtered out in get_available_results");
+                quote! {
+                    let result = #engine_ident.run::<_, NodesRecorder>(&#input_ident)?;
+                    let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
+                    let mut utf8 = utf8.expect("valid utf8");
+                    let mut expected: Vec<&str> = vec![#(#node_strings,)*];
+
+                    utf8.sort();
+                    expected.sort();
+                    
+                    assert_eq!(utf8, expected, "result != expected");
                 }
             }
         }
@@ -168,6 +187,10 @@ fn get_available_results(query: &model::Query) -> Vec<ResultTypeToTest> {
         res.push(ResultTypeToTest::Bytes)
     }
 
+    if query.results.nodes.is_some() {
+        res.push(ResultTypeToTest::Nodes)
+    }
+
     res
 }
 
@@ -176,7 +199,7 @@ pub(crate) fn generate_imports() -> TokenStream {
         use rsonpath::engine::{Compiler, Engine, main::MainEngine};
         use rsonpath::input::*;
         use rsonpath::query::JsonPathQuery;
-        use rsonpath::result::*;
+        use rsonpath::result::{count::CountRecorder, index::IndexRecorder, nodes::NodesRecorder};
         use pretty_assertions::assert_eq;
         use std::error::Error;
         use std::fs;
@@ -192,8 +215,9 @@ enum InputTypeToTest {
 
 #[derive(Clone, Copy)]
 enum ResultTypeToTest {
-    Count,
     Bytes,
+    Count,
+    Nodes,
 }
 
 #[derive(Clone, Copy)]
@@ -223,6 +247,7 @@ impl Display for ResultTypeToTest {
             match self {
                 Self::Count => "CountResult",
                 Self::Bytes => "IndexResult",
+                Self::Nodes => "NodesResult",
             }
         )
     }

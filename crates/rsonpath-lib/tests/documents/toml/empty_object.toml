@@ -14,7 +14,7 @@ description = "select the root (empty query)"
 [queries.results]
 count = 1
 bytes = [0]
-nodes = ["[]"]
+nodes = ["{}"]
 
 [[queries]]
 query = "$"

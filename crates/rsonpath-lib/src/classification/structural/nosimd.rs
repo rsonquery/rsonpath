@@ -1,10 +1,9 @@
 use super::*;
 use crate::classification::{quotes::QuoteClassifiedBlock, ResumeClassifierBlockState, ResumeClassifierState};
 use crate::debug;
-use crate::input::IBlock;
 
 struct Block<'a, I: Input + 'a, const N: usize> {
-    quote_classified: QuoteClassifiedBlock<IBlock<'a, I, N>, N>,
+    quote_classified: QuoteClassifiedBlock<I::Block<'a, N>, N>,
     idx: usize,
     are_colons_on: bool,
     are_commas_on: bool,
@@ -12,7 +11,7 @@ struct Block<'a, I: Input + 'a, const N: usize> {
 
 impl<'a, I: Input, const N: usize> Block<'a, I, N> {
     fn new(
-        quote_classified_block: QuoteClassifiedBlock<IBlock<'a, I, N>, N>,
+        quote_classified_block: QuoteClassifiedBlock<I::Block<'a, N>, N>,
         are_colons_on: bool,
         are_commas_on: bool,
     ) -> Self {
@@ -25,7 +24,7 @@ impl<'a, I: Input, const N: usize> Block<'a, I, N> {
     }
 
     fn from_idx(
-        quote_classified_block: QuoteClassifiedBlock<IBlock<'a, I, N>, N>,
+        quote_classified_block: QuoteClassifiedBlock<I::Block<'a, N>, N>,
         idx: usize,
         are_colons_on: bool,
         are_commas_on: bool,

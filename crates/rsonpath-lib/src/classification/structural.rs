@@ -16,6 +16,7 @@
 //! ```rust
 //! use rsonpath::classification::structural::{BracketType, Structural, classify_structural_characters};
 //! use rsonpath::input::OwnedBytes;
+//! use rsonpath::result::empty::EmptyRecorder;
 //! use rsonpath::FallibleIterator;
 //!
 //! let json = r#"{"x": [{"y": 42}, {}]}""#.to_owned();
@@ -30,7 +31,7 @@
 //!     Structural::Closing(BracketType::Square, 20),
 //!     Structural::Closing(BracketType::Curly, 21)
 //! ];
-//! let quote_classifier = rsonpath::classification::quotes::classify_quoted_sequences(&aligned);
+//! let quote_classifier = rsonpath::classification::quotes::classify_quoted_sequences(&aligned, &EmptyRecorder);
 //! let actual = classify_structural_characters(quote_classifier).collect::<Vec<Structural>>().unwrap();
 //! assert_eq!(expected, actual);
 //! ```
@@ -38,6 +39,7 @@
 //! use rsonpath::classification::structural::{BracketType, Structural, classify_structural_characters};
 //! use rsonpath::classification::quotes::classify_quoted_sequences;
 //! use rsonpath::input::OwnedBytes;
+//! use rsonpath::result::empty::EmptyRecorder;
 //! use rsonpath::FallibleIterator;
 //!
 //! let json = r#"{"x": "[\"\"]"}""#.to_owned();
@@ -46,7 +48,7 @@
 //!     Structural::Opening(BracketType::Curly, 0),
 //!     Structural::Closing(BracketType::Curly, 14)
 //! ];
-//! let quote_classifier = classify_quoted_sequences(&aligned);
+//! let quote_classifier = classify_quoted_sequences(&aligned, &EmptyRecorder);
 //! let actual = classify_structural_characters(quote_classifier).collect::<Vec<Structural>>().unwrap();
 //! assert_eq!(expected, actual);
 //! ```
@@ -228,7 +230,7 @@ pub fn resume_structural_classification<'a, I: Input, Q: QuoteClassifiedIterator
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{classification::quotes::classify_quoted_sequences, input::OwnedBytes, recorder::EmptyRecorder};
+    use crate::{classification::quotes::classify_quoted_sequences, input::OwnedBytes, result::empty::EmptyRecorder};
 
     #[test]
     fn resumption_without_commas_or_colons() {

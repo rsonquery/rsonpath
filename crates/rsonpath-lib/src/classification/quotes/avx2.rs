@@ -16,7 +16,7 @@ use super::*;
 use crate::debug;
 use crate::input::{Input, InputBlock, InputBlockIterator};
 use crate::FallibleIterator;
-use crate::{bin, recorder::InputRecorder};
+use crate::{bin, result::InputRecorder};
 
 #[cfg(target_arch = "x86")]
 use core::arch::x86::*;
@@ -362,7 +362,7 @@ impl BlockAvx2Classifier {
 #[cfg(test)]
 mod tests {
     use super::Avx2QuoteClassifier;
-    use crate::{input::OwnedBytes, recorder::EmptyRecorder, FallibleIterator};
+    use crate::{input::OwnedBytes, result::empty::EmptyRecorder, FallibleIterator};
     use test_case::test_case;
 
     #[test_case("" => None)]

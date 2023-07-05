@@ -1,7 +1,7 @@
 use pretty_assertions::assert_eq;
 use rsonpath::{
     input::{error::InputError, *},
-    FallibleIterator, recorder::EmptyRecorder,
+    FallibleIterator, result::empty::EmptyRecorder,
 };
 use std::{cmp, fs, iter};
 use std::{fs::File, io::Read};

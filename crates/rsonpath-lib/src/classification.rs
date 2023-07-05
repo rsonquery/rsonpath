@@ -21,11 +21,12 @@
 //!     BracketType, Structural, StructuralIterator,
 //! };
 //! use rsonpath::input::OwnedBytes;
+//! use rsonpath::result::empty::EmptyRecorder;
 //! use rsonpath::FallibleIterator;
 //!
 //! let json = r#"{"a":[42, {}, 44]}"#.to_owned();
 //! let input = OwnedBytes::try_from(json).unwrap();
-//! let quote_classifier = classify_quoted_sequences(&input);
+//! let quote_classifier = classify_quoted_sequences(&input, &EmptyRecorder);
 //! let mut structural_classifier = classify_structural_characters(quote_classifier);
 //! structural_classifier.turn_colons_on(0);
 //! structural_classifier.turn_commas_on(0);

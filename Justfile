@@ -118,7 +118,7 @@ test-full: (gen-tests)
 # Run doctests on the library.
 test-doc:
     -cargo install cargo-hack
-    cargo rsontest --doc
+    cargo rsontest -p rsonpath-lib --doc
 
 # === INSTALL ===
 

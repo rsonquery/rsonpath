@@ -3,7 +3,6 @@
 //! Defines the [`Engine`] trait that provides different ways of retrieving
 //! query results from input bytes, as well as [`Compiler`] which provides
 //! a standalone entry point for compiling a [`JsonPathQuery`] into an [`Engine`].
-mod depth;
 pub mod error;
 mod head_skipping;
 pub mod main;
@@ -11,7 +10,7 @@ mod tail_skipping;
 pub use main::MainEngine as RsonpathEngine;
 
 use self::error::EngineError;
-use crate::{input::Input, recorder::Recorder};
+use crate::{input::Input, result::Recorder};
 use crate::query::{automaton::Automaton, error::CompilerError, JsonPathQuery};
 
 /// An engine that can run its query on a given input.

@@ -73,7 +73,7 @@ count = 4
 bytes = [298, 404, 892, 1030]
 nodes = [
     '"iPhone"',
-    '"home',
+    '"home"',
     '"iPhone"',
-    '"home',
+    '"home"',
 ]

@@ -10,7 +10,7 @@
 //! since there is no additional overhead from loading anything to memory.
 
 use super::*;
-use crate::{query::JsonString, recorder::InputRecorder};
+use crate::{query::JsonString, result::InputRecorder};
 
 /// Input wrapping a borrowed [`[u8]`] buffer.
 pub struct BorrowedBytes<'a> {
@@ -19,8 +19,9 @@ pub struct BorrowedBytes<'a> {
 }
 
 /// Iterator over blocks of [`BorrowedBytes`] of size exactly `N`.
-pub struct BorrowedBytesBlockIterator<'a, 'r, const N: usize, R> {
+pub struct BorrowedBytesBlockIterator<'a, 'r, const N: usize, R: InputRecorder> {
     input: &'a [u8],
+    current_block: Option<&'a [u8]>,
     last_block: &'a LastBlock,
     idx: usize,
     recorder: &'r R,
@@ -79,6 +80,7 @@ impl<'a, 'r, const N: usize, R: InputRecorder> BorrowedBytesBlockIterator<'a, 'r
         Self {
             input: bytes,
             idx: 0,
+            current_block: None,
             last_block,
             recorder,
         }
@@ -98,6 +100,7 @@ impl<'a> Input for BorrowedBytes<'a> {
         Self::BlockIterator {
             input: self.bytes,
             idx: 0,
+            current_block: None,
             last_block: &self.last_block,
             recorder,
         }
@@ -140,16 +143,23 @@ impl<'a, 'r, const N: usize, R: InputRecorder> FallibleIterator for BorrowedByte
 
     #[inline]
     fn next(&mut self) -> Result<Option<Self::Item>, Self::Error> {
+        if let Some(block) = self.current_block.take() {
+            self.recorder.record_block_end(block);
+        }
+
         if self.idx >= self.input.len() {
             Ok(None)
         } else if self.idx >= self.last_block.absolute_start {
             let i = self.idx - self.last_block.absolute_start;
             self.idx += N;
+            let block = &self.last_block.bytes[i..i + N];
+            self.current_block = Some(block);
 
-            Ok(Some(&self.last_block.bytes[i..i + N]))
+            Ok(Some(block))
         } else {
             let block = &self.input[self.idx..self.idx + N];
             self.idx += N;
+            self.current_block = Some(block);
 
             Ok(Some(block))
         }
@@ -163,5 +173,14 @@ impl<'a, 'r, const N: usize, R: InputRecorder> InputBlockIterator<'a, N> for Bor
     fn offset(&mut self, count: isize) {
         assert!(count >= 0);
         self.idx += count as usize * N;
+    }
+}
+
+impl<'a, 'r, const N: usize, R: InputRecorder> Drop for BorrowedBytesBlockIterator<'a, 'r, N, R> {
+    #[inline]
+    fn drop(&mut self) {
+        if let Some(block) = self.current_block.take() {
+            self.recorder.record_block_end(block);
+        }
     }
 }

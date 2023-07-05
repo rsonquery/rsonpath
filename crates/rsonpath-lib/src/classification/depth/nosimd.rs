@@ -1,7 +1,6 @@
 use super::*;
 use crate::classification::{quotes::QuoteClassifiedBlock, ResumeClassifierBlockState};
 use crate::debug;
-use crate::input::IBlock;
 use std::marker::PhantomData;
 
 pub(crate) struct VectorIterator<'a, I: Input, Q, const N: usize> {
@@ -79,7 +78,7 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> DepthIt
 }
 
 pub(crate) struct Vector<'a, I: Input + 'a, const N: usize> {
-    quote_classified: QuoteClassifiedBlock<IBlock<'a, I, N>, N>,
+    quote_classified: QuoteClassifiedBlock<I::Block<'a, N>, N>,
     depth: isize,
     idx: usize,
     bracket_type: BracketType,
@@ -87,12 +86,12 @@ pub(crate) struct Vector<'a, I: Input + 'a, const N: usize> {
 
 impl<'a, I: Input, const N: usize> Vector<'a, I, N> {
     #[inline]
-    pub(crate) fn new(bytes: QuoteClassifiedBlock<IBlock<'a, I, N>, N>, opening: BracketType) -> Self {
+    pub(crate) fn new(bytes: QuoteClassifiedBlock<I::Block<'a, N>, N>, opening: BracketType) -> Self {
         Self::new_from(bytes, opening, 0)
     }
 
     #[inline]
-    fn new_from(bytes: QuoteClassifiedBlock<IBlock<'a, I, N>, N>, opening: BracketType, idx: usize) -> Self {
+    fn new_from(bytes: QuoteClassifiedBlock<I::Block<'a, N>, N>, opening: BracketType, idx: usize) -> Self {
         Self {
             quote_classified: bytes,
             depth: 0,

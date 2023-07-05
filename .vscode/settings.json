@@ -82,7 +82,7 @@
     "lldb.dereferencePointers": true,
     "lldb.consoleMode": "commands",
     "rust-analyzer.cargo.features": [
-        "simd",
+        // "simd",
         "unique-members"
     ],
     "rust-analyzer.cargo.noDefaultFeatures": true,

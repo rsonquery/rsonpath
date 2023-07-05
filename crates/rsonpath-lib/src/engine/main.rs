@@ -11,8 +11,8 @@ use crate::{
         ResumeClassifierState,
     },
     debug,
+    depth::Depth,
     engine::{
-        depth::Depth,
         error::EngineError,
         head_skipping::{CanHeadSkip, HeadSkip},
         tail_skipping::TailSkip,
@@ -23,7 +23,7 @@ use crate::{
         error::CompilerError,
         JsonPathQuery, JsonString, NonNegativeArrayIndex,
     },
-    recorder::Recorder,
+    result::{MatchedNodeType, Recorder},
     FallibleIterator, BLOCK_SIZE,
 };
 use smallvec::{smallvec, SmallVec};
@@ -74,8 +74,14 @@ fn empty_query<I: Input, R: Recorder>(bytes: &I) -> Result<R::Result, EngineErro
         let quote_classifier = classify_quoted_sequences(bytes, &recorder);
         let mut block_event_source = classify_structural_characters(quote_classifier);
 
-        if let Some(Structural::Opening(_, idx)) = block_event_source.next()? {
-            recorder.record_match(idx);
+        let last_event = block_event_source.next()?;
+        if let Some(Structural::Opening(_, idx)) = last_event {
+            recorder.record_structural(last_event.unwrap());
+            recorder.record_match(idx, MatchedNodeType::Complex);
+
+            while let Some(ev) = block_event_source.next()? {
+                recorder.record_structural(ev)
+            }
         }
     }
 
@@ -100,13 +106,6 @@ struct Executor<'b, 'q, 'r, I: Input, R: Recorder> {
     array_count: NonNegativeArrayIndex,
     has_any_array_item_transition: bool,
     has_any_array_item_transition_to_accepting: bool,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-enum NodeTypeHint {
-    Atomic,
-    AnyComplex,
-    Complex(BracketType),
 }
 
 fn query_executor<'b, 'q, 'r, I: Input, R: Recorder>(
@@ -169,6 +168,7 @@ where
                 debug!("====================");
 
                 self.next_event = None;
+                self.recorder.record_structural(event);
                 match event {
                     Structural::Colon(idx) => self.handle_colon(classifier, idx)?,
                     Structural::Comma(idx) => self.handle_comma(classifier, idx)?,
@@ -195,13 +195,13 @@ where
         let index = match hint {
             NodeTypeHint::Complex(BracketType::Curly) => self.input.seek_forward(start_idx, [b'{'])?,
             NodeTypeHint::Complex(BracketType::Square) => self.input.seek_forward(start_idx, [b'['])?,
-            NodeTypeHint::AnyComplex | NodeTypeHint::Atomic => self.input.seek_non_whitespace_forward(start_idx)?,
+            NodeTypeHint::Atomic => self.input.seek_non_whitespace_forward(start_idx)?,
         }
         .map(|x| x.0);
 
         match index {
             Some(idx) => {
-                self.recorder.record_match(idx);
+                self.recorder.record_match(idx, hint.into());
                 Ok(())
             }
             None => Err(EngineError::MissingItem()),
@@ -215,8 +215,11 @@ where
     {
         debug!("Colon");
 
-        self.next_event = classifier.next()?;
-        let is_next_opening = self.next_event.map_or(false, |s| s.is_opening());
+        let is_next_opening = if let Some((_, c)) = self.input.seek_non_whitespace_forward(idx + 1)? {
+            c == b'{' || c == b'['
+        } else {
+            false
+        };
 
         if !is_next_opening {
             let mut any_matched = false;
@@ -242,8 +245,12 @@ where
             }
             #[cfg(feature = "unique-members")]
             {
+                self.next_event = classifier.next()?;
                 let is_next_closing = self.next_event.map_or(false, |s| s.is_closing());
                 if any_matched && !is_next_closing && self.automaton.is_unitary(self.state) {
+                    if let Some(s) = self.next_event {
+                        self.recorder.record_structural(s);
+                    }
                     let bracket_type = self.current_node_bracket_type();
                     debug!("Skipping unique state from {bracket_type:?}");
                     let stop_at = classifier.skip(bracket_type)?;
@@ -255,14 +262,16 @@ where
         Ok(())
     }
 
-    fn handle_comma<Q, S>(&mut self, classifier: &mut Classifier!(), idx: usize) -> Result<(), EngineError>
+    fn handle_comma<Q, S>(&mut self, _classifier: &mut Classifier!(), idx: usize) -> Result<(), EngineError>
     where
         Q: QuoteClassifiedIterator<'b, I, BLOCK_SIZE>,
         S: StructuralIterator<'b, I, Q, BLOCK_SIZE>,
     {
-        self.next_event = classifier.next()?;
-
-        let is_next_opening = self.next_event.map_or(false, |s| s.is_opening());
+        let is_next_opening = if let Some((_, c)) = self.input.seek_non_whitespace_forward(idx + 1)? {
+            c == b'{' || c == b'['
+        } else {
+            false
+        };
 
         let is_fallback_accepting = self.automaton.is_accepting(self.automaton[self.state].fallback_state());
 
@@ -282,7 +291,7 @@ where
             .automaton
             .has_array_index_transition_to_accepting(self.state, &self.array_count);
 
-        if !is_next_opening && match_index {
+        if self.is_list && !is_next_opening && match_index {
             debug!("Accepting on list item.");
             self.record_match_detected_at(idx + 1, NodeTypeHint::Atomic /* since is_next_opening is false */)?;
         }
@@ -338,7 +347,9 @@ where
             debug!("Falling back to {fallback}");
 
             if self.automaton.is_rejecting(fallback) {
-                classifier.skip(bracket_type)?;
+                let closing_idx = classifier.skip(bracket_type)?;
+                self.recorder
+                    .record_structural(Structural::Closing(bracket_type, closing_idx));
                 return Ok(());
             } else {
                 self.transition_to(fallback, bracket_type);
@@ -369,22 +380,13 @@ where
                     is_fallback_accepting || self.automaton.has_first_array_index_transition_to_accepting(self.state);
 
                 if wants_first_item {
-                    self.next_event = classifier.next()?;
+                    let next = self.input.seek_non_whitespace_forward(idx + 1)?;
 
-                    match self.next_event {
-                        Some(Structural::Closing(_, close_idx)) => {
-                            if let Some((next_idx, _)) = self.input.seek_non_whitespace_forward(idx + 1)? {
-                                if next_idx < close_idx {
-                                    self.record_match_detected_at(
-                                        next_idx,
-                                        NodeTypeHint::Atomic, /* since the next structural is the closing of the list */
-                                    )?;
-                                }
-                            }
-                        }
-                        Some(Structural::Comma(_)) => {
+                    match next {
+                        Some((_, b'[' | b'{' | b']')) => (), // Complex value or empty list.
+                        Some((value_idx, _)) => {
                             self.record_match_detected_at(
-                                idx + 1,
+                                value_idx,
                                 NodeTypeHint::Atomic, /* since the next structural is a ','*/
                             )?;
                         }
@@ -401,6 +403,7 @@ where
 
         if !self.is_list && self.automaton.has_transition_to_accepting(self.state) {
             classifier.turn_colons_on(idx);
+            classifier.turn_commas_on(idx);
         } else {
             classifier.turn_colons_off();
         }
@@ -596,5 +599,21 @@ where
 
     fn recorder(&mut self) -> &'r R {
         self.recorder
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+enum NodeTypeHint {
+    Atomic,
+    Complex(BracketType),
+}
+
+impl From<NodeTypeHint> for MatchedNodeType {
+    #[inline(always)]
+    fn from(value: NodeTypeHint) -> Self {
+        match value {
+            NodeTypeHint::Atomic => Self::Atomic,
+            NodeTypeHint::Complex(_) => Self::Complex,
+        }
     }
 }

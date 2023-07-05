@@ -1,78 +1,39 @@
 //! Result types that can be returned by a JSONPath query engine.
-use std::fmt::{self, Display};
+use crate::classification::structural::Structural;
+use std::fmt::Display;
+
+pub mod count;
+pub mod empty;
+pub mod index;
+pub mod nodes;
+
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+pub enum MatchedNodeType {
+    Atomic,
+    Complex,
+}
 
 /// Result that can be returned from a query run.
 pub trait QueryResult: Default + Display + PartialEq {}
 
-/// Result informing on the number of values matching the executed query.
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct CountResult {
-    count: u64,
+pub trait InputRecorder {
+    fn record_block_end(&self, new_block: &[u8]);
 }
 
-impl CountResult {
-    /// Number of values matched by the executed query.
+pub trait Recorder: InputRecorder {
+    type Result: QueryResult;
+
+    /// Start a new recorder.
     #[must_use]
-    #[inline(always)]
-    pub fn get(&self) -> u64 {
-        self.count
-    }
-}
+    fn new() -> Self;
 
-impl Display for CountResult {
-    #[inline]
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.count)
-    }
-}
+    /// Record a match of the query. The `idx` is guaranteed to be the first character of the matched value.
+    fn record_match(&self, idx: usize, ty: MatchedNodeType);
 
-impl QueryResult for CountResult {}
+    /// Record an occurrence of a structural character.
+    fn record_structural(&self, s: Structural);
 
-/// Query result containing all indices of colons that constitute a match.
-#[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct IndexResult {
-    indices: Vec<usize>,
-}
-
-impl IndexResult {
-    /// Get indices of colons constituting matches of the query.
+    /// Finish building the result and return it.
     #[must_use]
-    #[inline(always)]
-    pub fn get(&self) -> &[usize] {
-        &self.indices
-    }
+    fn finish(self) -> Self::Result;
 }
-
-impl From<IndexResult> for Vec<usize> {
-    #[inline(always)]
-    fn from(result: IndexResult) -> Self {
-        result.indices
-    }
-}
-
-impl Display for IndexResult {
-    #[inline]
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self.indices)
-    }
-}
-
-impl QueryResult for IndexResult {}
-
-/// The [`QueryResultBuilder`] for [`IndexResult`].
-#[must_use]
-pub struct IndexResultBuilder<'i, I> {
-    input: &'i I,
-    indices: Vec<usize>,
-}
-
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct EmptyResult;
-
-impl Display for EmptyResult {
-    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        Ok(())
-    }
-}
-
-impl QueryResult for EmptyResult {}

@@ -14,7 +14,7 @@ use crate::{
         automaton::{Automaton, State},
         JsonString,
     },
-    recorder::Recorder,
+    result::Recorder,
     FallibleIterator, BLOCK_SIZE,
 };
 
@@ -139,7 +139,7 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
 
                     if self.is_accepting {
                         // FIXME
-                        engine.recorder().record_match(colon_idx + 1);
+                        engine.recorder().record_match(colon_idx + 1, crate::result::MatchedNodeType::Atomic);
                     }
 
                     // Check if the colon is marked as within quotes.

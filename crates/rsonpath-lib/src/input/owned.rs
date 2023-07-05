@@ -229,7 +229,7 @@ impl Input for OwnedBytes {
         &'a self,
         recorder: &'r R,
     ) -> Self::BlockIterator<'a, 'r, N, R> {
-        BorrowedBytesBlockIterator::new(&self.as_slice(), &self.last_block, recorder)
+        BorrowedBytesBlockIterator::new(self.as_slice(), &self.last_block, recorder)
     }
 
     #[inline]

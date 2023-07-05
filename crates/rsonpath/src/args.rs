@@ -21,7 +21,7 @@ pub struct Args {
     #[arg(conflicts_with = "file_path")]
     pub compile: bool,
     /// Result reporting mode.
-    #[clap(short, long, value_enum, default_value_t = ResultArg::Bytes)]
+    #[clap(short, long, value_enum, default_value_t = ResultArg::Nodes)]
     pub result: ResultArg,
     /// Bypass automatic resolution of the input strategy and force a specific one.
     ///
@@ -39,6 +39,8 @@ pub enum ResultArg {
     Bytes,
     /// Return only the number of matches.
     Count,
+    /// Returns the full text of the matched nodes.
+    Nodes,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]

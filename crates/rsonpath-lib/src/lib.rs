@@ -8,7 +8,7 @@
 //! use rsonpath::engine::{Compiler, Engine, RsonpathEngine};
 //! use rsonpath::input::OwnedBytes;
 //! use rsonpath::query::JsonPathQuery;
-//! use rsonpath::result::CountResult;
+//! use rsonpath::result::count::CountRecorder;
 //! # use std::error::Error;
 //!
 //! # fn main() -> Result<(), Box<dyn Error>> {
@@ -40,7 +40,7 @@
 //! // Compile the query. The engine can be reused to run the same query on different contents.
 //! let engine = RsonpathEngine::compile_query(&query)?;
 //! // Count the number of occurrences of elements satisfying the query.
-//! let count = engine.run::<_, CountResult>(&input)?.get();
+//! let count = engine.run::<_, CountRecorder>(&input)?.get();
 //!
 //! assert_eq!(2, count);
 //! # Ok(())
@@ -199,11 +199,11 @@
 /*#![cfg_attr(not(feature = "simd"), forbid(unsafe_code))]*/
 
 pub mod classification;
+mod depth;
 pub mod engine;
 pub mod error;
 pub mod input;
 pub mod query;
-pub mod recorder;
 pub mod result;
 
 cfg_if::cfg_if! {

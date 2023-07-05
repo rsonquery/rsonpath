@@ -17,6 +17,7 @@
 //! ```
 //! use rsonpath::classification::quotes::{classify_quoted_sequences, QuoteClassifiedIterator};
 //! use rsonpath::input::OwnedBytes;
+//! use rsonpath::result::empty::EmptyRecorder;
 //! use rsonpath::FallibleIterator;
 //!
 //! let json = r#"{"x": "string", "y": {"z": "\"escaped\""}}"#.to_owned();
@@ -24,14 +25,14 @@
 //! // The mask below appears reversed due to endianness.
 //! let expd = 0b000111111111111000110000110001111111000110;
 //! let input = OwnedBytes::try_from(json).unwrap();
-//! let mut quote_classifier = classify_quoted_sequences(&input);
+//! let mut quote_classifier = classify_quoted_sequences(&input, &EmptyRecorder);
 //!
 //! let block = quote_classifier.next().unwrap().unwrap();
 //! assert_eq!(expd, block.within_quotes_mask);
 //! ```
 
 use crate::input::{Input, InputBlock};
-use crate::{input::error::InputError, recorder::InputRecorder};
+use crate::{input::error::InputError, result::InputRecorder};
 use crate::{FallibleIterator, BLOCK_SIZE};
 use cfg_if::cfg_if;
 
@@ -92,7 +93,7 @@ where
 cfg_if! {
     if #[cfg(any(doc, not(feature = "simd")))] {
         mod nosimd;
-        type ClassifierImpl<'a, I, const N: usize> = nosimd::SequentialQuoteClassifier<'a, I, N>;
+        type ClassifierImpl<'a, 'r, I, R, const N: usize> = nosimd::SequentialQuoteClassifier<'a, 'r, I, R, N>;
     }
     else if #[cfg(simd = "avx2")] {
         mod avx2;

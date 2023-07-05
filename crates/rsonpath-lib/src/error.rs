@@ -16,6 +16,19 @@ pub struct InternalRsonpathError {
     source: Option<InternalErrorSource>,
 }
 
+/// Errors in internal depth tracking of execution engines.
+#[derive(Error, Debug)]
+pub enum DepthError {
+    /// The engine's maximum depth limit was exceeded.
+    /// The inner [`usize`] indicates that limit.
+    #[error("Maximum depth of {0} exceeded.")]
+    AboveLimit(usize),
+    /// The document has unmatched closing characters
+    /// and is malformed.
+    #[error("Depth fell below zero.")]
+    BelowZero,
+}
+
 struct InternalErrorSource(Box<dyn std::error::Error + Send + Sync>);
 
 impl fmt::Debug for InternalErrorSource {

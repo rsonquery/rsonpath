@@ -17,13 +17,14 @@
 //! };
 //! use rsonpath::classification::structural::BracketType;
 //! use rsonpath::input::OwnedBytes;
+//! use rsonpath::result::empty::EmptyRecorder;
 //! use rsonpath::FallibleIterator;
 //!
 //! let json = r#"[42, {"b":[[]],"c":{}}, 44]}"#.to_owned();
 //! //                        ^^            ^
 //! //                        AB            C
 //! let input = OwnedBytes::try_from(json).unwrap();
-//! let quote_classifier = classify_quoted_sequences(&input);
+//! let quote_classifier = classify_quoted_sequences(&input, &EmptyRecorder);
 //! // Goal: skip through the document until the end of the current list.
 //! // We pass Square as the opening bracket type
 //! // to tell the classifier to consider only '[' and ']' characters.
@@ -46,6 +47,7 @@
 //! use rsonpath::classification::quotes::classify_quoted_sequences;
 //! use rsonpath::classification::structural::BracketType;
 //! use rsonpath::input::OwnedBytes;
+//! use rsonpath::result::empty::EmptyRecorder;
 //! use rsonpath::FallibleIterator;
 //!
 //! let json = r#"
@@ -64,7 +66,7 @@
 //! // We expect to reach the newline before the opening brace of the second object.
 //! let expected_idx = json.len() - 15;
 //! let input = OwnedBytes::try_from(json).unwrap();
-//! let quote_classifier = classify_quoted_sequences(&input);
+//! let quote_classifier = classify_quoted_sequences(&input, &EmptyRecorder);
 //! let mut depth_classifier = classify_depth(quote_classifier, BracketType::Curly);
 //! let mut current_depth = 1;
 //!

@@ -3,7 +3,7 @@ use rsonpath::classification::structural::{
     classify_structural_characters, BracketType, Structural, StructuralIterator,
 };
 use rsonpath::input::OwnedBytes;
-use rsonpath::recorder::EmptyRecorder;
+use rsonpath::result::empty::EmptyRecorder;
 use rsonpath::FallibleIterator;
 
 fn classify_string(json: &str) -> Vec<Structural> {

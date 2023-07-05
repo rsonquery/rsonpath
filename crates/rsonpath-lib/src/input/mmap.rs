@@ -16,7 +16,7 @@
 //! file into main memory.
 
 use super::{borrowed::BorrowedBytesBlockIterator, error::InputError, in_slice, Input, LastBlock};
-use crate::{query::JsonString, recorder::InputRecorder};
+use crate::{query::JsonString, result::InputRecorder};
 use memmap2::{Mmap, MmapAsRawDesc};
 
 /// Input wrapping a memory mapped file.
