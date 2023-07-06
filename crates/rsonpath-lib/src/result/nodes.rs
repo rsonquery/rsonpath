@@ -197,18 +197,9 @@ impl InternalRecorder {
     }
 
     fn record_match(&mut self, idx: usize, ty: MatchedNodeType) {
-        // In case of atomic types, any structural event that happens
-        // at or above current depth marks the end. For complex types,
-        // we first get the opening structural event, so the end is marked
-        // by a depth decrease of 1.
-        let start_depth = match ty {
-            MatchedNodeType::Atomic => (self.depth + 1).unwrap(),
-            MatchedNodeType::Complex => self.depth,
-        };
-
         let node = PartialNode {
             start_idx: idx,
-            start_depth,
+            start_depth: self.depth,
             buf: vec![],
             ty,
         };
@@ -239,7 +230,7 @@ impl InternalRecorder {
 
     fn try_mark_ends(&mut self, idx: usize) {
         while let Some(node) = self.stack.last() {
-            if node.start_depth >= (self.depth + 1).unwrap() {
+            if node.start_depth >= self.depth {
                 debug!("Mark node {node:?} as ended at {}", idx + 1);
                 let node = self.stack.pop().unwrap();
                 let prepared_node = node.prepare(idx + 1);

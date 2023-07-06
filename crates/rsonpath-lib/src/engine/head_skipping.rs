@@ -80,8 +80,6 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
     ///
     /// In all other cases, head-skipping is not supported.
     pub(super) fn new(bytes: &'b I, automaton: &'b Automaton<'q>) -> Option<Self> {
-        std::env::var_os("RSONPATH_ENABLE_HEAD_SKIP")?; // HACK: temporarily disable head-skip
-
         let initial_state = automaton.initial_state();
         let fallback_state = automaton[initial_state].fallback_state();
         let transitions = automaton[initial_state].transitions();
@@ -138,20 +136,13 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
                             iter: quote_classifier,
                             block: quote_classified_first_block.map(|b| ResumeClassifierBlockState { block: b, idx }),
                             are_colons_on: false,
-                            are_commas_on: false,
+                            are_commas_on: self.is_accepting,
                         };
 
                         let distance = colon_idx - classifier_state.get_idx();
                         debug!("Actual match with colon at {colon_idx}");
                         debug!("Distance skipped: {distance}");
                         classifier_state.offset_bytes(distance as isize)?;
-
-                        if self.is_accepting {
-                            // FIXME
-                            engine
-                                .recorder()
-                                .record_match(colon_idx + 1, crate::result::MatchedNodeType::Atomic);
-                        }
 
                         // Check if the colon is marked as within quotes.
                         // If yes, that is an error of state propagation through skipped blocks.
@@ -176,7 +167,30 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
                                     .seek_non_whitespace_forward(colon_idx + 1)?
                                     .map_or(false, |(x, _)| x == opening_idx) =>
                             {
+                                if self.is_accepting {
+                                    engine.recorder().record_match(opening_idx, crate::result::MatchedNodeType::Complex);
+                                }
                                 engine.run_on_subtree(opening, self.state, classifier)?
+                            }
+                            Some(s) if self.is_accepting => {
+                                // The value we found must be atomic, since the next structural is not an Opening.
+                                // To ensure correct processing by the recorder, we report the match, and then
+                                // a terminating structural. We deliberately lie that it's a comma to not influence
+                                // the depth. This is a HACK, we should probably have a more clear way of
+                                // communicating this to the recorder.
+                                let value_start = self.bytes.seek_non_whitespace_forward(colon_idx + 1)?.map(|x| x.0);
+
+                                match value_start {
+                                    Some(idx) => {
+                                        engine
+                                            .recorder()
+                                            .record_match(idx, crate::result::MatchedNodeType::Atomic);
+                                        engine.recorder().record_structural(Structural::Comma(s.idx()));
+                                        Ok(())
+                                    }
+                                    None => Err(EngineError::MissingItem()),
+                                }?;
+                                classifier.stop()
                             }
                             _ => classifier.stop(),
                         };

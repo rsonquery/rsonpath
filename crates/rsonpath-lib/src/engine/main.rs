@@ -168,19 +168,20 @@ where
                 debug!("====================");
 
                 self.next_event = None;
-                self.recorder.record_structural(event);
                 match event {
                     Structural::Colon(idx) => self.handle_colon(classifier, idx)?,
                     Structural::Comma(idx) => self.handle_comma(classifier, idx)?,
                     Structural::Opening(b, idx) => self.handle_opening(classifier, b, idx)?,
                     Structural::Closing(_, idx) => {
                         self.handle_closing(classifier, idx)?;
-
+                        
                         if self.depth == Depth::ZERO {
+                            self.recorder.record_structural(event);
                             break;
                         }
                     }
                 }
+                self.recorder.record_structural(event);
             } else {
                 break;
             }
