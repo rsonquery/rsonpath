@@ -57,8 +57,6 @@ pub struct QuoteClassifiedBlock<B, const N: usize> {
 pub trait QuoteClassifiedIterator<'a, I: Input + 'a, const N: usize>:
     FallibleIterator<Item = QuoteClassifiedBlock<I::Block<'a, N>, N>, Error = InputError> + 'a
 {
-    type InnerIter: InputBlockIterator<'a, N>;
-
     /// Get the total offset in bytes from the beginning of input.
     fn get_offset(&self) -> usize;
 
@@ -71,8 +69,10 @@ pub trait QuoteClassifiedIterator<'a, I: Input + 'a, const N: usize>:
     /// This should be done only in very specific circumstances where the previous-block
     /// state could have been damaged due to stopping and resuming the classification at a later point.
     fn flip_quotes_bit(&mut self);
+}
 
-    fn inner_iter(&mut self) -> &mut Self::InnerIter;
+pub trait InnerIter<'a, 'r, I: Input + 'a, R: InputRecorder, const N: usize> {
+    fn into_inner(self) -> I::BlockIterator<'a, 'r, N, R>;
 }
 
 impl<'a, B, const N: usize> QuoteClassifiedBlock<B, N>
@@ -115,6 +115,16 @@ cfg_if! {
 pub fn classify_quoted_sequences<'a, I: Input, R: InputRecorder>(
     bytes: &'a I,
     recorder: &'a R,
-) -> impl QuoteClassifiedIterator<'a, I, BLOCK_SIZE> {
+) -> impl QuoteClassifiedIterator<'a, I, BLOCK_SIZE> + InnerIter<'a, 'a, I, R, BLOCK_SIZE> {
     ClassifierImpl::new(bytes, recorder)
+}
+
+pub(crate) fn resume_quote_classification<'a, I: Input, R: InputRecorder>(
+    iter: I::BlockIterator<'a, 'a, BLOCK_SIZE, R>,
+    first_block: Option<I::Block<'a, BLOCK_SIZE>>,
+) -> (
+    impl QuoteClassifiedIterator<'a, I, BLOCK_SIZE> + InnerIter<'a, 'a, I, R, BLOCK_SIZE>,
+    Option<QuoteClassifiedBlock<I::Block<'a, BLOCK_SIZE>, BLOCK_SIZE>>,
+) {
+    ClassifierImpl::resume(iter, first_block)
 }

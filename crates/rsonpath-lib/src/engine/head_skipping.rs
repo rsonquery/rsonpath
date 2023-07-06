@@ -3,9 +3,10 @@
 //! This happens in queries starting with a descendant selector.
 use crate::{
     classification::{
-        quotes::{classify_quoted_sequences, QuoteClassifiedIterator},
+        memmem::Memmem,
+        quotes::{classify_quoted_sequences, resume_quote_classification, InnerIter, QuoteClassifiedIterator},
         structural::{resume_structural_classification, Structural, StructuralIterator},
-        ResumeClassifierState,
+        ResumeClassifierBlockState, ResumeClassifierState,
     },
     debug,
     engine::EngineError,
@@ -113,69 +114,84 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
         R: 'r,
         'r: 'b,
     {
-        let mut classifier_state = ResumeClassifierState {
-            iter: classify_quoted_sequences(self.bytes, engine.recorder()),
-            block: None,
-            are_commas_on: false,
-            are_colons_on: false,
-        };
-
+        let mut input_iter = self.bytes.iter_blocks(engine.recorder());
         let mut idx = 0;
+        let mut first_block = None;
 
-        while let Some(starting_quote_idx) = self.bytes.find_member(idx, self.member_name)? {
-            idx = starting_quote_idx;
-            classifier_state.are_colons_on = false;
-            classifier_state.are_commas_on = false;
-            debug!("Needle found at {idx}");
+        loop {
+            let mut memmem = crate::classification::memmem::memmem(self.bytes, &mut input_iter, idx);
+            debug!("Starting memmem search from {idx}");
 
-            let seek_start_idx = idx + self.member_name.bytes_with_quotes().len();
+            if let Some((starting_quote_idx, last_block)) = memmem.find_label(first_block, idx, self.member_name)? {
+                drop(memmem);
 
-            match self.bytes.seek_non_whitespace_forward(seek_start_idx)? {
-                Some((colon_idx, char)) if char == b':' => {
-                    let distance = colon_idx - classifier_state.get_idx();
-                    debug!("Actual match with colon at {colon_idx}");
-                    debug!("Distance skipped: {distance}");
-                    classifier_state.offset_bytes(distance as isize)?;
+                first_block = Some(last_block);
+                idx = starting_quote_idx;
+                debug!("Needle found at {idx}");
+                let seek_start_idx = idx + self.member_name.bytes_with_quotes().len();
 
-                    if self.is_accepting {
-                        // FIXME
-                        engine
-                            .recorder()
-                            .record_match(colon_idx + 1, crate::result::MatchedNodeType::Atomic);
-                    }
+                match self.bytes.seek_non_whitespace_forward(seek_start_idx)? {
+                    Some((colon_idx, char)) if char == b':' => {
+                        let (quote_classifier, quote_classified_first_block) =
+                            resume_quote_classification(input_iter, first_block);
+                        let mut classifier_state = ResumeClassifierState {
+                            iter: quote_classifier,
+                            block: quote_classified_first_block.map(|b| ResumeClassifierBlockState { block: b, idx }),
+                            are_colons_on: false,
+                            are_commas_on: false,
+                        };
 
-                    // Check if the colon is marked as within quotes.
-                    // If yes, that is an error of state propagation through skipped blocks.
-                    // Flip the quote mask.
-                    if let Some(block) = classifier_state.block.as_mut() {
-                        if (block.block.within_quotes_mask & (1_u64 << block.idx)) != 0 {
-                            debug!("Mask needs flipping!");
-                            block.block.within_quotes_mask = !block.block.within_quotes_mask;
-                            classifier_state.iter.flip_quotes_bit();
+                        let distance = colon_idx - classifier_state.get_idx();
+                        debug!("Actual match with colon at {colon_idx}");
+                        debug!("Distance skipped: {distance}");
+                        classifier_state.offset_bytes(distance as isize)?;
+
+                        if self.is_accepting {
+                            // FIXME
+                            engine
+                                .recorder()
+                                .record_match(colon_idx + 1, crate::result::MatchedNodeType::Atomic);
                         }
-                    }
 
-                    classifier_state.offset_bytes(1)?;
-
-                    let mut classifier = resume_structural_classification(classifier_state);
-                    let next_event = classifier.next()?;
-
-                    classifier_state = match next_event {
-                        Some(opening @ Structural::Opening(_, opening_idx))
-                            if self
-                                .bytes
-                                .seek_non_whitespace_forward(colon_idx + 1)?
-                                .map_or(false, |(x, _)| x == opening_idx) =>
-                        {
-                            engine.run_on_subtree(opening, self.state, classifier)?
+                        // Check if the colon is marked as within quotes.
+                        // If yes, that is an error of state propagation through skipped blocks.
+                        // Flip the quote mask.
+                        if let Some(block) = classifier_state.block.as_mut() {
+                            if (block.block.within_quotes_mask & (1_u64 << block.idx)) != 0 {
+                                debug!("Mask needs flipping!");
+                                block.block.within_quotes_mask = !block.block.within_quotes_mask;
+                                classifier_state.iter.flip_quotes_bit();
+                            }
                         }
-                        _ => classifier.stop(),
-                    };
 
-                    debug!("Quote classified up to {}", classifier_state.get_idx());
-                    idx = classifier_state.get_idx();
+                        classifier_state.offset_bytes(1)?;
+
+                        let mut classifier = resume_structural_classification(classifier_state);
+                        let next_event = classifier.next()?;
+
+                        classifier_state = match next_event {
+                            Some(opening @ Structural::Opening(_, opening_idx))
+                                if self
+                                    .bytes
+                                    .seek_non_whitespace_forward(colon_idx + 1)?
+                                    .map_or(false, |(x, _)| x == opening_idx) =>
+                            {
+                                engine.run_on_subtree(opening, self.state, classifier)?
+                            }
+                            _ => classifier.stop(),
+                        };
+
+                        debug!("Quote classified up to {}", classifier_state.get_idx());
+                        idx = classifier_state.get_idx();
+
+                        first_block = classifier_state.block.map(|b| b.block.block);
+                        input_iter = classifier_state.iter.into_inner();
+                    }
+                    _ => idx += 1,
                 }
-                _ => idx += 1,
+            } else {
+                debug!("No memmem matches, exiting");
+                break;
             }
         }
 

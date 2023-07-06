@@ -22,13 +22,14 @@ use crate::{bin, result::InputRecorder};
 use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
+use std::marker::PhantomData;
 
 const SIZE: usize = 64;
 
 pub(crate) struct Avx2QuoteClassifier<'a, 'r: 'a, I: Input, R: InputRecorder + 'r> {
-    _input: &'a I,
     iter: I::BlockIterator<'a, 'r, SIZE, R>,
     classifier: BlockAvx2Classifier,
+    phantom: PhantomData<&'a I>,
 }
 
 impl<'a, 'r, I: Input, R: InputRecorder> Avx2QuoteClassifier<'a, 'r, I, R>
@@ -38,11 +39,33 @@ where
     #[inline]
     pub(crate) fn new(input: &'a I, recorder: &'a R) -> Self {
         Self {
-            _input: input,
             iter: input.iter_blocks::<_, SIZE>(recorder),
             // SAFETY: target_feature invariant
             classifier: unsafe { BlockAvx2Classifier::new() },
+            phantom: PhantomData
         }
+    }
+
+    #[inline]
+    pub(crate) fn resume(
+        iter: I::BlockIterator<'a, 'r, SIZE, R>,
+        first_block: Option<I::Block<'a, SIZE>>,
+    ) -> (Self, Option<QuoteClassifiedBlock<I::Block<'a, SIZE>, SIZE>>) {
+        let mut s = Self {
+            iter,
+            classifier: unsafe { BlockAvx2Classifier::new() },
+            phantom: PhantomData
+        };
+
+        let block = first_block.map(|b| {
+            let mask = unsafe { s.classifier.classify(&b) };
+            QuoteClassifiedBlock {
+                block: b,
+                within_quotes_mask: mask
+            }
+        });
+
+        (s, block)
     }
 }
 
@@ -70,8 +93,6 @@ impl<'a, 'r, I: Input + 'a, R: InputRecorder> FallibleIterator for Avx2QuoteClas
 impl<'a, 'r: 'a, I: Input + 'a, R: InputRecorder + 'r> QuoteClassifiedIterator<'a, I, 64>
     for Avx2QuoteClassifier<'a, 'r, I, R>
 {
-    type InnerIter = I::BlockIterator<'a, 'r, 64, R>;
-
     fn get_offset(&self) -> usize {
         self.iter.get_offset() - 64
     }
@@ -90,9 +111,13 @@ impl<'a, 'r: 'a, I: Input + 'a, R: InputRecorder + 'r> QuoteClassifiedIterator<'
     fn flip_quotes_bit(&mut self) {
         self.classifier.flip_prev_quote_mask();
     }
+}
 
-    fn inner_iter(&mut self) -> &mut Self::InnerIter {
-        &mut self.iter
+impl<'a, 'r: 'a, I: Input + 'a, R: InputRecorder + 'r> InnerIter<'a, 'r, I, R, 64>
+    for Avx2QuoteClassifier<'a, 'r, I, R>
+{
+    fn into_inner(self) -> I::BlockIterator<'a, 'r, 64, R> {
+        self.iter
     }
 }
 
