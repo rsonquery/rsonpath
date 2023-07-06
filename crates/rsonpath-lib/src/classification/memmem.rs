@@ -23,7 +23,7 @@ use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 
-const SIZE: usize = 32;
+const SIZE: usize = 64;
 
 pub(crate) struct Avx2MemmemClassifier<'a, 'r: 'a, I: Input, R: InputRecorder + 'r> {
     input: &'a I,
@@ -55,11 +55,18 @@ where
         }
         let first = _mm256_set1_epi8(label.bytes()[0] as i8);
         let second = _mm256_set1_epi8(label.bytes()[1] as i8);
-        let mut previous_block: u32 = 0;
+        let mut previous_block: u64 = 0;
         while let Some(block) = self.iter.next()? {
-            let byte_vector = _mm256_loadu_si256(block.as_ptr().cast::<__m256i>());
-            let first_bitmask = _mm256_movemask_epi8(_mm256_cmpeq_epi8(byte_vector, first)) as u32;
-            let second_bitmask = _mm256_movemask_epi8(_mm256_cmpeq_epi8(byte_vector, second)) as u32;
+            let (block1, block2) = block.halves();
+            let byte_vector1 = _mm256_loadu_si256(block1.as_ptr().cast::<__m256i>());
+            let byte_vector2 = _mm256_loadu_si256(block2.as_ptr().cast::<__m256i>());
+
+            let first_bitmask = _mm256_movemask_epi8(_mm256_cmpeq_epi8(byte_vector1, first)) as u64 | 
+                ((_mm256_movemask_epi8(_mm256_cmpeq_epi8(byte_vector2, first)) as u64)<<32);
+
+            let second_bitmask = _mm256_movemask_epi8(_mm256_cmpeq_epi8(byte_vector1, second)) as u64 | 
+                ((_mm256_movemask_epi8(_mm256_cmpeq_epi8(byte_vector2, second)) as u64)<<32);
+
             let mut result = (previous_block | (first_bitmask << 1)) & second_bitmask;
             while result != 0 {
                 let idx = result.trailing_zeros() as usize;
