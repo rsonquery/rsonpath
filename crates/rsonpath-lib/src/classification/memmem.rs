@@ -61,11 +61,11 @@ where
             let byte_vector1 = _mm256_loadu_si256(block1.as_ptr().cast::<__m256i>());
             let byte_vector2 = _mm256_loadu_si256(block2.as_ptr().cast::<__m256i>());
 
-            let first_bitmask = _mm256_movemask_epi8(_mm256_cmpeq_epi8(byte_vector1, first)) as u64 | 
-                ((_mm256_movemask_epi8(_mm256_cmpeq_epi8(byte_vector2, first)) as u64)<<32);
+            let first_bitmask = _mm256_movemask_epi8(_mm256_cmpeq_epi8(byte_vector1, first)) as u64
+                | ((_mm256_movemask_epi8(_mm256_cmpeq_epi8(byte_vector2, first)) as u64) << 32);
 
-            let second_bitmask = _mm256_movemask_epi8(_mm256_cmpeq_epi8(byte_vector1, second)) as u64 | 
-                ((_mm256_movemask_epi8(_mm256_cmpeq_epi8(byte_vector2, second)) as u64)<<32);
+            let second_bitmask = _mm256_movemask_epi8(_mm256_cmpeq_epi8(byte_vector1, second)) as u64
+                | ((_mm256_movemask_epi8(_mm256_cmpeq_epi8(byte_vector2, second)) as u64) << 32);
 
             let mut result = (previous_block | (first_bitmask << 1)) & second_bitmask;
             while result != 0 {
