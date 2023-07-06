@@ -32,7 +32,6 @@ cfg_if! {
 pub fn memmem<'a, 'b, I: Input, R: InputRecorder>(
     input: &'a I,
     iter: &'b mut I::BlockIterator<'a, 'a, BLOCK_SIZE, R>,
-    offset: usize,
 ) -> impl Memmem<'a, 'b, I, BLOCK_SIZE> {
-    MemmemImpl::new(input, iter, offset)
+    MemmemImpl::new(input, iter)
 }

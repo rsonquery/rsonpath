@@ -42,7 +42,7 @@ where
             iter: input.iter_blocks::<_, SIZE>(recorder),
             // SAFETY: target_feature invariant
             classifier: unsafe { BlockAvx2Classifier::new() },
-            phantom: PhantomData
+            phantom: PhantomData,
         }
     }
 
@@ -54,14 +54,14 @@ where
         let mut s = Self {
             iter,
             classifier: unsafe { BlockAvx2Classifier::new() },
-            phantom: PhantomData
+            phantom: PhantomData,
         };
 
         let block = first_block.map(|b| {
             let mask = unsafe { s.classifier.classify(&b) };
             QuoteClassifiedBlock {
                 block: b,
-                within_quotes_mask: mask
+                within_quotes_mask: mask,
             }
         });
 

@@ -119,7 +119,7 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
         let mut first_block = None;
 
         loop {
-            let mut memmem = crate::classification::memmem::memmem(self.bytes, &mut input_iter, idx);
+            let mut memmem = crate::classification::memmem::memmem(self.bytes, &mut input_iter);
             debug!("Starting memmem search from {idx}");
 
             if let Some((starting_quote_idx, last_block)) = memmem.find_label(first_block, idx, self.member_name)? {
