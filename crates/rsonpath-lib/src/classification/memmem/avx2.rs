@@ -16,7 +16,7 @@ use crate::input::{Input, InputBlock, InputBlockIterator};
 use crate::query::JsonString;
 use crate::result::InputRecorder;
 use crate::FallibleIterator;
-use crate::{debug, bin};
+use crate::{bin, debug};
 
 #[cfg(target_arch = "x86")]
 use core::arch::x86::*;
@@ -49,7 +49,7 @@ where
         let first = _mm256_set1_epi8(label.bytes()[0] as i8);
         let second = _mm256_set1_epi8(b'"' as i8);
         let mut previous_block: u64 = 0;
-        
+
         while let Some(block) = self.iter.next()? {
             let (block1, block2) = block.halves();
             let byte_vector1 = _mm256_loadu_si256(block1.as_ptr().cast::<__m256i>());
