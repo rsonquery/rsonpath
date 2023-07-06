@@ -174,6 +174,11 @@ impl<'a, 'r, const N: usize, R: InputRecorder> InputBlockIterator<'a, N> for Bor
         assert!(count >= 0);
         self.idx += count as usize * N;
     }
+
+    #[inline(always)]
+    fn get_offset(&self) -> usize {
+        self.idx
+    }
 }
 
 impl<'a, 'r, const N: usize, R: InputRecorder> Drop for BorrowedBytesBlockIterator<'a, 'r, N, R> {

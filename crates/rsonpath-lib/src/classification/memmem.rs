@@ -27,7 +27,7 @@ const SIZE: usize = 32;
 
 pub(crate) struct Avx2MemmemClassifier<'a, 'r: 'a, I: Input, R: InputRecorder + 'r> {
     input: &'a I,
-    iter: I::BlockIterator<'a, 'r, SIZE, R>,
+    iter: &'a mut I::BlockIterator<'a, 'r, SIZE, R>,
     offset: usize,
 }
 
@@ -36,12 +36,8 @@ where
     'a: 'r,
 {
     #[inline]
-    pub(crate) fn new(input: &'a I, recorder: &'a R, offset: usize) -> Self {
-        Self {
-            input,
-            iter: input.iter_blocks::<_, SIZE>(recorder),
-            offset,
-        }
+    pub(crate) fn new(input: &'a I, iter: &'a mut I::BlockIterator<'a, 'r, SIZE, R>, offset: usize) -> Self {
+        Self { input, iter, offset }
     }
 
     fn find_letter(&mut self, c: u8) -> Result<Option<usize>, InputError> {
@@ -64,7 +60,7 @@ where
             let byte_vector = _mm256_loadu_si256(block.as_ptr().cast::<__m256i>());
             let first_bitmask = _mm256_movemask_epi8(_mm256_cmpeq_epi8(byte_vector, first)) as u32;
             let second_bitmask = _mm256_movemask_epi8(_mm256_cmpeq_epi8(byte_vector, second)) as u32;
-            let mut result = ((previous_block | (first_bitmask << 1)) & second_bitmask);
+            let mut result = (previous_block | (first_bitmask << 1)) & second_bitmask;
             while result != 0 {
                 let idx = result.trailing_zeros() as usize;
                 if self
@@ -73,7 +69,7 @@ where
                 {
                     return Ok(Some(offset + idx - 1));
                 }
-                result &= (!(1 << idx));
+                result &= !(1 << idx);
             }
             offset += SIZE;
             previous_block = first_bitmask << (SIZE - 1);

@@ -28,7 +28,6 @@ const SIZE: usize = 64;
 pub(crate) struct Avx2QuoteClassifier<'a, 'r: 'a, I: Input, R: InputRecorder + 'r> {
     _input: &'a I,
     iter: I::BlockIterator<'a, 'r, SIZE, R>,
-    offset: Option<usize>,
     classifier: BlockAvx2Classifier,
 }
 
@@ -41,7 +40,6 @@ where
         Self {
             _input: input,
             iter: input.iter_blocks::<_, SIZE>(recorder),
-            offset: None,
             // SAFETY: target_feature invariant
             classifier: unsafe { BlockAvx2Classifier::new() },
         }
@@ -56,12 +54,6 @@ impl<'a, 'r, I: Input + 'a, R: InputRecorder> FallibleIterator for Avx2QuoteClas
     fn next(&mut self) -> Result<Option<Self::Item>, Self::Error> {
         match self.iter.next()? {
             Some(block) => {
-                if let Some(offset) = self.offset {
-                    self.offset = Some(offset + block.len());
-                } else {
-                    self.offset = Some(0);
-                }
-
                 // SAFETY: target_feature invariant
                 let mask = unsafe { self.classifier.classify(&block) };
                 let classified_block = QuoteClassifiedBlock {
@@ -78,8 +70,10 @@ impl<'a, 'r, I: Input + 'a, R: InputRecorder> FallibleIterator for Avx2QuoteClas
 impl<'a, 'r: 'a, I: Input + 'a, R: InputRecorder + 'r> QuoteClassifiedIterator<'a, I, 64>
     for Avx2QuoteClassifier<'a, 'r, I, R>
 {
+    type InnerIter = I::BlockIterator<'a, 'r, 64, R>;
+
     fn get_offset(&self) -> usize {
-        self.offset.unwrap_or(0)
+        self.iter.get_offset() - 64
     }
 
     fn offset(&mut self, count: isize) {
@@ -91,15 +85,14 @@ impl<'a, 'r: 'a, I: Input + 'a, R: InputRecorder + 'r> QuoteClassifiedIterator<'
         }
 
         self.iter.offset(count);
-
-        self.offset = Some(match self.offset {
-            None => (count as usize - 1) * BLOCK_SIZE,
-            Some(offset) => offset + (count as usize) * BLOCK_SIZE,
-        });
     }
 
     fn flip_quotes_bit(&mut self) {
         self.classifier.flip_prev_quote_mask();
+    }
+
+    fn inner_iter(&mut self) -> &mut Self::InnerIter {
+        &mut self.iter
     }
 }
 

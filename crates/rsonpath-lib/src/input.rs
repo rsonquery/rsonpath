@@ -134,6 +134,13 @@ pub trait InputBlockIterator<'a, const N: usize>: FallibleIterator<Item = Self::
     /// The type of blocks returned.
     type Block: InputBlock<'a, N>;
 
+    /// Get the offset of the iterator in the input.
+    ///
+    /// The offset is the starting point of the block that will be returned next
+    /// from this iterator, if any. It starts as 0 and increases by `N` on every
+    /// block retrieved.
+    fn get_offset(&self) -> usize;
+
     /// Offset the iterator by `count` full blocks forward.
     ///
     /// The `count` parameter must be greater than 0.

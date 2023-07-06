@@ -9,7 +9,7 @@ use crate::{
     },
     debug,
     engine::EngineError,
-    input::Input,
+    input::{Input, InputBlockIterator},
     query::{
         automaton::{Automaton, State},
         JsonString,

@@ -273,6 +273,11 @@ impl<'a, 'r, R: Read, IR: InputRecorder, const N: usize> InputBlockIterator<'a, 
         assert!(count >= 0);
         self.idx += count as usize * N;
     }
+
+    #[inline(always)]
+    fn get_offset(&self) -> usize {
+        self.idx
+    }
 }
 
 impl<const N: usize> Deref for BufferedInputBlock<N> {

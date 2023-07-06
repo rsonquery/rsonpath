@@ -31,7 +31,7 @@
 //! assert_eq!(expd, block.within_quotes_mask);
 //! ```
 
-use crate::input::{Input, InputBlock};
+use crate::input::{Input, InputBlock, InputBlockIterator};
 use crate::{input::error::InputError, result::InputRecorder};
 use crate::{FallibleIterator, BLOCK_SIZE};
 use cfg_if::cfg_if;
@@ -57,6 +57,8 @@ pub struct QuoteClassifiedBlock<B, const N: usize> {
 pub trait QuoteClassifiedIterator<'a, I: Input + 'a, const N: usize>:
     FallibleIterator<Item = QuoteClassifiedBlock<I::Block<'a, N>, N>, Error = InputError> + 'a
 {
+    type InnerIter: InputBlockIterator<'a, N>;
+
     /// Get the total offset in bytes from the beginning of input.
     fn get_offset(&self) -> usize;
 
@@ -69,6 +71,8 @@ pub trait QuoteClassifiedIterator<'a, I: Input + 'a, const N: usize>:
     /// This should be done only in very specific circumstances where the previous-block
     /// state could have been damaged due to stopping and resuming the classification at a later point.
     fn flip_quotes_bit(&mut self);
+
+    fn inner_iter(&mut self) -> &mut Self::InnerIter;
 }
 
 impl<'a, B, const N: usize> QuoteClassifiedBlock<B, N>
