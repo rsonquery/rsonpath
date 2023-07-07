@@ -1,5 +1,5 @@
 //! Result types that can be returned by a JSONPath query engine.
-use crate::classification::structural::Structural;
+use crate::{classification::structural::Structural, depth::Depth};
 use std::fmt::Display;
 
 pub mod count;
@@ -28,7 +28,7 @@ pub trait Recorder: InputRecorder {
     fn new() -> Self;
 
     /// Record a match of the query. The `idx` is guaranteed to be the first character of the matched value.
-    fn record_match(&self, idx: usize, ty: MatchedNodeType);
+    fn record_match(&self, idx: usize, depth: Depth, ty: MatchedNodeType);
 
     /// Record an occurrence of a structural character.
     fn record_structural(&self, s: Structural);

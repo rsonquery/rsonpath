@@ -48,7 +48,7 @@ impl Recorder for CountRecorder {
     }
 
     #[inline]
-    fn record_match(&self, _idx: usize, _ty: MatchedNodeType) {
+    fn record_match(&self, _idx: usize, _depth: Depth, _ty: MatchedNodeType) {
         self.count.set(self.count.get() + 1);
     }
 

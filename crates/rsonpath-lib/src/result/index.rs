@@ -57,7 +57,7 @@ impl Recorder for IndexRecorder {
     }
 
     #[inline]
-    fn record_match(&self, idx: usize, _ty: MatchedNodeType) {
+    fn record_match(&self, idx: usize, _depth: Depth, _ty: MatchedNodeType) {
         self.indices.borrow_mut().push(idx);
     }
 

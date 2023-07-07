@@ -9,6 +9,7 @@ use crate::{
         ResumeClassifierBlockState, ResumeClassifierState,
     },
     debug,
+    depth::Depth,
     engine::EngineError,
     input::{Input, InputBlockIterator},
     query::{
@@ -130,18 +131,34 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
 
                 match self.bytes.seek_non_whitespace_forward(seek_start_idx)? {
                     Some((colon_idx, char)) if char == b':' => {
+                        // The goal is initializing the quote classifier correctly.
+                        // We can do it as follows:
+                        // - Initialize it to point to the start of the first block.
+                        // - Now we need to move it to the colon. Calculate the offset of the colon from that point.
+                        // - Offset by that much plus one.
+                        let start_of_second_block = input_iter.get_offset();
+                        debug_assert!(start_of_second_block >= BLOCK_SIZE);
+                        let start_of_first_block = start_of_second_block - BLOCK_SIZE;
+                        let distance = colon_idx - start_of_first_block;
+
                         let (quote_classifier, quote_classified_first_block) =
                             resume_quote_classification(input_iter, first_block);
                         let mut classifier_state = ResumeClassifierState {
                             iter: quote_classifier,
-                            block: quote_classified_first_block.map(|b| ResumeClassifierBlockState { block: b, idx }),
+                            block: quote_classified_first_block
+                                .map(|b| ResumeClassifierBlockState { block: b, idx: 0 }),
                             are_colons_on: false,
                             are_commas_on: self.is_accepting,
                         };
 
-                        let distance = colon_idx - classifier_state.get_idx();
                         debug!("Actual match with colon at {colon_idx}");
-                        debug!("Distance skipped: {distance}");
+                        debug!("Classifier claims it's at {}", classifier_state.get_idx());
+                        debug!(
+                            "It also has its first block at {}",
+                            classifier_state.block.as_ref().unwrap().idx
+                        );
+                        debug!("We want to offset by {distance} first, then by 1",);
+
                         classifier_state.offset_bytes(distance as isize)?;
 
                         // Check if the colon is marked as within quotes.
@@ -159,6 +176,7 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
 
                         let mut classifier = resume_structural_classification(classifier_state);
                         let next_event = classifier.next()?;
+                        debug!("next event is {next_event:?}");
 
                         classifier_state = match next_event {
                             Some(opening @ Structural::Opening(_, opening_idx))
@@ -167,8 +185,13 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
                                     .seek_non_whitespace_forward(colon_idx + 1)?
                                     .map_or(false, |(x, _)| x == opening_idx) =>
                             {
+                                debug!("resuming");
                                 if self.is_accepting {
-                                    engine.recorder().record_match(opening_idx, crate::result::MatchedNodeType::Complex);
+                                    engine.recorder().record_match(
+                                        opening_idx,
+                                        Depth::ZERO,
+                                        crate::result::MatchedNodeType::Complex,
+                                    );
                                 }
                                 engine.run_on_subtree(opening, self.state, classifier)?
                             }
@@ -182,9 +205,11 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
 
                                 match value_start {
                                     Some(idx) => {
-                                        engine
-                                            .recorder()
-                                            .record_match(idx, crate::result::MatchedNodeType::Atomic);
+                                        engine.recorder().record_match(
+                                            idx,
+                                            Depth::ZERO,
+                                            crate::result::MatchedNodeType::Atomic,
+                                        );
                                         engine.recorder().record_structural(Structural::Comma(s.idx()));
                                         Ok(())
                                     }

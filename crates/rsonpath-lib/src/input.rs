@@ -289,6 +289,9 @@ pub(super) mod in_slice {
 
     #[inline]
     pub(super) fn is_member_match(bytes: &[u8], from: usize, to: usize, member: &JsonString) -> bool {
+        if to >= bytes.len() {
+            return false;
+        }
         let slice = &bytes[from..to + 1];
         member.bytes_with_quotes() == slice && (from == 0 || bytes[from - 1] != b'\\')
     }

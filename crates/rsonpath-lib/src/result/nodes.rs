@@ -69,9 +69,9 @@ impl Recorder for NodesRecorder {
     }
 
     #[inline]
-    fn record_match(&self, idx: usize, ty: MatchedNodeType) {
+    fn record_match(&self, idx: usize, depth: Depth, ty: MatchedNodeType) {
         debug!("Recording match at {idx}");
-        self.internal.borrow_mut().record_match(idx, ty)
+        self.internal.borrow_mut().record_match(idx, depth, ty)
     }
 
     #[inline(always)]
@@ -196,10 +196,10 @@ impl InternalRecorder {
         dest.extend(to_extend);
     }
 
-    fn record_match(&mut self, idx: usize, ty: MatchedNodeType) {
+    fn record_match(&mut self, idx: usize, depth: Depth, ty: MatchedNodeType) {
         let node = PartialNode {
             start_idx: idx,
-            start_depth: self.depth,
+            start_depth: depth,
             buf: vec![],
             ty,
         };
@@ -220,12 +220,14 @@ impl InternalRecorder {
     fn decrease_depth(&mut self, idx: usize) {
         debug!("Depth decreasing");
         self.depth.decrement().expect("depth not below zero");
+        debug!("Depth now {}", self.depth);
         self.try_mark_ends(idx)
     }
 
     fn increase_depth(&mut self) {
         debug!("Depth increasing");
         self.depth.increment().expect("depth not above limit");
+        debug!("Depth now {}", self.depth);
     }
 
     fn try_mark_ends(&mut self, idx: usize) {

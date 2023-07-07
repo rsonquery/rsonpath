@@ -77,7 +77,7 @@ fn empty_query<I: Input, R: Recorder>(bytes: &I) -> Result<R::Result, EngineErro
         let last_event = block_event_source.next()?;
         if let Some(Structural::Opening(_, idx)) = last_event {
             recorder.record_structural(last_event.unwrap());
-            recorder.record_match(idx, MatchedNodeType::Complex);
+            recorder.record_match(idx, Depth::ZERO, MatchedNodeType::Complex);
 
             while let Some(ev) = block_event_source.next()? {
                 recorder.record_structural(ev)
@@ -168,20 +168,19 @@ where
                 debug!("====================");
 
                 self.next_event = None;
+                self.recorder.record_structural(event);
                 match event {
                     Structural::Colon(idx) => self.handle_colon(classifier, idx)?,
                     Structural::Comma(idx) => self.handle_comma(classifier, idx)?,
                     Structural::Opening(b, idx) => self.handle_opening(classifier, b, idx)?,
                     Structural::Closing(_, idx) => {
                         self.handle_closing(classifier, idx)?;
-                        
+
                         if self.depth == Depth::ZERO {
-                            self.recorder.record_structural(event);
                             break;
                         }
                     }
                 }
-                self.recorder.record_structural(event);
             } else {
                 break;
             }
@@ -190,7 +189,12 @@ where
         Ok(())
     }
 
-    fn record_match_detected_at(&mut self, start_idx: usize, hint: NodeTypeHint) -> Result<(), EngineError> {
+    fn record_match_detected_at(
+        &mut self,
+        start_idx: usize,
+        depth: Depth,
+        hint: NodeTypeHint,
+    ) -> Result<(), EngineError> {
         debug!("Reporting result somewhere after {start_idx} with hint {hint:?}");
 
         let index = match hint {
@@ -202,7 +206,7 @@ where
 
         match index {
             Some(idx) => {
-                self.recorder.record_match(idx, hint.into());
+                self.recorder.record_match(idx, depth, hint.into());
                 Ok(())
             }
             None => Err(EngineError::MissingItem()),
@@ -232,6 +236,7 @@ where
                         if self.automaton.is_accepting(target) && self.is_match(idx, member_name)? {
                             self.record_match_detected_at(
                                 idx + 1,
+                                self.depth,
                                 NodeTypeHint::Atomic, /* since is_next_opening is false */
                             )?;
                             any_matched = true;
@@ -242,7 +247,11 @@ where
             }
             let fallback_state = self.automaton[self.state].fallback_state();
             if !any_matched && self.automaton.is_accepting(fallback_state) {
-                self.record_match_detected_at(idx + 1, NodeTypeHint::Atomic /* since is_next_opening is false */)?;
+                self.record_match_detected_at(
+                    idx + 1,
+                    self.depth,
+                    NodeTypeHint::Atomic, /* since is_next_opening is false */
+                )?;
             }
             #[cfg(feature = "unique-members")]
             {
@@ -278,7 +287,11 @@ where
 
         if !is_next_opening && self.is_list && is_fallback_accepting {
             debug!("Accepting on comma.");
-            self.record_match_detected_at(idx + 1, NodeTypeHint::Atomic /* since is_next_opening is false */)?;
+            self.record_match_detected_at(
+                idx + 1,
+                self.depth,
+                NodeTypeHint::Atomic, /* since is_next_opening is false */
+            )?;
         }
 
         // After wildcard, check for a matching array index.
@@ -294,7 +307,11 @@ where
 
         if self.is_list && !is_next_opening && match_index {
             debug!("Accepting on list item.");
-            self.record_match_detected_at(idx + 1, NodeTypeHint::Atomic /* since is_next_opening is false */)?;
+            self.record_match_detected_at(
+                idx + 1,
+                self.depth,
+                NodeTypeHint::Atomic, /* since is_next_opening is false */
+            )?;
         }
 
         Ok(())
@@ -323,7 +340,7 @@ where
                         self.transition_to(target, bracket_type);
                         if self.automaton.is_accepting(target) {
                             debug!("Accept {idx}");
-                            self.record_match_detected_at(idx, NodeTypeHint::Complex(bracket_type))?;
+                            self.record_match_detected_at(idx, self.depth, NodeTypeHint::Complex(bracket_type))?;
                         }
                         break;
                     }
@@ -334,7 +351,11 @@ where
                             any_matched = true;
                             self.transition_to(target, bracket_type);
                             if self.automaton.is_accepting(target) {
-                                self.record_match_detected_at(colon_idx + 1, NodeTypeHint::Complex(bracket_type))?;
+                                self.record_match_detected_at(
+                                    colon_idx + 1,
+                                    self.depth,
+                                    NodeTypeHint::Complex(bracket_type),
+                                )?;
                             }
                             break;
                         }
@@ -357,7 +378,7 @@ where
             }
 
             if self.automaton.is_accepting(fallback) {
-                self.record_match_detected_at(idx, NodeTypeHint::Complex(bracket_type))?;
+                self.record_match_detected_at(idx, self.depth, NodeTypeHint::Complex(bracket_type))?;
             }
         }
 
@@ -388,6 +409,7 @@ where
                         Some((value_idx, _)) => {
                             self.record_match_detected_at(
                                 value_idx,
+                                (self.depth + 1).unwrap(),
                                 NodeTypeHint::Atomic, /* since the next structural is a ','*/
                             )?;
                         }

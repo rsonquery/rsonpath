@@ -31,7 +31,7 @@ impl Recorder for EmptyRecorder {
     }
 
     #[inline]
-    fn record_match(&self, _idx: usize, _ty: MatchedNodeType) {
+    fn record_match(&self, _idx: usize, _depth: Depth, _ty: MatchedNodeType) {
         // Intentionally left empty.
     }
 

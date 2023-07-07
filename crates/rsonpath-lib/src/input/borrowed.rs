@@ -9,6 +9,8 @@
 //! This type of input is the fastest to process for the engine,
 //! since there is no additional overhead from loading anything to memory.
 
+use log::debug;
+
 use super::*;
 use crate::{query::JsonString, result::InputRecorder};
 
@@ -143,6 +145,7 @@ impl<'a, 'r, const N: usize, R: InputRecorder> FallibleIterator for BorrowedByte
 
     #[inline]
     fn next(&mut self) -> Result<Option<Self::Item>, Self::Error> {
+        debug!("next!");
         if let Some(block) = self.current_block.take() {
             self.recorder.record_block_end(block);
         }
@@ -172,11 +175,13 @@ impl<'a, 'r, const N: usize, R: InputRecorder> InputBlockIterator<'a, N> for Bor
     #[inline(always)]
     fn offset(&mut self, count: isize) {
         assert!(count >= 0);
+        debug!("offsetting input iter by {count}");
         self.idx += count as usize * N;
     }
 
     #[inline(always)]
     fn get_offset(&self) -> usize {
+        debug!("getting input iter {}", self.idx);
         self.idx
     }
 }

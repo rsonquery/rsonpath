@@ -7,7 +7,7 @@ use std::{
 
 /// Overflow-safe thin wrapper for a [`u8`] depth counter.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub(crate) struct Depth(u8);
+pub struct Depth(u8);
 
 impl Depth {
     /// Depth of 0.
