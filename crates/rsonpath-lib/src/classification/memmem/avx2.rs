@@ -73,7 +73,7 @@ where
                 result &= !(1 << idx);
             }
             offset += SIZE;
-            previous_block = first_bitmask << (SIZE - 1);
+            previous_block = first_bitmask >> (SIZE - 1);
         }
         return Ok(None);
     }
@@ -116,6 +116,7 @@ where
                 )
             );
             bin!("resul:", result);
+            bin!("first", first_bitmask);
             while result != 0 {
                 let idx = result.trailing_zeros() as usize;
                 debug!("offset:{}:{}", offset + idx - 2, offset + idx - 3 + label_size);
@@ -128,7 +129,8 @@ where
                 result &= !(1 << idx);
             }
             offset += SIZE;
-            previous_block = first_bitmask << (SIZE - 1);
+            previous_block = first_bitmask >> (SIZE - 1);
+            bin!("previous", previous_block);
         }
         return Ok(None);
     }
@@ -149,13 +151,25 @@ where
         if let Some(b) = first_block {
             let block_idx = start_idx % SIZE;
             let n = label.bytes_with_quotes().len();
-            let m = b
-                .iter()
-                .copied()
-                .enumerate()
-                .find(|&(i, c)| c == b'"' && self.input.is_member_match(start_idx + i, start_idx + i + n, label));
+            debug!("half block fetches for {:?} starting at {:?}", label, block_idx);
+            debug!(
+                "{: >24}: {}",
+                "block",
+                std::str::from_utf8(
+                    &b[block_idx..]
+                        .iter()
+                        .map(|x| if x.is_ascii_whitespace() { b' ' } else { *x })
+                        .collect::<Vec<_>>()
+                )
+                .unwrap()
+            );
+            let m = b[block_idx..].iter().copied().enumerate().find(|&(i, c)| {
+                let j = start_idx + i;
+                debug!("find: {} to {}", j, j + n - 1);
+                c == b'"' && self.input.is_member_match(j, j + n - 1, label)
+            });
             if let Some((res, _)) = m {
-                return Ok(Some((res, b)));
+                return Ok(Some((res + start_idx, b)));
             }
         }
         unsafe { self.find_label_avx2(label, next_block_offset) }
