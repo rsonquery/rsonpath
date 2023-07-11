@@ -17,7 +17,7 @@ rust-version = "1.70.0"
 [dependencies]
 serde = { version = "1.0.168", features = ["derive"] }
 toml = "0.7.6"
-proc-macro2 = "1.0.39"
+proc-macro2 = "1.0.64"
 quote = "1.0.18"
 heck = { version = "0.4.1", features = ["unicode"] }
 walkdir = "2.3.3"
