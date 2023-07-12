@@ -5,7 +5,7 @@ use crate::{
     classification::{
         memmem::Memmem,
         quotes::{classify_quoted_sequences, resume_quote_classification, InnerIter, QuoteClassifiedIterator},
-        structural::{resume_structural_classification, Structural, StructuralIterator},
+        structural::{resume_structural_classification, BracketType, Structural, StructuralIterator},
         ResumeClassifierBlockState, ResumeClassifierState,
     },
     debug,
@@ -131,15 +131,21 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
 
                 match self.bytes.seek_non_whitespace_forward(seek_start_idx)? {
                     Some((colon_idx, char)) if char == b':' => {
+                        let (next_idx, next_c) = self
+                            .bytes
+                            .seek_non_whitespace_forward(colon_idx + 1)?
+                            .ok_or(EngineError::MissingItem())?;
+
                         // The goal is initializing the quote classifier correctly.
                         // We can do it as follows:
                         // - Initialize it to point to the start of the first block.
-                        // - Now we need to move it to the colon. Calculate the offset of the colon from that point.
+                        // - Now we need to move it to the next_idx. Calculate the offset from that point.
                         // - Offset by that much plus one.
                         let start_of_second_block = input_iter.get_offset();
                         debug_assert!(start_of_second_block >= BLOCK_SIZE);
                         let start_of_first_block = start_of_second_block - BLOCK_SIZE;
-                        let distance = colon_idx - start_of_first_block;
+                        let distance_to_colon = colon_idx - start_of_first_block;
+                        let distance_to_value = next_idx - start_of_first_block - distance_to_colon + 1;
 
                         let (quote_classifier, quote_classified_first_block) =
                             resume_quote_classification(input_iter, first_block);
@@ -152,14 +158,15 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
                         };
 
                         debug!("Actual match with colon at {colon_idx}");
+                        debug!("Next significant character at {next_idx}");
                         debug!("Classifier claims it's at {}", classifier_state.get_idx());
                         debug!(
                             "It also has its first block at {}",
                             classifier_state.block.as_ref().unwrap().idx
                         );
-                        debug!("We want to offset by {distance} first, then by 1",);
+                        debug!("We want to offset by {distance_to_colon} first, then by {distance_to_value}",);
 
-                        classifier_state.offset_bytes(distance as isize)?;
+                        classifier_state.offset_bytes(distance_to_colon as isize)?;
 
                         // Check if the colon is marked as within quotes.
                         // If yes, that is an error of state propagation through skipped blocks.
@@ -172,52 +179,52 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
                             }
                         }
 
-                        classifier_state.offset_bytes(1)?;
+                        classifier_state.offset_bytes(distance_to_value as isize)?;
 
-                        let mut classifier = resume_structural_classification(classifier_state);
-                        let next_event = classifier.next()?;
-                        debug!("next event is {next_event:?}");
-
-                        classifier_state = match next_event {
-                            Some(opening @ Structural::Opening(_, opening_idx))
-                                if self
-                                    .bytes
-                                    .seek_non_whitespace_forward(colon_idx + 1)?
-                                    .map_or(false, |(x, _)| x == opening_idx) =>
-                            {
+                        classifier_state = match next_c {
+                            b'{' | b'[' => {
                                 debug!("resuming");
                                 if self.is_accepting {
                                     engine.recorder().record_match(
-                                        opening_idx,
+                                        next_idx,
                                         Depth::ZERO,
                                         crate::result::MatchedNodeType::Complex,
                                     );
                                 }
-                                engine.run_on_subtree(opening, self.state, classifier)?
+                                let classifier = resume_structural_classification(classifier_state);
+                                engine.run_on_subtree(
+                                    Structural::Opening(
+                                        if next_c == b'{' {
+                                            BracketType::Curly
+                                        } else {
+                                            BracketType::Square
+                                        },
+                                        next_idx,
+                                    ),
+                                    self.state,
+                                    classifier,
+                                )?
                             }
-                            Some(s) if self.is_accepting => {
+                            _ if self.is_accepting => {
+                                engine.recorder().record_match(
+                                    next_idx,
+                                    Depth::ZERO,
+                                    crate::result::MatchedNodeType::Atomic,
+                                );
+                                let mut classifier = resume_structural_classification(classifier_state);
+                                let next_structural = classifier.next()?.unwrap();
                                 // The value we found must be atomic, since the next structural is not an Opening.
                                 // To ensure correct processing by the recorder, we report the match, and then
                                 // a terminating structural. We deliberately lie that it's a comma to not influence
                                 // the depth. This is a HACK, we should probably have a more clear way of
                                 // communicating this to the recorder.
-                                let value_start = self.bytes.seek_non_whitespace_forward(colon_idx + 1)?.map(|x| x.0);
 
-                                match value_start {
-                                    Some(idx) => {
-                                        engine.recorder().record_match(
-                                            idx,
-                                            Depth::ZERO,
-                                            crate::result::MatchedNodeType::Atomic,
-                                        );
-                                        engine.recorder().record_structural(Structural::Comma(s.idx()));
-                                        Ok(())
-                                    }
-                                    None => Err(EngineError::MissingItem()),
-                                }?;
+                                engine
+                                    .recorder()
+                                    .record_structural(Structural::Comma(next_structural.idx()));
                                 classifier.stop()
                             }
-                            _ => classifier.stop(),
+                            _ => classifier_state,
                         };
 
                         debug!("Quote classified up to {}", classifier_state.get_idx());

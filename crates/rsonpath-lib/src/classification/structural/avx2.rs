@@ -150,9 +150,13 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> StructuralIterator<'a,
 
             if let Some(block) = self.block.take() {
                 let quote_classified_block = block.quote_classified;
+                let relevant_idx = idx + 1;
                 let block_idx = (idx + 1) % 64;
+                debug!("relevant_idx is {relevant_idx}.");
 
-                if block_idx != 0 {
+                if block_idx != 0 || relevant_idx == self.iter.get_offset() {
+                    debug!("need to reclassify.");
+
                     let mask = u64::MAX << block_idx;
                     // SAFETY: target_feature invariant
                     let mut new_block = unsafe { self.classifier.classify(quote_classified_block) };
@@ -181,9 +185,13 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> StructuralIterator<'a,
 
             if let Some(block) = self.block.take() {
                 let quote_classified_block = block.quote_classified;
+                let relevant_idx = idx + 1;
                 let block_idx = (idx + 1) % 64;
+                debug!("relevant_idx is {relevant_idx}.");
 
-                if block_idx != 0 {
+                if block_idx != 0 || relevant_idx == self.iter.get_offset() {
+                    debug!("need to reclassify.");
+
                     let mask = u64::MAX << block_idx;
                     // SAFETY: target_feature invariant
                     let mut new_block = unsafe { self.classifier.classify(quote_classified_block) };

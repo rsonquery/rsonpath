@@ -165,7 +165,6 @@ where
             );
             let m = b[block_idx..].iter().copied().enumerate().find(|&(i, c)| {
                 let j = start_idx + i;
-                debug!("find: {} to {}", j, j + n - 1);
                 c == b'"' && self.input.is_member_match(j, j + n - 1, label)
             });
             if let Some((res, _)) = m {

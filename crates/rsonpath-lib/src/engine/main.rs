@@ -382,6 +382,10 @@ where
             }
         }
 
+        self.depth
+            .increment()
+            .map_err(|err| EngineError::DepthAboveLimit(idx, err))?;
+
         if bracket_type == BracketType::Square {
             self.is_list = true;
             self.has_any_array_item_transition = self.automaton.has_any_array_item_transition(self.state);
@@ -409,7 +413,7 @@ where
                         Some((value_idx, _)) => {
                             self.record_match_detected_at(
                                 value_idx,
-                                (self.depth + 1).unwrap(),
+                                self.depth,
                                 NodeTypeHint::Atomic, /* since the next structural is a ','*/
                             )?;
                         }
@@ -430,9 +434,6 @@ where
         } else {
             classifier.turn_colons_off();
         }
-        self.depth
-            .increment()
-            .map_err(|err| EngineError::DepthAboveLimit(idx, err))?;
 
         Ok(())
     }
