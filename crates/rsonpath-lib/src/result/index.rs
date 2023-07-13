@@ -1,17 +1,23 @@
+//! [`QueryResult`] and [`Recorder`] implementation finding the starts of all matches.
+//!
+//! This is useful if you can provide a separate parsing function that will examine the
+//! matches after the search. The result provides starting indices for the parser.
+//! If the entire input is available, and you intend to parse the results manually,
+//! this search is significantly faster than more involved search techniques.
 use super::*;
 use std::{
     cell::RefCell,
     fmt::{self, Display},
 };
 
-/// Query result containing all indices of colons that constitute a match.
+/// [`QueryResult`] containing all byte indices of starts of matched values.
 #[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct IndexResult {
     indices: Vec<usize>,
 }
 
 impl IndexResult {
-    /// Get indices of colons constituting matches of the query.
+    /// Get starting indices of matches of the query.
     #[must_use]
     #[inline(always)]
     pub fn get(&self) -> &[usize] {
@@ -35,6 +41,7 @@ impl Display for IndexResult {
 
 impl QueryResult for IndexResult {}
 
+/// Recorder for [`IndexResult`].
 pub struct IndexRecorder {
     indices: RefCell<Vec<usize>>,
 }
@@ -61,8 +68,8 @@ impl Recorder for IndexRecorder {
         self.indices.borrow_mut().push(idx);
     }
 
-    #[inline(always)]
-    fn record_structural(&self, _s: Structural) {
+    #[inline]
+    fn record_value_terminator(&self, _idx: usize, _depth: Depth) {
         // Intentionally left empty.
     }
 

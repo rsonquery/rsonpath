@@ -76,11 +76,23 @@ fn empty_query<I: Input, R: Recorder>(bytes: &I) -> Result<R::Result, EngineErro
 
         let last_event = block_event_source.next()?;
         if let Some(Structural::Opening(_, idx)) = last_event {
-            recorder.record_structural(last_event.unwrap());
-            recorder.record_match(idx, Depth::ZERO, MatchedNodeType::Complex);
+            let mut depth = Depth::ONE;
+            recorder.record_match(idx, depth, MatchedNodeType::Complex);
 
             while let Some(ev) = block_event_source.next()? {
-                recorder.record_structural(ev)
+                match ev {
+                    Structural::Closing(_, idx) => {
+                        recorder.record_value_terminator(idx, depth);
+                        depth.decrement().map_err(|err| EngineError::DepthBelowZero(idx, err))?;
+                    }
+                    Structural::Colon(_) => (),
+                    Structural::Opening(_, idx) => {
+                        depth
+                            .increment()
+                            .map_err(|err| EngineError::DepthAboveLimit(idx, err))?;
+                    }
+                    Structural::Comma(idx) => recorder.record_value_terminator(idx, depth),
+                }
             }
         }
     }
@@ -168,7 +180,6 @@ where
                 debug!("====================");
 
                 self.next_event = None;
-                self.recorder.record_structural(event);
                 match event {
                     Structural::Colon(idx) => self.handle_colon(classifier, idx)?,
                     Structural::Comma(idx) => self.handle_comma(classifier, idx)?,
@@ -206,14 +217,18 @@ where
 
         match index {
             Some(idx) => {
-                self.recorder.record_match(idx, depth, hint.into());
+                self.recorder.record_match(idx, self.depth, hint.into());
                 Ok(())
             }
             None => Err(EngineError::MissingItem()),
         }
     }
 
-    fn handle_colon<Q, S>(&mut self, classifier: &mut Classifier!(), idx: usize) -> Result<(), EngineError>
+    fn handle_colon<Q, S>(
+        &mut self,
+        #[allow(unused_variables)] classifier: &mut Classifier!(),
+        idx: usize,
+    ) -> Result<(), EngineError>
     where
         Q: QuoteClassifiedIterator<'b, I, BLOCK_SIZE>,
         S: StructuralIterator<'b, I, Q, BLOCK_SIZE>,
@@ -259,7 +274,13 @@ where
                 let is_next_closing = self.next_event.map_or(false, |s| s.is_closing());
                 if any_matched && !is_next_closing && self.automaton.is_unitary(self.state) {
                     if let Some(s) = self.next_event {
-                        self.recorder.record_structural(s);
+                        match s {
+                            Structural::Closing(_, idx) => {
+                                self.recorder.record_value_terminator(idx, self.depth);
+                            }
+                            Structural::Comma(idx) => self.recorder.record_value_terminator(idx, self.depth),
+                            Structural::Colon(_) | Structural::Opening(_, _) => (),
+                        }
                     }
                     let bracket_type = self.current_node_bracket_type();
                     debug!("Skipping unique state from {bracket_type:?}");
@@ -277,6 +298,7 @@ where
         Q: QuoteClassifiedIterator<'b, I, BLOCK_SIZE>,
         S: StructuralIterator<'b, I, Q, BLOCK_SIZE>,
     {
+        self.recorder.record_value_terminator(idx, self.depth);
         let is_next_opening = if let Some((_, c)) = self.input.seek_non_whitespace_forward(idx + 1)? {
             c == b'{' || c == b'['
         } else {
@@ -370,8 +392,7 @@ where
 
             if self.automaton.is_rejecting(fallback) {
                 let closing_idx = classifier.skip(bracket_type)?;
-                self.recorder
-                    .record_structural(Structural::Closing(bracket_type, closing_idx));
+                self.recorder.record_value_terminator(closing_idx, self.depth);
                 return Ok(());
             } else {
                 self.transition_to(fallback, bracket_type);
@@ -448,6 +469,7 @@ where
         self.depth
             .decrement()
             .map_err(|err| EngineError::DepthBelowZero(idx, err))?;
+        self.recorder.record_value_terminator(idx, self.depth);
 
         if let Some(stack_frame) = self.stack.pop_if_at_or_below(*self.depth) {
             self.state = stack_frame.state;

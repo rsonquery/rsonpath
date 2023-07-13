@@ -1,10 +1,13 @@
+//! [`QueryResult`] and [`Recorder`] implementation for counting the number of matches.
+//!
+//! This is faster than any recorder that actually examines the values.
 use super::*;
 use std::{
     cell::Cell,
     fmt::{self, Display},
 };
 
-/// Result informing on the number of values matching the executed query.
+/// [`QueryResult`] informing on the number of values matching the executed query.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct CountResult {
     count: u64,
@@ -28,6 +31,7 @@ impl Display for CountResult {
 
 impl QueryResult for CountResult {}
 
+/// Recorder for [`CountResult`].
 pub struct CountRecorder {
     count: Cell<u64>,
 }
@@ -52,15 +56,15 @@ impl Recorder for CountRecorder {
         self.count.set(self.count.get() + 1);
     }
 
-    #[inline(always)]
-    fn record_structural(&self, _s: Structural) {
-        // Intentionally left empty.
-    }
-
     #[inline]
     fn finish(self) -> Self::Result {
         CountResult {
             count: self.count.into_inner(),
         }
+    }
+
+    #[inline]
+    fn record_value_terminator(&self, _idx: usize, _depth: Depth) {
+        // Intentionally left empty.
     }
 }

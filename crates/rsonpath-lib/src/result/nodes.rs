@@ -1,3 +1,11 @@
+//! [`QueryResult`] and [`Recorder`] implementation collecting the bytes of all matches.
+//!
+//! This is the heaviest recorder. It will copy all bytes of all matches into [`Vecs`](`Vec`).
+//!
+// There is number of invariants that are hard to enforce on the type level,
+// and handling of Depth that should be properly error-handled by the engine, not here.
+// Using `expect` here is idiomatic.
+#![allow(clippy::expect_used)]
 use super::*;
 use crate::{debug, depth::Depth};
 use std::{
@@ -6,6 +14,7 @@ use std::{
     str::{self, Utf8Error},
 };
 
+/// [`QueryResult`] that collects all byte spans of matched values.
 #[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct NodesResult {
     spans: Vec<Vec<u8>>,
@@ -19,10 +28,18 @@ impl NodesResult {
         &self.spans
     }
 
+    /// Iterate over all slices interpreted as valid UTF8.
     #[must_use]
     #[inline(always)]
     pub fn iter_as_utf8(&self) -> impl IntoIterator<Item = Result<&str, Utf8Error>> {
         self.spans.iter().map(|x| str::from_utf8(x))
+    }
+
+    /// Return the inner buffers consuming the result.
+    #[must_use]
+    #[inline(always)]
+    pub fn into_inner(self) -> Vec<Vec<u8>> {
+        self.spans
     }
 }
 
@@ -47,6 +64,7 @@ impl Display for NodesResult {
 
 impl QueryResult for NodesResult {}
 
+/// Recorder for [`NodesResult`].
 pub struct NodesRecorder {
     internal: RefCell<InternalRecorder>,
 }
@@ -74,10 +92,9 @@ impl Recorder for NodesRecorder {
         self.internal.borrow_mut().record_match(idx, depth, ty)
     }
 
-    #[inline(always)]
-    fn record_structural(&self, s: Structural) {
-        debug!("Recording structural {s:?}");
-        self.internal.borrow_mut().record_structural(s)
+    #[inline]
+    fn record_value_terminator(&self, idx: usize, depth: Depth) {
+        self.internal.borrow_mut().record_value_terminator(idx, depth)
     }
 
     #[inline]
@@ -89,7 +106,6 @@ impl Recorder for NodesRecorder {
 
 struct InternalRecorder {
     idx: usize,
-    depth: Depth,
     stack: Vec<PartialNode>,
     ready: Vec<PreparedNode>,
     finished: Vec<Vec<u8>>,
@@ -124,7 +140,6 @@ impl InternalRecorder {
     fn new() -> Self {
         Self {
             idx: 0,
-            depth: Depth::ZERO,
             stack: vec![],
             ready: vec![],
             finished: vec![],
@@ -197,6 +212,15 @@ impl InternalRecorder {
     }
 
     fn record_match(&mut self, idx: usize, depth: Depth, ty: MatchedNodeType) {
+        // In case of atomic types, any structural event that happens
+        // at or above current depth marks the end. For complex types,
+        // we first get the opening structural event, so the end is marked
+        // by a depth decrease of 1.
+        let start_depth = match ty {
+            MatchedNodeType::Atomic => (depth + 1).expect("depth not above limit"),
+            MatchedNodeType::Complex => depth,
+        };
+
         let node = PartialNode {
             start_idx: idx,
             start_depth: depth,
@@ -208,33 +232,13 @@ impl InternalRecorder {
         self.stack.push(node);
     }
 
-    fn record_structural(&mut self, s: Structural) {
-        match s {
-            Structural::Closing(_, idx) => self.decrease_depth(idx),
-            Structural::Comma(idx) => self.try_mark_ends(idx),
-            Structural::Opening(_, _) => self.increase_depth(),
-            Structural::Colon(_) => (), // Colons give us no information.
-        }
-    }
-
-    fn decrease_depth(&mut self, idx: usize) {
-        debug!("Depth decreasing");
-        self.depth.decrement().expect("depth not below zero");
-        debug!("Depth now {}", self.depth);
-        self.try_mark_ends(idx)
-    }
-
-    fn increase_depth(&mut self) {
-        debug!("Depth increasing");
-        self.depth.increment().expect("depth not above limit");
-        debug!("Depth now {}", self.depth);
-    }
-
-    fn try_mark_ends(&mut self, idx: usize) {
+    #[inline]
+    fn record_value_terminator(&mut self, idx: usize, depth: Depth) {
+        debug!("Value terminator at {idx}, depth {depth}");
         while let Some(node) = self.stack.last() {
-            if node.start_depth >= self.depth {
+            if node.start_depth >= depth {
                 debug!("Mark node {node:?} as ended at {}", idx + 1);
-                let node = self.stack.pop().unwrap();
+                let node = self.stack.pop().expect("last was Some, pop must succeed");
                 let prepared_node = node.prepare(idx + 1);
                 self.ready.push(prepared_node);
             } else {

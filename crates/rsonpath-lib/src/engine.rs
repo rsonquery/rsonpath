@@ -15,7 +15,7 @@ use crate::{input::Input, result::Recorder};
 
 /// An engine that can run its query on a given input.
 pub trait Engine {
-    /// Compute a [`QueryResult`] on given [`Input`].
+    /// Compute a result using the given [`Recorder`] type on given [`Input`].
     ///
     /// # Errors
     /// An appropriate [`EngineError`] is returned if the JSON input is malformed

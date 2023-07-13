@@ -11,18 +11,21 @@ pub struct Depth(u8);
 
 impl Depth {
     /// Depth of 0.
-    pub(crate) const ZERO: Self = Self(0);
+    pub const ZERO: Self = Self(0);
+
+    /// Depth of 1.
+    pub const ONE: Self = Self(1);
 
     /// Add `1` to the depth, or raise an error if the maximum
     /// supported value is reached.
-    pub(crate) fn increment(&mut self) -> Result<(), DepthError> {
+    pub fn increment(&mut self) -> Result<(), DepthError> {
         *self = (*self + 1)?;
         Ok(())
     }
 
     /// Subtract `1` from the depth, or raise an error if the depth
     /// is zero.
-    pub(crate) fn decrement(&mut self) -> Result<(), DepthError> {
+    pub fn decrement(&mut self) -> Result<(), DepthError> {
         *self = (*self - 1)?;
         Ok(())
     }
