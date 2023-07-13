@@ -110,6 +110,26 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> Avx2Classifier<'a, I, 
     fn current_block_is_spent(&self) -> bool {
         self.block.as_ref().map_or(true, StructuralsBlock::is_empty)
     }
+
+    #[inline]
+    fn reclassify(&mut self, idx: usize) {
+        if let Some(block) = self.block.take() {
+            let quote_classified_block = block.quote_classified;
+            let relevant_idx = idx + 1;
+            let block_idx = (idx + 1) % 64;
+            debug!("relevant_idx is {relevant_idx}.");
+
+            if block_idx != 0 || relevant_idx == self.iter.get_offset() {
+                debug!("need to reclassify.");
+
+                let mask = u64::MAX << block_idx;
+                // SAFETY: target_feature invariant
+                let mut new_block = unsafe { self.classifier.classify(quote_classified_block) };
+                new_block.structural_mask &= mask;
+                self.block = Some(new_block);
+            }
+        }
+    }
 }
 
 impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> FallibleIterator for Avx2Classifier<'a, I, Q> {
@@ -141,6 +161,22 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> FallibleIterator for A
 impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> StructuralIterator<'a, I, Q, 64>
     for Avx2Classifier<'a, I, Q>
 {
+    fn turn_colons_and_commas_on(&mut self, idx: usize) {
+        if !self.are_commas_on && !self.are_colons_on {
+            self.are_commas_on = true;
+            self.are_colons_on = true;
+            debug!("Turning both commas and colons on at {idx}.");
+            // SAFETY: target_feature invariant
+            unsafe { self.classifier.toggle_colons_and_commas() }
+
+            self.reclassify(idx);
+        } else if !self.are_commas_on {
+            self.turn_commas_on(idx);
+        } else if !self.are_colons_on {
+            self.turn_colons_on(idx);
+        }
+    }
+
     fn turn_commas_on(&mut self, idx: usize) {
         if !self.are_commas_on {
             self.are_commas_on = true;
@@ -148,22 +184,7 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> StructuralIterator<'a,
             // SAFETY: target_feature invariant
             unsafe { self.classifier.toggle_commas() }
 
-            if let Some(block) = self.block.take() {
-                let quote_classified_block = block.quote_classified;
-                let relevant_idx = idx + 1;
-                let block_idx = (idx + 1) % 64;
-                debug!("relevant_idx is {relevant_idx}.");
-
-                if block_idx != 0 || relevant_idx == self.iter.get_offset() {
-                    debug!("need to reclassify.");
-
-                    let mask = u64::MAX << block_idx;
-                    // SAFETY: target_feature invariant
-                    let mut new_block = unsafe { self.classifier.classify(quote_classified_block) };
-                    new_block.structural_mask &= mask;
-                    self.block = Some(new_block);
-                }
-            }
+            self.reclassify(idx);
         }
     }
 
@@ -183,22 +204,7 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> StructuralIterator<'a,
             // SAFETY: target_feature invariant
             unsafe { self.classifier.toggle_colons() }
 
-            if let Some(block) = self.block.take() {
-                let quote_classified_block = block.quote_classified;
-                let relevant_idx = idx + 1;
-                let block_idx = (idx + 1) % 64;
-                debug!("relevant_idx is {relevant_idx}.");
-
-                if block_idx != 0 || relevant_idx == self.iter.get_offset() {
-                    debug!("need to reclassify.");
-
-                    let mask = u64::MAX << block_idx;
-                    // SAFETY: target_feature invariant
-                    let mut new_block = unsafe { self.classifier.classify(quote_classified_block) };
-                    new_block.structural_mask &= mask;
-                    self.block = Some(new_block);
-                }
-            }
+            self.reclassify(idx);
         }
     }
 
@@ -231,11 +237,15 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> StructuralIterator<'a,
 
         // SAFETY: target_feature invariant
         unsafe {
-            if state.are_commas_on {
-                classifier.toggle_commas();
-            }
-            if state.are_colons_on {
-                classifier.toggle_colons();
+            if state.are_commas_on && state.are_colons_on {
+                classifier.toggle_colons_and_commas();
+            } else {
+                if state.are_commas_on {
+                    classifier.toggle_commas();
+                }
+                if state.are_colons_on {
+                    classifier.toggle_colons();
+                }
             }
         }
 
@@ -264,6 +274,7 @@ struct BlockAvx2Classifier {
     upper_nibble_zeroing_mask: __m256i,
     commas_toggle_mask: __m256i,
     colons_toggle_mask: __m256i,
+    colons_and_commas_toggle_mask: __m256i,
 }
 
 struct BlockClassification {
@@ -287,6 +298,10 @@ impl BlockAvx2Classifier {
         0x00, 0x00, 0x00, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     ];
+    const COLON_AND_COMMA_TOGGLE_MASK_ARRAY: [u8; 32] = [
+        0x00, 0x00, 0x12, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x12, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    ];
 
     #[target_feature(enable = "avx2")]
     #[inline]
@@ -297,6 +312,9 @@ impl BlockAvx2Classifier {
             upper_nibble_zeroing_mask: _mm256_set1_epi8(0x0F),
             commas_toggle_mask: _mm256_loadu_si256(Self::COMMAS_TOGGLE_MASK_ARRAY.as_ptr().cast::<__m256i>()),
             colons_toggle_mask: _mm256_loadu_si256(Self::COLON_TOGGLE_MASK_ARRAY.as_ptr().cast::<__m256i>()),
+            colons_and_commas_toggle_mask: _mm256_loadu_si256(
+                Self::COLON_AND_COMMA_TOGGLE_MASK_ARRAY.as_ptr().cast::<__m256i>(),
+            ),
         }
     }
 
@@ -310,6 +328,12 @@ impl BlockAvx2Classifier {
     #[inline]
     unsafe fn toggle_colons(&mut self) {
         self.upper_nibble_mask = _mm256_xor_si256(self.upper_nibble_mask, self.colons_toggle_mask);
+    }
+
+    #[target_feature(enable = "avx2")]
+    #[inline]
+    unsafe fn toggle_colons_and_commas(&mut self) {
+        self.upper_nibble_mask = _mm256_xor_si256(self.upper_nibble_mask, self.colons_and_commas_toggle_mask);
     }
 
     #[target_feature(enable = "avx2")]

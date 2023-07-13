@@ -34,7 +34,7 @@ pub trait Compiler {
     /// parameterized with the lifetime of the input query.
     type E<'q>: Engine + 'q;
 
-    /// Compile a [`JsonPathQuery`] into an [`Engine`].
+    /// Compile a [`JsonPathQuery`] into an [`Engine`].c
     ///
     /// # Errors
     /// An appropriate [`CompilerError`] is returned if the compiler

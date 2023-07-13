@@ -10,7 +10,6 @@ use crate::{
     input::Input,
     FallibleIterator, BLOCK_SIZE,
 };
-use replace_with::replace_with_or_abort;
 use std::marker::PhantomData;
 
 pub(crate) struct TailSkip<'b, I, Q, S, const N: usize>
@@ -19,7 +18,7 @@ where
     Q: QuoteClassifiedIterator<'b, I, N>,
     S: StructuralIterator<'b, I, Q, N>,
 {
-    classifier: S,
+    classifier: Option<S>,
     phantom: PhantomData<&'b (I, Q)>,
 }
 
@@ -31,7 +30,7 @@ where
 {
     pub(crate) fn new(classifier: S) -> Self {
         Self {
-            classifier,
+            classifier: Some(classifier),
             phantom: PhantomData,
         }
     }
@@ -41,7 +40,9 @@ where
         let mut idx = 0;
         let mut err = None;
 
-        replace_with_or_abort(&mut self.classifier, |classifier| {
+        let classifier = self.classifier.take().expect("or fuck off");
+
+        self.classifier = Some('a: {
             let resume_state = classifier.stop();
             let DepthIteratorResumeOutcome(first_vector, mut depth_classifier) =
                 resume_depth_classification(resume_state, opening);
@@ -53,7 +54,7 @@ where
                     Err(e) => {
                         err = Some(e);
                         let resume_state = depth_classifier.stop(None);
-                        return S::resume(resume_state);
+                        break 'a S::resume(resume_state);
                     }
                 },
             };
@@ -80,7 +81,7 @@ where
                     Err(e) => {
                         err = Some(e);
                         let resume_state = depth_classifier.stop(None);
-                        return S::resume(resume_state);
+                        break 'a S::resume(resume_state);
                     }
                 };
             }
@@ -100,7 +101,7 @@ where
     }
 
     pub(crate) fn stop(self) -> ResumeClassifierState<'b, I, Q, BLOCK_SIZE> {
-        self.classifier.stop()
+        self.classifier.expect("or fuck off").stop()
     }
 }
 
@@ -113,7 +114,7 @@ where
     type Target = S;
 
     fn deref(&self) -> &Self::Target {
-        &self.classifier
+        self.classifier.as_ref().expect("twoja stara")
     }
 }
 
@@ -124,6 +125,6 @@ where
     S: StructuralIterator<'b, I, Q, N>,
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.classifier
+        self.classifier.as_mut().expect("twoja stara")
     }
 }
