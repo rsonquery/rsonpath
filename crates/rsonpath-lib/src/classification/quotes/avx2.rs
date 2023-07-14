@@ -127,12 +127,6 @@ struct BlockAvx2Classifier {
     /// The second bit is lit iff the previous block ended with a starting quote,
     /// meaning that it was not escaped, nor was it the closing quote of a quoted sequence.
     prev_block_mask: u8,
-    /// Constant mask for comparing against the double quote character
-    quote_mask: __m256i,
-    /// Constant mask for comparing against the backslash character
-    slash_mask: __m256i,
-    /// Constant mask filled with ones for use with clmul.
-    all_ones128: __m128i,
 }
 
 struct BlockClassification {
@@ -170,19 +164,27 @@ impl BlockAvx2Classifier {
     }
 
     #[target_feature(enable = "avx2")]
-    #[inline]
     unsafe fn new() -> Self {
-        Self {
-            prev_block_mask: 0,
-            quote_mask: _mm256_set1_epi8(b'"' as i8),
-            slash_mask: _mm256_set1_epi8(b'\\' as i8),
-            all_ones128: _mm_set1_epi8(0xFF_u8 as i8),
-        }
+        Self { prev_block_mask: 0 }
+    }
+
+    #[target_feature(enable = "avx2")]
+    unsafe fn quote_mask() -> __m256i {
+        _mm256_set1_epi8(b'"' as i8)
+    }
+
+    #[target_feature(enable = "avx2")]
+    unsafe fn slash_mask() -> __m256i {
+        _mm256_set1_epi8(b'\\' as i8)
+    }
+
+    #[target_feature(enable = "avx2")]
+    unsafe fn all_ones128() -> __m128i {
+        _mm_set1_epi8(0xFF_u8 as i8)
     }
 
     #[target_feature(enable = "avx2")]
     #[target_feature(enable = "pclmulqdq")]
-    #[inline]
     unsafe fn classify<'a, B: InputBlock<'a, 64>>(&mut self, two_blocks: &B) -> u64 {
         /* For a 64-bit architecture, we classify two adjacent 32-byte blocks and combine their masks
          * into a single 64-bit mask, which is significantly more performant.
@@ -204,8 +206,8 @@ impl BlockAvx2Classifier {
 
         // Steps I.1., II.1.
         let (block1, block2) = two_blocks.halves();
-        let classification1 = self.classify_block(block1);
-        let classification2 = self.classify_block(block2);
+        let classification1 = Self::classify_block(block1);
+        let classification2 = Self::classify_block(block2);
 
         // Masks are combined by shifting the latter block's 32-bit masks left by 32 bits.
         // From now on when we refer to a "block" we mean the combined 64 bytes of the input.
@@ -335,7 +337,7 @@ impl BlockAvx2Classifier {
          *  cumulative_xor      | 11100001 11000111 |
          */
         let nonescaped_quotes_vector = _mm_set_epi64x(0, nonescaped_quotes as i64);
-        let cumulative_xor = _mm_clmulepi64_si128::<0>(nonescaped_quotes_vector, self.all_ones128);
+        let cumulative_xor = _mm_clmulepi64_si128::<0>(nonescaped_quotes_vector, Self::all_ones128());
 
         let within_quotes = _mm_cvtsi128_si64(cumulative_xor) as u64;
         self.update_prev_block_mask(set_prev_slash_mask, within_quotes);
@@ -363,14 +365,13 @@ impl BlockAvx2Classifier {
     }
 
     #[target_feature(enable = "avx2")]
-    #[inline]
-    unsafe fn classify_block(&self, block: &[u8]) -> BlockClassification {
+    unsafe fn classify_block(block: &[u8]) -> BlockClassification {
         let byte_vector = _mm256_loadu_si256(block.as_ptr().cast::<__m256i>());
 
-        let slash_cmp = _mm256_cmpeq_epi8(byte_vector, self.slash_mask);
+        let slash_cmp = _mm256_cmpeq_epi8(byte_vector, Self::slash_mask());
         let slashes = _mm256_movemask_epi8(slash_cmp) as u32;
 
-        let quote_cmp = _mm256_cmpeq_epi8(byte_vector, self.quote_mask);
+        let quote_cmp = _mm256_cmpeq_epi8(byte_vector, Self::quote_mask());
         let quotes = _mm256_movemask_epi8(quote_cmp) as u32;
 
         BlockClassification { slashes, quotes }

@@ -231,8 +231,7 @@ impl<'a, I: Input> DepthBlock<'a> for Vector<'a, I> {
 }
 
 struct DelimiterClassifierImpl {
-    opening_mask: __m256i,
-    closing_mask: __m256i,
+    opening: i8,
 }
 
 impl DelimiterClassifierImpl {
@@ -242,28 +241,28 @@ impl DelimiterClassifierImpl {
             BracketType::Square => b'[',
             BracketType::Curly => b'{',
         };
-        let closing = opening + 2;
 
-        // SAFETY: target_feature invariant
-        unsafe {
-            let opening_mask = _mm256_set1_epi8(opening as i8);
-            let closing_mask = _mm256_set1_epi8(closing as i8);
-
-            Self {
-                opening_mask,
-                closing_mask,
-            }
-        }
+        Self { opening: opening as i8 }
     }
 
-    #[inline(always)]
-    fn get_opening_and_closing_vectors(&self, bytes: &[u8]) -> (__m256i, __m256i) {
+    #[target_feature(enable = "avx2")]
+    unsafe fn opening_mask(&self) -> __m256i {
+        _mm256_set1_epi8(self.opening)
+    }
+
+    #[target_feature(enable = "avx2")]
+    unsafe fn closing_mask(&self) -> __m256i {
+        _mm256_set1_epi8(self.opening + 2)
+    }
+
+    #[target_feature(enable = "avx2")]
+    unsafe fn get_opening_and_closing_vectors(&self, bytes: &[u8]) -> (__m256i, __m256i) {
         assert_eq!(32, bytes.len());
         // SAFETY: target_feature invariant
         unsafe {
             let byte_vector = _mm256_loadu_si256(bytes.as_ptr().cast::<__m256i>());
-            let opening_brace_cmp = _mm256_cmpeq_epi8(byte_vector, self.opening_mask);
-            let closing_brace_cmp = _mm256_cmpeq_epi8(byte_vector, self.closing_mask);
+            let opening_brace_cmp = _mm256_cmpeq_epi8(byte_vector, self.opening_mask());
+            let closing_brace_cmp = _mm256_cmpeq_epi8(byte_vector, self.closing_mask());
             (opening_brace_cmp, closing_brace_cmp)
         }
     }

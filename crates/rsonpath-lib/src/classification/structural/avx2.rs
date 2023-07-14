@@ -139,15 +139,16 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> FallibleIterator for A
     #[inline(always)]
     fn next(&mut self) -> Result<Option<Structural>, Self::Error> {
         while self.current_block_is_spent() {
-            match self.iter.next()? {
-                Some(block) => {
+            match self.iter.next() {
+                Ok(Some(block)) => {
                     // SAFETY: target_feature invariant
                     self.block = unsafe { Some(self.classifier.classify(block)) };
                 }
-                None => {
+                Ok(None) => {
                     self.block = None;
                     break;
                 }
+                Err(err) => return Err(err),
             }
         }
 
@@ -269,12 +270,7 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> StructuralIterator<'a,
 }
 
 struct BlockAvx2Classifier {
-    lower_nibble_mask: __m256i,
     upper_nibble_mask: __m256i,
-    upper_nibble_zeroing_mask: __m256i,
-    commas_toggle_mask: __m256i,
-    colons_toggle_mask: __m256i,
-    colons_and_commas_toggle_mask: __m256i,
 }
 
 struct BlockClassification {
@@ -298,42 +294,56 @@ impl BlockAvx2Classifier {
         0x00, 0x00, 0x00, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     ];
-    const COLON_AND_COMMA_TOGGLE_MASK_ARRAY: [u8; 32] = [
-        0x00, 0x00, 0x12, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x12, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    ];
+
+    #[target_feature(enable = "avx2")]
+    unsafe fn upper_nibble_zeroing_mask() -> __m256i {
+        _mm256_set1_epi8(0x0F)
+    }
+
+    #[target_feature(enable = "avx2")]
+    unsafe fn lower_nibble_mask() -> __m256i {
+        _mm256_loadu_si256(Self::LOWER_NIBBLE_MASK_ARRAY.as_ptr().cast::<__m256i>())
+    }
+
+    #[target_feature(enable = "avx2")]
+    unsafe fn commas_toggle_mask() -> __m256i {
+        _mm256_loadu_si256(Self::COMMAS_TOGGLE_MASK_ARRAY.as_ptr().cast::<__m256i>())
+    }
+
+    #[target_feature(enable = "avx2")]
+    unsafe fn colons_toggle_mask() -> __m256i {
+        _mm256_loadu_si256(Self::COLON_TOGGLE_MASK_ARRAY.as_ptr().cast::<__m256i>())
+    }
+
+    #[target_feature(enable = "avx2")]
+    unsafe fn colons_and_commas_toggle_mask() -> __m256i {
+        _mm256_or_si256(Self::colons_toggle_mask(), Self::commas_toggle_mask())
+    }
 
     #[target_feature(enable = "avx2")]
     #[inline]
     unsafe fn new() -> Self {
         Self {
-            lower_nibble_mask: _mm256_loadu_si256(Self::LOWER_NIBBLE_MASK_ARRAY.as_ptr().cast::<__m256i>()),
             upper_nibble_mask: _mm256_loadu_si256(Self::UPPER_NIBBLE_MASK_ARRAY.as_ptr().cast::<__m256i>()),
-            upper_nibble_zeroing_mask: _mm256_set1_epi8(0x0F),
-            commas_toggle_mask: _mm256_loadu_si256(Self::COMMAS_TOGGLE_MASK_ARRAY.as_ptr().cast::<__m256i>()),
-            colons_toggle_mask: _mm256_loadu_si256(Self::COLON_TOGGLE_MASK_ARRAY.as_ptr().cast::<__m256i>()),
-            colons_and_commas_toggle_mask: _mm256_loadu_si256(
-                Self::COLON_AND_COMMA_TOGGLE_MASK_ARRAY.as_ptr().cast::<__m256i>(),
-            ),
         }
     }
 
     #[target_feature(enable = "avx2")]
     #[inline]
     unsafe fn toggle_commas(&mut self) {
-        self.upper_nibble_mask = _mm256_xor_si256(self.upper_nibble_mask, self.commas_toggle_mask);
+        self.upper_nibble_mask = _mm256_xor_si256(self.upper_nibble_mask, Self::commas_toggle_mask());
     }
 
     #[target_feature(enable = "avx2")]
     #[inline]
     unsafe fn toggle_colons(&mut self) {
-        self.upper_nibble_mask = _mm256_xor_si256(self.upper_nibble_mask, self.colons_toggle_mask);
+        self.upper_nibble_mask = _mm256_xor_si256(self.upper_nibble_mask, Self::colons_toggle_mask());
     }
 
     #[target_feature(enable = "avx2")]
     #[inline]
     unsafe fn toggle_colons_and_commas(&mut self) {
-        self.upper_nibble_mask = _mm256_xor_si256(self.upper_nibble_mask, self.colons_and_commas_toggle_mask);
+        self.upper_nibble_mask = _mm256_xor_si256(self.upper_nibble_mask, Self::colons_and_commas_toggle_mask());
     }
 
     #[target_feature(enable = "avx2")]
@@ -361,8 +371,8 @@ impl BlockAvx2Classifier {
     unsafe fn classify_block(&self, block: &[u8]) -> BlockClassification {
         let byte_vector = _mm256_loadu_si256(block.as_ptr().cast::<__m256i>());
         let shifted_byte_vector = _mm256_srli_epi16::<4>(byte_vector);
-        let upper_nibble_byte_vector = _mm256_and_si256(shifted_byte_vector, self.upper_nibble_zeroing_mask);
-        let lower_nibble_lookup = _mm256_shuffle_epi8(self.lower_nibble_mask, byte_vector);
+        let upper_nibble_byte_vector = _mm256_and_si256(shifted_byte_vector, Self::upper_nibble_zeroing_mask());
+        let lower_nibble_lookup = _mm256_shuffle_epi8(Self::lower_nibble_mask(), byte_vector);
         let upper_nibble_lookup = _mm256_shuffle_epi8(self.upper_nibble_mask, upper_nibble_byte_vector);
         let structural_vector = _mm256_cmpeq_epi8(lower_nibble_lookup, upper_nibble_lookup);
         let structural = _mm256_movemask_epi8(structural_vector) as u32;

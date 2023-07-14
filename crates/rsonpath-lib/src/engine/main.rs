@@ -169,7 +169,10 @@ where
     ) -> Result<(), EngineError> {
         loop {
             if self.next_event.is_none() {
-                self.next_event = classifier.next()?;
+                self.next_event = match classifier.next() {
+                    Ok(e) => e,
+                    Err(err) => return Err(EngineError::InputError(err)),
+                };
             }
             if let Some(event) = self.next_event {
                 debug!("====================");

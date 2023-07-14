@@ -28,24 +28,6 @@ file_test_cases!(buffered_input, FileTestInput::Buffered);
 file_test_cases!(mmap_input, FileTestInput::Mmap);
 file_test_cases!(owned_bytes, FileTestInput::Owned);
 
-mod in_memory_proptests {
-    use proptest::{collection, num, prelude::*};
-
-    use crate::InMemoryTestInput;
-
-    proptest! {
-        #[test]
-        fn buffered_input_represents_the_same_bytes_padded(input in collection::vec(num::u8::ANY, collection::SizeRange::default())) {
-            InMemoryTestInput::Buffered.test_on_bytes(&input)
-        }
-
-        #[test]
-        fn owned_bytes_represents_the_same_bytes_padded(input in collection::vec(num::u8::ANY, collection::SizeRange::default())) {
-            InMemoryTestInput::Owned.test_on_bytes(&input)
-        }
-    }
-}
-
 #[derive(Debug)]
 enum FileTestInput {
     Buffered,
@@ -202,6 +184,24 @@ impl<'a> Read for ReadBytes<'a> {
             Ok(size)
         } else {
             Ok(0)
+        }
+    }
+}
+
+mod in_memory_proptests {
+    use proptest::{collection, num, prelude::*};
+
+    use crate::InMemoryTestInput;
+
+    proptest! {
+        #[test]
+        fn buffered_input_represents_the_same_bytes_padded(input in collection::vec(num::u8::ANY, collection::SizeRange::default())) {
+            InMemoryTestInput::Buffered.test_on_bytes(&input)
+        }
+
+        #[test]
+        fn owned_bytes_represents_the_same_bytes_padded(input in collection::vec(num::u8::ANY, collection::SizeRange::default())) {
+            InMemoryTestInput::Owned.test_on_bytes(&input)
         }
     }
 }

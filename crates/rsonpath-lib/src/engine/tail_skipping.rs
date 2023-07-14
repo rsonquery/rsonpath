@@ -1,3 +1,4 @@
+#![allow(clippy::expect_used)] // Enforcing the classifier invariant is clunky without this.
 use crate::{
     classification::{
         depth::{resume_depth_classification, DepthBlock, DepthIterator, DepthIteratorResumeOutcome},
@@ -40,7 +41,7 @@ where
         let mut idx = 0;
         let mut err = None;
 
-        let classifier = self.classifier.take().expect("or fuck off");
+        let classifier = self.classifier.take().expect("tail skip must always hold a classifier");
 
         self.classifier = Some('a: {
             let resume_state = classifier.stop();
@@ -101,7 +102,7 @@ where
     }
 
     pub(crate) fn stop(self) -> ResumeClassifierState<'b, I, Q, BLOCK_SIZE> {
-        self.classifier.expect("or fuck off").stop()
+        self.classifier.expect("tail skip must always hold a classifier").stop()
     }
 }
 
@@ -114,7 +115,9 @@ where
     type Target = S;
 
     fn deref(&self) -> &Self::Target {
-        self.classifier.as_ref().expect("twoja stara")
+        self.classifier
+            .as_ref()
+            .expect("tail skip must always hold a classifier")
     }
 }
 
@@ -125,6 +128,8 @@ where
     S: StructuralIterator<'b, I, Q, N>,
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        self.classifier.as_mut().expect("twoja stara")
+        self.classifier
+            .as_mut()
+            .expect("tail skip must always hold a classifier")
     }
 }
