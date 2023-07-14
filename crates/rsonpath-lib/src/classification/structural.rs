@@ -195,11 +195,18 @@ pub trait StructuralIterator<'a, I: Input, Q, const N: usize>:
     fn turn_commas_on(&mut self, idx: usize);
 
     /// Turn classification of both [`Structural::Comma`] and [`Structural::Colon`]
-    /// characters on. This is generally faster than calling 
-    /// [`turn_colons_on`](`StructuralIterator::turn_colons_on`) and 
+    /// characters on. This is generally faster than calling
+    /// [`turn_colons_on`](`StructuralIterator::turn_colons_on`) and
     /// [`turn_commas_on`](`StructuralIterator::turn_commas_on`)
     /// in sequence.
     fn turn_colons_and_commas_on(&mut self, idx: usize);
+
+    /// Turn classification of both [`Structural::Comma`] and [`Structural::Colon`]
+    /// characters off. This is generally faster than calling
+    /// [`turn_colons_on`](`StructuralIterator::turn_colons_off`) and
+    /// [`turn_commas_on`](`StructuralIterator::turn_commas_off`)
+    /// in sequence.
+    fn turn_colons_and_commas_off(&mut self);
 }
 
 cfg_if! {

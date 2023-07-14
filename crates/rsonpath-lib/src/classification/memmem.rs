@@ -1,3 +1,5 @@
+//! Classification ignoring the structure of the JSON and looking for the occurrence
+//! of a specific member name as quickly as possible.
 use crate::{
     input::{error::InputError, Input},
     query::JsonString,
@@ -6,7 +8,17 @@ use crate::{
 };
 use cfg_if::cfg_if;
 
+/// Classifier that can quickly find a member name in a byte stream.
 pub trait Memmem<'a, 'b, I: Input, const N: usize> {
+    /// Find a member key identified by a given [`JsonString`].
+    ///
+    /// - `first_block` &ndash; optional first block to search; if not provided,
+    /// the search will start at the next block returned by the underlying [`Input`] iterator.
+    /// - `start_idx` &ndash; index of the start of search, either falling inside `first_block`,
+    /// or at the start of the next block.
+    ///
+    /// # Errors
+    /// Errors when reading the underlying [`Input`] are propagated.
     fn find_label(
         &mut self,
         first_block: Option<I::Block<'a, N>>,
@@ -16,7 +28,11 @@ pub trait Memmem<'a, 'b, I: Input, const N: usize> {
 }
 
 cfg_if! {
-    if #[cfg(simd = "avx2")] {
+    if #[cfg(any(doc, not(feature = "simd")))] {
+        mod nosimd;
+        type MemmemImpl<'a, 'b, 'r, I, R> = nosimd::SequentialMemmemClassifier<'a, 'b, 'r, I, R, BLOCK_SIZE>;
+    }
+    else if #[cfg(simd = "avx2")] {
         mod avx2;
         type MemmemImpl<'a, 'b, 'r, I, R> = avx2::Avx2MemmemClassifier<'a, 'b, 'r, I, R>;
     }

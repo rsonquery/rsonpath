@@ -226,6 +226,21 @@ macro_rules! debug {
     ($($arg:tt)+) => (log::debug!($($arg)+))
 }
 
+macro_rules! block {
+    ($b:expr) => {
+        crate::debug!(
+            "{: >24}: {}",
+            "block",
+            std::str::from_utf8(
+                &$b.iter()
+                    .map(|x| if x.is_ascii_whitespace() { b' ' } else { *x })
+                    .collect::<Vec<_>>()
+            )
+            .unwrap()
+        );
+    };
+}
+
 /// Macro for debug logging. Evaluates to [`log::debug`], if debug assertions are enabled.
 /// Otherwise it's an empty statement.
 ///
@@ -259,6 +274,7 @@ macro_rules! bin {
 
 #[allow(unused_imports)]
 pub(crate) use bin;
+pub(crate) use block;
 pub(crate) use debug;
 
 /// Variation of the [`Iterator`] trait where each read can fail.

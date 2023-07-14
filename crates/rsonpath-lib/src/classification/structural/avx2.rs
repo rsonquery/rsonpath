@@ -178,6 +178,20 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> StructuralIterator<'a,
         }
     }
 
+    fn turn_colons_and_commas_off(&mut self) {
+        if self.are_commas_on && self.are_colons_on {
+            self.are_commas_on = false;
+            self.are_colons_on = false;
+            debug!("Turning both commas and colons off.");
+            // SAFETY: target_feature invariant
+            unsafe { self.classifier.toggle_colons_and_commas() }
+        } else if self.are_commas_on {
+            self.turn_commas_off();
+        } else if self.are_colons_on {
+            self.turn_colons_off();
+        }
+    }
+
     fn turn_commas_on(&mut self, idx: usize) {
         if !self.are_commas_on {
             self.are_commas_on = true;

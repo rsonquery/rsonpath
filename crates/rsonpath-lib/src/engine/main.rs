@@ -203,12 +203,7 @@ where
         Ok(())
     }
 
-    fn record_match_detected_at(
-        &mut self,
-        start_idx: usize,
-        depth: Depth,
-        hint: NodeTypeHint,
-    ) -> Result<(), EngineError> {
+    fn record_match_detected_at(&mut self, start_idx: usize, hint: NodeTypeHint) -> Result<(), EngineError> {
         debug!("Reporting result somewhere after {start_idx} with hint {hint:?}");
 
         let index = match hint {
@@ -254,7 +249,6 @@ where
                         if self.automaton.is_accepting(target) && self.is_match(idx, member_name)? {
                             self.record_match_detected_at(
                                 idx + 1,
-                                self.depth,
                                 NodeTypeHint::Atomic, /* since is_next_opening is false */
                             )?;
                             any_matched = true;
@@ -265,11 +259,7 @@ where
             }
             let fallback_state = self.automaton[self.state].fallback_state();
             if !any_matched && self.automaton.is_accepting(fallback_state) {
-                self.record_match_detected_at(
-                    idx + 1,
-                    self.depth,
-                    NodeTypeHint::Atomic, /* since is_next_opening is false */
-                )?;
+                self.record_match_detected_at(idx + 1, NodeTypeHint::Atomic /* since is_next_opening is false */)?;
             }
             #[cfg(feature = "unique-members")]
             {
@@ -312,11 +302,7 @@ where
 
         if !is_next_opening && self.is_list && is_fallback_accepting {
             debug!("Accepting on comma.");
-            self.record_match_detected_at(
-                idx + 1,
-                self.depth,
-                NodeTypeHint::Atomic, /* since is_next_opening is false */
-            )?;
+            self.record_match_detected_at(idx + 1, NodeTypeHint::Atomic /* since is_next_opening is false */)?;
         }
 
         // After wildcard, check for a matching array index.
@@ -332,11 +318,7 @@ where
 
         if self.is_list && !is_next_opening && match_index {
             debug!("Accepting on list item.");
-            self.record_match_detected_at(
-                idx + 1,
-                self.depth,
-                NodeTypeHint::Atomic, /* since is_next_opening is false */
-            )?;
+            self.record_match_detected_at(idx + 1, NodeTypeHint::Atomic /* since is_next_opening is false */)?;
         }
 
         Ok(())
@@ -365,7 +347,7 @@ where
                         self.transition_to(target, bracket_type);
                         if self.automaton.is_accepting(target) {
                             debug!("Accept {idx}");
-                            self.record_match_detected_at(idx, self.depth, NodeTypeHint::Complex(bracket_type))?;
+                            self.record_match_detected_at(idx, NodeTypeHint::Complex(bracket_type))?;
                         }
                         break;
                     }
@@ -376,11 +358,7 @@ where
                             any_matched = true;
                             self.transition_to(target, bracket_type);
                             if self.automaton.is_accepting(target) {
-                                self.record_match_detected_at(
-                                    colon_idx + 1,
-                                    self.depth,
-                                    NodeTypeHint::Complex(bracket_type),
-                                )?;
+                                self.record_match_detected_at(colon_idx + 1, NodeTypeHint::Complex(bracket_type))?;
                             }
                             break;
                         }
@@ -402,7 +380,7 @@ where
             }
 
             if self.automaton.is_accepting(fallback) {
-                self.record_match_detected_at(idx, self.depth, NodeTypeHint::Complex(bracket_type))?;
+                self.record_match_detected_at(idx, NodeTypeHint::Complex(bracket_type))?;
             }
         }
 
@@ -410,8 +388,10 @@ where
             .increment()
             .map_err(|err| EngineError::DepthAboveLimit(idx, err))?;
 
-        if bracket_type == BracketType::Square {
-            self.is_list = true;
+        self.is_list = bracket_type == BracketType::Square;
+        let mut needs_commas = false;
+
+        if self.is_list {
             self.has_any_array_item_transition = self.automaton.has_any_array_item_transition(self.state);
             self.has_any_array_item_transition_to_accepting =
                 self.automaton.has_any_array_item_transition_to_accepting(self.state);
@@ -422,7 +402,7 @@ where
             let searching_list = is_fallback_accepting || self.has_any_array_item_transition;
 
             if searching_list {
-                classifier.turn_commas_on(idx);
+                needs_commas = true;
                 self.array_count = NonNegativeArrayIndex::ZERO;
                 debug!("Initialized array count to {}", self.array_count);
 
@@ -437,26 +417,22 @@ where
                         Some((value_idx, _)) => {
                             self.record_match_detected_at(
                                 value_idx,
-                                self.depth,
                                 NodeTypeHint::Atomic, /* since the next structural is a ','*/
                             )?;
                         }
                         _ => (),
                     }
                 }
-            } else {
-                classifier.turn_commas_off();
             }
-        } else {
-            classifier.turn_commas_off();
-            self.is_list = false;
         }
 
         if !self.is_list && self.automaton.has_transition_to_accepting(self.state) {
-            classifier.turn_colons_on(idx);
+            classifier.turn_colons_and_commas_on(idx);
+        } else if needs_commas {
+            classifier.turn_colons_off();
             classifier.turn_commas_on(idx);
         } else {
-            classifier.turn_colons_off();
+            classifier.turn_colons_and_commas_off();
         }
 
         Ok(())

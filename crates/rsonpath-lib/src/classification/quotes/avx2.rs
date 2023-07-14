@@ -16,7 +16,7 @@ use super::*;
 use crate::debug;
 use crate::input::{Input, InputBlock, InputBlockIterator};
 use crate::FallibleIterator;
-use crate::{bin, result::InputRecorder};
+use crate::{bin, block, result::InputRecorder};
 
 #[cfg(target_arch = "x86")]
 use core::arch::x86::*;
@@ -53,11 +53,13 @@ where
     ) -> (Self, Option<QuoteClassifiedBlock<I::Block<'a, SIZE>, SIZE>>) {
         let mut s = Self {
             iter,
+            // SAFETY: target feature invariant
             classifier: unsafe { BlockAvx2Classifier::new() },
             phantom: PhantomData,
         };
 
         let block = first_block.map(|b| {
+            // SAFETY: target feature invariant
             let mask = unsafe { s.classifier.classify(&b) };
             QuoteClassifiedBlock {
                 block: b,
@@ -342,16 +344,7 @@ impl BlockAvx2Classifier {
         let within_quotes = _mm_cvtsi128_si64(cumulative_xor) as u64;
         self.update_prev_block_mask(set_prev_slash_mask, within_quotes);
 
-        debug!(
-            "{: >24}: {}",
-            "block",
-            std::str::from_utf8_unchecked(
-                &two_blocks[..64]
-                    .iter()
-                    .map(|x| if x.is_ascii_whitespace() { b' ' } else { *x })
-                    .collect::<Vec<_>>()
-            )
-        );
+        block!(two_blocks[..64]);
         bin!("slashes", slashes);
         bin!("quotes", quotes);
         bin!("prev_slash_bit", self.get_prev_slash_mask());

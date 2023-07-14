@@ -4,7 +4,7 @@
 use crate::{
     classification::{
         memmem::Memmem,
-        quotes::{classify_quoted_sequences, resume_quote_classification, InnerIter, QuoteClassifiedIterator},
+        quotes::{resume_quote_classification, InnerIter, QuoteClassifiedIterator},
         structural::{resume_structural_classification, BracketType, Structural, StructuralIterator},
         ResumeClassifierBlockState, ResumeClassifierState,
     },
@@ -159,11 +159,7 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
 
                         debug!("Actual match with colon at {colon_idx}");
                         debug!("Next significant character at {next_idx}");
-                        debug!("Classifier claims it's at {}", classifier_state.get_idx());
-                        debug!(
-                            "It also has its first block at {}",
-                            classifier_state.block.as_ref().unwrap().idx
-                        );
+                        debug!("Classifier is at {}", classifier_state.get_idx());
                         debug!("We want to offset by {distance_to_colon} first, then by {distance_to_value}",);
 
                         classifier_state.offset_bytes(distance_to_colon as isize)?;
@@ -212,16 +208,12 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
                                     crate::result::MatchedNodeType::Atomic,
                                 );
                                 let mut classifier = resume_structural_classification(classifier_state);
-                                let next_structural = classifier.next()?.unwrap();
-                                // The value we found must be atomic, since the next structural is not an Opening.
-                                // To ensure correct processing by the recorder, we report the match, and then
-                                // a terminating structural. We deliberately lie that it's a comma to not influence
-                                // the depth. This is a HACK, we should probably have a more clear way of
-                                // communicating this to the recorder.
+                                let next_structural = classifier.next()?;
 
-                                engine
-                                    .recorder()
-                                    .record_structural(Structural::Comma(next_structural.idx()));
+                                match next_structural {
+                                    Some(s) => engine.recorder().record_value_terminator(s.idx(), Depth::ZERO),
+                                    None => return Err(EngineError::MissingClosingCharacter()),
+                                }
                                 classifier.stop()
                             }
                             _ => classifier_state,

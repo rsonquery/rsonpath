@@ -212,15 +212,6 @@ impl InternalRecorder {
     }
 
     fn record_match(&mut self, idx: usize, depth: Depth, ty: MatchedNodeType) {
-        // In case of atomic types, any structural event that happens
-        // at or above current depth marks the end. For complex types,
-        // we first get the opening structural event, so the end is marked
-        // by a depth decrease of 1.
-        let start_depth = match ty {
-            MatchedNodeType::Atomic => (depth + 1).expect("depth not above limit"),
-            MatchedNodeType::Complex => depth,
-        };
-
         let node = PartialNode {
             start_idx: idx,
             start_depth: depth,

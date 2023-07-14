@@ -31,7 +31,7 @@
 //! assert_eq!(expd, block.within_quotes_mask);
 //! ```
 
-use crate::input::{Input, InputBlock, InputBlockIterator};
+use crate::input::{Input, InputBlock};
 use crate::{input::error::InputError, result::InputRecorder};
 use crate::{FallibleIterator, BLOCK_SIZE};
 use cfg_if::cfg_if;
@@ -71,7 +71,9 @@ pub trait QuoteClassifiedIterator<'a, I: Input + 'a, const N: usize>:
     fn flip_quotes_bit(&mut self);
 }
 
+/// Higher-level classifier that can be consumed to retrieve the inner [`Input::BlockIterator`].
 pub trait InnerIter<'a, 'r, I: Input + 'a, R: InputRecorder, const N: usize> {
+    /// Consume `self` and return the wrapped [`Input::BlockIterator`].
     fn into_inner(self) -> I::BlockIterator<'a, 'r, N, R>;
 }
 

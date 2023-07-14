@@ -16,7 +16,7 @@ use crate::input::{Input, InputBlock, InputBlockIterator};
 use crate::query::JsonString;
 use crate::result::InputRecorder;
 use crate::FallibleIterator;
-use crate::{bin, debug};
+use crate::{bin, block, debug};
 
 #[cfg(target_arch = "x86")]
 use core::arch::x86::*;
@@ -60,9 +60,9 @@ where
 
             let second_bitmask = _mm256_movemask_epi8(_mm256_cmpeq_epi8(byte_vector1, second)) as u64
                 | ((_mm256_movemask_epi8(_mm256_cmpeq_epi8(byte_vector2, second)) as u64) << 32);
-            first_bitmask &= (second_bitmask << 1 | 1); // we AND `"` bitmask with `c` bitmask to filter c's position in the stream following a `"`
-                                                        // We should need the last bit of previous block. Instead of memoizing, we simply assume it is one.
-                                                        // It could gives only add more potential match.
+            first_bitmask &= second_bitmask << 1 | 1; // we AND `"` bitmask with `c` bitmask to filter c's position in the stream following a `"`
+                                                      // We should need the last bit of previous block. Instead of memoizing, we simply assume it is one.
+                                                      // It could gives only add more potential match.
 
             let mut result = (previous_block | (first_bitmask << 1)) & second_bitmask;
             while result != 0 {
@@ -75,7 +75,8 @@ where
             offset += SIZE;
             previous_block = first_bitmask >> (SIZE - 1);
         }
-        return Ok(None);
+
+        Ok(None)
     }
 
     #[target_feature(enable = "avx2")]
@@ -105,17 +106,8 @@ where
 
             let mut result = (previous_block | (first_bitmask << 1)) & second_bitmask;
             debug!("printing result memmem");
-            debug!(
-                "{: >24}: {}",
-                "block",
-                std::str::from_utf8_unchecked(
-                    &block
-                        .iter()
-                        .map(|x| if x.is_ascii_whitespace() { b' ' } else { *x })
-                        .collect::<Vec<_>>()
-                )
-            );
-            bin!("resul:", result);
+            block!(block);
+            bin!("result", result);
             bin!("first", first_bitmask);
             while result != 0 {
                 let idx = result.trailing_zeros() as usize;
@@ -132,7 +124,8 @@ where
             previous_block = first_bitmask >> (SIZE - 1);
             bin!("previous", previous_block);
         }
-        return Ok(None);
+
+        Ok(None)
     }
 }
 
@@ -152,17 +145,7 @@ where
             let block_idx = start_idx % SIZE;
             let n = label.bytes_with_quotes().len();
             debug!("half block fetches for {:?} starting at {:?}", label, block_idx);
-            debug!(
-                "{: >24}: {}",
-                "block",
-                std::str::from_utf8(
-                    &b[block_idx..]
-                        .iter()
-                        .map(|x| if x.is_ascii_whitespace() { b' ' } else { *x })
-                        .collect::<Vec<_>>()
-                )
-                .unwrap()
-            );
+            block!(b[block_idx..]);
             let m = b[block_idx..].iter().copied().enumerate().find(|&(i, c)| {
                 let j = start_idx + i;
                 c == b'"' && self.input.is_member_match(j, j + n - 1, label)
@@ -171,6 +154,7 @@ where
                 return Ok(Some((res + start_idx, b)));
             }
         }
+        // SAFETY: target feature invariant
         unsafe { self.find_label_avx2(label, next_block_offset) }
     }
 }

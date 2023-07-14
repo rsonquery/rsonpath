@@ -91,10 +91,17 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> Sequent
     fn reclassify(&mut self, idx: usize) {
         if let Some(block) = self.block.take() {
             let quote_classified_block = block.quote_classified;
+            let relevant_idx = idx + 1;
             let block_idx = (idx + 1) % N;
+            debug!("relevant_idx is {relevant_idx}.");
 
-            if block_idx != 0 {
-                let new_block = Block::from_idx(quote_classified_block, block_idx, self.are_colons_on, true);
+            if block_idx != 0 || relevant_idx == self.iter.get_offset() {
+                let new_block = Block::from_idx(
+                    quote_classified_block,
+                    block_idx,
+                    self.are_colons_on,
+                    self.are_commas_on,
+                );
                 self.block = Some(new_block);
             }
         }
@@ -140,6 +147,18 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> Structu
             self.turn_commas_on(idx);
         } else if !self.are_colons_on {
             self.turn_colons_on(idx);
+        }
+    }
+
+    fn turn_colons_and_commas_off(&mut self) {
+        if self.are_commas_on && self.are_colons_on {
+            self.are_commas_on = false;
+            self.are_colons_on = false;
+            debug!("Turning both commas and colons off.");
+        } else if self.are_commas_on {
+            self.turn_commas_off();
+        } else if self.are_colons_on {
+            self.turn_colons_off();
         }
     }
 
