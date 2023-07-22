@@ -104,6 +104,80 @@ impl Recorder for NodesRecorder {
     }
 }
 
+
+/*
+{
+    [
+        1,
+        2,
+        [
+            3,
+            4
+        ]
+    ],
+    [
+        5
+    ]
+}
+
+// Required order:
+// [1,2,[3,4]], 1, 2, [3,4], 3, 4, [5], 5
+
+// Finalization order:
+// 1, 2, 3, 4, [3,4], [1,2,[3,4]], 5, [5]
+
+1. By default, we assume the common case of no overlapping matches.
+In that case we don't have to maintain any stack, the state is simply
+a buffer for the current match and information on when to end it.
+2. If a new match is registered when there is a match active, it means
+they are overlapping and we switch to the second algorithm.
+
+Matches are pushed onto a stack. Every time we finish a match we need to find
+the node that is finalized. If we keep all matches on the stack it would take
+potentially linear time. In the above example, when [3,4] is finalized,
+there is 3 and 4 already finalized *above* on the stack. This leads to a quadratic
+blowup if implemented naively (just consider a long list of atoms).
+
+Instead we keep only the active matches on the stack, annotated with the output number
+of the match. In a secondary array we keep the finished nodes in the output order.
+When popping we can write the node into the array with random-access. Because
+the order is maintained, outputting the nodes is easy since we can just look at the
+node with the number that should be output next and iterate from there.
+
+This would be potentially wasteful on its own, since we'd always have the secondary array
+grow to the total number of matches. We can instead compress the array when it becomes
+empty and keep a map between output number and array indices. For example, here's
+the state of this algorithm on the above example after the match of "2" is completed.
+
+STACK             | DONE (off. 0) | 
+                  | Some(2)       |
+                  | Some(1)       |
+(0, [1,2...)      | None          |
+
+After "4":
+
+STACK             | DONE (off. 0) |
+                  | Some(4)       |
+                  | Some(3)       |
+                  | None          |
+                  | Some(2)       |
+(3, [3,4])        | Some(1)       |
+(0, [1,2,[3,4...) | None          |
+
+Now after the first list gets finalized we can output everything in the array starting from
+index 0. Now that the stack is empty we can compress.
+
+STACK             | DONE (off. 5)
+
+Now we push the second list and the 5, finalize the 5.
+We write it to array at index 1, since its output order is 6 and the offset from compression
+is 5.
+
+STACK             | DONE (off. 5)
+                  | Some(5)
+(6, [5...)        | None
+*/
+
 struct InternalRecorder {
     idx: usize,
     stack: Vec<PartialNode>,

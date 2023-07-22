@@ -1,4 +1,4 @@
-// 6d736ed94479d784a5d73ebca4bc62d3
+// c7a431858bdd85258505124c4f1d52c6
 use pretty_assertions::assert_eq;
 use rsonpath::engine::{main::MainEngine, Compiler, Engine};
 use rsonpath::input::*;
@@ -40,10 +40,8 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -81,10 +79,8 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -122,10 +118,8 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -163,10 +157,8 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -204,10 +196,8 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -245,10 +235,8 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -286,10 +274,8 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -327,10 +313,8 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -368,10 +352,8 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -409,10 +391,8 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -450,10 +430,8 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -491,10 +469,8 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -532,10 +508,8 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_compressed_with_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"hit1\"", "\"hit2\"", "\"hit3\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"hit1\"", "\"hit2\"", "\"hit3\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -573,10 +547,8 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_compressed_with_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"hit1\"", "\"hit2\"", "\"hit3\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"hit1\"", "\"hit2\"", "\"hit3\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -614,10 +586,8 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_compressed_with_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"hit1\"", "\"hit2\"", "\"hit3\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"hit1\"", "\"hit2\"", "\"hit3\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -659,10 +629,8 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_with_query_mix_d
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"hit1\"", "\"hit2\"", "\"hit3\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"hit1\"", "\"hit2\"", "\"hit3\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -704,10 +672,8 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_with_query_mix_d
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"hit1\"", "\"hit2\"", "\"hit3\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"hit1\"", "\"hit2\"", "\"hit3\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -749,10 +715,8 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_with_query_mix_d
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"hit1\"", "\"hit2\"", "\"hit3\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"hit1\"", "\"hit2\"", "\"hit3\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -790,10 +754,8 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42", "42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42", "42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -831,10 +793,8 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42", "42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42", "42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -872,10 +832,8 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42", "42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42", "42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -913,10 +871,8 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42", "42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42", "42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -954,10 +910,8 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42", "42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42", "42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -995,10 +949,8 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42", "42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42", "42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -1036,10 +988,8 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42", "42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42", "42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -1077,10 +1027,8 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42", "42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42", "42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -1118,10 +1066,8 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42", "42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42", "42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -1159,10 +1105,8 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42", "42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42", "42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -1200,10 +1144,8 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42", "42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42", "42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -1241,10 +1183,8 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42", "42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42", "42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -1282,10 +1222,8 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42", "42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42", "42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -1323,10 +1261,8 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42", "42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42", "42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -1364,10 +1300,8 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42", "42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42", "42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -1405,10 +1339,8 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42", "42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42", "42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -1446,10 +1378,8 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42", "42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42", "42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -1487,10 +1417,8 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42", "42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42", "42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -1532,10 +1460,8 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected : Vec < & str > = vec ! ["\"value1\"" , "{\"v\":\"this c is also a hit\",\"c\":\"but this one is a miss\",\"a\":{\"b\":{\"a\":{\"b\":{\"c\":\"value2\"}}}}}" , "\"value2\"" , "\"value3\"" , "\"value4\"" , "\"value5\"" ,] ;
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected : Vec < & str > = vec ! ["\"value1\"" , "{\"v\":\"this c is also a hit\",\"c\":\"but this one is a miss\",\"a\":{\"b\":{\"a\":{\"b\":{\"c\":\"value2\"}}}}}" , "\"value2\"" , "\"value3\"" , "\"value4\"" , "\"value5\"" ,] ;
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -1577,10 +1503,8 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected : Vec < & str > = vec ! ["\"value1\"" , "{\"v\":\"this c is also a hit\",\"c\":\"but this one is a miss\",\"a\":{\"b\":{\"a\":{\"b\":{\"c\":\"value2\"}}}}}" , "\"value2\"" , "\"value3\"" , "\"value4\"" , "\"value5\"" ,] ;
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected : Vec < & str > = vec ! ["\"value1\"" , "{\"v\":\"this c is also a hit\",\"c\":\"but this one is a miss\",\"a\":{\"b\":{\"a\":{\"b\":{\"c\":\"value2\"}}}}}" , "\"value2\"" , "\"value3\"" , "\"value4\"" , "\"value5\"" ,] ;
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -1622,10 +1546,8 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected : Vec < & str > = vec ! ["\"value1\"" , "{\"v\":\"this c is also a hit\",\"c\":\"but this one is a miss\",\"a\":{\"b\":{\"a\":{\"b\":{\"c\":\"value2\"}}}}}" , "\"value2\"" , "\"value3\"" , "\"value4\"" , "\"value5\"" ,] ;
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected : Vec < & str > = vec ! ["\"value1\"" , "{\"v\":\"this c is also a hit\",\"c\":\"but this one is a miss\",\"a\":{\"b\":{\"a\":{\"b\":{\"c\":\"value2\"}}}}}" , "\"value2\"" , "\"value3\"" , "\"value4\"" , "\"value5\"" ,] ;
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -1667,10 +1589,8 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected : Vec < & str > = vec ! ["\"value1\"" , "{\n                                                \"v\": \"this c is also a hit\",\n                                                \"c\": \"but this one is a miss\",\n                                                \"a\": {\n                                                    \"b\": {\n                                                        \"a\": {\n                                                            \"b\": {\n                                                                \"c\": \"value2\"\n                                                            }\n                                                        }\n                                                    }\n                                                }\n                                            }" , "\"value2\"" , "\"value3\"" , "\"value4\"" , "\"value5\"" ,] ;
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected : Vec < & str > = vec ! ["\"value1\"" , "{\n                                                \"v\": \"this c is also a hit\",\n                                                \"c\": \"but this one is a miss\",\n                                                \"a\": {\n                                                    \"b\": {\n                                                        \"a\": {\n                                                            \"b\": {\n                                                                \"c\": \"value2\"\n                                                            }\n                                                        }\n                                                    }\n                                                }\n                                            }" , "\"value2\"" , "\"value3\"" , "\"value4\"" , "\"value5\"" ,] ;
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -1712,10 +1632,8 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected : Vec < & str > = vec ! ["\"value1\"" , "{\n                                                \"v\": \"this c is also a hit\",\n                                                \"c\": \"but this one is a miss\",\n                                                \"a\": {\n                                                    \"b\": {\n                                                        \"a\": {\n                                                            \"b\": {\n                                                                \"c\": \"value2\"\n                                                            }\n                                                        }\n                                                    }\n                                                }\n                                            }" , "\"value2\"" , "\"value3\"" , "\"value4\"" , "\"value5\"" ,] ;
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected : Vec < & str > = vec ! ["\"value1\"" , "{\n                                                \"v\": \"this c is also a hit\",\n                                                \"c\": \"but this one is a miss\",\n                                                \"a\": {\n                                                    \"b\": {\n                                                        \"a\": {\n                                                            \"b\": {\n                                                                \"c\": \"value2\"\n                                                            }\n                                                        }\n                                                    }\n                                                }\n                                            }" , "\"value2\"" , "\"value3\"" , "\"value4\"" , "\"value5\"" ,] ;
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -1757,10 +1675,8 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected : Vec < & str > = vec ! ["\"value1\"" , "{\n                                                \"v\": \"this c is also a hit\",\n                                                \"c\": \"but this one is a miss\",\n                                                \"a\": {\n                                                    \"b\": {\n                                                        \"a\": {\n                                                            \"b\": {\n                                                                \"c\": \"value2\"\n                                                            }\n                                                        }\n                                                    }\n                                                }\n                                            }" , "\"value2\"" , "\"value3\"" , "\"value4\"" , "\"value5\"" ,] ;
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected : Vec < & str > = vec ! ["\"value1\"" , "{\n                                                \"v\": \"this c is also a hit\",\n                                                \"c\": \"but this one is a miss\",\n                                                \"a\": {\n                                                    \"b\": {\n                                                        \"a\": {\n                                                            \"b\": {\n                                                                \"c\": \"value2\"\n                                                            }\n                                                        }\n                                                    }\n                                                }\n                                            }" , "\"value2\"" , "\"value3\"" , "\"value4\"" , "\"value5\"" ,] ;
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -1807,12 +1723,10 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "42", "1", "2", "{}", "[]", "[[]]", "[]", "\"xyz\"", "true", "false", "null", "42",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -1859,12 +1773,10 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "42", "1", "2", "{}", "[]", "[[]]", "[]", "\"xyz\"", "true", "false", "null", "42",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -1911,12 +1823,10 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "42", "1", "2", "{}", "[]", "[[]]", "[]", "\"xyz\"", "true", "false", "null", "42",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -1961,12 +1871,10 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "42", "1", "2", "{}", "[]", "[[]]", "\"xyz\"", "true", "false", "null", "42",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -2011,12 +1919,10 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "42", "1", "2", "{}", "[]", "[[]]", "\"xyz\"", "true", "false", "null", "42",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -2061,12 +1967,10 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "42", "1", "2", "{}", "[]", "[[]]", "\"xyz\"", "true", "false", "null", "42",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -2111,8 +2015,8 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "42",
         "1",
         "2",
@@ -2126,8 +2030,6 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
         "null",
         "42",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -2172,8 +2074,8 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "42",
         "1",
         "2",
@@ -2187,8 +2089,6 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
         "null",
         "42",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -2233,8 +2133,8 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "42",
         "1",
         "2",
@@ -2248,8 +2148,6 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
         "null",
         "42",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -2294,8 +2192,8 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "42",
         "1",
         "2",
@@ -2308,8 +2206,6 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
         "null",
         "42",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -2354,8 +2250,8 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "42",
         "1",
         "2",
@@ -2368,8 +2264,6 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
         "null",
         "42",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -2414,8 +2308,8 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "42",
         "1",
         "2",
@@ -2428,8 +2322,6 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
         "null",
         "42",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -2471,10 +2363,8 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["1", "2", "{}", "[]", "[[[[]]]]", "[[[]]]", "[[]]", "[]", "3"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["1", "2", "{}", "[]", "[[[[]]]]", "[[[]]]", "[[]]", "[]", "3"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -2516,10 +2406,8 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["1", "2", "{}", "[]", "[[[[]]]]", "[[[]]]", "[[]]", "[]", "3"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["1", "2", "{}", "[]", "[[[[]]]]", "[[[]]]", "[[]]", "[]", "3"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -2561,10 +2449,8 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["1", "2", "{}", "[]", "[[[[]]]]", "[[[]]]", "[[]]", "[]", "3"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["1", "2", "{}", "[]", "[[[[]]]]", "[[[]]]", "[[]]", "[]", "3"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -2606,10 +2492,8 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["1", "2", "{}", "[]", "[[[[]]]]", "3"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["1", "2", "{}", "[]", "[[[[]]]]", "3"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -2651,10 +2535,8 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["1", "2", "{}", "[]", "[[[[]]]]", "3"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["1", "2", "{}", "[]", "[[[[]]]]", "3"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -2696,10 +2578,8 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["1", "2", "{}", "[]", "[[[[]]]]", "3"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["1", "2", "{}", "[]", "[[[[]]]]", "3"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -2741,10 +2621,8 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_and_bel
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected : Vec < & str > = vec ! ["1" , "2" , "{}" , "[]" , "[\n                    [\n                        [\n                            []\n                        ]\n                    ]\n                ]" , "[\n                        [\n                            []\n                        ]\n                    ]" , "[\n                            []\n                        ]" , "[]" , "3" ,] ;
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected : Vec < & str > = vec ! ["1" , "2" , "{}" , "[]" , "[\n                    [\n                        [\n                            []\n                        ]\n                    ]\n                ]" , "[\n                        [\n                            []\n                        ]\n                    ]" , "[\n                            []\n                        ]" , "[]" , "3" ,] ;
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -2786,10 +2664,8 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_and_bel
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected : Vec < & str > = vec ! ["1" , "2" , "{}" , "[]" , "[\n                    [\n                        [\n                            []\n                        ]\n                    ]\n                ]" , "[\n                        [\n                            []\n                        ]\n                    ]" , "[\n                            []\n                        ]" , "[]" , "3" ,] ;
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected : Vec < & str > = vec ! ["1" , "2" , "{}" , "[]" , "[\n                    [\n                        [\n                            []\n                        ]\n                    ]\n                ]" , "[\n                        [\n                            []\n                        ]\n                    ]" , "[\n                            []\n                        ]" , "[]" , "3" ,] ;
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -2831,10 +2707,8 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_and_bel
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected : Vec < & str > = vec ! ["1" , "2" , "{}" , "[]" , "[\n                    [\n                        [\n                            []\n                        ]\n                    ]\n                ]" , "[\n                        [\n                            []\n                        ]\n                    ]" , "[\n                            []\n                        ]" , "[]" , "3" ,] ;
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected : Vec < & str > = vec ! ["1" , "2" , "{}" , "[]" , "[\n                    [\n                        [\n                            []\n                        ]\n                    ]\n                ]" , "[\n                        [\n                            []\n                        ]\n                    ]" , "[\n                            []\n                        ]" , "[]" , "3" ,] ;
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -2876,10 +2750,8 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_with_bu
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected : Vec < & str > = vec ! ["1" , "2" , "{}" , "[]" , "[\n                    [\n                        [\n                            []\n                        ]\n                    ]\n                ]" , "3" ,] ;
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected : Vec < & str > = vec ! ["1" , "2" , "{}" , "[]" , "[\n                    [\n                        [\n                            []\n                        ]\n                    ]\n                ]" , "3" ,] ;
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -2921,10 +2793,8 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_with_mm
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected : Vec < & str > = vec ! ["1" , "2" , "{}" , "[]" , "[\n                    [\n                        [\n                            []\n                        ]\n                    ]\n                ]" , "3" ,] ;
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected : Vec < & str > = vec ! ["1" , "2" , "{}" , "[]" , "[\n                    [\n                        [\n                            []\n                        ]\n                    ]\n                ]" , "3" ,] ;
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -2966,10 +2836,8 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_with_ow
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected : Vec < & str > = vec ! ["1" , "2" , "{}" , "[]" , "[\n                    [\n                        [\n                            []\n                        ]\n                    ]\n                ]" , "3" ,] ;
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected : Vec < & str > = vec ! ["1" , "2" , "{}" , "[]" , "[\n                    [\n                        [\n                            []\n                        ]\n                    ]\n                ]" , "3" ,] ;
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -3011,10 +2879,8 @@ fn deeply_nested_object_with_path_annotations_compressed_with_query_descendant_a
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected : Vec < & str > = vec ! ["\"$.x1.a.a.x2.b.b\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5\",\"is_hit\":true,\"x6\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6\",\"is_hit\":false,\"x7\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7\",\"is_hit\":false,\"x8\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\"is_hit\":false,\"b\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\"is_hit\":false,\"x9\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\"is_hit\":true,\"x10\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}}}}}}}" , "\"$.x1.a.a.x2.b.b.x5\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5.x6\",\"is_hit\":false,\"x7\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7\",\"is_hit\":false,\"x8\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\"is_hit\":false,\"b\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\"is_hit\":false,\"x9\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\"is_hit\":true,\"x10\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}}}}}}" , "\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}" ,] ;
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected : Vec < & str > = vec ! ["\"$.x1.a.a.x2.b.b\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5\",\"is_hit\":true,\"x6\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6\",\"is_hit\":false,\"x7\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7\",\"is_hit\":false,\"x8\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\"is_hit\":false,\"b\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\"is_hit\":false,\"x9\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\"is_hit\":true,\"x10\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}}}}}}}" , "\"$.x1.a.a.x2.b.b.x5\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5.x6\",\"is_hit\":false,\"x7\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7\",\"is_hit\":false,\"x8\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\"is_hit\":false,\"b\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\"is_hit\":false,\"x9\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\"is_hit\":true,\"x10\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}}}}}}" , "\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}" ,] ;
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -3056,10 +2922,8 @@ fn deeply_nested_object_with_path_annotations_compressed_with_query_descendant_a
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected : Vec < & str > = vec ! ["\"$.x1.a.a.x2.b.b\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5\",\"is_hit\":true,\"x6\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6\",\"is_hit\":false,\"x7\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7\",\"is_hit\":false,\"x8\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\"is_hit\":false,\"b\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\"is_hit\":false,\"x9\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\"is_hit\":true,\"x10\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}}}}}}}" , "\"$.x1.a.a.x2.b.b.x5\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5.x6\",\"is_hit\":false,\"x7\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7\",\"is_hit\":false,\"x8\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\"is_hit\":false,\"b\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\"is_hit\":false,\"x9\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\"is_hit\":true,\"x10\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}}}}}}" , "\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}" ,] ;
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected : Vec < & str > = vec ! ["\"$.x1.a.a.x2.b.b\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5\",\"is_hit\":true,\"x6\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6\",\"is_hit\":false,\"x7\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7\",\"is_hit\":false,\"x8\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\"is_hit\":false,\"b\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\"is_hit\":false,\"x9\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\"is_hit\":true,\"x10\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}}}}}}}" , "\"$.x1.a.a.x2.b.b.x5\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5.x6\",\"is_hit\":false,\"x7\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7\",\"is_hit\":false,\"x8\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\"is_hit\":false,\"b\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\"is_hit\":false,\"x9\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\"is_hit\":true,\"x10\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}}}}}}" , "\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}" ,] ;
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -3101,10 +2965,8 @@ fn deeply_nested_object_with_path_annotations_compressed_with_query_descendant_a
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected : Vec < & str > = vec ! ["\"$.x1.a.a.x2.b.b\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5\",\"is_hit\":true,\"x6\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6\",\"is_hit\":false,\"x7\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7\",\"is_hit\":false,\"x8\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\"is_hit\":false,\"b\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\"is_hit\":false,\"x9\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\"is_hit\":true,\"x10\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}}}}}}}" , "\"$.x1.a.a.x2.b.b.x5\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5.x6\",\"is_hit\":false,\"x7\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7\",\"is_hit\":false,\"x8\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\"is_hit\":false,\"b\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\"is_hit\":false,\"x9\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\"is_hit\":true,\"x10\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}}}}}}" , "\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}" ,] ;
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected : Vec < & str > = vec ! ["\"$.x1.a.a.x2.b.b\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5\",\"is_hit\":true,\"x6\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6\",\"is_hit\":false,\"x7\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7\",\"is_hit\":false,\"x8\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\"is_hit\":false,\"b\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\"is_hit\":false,\"x9\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\"is_hit\":true,\"x10\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}}}}}}}" , "\"$.x1.a.a.x2.b.b.x5\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5.x6\",\"is_hit\":false,\"x7\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7\",\"is_hit\":false,\"x8\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\"is_hit\":false,\"b\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\"is_hit\":false,\"x9\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\"is_hit\":true,\"x10\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}}}}}}" , "\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}" ,] ;
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -3146,10 +3008,8 @@ fn deeply_nested_object_with_path_annotations_with_query_descendant_a_star_star_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected : Vec < & str > = vec ! ["\"$.x1.a.a.x2.b.b\"" , "true" , "{\n                                \"path\": \"$.x1.a.a.x2.b.b.x5\",\n                                \"is_hit\": true,\n                                \"x6\": {\n                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6\",\n                                    \"is_hit\": false,\n                                    \"x7\": {\n                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7\",\n                                        \"is_hit\": false,\n                                        \"x8\": {\n                                            \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\n                                            \"is_hit\": false,\n                                            \"b\": {\n                                                \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\n                                                \"is_hit\": false,\n                                                \"x9\": {\n                                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\n                                                    \"is_hit\": true,\n                                                    \"x10\": {\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }\n                                                }\n                                            }\n                                        }\n                                    }\n                                }\n                            }" , "\"$.x1.a.a.x2.b.b.x5\"" , "true" , "{\n                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6\",\n                                    \"is_hit\": false,\n                                    \"x7\": {\n                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7\",\n                                        \"is_hit\": false,\n                                        \"x8\": {\n                                            \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\n                                            \"is_hit\": false,\n                                            \"b\": {\n                                                \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\n                                                \"is_hit\": false,\n                                                \"x9\": {\n                                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\n                                                    \"is_hit\": true,\n                                                    \"x10\": {\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }\n                                                }\n                                            }\n                                        }\n                                    }\n                                }" , "\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\"" , "true" , "{\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }" ,] ;
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected : Vec < & str > = vec ! ["\"$.x1.a.a.x2.b.b\"" , "true" , "{\n                                \"path\": \"$.x1.a.a.x2.b.b.x5\",\n                                \"is_hit\": true,\n                                \"x6\": {\n                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6\",\n                                    \"is_hit\": false,\n                                    \"x7\": {\n                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7\",\n                                        \"is_hit\": false,\n                                        \"x8\": {\n                                            \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\n                                            \"is_hit\": false,\n                                            \"b\": {\n                                                \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\n                                                \"is_hit\": false,\n                                                \"x9\": {\n                                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\n                                                    \"is_hit\": true,\n                                                    \"x10\": {\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }\n                                                }\n                                            }\n                                        }\n                                    }\n                                }\n                            }" , "\"$.x1.a.a.x2.b.b.x5\"" , "true" , "{\n                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6\",\n                                    \"is_hit\": false,\n                                    \"x7\": {\n                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7\",\n                                        \"is_hit\": false,\n                                        \"x8\": {\n                                            \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\n                                            \"is_hit\": false,\n                                            \"b\": {\n                                                \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\n                                                \"is_hit\": false,\n                                                \"x9\": {\n                                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\n                                                    \"is_hit\": true,\n                                                    \"x10\": {\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }\n                                                }\n                                            }\n                                        }\n                                    }\n                                }" , "\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\"" , "true" , "{\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }" ,] ;
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -3191,10 +3051,8 @@ fn deeply_nested_object_with_path_annotations_with_query_descendant_a_star_star_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected : Vec < & str > = vec ! ["\"$.x1.a.a.x2.b.b\"" , "true" , "{\n                                \"path\": \"$.x1.a.a.x2.b.b.x5\",\n                                \"is_hit\": true,\n                                \"x6\": {\n                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6\",\n                                    \"is_hit\": false,\n                                    \"x7\": {\n                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7\",\n                                        \"is_hit\": false,\n                                        \"x8\": {\n                                            \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\n                                            \"is_hit\": false,\n                                            \"b\": {\n                                                \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\n                                                \"is_hit\": false,\n                                                \"x9\": {\n                                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\n                                                    \"is_hit\": true,\n                                                    \"x10\": {\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }\n                                                }\n                                            }\n                                        }\n                                    }\n                                }\n                            }" , "\"$.x1.a.a.x2.b.b.x5\"" , "true" , "{\n                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6\",\n                                    \"is_hit\": false,\n                                    \"x7\": {\n                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7\",\n                                        \"is_hit\": false,\n                                        \"x8\": {\n                                            \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\n                                            \"is_hit\": false,\n                                            \"b\": {\n                                                \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\n                                                \"is_hit\": false,\n                                                \"x9\": {\n                                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\n                                                    \"is_hit\": true,\n                                                    \"x10\": {\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }\n                                                }\n                                            }\n                                        }\n                                    }\n                                }" , "\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\"" , "true" , "{\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }" ,] ;
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected : Vec < & str > = vec ! ["\"$.x1.a.a.x2.b.b\"" , "true" , "{\n                                \"path\": \"$.x1.a.a.x2.b.b.x5\",\n                                \"is_hit\": true,\n                                \"x6\": {\n                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6\",\n                                    \"is_hit\": false,\n                                    \"x7\": {\n                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7\",\n                                        \"is_hit\": false,\n                                        \"x8\": {\n                                            \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\n                                            \"is_hit\": false,\n                                            \"b\": {\n                                                \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\n                                                \"is_hit\": false,\n                                                \"x9\": {\n                                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\n                                                    \"is_hit\": true,\n                                                    \"x10\": {\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }\n                                                }\n                                            }\n                                        }\n                                    }\n                                }\n                            }" , "\"$.x1.a.a.x2.b.b.x5\"" , "true" , "{\n                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6\",\n                                    \"is_hit\": false,\n                                    \"x7\": {\n                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7\",\n                                        \"is_hit\": false,\n                                        \"x8\": {\n                                            \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\n                                            \"is_hit\": false,\n                                            \"b\": {\n                                                \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\n                                                \"is_hit\": false,\n                                                \"x9\": {\n                                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\n                                                    \"is_hit\": true,\n                                                    \"x10\": {\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }\n                                                }\n                                            }\n                                        }\n                                    }\n                                }" , "\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\"" , "true" , "{\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }" ,] ;
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -3236,10 +3094,8 @@ fn deeply_nested_object_with_path_annotations_with_query_descendant_a_star_star_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected : Vec < & str > = vec ! ["\"$.x1.a.a.x2.b.b\"" , "true" , "{\n                                \"path\": \"$.x1.a.a.x2.b.b.x5\",\n                                \"is_hit\": true,\n                                \"x6\": {\n                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6\",\n                                    \"is_hit\": false,\n                                    \"x7\": {\n                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7\",\n                                        \"is_hit\": false,\n                                        \"x8\": {\n                                            \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\n                                            \"is_hit\": false,\n                                            \"b\": {\n                                                \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\n                                                \"is_hit\": false,\n                                                \"x9\": {\n                                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\n                                                    \"is_hit\": true,\n                                                    \"x10\": {\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }\n                                                }\n                                            }\n                                        }\n                                    }\n                                }\n                            }" , "\"$.x1.a.a.x2.b.b.x5\"" , "true" , "{\n                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6\",\n                                    \"is_hit\": false,\n                                    \"x7\": {\n                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7\",\n                                        \"is_hit\": false,\n                                        \"x8\": {\n                                            \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\n                                            \"is_hit\": false,\n                                            \"b\": {\n                                                \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\n                                                \"is_hit\": false,\n                                                \"x9\": {\n                                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\n                                                    \"is_hit\": true,\n                                                    \"x10\": {\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }\n                                                }\n                                            }\n                                        }\n                                    }\n                                }" , "\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\"" , "true" , "{\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }" ,] ;
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected : Vec < & str > = vec ! ["\"$.x1.a.a.x2.b.b\"" , "true" , "{\n                                \"path\": \"$.x1.a.a.x2.b.b.x5\",\n                                \"is_hit\": true,\n                                \"x6\": {\n                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6\",\n                                    \"is_hit\": false,\n                                    \"x7\": {\n                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7\",\n                                        \"is_hit\": false,\n                                        \"x8\": {\n                                            \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\n                                            \"is_hit\": false,\n                                            \"b\": {\n                                                \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\n                                                \"is_hit\": false,\n                                                \"x9\": {\n                                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\n                                                    \"is_hit\": true,\n                                                    \"x10\": {\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }\n                                                }\n                                            }\n                                        }\n                                    }\n                                }\n                            }" , "\"$.x1.a.a.x2.b.b.x5\"" , "true" , "{\n                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6\",\n                                    \"is_hit\": false,\n                                    \"x7\": {\n                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7\",\n                                        \"is_hit\": false,\n                                        \"x8\": {\n                                            \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\n                                            \"is_hit\": false,\n                                            \"b\": {\n                                                \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\n                                                \"is_hit\": false,\n                                                \"x9\": {\n                                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\n                                                    \"is_hit\": true,\n                                                    \"x10\": {\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }\n                                                }\n                                            }\n                                        }\n                                    }\n                                }" , "\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\"" , "true" , "{\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }" ,] ;
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -3281,10 +3137,8 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42", "43", "44", "{\"x\":45}", "45", "{\"a\":46,\"x\":47}", "46", "47"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42", "43", "44", "{\"x\":45}", "45", "{\"a\":46,\"x\":47}", "46", "47"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -3326,10 +3180,8 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42", "43", "44", "{\"x\":45}", "45", "{\"a\":46,\"x\":47}", "46", "47"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42", "43", "44", "{\"x\":45}", "45", "{\"a\":46,\"x\":47}", "46", "47"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -3371,10 +3223,8 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42", "43", "44", "{\"x\":45}", "45", "{\"a\":46,\"x\":47}", "46", "47"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42", "43", "44", "{\"x\":45}", "45", "{\"a\":46,\"x\":47}", "46", "47"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -3416,10 +3266,8 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42", "43", "44", "{\"x\":45}", "{\"a\":46,\"x\":47}", "46", "47"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42", "43", "44", "{\"x\":45}", "{\"a\":46,\"x\":47}", "46", "47"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -3461,10 +3309,8 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42", "43", "44", "{\"x\":45}", "{\"a\":46,\"x\":47}", "46", "47"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42", "43", "44", "{\"x\":45}", "{\"a\":46,\"x\":47}", "46", "47"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -3506,10 +3352,8 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42", "43", "44", "{\"x\":45}", "{\"a\":46,\"x\":47}", "46", "47"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42", "43", "44", "{\"x\":45}", "{\"a\":46,\"x\":47}", "46", "47"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -3551,8 +3395,8 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "42",
         "43",
         "44",
@@ -3562,8 +3406,6 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
         "46",
         "47",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -3605,8 +3447,8 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "42",
         "43",
         "44",
@@ -3616,8 +3458,6 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
         "46",
         "47",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -3659,8 +3499,8 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "42",
         "43",
         "44",
@@ -3670,8 +3510,6 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
         "46",
         "47",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -3713,8 +3551,8 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "42",
         "43",
         "44",
@@ -3723,8 +3561,6 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
         "46",
         "47",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -3766,8 +3602,8 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "42",
         "43",
         "44",
@@ -3776,8 +3612,6 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
         "46",
         "47",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -3819,8 +3653,8 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "42",
         "43",
         "44",
@@ -3829,8 +3663,6 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
         "46",
         "47",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -3868,10 +3700,8 @@ fn empty_array_root_compressed_with_query_select_any_descendant_there_are_none_w
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -3909,10 +3739,8 @@ fn empty_array_root_compressed_with_query_select_any_descendant_there_are_none_w
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -3950,10 +3778,8 @@ fn empty_array_root_compressed_with_query_select_any_descendant_there_are_none_w
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -3991,10 +3817,8 @@ fn empty_array_root_compressed_with_query_select_any_item_there_are_none_with_bu
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -4032,10 +3856,8 @@ fn empty_array_root_compressed_with_query_select_any_item_there_are_none_with_mm
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -4073,10 +3895,8 @@ fn empty_array_root_compressed_with_query_select_any_item_there_are_none_with_ow
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -4114,10 +3934,8 @@ fn empty_array_root_compressed_with_query_select_the_first_item_which_does_not_e
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -4155,10 +3973,8 @@ fn empty_array_root_compressed_with_query_select_the_first_item_which_does_not_e
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -4196,10 +4012,8 @@ fn empty_array_root_compressed_with_query_select_the_first_item_which_does_not_e
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -4237,10 +4051,8 @@ fn empty_array_root_compressed_with_query_select_the_root_empty_query_with_buffe
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -4278,10 +4090,8 @@ fn empty_array_root_compressed_with_query_select_the_root_empty_query_with_mmap_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -4319,10 +4129,8 @@ fn empty_array_root_compressed_with_query_select_the_root_empty_query_with_owned
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -4360,10 +4168,8 @@ fn empty_array_root_compressed_with_query_select_the_root_with_buffered_input_an
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -4401,10 +4207,8 @@ fn empty_array_root_compressed_with_query_select_the_root_with_mmap_input_and_no
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -4442,10 +4246,8 @@ fn empty_array_root_compressed_with_query_select_the_root_with_owned_bytes_and_n
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -4483,10 +4285,8 @@ fn empty_array_root_with_query_select_any_descendant_there_are_none_with_buffere
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -4524,10 +4324,8 @@ fn empty_array_root_with_query_select_any_descendant_there_are_none_with_mmap_in
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -4565,10 +4363,8 @@ fn empty_array_root_with_query_select_any_descendant_there_are_none_with_owned_b
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -4606,10 +4402,8 @@ fn empty_array_root_with_query_select_any_item_there_are_none_with_buffered_inpu
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -4647,10 +4441,8 @@ fn empty_array_root_with_query_select_any_item_there_are_none_with_mmap_input_an
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -4688,10 +4480,8 @@ fn empty_array_root_with_query_select_any_item_there_are_none_with_owned_bytes_a
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -4729,10 +4519,8 @@ fn empty_array_root_with_query_select_the_first_item_which_does_not_exist_with_b
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -4770,10 +4558,8 @@ fn empty_array_root_with_query_select_the_first_item_which_does_not_exist_with_m
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -4811,10 +4597,8 @@ fn empty_array_root_with_query_select_the_first_item_which_does_not_exist_with_o
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -4852,10 +4636,8 @@ fn empty_array_root_with_query_select_the_root_empty_query_with_buffered_input_a
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -4893,10 +4675,8 @@ fn empty_array_root_with_query_select_the_root_empty_query_with_mmap_input_and_n
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -4934,10 +4714,8 @@ fn empty_array_root_with_query_select_the_root_empty_query_with_owned_bytes_and_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -4975,10 +4753,8 @@ fn empty_array_root_with_query_select_the_root_with_buffered_input_and_nodes_res
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -5016,10 +4792,8 @@ fn empty_array_root_with_query_select_the_root_with_mmap_input_and_nodes_result_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -5057,10 +4831,8 @@ fn empty_array_root_with_query_select_the_root_with_owned_bytes_and_nodes_result
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -5098,10 +4870,8 @@ fn empty_document_compressed_with_query_select_the_root_empty_query_with_buffere
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -5139,10 +4909,8 @@ fn empty_document_compressed_with_query_select_the_root_empty_query_with_mmap_in
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -5180,10 +4948,8 @@ fn empty_document_compressed_with_query_select_the_root_empty_query_with_owned_b
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -5221,10 +4987,8 @@ fn empty_document_compressed_with_query_select_the_root_with_buffered_input_and_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -5262,10 +5026,8 @@ fn empty_document_compressed_with_query_select_the_root_with_mmap_input_and_node
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -5303,10 +5065,8 @@ fn empty_document_compressed_with_query_select_the_root_with_owned_bytes_and_nod
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -5344,10 +5104,8 @@ fn empty_document_with_query_select_the_root_empty_query_with_buffered_input_and
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -5385,10 +5143,8 @@ fn empty_document_with_query_select_the_root_empty_query_with_mmap_input_and_nod
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -5426,10 +5182,8 @@ fn empty_document_with_query_select_the_root_empty_query_with_owned_bytes_and_no
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -5467,10 +5221,8 @@ fn empty_document_with_query_select_the_root_with_buffered_input_and_nodes_resul
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -5508,10 +5260,8 @@ fn empty_document_with_query_select_the_root_with_mmap_input_and_nodes_result_us
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -5549,10 +5299,8 @@ fn empty_document_with_query_select_the_root_with_owned_bytes_and_nodes_result_u
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -5590,10 +5338,8 @@ fn empty_object_root_compressed_with_query_select_any_child_there_are_none_with_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -5631,10 +5377,8 @@ fn empty_object_root_compressed_with_query_select_any_child_there_are_none_with_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -5672,10 +5416,8 @@ fn empty_object_root_compressed_with_query_select_any_child_there_are_none_with_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -5713,10 +5455,8 @@ fn empty_object_root_compressed_with_query_select_any_descendant_there_are_none_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -5754,10 +5494,8 @@ fn empty_object_root_compressed_with_query_select_any_descendant_there_are_none_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -5795,10 +5533,8 @@ fn empty_object_root_compressed_with_query_select_any_descendant_there_are_none_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -5836,10 +5572,8 @@ fn empty_object_root_compressed_with_query_select_the_child_named_a_which_does_n
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -5877,10 +5611,8 @@ fn empty_object_root_compressed_with_query_select_the_child_named_a_which_does_n
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -5918,10 +5650,8 @@ fn empty_object_root_compressed_with_query_select_the_child_named_a_which_does_n
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -5959,10 +5689,8 @@ fn empty_object_root_compressed_with_query_select_the_root_empty_query_with_buff
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -6000,10 +5728,8 @@ fn empty_object_root_compressed_with_query_select_the_root_empty_query_with_mmap
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -6041,10 +5767,8 @@ fn empty_object_root_compressed_with_query_select_the_root_empty_query_with_owne
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -6082,10 +5806,8 @@ fn empty_object_root_compressed_with_query_select_the_root_with_buffered_input_a
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -6123,10 +5845,8 @@ fn empty_object_root_compressed_with_query_select_the_root_with_mmap_input_and_n
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -6164,10 +5884,8 @@ fn empty_object_root_compressed_with_query_select_the_root_with_owned_bytes_and_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -6205,10 +5923,8 @@ fn empty_object_root_with_query_select_any_child_there_are_none_with_buffered_in
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -6246,10 +5962,8 @@ fn empty_object_root_with_query_select_any_child_there_are_none_with_mmap_input_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -6287,10 +6001,8 @@ fn empty_object_root_with_query_select_any_child_there_are_none_with_owned_bytes
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -6328,10 +6040,8 @@ fn empty_object_root_with_query_select_any_descendant_there_are_none_with_buffer
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -6369,10 +6079,8 @@ fn empty_object_root_with_query_select_any_descendant_there_are_none_with_mmap_i
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -6410,10 +6118,8 @@ fn empty_object_root_with_query_select_any_descendant_there_are_none_with_owned_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -6451,10 +6157,8 @@ fn empty_object_root_with_query_select_the_child_named_a_which_does_not_exist_wi
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -6492,10 +6196,8 @@ fn empty_object_root_with_query_select_the_child_named_a_which_does_not_exist_wi
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -6533,10 +6235,8 @@ fn empty_object_root_with_query_select_the_child_named_a_which_does_not_exist_wi
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -6574,10 +6274,8 @@ fn empty_object_root_with_query_select_the_root_empty_query_with_buffered_input_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -6615,10 +6313,8 @@ fn empty_object_root_with_query_select_the_root_empty_query_with_mmap_input_and_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -6656,10 +6352,8 @@ fn empty_object_root_with_query_select_the_root_empty_query_with_owned_bytes_and
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -6697,10 +6391,8 @@ fn empty_object_root_with_query_select_the_root_with_buffered_input_and_nodes_re
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -6738,10 +6430,8 @@ fn empty_object_root_with_query_select_the_root_with_mmap_input_and_nodes_result
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -6779,10 +6469,8 @@ fn empty_object_root_with_query_select_the_root_with_owned_bytes_and_nodes_resul
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -6824,15 +6512,13 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "\"https:\\/\\/t.co\\/B6T1jj2hST\"",
         "\"https:\\/\\/t.co\\/blQy8JxViF\"",
         "\"https:\\/\\/t.co\\/B6T1jj2hST\"",
         "\"https:\\/\\/t.co\\/blQy8JxViF\"",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -6874,15 +6560,13 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "\"https:\\/\\/t.co\\/B6T1jj2hST\"",
         "\"https:\\/\\/t.co\\/blQy8JxViF\"",
         "\"https:\\/\\/t.co\\/B6T1jj2hST\"",
         "\"https:\\/\\/t.co\\/blQy8JxViF\"",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -6924,15 +6608,13 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "\"https:\\/\\/t.co\\/B6T1jj2hST\"",
         "\"https:\\/\\/t.co\\/blQy8JxViF\"",
         "\"https:\\/\\/t.co\\/B6T1jj2hST\"",
         "\"https:\\/\\/t.co\\/blQy8JxViF\"",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -6970,10 +6652,8 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -7011,10 +6691,8 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -7052,10 +6730,8 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -7093,10 +6769,8 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -7134,10 +6808,8 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -7175,10 +6847,8 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -7220,8 +6890,8 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "\"http:\\/\\/www.roadshowrigoletto.com\\/\"",
         "\"http:\\/\\/www.thinkprogress.org\"",
         "\"https:\\/\\/t.co\\/B6T1jj2hST\"",
@@ -7231,8 +6901,6 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
         "\"https:\\/\\/t.co\\/blQy8JxViF\"",
         "\"https:\\/\\/t.co\\/blQy8JxViF\"",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -7274,8 +6942,8 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "\"http:\\/\\/www.roadshowrigoletto.com\\/\"",
         "\"http:\\/\\/www.thinkprogress.org\"",
         "\"https:\\/\\/t.co\\/B6T1jj2hST\"",
@@ -7285,8 +6953,6 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
         "\"https:\\/\\/t.co\\/blQy8JxViF\"",
         "\"https:\\/\\/t.co\\/blQy8JxViF\"",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -7328,8 +6994,8 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "\"http:\\/\\/www.roadshowrigoletto.com\\/\"",
         "\"http:\\/\\/www.thinkprogress.org\"",
         "\"https:\\/\\/t.co\\/B6T1jj2hST\"",
@@ -7339,8 +7005,6 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
         "\"https:\\/\\/t.co\\/blQy8JxViF\"",
         "\"https:\\/\\/t.co\\/blQy8JxViF\"",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -7378,10 +7042,8 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/blQy8JxViF\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/blQy8JxViF\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -7419,10 +7081,8 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/blQy8JxViF\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/blQy8JxViF\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -7460,10 +7120,8 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/blQy8JxViF\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/blQy8JxViF\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -7505,15 +7163,13 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "\"https:\\/\\/t.co\\/B6T1jj2hST\"",
         "\"https:\\/\\/t.co\\/blQy8JxViF\"",
         "\"https:\\/\\/t.co\\/B6T1jj2hST\"",
         "\"https:\\/\\/t.co\\/blQy8JxViF\"",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -7555,15 +7211,13 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "\"https:\\/\\/t.co\\/B6T1jj2hST\"",
         "\"https:\\/\\/t.co\\/blQy8JxViF\"",
         "\"https:\\/\\/t.co\\/B6T1jj2hST\"",
         "\"https:\\/\\/t.co\\/blQy8JxViF\"",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -7605,15 +7259,13 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "\"https:\\/\\/t.co\\/B6T1jj2hST\"",
         "\"https:\\/\\/t.co\\/blQy8JxViF\"",
         "\"https:\\/\\/t.co\\/B6T1jj2hST\"",
         "\"https:\\/\\/t.co\\/blQy8JxViF\"",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -7651,10 +7303,8 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -7692,10 +7342,8 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -7733,10 +7381,8 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -7774,10 +7420,8 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -7815,10 +7459,8 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -7856,10 +7498,8 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -7901,8 +7541,8 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "\"http:\\/\\/www.roadshowrigoletto.com\\/\"",
         "\"http:\\/\\/www.thinkprogress.org\"",
         "\"https:\\/\\/t.co\\/B6T1jj2hST\"",
@@ -7912,8 +7552,6 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
         "\"https:\\/\\/t.co\\/blQy8JxViF\"",
         "\"https:\\/\\/t.co\\/blQy8JxViF\"",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -7955,8 +7593,8 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "\"http:\\/\\/www.roadshowrigoletto.com\\/\"",
         "\"http:\\/\\/www.thinkprogress.org\"",
         "\"https:\\/\\/t.co\\/B6T1jj2hST\"",
@@ -7966,8 +7604,6 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
         "\"https:\\/\\/t.co\\/blQy8JxViF\"",
         "\"https:\\/\\/t.co\\/blQy8JxViF\"",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -8009,8 +7645,8 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "\"http:\\/\\/www.roadshowrigoletto.com\\/\"",
         "\"http:\\/\\/www.thinkprogress.org\"",
         "\"https:\\/\\/t.co\\/B6T1jj2hST\"",
@@ -8020,8 +7656,6 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
         "\"https:\\/\\/t.co\\/blQy8JxViF\"",
         "\"https:\\/\\/t.co\\/blQy8JxViF\"",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -8059,10 +7693,8 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/blQy8JxViF\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/blQy8JxViF\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -8100,10 +7732,8 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/blQy8JxViF\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/blQy8JxViF\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -8141,10 +7771,8 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/blQy8JxViF\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/blQy8JxViF\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -8182,10 +7810,8 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -8223,10 +7849,8 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -8264,10 +7888,8 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -8305,10 +7927,8 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["43"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["43"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -8346,10 +7966,8 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["43"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["43"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -8387,10 +8005,8 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["43"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["43"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -8428,10 +8044,8 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -8469,10 +8083,8 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -8510,10 +8122,8 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -8551,10 +8161,8 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["43"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["43"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -8592,10 +8200,8 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["43"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["43"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -8633,10 +8239,8 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["43"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["43"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -10487,10 +10091,8 @@ fn list_with_mixed_atomic_integers_and_objects_compressed_with_query_select_all_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42", "{\"b\":43}", "44"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42", "{\"b\":43}", "44"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -10528,10 +10130,8 @@ fn list_with_mixed_atomic_integers_and_objects_compressed_with_query_select_all_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42", "{\"b\":43}", "44"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42", "{\"b\":43}", "44"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -10569,10 +10169,8 @@ fn list_with_mixed_atomic_integers_and_objects_compressed_with_query_select_all_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42", "{\"b\":43}", "44"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42", "{\"b\":43}", "44"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -10610,10 +10208,8 @@ fn list_with_mixed_atomic_integers_and_objects_with_query_select_all_elements_on
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42", "{\n      \"b\": 43\n    }", "44"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42", "{\n      \"b\": 43\n    }", "44"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -10651,10 +10247,8 @@ fn list_with_mixed_atomic_integers_and_objects_with_query_select_all_elements_on
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42", "{\n      \"b\": 43\n    }", "44"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42", "{\n      \"b\": 43\n    }", "44"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -10692,10 +10286,8 @@ fn list_with_mixed_atomic_integers_and_objects_with_query_select_all_elements_on
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42", "{\n      \"b\": 43\n    }", "44"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42", "{\n      \"b\": 43\n    }", "44"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -10733,10 +10325,8 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -10774,10 +10364,8 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -10815,10 +10403,8 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -10856,10 +10442,8 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -10897,10 +10481,8 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -10938,10 +10520,8 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -10979,10 +10559,8 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -11020,10 +10598,8 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -11061,10 +10637,8 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -11102,10 +10676,8 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -11143,10 +10715,8 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -11184,10 +10754,8 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -11225,10 +10793,8 @@ fn nested_atomic_member_compressed_with_query_look_for_b_on_at_least_one_level_o
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["43"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["43"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -11266,10 +10832,8 @@ fn nested_atomic_member_compressed_with_query_look_for_b_on_at_least_one_level_o
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["43"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["43"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -11307,10 +10871,8 @@ fn nested_atomic_member_compressed_with_query_look_for_b_on_at_least_one_level_o
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["43"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["43"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -11348,10 +10910,8 @@ fn nested_atomic_member_compressed_with_query_look_for_descendants_of_an_atomic_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -11389,10 +10949,8 @@ fn nested_atomic_member_compressed_with_query_look_for_descendants_of_an_atomic_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -11430,10 +10988,8 @@ fn nested_atomic_member_compressed_with_query_look_for_descendants_of_an_atomic_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -11471,10 +11027,8 @@ fn nested_atomic_member_compressed_with_query_select_a_number_that_is_a_child_wi
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -11512,10 +11066,8 @@ fn nested_atomic_member_compressed_with_query_select_a_number_that_is_a_child_wi
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -11553,10 +11105,8 @@ fn nested_atomic_member_compressed_with_query_select_a_number_that_is_a_child_wi
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -11598,10 +11148,8 @@ fn nested_atomic_member_compressed_with_query_select_all_decsendants_with_buffer
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42", "[{\"b\":43}]", "{\"b\":43}", "43"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42", "[{\"b\":43}]", "{\"b\":43}", "43"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -11643,10 +11191,8 @@ fn nested_atomic_member_compressed_with_query_select_all_decsendants_with_mmap_i
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42", "[{\"b\":43}]", "{\"b\":43}", "43"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42", "[{\"b\":43}]", "{\"b\":43}", "43"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -11688,10 +11234,8 @@ fn nested_atomic_member_compressed_with_query_select_all_decsendants_with_owned_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42", "[{\"b\":43}]", "{\"b\":43}", "43"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42", "[{\"b\":43}]", "{\"b\":43}", "43"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -11729,10 +11273,8 @@ fn nested_atomic_member_compressed_with_query_select_first_item_from_list_descen
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{\"b\":43}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{\"b\":43}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -11770,10 +11312,8 @@ fn nested_atomic_member_compressed_with_query_select_first_item_from_list_descen
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{\"b\":43}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{\"b\":43}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -11811,10 +11351,8 @@ fn nested_atomic_member_compressed_with_query_select_first_item_from_list_descen
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{\"b\":43}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{\"b\":43}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -11852,10 +11390,8 @@ fn nested_atomic_member_compressed_with_query_select_the_first_element_of_b_with
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{\"b\":43}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{\"b\":43}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -11893,10 +11429,8 @@ fn nested_atomic_member_compressed_with_query_select_the_first_element_of_b_with
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{\"b\":43}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{\"b\":43}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -11934,10 +11468,8 @@ fn nested_atomic_member_compressed_with_query_select_the_first_element_of_b_with
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{\"b\":43}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{\"b\":43}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -11975,10 +11507,8 @@ fn nested_atomic_member_compressed_with_query_select_the_nested_b_directly_with_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["43"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["43"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -12016,10 +11546,8 @@ fn nested_atomic_member_compressed_with_query_select_the_nested_b_directly_with_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["43"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["43"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -12057,10 +11585,8 @@ fn nested_atomic_member_compressed_with_query_select_the_nested_b_directly_with_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["43"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["43"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -12098,10 +11624,8 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_b_whi
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -12139,10 +11663,8 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_b_whi
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -12180,10 +11702,8 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_b_whi
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -12221,10 +11741,8 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_the_r
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -12262,10 +11780,8 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_the_r
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -12303,10 +11819,8 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_the_r
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -12344,10 +11858,8 @@ fn nested_atomic_member_with_query_look_for_b_on_at_least_one_level_of_nesting_w
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["43"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["43"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -12385,10 +11897,8 @@ fn nested_atomic_member_with_query_look_for_b_on_at_least_one_level_of_nesting_w
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["43"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["43"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -12426,10 +11936,8 @@ fn nested_atomic_member_with_query_look_for_b_on_at_least_one_level_of_nesting_w
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["43"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["43"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -12467,10 +11975,8 @@ fn nested_atomic_member_with_query_look_for_descendants_of_an_atomic_value_with_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -12508,10 +12014,8 @@ fn nested_atomic_member_with_query_look_for_descendants_of_an_atomic_value_with_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -12549,10 +12053,8 @@ fn nested_atomic_member_with_query_look_for_descendants_of_an_atomic_value_with_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -12590,10 +12092,8 @@ fn nested_atomic_member_with_query_select_a_number_that_is_a_child_with_buffered
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -12631,10 +12131,8 @@ fn nested_atomic_member_with_query_select_a_number_that_is_a_child_with_mmap_inp
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -12672,10 +12170,8 @@ fn nested_atomic_member_with_query_select_a_number_that_is_a_child_with_owned_by
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -12717,15 +12213,13 @@ fn nested_atomic_member_with_query_select_all_decsendants_with_buffered_input_an
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "42",
         "[\n        {\n            \"b\": 43\n        }\n    ]",
         "{\n            \"b\": 43\n        }",
         "43",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -12767,15 +12261,13 @@ fn nested_atomic_member_with_query_select_all_decsendants_with_mmap_input_and_no
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "42",
         "[\n        {\n            \"b\": 43\n        }\n    ]",
         "{\n            \"b\": 43\n        }",
         "43",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -12817,15 +12309,13 @@ fn nested_atomic_member_with_query_select_all_decsendants_with_owned_bytes_and_n
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "42",
         "[\n        {\n            \"b\": 43\n        }\n    ]",
         "{\n            \"b\": 43\n        }",
         "43",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -12863,10 +12353,8 @@ fn nested_atomic_member_with_query_select_first_item_from_list_descendants_with_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{\n            \"b\": 43\n        }"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{\n            \"b\": 43\n        }"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -12904,10 +12392,8 @@ fn nested_atomic_member_with_query_select_first_item_from_list_descendants_with_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{\n            \"b\": 43\n        }"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{\n            \"b\": 43\n        }"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -12945,10 +12431,8 @@ fn nested_atomic_member_with_query_select_first_item_from_list_descendants_with_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{\n            \"b\": 43\n        }"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{\n            \"b\": 43\n        }"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -12986,10 +12470,8 @@ fn nested_atomic_member_with_query_select_the_first_element_of_b_with_buffered_i
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{\n            \"b\": 43\n        }"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{\n            \"b\": 43\n        }"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -13027,10 +12509,8 @@ fn nested_atomic_member_with_query_select_the_first_element_of_b_with_mmap_input
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{\n            \"b\": 43\n        }"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{\n            \"b\": 43\n        }"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -13068,10 +12548,8 @@ fn nested_atomic_member_with_query_select_the_first_element_of_b_with_owned_byte
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{\n            \"b\": 43\n        }"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{\n            \"b\": 43\n        }"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -13109,10 +12587,8 @@ fn nested_atomic_member_with_query_select_the_nested_b_directly_with_buffered_in
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["43"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["43"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -13150,10 +12626,8 @@ fn nested_atomic_member_with_query_select_the_nested_b_directly_with_mmap_input_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["43"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["43"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -13191,10 +12665,8 @@ fn nested_atomic_member_with_query_select_the_nested_b_directly_with_owned_bytes
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["43"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["43"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -13232,10 +12704,8 @@ fn nested_atomic_member_with_query_select_the_second_element_of_b_which_does_not
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -13273,10 +12743,8 @@ fn nested_atomic_member_with_query_select_the_second_element_of_b_which_does_not
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -13314,10 +12782,8 @@ fn nested_atomic_member_with_query_select_the_second_element_of_b_which_does_not
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -13355,10 +12821,8 @@ fn nested_atomic_member_with_query_select_the_second_element_of_the_root_which_i
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -13396,10 +12860,8 @@ fn nested_atomic_member_with_query_select_the_second_element_of_the_root_which_i
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -13437,10 +12899,8 @@ fn nested_atomic_member_with_query_select_the_second_element_of_the_root_which_i
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -13478,10 +12938,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["45"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["45"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -13519,10 +12977,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["45"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["45"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -13560,10 +13016,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["45"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["45"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -13601,10 +13055,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["45"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["45"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -13642,10 +13094,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["45"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["45"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -13683,10 +13133,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["45"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["45"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -13724,10 +13172,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{\"c\":{\"d\":[42,43,44],\"b\":45}}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{\"c\":{\"d\":[42,43,44],\"b\":45}}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -13765,10 +13211,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{\"c\":{\"d\":[42,43,44],\"b\":45}}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{\"c\":{\"d\":[42,43,44],\"b\":45}}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -13806,10 +13250,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{\"c\":{\"d\":[42,43,44],\"b\":45}}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{\"c\":{\"d\":[42,43,44],\"b\":45}}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -13847,10 +13289,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -13888,10 +13328,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -13929,10 +13367,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -13970,10 +13406,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["44"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["44"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -14011,10 +13445,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["44"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["44"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -14052,10 +13484,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["44"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["44"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -14093,10 +13523,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["44"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["44"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -14134,10 +13562,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["44"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["44"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -14175,10 +13601,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["44"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["44"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -14216,10 +13640,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["45"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["45"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -14257,10 +13679,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["45"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["45"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -14298,10 +13718,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["45"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["45"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -14339,10 +13757,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["45"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["45"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -14380,10 +13796,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["45"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["45"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -14421,10 +13835,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["45"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["45"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -14462,10 +13874,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected : Vec < & str > = vec ! ["{\n            \"c\": {\n                \"d\": [\n                    42,\n                    43,\n                    44\n                ],\n                \"b\": 45\n            }\n        }" ,] ;
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected : Vec < & str > = vec ! ["{\n            \"c\": {\n                \"d\": [\n                    42,\n                    43,\n                    44\n                ],\n                \"b\": 45\n            }\n        }" ,] ;
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -14503,10 +13913,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected : Vec < & str > = vec ! ["{\n            \"c\": {\n                \"d\": [\n                    42,\n                    43,\n                    44\n                ],\n                \"b\": 45\n            }\n        }" ,] ;
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected : Vec < & str > = vec ! ["{\n            \"c\": {\n                \"d\": [\n                    42,\n                    43,\n                    44\n                ],\n                \"b\": 45\n            }\n        }" ,] ;
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -14544,10 +13952,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected : Vec < & str > = vec ! ["{\n            \"c\": {\n                \"d\": [\n                    42,\n                    43,\n                    44\n                ],\n                \"b\": 45\n            }\n        }" ,] ;
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected : Vec < & str > = vec ! ["{\n            \"c\": {\n                \"d\": [\n                    42,\n                    43,\n                    44\n                ],\n                \"b\": 45\n            }\n        }" ,] ;
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -14585,10 +13991,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -14626,10 +14030,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -14667,10 +14069,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -14708,10 +14108,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["44"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["44"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -14749,10 +14147,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["44"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["44"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -14790,10 +14186,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["44"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["44"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -14831,10 +14225,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["44"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["44"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -14872,10 +14264,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["44"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["44"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -14913,10 +14303,8 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["44"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["44"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -14954,10 +14342,8 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["17"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["17"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -14995,10 +14381,8 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["17"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["17"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -15036,10 +14420,8 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["17"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["17"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -15077,10 +14459,8 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -15118,10 +14498,8 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -15159,10 +14537,8 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -15200,10 +14576,8 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["17"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["17"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -15241,10 +14615,8 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["17"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["17"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -15282,10 +14654,8 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["17"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["17"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -15323,10 +14693,8 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -15364,10 +14732,8 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -15405,10 +14771,8 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["42"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -15446,10 +14810,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["0"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["0"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -15487,10 +14849,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["0"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["0"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -15528,10 +14888,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["0"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["0"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -15569,10 +14927,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[[],0]", "[[],0]", "[[],0]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[[],0]", "[[],0]", "[[],0]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -15610,10 +14966,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[[],0]", "[[],0]", "[[],0]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[[],0]", "[[],0]", "[[],0]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -15651,10 +15005,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[[],0]", "[[],0]", "[[],0]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[[],0]", "[[],0]", "[[],0]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -15692,10 +15044,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[0]", "[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[0]", "[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -15733,10 +15083,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[0]", "[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[0]", "[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -15774,10 +15122,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[0]", "[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[0]", "[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -15822,8 +15168,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "[[0]]",
         "[0]",
         "0",
@@ -15841,8 +15187,6 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
         "[]",
         "0",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -15887,8 +15231,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "[[0]]",
         "[0]",
         "0",
@@ -15906,8 +15250,6 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
         "[]",
         "0",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -15952,8 +15294,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "[[0]]",
         "[0]",
         "0",
@@ -15971,8 +15313,6 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
         "[]",
         "0",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -16010,10 +15350,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[0]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[0]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -16051,10 +15389,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[0]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[0]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -16092,10 +15428,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[0]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[0]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -16137,10 +15471,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[0]", "0", "[]", "[[],0]", "[]", "[]", "[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[0]", "0", "[]", "[[],0]", "[]", "[]", "[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -16182,10 +15514,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[0]", "0", "[]", "[[],0]", "[]", "[]", "[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[0]", "0", "[]", "[[],0]", "[]", "[]", "[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -16227,10 +15557,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[0]", "0", "[]", "[[],0]", "[]", "[]", "[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[0]", "0", "[]", "[[],0]", "[]", "[]", "[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -16268,10 +15596,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -16309,10 +15635,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -16350,10 +15674,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -16391,10 +15713,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[[0]]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[[0]]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -16432,10 +15752,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[[0]]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[[0]]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -16473,10 +15791,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[[0]]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[[0]]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -16518,8 +15834,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "[]",
         "[[[],0],[[],0],[[],0]]",
         "[[],0]",
@@ -16532,8 +15848,6 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
         "[]",
         "0",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -16575,8 +15889,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "[]",
         "[[[],0],[[],0],[[],0]]",
         "[[],0]",
@@ -16589,8 +15903,6 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
         "[]",
         "0",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -16632,8 +15944,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "[]",
         "[[[],0],[[],0],[[],0]]",
         "[[],0]",
@@ -16646,8 +15958,6 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
         "[]",
         "0",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -16685,10 +15995,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["0", "0", "0"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["0", "0", "0"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -16726,10 +16034,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["0", "0", "0"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["0", "0", "0"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -16767,10 +16073,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["0", "0", "0"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["0", "0", "0"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -16808,10 +16112,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[[],0]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[[],0]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -16849,10 +16151,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[[],0]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[[],0]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -16890,10 +16190,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[[],0]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[[],0]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -16931,10 +16229,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["0", "0", "0"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["0", "0", "0"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -16972,10 +16268,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["0", "0", "0"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["0", "0", "0"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -17013,10 +16307,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["0", "0", "0"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["0", "0", "0"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -17054,10 +16346,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[[[],0],[[],0],[[],0]]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[[[],0],[[],0],[[],0]]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -17095,10 +16385,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[[[],0],[[],0],[[],0]]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[[[],0],[[],0],[[],0]]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -17136,10 +16424,8 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[[[],0],[[],0],[[],0]]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[[[],0],[[],0],[[],0]]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -17177,10 +16463,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_0_1_w
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["0"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["0"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -17218,10 +16502,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_0_1_w
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["0"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["0"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -17259,10 +16541,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_0_1_w
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["0"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["0"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -17300,14 +16580,12 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_and_t
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "[\n                [],\n                0\n            ]",
         "[\n                [],\n                0\n            ]",
         "[\n                [],\n                0\n            ]",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -17345,14 +16623,12 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_and_t
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "[\n                [],\n                0\n            ]",
         "[\n                [],\n                0\n            ]",
         "[\n                [],\n                0\n            ]",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -17390,14 +16666,12 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_and_t
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "[\n                [],\n                0\n            ]",
         "[\n                [],\n                0\n            ]",
         "[\n                [],\n                0\n            ]",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -17435,10 +16709,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_nodes_at_d
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[0]", "[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[0]", "[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -17476,10 +16748,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_nodes_at_d
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[0]", "[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[0]", "[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -17517,10 +16787,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_nodes_at_d
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[0]", "[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[0]", "[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -17565,10 +16833,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_non_root_n
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected : Vec < & str > = vec ! ["[\n        [0]\n    ]" , "[0]" , "0" , "[]" , "[\n        [],\n        [\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]\n    ]" , "[]" , "[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" ,] ;
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected : Vec < & str > = vec ! ["[\n        [0]\n    ]" , "[0]" , "0" , "[]" , "[\n        [],\n        [\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]\n    ]" , "[]" , "[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" ,] ;
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -17613,10 +16879,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_non_root_n
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected : Vec < & str > = vec ! ["[\n        [0]\n    ]" , "[0]" , "0" , "[]" , "[\n        [],\n        [\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]\n    ]" , "[]" , "[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" ,] ;
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected : Vec < & str > = vec ! ["[\n        [0]\n    ]" , "[0]" , "0" , "[]" , "[\n        [],\n        [\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]\n    ]" , "[]" , "[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" ,] ;
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -17661,10 +16925,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_non_root_n
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected : Vec < & str > = vec ! ["[\n        [0]\n    ]" , "[0]" , "0" , "[]" , "[\n        [],\n        [\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]\n    ]" , "[]" , "[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" ,] ;
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected : Vec < & str > = vec ! ["[\n        [0]\n    ]" , "[0]" , "0" , "[]" , "[\n        [],\n        [\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]\n    ]" , "[]" , "[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" ,] ;
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -17702,10 +16964,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[0]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[0]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -17743,10 +17003,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[0]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[0]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -17784,10 +17042,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[0]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[0]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -17829,8 +17085,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "[0]",
         "0",
         "[]",
@@ -17839,8 +17095,6 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
         "[]",
         "[]",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -17882,8 +17136,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "[0]",
         "0",
         "[]",
@@ -17892,8 +17146,6 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
         "[]",
         "[]",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -17935,8 +17187,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "[0]",
         "0",
         "[]",
@@ -17945,8 +17197,6 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
         "[]",
         "[]",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -17984,10 +17234,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -18025,10 +17273,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -18066,10 +17312,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -18107,10 +17351,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[\n        [0]\n    ]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[\n        [0]\n    ]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -18148,10 +17390,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[\n        [0]\n    ]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[\n        [0]\n    ]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -18189,10 +17429,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[\n        [0]\n    ]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[\n        [0]\n    ]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -18234,10 +17472,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected : Vec < & str > = vec ! ["[]" , "[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" ,] ;
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected : Vec < & str > = vec ! ["[]" , "[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" ,] ;
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -18279,10 +17515,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected : Vec < & str > = vec ! ["[]" , "[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" ,] ;
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected : Vec < & str > = vec ! ["[]" , "[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" ,] ;
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -18324,10 +17558,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected : Vec < & str > = vec ! ["[]" , "[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" ,] ;
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected : Vec < & str > = vec ! ["[]" , "[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" ,] ;
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -18365,10 +17597,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["0", "0", "0"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["0", "0", "0"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -18406,10 +17636,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["0", "0", "0"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["0", "0", "0"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -18447,10 +17675,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["0", "0", "0"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["0", "0", "0"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -18488,10 +17714,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[\n                [],\n                0\n            ]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[\n                [],\n                0\n            ]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -18529,10 +17753,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[\n                [],\n                0\n            ]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[\n                [],\n                0\n            ]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -18570,10 +17792,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[\n                [],\n                0\n            ]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[\n                [],\n                0\n            ]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -18611,10 +17831,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_path_2_1_t
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["0", "0", "0"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["0", "0", "0"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -18652,10 +17870,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_path_2_1_t
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["0", "0", "0"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["0", "0", "0"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -18693,10 +17909,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_path_2_1_t
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["0", "0", "0"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["0", "0", "0"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -18734,10 +17948,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_second_ele
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected : Vec < & str > = vec ! ["[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" ,] ;
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected : Vec < & str > = vec ! ["[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" ,] ;
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -18775,10 +17987,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_second_ele
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected : Vec < & str > = vec ! ["[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" ,] ;
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected : Vec < & str > = vec ! ["[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" ,] ;
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -18816,10 +18026,8 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_second_ele
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected : Vec < & str > = vec ! ["[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" ,] ;
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected : Vec < & str > = vec ! ["[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" ,] ;
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -18857,10 +18065,8 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"0123-4567-8888\"", "\"0123-4567-8910\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"0123-4567-8888\"", "\"0123-4567-8910\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -18898,10 +18104,8 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"0123-4567-8888\"", "\"0123-4567-8910\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"0123-4567-8888\"", "\"0123-4567-8910\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -18939,10 +18143,8 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"0123-4567-8888\"", "\"0123-4567-8910\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"0123-4567-8888\"", "\"0123-4567-8910\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -18980,10 +18182,8 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"iPhone\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"iPhone\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -19021,10 +18221,8 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"iPhone\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"iPhone\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -19062,10 +18260,8 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"iPhone\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"iPhone\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -19103,10 +18299,8 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{\"type\":\"iPhone\",\"number\":\"0123-4567-8888\"}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{\"type\":\"iPhone\",\"number\":\"0123-4567-8888\"}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -19144,10 +18338,8 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{\"type\":\"iPhone\",\"number\":\"0123-4567-8888\"}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{\"type\":\"iPhone\",\"number\":\"0123-4567-8888\"}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -19185,10 +18377,8 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{\"type\":\"iPhone\",\"number\":\"0123-4567-8888\"}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{\"type\":\"iPhone\",\"number\":\"0123-4567-8888\"}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -19226,10 +18416,8 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"0123-4567-8888\"", "\"0123-4567-8910\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"0123-4567-8888\"", "\"0123-4567-8910\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -19267,10 +18455,8 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"0123-4567-8888\"", "\"0123-4567-8910\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"0123-4567-8888\"", "\"0123-4567-8910\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -19308,10 +18494,8 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"0123-4567-8888\"", "\"0123-4567-8910\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"0123-4567-8888\"", "\"0123-4567-8910\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -19349,10 +18533,8 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"iPhone\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"iPhone\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -19390,10 +18572,8 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"iPhone\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"iPhone\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -19431,10 +18611,8 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"iPhone\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"iPhone\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -19472,11 +18650,9 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> =
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> =
         vec!["{\n            \"type\": \"iPhone\",\n            \"number\": \"0123-4567-8888\"\n        }"];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -19514,11 +18690,9 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> =
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> =
         vec!["{\n            \"type\": \"iPhone\",\n            \"number\": \"0123-4567-8888\"\n        }"];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -19556,11 +18730,9 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> =
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> =
         vec!["{\n            \"type\": \"iPhone\",\n            \"number\": \"0123-4567-8888\"\n        }"];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -19598,10 +18770,8 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{}", "[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{}", "[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -19639,10 +18809,8 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{}", "[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{}", "[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -19680,10 +18848,8 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{}", "[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{}", "[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -19725,10 +18891,8 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[{}]", "[[]]", "[]", "{}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[{}]", "[[]]", "[]", "{}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -19770,10 +18934,8 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[{}]", "[[]]", "[]", "{}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[{}]", "[[]]", "[]", "{}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -19815,10 +18977,8 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[{}]", "[[]]", "[]", "{}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[{}]", "[[]]", "[]", "{}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -19856,10 +19016,8 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{}", "[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{}", "[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -19897,10 +19055,8 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{}", "[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{}", "[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -19938,10 +19094,8 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{}", "[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{}", "[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -19983,10 +19137,8 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[{}]", "{}", "[[]]", "[]", "[]", "{}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[{}]", "{}", "[[]]", "[]", "[]", "{}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -20028,10 +19180,8 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[{}]", "{}", "[[]]", "[]", "[]", "{}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[{}]", "{}", "[[]]", "[]", "[]", "{}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -20073,10 +19223,8 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[{}]", "{}", "[[]]", "[]", "[]", "{}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[{}]", "{}", "[[]]", "[]", "[]", "{}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -20114,10 +19262,8 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{}", "[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{}", "[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -20155,10 +19301,8 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{}", "[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{}", "[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -20196,10 +19340,8 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{}", "[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{}", "[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -20241,10 +19383,8 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[\n        {}\n    ]", "[\n        []\n    ]", "[]", "{}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[\n        {}\n    ]", "[\n        []\n    ]", "[]", "{}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -20286,10 +19426,8 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[\n        {}\n    ]", "[\n        []\n    ]", "[]", "{}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[\n        {}\n    ]", "[\n        []\n    ]", "[]", "{}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -20331,10 +19469,8 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[\n        {}\n    ]", "[\n        []\n    ]", "[]", "{}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[\n        {}\n    ]", "[\n        []\n    ]", "[]", "{}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -20372,10 +19508,8 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{}", "[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{}", "[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -20413,10 +19547,8 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{}", "[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{}", "[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -20454,10 +19586,8 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{}", "[]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{}", "[]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -20499,10 +19629,8 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[\n        {}\n    ]", "{}", "[\n        []\n    ]", "[]", "[]", "{}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[\n        {}\n    ]", "{}", "[\n        []\n    ]", "[]", "[]", "{}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -20544,10 +19672,8 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[\n        {}\n    ]", "{}", "[\n        []\n    ]", "[]", "[]", "{}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[\n        {}\n    ]", "{}", "[\n        []\n    ]", "[]", "[]", "{}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -20589,10 +19715,8 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[\n        {}\n    ]", "{}", "[\n        []\n    ]", "[]", "[]", "{}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[\n        {}\n    ]", "{}", "[\n        []\n    ]", "[]", "[]", "{}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -20637,15 +19761,13 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "\"0123-4567-8888\"",
         "\"0123-4567-8910\"",
         "\"0123-4567-9999\"",
         "\"0123-4567-9012\"",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -20690,15 +19812,13 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "\"0123-4567-8888\"",
         "\"0123-4567-8910\"",
         "\"0123-4567-9999\"",
         "\"0123-4567-9012\"",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -20743,15 +19863,13 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "\"0123-4567-8888\"",
         "\"0123-4567-8910\"",
         "\"0123-4567-9999\"",
         "\"0123-4567-9012\"",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -20796,10 +19914,8 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"iPhone\"", "\"home\"", "\"iPhone\"", "\"home\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"iPhone\"", "\"home\"", "\"iPhone\"", "\"home\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -20844,10 +19960,8 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"iPhone\"", "\"home\"", "\"iPhone\"", "\"home\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"iPhone\"", "\"home\"", "\"iPhone\"", "\"home\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -20892,10 +20006,8 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"iPhone\"", "\"home\"", "\"iPhone\"", "\"home\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"iPhone\"", "\"home\"", "\"iPhone\"", "\"home\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -20937,15 +20049,13 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "\"0123-4567-8888\"",
         "\"0123-4567-8910\"",
         "\"0123-4567-9999\"",
         "\"0123-4567-9012\"",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -20987,15 +20097,13 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "\"0123-4567-8888\"",
         "\"0123-4567-8910\"",
         "\"0123-4567-9999\"",
         "\"0123-4567-9012\"",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -21037,15 +20145,13 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec![
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
         "\"0123-4567-8888\"",
         "\"0123-4567-8910\"",
         "\"0123-4567-9999\"",
         "\"0123-4567-9012\"",
     ];
-    utf8.sort();
-    expected.sort();
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -21087,10 +20193,8 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"iPhone\"", "\"home\"", "\"iPhone\"", "\"home\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"iPhone\"", "\"home\"", "\"iPhone\"", "\"home\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -21132,10 +20236,8 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"iPhone\"", "\"home\"", "\"iPhone\"", "\"home\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"iPhone\"", "\"home\"", "\"iPhone\"", "\"home\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -21177,10 +20279,8 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["\"iPhone\"", "\"home\"", "\"iPhone\"", "\"home\""];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"iPhone\"", "\"home\"", "\"iPhone\"", "\"home\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -21578,10 +20678,8 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_count_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["100"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["100"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -21619,10 +20717,8 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_count_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["100"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["100"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -21660,10 +20756,8 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_count_
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["100"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["100"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -21701,10 +20795,8 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["100"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["100"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -21742,10 +20834,8 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["100"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["100"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -21783,10 +20873,8 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["100"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["100"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -21824,10 +20912,8 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["100"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["100"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -21865,10 +20951,8 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["100"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["100"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -21906,10 +20990,8 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["100"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["100"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -21947,10 +21029,8 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["100"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["100"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -21988,10 +21068,8 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["100"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["100"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -22029,10 +21107,8 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["100"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["100"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -22070,10 +21146,8 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["100"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["100"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -22111,10 +21185,8 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["100"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["100"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -22152,10 +21224,8 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["100"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["100"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -22553,10 +21623,8 @@ fn twitter_json_from_simdjson_github_example_with_query_select_count_by_descenda
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["100"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["100"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -22594,10 +21662,8 @@ fn twitter_json_from_simdjson_github_example_with_query_select_count_by_descenda
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["100"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["100"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -22635,10 +21701,8 @@ fn twitter_json_from_simdjson_github_example_with_query_select_count_by_descenda
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["100"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["100"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -22676,10 +21740,8 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_and_coun
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["100"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["100"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -22717,10 +21779,8 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_and_coun
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["100"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["100"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -22758,10 +21818,8 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_and_coun
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["100"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["100"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -22799,10 +21857,8 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_by
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["100"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["100"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -22840,10 +21896,8 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_by
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["100"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["100"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -22881,10 +21935,8 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_by
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["100"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["100"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -22922,10 +21974,8 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_di
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["100"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["100"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -22963,10 +22013,8 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_di
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["100"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["100"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -23004,10 +22052,8 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_di
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["100"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["100"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -23045,10 +22091,8 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_directly
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["100"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["100"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -23086,10 +22130,8 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_directly
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["100"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["100"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -23127,10 +22169,8 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_directly
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["100"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["100"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -23168,10 +22208,8 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[0,1,2]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[0,1,2]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -23209,10 +22247,8 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[0,1,2]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[0,1,2]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -23250,10 +22286,8 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[0,1,2]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[0,1,2]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -23291,10 +22325,8 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[0,1,2]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[0,1,2]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -23332,10 +22364,8 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[0,1,2]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[0,1,2]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -23373,10 +22403,8 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[0,1,2]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[0,1,2]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -23414,10 +22442,8 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["0", "1", "2"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["0", "1", "2"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -23455,10 +22481,8 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["0", "1", "2"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["0", "1", "2"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -23496,10 +22520,8 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["0", "1", "2"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["0", "1", "2"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -23537,10 +22559,8 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{\"a\":[0,1,2]}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{\"a\":[0,1,2]}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -23578,10 +22598,8 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{\"a\":[0,1,2]}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{\"a\":[0,1,2]}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -23619,10 +22637,8 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{\"a\":[0,1,2]}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{\"a\":[0,1,2]}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -23660,10 +22676,8 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[0  ,  1  ,  2]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[0  ,  1  ,  2]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -23701,10 +22715,8 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[0  ,  1  ,  2]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[0  ,  1  ,  2]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -23742,10 +22754,8 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[0  ,  1  ,  2]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[0  ,  1  ,  2]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -23783,10 +22793,8 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[0  ,  1  ,  2]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[0  ,  1  ,  2]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -23824,10 +22832,8 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[0  ,  1  ,  2]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[0  ,  1  ,  2]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -23865,10 +22871,8 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["[0  ,  1  ,  2]"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["[0  ,  1  ,  2]"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -23906,10 +22910,8 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["0", "1", "2"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["0", "1", "2"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -23947,10 +22949,8 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["0", "1", "2"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["0", "1", "2"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -23988,10 +22988,8 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["0", "1", "2"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["0", "1", "2"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -24029,10 +23027,8 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{\"a\"  :  [0  ,  1  ,  2]}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{\"a\"  :  [0  ,  1  ,  2]}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -24070,10 +23066,8 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{\"a\"  :  [0  ,  1  ,  2]}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{\"a\"  :  [0  ,  1  ,  2]}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -24111,10 +23105,8 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-    let mut utf8 = utf8.expect("valid utf8");
-    let mut expected: Vec<&str> = vec!["{\"a\"  :  [0  ,  1  ,  2]}"];
-    utf8.sort();
-    expected.sort();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{\"a\"  :  [0  ,  1  ,  2]}"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }

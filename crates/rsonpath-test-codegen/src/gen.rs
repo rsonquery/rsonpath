@@ -157,7 +157,6 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> impl IntoIterator<Item = T
                     assert_eq!(result.get(), vec![#(#bytes,)*], "result != expected");
                 }
             }
-            // FIXME: order matters
             ResultTypeToTest::Nodes => {
                 let node_strings = query
                     .results
@@ -167,11 +166,8 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> impl IntoIterator<Item = T
                 quote! {
                     let result = #engine_ident.run::<_, NodesRecorder>(&#input_ident)?;
                     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
-                    let mut utf8 = utf8.expect("valid utf8");
-                    let mut expected: Vec<&str> = vec![#(#node_strings,)*];
-
-                    utf8.sort();
-                    expected.sort();
+                    let utf8 = utf8.expect("valid utf8");
+                    let expected: Vec<&str> = vec![#(#node_strings,)*];
 
                     assert_eq!(utf8, expected, "result != expected");
                 }
