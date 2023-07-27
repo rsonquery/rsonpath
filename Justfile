@@ -120,6 +120,18 @@ test-doc:
     -cargo install cargo-hack
     cargo rsontest -p rsonpath-lib --doc
 
+@add-test name:
+    f=`echo {{name}} | sed s/-/_/g` && \
+        cp ./crates/rsonpath-lib/tests/documents/toml/test-template-inline.toml ./crates/rsonpath-lib/tests/documents/toml/$f.toml && \
+        echo "Test template initialised at crates/rsonpath-lib/tests/documents/toml/$f.toml"
+
+@add-test-large name:
+    f=`echo {{name}} | sed s/-/_/g` && \
+        cp ./crates/rsonpath-lib/tests/documents/toml/test-template-large.toml ./crates/rsonpath-lib/tests/documents/toml/$f.toml && \
+        echo "Test template initialised at crates/rsonpath-lib/tests/documents/toml/$f.toml" && \
+        echo "{}" > ./crates/rsonpath-lib/tests/documents/json/large/$f.json && \
+        echo "Put your large JSON document as contents of crates/rsonpath-lib/tests/documents/json/large/$f.json"
+
 # === INSTALL ===
 
 # Install the rsonpath binary from current source.

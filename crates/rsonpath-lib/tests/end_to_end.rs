@@ -1,4 +1,4 @@
-// c7a431858bdd85258505124c4f1d52c6
+// 83df62aeb2bdc99206004da80c69ec1b
 use pretty_assertions::assert_eq;
 use rsonpath::engine::{main::MainEngine, Compiler, Engine};
 use rsonpath::input::*;
@@ -10292,6 +10292,264 @@ fn list_with_mixed_atomic_integers_and_objects_with_query_select_all_elements_on
     Ok(())
 }
 #[test]
+fn list_with_nested_sublists_to_stress_output_ordering_compressed_with_query_select_all_subdocuments_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/ordered_list.toml running the query $..* (select all subdocuments) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/ordered_list.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, CountRecorder>(&input)?;
+    assert_eq!(result.get(), 7u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_nested_sublists_to_stress_output_ordering_compressed_with_query_select_all_subdocuments_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/ordered_list.toml running the query $..* (select all subdocuments) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/ordered_list.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, IndexRecorder>(&input)?;
+    assert_eq!(
+        result.get(),
+        vec![1usize, 3usize, 5usize, 6usize, 9usize, 12usize, 13usize,],
+        "result != expected"
+    );
+    Ok(())
+}
+#[test]
+fn list_with_nested_sublists_to_stress_output_ordering_compressed_with_query_select_all_subdocuments_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/ordered_list.toml running the query $..* (select all subdocuments) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/ordered_list.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["1", "2", "[{},4]", "{}", "4", "[5]", "5"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_nested_sublists_to_stress_output_ordering_compressed_with_query_select_all_subdocuments_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/ordered_list.toml running the query $..* (select all subdocuments) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/ordered_list.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, CountRecorder>(&input)?;
+    assert_eq!(result.get(), 7u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_nested_sublists_to_stress_output_ordering_compressed_with_query_select_all_subdocuments_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/ordered_list.toml running the query $..* (select all subdocuments) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/ordered_list.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, IndexRecorder>(&input)?;
+    assert_eq!(
+        result.get(),
+        vec![1usize, 3usize, 5usize, 6usize, 9usize, 12usize, 13usize,],
+        "result != expected"
+    );
+    Ok(())
+}
+#[test]
+fn list_with_nested_sublists_to_stress_output_ordering_compressed_with_query_select_all_subdocuments_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/ordered_list.toml running the query $..* (select all subdocuments) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/ordered_list.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["1", "2", "[{},4]", "{}", "4", "[5]", "5"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_nested_sublists_to_stress_output_ordering_compressed_with_query_select_all_subdocuments_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/ordered_list.toml running the query $..* (select all subdocuments) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/ordered_list.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, CountRecorder>(&input)?;
+    assert_eq!(result.get(), 7u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_nested_sublists_to_stress_output_ordering_compressed_with_query_select_all_subdocuments_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/ordered_list.toml running the query $..* (select all subdocuments) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/ordered_list.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, IndexRecorder>(&input)?;
+    assert_eq!(
+        result.get(),
+        vec![1usize, 3usize, 5usize, 6usize, 9usize, 12usize, 13usize,],
+        "result != expected"
+    );
+    Ok(())
+}
+#[test]
+fn list_with_nested_sublists_to_stress_output_ordering_compressed_with_query_select_all_subdocuments_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/ordered_list.toml running the query $..* (select all subdocuments) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/ordered_list.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["1", "2", "[{},4]", "{}", "4", "[5]", "5"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_nested_sublists_to_stress_output_ordering_with_query_select_all_subdocuments_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document ordered_list.toml running the query $..* (select all subdocuments) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/ordered_list.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, CountRecorder>(&input)?;
+    assert_eq!(result.get(), 7u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_nested_sublists_to_stress_output_ordering_with_query_select_all_subdocuments_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document ordered_list.toml running the query $..* (select all subdocuments) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/ordered_list.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, IndexRecorder>(&input)?;
+    assert_eq!(
+        result.get(),
+        vec![4usize, 9usize, 14usize, 20usize, 28usize, 37usize, 43usize,],
+        "result != expected"
+    );
+    Ok(())
+}
+#[test]
+fn list_with_nested_sublists_to_stress_output_ordering_with_query_select_all_subdocuments_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document ordered_list.toml running the query $..* (select all subdocuments) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/ordered_list.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["1", "2", "[\n    {},\n    4\n  ]", "{}", "4", "[\n    5\n  ]", "5"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_nested_sublists_to_stress_output_ordering_with_query_select_all_subdocuments_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document ordered_list.toml running the query $..* (select all subdocuments) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/ordered_list.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, CountRecorder>(&input)?;
+    assert_eq!(result.get(), 7u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_nested_sublists_to_stress_output_ordering_with_query_select_all_subdocuments_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document ordered_list.toml running the query $..* (select all subdocuments) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/ordered_list.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, IndexRecorder>(&input)?;
+    assert_eq!(
+        result.get(),
+        vec![4usize, 9usize, 14usize, 20usize, 28usize, 37usize, 43usize,],
+        "result != expected"
+    );
+    Ok(())
+}
+#[test]
+fn list_with_nested_sublists_to_stress_output_ordering_with_query_select_all_subdocuments_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document ordered_list.toml running the query $..* (select all subdocuments) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/ordered_list.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["1", "2", "[\n    {},\n    4\n  ]", "{}", "4", "[\n    5\n  ]", "5"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_nested_sublists_to_stress_output_ordering_with_query_select_all_subdocuments_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document ordered_list.toml running the query $..* (select all subdocuments) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/ordered_list.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, CountRecorder>(&input)?;
+    assert_eq!(result.get(), 7u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_nested_sublists_to_stress_output_ordering_with_query_select_all_subdocuments_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document ordered_list.toml running the query $..* (select all subdocuments) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/ordered_list.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, IndexRecorder>(&input)?;
+    assert_eq!(
+        result.get(),
+        vec![4usize, 9usize, 14usize, 20usize, 28usize, 37usize, 43usize,],
+        "result != expected"
+    );
+    Ok(())
+}
+#[test]
+fn list_with_nested_sublists_to_stress_output_ordering_with_query_select_all_subdocuments_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document ordered_list.toml running the query $..* (select all subdocuments) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/ordered_list.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["1", "2", "[\n    {},\n    4\n  ]", "{}", "4", "[\n    5\n  ]", "5"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
 fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_query_select_label_with_one_actual_backslash_which_is_two_backslashes_in_the_query_with_buffered_input_and_count_result_using_main_engine(
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/escapes.toml running the query $..a..b..['label\\\\'] (select label with one actual backslash, which is two backslashes in the query) with Input impl BufferedInput and result mode CountResult");
@@ -18029,6 +18287,313 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_second_ele
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" ,] ;
     assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn short_description_of_the_inline_input_structure_compressed_with_query_select_all_subdocuments_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/test_template_inline.toml running the query $..* (select all subdocuments) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/test_template_inline.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, CountRecorder>(&input)?;
+    assert_eq!(result.get(), 3u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn short_description_of_the_inline_input_structure_compressed_with_query_select_all_subdocuments_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/test_template_inline.toml running the query $..* (select all subdocuments) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/test_template_inline.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, IndexRecorder>(&input)?;
+    assert_eq!(result.get(), vec![8usize, 25usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn short_description_of_the_inline_input_structure_compressed_with_query_select_all_subdocuments_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/test_template_inline.toml running the query $..* (select all subdocuments) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/test_template_inline.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{\"name\":\"value1\",\"value\":42}", "\"value1\"", "42"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn short_description_of_the_inline_input_structure_compressed_with_query_select_all_subdocuments_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/test_template_inline.toml running the query $..* (select all subdocuments) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/test_template_inline.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, CountRecorder>(&input)?;
+    assert_eq!(result.get(), 3u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn short_description_of_the_inline_input_structure_compressed_with_query_select_all_subdocuments_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/test_template_inline.toml running the query $..* (select all subdocuments) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/test_template_inline.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, IndexRecorder>(&input)?;
+    assert_eq!(result.get(), vec![8usize, 25usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn short_description_of_the_inline_input_structure_compressed_with_query_select_all_subdocuments_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/test_template_inline.toml running the query $..* (select all subdocuments) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/test_template_inline.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{\"name\":\"value1\",\"value\":42}", "\"value1\"", "42"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn short_description_of_the_inline_input_structure_compressed_with_query_select_all_subdocuments_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/test_template_inline.toml running the query $..* (select all subdocuments) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/test_template_inline.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, CountRecorder>(&input)?;
+    assert_eq!(result.get(), 3u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn short_description_of_the_inline_input_structure_compressed_with_query_select_all_subdocuments_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/test_template_inline.toml running the query $..* (select all subdocuments) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/test_template_inline.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, IndexRecorder>(&input)?;
+    assert_eq!(result.get(), vec![8usize, 25usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn short_description_of_the_inline_input_structure_compressed_with_query_select_all_subdocuments_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/test_template_inline.toml running the query $..* (select all subdocuments) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/test_template_inline.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{\"name\":\"value1\",\"value\":42}", "\"value1\"", "42"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn short_description_of_the_inline_input_structure_with_query_select_all_subdocuments_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document test_template_inline.toml running the query $..* (select all subdocuments) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/test_template_inline.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, CountRecorder>(&input)?;
+    assert_eq!(result.get(), 3u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn short_description_of_the_inline_input_structure_with_query_select_all_subdocuments_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document test_template_inline.toml running the query $..* (select all subdocuments) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/test_template_inline.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, IndexRecorder>(&input)?;
+    assert_eq!(result.get(), vec![12usize, 33usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn short_description_of_the_inline_input_structure_with_query_select_all_subdocuments_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document test_template_inline.toml running the query $..* (select all subdocuments) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/test_template_inline.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{\n  \"name\": \"value1\",\n  \"value\": 42\n}", "\"value1\"", "42"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn short_description_of_the_inline_input_structure_with_query_select_all_subdocuments_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document test_template_inline.toml running the query $..* (select all subdocuments) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/test_template_inline.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, CountRecorder>(&input)?;
+    assert_eq!(result.get(), 3u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn short_description_of_the_inline_input_structure_with_query_select_all_subdocuments_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document test_template_inline.toml running the query $..* (select all subdocuments) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/test_template_inline.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, IndexRecorder>(&input)?;
+    assert_eq!(result.get(), vec![12usize, 33usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn short_description_of_the_inline_input_structure_with_query_select_all_subdocuments_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document test_template_inline.toml running the query $..* (select all subdocuments) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/test_template_inline.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{\n  \"name\": \"value1\",\n  \"value\": 42\n}", "\"value1\"", "42"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn short_description_of_the_inline_input_structure_with_query_select_all_subdocuments_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document test_template_inline.toml running the query $..* (select all subdocuments) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/test_template_inline.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, CountRecorder>(&input)?;
+    assert_eq!(result.get(), 3u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn short_description_of_the_inline_input_structure_with_query_select_all_subdocuments_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document test_template_inline.toml running the query $..* (select all subdocuments) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/test_template_inline.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, IndexRecorder>(&input)?;
+    assert_eq!(result.get(), vec![12usize, 33usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn short_description_of_the_inline_input_structure_with_query_select_all_subdocuments_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document test_template_inline.toml running the query $..* (select all subdocuments) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/test_template_inline.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["{\n  \"name\": \"value1\",\n  \"value\": 42\n}", "\"value1\"", "42"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn short_description_of_the_input_file_structure_compressed_with_query_select_all_subdocuments_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/test_template_large.toml running the query $..* (select all subdocuments) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/test_template_large.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, CountRecorder>(&input)?;
+    assert_eq!(result.get(), 1000000u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn short_description_of_the_input_file_structure_compressed_with_query_select_all_subdocuments_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/test_template_large.toml running the query $..* (select all subdocuments) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/test_template_large.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, CountRecorder>(&input)?;
+    assert_eq!(result.get(), 1000000u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn short_description_of_the_input_file_structure_compressed_with_query_select_all_subdocuments_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/test_template_large.toml running the query $..* (select all subdocuments) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/test_template_large.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, CountRecorder>(&input)?;
+    assert_eq!(result.get(), 1000000u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn short_description_of_the_input_file_structure_with_query_select_all_subdocuments_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document test_template_large.toml running the query $..* (select all subdocuments) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/test_template_large.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, CountRecorder>(&input)?;
+    assert_eq!(result.get(), 1000000u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn short_description_of_the_input_file_structure_with_query_select_all_subdocuments_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document test_template_large.toml running the query $..* (select all subdocuments) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/test_template_large.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, CountRecorder>(&input)?;
+    assert_eq!(result.get(), 1000000u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn short_description_of_the_input_file_structure_with_query_select_all_subdocuments_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document test_template_large.toml running the query $..* (select all subdocuments) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/test_template_large.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.run::<_, CountRecorder>(&input)?;
+    assert_eq!(result.get(), 1000000u64, "result != expected");
     Ok(())
 }
 #[test]

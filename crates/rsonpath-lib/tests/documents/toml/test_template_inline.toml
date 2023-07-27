@@ -1,0 +1,34 @@
+# Define the JSON input for all query test cases.
+[input]
+# Short description of the input structure.
+description = "Short description of the inline input structure."
+ # Set to true only if your specific test input is fully compressed (no extraneous whitespace).
+is_compressed = false
+
+# Inline JSON document.
+[input.source]
+json_string = '''
+{
+  "name": "value1",
+  "value": 42
+}
+'''
+
+# Define queries to test on the input.
+[[queries]]
+ # Valid JSONPath query string.
+query = "$..*"
+# Short descritpion of the query semantics.
+description = "select all subdocuments"
+
+[queries.results]
+# Number of expected matches.
+count = 2
+# Byte locations of starts of all matches, in order.
+bytes = [12, 33] 
+# Stringified values of all matches, verbatim as in the input,
+# in the same order as above.
+nodes = [
+    '"value1"',
+    '42',
+]
