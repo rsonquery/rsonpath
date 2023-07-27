@@ -63,17 +63,20 @@ pub mod structural;
 
 use crate::{
     debug,
-    input::{error::InputError, Input},
+    input::{error::InputError, InputBlockIterator},
 };
 use quotes::{QuoteClassifiedBlock, QuoteClassifiedIterator};
 
 /// State allowing resumption of a classifier from a particular place
 /// in the input along with the stopped [`QuoteClassifiedIterator`].
-pub struct ResumeClassifierState<'a, I: Input, Q, const N: usize> {
+pub struct ResumeClassifierState<'i, I, Q, const N: usize>
+where
+    I: InputBlockIterator<'i, N>,
+{
     /// The stopped iterator.
     pub iter: Q,
     /// The block at which classification was stopped.
-    pub block: Option<ResumeClassifierBlockState<'a, I, N>>,
+    pub block: Option<ResumeClassifierBlockState<'i, I, N>>,
     /// Was comma classification turned on when the classification was stopped.
     pub are_commas_on: bool,
     /// Was colon classification turned on when the classification was stopped.
@@ -81,14 +84,21 @@ pub struct ResumeClassifierState<'a, I: Input, Q, const N: usize> {
 }
 
 /// State of the block at which classification was stopped.
-pub struct ResumeClassifierBlockState<'a, I: Input + 'a, const N: usize> {
+pub struct ResumeClassifierBlockState<'i, I, const N: usize>
+where
+    I: InputBlockIterator<'i, N>,
+{
     /// Quote classified information about the block.
-    pub block: QuoteClassifiedBlock<I::Block<'a, N>, N>,
+    pub block: QuoteClassifiedBlock<I::Block, N>,
     /// The index at which classification was stopped.
     pub idx: usize,
 }
 
-impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> ResumeClassifierState<'a, I, Q, N> {
+impl<'i, I, Q, const N: usize> ResumeClassifierState<'i, I, Q, N>
+where
+    I: InputBlockIterator<'i, N>,
+    Q: QuoteClassifiedIterator<'i, I, N>,
+{
     /// Get the index in the original bytes input at which classification has stopped.
     #[inline(always)]
     pub fn get_idx(&self) -> usize {

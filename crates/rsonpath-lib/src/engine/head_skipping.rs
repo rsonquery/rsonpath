@@ -40,11 +40,11 @@ pub(super) trait CanHeadSkip<'b, 'r, I: Input, R: Recorder, const N: usize> {
         next_event: Structural,
         state: State,
         structural_classifier: S,
-    ) -> Result<ResumeClassifierState<'b, I, Q, N>, EngineError>
+    ) -> Result<ResumeClassifierState<'b, I::BlockIterator<'b, 'r, N, R>, Q, N>, EngineError>
     where
         I: Input,
-        Q: QuoteClassifiedIterator<'b, I, N>,
-        S: StructuralIterator<'b, I, Q, N>;
+        Q: QuoteClassifiedIterator<'b, I::BlockIterator<'b, 'r, N, R>, N>,
+        S: StructuralIterator<'b, I::BlockIterator<'b, 'r, N, R>, Q, N>;
 
     fn recorder(&mut self) -> &'r R;
 }
@@ -111,7 +111,7 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
     ) -> Result<(), EngineError>
     where
         R: 'r,
-        'r: 'b,
+        'b: 'r,
     {
         let mut input_iter = self.bytes.iter_blocks(engine.recorder());
         let mut idx = 0;

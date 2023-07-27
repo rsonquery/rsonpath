@@ -31,8 +31,8 @@
 //! assert_eq!(expd, block.within_quotes_mask);
 //! ```
 
-use crate::input::{Input, InputBlock};
-use crate::{input::error::InputError, result::InputRecorder};
+use crate::input::error::InputError;
+use crate::input::{InputBlock, InputBlockIterator};
 use crate::{FallibleIterator, BLOCK_SIZE};
 use cfg_if::cfg_if;
 
@@ -54,8 +54,8 @@ pub struct QuoteClassifiedBlock<B, const N: usize> {
 /// Trait for quote classifier iterators, i.e. finite iterators
 /// enriching blocks of input with quote bitmasks.
 /// Iterator is allowed to hold a reference to the JSON document valid for `'a`.
-pub trait QuoteClassifiedIterator<'a, I: Input + 'a, const N: usize>:
-    FallibleIterator<Item = QuoteClassifiedBlock<I::Block<'a, N>, N>, Error = InputError> + 'a
+pub trait QuoteClassifiedIterator<'i, I: InputBlockIterator<'i, N>, const N: usize>:
+    FallibleIterator<Item = QuoteClassifiedBlock<I::Block, N>, Error = InputError>
 {
     /// Get the total offset in bytes from the beginning of input.
     fn get_offset(&self) -> usize;
@@ -72,9 +72,9 @@ pub trait QuoteClassifiedIterator<'a, I: Input + 'a, const N: usize>:
 }
 
 /// Higher-level classifier that can be consumed to retrieve the inner [`Input::BlockIterator`].
-pub trait InnerIter<'a, 'r, I: Input + 'a, R: InputRecorder, const N: usize> {
+pub trait InnerIter<I> {
     /// Consume `self` and return the wrapped [`Input::BlockIterator`].
-    fn into_inner(self) -> I::BlockIterator<'a, 'r, N, R>;
+    fn into_inner(self) -> I;
 }
 
 impl<'a, B, const N: usize> QuoteClassifiedBlock<B, N>
@@ -103,7 +103,7 @@ cfg_if! {
     }
     else if #[cfg(simd = "avx2")] {
         mod avx2;
-        type ClassifierImpl<'a, 'r, I, R> = avx2::Avx2QuoteClassifier<'a, 'r, I, R>;
+        type ClassifierImpl<'a, I> = avx2::Avx2QuoteClassifier<'a, I>;
     }
     else {
         compile_error!("Target architecture is not supported by SIMD features of this crate. Disable the default `simd` feature.");
@@ -114,19 +114,22 @@ cfg_if! {
 /// and classify quoted sequences.
 #[must_use]
 #[inline(always)]
-pub fn classify_quoted_sequences<'a, I: Input, R: InputRecorder>(
-    bytes: &'a I,
-    recorder: &'a R,
-) -> impl QuoteClassifiedIterator<'a, I, BLOCK_SIZE> + InnerIter<'a, 'a, I, R, BLOCK_SIZE> {
-    ClassifierImpl::new(bytes, recorder)
+pub fn classify_quoted_sequences<'i, I>(iter: I) -> impl QuoteClassifiedIterator<'i, I, BLOCK_SIZE> + InnerIter<I>
+where
+    I: InputBlockIterator<'i, BLOCK_SIZE>,
+{
+    ClassifierImpl::new(iter)
 }
 
-pub(crate) fn resume_quote_classification<'a, I: Input, R: InputRecorder>(
-    iter: I::BlockIterator<'a, 'a, BLOCK_SIZE, R>,
-    first_block: Option<I::Block<'a, BLOCK_SIZE>>,
+pub(crate) fn resume_quote_classification<'i, I>(
+    iter: I,
+    first_block: Option<I::Block>,
 ) -> (
-    impl QuoteClassifiedIterator<'a, I, BLOCK_SIZE> + InnerIter<'a, 'a, I, R, BLOCK_SIZE>,
-    Option<QuoteClassifiedBlock<I::Block<'a, BLOCK_SIZE>, BLOCK_SIZE>>,
-) {
+    impl QuoteClassifiedIterator<'i, I, BLOCK_SIZE> + InnerIter<I>,
+    Option<QuoteClassifiedBlock<I::Block, BLOCK_SIZE>>,
+)
+where
+    I: InputBlockIterator<'i, BLOCK_SIZE>,
+{
     ClassifierImpl::resume(iter, first_block)
 }

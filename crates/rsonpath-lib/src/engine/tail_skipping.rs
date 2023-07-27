@@ -8,31 +8,26 @@ use crate::{
     },
     debug,
     engine::error::EngineError,
-    input::Input,
+    input::InputBlockIterator,
     FallibleIterator, BLOCK_SIZE,
 };
 use std::marker::PhantomData;
 
-pub(crate) struct TailSkip<'b, I, Q, S, const N: usize>
-where
-    I: Input,
-    Q: QuoteClassifiedIterator<'b, I, N>,
-    S: StructuralIterator<'b, I, Q, N>,
-{
+pub(crate) struct TailSkip<'i, I, Q, S, const N: usize> {
     classifier: Option<S>,
-    phantom: PhantomData<&'b (I, Q)>,
+    _phantom: (PhantomData<&'i ()>, PhantomData<(I, Q)>),
 }
 
-impl<'b, I, Q, S> TailSkip<'b, I, Q, S, BLOCK_SIZE>
+impl<'i, I, Q, S> TailSkip<'i, I, Q, S, BLOCK_SIZE>
 where
-    I: Input,
-    Q: QuoteClassifiedIterator<'b, I, BLOCK_SIZE>,
-    S: StructuralIterator<'b, I, Q, BLOCK_SIZE>,
+    I: InputBlockIterator<'i, BLOCK_SIZE>,
+    Q: QuoteClassifiedIterator<'i, I, BLOCK_SIZE>,
+    S: StructuralIterator<'i, I, Q, BLOCK_SIZE>,
 {
     pub(crate) fn new(classifier: S) -> Self {
         Self {
             classifier: Some(classifier),
-            phantom: PhantomData,
+            _phantom: (PhantomData, PhantomData),
         }
     }
 
@@ -101,16 +96,16 @@ where
         }
     }
 
-    pub(crate) fn stop(self) -> ResumeClassifierState<'b, I, Q, BLOCK_SIZE> {
+    pub(crate) fn stop(self) -> ResumeClassifierState<'i, I, Q, BLOCK_SIZE> {
         self.classifier.expect("tail skip must always hold a classifier").stop()
     }
 }
 
-impl<'b, I, Q, S, const N: usize> std::ops::Deref for TailSkip<'b, I, Q, S, N>
+impl<'i, I, Q, S, const N: usize> std::ops::Deref for TailSkip<'i, I, Q, S, N>
 where
-    I: Input,
-    Q: QuoteClassifiedIterator<'b, I, N>,
-    S: StructuralIterator<'b, I, Q, N>,
+    I: InputBlockIterator<'i, N>,
+    Q: QuoteClassifiedIterator<'i, I, N>,
+    S: StructuralIterator<'i, I, Q, N>,
 {
     type Target = S;
 
@@ -121,11 +116,11 @@ where
     }
 }
 
-impl<'b, I, Q, S, const N: usize> std::ops::DerefMut for TailSkip<'b, I, Q, S, N>
+impl<'i, I, Q, S, const N: usize> std::ops::DerefMut for TailSkip<'i, I, Q, S, N>
 where
-    I: Input,
-    Q: QuoteClassifiedIterator<'b, I, N>,
-    S: StructuralIterator<'b, I, Q, N>,
+    I: InputBlockIterator<'i, N>,
+    Q: QuoteClassifiedIterator<'i, I, N>,
+    S: StructuralIterator<'i, I, Q, N>,
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
         self.classifier

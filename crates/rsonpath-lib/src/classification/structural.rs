@@ -54,7 +54,7 @@
 //! ```
 use crate::{
     classification::{quotes::QuoteClassifiedIterator, ResumeClassifierState},
-    input::{error::InputError, Input},
+    input::{error::InputError, InputBlockIterator},
     FallibleIterator, BLOCK_SIZE,
 };
 use cfg_if::cfg_if;
@@ -162,15 +162,17 @@ impl Structural {
 
 /// Trait for classifier iterators, i.e. finite iterators of [`Structural`] characters
 /// that hold a reference to the JSON document valid for `'a`.
-pub trait StructuralIterator<'a, I: Input, Q, const N: usize>:
-    FallibleIterator<Item = Structural, Error = InputError> + 'a
+pub trait StructuralIterator<'i, I, Q, const N: usize>:
+    FallibleIterator<Item = Structural, Error = InputError>
+where
+    I: InputBlockIterator<'i, N>,
 {
     /// Stop classification and return a state object that can be used to resume
     /// a classifier from the place in which the current one was stopped.
-    fn stop(self) -> ResumeClassifierState<'a, I, Q, N>;
+    fn stop(self) -> ResumeClassifierState<'i, I, Q, N>;
 
     /// Resume classification from a state retrieved by stopping a classifier.
-    fn resume(state: ResumeClassifierState<'a, I, Q, N>) -> Self;
+    fn resume(state: ResumeClassifierState<'i, I, Q, N>) -> Self;
 
     /// Turn classification of [`Structural::Colon`] characters off.
     fn turn_colons_off(&mut self);
@@ -226,25 +228,35 @@ cfg_if! {
 /// Walk through the JSON document represented by `bytes` and iterate over all
 /// occurrences of structural characters in it.
 #[inline(always)]
-pub fn classify_structural_characters<'a, I: Input + 'a, Q: QuoteClassifiedIterator<'a, I, BLOCK_SIZE>>(
-    iter: Q,
-) -> impl StructuralIterator<'a, I, Q, BLOCK_SIZE> {
+pub fn classify_structural_characters<'i, I, Q>(iter: Q) -> impl StructuralIterator<'i, I, Q, BLOCK_SIZE>
+where
+    I: InputBlockIterator<'i, BLOCK_SIZE>,
+    Q: QuoteClassifiedIterator<'i, I, BLOCK_SIZE>,
+{
     ClassifierImpl::new(iter)
 }
 
 /// Resume classification using a state retrieved from a previously
 /// used classifier via the `stop` function.
 #[inline(always)]
-pub fn resume_structural_classification<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, BLOCK_SIZE>>(
-    state: ResumeClassifierState<'a, I, Q, BLOCK_SIZE>,
-) -> impl StructuralIterator<'a, I, Q, BLOCK_SIZE> {
+pub fn resume_structural_classification<'i, I, Q>(
+    state: ResumeClassifierState<'i, I, Q, BLOCK_SIZE>,
+) -> impl StructuralIterator<'i, I, Q, BLOCK_SIZE>
+where
+    I: InputBlockIterator<'i, BLOCK_SIZE>,
+    Q: QuoteClassifiedIterator<'i, I, BLOCK_SIZE>,
+{
     ClassifierImpl::resume(state)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{classification::quotes::classify_quoted_sequences, input::OwnedBytes, result::empty::EmptyRecorder};
+    use crate::{
+        classification::quotes::classify_quoted_sequences,
+        input::{Input, OwnedBytes},
+        result::empty::EmptyRecorder,
+    };
 
     #[test]
     fn resumption_without_commas_or_colons() {
@@ -254,7 +266,8 @@ mod tests {
         let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
         let json_string = json.to_owned();
         let input = OwnedBytes::new(&json_string).unwrap();
-        let quotes = classify_quoted_sequences(&input, &EmptyRecorder);
+        let iter = input.iter_blocks(&EmptyRecorder);
+        let quotes = classify_quoted_sequences(iter);
 
         let mut classifier = classify_structural_characters(quotes);
 
@@ -277,7 +290,8 @@ mod tests {
         let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
         let json_string = json.to_owned();
         let input = OwnedBytes::new(&json_string).unwrap();
-        let quotes = classify_quoted_sequences(&input, &EmptyRecorder);
+        let iter = input.iter_blocks(&EmptyRecorder);
+        let quotes = classify_quoted_sequences(iter);
 
         let mut classifier = classify_structural_characters(quotes);
         classifier.turn_commas_on(0);
@@ -304,7 +318,8 @@ mod tests {
         let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
         let json_string = json.to_owned();
         let input = OwnedBytes::new(&json_string).unwrap();
-        let quotes = classify_quoted_sequences(&input, &EmptyRecorder);
+        let iter = input.iter_blocks(&EmptyRecorder);
+        let quotes = classify_quoted_sequences(iter);
 
         let mut classifier = classify_structural_characters(quotes);
         classifier.turn_colons_on(0);
@@ -331,7 +346,8 @@ mod tests {
         let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
         let json_string = json.to_owned();
         let input = OwnedBytes::new(&json_string).unwrap();
-        let quotes = classify_quoted_sequences(&input, &EmptyRecorder);
+        let iter = input.iter_blocks(&EmptyRecorder);
+        let quotes = classify_quoted_sequences(iter);
 
         let mut classifier = classify_structural_characters(quotes);
         classifier.turn_commas_on(0);

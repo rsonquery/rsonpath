@@ -9,7 +9,7 @@ use crate::{
 use cfg_if::cfg_if;
 
 /// Classifier that can quickly find a member name in a byte stream.
-pub trait Memmem<'a, 'b, I: Input, const N: usize> {
+pub trait Memmem<'i, 'b, 'r, I: Input, const N: usize> {
     /// Find a member key identified by a given [`JsonString`].
     ///
     /// - `first_block` &ndash; optional first block to search; if not provided,
@@ -21,10 +21,10 @@ pub trait Memmem<'a, 'b, I: Input, const N: usize> {
     /// Errors when reading the underlying [`Input`] are propagated.
     fn find_label(
         &mut self,
-        first_block: Option<I::Block<'a, N>>,
+        first_block: Option<I::Block<'i, N>>,
         start_idx: usize,
         label: &JsonString,
-    ) -> Result<Option<(usize, I::Block<'a, N>)>, InputError>;
+    ) -> Result<Option<(usize, I::Block<'i, N>)>, InputError>;
 }
 
 cfg_if! {
@@ -45,9 +45,12 @@ cfg_if! {
 /// and classify quoted sequences.
 #[must_use]
 #[inline(always)]
-pub fn memmem<'a, 'b, I: Input, R: InputRecorder>(
-    input: &'a I,
-    iter: &'b mut I::BlockIterator<'a, 'a, BLOCK_SIZE, R>,
-) -> impl Memmem<'a, 'b, I, BLOCK_SIZE> {
+pub fn memmem<'i, 'b, 'r, I: Input, R: InputRecorder>(
+    input: &'i I,
+    iter: &'b mut I::BlockIterator<'i, 'r, BLOCK_SIZE, R>,
+) -> impl Memmem<'i, 'b, 'r, I, BLOCK_SIZE>
+where
+    'i: 'r,
+{
     MemmemImpl::new(input, iter)
 }

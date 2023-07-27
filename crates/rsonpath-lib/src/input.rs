@@ -52,23 +52,22 @@ pub const MAX_BLOCK_SIZE: usize = 128;
 pub trait Input: Sized {
     /// Type of the iterator used by [`iter_blocks`](Input::iter_blocks), parameterized
     /// by the lifetime of source input and the size of the block.
-    type BlockIterator<'a, 'r, const N: usize, R: InputRecorder>: InputBlockIterator<'a, N, Block = Self::Block<'a, N>>
+    type BlockIterator<'i, 'r, const N: usize, R>: InputBlockIterator<'i, N, Block = Self::Block<'i, N>>
     where
-        Self: 'a,
-        R: 'r;
+        Self: 'i,
+        R: InputRecorder + 'r;
 
     /// Type of the blocks returned by the `BlockIterator`.
-    type Block<'a, const N: usize>: InputBlock<'a, N>
+    type Block<'i, const N: usize>: InputBlock<'i, N>
     where
-        Self: 'a;
+        Self: 'i;
 
     /// Iterate over blocks of size `N` of the input.
     /// `N` has to be a power of two larger than 1.
     #[must_use]
-    fn iter_blocks<'a, 'r, R: InputRecorder, const N: usize>(
-        &'a self,
-        recorder: &'r R,
-    ) -> Self::BlockIterator<'a, 'r, N, R>;
+    fn iter_blocks<'i, 'r, R, const N: usize>(&'i self, recorder: &'r R) -> Self::BlockIterator<'i, 'r, N, R>
+    where
+        R: InputRecorder;
 
     /// Search for an occurrence of `needle` in the input,
     /// starting from `from` and looking back. Returns the index
@@ -130,9 +129,9 @@ pub trait Input: Sized {
 /// An iterator over blocks of input of size `N`.
 /// Implementations MUST guarantee that the blocks returned from `next`
 /// are *exactly* of size `N`.
-pub trait InputBlockIterator<'a, const N: usize>: FallibleIterator<Item = Self::Block, Error = InputError> {
+pub trait InputBlockIterator<'i, const N: usize>: FallibleIterator<Item = Self::Block, Error = InputError> {
     /// The type of blocks returned.
-    type Block: InputBlock<'a, N>;
+    type Block: InputBlock<'i, N>;
 
     /// Get the offset of the iterator in the input.
     ///
@@ -148,12 +147,12 @@ pub trait InputBlockIterator<'a, const N: usize>: FallibleIterator<Item = Self::
 }
 
 /// A block of bytes of size `N` returned from [`InputBlockIterator`].
-pub trait InputBlock<'a, const N: usize>: Deref<Target = [u8]> {
+pub trait InputBlock<'i, const N: usize>: Deref<Target = [u8]> {
     /// Split the block in half, giving two slices of size `N`/2.
     fn halves(&self) -> (&[u8], &[u8]);
 }
 
-impl<'a, const N: usize> InputBlock<'a, N> for &'a [u8] {
+impl<'i, const N: usize> InputBlock<'i, N> for &'i [u8] {
     #[inline(always)]
     fn halves(&self) -> (&[u8], &[u8]) {
         assert_eq!(N % 2, 0);

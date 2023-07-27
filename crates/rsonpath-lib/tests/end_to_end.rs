@@ -1,4 +1,4 @@
-// 83df62aeb2bdc99206004da80c69ec1b
+// 51e18cd77e08b885257d0418ed35158f
 use pretty_assertions::assert_eq;
 use rsonpath::engine::{main::MainEngine, Compiler, Engine};
 use rsonpath::input::*;
@@ -18298,7 +18298,7 @@ fn short_description_of_the_inline_input_structure_compressed_with_query_select_
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountRecorder>(&input)?;
-    assert_eq!(result.get(), 3u64, "result != expected");
+    assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
 #[test]
@@ -18324,7 +18324,7 @@ fn short_description_of_the_inline_input_structure_compressed_with_query_select_
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
-    let expected: Vec<&str> = vec!["{\"name\":\"value1\",\"value\":42}", "\"value1\"", "42"];
+    let expected: Vec<&str> = vec!["\"value1\"", "42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -18337,7 +18337,7 @@ fn short_description_of_the_inline_input_structure_compressed_with_query_select_
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountRecorder>(&input)?;
-    assert_eq!(result.get(), 3u64, "result != expected");
+    assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
 #[test]
@@ -18363,7 +18363,7 @@ fn short_description_of_the_inline_input_structure_compressed_with_query_select_
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
-    let expected: Vec<&str> = vec!["{\"name\":\"value1\",\"value\":42}", "\"value1\"", "42"];
+    let expected: Vec<&str> = vec!["\"value1\"", "42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -18376,7 +18376,7 @@ fn short_description_of_the_inline_input_structure_compressed_with_query_select_
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountRecorder>(&input)?;
-    assert_eq!(result.get(), 3u64, "result != expected");
+    assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
 #[test]
@@ -18402,7 +18402,7 @@ fn short_description_of_the_inline_input_structure_compressed_with_query_select_
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
-    let expected: Vec<&str> = vec!["{\"name\":\"value1\",\"value\":42}", "\"value1\"", "42"];
+    let expected: Vec<&str> = vec!["\"value1\"", "42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -18415,7 +18415,7 @@ fn short_description_of_the_inline_input_structure_with_query_select_all_subdocu
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountRecorder>(&input)?;
-    assert_eq!(result.get(), 3u64, "result != expected");
+    assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
 #[test]
@@ -18441,7 +18441,7 @@ fn short_description_of_the_inline_input_structure_with_query_select_all_subdocu
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
-    let expected: Vec<&str> = vec!["{\n  \"name\": \"value1\",\n  \"value\": 42\n}", "\"value1\"", "42"];
+    let expected: Vec<&str> = vec!["\"value1\"", "42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -18454,7 +18454,7 @@ fn short_description_of_the_inline_input_structure_with_query_select_all_subdocu
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountRecorder>(&input)?;
-    assert_eq!(result.get(), 3u64, "result != expected");
+    assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
 #[test]
@@ -18480,7 +18480,7 @@ fn short_description_of_the_inline_input_structure_with_query_select_all_subdocu
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
-    let expected: Vec<&str> = vec!["{\n  \"name\": \"value1\",\n  \"value\": 42\n}", "\"value1\"", "42"];
+    let expected: Vec<&str> = vec!["\"value1\"", "42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
@@ -18493,7 +18493,7 @@ fn short_description_of_the_inline_input_structure_with_query_select_all_subdocu
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let result = engine.run::<_, CountRecorder>(&input)?;
-    assert_eq!(result.get(), 3u64, "result != expected");
+    assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
 #[test]
@@ -18519,7 +18519,7 @@ fn short_description_of_the_inline_input_structure_with_query_select_all_subdocu
     let result = engine.run::<_, NodesRecorder>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
-    let expected: Vec<&str> = vec!["{\n  \"name\": \"value1\",\n  \"value\": 42\n}", "\"value1\"", "42"];
+    let expected: Vec<&str> = vec!["\"value1\"", "42"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }

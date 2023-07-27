@@ -14,9 +14,9 @@ cfg_if::cfg_if! {
 
 use super::*;
 use crate::debug;
-use crate::input::{Input, InputBlock, InputBlockIterator};
+use crate::input::{InputBlock, InputBlockIterator};
 use crate::FallibleIterator;
-use crate::{bin, block, result::InputRecorder};
+use crate::{bin, block};
 
 #[cfg(target_arch = "x86")]
 use core::arch::x86::*;
@@ -26,20 +26,23 @@ use std::marker::PhantomData;
 
 const SIZE: usize = 64;
 
-pub(crate) struct Avx2QuoteClassifier<'a, 'r: 'a, I: Input, R: InputRecorder + 'r> {
-    iter: I::BlockIterator<'a, 'r, SIZE, R>,
+pub(crate) struct Avx2QuoteClassifier<'i, I>
+where
+    I: InputBlockIterator<'i, SIZE>,
+{
+    iter: I,
     classifier: BlockAvx2Classifier,
-    phantom: PhantomData<&'a I>,
+    phantom: PhantomData<&'i ()>,
 }
 
-impl<'a, 'r, I: Input, R: InputRecorder> Avx2QuoteClassifier<'a, 'r, I, R>
+impl<'i, I> Avx2QuoteClassifier<'i, I>
 where
-    'a: 'r,
+    I: InputBlockIterator<'i, SIZE>,
 {
     #[inline]
-    pub(crate) fn new(input: &'a I, recorder: &'a R) -> Self {
+    pub(crate) fn new(iter: I) -> Self {
         Self {
-            iter: input.iter_blocks::<_, SIZE>(recorder),
+            iter,
             // SAFETY: target_feature invariant
             classifier: unsafe { BlockAvx2Classifier::new() },
             phantom: PhantomData,
@@ -48,9 +51,9 @@ where
 
     #[inline]
     pub(crate) fn resume(
-        iter: I::BlockIterator<'a, 'r, SIZE, R>,
-        first_block: Option<I::Block<'a, SIZE>>,
-    ) -> (Self, Option<QuoteClassifiedBlock<I::Block<'a, SIZE>, SIZE>>) {
+        iter: I,
+        first_block: Option<I::Block>,
+    ) -> (Self, Option<QuoteClassifiedBlock<I::Block, SIZE>>) {
         let mut s = Self {
             iter,
             // SAFETY: target feature invariant
@@ -71,9 +74,11 @@ where
     }
 }
 
-impl<'a, 'r, I: Input + 'a, R: InputRecorder> FallibleIterator for Avx2QuoteClassifier<'a, 'r, I, R> {
-    type Item =
-        QuoteClassifiedBlock<<<I as Input>::BlockIterator<'a, 'r, 64, R> as InputBlockIterator<'a, 64>>::Block, 64>;
+impl<'i, I> FallibleIterator for Avx2QuoteClassifier<'i, I>
+where
+    I: InputBlockIterator<'i, SIZE>,
+{
+    type Item = QuoteClassifiedBlock<I::Block, SIZE>;
     type Error = InputError;
 
     fn next(&mut self) -> Result<Option<Self::Item>, Self::Error> {
@@ -92,8 +97,9 @@ impl<'a, 'r, I: Input + 'a, R: InputRecorder> FallibleIterator for Avx2QuoteClas
     }
 }
 
-impl<'a, 'r: 'a, I: Input + 'a, R: InputRecorder + 'r> QuoteClassifiedIterator<'a, I, 64>
-    for Avx2QuoteClassifier<'a, 'r, I, R>
+impl<'i, I> QuoteClassifiedIterator<'i, I, SIZE> for Avx2QuoteClassifier<'i, I>
+where
+    I: InputBlockIterator<'i, SIZE>,
 {
     fn get_offset(&self) -> usize {
         self.iter.get_offset() - 64
@@ -115,10 +121,11 @@ impl<'a, 'r: 'a, I: Input + 'a, R: InputRecorder + 'r> QuoteClassifiedIterator<'
     }
 }
 
-impl<'a, 'r: 'a, I: Input + 'a, R: InputRecorder + 'r> InnerIter<'a, 'r, I, R, 64>
-    for Avx2QuoteClassifier<'a, 'r, I, R>
+impl<'i, I> InnerIter<I> for Avx2QuoteClassifier<'i, I>
+where
+    I: InputBlockIterator<'i, SIZE>,
 {
-    fn into_inner(self) -> I::BlockIterator<'a, 'r, 64, R> {
+    fn into_inner(self) -> I {
         self.iter
     }
 }
@@ -374,7 +381,11 @@ impl BlockAvx2Classifier {
 #[cfg(test)]
 mod tests {
     use super::Avx2QuoteClassifier;
-    use crate::{input::OwnedBytes, result::empty::EmptyRecorder, FallibleIterator};
+    use crate::{
+        input::{Input, OwnedBytes},
+        result::empty::EmptyRecorder,
+        FallibleIterator,
+    };
     use test_case::test_case;
 
     #[test_case("" => None)]
@@ -387,7 +398,8 @@ mod tests {
     fn single_block(str: &str) -> Option<u64> {
         let owned_str = str.to_owned();
         let input = OwnedBytes::new(&owned_str).unwrap();
-        let mut classifier = Avx2QuoteClassifier::new(&input, &EmptyRecorder);
+        let iter = input.iter_blocks::<_, 64>(&EmptyRecorder);
+        let mut classifier = Avx2QuoteClassifier::new(iter);
         classifier.next().unwrap().map(|x| x.within_quotes_mask)
     }
 }

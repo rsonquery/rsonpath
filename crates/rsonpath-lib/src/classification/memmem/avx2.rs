@@ -25,17 +25,14 @@ use core::arch::x86_64::*;
 
 const SIZE: usize = 64;
 
-pub(crate) struct Avx2MemmemClassifier<'a, 'b, 'r: 'a, I: Input, R: InputRecorder + 'r> {
-    input: &'a I,
-    iter: &'b mut I::BlockIterator<'a, 'r, SIZE, R>,
+pub(crate) struct Avx2MemmemClassifier<'i, 'b, 'r, I: Input, R: InputRecorder + 'r> {
+    input: &'i I,
+    iter: &'b mut I::BlockIterator<'i, 'r, SIZE, R>,
 }
 
-impl<'a, 'b, 'r, I: Input, R: InputRecorder> Avx2MemmemClassifier<'a, 'b, 'r, I, R>
-where
-    'a: 'r,
-{
+impl<'i, 'b, 'r, I: Input, R: InputRecorder> Avx2MemmemClassifier<'i, 'b, 'r, I, R> {
     #[inline]
-    pub(crate) fn new(input: &'a I, iter: &'b mut I::BlockIterator<'a, 'r, SIZE, R>) -> Self {
+    pub(crate) fn new(input: &'i I, iter: &'b mut I::BlockIterator<'i, 'r, SIZE, R>) -> Self {
         Self { input, iter }
     }
     // Here we want to detect the pattern `"c"`
@@ -45,7 +42,7 @@ where
         &mut self,
         label: &JsonString,
         mut offset: usize,
-    ) -> Result<Option<(usize, I::Block<'a, SIZE>)>, InputError> {
+    ) -> Result<Option<(usize, I::Block<'i, SIZE>)>, InputError> {
         let first = _mm256_set1_epi8(label.bytes()[0] as i8);
         let second = _mm256_set1_epi8(b'"' as i8);
         let mut previous_block: u64 = 0;
@@ -85,7 +82,7 @@ where
         &mut self,
         label: &JsonString,
         mut offset: usize,
-    ) -> Result<Option<(usize, I::Block<'a, SIZE>)>, InputError> {
+    ) -> Result<Option<(usize, I::Block<'i, SIZE>)>, InputError> {
         let label_size = label.bytes_with_quotes().len();
         if label.bytes().len() == 1 {
             return self.find_letter(label, offset);
@@ -129,17 +126,17 @@ where
     }
 }
 
-impl<'a, 'b, 'r, I: Input, R: InputRecorder> Memmem<'a, 'b, I, SIZE> for Avx2MemmemClassifier<'a, 'b, 'r, I, R>
+impl<'i, 'b, 'r, I: Input, R: InputRecorder> Memmem<'i, 'b, 'r, I, SIZE> for Avx2MemmemClassifier<'i, 'b, 'r, I, R>
 where
-    'a: 'r,
+    'i: 'r,
 {
     // Output the relative offsets
     fn find_label(
         &mut self,
-        first_block: Option<I::Block<'a, SIZE>>,
+        first_block: Option<I::Block<'i, SIZE>>,
         start_idx: usize,
         label: &JsonString,
-    ) -> Result<Option<(usize, I::Block<'a, SIZE>)>, InputError> {
+    ) -> Result<Option<(usize, I::Block<'i, SIZE>)>, InputError> {
         let next_block_offset = self.iter.get_offset();
         if let Some(b) = first_block {
             let block_idx = start_idx % SIZE;
