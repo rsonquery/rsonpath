@@ -9,7 +9,7 @@ use rsonpath_lib::{
     engine::{error::EngineError, main::MainEngine, Compiler, Engine},
     input::{BufferedInput, Input, MmapInput, OwnedBytes},
     query::automaton::Automaton,
-    result::{count::CountRecorder, index::IndexRecorder, nodes::NodesRecorder},
+    result::{count::CountRecorderSpec, index::IndexRecorderSpec, nodes::NodesRecorderSpec},
 };
 use std::{
     fs,
@@ -124,15 +124,15 @@ impl ResolvedOutput {
         fn run_impl<E: Engine, I: Input>(out: ResolvedOutput, engine: E, input: I) -> Result<(), EngineError> {
             match out {
                 ResolvedOutput::Count => {
-                    let result = engine.run::<_, CountRecorder>(&input)?;
+                    let result = engine.run::<_, CountRecorderSpec>(&input)?;
                     print!("{result}");
                 }
                 ResolvedOutput::Index => {
-                    let result = engine.run::<_, IndexRecorder>(&input)?;
+                    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
                     print!("{result}");
                 }
                 ResolvedOutput::Nodes => {
-                    let result = engine.run::<_, NodesRecorder>(&input)?;
+                    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
                     print!("{result}");
                 }
             }

@@ -45,11 +45,13 @@ cfg_if! {
 /// and classify quoted sequences.
 #[must_use]
 #[inline(always)]
-pub fn memmem<'i, 'b, 'r, I: Input, R: InputRecorder>(
+pub fn memmem<'i, 'b, 'r, I, R>(
     input: &'i I,
     iter: &'b mut I::BlockIterator<'i, 'r, BLOCK_SIZE, R>,
 ) -> impl Memmem<'i, 'b, 'r, I, BLOCK_SIZE>
 where
+    I: Input,
+    R: InputRecorder<I::Block<'i, BLOCK_SIZE>>,
     'i: 'r,
 {
     MemmemImpl::new(input, iter)

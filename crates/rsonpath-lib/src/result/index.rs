@@ -41,19 +41,34 @@ impl Display for IndexResult {
 
 impl QueryResult for IndexResult {}
 
+pub struct IndexRecorderSpec;
+
+impl RecorderSpec for IndexRecorderSpec {
+    type Result = IndexResult;
+
+    type Recorder<B> = IndexRecorder
+    where
+        B: Deref<Target = [u8]>;
+
+    #[inline(always)]
+    fn new<B: Deref<Target = [u8]>>() -> Self::Recorder<B> {
+        <IndexRecorder as Recorder<B>>::new()
+    }
+}
+
 /// Recorder for [`IndexResult`].
 pub struct IndexRecorder {
     indices: RefCell<Vec<usize>>,
 }
 
-impl InputRecorder for IndexRecorder {
+impl<B: Deref<Target = [u8]>> InputRecorder<B> for IndexRecorder {
     #[inline(always)]
-    fn record_block_end(&self, _new_block: &[u8]) {
+    fn record_block_start(&self, _new_block: B) {
         // Intentionally left empty.
     }
 }
 
-impl Recorder for IndexRecorder {
+impl<B: Deref<Target = [u8]>> Recorder<B> for IndexRecorder {
     type Result = IndexResult;
 
     #[inline]

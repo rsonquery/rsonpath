@@ -21,9 +21,8 @@ pub struct BorrowedBytes<'a> {
 }
 
 /// Iterator over blocks of [`BorrowedBytes`] of size exactly `N`.
-pub struct BorrowedBytesBlockIterator<'a, 'r, const N: usize, R: InputRecorder> {
+pub struct BorrowedBytesBlockIterator<'a, 'r, const N: usize, R> {
     input: &'a [u8],
-    current_block: Option<&'a [u8]>,
     last_block: &'a LastBlock,
     idx: usize,
     recorder: &'r R,
@@ -75,14 +74,16 @@ impl<'a> AsRef<[u8]> for BorrowedBytes<'a> {
     }
 }
 
-impl<'a, 'r, const N: usize, R: InputRecorder> BorrowedBytesBlockIterator<'a, 'r, N, R> {
+impl<'a, 'r, const N: usize, R> BorrowedBytesBlockIterator<'a, 'r, N, R>
+where
+    R: InputRecorder<&'a [u8]>,
+{
     #[must_use]
     #[inline(always)]
     pub(super) fn new(bytes: &'a [u8], last_block: &'a LastBlock, recorder: &'r R) -> Self {
         Self {
             input: bytes,
             idx: 0,
-            current_block: None,
             last_block,
             recorder,
         }
@@ -90,19 +91,20 @@ impl<'a, 'r, const N: usize, R: InputRecorder> BorrowedBytesBlockIterator<'a, 'r
 }
 
 impl<'a> Input for BorrowedBytes<'a> {
-    type BlockIterator<'b, 'r, const N: usize, R: InputRecorder + 'r> = BorrowedBytesBlockIterator<'b, 'r, N, R> where Self: 'b;
+    type BlockIterator<'b, 'r, const N: usize, R> = BorrowedBytesBlockIterator<'b, 'r, N, R>
+    where Self: 'b,
+          R: InputRecorder<&'b [u8]> + 'r;
 
     type Block<'b, const N: usize> = &'b [u8] where Self: 'b;
 
     #[inline(always)]
-    fn iter_blocks<'b, 'r, R: InputRecorder, const N: usize>(
-        &'b self,
-        recorder: &'r R,
-    ) -> Self::BlockIterator<'b, 'r, N, R> {
+    fn iter_blocks<'b, 'r, R, const N: usize>(&'b self, recorder: &'r R) -> Self::BlockIterator<'b, 'r, N, R>
+    where
+        R: InputRecorder<&'b [u8]>,
+    {
         Self::BlockIterator {
             input: self.bytes,
             idx: 0,
-            current_block: None,
             last_block: &self.last_block,
             recorder,
         }
@@ -139,16 +141,16 @@ impl<'a> Input for BorrowedBytes<'a> {
     }
 }
 
-impl<'a, 'r, const N: usize, R: InputRecorder> FallibleIterator for BorrowedBytesBlockIterator<'a, 'r, N, R> {
+impl<'a, 'r, const N: usize, R> FallibleIterator for BorrowedBytesBlockIterator<'a, 'r, N, R>
+where
+    R: InputRecorder<&'a [u8]>,
+{
     type Item = &'a [u8];
     type Error = InputError;
 
     #[inline]
     fn next(&mut self) -> Result<Option<Self::Item>, Self::Error> {
         debug!("next!");
-        if let Some(block) = self.current_block.take() {
-            self.recorder.record_block_end(block);
-        }
 
         if self.idx >= self.input.len() {
             Ok(None)
@@ -156,20 +158,25 @@ impl<'a, 'r, const N: usize, R: InputRecorder> FallibleIterator for BorrowedByte
             let i = self.idx - self.last_block.absolute_start;
             self.idx += N;
             let block = &self.last_block.bytes[i..i + N];
-            self.current_block = Some(block);
+
+            self.recorder.record_block_start(block);
 
             Ok(Some(block))
         } else {
             let block = &self.input[self.idx..self.idx + N];
             self.idx += N;
-            self.current_block = Some(block);
+
+            self.recorder.record_block_start(block);
 
             Ok(Some(block))
         }
     }
 }
 
-impl<'a, 'r, const N: usize, R: InputRecorder> InputBlockIterator<'a, N> for BorrowedBytesBlockIterator<'a, 'r, N, R> {
+impl<'a, 'r, const N: usize, R> InputBlockIterator<'a, N> for BorrowedBytesBlockIterator<'a, 'r, N, R>
+where
+    R: InputRecorder<&'a [u8]> + 'r,
+{
     type Block = &'a [u8];
 
     #[inline(always)]
@@ -183,14 +190,5 @@ impl<'a, 'r, const N: usize, R: InputRecorder> InputBlockIterator<'a, N> for Bor
     fn get_offset(&self) -> usize {
         debug!("getting input iter {}", self.idx);
         self.idx
-    }
-}
-
-impl<'a, 'r, const N: usize, R: InputRecorder> Drop for BorrowedBytesBlockIterator<'a, 'r, N, R> {
-    #[inline]
-    fn drop(&mut self) {
-        if let Some(block) = self.current_block.take() {
-            self.recorder.record_block_end(block);
-        }
     }
 }

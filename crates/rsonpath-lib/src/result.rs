@@ -1,6 +1,6 @@
 //! Result types that can be returned by a JSONPath query engine.
 use crate::depth::Depth;
-use std::fmt::Display;
+use std::{fmt::Display, ops::Deref};
 
 pub mod count;
 pub mod empty;
@@ -19,17 +19,26 @@ pub enum MatchedNodeType {
 /// Result that can be returned from a query run.
 pub trait QueryResult: Default + Display + PartialEq {}
 
+pub trait RecorderSpec {
+    type Result: QueryResult;
+    type Recorder<B>: Recorder<B, Result = Self::Result>
+    where
+        B: Deref<Target = [u8]>;
+
+    fn new<B: Deref<Target = [u8]>>() -> Self::Recorder<B>;
+}
+
 /// Base trait of any recorder, one that can react to a block of input being processed.
-pub trait InputRecorder {
-    /// Record that all processing of a block was finished.
+pub trait InputRecorder<B: Deref<Target = [u8]>> {
+    /// Record that all processing of a block was started
     ///
-    /// The recorder may assume that no matches or terminators with indices pointing to at or before
-    /// a block recorded as ended are ever reported.
-    fn record_block_end(&self, new_block: &[u8]);
+    /// The recorder may assume that only matches or terminators with indices pointing to
+    /// the block that was last recorded as started are reported.
+    fn record_block_start(&self, new_block: B);
 }
 
 /// An observer that can build a [`QueryResult`] based on match and structural events coming from the execution engine.
-pub trait Recorder: InputRecorder {
+pub trait Recorder<B: Deref<Target = [u8]>>: InputRecorder<B> {
     /// The unique type of a [`QueryResult`] built by this recorder.
     type Result: QueryResult;
 

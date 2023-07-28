@@ -55,7 +55,7 @@ pub trait Input: Sized {
     type BlockIterator<'i, 'r, const N: usize, R>: InputBlockIterator<'i, N, Block = Self::Block<'i, N>>
     where
         Self: 'i,
-        R: InputRecorder + 'r;
+        R: InputRecorder<Self::Block<'i, N>> + 'r;
 
     /// Type of the blocks returned by the `BlockIterator`.
     type Block<'i, const N: usize>: InputBlock<'i, N>
@@ -67,7 +67,7 @@ pub trait Input: Sized {
     #[must_use]
     fn iter_blocks<'i, 'r, R, const N: usize>(&'i self, recorder: &'r R) -> Self::BlockIterator<'i, 'r, N, R>
     where
-        R: InputRecorder;
+        R: InputRecorder<Self::Block<'i, N>>;
 
     /// Search for an occurrence of `needle` in the input,
     /// starting from `from` and looking back. Returns the index

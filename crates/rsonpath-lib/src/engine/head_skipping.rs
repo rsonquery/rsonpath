@@ -21,7 +21,11 @@ use crate::{
 };
 
 /// Trait that needs to be implemented by an [`Engine`](`super::Engine`) to use this submodule.
-pub(super) trait CanHeadSkip<'b, 'r, I: Input, R: Recorder, const N: usize> {
+pub(super) trait CanHeadSkip<'b, 'r, I, R, const N: usize>
+where
+    I: Input + 'b,
+    R: Recorder<I::Block<'b, N>>,
+{
     /// Function called when head-skipping finds a member name at which normal query execution
     /// should resume.
     ///
@@ -105,13 +109,11 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
 
     /// Run a preconfigured [`HeadSkip`] using the given `engine` and reporting
     /// to the `result`.
-    pub(super) fn run_head_skipping<'r, E: CanHeadSkip<'b, 'r, I, R, BLOCK_SIZE>, R: Recorder>(
-        &self,
-        engine: &mut E,
-    ) -> Result<(), EngineError>
+    pub(super) fn run_head_skipping<'r, E, R>(&self, engine: &mut E) -> Result<(), EngineError>
     where
-        R: 'r,
         'b: 'r,
+        E: CanHeadSkip<'b, 'r, I, R, BLOCK_SIZE>,
+        R: Recorder<I::Block<'b, BLOCK_SIZE>> + 'r,
     {
         let mut input_iter = self.bytes.iter_blocks(engine.recorder());
         let mut idx = 0;

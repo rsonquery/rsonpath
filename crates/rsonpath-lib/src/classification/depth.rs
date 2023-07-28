@@ -129,8 +129,7 @@ pub trait DepthBlock<'a>: Sized {
 
 /// Trait for depth iterators, i.e. finite iterators returning depth information
 /// about JSON documents.
-pub trait DepthIterator<'i, I, Q, const N: usize>:
-    FallibleIterator<Item = Self::Block, Error = InputError>
+pub trait DepthIterator<'i, I, Q, const N: usize>: FallibleIterator<Item = Self::Block, Error = InputError>
 where
     I: InputBlockIterator<'i, N>,
 {

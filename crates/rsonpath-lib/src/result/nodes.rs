@@ -64,19 +64,34 @@ impl Display for NodesResult {
 
 impl QueryResult for NodesResult {}
 
-/// Recorder for [`NodesResult`].
-pub struct NodesRecorder {
-    internal: RefCell<InternalRecorder>,
+pub struct NodesRecorderSpec;
+
+impl RecorderSpec for NodesRecorderSpec {
+    type Result = NodesResult;
+
+    type Recorder<B> = NodesRecorder<B>
+    where
+        B: Deref<Target = [u8]>;
+
+    #[inline(always)]
+    fn new<B: Deref<Target = [u8]>>() -> Self::Recorder<B> {
+        NodesRecorder::new()
+    }
 }
 
-impl InputRecorder for NodesRecorder {
+/// Recorder for [`NodesResult`].
+pub struct NodesRecorder<B> {
+    internal: RefCell<InternalRecorder<B>>,
+}
+
+impl<B: Deref<Target = [u8]>> InputRecorder<B> for NodesRecorder<B> {
     #[inline(always)]
-    fn record_block_end(&self, new_block: &[u8]) {
+    fn record_block_start(&self, new_block: B) {
         self.internal.borrow_mut().record_block(new_block)
     }
 }
 
-impl Recorder for NodesRecorder {
+impl<B: Deref<Target = [u8]>> Recorder<B> for NodesRecorder<B> {
     type Result = NodesResult;
 
     #[inline]
@@ -103,7 +118,6 @@ impl Recorder for NodesRecorder {
         self.internal.into_inner().finish()
     }
 }
-
 
 /*
 {
@@ -149,7 +163,7 @@ grow to the total number of matches. We can instead compress the array when it b
 empty and keep a map between output number and array indices. For example, here's
 the state of this algorithm on the above example after the match of "2" is completed.
 
-STACK             | DONE (off. 0) | 
+STACK             | DONE (off. 0) |
                   | Some(2)       |
                   | Some(1)       |
 (0, [1,2...)      | None          |
@@ -178,67 +192,144 @@ STACK             | DONE (off. 5)
 (6, [5...)        | None
 */
 
-struct InternalRecorder {
+struct InternalRecorder<B> {
     idx: usize,
+    match_count: usize,
+    current_block: Option<B>,
     stack: Vec<PartialNode>,
-    ready: Vec<PreparedNode>,
+    output_queue: OutputQueue,
     finished: Vec<Vec<u8>>,
 }
 
 struct PartialNode {
+    id: usize,
     start_idx: usize,
     start_depth: Depth,
     buf: Vec<u8>,
     ty: MatchedNodeType,
 }
 
-struct PreparedNode {
-    start_idx: usize,
-    buf: Vec<u8>,
-    end_idx: usize,
-    ty: MatchedNodeType,
+struct OutputQueue {
+    offset: usize,
+    nodes: Vec<Option<Vec<u8>>>,
 }
 
-impl PartialNode {
-    fn prepare(self, end_idx: usize) -> PreparedNode {
-        PreparedNode {
-            start_idx: self.start_idx,
-            buf: self.buf,
-            end_idx,
-            ty: self.ty,
+impl OutputQueue {
+    fn new() -> Self {
+        Self {
+            offset: 0,
+            nodes: vec![],
+        }
+    }
+
+    fn is_empty(&self) -> bool {
+        self.nodes.is_empty()
+    }
+
+    fn insert(&mut self, node: PartialNode) {
+        let actual_idx = node.id - self.offset;
+
+        while self.nodes.len() <= actual_idx {
+            self.nodes.push(None);
+        }
+
+        self.nodes[actual_idx] = Some(node.buf);
+    }
+
+    fn output_to(&mut self, finished: &mut Vec<Vec<u8>>) {
+        self.offset += self.nodes.len();
+
+        for node in self.nodes.drain(..) {
+            debug!("Outputting {node:?}");
+            finished.push(node.unwrap());
         }
     }
 }
 
-impl InternalRecorder {
+impl<B: Deref<Target = [u8]>> InternalRecorder<B> {
     fn new() -> Self {
         Self {
             idx: 0,
+            match_count: 0,
+            current_block: None,
             stack: vec![],
-            ready: vec![],
+            output_queue: OutputQueue::new(),
             finished: vec![],
         }
     }
 
-    fn record_block(&mut self, block: &[u8]) {
-        mov(self.idx, &mut self.ready, &mut self.finished, block);
+    fn record_block(&mut self, block: B) {
+        if let Some(finished) = self.current_block.as_ref() {
+            for node in &mut self.stack {
+                debug!("Continuing node: {node:?}, idx is {}", self.idx);
+                append_block(&mut node.buf, finished, self.idx, node.start_idx)
+            }
 
-        for node in &mut self.stack {
-            debug!("Continuing node: {node:?}, idx is {}", self.idx);
-            Self::append_block(&mut node.buf, block, self.idx, node.start_idx)
+            self.idx += finished.len();
         }
 
-        self.idx += block.len();
+        self.current_block = Some(block);
+        debug!("New block, idx = {}", self.idx);
 
-        fn mov(idx: usize, ready: &mut Vec<PreparedNode>, bufs: &mut Vec<Vec<u8>>, block: &[u8]) {
-            for mut top in ready.drain(..) {
-                debug!("Final block for {top:?} starting at {idx}");
-                InternalRecorder::append_final_block(&mut top.buf, block, idx, top.start_idx, top.end_idx);
-                finalize_node(bufs, top);
+        fn append_block(dest: &mut Vec<u8>, src: &[u8], src_start: usize, read_start: usize) {
+            if read_start >= src_start + src.len() {
+                return;
+            }
+
+            let to_extend = if read_start > src_start {
+                let in_block_start = read_start - src_start;
+                &src[in_block_start..]
+            } else {
+                src
+            };
+
+            dest.extend(to_extend);
+        }
+    }
+
+    fn record_match(&mut self, idx: usize, depth: Depth, ty: MatchedNodeType) {
+        let node = PartialNode {
+            id: self.match_count,
+            start_idx: idx,
+            start_depth: depth,
+            buf: vec![],
+            ty,
+        };
+
+        debug!("New node {node:?}");
+        self.match_count += 1;
+        self.stack.push(node);
+    }
+
+    #[inline]
+    fn record_value_terminator(&mut self, idx: usize, depth: Depth) {
+        debug!("Value terminator at {idx}, depth {depth}");
+        while let Some(node) = self.stack.last() {
+            if node.start_depth >= depth {
+                debug!("Mark node {node:?} as ended at {}", idx + 1);
+                let mut node = self.stack.pop().expect("last was Some, pop must succeed");
+                append_final_block(
+                    &mut node.buf,
+                    self.current_block.as_ref().unwrap(),
+                    self.idx,
+                    node.start_idx,
+                    idx + 1,
+                );
+                finalize_node(&mut node);
+
+                debug!("Committing node: {node:?}");
+                self.output_queue.insert(node);
+            } else {
+                break;
             }
         }
 
-        fn finalize_node(finished: &mut Vec<Vec<u8>>, mut node: PreparedNode) {
+        if self.stack.is_empty() {
+            debug!("Outputting batch of nodes.");
+            self.output_queue.output_to(&mut self.finished);
+        }
+
+        fn finalize_node(node: &mut PartialNode) {
             debug!("Finalizing node: {node:?}");
 
             if node.ty == MatchedNodeType::Atomic {
@@ -252,68 +343,24 @@ impl InternalRecorder {
 
                 node.buf.truncate(i + 1);
             }
-
-            debug!("Committing node: {node:?}");
-            finished.push(node.buf);
-        }
-    }
-
-    fn append_final_block(dest: &mut Vec<u8>, src: &[u8], src_start: usize, read_start: usize, read_end: usize) {
-        debug_assert!(read_end >= src_start);
-        let in_block_start = if read_start > src_start {
-            read_start - src_start
-        } else {
-            0
-        };
-        let in_block_end = read_end - src_start;
-
-        dest.extend(&src[in_block_start..in_block_end]);
-    }
-
-    fn append_block(dest: &mut Vec<u8>, src: &[u8], src_start: usize, read_start: usize) {
-        if read_start >= src_start + src.len() {
-            return;
         }
 
-        let to_extend = if read_start > src_start {
-            let in_block_start = read_start - src_start;
-            &src[in_block_start..]
-        } else {
-            src
-        };
-
-        dest.extend(to_extend);
-    }
-
-    fn record_match(&mut self, idx: usize, depth: Depth, ty: MatchedNodeType) {
-        let node = PartialNode {
-            start_idx: idx,
-            start_depth: depth,
-            buf: vec![],
-            ty,
-        };
-
-        debug!("New node {node:?}");
-        self.stack.push(node);
-    }
-
-    #[inline]
-    fn record_value_terminator(&mut self, idx: usize, depth: Depth) {
-        debug!("Value terminator at {idx}, depth {depth}");
-        while let Some(node) = self.stack.last() {
-            if node.start_depth >= depth {
-                debug!("Mark node {node:?} as ended at {}", idx + 1);
-                let node = self.stack.pop().expect("last was Some, pop must succeed");
-                let prepared_node = node.prepare(idx + 1);
-                self.ready.push(prepared_node);
+        fn append_final_block(dest: &mut Vec<u8>, src: &[u8], src_start: usize, read_start: usize, read_end: usize) {
+            debug_assert!(read_end >= src_start);
+            let in_block_start = if read_start > src_start {
+                read_start - src_start
             } else {
-                break;
-            }
+                0
+            };
+            let in_block_end = read_end - src_start;
+
+            dest.extend(&src[in_block_start..in_block_end]);
         }
     }
 
     fn finish(self) -> NodesResult {
         debug_assert!(self.stack.is_empty());
+        debug_assert!(self.output_queue.is_empty());
 
         NodesResult { spans: self.finished }
     }
@@ -324,17 +371,6 @@ impl Debug for PartialNode {
         f.debug_struct("PartialNode")
             .field("start_idx", &self.start_idx)
             .field("start_depth", &self.start_depth)
-            .field("ty", &self.ty)
-            .field("buf", &str::from_utf8(&self.buf).unwrap_or("[invalid utf8]"))
-            .finish()
-    }
-}
-
-impl Debug for PreparedNode {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("PartialNode")
-            .field("start_idx", &self.start_idx)
-            .field("end_idx", &self.end_idx)
             .field("ty", &self.ty)
             .field("buf", &str::from_utf8(&self.buf).unwrap_or("[invalid utf8]"))
             .finish()

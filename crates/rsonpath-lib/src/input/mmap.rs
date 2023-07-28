@@ -49,15 +49,17 @@ impl MmapInput {
 }
 
 impl Input for MmapInput {
-    type BlockIterator<'a, 'r, const N: usize, R: InputRecorder + 'r> = BorrowedBytesBlockIterator<'a, 'r, N, R>;
+    type BlockIterator<'a, 'r, const N: usize, R> = BorrowedBytesBlockIterator<'a, 'r, N, R>
+    where
+        R: InputRecorder<&'a [u8]> + 'r;
 
     type Block<'a, const N: usize> = &'a [u8];
 
     #[inline(always)]
-    fn iter_blocks<'a, 'r, R: InputRecorder, const N: usize>(
-        &'a self,
-        recorder: &'r R,
-    ) -> Self::BlockIterator<'a, 'r, N, R> {
+    fn iter_blocks<'a, 'r, R, const N: usize>(&'a self, recorder: &'r R) -> Self::BlockIterator<'a, 'r, N, R>
+    where
+        R: InputRecorder<&'a [u8]>,
+    {
         BorrowedBytesBlockIterator::new(&self.mmap, &self.last_block, recorder)
     }
 

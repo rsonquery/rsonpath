@@ -1,9 +1,9 @@
-// 51e18cd77e08b885257d0418ed35158f
+// 91300ada39a54f61e8862f0af6ed8ec1
 use pretty_assertions::assert_eq;
 use rsonpath::engine::{main::MainEngine, Compiler, Engine};
 use rsonpath::input::*;
 use rsonpath::query::JsonPathQuery;
-use rsonpath::result::{count::CountRecorder, index::IndexRecorder, nodes::NodesRecorder};
+use rsonpath::result::{count::CountRecorderSpec, index::IndexRecorderSpec, nodes::NodesRecorderSpec};
 use std::error::Error;
 use std::fs;
 #[test]
@@ -14,7 +14,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/skipping.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -26,7 +26,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/skipping.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![453usize,], "result != expected");
     Ok(())
 }
@@ -38,7 +38,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/skipping.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -53,7 +53,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/skipping.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -65,7 +65,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/skipping.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![453usize,], "result != expected");
     Ok(())
 }
@@ -77,7 +77,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/skipping.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -92,7 +92,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/skipping.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -104,7 +104,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/skipping.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![453usize,], "result != expected");
     Ok(())
 }
@@ -116,7 +116,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/skipping.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -131,7 +131,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/skipping.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -143,7 +143,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/skipping.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![453usize,], "result != expected");
     Ok(())
 }
@@ -155,7 +155,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/skipping.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -170,7 +170,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/skipping.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -182,7 +182,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/skipping.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![453usize,], "result != expected");
     Ok(())
 }
@@ -194,7 +194,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/skipping.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -209,7 +209,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/skipping.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -221,7 +221,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/skipping.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![453usize,], "result != expected");
     Ok(())
 }
@@ -233,7 +233,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/skipping.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -248,7 +248,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/skipping.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -260,7 +260,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/skipping.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![810usize,], "result != expected");
     Ok(())
 }
@@ -272,7 +272,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/skipping.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -287,7 +287,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/skipping.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -299,7 +299,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/skipping.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![810usize,], "result != expected");
     Ok(())
 }
@@ -311,7 +311,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/skipping.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -326,7 +326,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/skipping.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -338,7 +338,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/skipping.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![810usize,], "result != expected");
     Ok(())
 }
@@ -350,7 +350,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/skipping.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -365,7 +365,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/skipping.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -377,7 +377,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/skipping.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![810usize,], "result != expected");
     Ok(())
 }
@@ -389,7 +389,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/skipping.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -404,7 +404,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/skipping.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -416,7 +416,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/skipping.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![810usize,], "result != expected");
     Ok(())
 }
@@ -428,7 +428,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/skipping.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -443,7 +443,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/skipping.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -455,7 +455,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/skipping.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![810usize,], "result != expected");
     Ok(())
 }
@@ -467,7 +467,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/skipping.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -482,7 +482,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_compressed_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/child.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -494,7 +494,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_compressed_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/child.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![100usize, 133usize, 153usize,], "result != expected");
     Ok(())
 }
@@ -506,7 +506,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_compressed_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/child.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"hit1\"", "\"hit2\"", "\"hit3\""];
@@ -521,7 +521,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_compressed_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/child.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -533,7 +533,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_compressed_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/child.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![100usize, 133usize, 153usize,], "result != expected");
     Ok(())
 }
@@ -545,7 +545,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_compressed_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/child.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"hit1\"", "\"hit2\"", "\"hit3\""];
@@ -560,7 +560,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_compressed_with_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/child.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -572,7 +572,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_compressed_with_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/child.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![100usize, 133usize, 153usize,], "result != expected");
     Ok(())
 }
@@ -584,7 +584,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_compressed_with_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/child.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"hit1\"", "\"hit2\"", "\"hit3\""];
@@ -599,7 +599,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_with_query_mix_d
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/child.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -611,7 +611,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_with_query_mix_d
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/child.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![986usize, 1299usize, 1547usize,],
@@ -627,7 +627,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_with_query_mix_d
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/child.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"hit1\"", "\"hit2\"", "\"hit3\""];
@@ -642,7 +642,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_with_query_mix_d
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/child.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -654,7 +654,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_with_query_mix_d
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/child.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![986usize, 1299usize, 1547usize,],
@@ -670,7 +670,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_with_query_mix_d
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/child.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"hit1\"", "\"hit2\"", "\"hit3\""];
@@ -685,7 +685,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_with_query_mix_d
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/child.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -697,7 +697,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_with_query_mix_d
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/child.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![986usize, 1299usize, 1547usize,],
@@ -713,7 +713,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_with_query_mix_d
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/child.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"hit1\"", "\"hit2\"", "\"hit3\""];
@@ -728,7 +728,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -740,7 +740,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![27usize, 40usize,], "result != expected");
     Ok(())
 }
@@ -752,7 +752,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -767,7 +767,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -779,7 +779,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![27usize, 40usize,], "result != expected");
     Ok(())
 }
@@ -791,7 +791,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -806,7 +806,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -818,7 +818,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![27usize, 40usize,], "result != expected");
     Ok(())
 }
@@ -830,7 +830,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -845,7 +845,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -857,7 +857,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![27usize, 40usize,], "result != expected");
     Ok(())
 }
@@ -869,7 +869,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -884,7 +884,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -896,7 +896,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![27usize, 40usize,], "result != expected");
     Ok(())
 }
@@ -908,7 +908,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -923,7 +923,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -935,7 +935,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![27usize, 40usize,], "result != expected");
     Ok(())
 }
@@ -947,7 +947,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -962,7 +962,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -974,7 +974,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![27usize, 40usize,], "result != expected");
     Ok(())
 }
@@ -986,7 +986,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -1001,7 +1001,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -1013,7 +1013,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![27usize, 40usize,], "result != expected");
     Ok(())
 }
@@ -1025,7 +1025,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -1040,7 +1040,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -1052,7 +1052,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![27usize, 40usize,], "result != expected");
     Ok(())
 }
@@ -1064,7 +1064,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/spaced_colon.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -1079,7 +1079,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -1091,7 +1091,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![150usize, 257usize,], "result != expected");
     Ok(())
 }
@@ -1103,7 +1103,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -1118,7 +1118,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -1130,7 +1130,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![150usize, 257usize,], "result != expected");
     Ok(())
 }
@@ -1142,7 +1142,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -1157,7 +1157,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -1169,7 +1169,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![150usize, 257usize,], "result != expected");
     Ok(())
 }
@@ -1181,7 +1181,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -1196,7 +1196,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -1208,7 +1208,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![150usize, 257usize,], "result != expected");
     Ok(())
 }
@@ -1220,7 +1220,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -1235,7 +1235,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -1247,7 +1247,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![150usize, 257usize,], "result != expected");
     Ok(())
 }
@@ -1259,7 +1259,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -1274,7 +1274,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -1286,7 +1286,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![150usize, 257usize,], "result != expected");
     Ok(())
 }
@@ -1298,7 +1298,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -1313,7 +1313,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -1325,7 +1325,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![150usize, 257usize,], "result != expected");
     Ok(())
 }
@@ -1337,7 +1337,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -1352,7 +1352,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -1364,7 +1364,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![150usize, 257usize,], "result != expected");
     Ok(())
 }
@@ -1376,7 +1376,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -1391,7 +1391,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -1403,7 +1403,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![150usize, 257usize,], "result != expected");
     Ok(())
 }
@@ -1415,7 +1415,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/spaced_colon.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -1430,7 +1430,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/child_hell.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 6u64, "result != expected");
     Ok(())
 }
@@ -1442,7 +1442,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/child_hell.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![40usize, 109usize, 190usize, 241usize, 264usize, 281usize,],
@@ -1458,7 +1458,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/child_hell.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["\"value1\"" , "{\"v\":\"this c is also a hit\",\"c\":\"but this one is a miss\",\"a\":{\"b\":{\"a\":{\"b\":{\"c\":\"value2\"}}}}}" , "\"value2\"" , "\"value3\"" , "\"value4\"" , "\"value5\"" ,] ;
@@ -1473,7 +1473,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/child_hell.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 6u64, "result != expected");
     Ok(())
 }
@@ -1485,7 +1485,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/child_hell.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![40usize, 109usize, 190usize, 241usize, 264usize, 281usize,],
@@ -1501,7 +1501,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/child_hell.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["\"value1\"" , "{\"v\":\"this c is also a hit\",\"c\":\"but this one is a miss\",\"a\":{\"b\":{\"a\":{\"b\":{\"c\":\"value2\"}}}}}" , "\"value2\"" , "\"value3\"" , "\"value4\"" , "\"value5\"" ,] ;
@@ -1516,7 +1516,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/child_hell.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 6u64, "result != expected");
     Ok(())
 }
@@ -1528,7 +1528,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/child_hell.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![40usize, 109usize, 190usize, 241usize, 264usize, 281usize,],
@@ -1544,7 +1544,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/child_hell.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["\"value1\"" , "{\"v\":\"this c is also a hit\",\"c\":\"but this one is a miss\",\"a\":{\"b\":{\"a\":{\"b\":{\"c\":\"value2\"}}}}}" , "\"value2\"" , "\"value3\"" , "\"value4\"" , "\"value5\"" ,] ;
@@ -1559,7 +1559,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/child_hell.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 6u64, "result != expected");
     Ok(())
 }
@@ -1571,7 +1571,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/child_hell.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![200usize, 758usize, 1229usize, 1905usize, 2042usize, 2209usize,],
@@ -1587,7 +1587,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/child_hell.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["\"value1\"" , "{\n                                                \"v\": \"this c is also a hit\",\n                                                \"c\": \"but this one is a miss\",\n                                                \"a\": {\n                                                    \"b\": {\n                                                        \"a\": {\n                                                            \"b\": {\n                                                                \"c\": \"value2\"\n                                                            }\n                                                        }\n                                                    }\n                                                }\n                                            }" , "\"value2\"" , "\"value3\"" , "\"value4\"" , "\"value5\"" ,] ;
@@ -1602,7 +1602,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/child_hell.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 6u64, "result != expected");
     Ok(())
 }
@@ -1614,7 +1614,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/child_hell.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![200usize, 758usize, 1229usize, 1905usize, 2042usize, 2209usize,],
@@ -1630,7 +1630,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/child_hell.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["\"value1\"" , "{\n                                                \"v\": \"this c is also a hit\",\n                                                \"c\": \"but this one is a miss\",\n                                                \"a\": {\n                                                    \"b\": {\n                                                        \"a\": {\n                                                            \"b\": {\n                                                                \"c\": \"value2\"\n                                                            }\n                                                        }\n                                                    }\n                                                }\n                                            }" , "\"value2\"" , "\"value3\"" , "\"value4\"" , "\"value5\"" ,] ;
@@ -1645,7 +1645,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/child_hell.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 6u64, "result != expected");
     Ok(())
 }
@@ -1657,7 +1657,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/child_hell.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![200usize, 758usize, 1229usize, 1905usize, 2042usize, 2209usize,],
@@ -1673,7 +1673,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/child_hell.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["\"value1\"" , "{\n                                                \"v\": \"this c is also a hit\",\n                                                \"c\": \"but this one is a miss\",\n                                                \"a\": {\n                                                    \"b\": {\n                                                        \"a\": {\n                                                            \"b\": {\n                                                                \"c\": \"value2\"\n                                                            }\n                                                        }\n                                                    }\n                                                }\n                                            }" , "\"value2\"" , "\"value3\"" , "\"value4\"" , "\"value5\"" ,] ;
@@ -1689,7 +1689,7 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
         fs::File::open("../rsonpath-lib/tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 12u64, "result != expected");
     Ok(())
 }
@@ -1702,7 +1702,7 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
         fs::File::open("../rsonpath-lib/tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![
@@ -1721,7 +1721,7 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
         fs::File::open("../rsonpath-lib/tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -1739,7 +1739,7 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
         fs::File::open("../rsonpath-lib/tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 12u64, "result != expected");
     Ok(())
 }
@@ -1752,7 +1752,7 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
         fs::File::open("../rsonpath-lib/tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![
@@ -1771,7 +1771,7 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
         fs::File::open("../rsonpath-lib/tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -1789,7 +1789,7 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
         fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 12u64, "result != expected");
     Ok(())
 }
@@ -1802,7 +1802,7 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
         fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![
@@ -1821,7 +1821,7 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
         fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -1839,7 +1839,7 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
         fs::File::open("../rsonpath-lib/tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 11u64, "result != expected");
     Ok(())
 }
@@ -1852,7 +1852,7 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
         fs::File::open("../rsonpath-lib/tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![33usize, 44usize, 46usize, 48usize, 51usize, 54usize, 59usize, 65usize, 70usize, 76usize, 92usize,],
@@ -1869,7 +1869,7 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
         fs::File::open("../rsonpath-lib/tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -1887,7 +1887,7 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
         fs::File::open("../rsonpath-lib/tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 11u64, "result != expected");
     Ok(())
 }
@@ -1900,7 +1900,7 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
         fs::File::open("../rsonpath-lib/tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![33usize, 44usize, 46usize, 48usize, 51usize, 54usize, 59usize, 65usize, 70usize, 76usize, 92usize,],
@@ -1917,7 +1917,7 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
         fs::File::open("../rsonpath-lib/tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -1935,7 +1935,7 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
         fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 11u64, "result != expected");
     Ok(())
 }
@@ -1948,7 +1948,7 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
         fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![33usize, 44usize, 46usize, 48usize, 51usize, 54usize, 59usize, 65usize, 70usize, 76usize, 92usize,],
@@ -1965,7 +1965,7 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
         fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/deeply_nested_heterogenous_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -1982,7 +1982,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/deeply_nested_heterogenous_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 12u64, "result != expected");
     Ok(())
 }
@@ -1994,7 +1994,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/deeply_nested_heterogenous_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![
@@ -2013,7 +2013,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/deeply_nested_heterogenous_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -2041,7 +2041,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/deeply_nested_heterogenous_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 12u64, "result != expected");
     Ok(())
 }
@@ -2053,7 +2053,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/deeply_nested_heterogenous_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![
@@ -2072,7 +2072,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/deeply_nested_heterogenous_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -2100,7 +2100,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/deeply_nested_heterogenous_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 12u64, "result != expected");
     Ok(())
 }
@@ -2112,7 +2112,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/deeply_nested_heterogenous_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![
@@ -2131,7 +2131,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/deeply_nested_heterogenous_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -2159,7 +2159,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/deeply_nested_heterogenous_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 11u64, "result != expected");
     Ok(())
 }
@@ -2171,7 +2171,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/deeply_nested_heterogenous_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![
@@ -2190,7 +2190,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/deeply_nested_heterogenous_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -2217,7 +2217,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/deeply_nested_heterogenous_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 11u64, "result != expected");
     Ok(())
 }
@@ -2229,7 +2229,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/deeply_nested_heterogenous_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![
@@ -2248,7 +2248,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/deeply_nested_heterogenous_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -2275,7 +2275,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/deeply_nested_heterogenous_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 11u64, "result != expected");
     Ok(())
 }
@@ -2287,7 +2287,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/deeply_nested_heterogenous_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![
@@ -2306,7 +2306,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/deeply_nested_heterogenous_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -2333,7 +2333,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/matrioshka_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 9u64, "result != expected");
     Ok(())
 }
@@ -2345,7 +2345,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/matrioshka_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![16usize, 18usize, 20usize, 23usize, 26usize, 27usize, 28usize, 29usize, 35usize,],
@@ -2361,7 +2361,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/matrioshka_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["1", "2", "{}", "[]", "[[[[]]]]", "[[[]]]", "[[]]", "[]", "3"];
@@ -2376,7 +2376,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/matrioshka_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 9u64, "result != expected");
     Ok(())
 }
@@ -2388,7 +2388,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/matrioshka_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![16usize, 18usize, 20usize, 23usize, 26usize, 27usize, 28usize, 29usize, 35usize,],
@@ -2404,7 +2404,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/matrioshka_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["1", "2", "{}", "[]", "[[[[]]]]", "[[[]]]", "[[]]", "[]", "3"];
@@ -2419,7 +2419,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/matrioshka_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 9u64, "result != expected");
     Ok(())
 }
@@ -2431,7 +2431,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/matrioshka_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![16usize, 18usize, 20usize, 23usize, 26usize, 27usize, 28usize, 29usize, 35usize,],
@@ -2447,7 +2447,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/matrioshka_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["1", "2", "{}", "[]", "[[[[]]]]", "[[[]]]", "[[]]", "[]", "3"];
@@ -2462,7 +2462,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/matrioshka_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 6u64, "result != expected");
     Ok(())
 }
@@ -2474,7 +2474,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/matrioshka_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![16usize, 18usize, 20usize, 23usize, 26usize, 35usize,],
@@ -2490,7 +2490,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/matrioshka_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["1", "2", "{}", "[]", "[[[[]]]]", "3"];
@@ -2505,7 +2505,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/matrioshka_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 6u64, "result != expected");
     Ok(())
 }
@@ -2517,7 +2517,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/matrioshka_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![16usize, 18usize, 20usize, 23usize, 26usize, 35usize,],
@@ -2533,7 +2533,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/matrioshka_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["1", "2", "{}", "[]", "[[[[]]]]", "3"];
@@ -2548,7 +2548,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/matrioshka_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 6u64, "result != expected");
     Ok(())
 }
@@ -2560,7 +2560,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/matrioshka_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![16usize, 18usize, 20usize, 23usize, 26usize, 35usize,],
@@ -2576,7 +2576,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/matrioshka_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["1", "2", "{}", "[]", "[[[[]]]]", "3"];
@@ -2591,7 +2591,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_and_bel
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/matrioshka_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 9u64, "result != expected");
     Ok(())
 }
@@ -2603,7 +2603,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_and_bel
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/matrioshka_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![63usize, 82usize, 101usize, 121usize, 141usize, 163usize, 189usize, 219usize, 305usize,],
@@ -2619,7 +2619,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_and_bel
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/matrioshka_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["1" , "2" , "{}" , "[]" , "[\n                    [\n                        [\n                            []\n                        ]\n                    ]\n                ]" , "[\n                        [\n                            []\n                        ]\n                    ]" , "[\n                            []\n                        ]" , "[]" , "3" ,] ;
@@ -2634,7 +2634,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_and_bel
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/matrioshka_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 9u64, "result != expected");
     Ok(())
 }
@@ -2646,7 +2646,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_and_bel
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/matrioshka_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![63usize, 82usize, 101usize, 121usize, 141usize, 163usize, 189usize, 219usize, 305usize,],
@@ -2662,7 +2662,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_and_bel
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/matrioshka_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["1" , "2" , "{}" , "[]" , "[\n                    [\n                        [\n                            []\n                        ]\n                    ]\n                ]" , "[\n                        [\n                            []\n                        ]\n                    ]" , "[\n                            []\n                        ]" , "[]" , "3" ,] ;
@@ -2677,7 +2677,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_and_bel
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/matrioshka_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 9u64, "result != expected");
     Ok(())
 }
@@ -2689,7 +2689,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_and_bel
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/matrioshka_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![63usize, 82usize, 101usize, 121usize, 141usize, 163usize, 189usize, 219usize, 305usize,],
@@ -2705,7 +2705,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_and_bel
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/matrioshka_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["1" , "2" , "{}" , "[]" , "[\n                    [\n                        [\n                            []\n                        ]\n                    ]\n                ]" , "[\n                        [\n                            []\n                        ]\n                    ]" , "[\n                            []\n                        ]" , "[]" , "3" ,] ;
@@ -2720,7 +2720,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_with_bu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/matrioshka_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 6u64, "result != expected");
     Ok(())
 }
@@ -2732,7 +2732,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_with_bu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/matrioshka_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![63usize, 82usize, 101usize, 121usize, 141usize, 305usize,],
@@ -2748,7 +2748,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_with_bu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/matrioshka_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["1" , "2" , "{}" , "[]" , "[\n                    [\n                        [\n                            []\n                        ]\n                    ]\n                ]" , "3" ,] ;
@@ -2763,7 +2763,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_with_mm
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/matrioshka_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 6u64, "result != expected");
     Ok(())
 }
@@ -2775,7 +2775,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_with_mm
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/matrioshka_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![63usize, 82usize, 101usize, 121usize, 141usize, 305usize,],
@@ -2791,7 +2791,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_with_mm
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/matrioshka_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["1" , "2" , "{}" , "[]" , "[\n                    [\n                        [\n                            []\n                        ]\n                    ]\n                ]" , "3" ,] ;
@@ -2806,7 +2806,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_with_ow
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/matrioshka_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 6u64, "result != expected");
     Ok(())
 }
@@ -2818,7 +2818,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_with_ow
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/matrioshka_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![63usize, 82usize, 101usize, 121usize, 141usize, 305usize,],
@@ -2834,7 +2834,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_with_ow
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/matrioshka_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["1" , "2" , "{}" , "[]" , "[\n                    [\n                        [\n                            []\n                        ]\n                    ]\n                ]" , "3" ,] ;
@@ -2849,7 +2849,7 @@ fn deeply_nested_object_with_path_annotations_compressed_with_query_descendant_a
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/long_path.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 9u64, "result != expected");
     Ok(())
 }
@@ -2861,7 +2861,7 @@ fn deeply_nested_object_with_path_annotations_compressed_with_query_descendant_a
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/long_path.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![253usize, 280usize, 290usize, 298usize, 328usize, 338usize, 570usize, 614usize, 625usize,],
@@ -2877,7 +2877,7 @@ fn deeply_nested_object_with_path_annotations_compressed_with_query_descendant_a
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/long_path.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["\"$.x1.a.a.x2.b.b\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5\",\"is_hit\":true,\"x6\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6\",\"is_hit\":false,\"x7\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7\",\"is_hit\":false,\"x8\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\"is_hit\":false,\"b\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\"is_hit\":false,\"x9\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\"is_hit\":true,\"x10\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}}}}}}}" , "\"$.x1.a.a.x2.b.b.x5\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5.x6\",\"is_hit\":false,\"x7\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7\",\"is_hit\":false,\"x8\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\"is_hit\":false,\"b\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\"is_hit\":false,\"x9\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\"is_hit\":true,\"x10\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}}}}}}" , "\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}" ,] ;
@@ -2892,7 +2892,7 @@ fn deeply_nested_object_with_path_annotations_compressed_with_query_descendant_a
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/long_path.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 9u64, "result != expected");
     Ok(())
 }
@@ -2904,7 +2904,7 @@ fn deeply_nested_object_with_path_annotations_compressed_with_query_descendant_a
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/long_path.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![253usize, 280usize, 290usize, 298usize, 328usize, 338usize, 570usize, 614usize, 625usize,],
@@ -2920,7 +2920,7 @@ fn deeply_nested_object_with_path_annotations_compressed_with_query_descendant_a
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/long_path.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["\"$.x1.a.a.x2.b.b\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5\",\"is_hit\":true,\"x6\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6\",\"is_hit\":false,\"x7\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7\",\"is_hit\":false,\"x8\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\"is_hit\":false,\"b\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\"is_hit\":false,\"x9\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\"is_hit\":true,\"x10\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}}}}}}}" , "\"$.x1.a.a.x2.b.b.x5\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5.x6\",\"is_hit\":false,\"x7\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7\",\"is_hit\":false,\"x8\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\"is_hit\":false,\"b\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\"is_hit\":false,\"x9\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\"is_hit\":true,\"x10\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}}}}}}" , "\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}" ,] ;
@@ -2935,7 +2935,7 @@ fn deeply_nested_object_with_path_annotations_compressed_with_query_descendant_a
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/long_path.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 9u64, "result != expected");
     Ok(())
 }
@@ -2947,7 +2947,7 @@ fn deeply_nested_object_with_path_annotations_compressed_with_query_descendant_a
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/long_path.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![253usize, 280usize, 290usize, 298usize, 328usize, 338usize, 570usize, 614usize, 625usize,],
@@ -2963,7 +2963,7 @@ fn deeply_nested_object_with_path_annotations_compressed_with_query_descendant_a
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/long_path.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["\"$.x1.a.a.x2.b.b\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5\",\"is_hit\":true,\"x6\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6\",\"is_hit\":false,\"x7\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7\",\"is_hit\":false,\"x8\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\"is_hit\":false,\"b\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\"is_hit\":false,\"x9\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\"is_hit\":true,\"x10\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}}}}}}}" , "\"$.x1.a.a.x2.b.b.x5\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5.x6\",\"is_hit\":false,\"x7\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7\",\"is_hit\":false,\"x8\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\"is_hit\":false,\"b\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\"is_hit\":false,\"x9\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\"is_hit\":true,\"x10\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}}}}}}" , "\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}" ,] ;
@@ -2978,7 +2978,7 @@ fn deeply_nested_object_with_path_annotations_with_query_descendant_a_star_star_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/long_path.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 9u64, "result != expected");
     Ok(())
 }
@@ -2990,7 +2990,7 @@ fn deeply_nested_object_with_path_annotations_with_query_descendant_a_star_star_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/long_path.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![654usize, 711usize, 751usize, 793usize, 857usize, 901usize, 1715usize, 1813usize, 1878usize,],
@@ -3006,7 +3006,7 @@ fn deeply_nested_object_with_path_annotations_with_query_descendant_a_star_star_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/long_path.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["\"$.x1.a.a.x2.b.b\"" , "true" , "{\n                                \"path\": \"$.x1.a.a.x2.b.b.x5\",\n                                \"is_hit\": true,\n                                \"x6\": {\n                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6\",\n                                    \"is_hit\": false,\n                                    \"x7\": {\n                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7\",\n                                        \"is_hit\": false,\n                                        \"x8\": {\n                                            \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\n                                            \"is_hit\": false,\n                                            \"b\": {\n                                                \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\n                                                \"is_hit\": false,\n                                                \"x9\": {\n                                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\n                                                    \"is_hit\": true,\n                                                    \"x10\": {\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }\n                                                }\n                                            }\n                                        }\n                                    }\n                                }\n                            }" , "\"$.x1.a.a.x2.b.b.x5\"" , "true" , "{\n                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6\",\n                                    \"is_hit\": false,\n                                    \"x7\": {\n                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7\",\n                                        \"is_hit\": false,\n                                        \"x8\": {\n                                            \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\n                                            \"is_hit\": false,\n                                            \"b\": {\n                                                \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\n                                                \"is_hit\": false,\n                                                \"x9\": {\n                                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\n                                                    \"is_hit\": true,\n                                                    \"x10\": {\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }\n                                                }\n                                            }\n                                        }\n                                    }\n                                }" , "\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\"" , "true" , "{\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }" ,] ;
@@ -3021,7 +3021,7 @@ fn deeply_nested_object_with_path_annotations_with_query_descendant_a_star_star_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/long_path.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 9u64, "result != expected");
     Ok(())
 }
@@ -3033,7 +3033,7 @@ fn deeply_nested_object_with_path_annotations_with_query_descendant_a_star_star_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/long_path.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![654usize, 711usize, 751usize, 793usize, 857usize, 901usize, 1715usize, 1813usize, 1878usize,],
@@ -3049,7 +3049,7 @@ fn deeply_nested_object_with_path_annotations_with_query_descendant_a_star_star_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/long_path.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["\"$.x1.a.a.x2.b.b\"" , "true" , "{\n                                \"path\": \"$.x1.a.a.x2.b.b.x5\",\n                                \"is_hit\": true,\n                                \"x6\": {\n                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6\",\n                                    \"is_hit\": false,\n                                    \"x7\": {\n                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7\",\n                                        \"is_hit\": false,\n                                        \"x8\": {\n                                            \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\n                                            \"is_hit\": false,\n                                            \"b\": {\n                                                \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\n                                                \"is_hit\": false,\n                                                \"x9\": {\n                                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\n                                                    \"is_hit\": true,\n                                                    \"x10\": {\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }\n                                                }\n                                            }\n                                        }\n                                    }\n                                }\n                            }" , "\"$.x1.a.a.x2.b.b.x5\"" , "true" , "{\n                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6\",\n                                    \"is_hit\": false,\n                                    \"x7\": {\n                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7\",\n                                        \"is_hit\": false,\n                                        \"x8\": {\n                                            \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\n                                            \"is_hit\": false,\n                                            \"b\": {\n                                                \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\n                                                \"is_hit\": false,\n                                                \"x9\": {\n                                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\n                                                    \"is_hit\": true,\n                                                    \"x10\": {\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }\n                                                }\n                                            }\n                                        }\n                                    }\n                                }" , "\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\"" , "true" , "{\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }" ,] ;
@@ -3064,7 +3064,7 @@ fn deeply_nested_object_with_path_annotations_with_query_descendant_a_star_star_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/long_path.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 9u64, "result != expected");
     Ok(())
 }
@@ -3076,7 +3076,7 @@ fn deeply_nested_object_with_path_annotations_with_query_descendant_a_star_star_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/long_path.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![654usize, 711usize, 751usize, 793usize, 857usize, 901usize, 1715usize, 1813usize, 1878usize,],
@@ -3092,7 +3092,7 @@ fn deeply_nested_object_with_path_annotations_with_query_descendant_a_star_star_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/long_path.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["\"$.x1.a.a.x2.b.b\"" , "true" , "{\n                                \"path\": \"$.x1.a.a.x2.b.b.x5\",\n                                \"is_hit\": true,\n                                \"x6\": {\n                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6\",\n                                    \"is_hit\": false,\n                                    \"x7\": {\n                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7\",\n                                        \"is_hit\": false,\n                                        \"x8\": {\n                                            \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\n                                            \"is_hit\": false,\n                                            \"b\": {\n                                                \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\n                                                \"is_hit\": false,\n                                                \"x9\": {\n                                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\n                                                    \"is_hit\": true,\n                                                    \"x10\": {\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }\n                                                }\n                                            }\n                                        }\n                                    }\n                                }\n                            }" , "\"$.x1.a.a.x2.b.b.x5\"" , "true" , "{\n                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6\",\n                                    \"is_hit\": false,\n                                    \"x7\": {\n                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7\",\n                                        \"is_hit\": false,\n                                        \"x8\": {\n                                            \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\n                                            \"is_hit\": false,\n                                            \"b\": {\n                                                \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\n                                                \"is_hit\": false,\n                                                \"x9\": {\n                                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\n                                                    \"is_hit\": true,\n                                                    \"x10\": {\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }\n                                                }\n                                            }\n                                        }\n                                    }\n                                }" , "\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\"" , "true" , "{\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }" ,] ;
@@ -3107,7 +3107,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/dense_atomic_leaves.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 8u64, "result != expected");
     Ok(())
 }
@@ -3119,7 +3119,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/dense_atomic_leaves.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![20usize, 27usize, 34usize, 41usize, 46usize, 54usize, 59usize, 66usize,],
@@ -3135,7 +3135,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/dense_atomic_leaves.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "43", "44", "{\"x\":45}", "45", "{\"a\":46,\"x\":47}", "46", "47"];
@@ -3150,7 +3150,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/dense_atomic_leaves.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 8u64, "result != expected");
     Ok(())
 }
@@ -3162,7 +3162,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/dense_atomic_leaves.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![20usize, 27usize, 34usize, 41usize, 46usize, 54usize, 59usize, 66usize,],
@@ -3178,7 +3178,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/dense_atomic_leaves.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "43", "44", "{\"x\":45}", "45", "{\"a\":46,\"x\":47}", "46", "47"];
@@ -3193,7 +3193,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/dense_atomic_leaves.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 8u64, "result != expected");
     Ok(())
 }
@@ -3205,7 +3205,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/dense_atomic_leaves.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![20usize, 27usize, 34usize, 41usize, 46usize, 54usize, 59usize, 66usize,],
@@ -3221,7 +3221,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/dense_atomic_leaves.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "43", "44", "{\"x\":45}", "45", "{\"a\":46,\"x\":47}", "46", "47"];
@@ -3236,7 +3236,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/dense_atomic_leaves.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 7u64, "result != expected");
     Ok(())
 }
@@ -3248,7 +3248,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/dense_atomic_leaves.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![20usize, 27usize, 34usize, 41usize, 54usize, 59usize, 66usize,],
@@ -3264,7 +3264,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/dense_atomic_leaves.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "43", "44", "{\"x\":45}", "{\"a\":46,\"x\":47}", "46", "47"];
@@ -3279,7 +3279,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/dense_atomic_leaves.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 7u64, "result != expected");
     Ok(())
 }
@@ -3291,7 +3291,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/dense_atomic_leaves.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![20usize, 27usize, 34usize, 41usize, 54usize, 59usize, 66usize,],
@@ -3307,7 +3307,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/dense_atomic_leaves.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "43", "44", "{\"x\":45}", "{\"a\":46,\"x\":47}", "46", "47"];
@@ -3322,7 +3322,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/dense_atomic_leaves.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 7u64, "result != expected");
     Ok(())
 }
@@ -3334,7 +3334,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/dense_atomic_leaves.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![20usize, 27usize, 34usize, 41usize, 54usize, 59usize, 66usize,],
@@ -3350,7 +3350,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/dense_atomic_leaves.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "43", "44", "{\"x\":45}", "{\"a\":46,\"x\":47}", "46", "47"];
@@ -3365,7 +3365,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/dense_atomic_leaves.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 8u64, "result != expected");
     Ok(())
 }
@@ -3377,7 +3377,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/dense_atomic_leaves.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![68usize, 93usize, 118usize, 143usize, 170usize, 213usize, 240usize, 269usize,],
@@ -3393,7 +3393,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/dense_atomic_leaves.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -3417,7 +3417,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/dense_atomic_leaves.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 8u64, "result != expected");
     Ok(())
 }
@@ -3429,7 +3429,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/dense_atomic_leaves.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![68usize, 93usize, 118usize, 143usize, 170usize, 213usize, 240usize, 269usize,],
@@ -3445,7 +3445,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/dense_atomic_leaves.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -3469,7 +3469,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/dense_atomic_leaves.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 8u64, "result != expected");
     Ok(())
 }
@@ -3481,7 +3481,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/dense_atomic_leaves.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![68usize, 93usize, 118usize, 143usize, 170usize, 213usize, 240usize, 269usize,],
@@ -3497,7 +3497,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/dense_atomic_leaves.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -3521,7 +3521,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/dense_atomic_leaves.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 7u64, "result != expected");
     Ok(())
 }
@@ -3533,7 +3533,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/dense_atomic_leaves.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![68usize, 93usize, 118usize, 143usize, 213usize, 240usize, 269usize,],
@@ -3549,7 +3549,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/dense_atomic_leaves.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -3572,7 +3572,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/dense_atomic_leaves.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 7u64, "result != expected");
     Ok(())
 }
@@ -3584,7 +3584,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/dense_atomic_leaves.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![68usize, 93usize, 118usize, 143usize, 213usize, 240usize, 269usize,],
@@ -3600,7 +3600,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/dense_atomic_leaves.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -3623,7 +3623,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/dense_atomic_leaves.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 7u64, "result != expected");
     Ok(())
 }
@@ -3635,7 +3635,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/dense_atomic_leaves.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![68usize, 93usize, 118usize, 143usize, 213usize, 240usize, 269usize,],
@@ -3651,7 +3651,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/dense_atomic_leaves.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -3674,7 +3674,7 @@ fn empty_array_root_compressed_with_query_select_any_descendant_there_are_none_w
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -3686,7 +3686,7 @@ fn empty_array_root_compressed_with_query_select_any_descendant_there_are_none_w
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -3698,7 +3698,7 @@ fn empty_array_root_compressed_with_query_select_any_descendant_there_are_none_w
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -3713,7 +3713,7 @@ fn empty_array_root_compressed_with_query_select_any_descendant_there_are_none_w
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -3725,7 +3725,7 @@ fn empty_array_root_compressed_with_query_select_any_descendant_there_are_none_w
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -3737,7 +3737,7 @@ fn empty_array_root_compressed_with_query_select_any_descendant_there_are_none_w
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -3752,7 +3752,7 @@ fn empty_array_root_compressed_with_query_select_any_descendant_there_are_none_w
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -3764,7 +3764,7 @@ fn empty_array_root_compressed_with_query_select_any_descendant_there_are_none_w
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -3776,7 +3776,7 @@ fn empty_array_root_compressed_with_query_select_any_descendant_there_are_none_w
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -3791,7 +3791,7 @@ fn empty_array_root_compressed_with_query_select_any_item_there_are_none_with_bu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -3803,7 +3803,7 @@ fn empty_array_root_compressed_with_query_select_any_item_there_are_none_with_bu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -3815,7 +3815,7 @@ fn empty_array_root_compressed_with_query_select_any_item_there_are_none_with_bu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -3830,7 +3830,7 @@ fn empty_array_root_compressed_with_query_select_any_item_there_are_none_with_mm
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -3842,7 +3842,7 @@ fn empty_array_root_compressed_with_query_select_any_item_there_are_none_with_mm
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -3854,7 +3854,7 @@ fn empty_array_root_compressed_with_query_select_any_item_there_are_none_with_mm
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -3869,7 +3869,7 @@ fn empty_array_root_compressed_with_query_select_any_item_there_are_none_with_ow
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -3881,7 +3881,7 @@ fn empty_array_root_compressed_with_query_select_any_item_there_are_none_with_ow
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -3893,7 +3893,7 @@ fn empty_array_root_compressed_with_query_select_any_item_there_are_none_with_ow
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -3908,7 +3908,7 @@ fn empty_array_root_compressed_with_query_select_the_first_item_which_does_not_e
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -3920,7 +3920,7 @@ fn empty_array_root_compressed_with_query_select_the_first_item_which_does_not_e
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -3932,7 +3932,7 @@ fn empty_array_root_compressed_with_query_select_the_first_item_which_does_not_e
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -3947,7 +3947,7 @@ fn empty_array_root_compressed_with_query_select_the_first_item_which_does_not_e
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -3959,7 +3959,7 @@ fn empty_array_root_compressed_with_query_select_the_first_item_which_does_not_e
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -3971,7 +3971,7 @@ fn empty_array_root_compressed_with_query_select_the_first_item_which_does_not_e
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -3986,7 +3986,7 @@ fn empty_array_root_compressed_with_query_select_the_first_item_which_does_not_e
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -3998,7 +3998,7 @@ fn empty_array_root_compressed_with_query_select_the_first_item_which_does_not_e
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -4010,7 +4010,7 @@ fn empty_array_root_compressed_with_query_select_the_first_item_which_does_not_e
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -4025,7 +4025,7 @@ fn empty_array_root_compressed_with_query_select_the_root_empty_query_with_buffe
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -4037,7 +4037,7 @@ fn empty_array_root_compressed_with_query_select_the_root_empty_query_with_buffe
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![0usize,], "result != expected");
     Ok(())
 }
@@ -4049,7 +4049,7 @@ fn empty_array_root_compressed_with_query_select_the_root_empty_query_with_buffe
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -4064,7 +4064,7 @@ fn empty_array_root_compressed_with_query_select_the_root_empty_query_with_mmap_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -4076,7 +4076,7 @@ fn empty_array_root_compressed_with_query_select_the_root_empty_query_with_mmap_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![0usize,], "result != expected");
     Ok(())
 }
@@ -4088,7 +4088,7 @@ fn empty_array_root_compressed_with_query_select_the_root_empty_query_with_mmap_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -4103,7 +4103,7 @@ fn empty_array_root_compressed_with_query_select_the_root_empty_query_with_owned
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -4115,7 +4115,7 @@ fn empty_array_root_compressed_with_query_select_the_root_empty_query_with_owned
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![0usize,], "result != expected");
     Ok(())
 }
@@ -4127,7 +4127,7 @@ fn empty_array_root_compressed_with_query_select_the_root_empty_query_with_owned
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -4142,7 +4142,7 @@ fn empty_array_root_compressed_with_query_select_the_root_with_buffered_input_an
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -4154,7 +4154,7 @@ fn empty_array_root_compressed_with_query_select_the_root_with_buffered_input_an
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![0usize,], "result != expected");
     Ok(())
 }
@@ -4166,7 +4166,7 @@ fn empty_array_root_compressed_with_query_select_the_root_with_buffered_input_an
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -4181,7 +4181,7 @@ fn empty_array_root_compressed_with_query_select_the_root_with_mmap_input_and_co
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -4193,7 +4193,7 @@ fn empty_array_root_compressed_with_query_select_the_root_with_mmap_input_and_in
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![0usize,], "result != expected");
     Ok(())
 }
@@ -4205,7 +4205,7 @@ fn empty_array_root_compressed_with_query_select_the_root_with_mmap_input_and_no
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -4220,7 +4220,7 @@ fn empty_array_root_compressed_with_query_select_the_root_with_owned_bytes_and_c
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -4232,7 +4232,7 @@ fn empty_array_root_compressed_with_query_select_the_root_with_owned_bytes_and_i
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![0usize,], "result != expected");
     Ok(())
 }
@@ -4244,7 +4244,7 @@ fn empty_array_root_compressed_with_query_select_the_root_with_owned_bytes_and_n
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -4259,7 +4259,7 @@ fn empty_array_root_with_query_select_any_descendant_there_are_none_with_buffere
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -4271,7 +4271,7 @@ fn empty_array_root_with_query_select_any_descendant_there_are_none_with_buffere
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -4283,7 +4283,7 @@ fn empty_array_root_with_query_select_any_descendant_there_are_none_with_buffere
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -4298,7 +4298,7 @@ fn empty_array_root_with_query_select_any_descendant_there_are_none_with_mmap_in
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -4310,7 +4310,7 @@ fn empty_array_root_with_query_select_any_descendant_there_are_none_with_mmap_in
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -4322,7 +4322,7 @@ fn empty_array_root_with_query_select_any_descendant_there_are_none_with_mmap_in
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -4337,7 +4337,7 @@ fn empty_array_root_with_query_select_any_descendant_there_are_none_with_owned_b
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -4349,7 +4349,7 @@ fn empty_array_root_with_query_select_any_descendant_there_are_none_with_owned_b
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -4361,7 +4361,7 @@ fn empty_array_root_with_query_select_any_descendant_there_are_none_with_owned_b
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -4376,7 +4376,7 @@ fn empty_array_root_with_query_select_any_item_there_are_none_with_buffered_inpu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -4388,7 +4388,7 @@ fn empty_array_root_with_query_select_any_item_there_are_none_with_buffered_inpu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -4400,7 +4400,7 @@ fn empty_array_root_with_query_select_any_item_there_are_none_with_buffered_inpu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -4415,7 +4415,7 @@ fn empty_array_root_with_query_select_any_item_there_are_none_with_mmap_input_an
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -4427,7 +4427,7 @@ fn empty_array_root_with_query_select_any_item_there_are_none_with_mmap_input_an
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -4439,7 +4439,7 @@ fn empty_array_root_with_query_select_any_item_there_are_none_with_mmap_input_an
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -4454,7 +4454,7 @@ fn empty_array_root_with_query_select_any_item_there_are_none_with_owned_bytes_a
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -4466,7 +4466,7 @@ fn empty_array_root_with_query_select_any_item_there_are_none_with_owned_bytes_a
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -4478,7 +4478,7 @@ fn empty_array_root_with_query_select_any_item_there_are_none_with_owned_bytes_a
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -4493,7 +4493,7 @@ fn empty_array_root_with_query_select_the_first_item_which_does_not_exist_with_b
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -4505,7 +4505,7 @@ fn empty_array_root_with_query_select_the_first_item_which_does_not_exist_with_b
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -4517,7 +4517,7 @@ fn empty_array_root_with_query_select_the_first_item_which_does_not_exist_with_b
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -4532,7 +4532,7 @@ fn empty_array_root_with_query_select_the_first_item_which_does_not_exist_with_m
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -4544,7 +4544,7 @@ fn empty_array_root_with_query_select_the_first_item_which_does_not_exist_with_m
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -4556,7 +4556,7 @@ fn empty_array_root_with_query_select_the_first_item_which_does_not_exist_with_m
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -4571,7 +4571,7 @@ fn empty_array_root_with_query_select_the_first_item_which_does_not_exist_with_o
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -4583,7 +4583,7 @@ fn empty_array_root_with_query_select_the_first_item_which_does_not_exist_with_o
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -4595,7 +4595,7 @@ fn empty_array_root_with_query_select_the_first_item_which_does_not_exist_with_o
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -4610,7 +4610,7 @@ fn empty_array_root_with_query_select_the_root_empty_query_with_buffered_input_a
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -4622,7 +4622,7 @@ fn empty_array_root_with_query_select_the_root_empty_query_with_buffered_input_a
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![0usize,], "result != expected");
     Ok(())
 }
@@ -4634,7 +4634,7 @@ fn empty_array_root_with_query_select_the_root_empty_query_with_buffered_input_a
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -4649,7 +4649,7 @@ fn empty_array_root_with_query_select_the_root_empty_query_with_mmap_input_and_c
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -4661,7 +4661,7 @@ fn empty_array_root_with_query_select_the_root_empty_query_with_mmap_input_and_i
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![0usize,], "result != expected");
     Ok(())
 }
@@ -4673,7 +4673,7 @@ fn empty_array_root_with_query_select_the_root_empty_query_with_mmap_input_and_n
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -4688,7 +4688,7 @@ fn empty_array_root_with_query_select_the_root_empty_query_with_owned_bytes_and_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -4700,7 +4700,7 @@ fn empty_array_root_with_query_select_the_root_empty_query_with_owned_bytes_and_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![0usize,], "result != expected");
     Ok(())
 }
@@ -4712,7 +4712,7 @@ fn empty_array_root_with_query_select_the_root_empty_query_with_owned_bytes_and_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -4727,7 +4727,7 @@ fn empty_array_root_with_query_select_the_root_with_buffered_input_and_count_res
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -4739,7 +4739,7 @@ fn empty_array_root_with_query_select_the_root_with_buffered_input_and_index_res
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![0usize,], "result != expected");
     Ok(())
 }
@@ -4751,7 +4751,7 @@ fn empty_array_root_with_query_select_the_root_with_buffered_input_and_nodes_res
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -4766,7 +4766,7 @@ fn empty_array_root_with_query_select_the_root_with_mmap_input_and_count_result_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -4778,7 +4778,7 @@ fn empty_array_root_with_query_select_the_root_with_mmap_input_and_index_result_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![0usize,], "result != expected");
     Ok(())
 }
@@ -4790,7 +4790,7 @@ fn empty_array_root_with_query_select_the_root_with_mmap_input_and_nodes_result_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -4805,7 +4805,7 @@ fn empty_array_root_with_query_select_the_root_with_owned_bytes_and_count_result
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -4817,7 +4817,7 @@ fn empty_array_root_with_query_select_the_root_with_owned_bytes_and_index_result
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![0usize,], "result != expected");
     Ok(())
 }
@@ -4829,7 +4829,7 @@ fn empty_array_root_with_query_select_the_root_with_owned_bytes_and_nodes_result
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_array.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -4844,7 +4844,7 @@ fn empty_document_compressed_with_query_select_the_root_empty_query_with_buffere
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -4856,7 +4856,7 @@ fn empty_document_compressed_with_query_select_the_root_empty_query_with_buffere
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -4868,7 +4868,7 @@ fn empty_document_compressed_with_query_select_the_root_empty_query_with_buffere
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -4883,7 +4883,7 @@ fn empty_document_compressed_with_query_select_the_root_empty_query_with_mmap_in
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -4895,7 +4895,7 @@ fn empty_document_compressed_with_query_select_the_root_empty_query_with_mmap_in
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -4907,7 +4907,7 @@ fn empty_document_compressed_with_query_select_the_root_empty_query_with_mmap_in
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -4922,7 +4922,7 @@ fn empty_document_compressed_with_query_select_the_root_empty_query_with_owned_b
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -4934,7 +4934,7 @@ fn empty_document_compressed_with_query_select_the_root_empty_query_with_owned_b
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -4946,7 +4946,7 @@ fn empty_document_compressed_with_query_select_the_root_empty_query_with_owned_b
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -4961,7 +4961,7 @@ fn empty_document_compressed_with_query_select_the_root_with_buffered_input_and_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -4973,7 +4973,7 @@ fn empty_document_compressed_with_query_select_the_root_with_buffered_input_and_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -4985,7 +4985,7 @@ fn empty_document_compressed_with_query_select_the_root_with_buffered_input_and_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5000,7 +5000,7 @@ fn empty_document_compressed_with_query_select_the_root_with_mmap_input_and_coun
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -5012,7 +5012,7 @@ fn empty_document_compressed_with_query_select_the_root_with_mmap_input_and_inde
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -5024,7 +5024,7 @@ fn empty_document_compressed_with_query_select_the_root_with_mmap_input_and_node
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5039,7 +5039,7 @@ fn empty_document_compressed_with_query_select_the_root_with_owned_bytes_and_cou
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -5051,7 +5051,7 @@ fn empty_document_compressed_with_query_select_the_root_with_owned_bytes_and_ind
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -5063,7 +5063,7 @@ fn empty_document_compressed_with_query_select_the_root_with_owned_bytes_and_nod
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5078,7 +5078,7 @@ fn empty_document_with_query_select_the_root_empty_query_with_buffered_input_and
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -5090,7 +5090,7 @@ fn empty_document_with_query_select_the_root_empty_query_with_buffered_input_and
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -5102,7 +5102,7 @@ fn empty_document_with_query_select_the_root_empty_query_with_buffered_input_and
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5117,7 +5117,7 @@ fn empty_document_with_query_select_the_root_empty_query_with_mmap_input_and_cou
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -5129,7 +5129,7 @@ fn empty_document_with_query_select_the_root_empty_query_with_mmap_input_and_ind
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -5141,7 +5141,7 @@ fn empty_document_with_query_select_the_root_empty_query_with_mmap_input_and_nod
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5156,7 +5156,7 @@ fn empty_document_with_query_select_the_root_empty_query_with_owned_bytes_and_co
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -5168,7 +5168,7 @@ fn empty_document_with_query_select_the_root_empty_query_with_owned_bytes_and_in
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -5180,7 +5180,7 @@ fn empty_document_with_query_select_the_root_empty_query_with_owned_bytes_and_no
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5195,7 +5195,7 @@ fn empty_document_with_query_select_the_root_with_buffered_input_and_count_resul
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -5207,7 +5207,7 @@ fn empty_document_with_query_select_the_root_with_buffered_input_and_index_resul
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -5219,7 +5219,7 @@ fn empty_document_with_query_select_the_root_with_buffered_input_and_nodes_resul
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5234,7 +5234,7 @@ fn empty_document_with_query_select_the_root_with_mmap_input_and_count_result_us
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -5246,7 +5246,7 @@ fn empty_document_with_query_select_the_root_with_mmap_input_and_index_result_us
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -5258,7 +5258,7 @@ fn empty_document_with_query_select_the_root_with_mmap_input_and_nodes_result_us
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5273,7 +5273,7 @@ fn empty_document_with_query_select_the_root_with_owned_bytes_and_count_result_u
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -5285,7 +5285,7 @@ fn empty_document_with_query_select_the_root_with_owned_bytes_and_index_result_u
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -5297,7 +5297,7 @@ fn empty_document_with_query_select_the_root_with_owned_bytes_and_nodes_result_u
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5312,7 +5312,7 @@ fn empty_object_root_compressed_with_query_select_any_child_there_are_none_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -5324,7 +5324,7 @@ fn empty_object_root_compressed_with_query_select_any_child_there_are_none_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -5336,7 +5336,7 @@ fn empty_object_root_compressed_with_query_select_any_child_there_are_none_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5351,7 +5351,7 @@ fn empty_object_root_compressed_with_query_select_any_child_there_are_none_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -5363,7 +5363,7 @@ fn empty_object_root_compressed_with_query_select_any_child_there_are_none_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -5375,7 +5375,7 @@ fn empty_object_root_compressed_with_query_select_any_child_there_are_none_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5390,7 +5390,7 @@ fn empty_object_root_compressed_with_query_select_any_child_there_are_none_with_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -5402,7 +5402,7 @@ fn empty_object_root_compressed_with_query_select_any_child_there_are_none_with_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -5414,7 +5414,7 @@ fn empty_object_root_compressed_with_query_select_any_child_there_are_none_with_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5429,7 +5429,7 @@ fn empty_object_root_compressed_with_query_select_any_descendant_there_are_none_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -5441,7 +5441,7 @@ fn empty_object_root_compressed_with_query_select_any_descendant_there_are_none_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -5453,7 +5453,7 @@ fn empty_object_root_compressed_with_query_select_any_descendant_there_are_none_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5468,7 +5468,7 @@ fn empty_object_root_compressed_with_query_select_any_descendant_there_are_none_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -5480,7 +5480,7 @@ fn empty_object_root_compressed_with_query_select_any_descendant_there_are_none_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -5492,7 +5492,7 @@ fn empty_object_root_compressed_with_query_select_any_descendant_there_are_none_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5507,7 +5507,7 @@ fn empty_object_root_compressed_with_query_select_any_descendant_there_are_none_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -5519,7 +5519,7 @@ fn empty_object_root_compressed_with_query_select_any_descendant_there_are_none_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -5531,7 +5531,7 @@ fn empty_object_root_compressed_with_query_select_any_descendant_there_are_none_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5546,7 +5546,7 @@ fn empty_object_root_compressed_with_query_select_the_child_named_a_which_does_n
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -5558,7 +5558,7 @@ fn empty_object_root_compressed_with_query_select_the_child_named_a_which_does_n
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -5570,7 +5570,7 @@ fn empty_object_root_compressed_with_query_select_the_child_named_a_which_does_n
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5585,7 +5585,7 @@ fn empty_object_root_compressed_with_query_select_the_child_named_a_which_does_n
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -5597,7 +5597,7 @@ fn empty_object_root_compressed_with_query_select_the_child_named_a_which_does_n
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -5609,7 +5609,7 @@ fn empty_object_root_compressed_with_query_select_the_child_named_a_which_does_n
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5624,7 +5624,7 @@ fn empty_object_root_compressed_with_query_select_the_child_named_a_which_does_n
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -5636,7 +5636,7 @@ fn empty_object_root_compressed_with_query_select_the_child_named_a_which_does_n
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -5648,7 +5648,7 @@ fn empty_object_root_compressed_with_query_select_the_child_named_a_which_does_n
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5663,7 +5663,7 @@ fn empty_object_root_compressed_with_query_select_the_root_empty_query_with_buff
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -5675,7 +5675,7 @@ fn empty_object_root_compressed_with_query_select_the_root_empty_query_with_buff
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![0usize,], "result != expected");
     Ok(())
 }
@@ -5687,7 +5687,7 @@ fn empty_object_root_compressed_with_query_select_the_root_empty_query_with_buff
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}"];
@@ -5702,7 +5702,7 @@ fn empty_object_root_compressed_with_query_select_the_root_empty_query_with_mmap
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -5714,7 +5714,7 @@ fn empty_object_root_compressed_with_query_select_the_root_empty_query_with_mmap
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![0usize,], "result != expected");
     Ok(())
 }
@@ -5726,7 +5726,7 @@ fn empty_object_root_compressed_with_query_select_the_root_empty_query_with_mmap
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}"];
@@ -5741,7 +5741,7 @@ fn empty_object_root_compressed_with_query_select_the_root_empty_query_with_owne
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -5753,7 +5753,7 @@ fn empty_object_root_compressed_with_query_select_the_root_empty_query_with_owne
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![0usize,], "result != expected");
     Ok(())
 }
@@ -5765,7 +5765,7 @@ fn empty_object_root_compressed_with_query_select_the_root_empty_query_with_owne
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}"];
@@ -5780,7 +5780,7 @@ fn empty_object_root_compressed_with_query_select_the_root_with_buffered_input_a
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -5792,7 +5792,7 @@ fn empty_object_root_compressed_with_query_select_the_root_with_buffered_input_a
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![0usize,], "result != expected");
     Ok(())
 }
@@ -5804,7 +5804,7 @@ fn empty_object_root_compressed_with_query_select_the_root_with_buffered_input_a
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}"];
@@ -5819,7 +5819,7 @@ fn empty_object_root_compressed_with_query_select_the_root_with_mmap_input_and_c
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -5831,7 +5831,7 @@ fn empty_object_root_compressed_with_query_select_the_root_with_mmap_input_and_i
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![0usize,], "result != expected");
     Ok(())
 }
@@ -5843,7 +5843,7 @@ fn empty_object_root_compressed_with_query_select_the_root_with_mmap_input_and_n
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}"];
@@ -5858,7 +5858,7 @@ fn empty_object_root_compressed_with_query_select_the_root_with_owned_bytes_and_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -5870,7 +5870,7 @@ fn empty_object_root_compressed_with_query_select_the_root_with_owned_bytes_and_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![0usize,], "result != expected");
     Ok(())
 }
@@ -5882,7 +5882,7 @@ fn empty_object_root_compressed_with_query_select_the_root_with_owned_bytes_and_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}"];
@@ -5897,7 +5897,7 @@ fn empty_object_root_with_query_select_any_child_there_are_none_with_buffered_in
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -5909,7 +5909,7 @@ fn empty_object_root_with_query_select_any_child_there_are_none_with_buffered_in
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -5921,7 +5921,7 @@ fn empty_object_root_with_query_select_any_child_there_are_none_with_buffered_in
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5936,7 +5936,7 @@ fn empty_object_root_with_query_select_any_child_there_are_none_with_mmap_input_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -5948,7 +5948,7 @@ fn empty_object_root_with_query_select_any_child_there_are_none_with_mmap_input_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -5960,7 +5960,7 @@ fn empty_object_root_with_query_select_any_child_there_are_none_with_mmap_input_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5975,7 +5975,7 @@ fn empty_object_root_with_query_select_any_child_there_are_none_with_owned_bytes
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -5987,7 +5987,7 @@ fn empty_object_root_with_query_select_any_child_there_are_none_with_owned_bytes
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -5999,7 +5999,7 @@ fn empty_object_root_with_query_select_any_child_there_are_none_with_owned_bytes
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -6014,7 +6014,7 @@ fn empty_object_root_with_query_select_any_descendant_there_are_none_with_buffer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -6026,7 +6026,7 @@ fn empty_object_root_with_query_select_any_descendant_there_are_none_with_buffer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -6038,7 +6038,7 @@ fn empty_object_root_with_query_select_any_descendant_there_are_none_with_buffer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -6053,7 +6053,7 @@ fn empty_object_root_with_query_select_any_descendant_there_are_none_with_mmap_i
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -6065,7 +6065,7 @@ fn empty_object_root_with_query_select_any_descendant_there_are_none_with_mmap_i
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -6077,7 +6077,7 @@ fn empty_object_root_with_query_select_any_descendant_there_are_none_with_mmap_i
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -6092,7 +6092,7 @@ fn empty_object_root_with_query_select_any_descendant_there_are_none_with_owned_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -6104,7 +6104,7 @@ fn empty_object_root_with_query_select_any_descendant_there_are_none_with_owned_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -6116,7 +6116,7 @@ fn empty_object_root_with_query_select_any_descendant_there_are_none_with_owned_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -6131,7 +6131,7 @@ fn empty_object_root_with_query_select_the_child_named_a_which_does_not_exist_wi
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -6143,7 +6143,7 @@ fn empty_object_root_with_query_select_the_child_named_a_which_does_not_exist_wi
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -6155,7 +6155,7 @@ fn empty_object_root_with_query_select_the_child_named_a_which_does_not_exist_wi
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -6170,7 +6170,7 @@ fn empty_object_root_with_query_select_the_child_named_a_which_does_not_exist_wi
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -6182,7 +6182,7 @@ fn empty_object_root_with_query_select_the_child_named_a_which_does_not_exist_wi
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -6194,7 +6194,7 @@ fn empty_object_root_with_query_select_the_child_named_a_which_does_not_exist_wi
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -6209,7 +6209,7 @@ fn empty_object_root_with_query_select_the_child_named_a_which_does_not_exist_wi
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -6221,7 +6221,7 @@ fn empty_object_root_with_query_select_the_child_named_a_which_does_not_exist_wi
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -6233,7 +6233,7 @@ fn empty_object_root_with_query_select_the_child_named_a_which_does_not_exist_wi
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -6248,7 +6248,7 @@ fn empty_object_root_with_query_select_the_root_empty_query_with_buffered_input_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -6260,7 +6260,7 @@ fn empty_object_root_with_query_select_the_root_empty_query_with_buffered_input_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![0usize,], "result != expected");
     Ok(())
 }
@@ -6272,7 +6272,7 @@ fn empty_object_root_with_query_select_the_root_empty_query_with_buffered_input_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}"];
@@ -6287,7 +6287,7 @@ fn empty_object_root_with_query_select_the_root_empty_query_with_mmap_input_and_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -6299,7 +6299,7 @@ fn empty_object_root_with_query_select_the_root_empty_query_with_mmap_input_and_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![0usize,], "result != expected");
     Ok(())
 }
@@ -6311,7 +6311,7 @@ fn empty_object_root_with_query_select_the_root_empty_query_with_mmap_input_and_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}"];
@@ -6326,7 +6326,7 @@ fn empty_object_root_with_query_select_the_root_empty_query_with_owned_bytes_and
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -6338,7 +6338,7 @@ fn empty_object_root_with_query_select_the_root_empty_query_with_owned_bytes_and
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![0usize,], "result != expected");
     Ok(())
 }
@@ -6350,7 +6350,7 @@ fn empty_object_root_with_query_select_the_root_empty_query_with_owned_bytes_and
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}"];
@@ -6365,7 +6365,7 @@ fn empty_object_root_with_query_select_the_root_with_buffered_input_and_count_re
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -6377,7 +6377,7 @@ fn empty_object_root_with_query_select_the_root_with_buffered_input_and_index_re
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![0usize,], "result != expected");
     Ok(())
 }
@@ -6389,7 +6389,7 @@ fn empty_object_root_with_query_select_the_root_with_buffered_input_and_nodes_re
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}"];
@@ -6404,7 +6404,7 @@ fn empty_object_root_with_query_select_the_root_with_mmap_input_and_count_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -6416,7 +6416,7 @@ fn empty_object_root_with_query_select_the_root_with_mmap_input_and_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![0usize,], "result != expected");
     Ok(())
 }
@@ -6428,7 +6428,7 @@ fn empty_object_root_with_query_select_the_root_with_mmap_input_and_nodes_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}"];
@@ -6443,7 +6443,7 @@ fn empty_object_root_with_query_select_the_root_with_owned_bytes_and_count_resul
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -6455,7 +6455,7 @@ fn empty_object_root_with_query_select_the_root_with_owned_bytes_and_index_resul
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![0usize,], "result != expected");
     Ok(())
 }
@@ -6467,7 +6467,7 @@ fn empty_object_root_with_query_select_the_root_with_owned_bytes_and_nodes_resul
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_object.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}"];
@@ -6482,7 +6482,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4u64, "result != expected");
     Ok(())
 }
@@ -6494,7 +6494,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![151usize, 198usize, 341usize, 388usize,],
@@ -6510,7 +6510,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -6530,7 +6530,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4u64, "result != expected");
     Ok(())
 }
@@ -6542,7 +6542,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![151usize, 198usize, 341usize, 388usize,],
@@ -6558,7 +6558,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -6578,7 +6578,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4u64, "result != expected");
     Ok(())
 }
@@ -6590,7 +6590,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![151usize, 198usize, 341usize, 388usize,],
@@ -6606,7 +6606,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -6626,7 +6626,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -6638,7 +6638,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![151usize, 341usize,], "result != expected");
     Ok(())
 }
@@ -6650,7 +6650,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
@@ -6665,7 +6665,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -6677,7 +6677,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![151usize, 341usize,], "result != expected");
     Ok(())
 }
@@ -6689,7 +6689,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
@@ -6704,7 +6704,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -6716,7 +6716,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![151usize, 341usize,], "result != expected");
     Ok(())
 }
@@ -6728,7 +6728,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
@@ -6743,7 +6743,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -6755,7 +6755,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![151usize, 341usize,], "result != expected");
     Ok(())
 }
@@ -6767,7 +6767,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
@@ -6782,7 +6782,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -6794,7 +6794,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![151usize, 341usize,], "result != expected");
     Ok(())
 }
@@ -6806,7 +6806,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
@@ -6821,7 +6821,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -6833,7 +6833,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![151usize, 341usize,], "result != expected");
     Ok(())
 }
@@ -6845,7 +6845,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
@@ -6860,7 +6860,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 8u64, "result != expected");
     Ok(())
 }
@@ -6872,7 +6872,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![16usize, 90usize, 151usize, 198usize, 267usize, 341usize, 388usize, 426usize,],
@@ -6888,7 +6888,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -6912,7 +6912,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 8u64, "result != expected");
     Ok(())
 }
@@ -6924,7 +6924,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![16usize, 90usize, 151usize, 198usize, 267usize, 341usize, 388usize, 426usize,],
@@ -6940,7 +6940,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -6964,7 +6964,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 8u64, "result != expected");
     Ok(())
 }
@@ -6976,7 +6976,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![16usize, 90usize, 151usize, 198usize, 267usize, 341usize, 388usize, 426usize,],
@@ -6992,7 +6992,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -7016,7 +7016,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -7028,7 +7028,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![426usize,], "result != expected");
     Ok(())
 }
@@ -7040,7 +7040,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/blQy8JxViF\""];
@@ -7055,7 +7055,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -7067,7 +7067,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![426usize,], "result != expected");
     Ok(())
 }
@@ -7079,7 +7079,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/blQy8JxViF\""];
@@ -7094,7 +7094,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -7106,7 +7106,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![426usize,], "result != expected");
     Ok(())
 }
@@ -7118,7 +7118,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/blQy8JxViF\""];
@@ -7133,7 +7133,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4u64, "result != expected");
     Ok(())
 }
@@ -7145,7 +7145,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![323usize, 473usize, 883usize, 1013usize,],
@@ -7161,7 +7161,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -7181,7 +7181,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4u64, "result != expected");
     Ok(())
 }
@@ -7193,7 +7193,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![323usize, 473usize, 883usize, 1013usize,],
@@ -7209,7 +7209,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -7229,7 +7229,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4u64, "result != expected");
     Ok(())
 }
@@ -7241,7 +7241,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![323usize, 473usize, 883usize, 1013usize,],
@@ -7257,7 +7257,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -7277,7 +7277,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -7289,7 +7289,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![323usize, 883usize,], "result != expected");
     Ok(())
 }
@@ -7301,7 +7301,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
@@ -7316,7 +7316,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -7328,7 +7328,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![323usize, 883usize,], "result != expected");
     Ok(())
 }
@@ -7340,7 +7340,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
@@ -7355,7 +7355,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -7367,7 +7367,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![323usize, 883usize,], "result != expected");
     Ok(())
 }
@@ -7379,7 +7379,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
@@ -7394,7 +7394,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -7406,7 +7406,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![323usize, 883usize,], "result != expected");
     Ok(())
 }
@@ -7418,7 +7418,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
@@ -7433,7 +7433,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -7445,7 +7445,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![323usize, 883usize,], "result != expected");
     Ok(())
 }
@@ -7457,7 +7457,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
@@ -7472,7 +7472,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -7484,7 +7484,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![323usize, 883usize,], "result != expected");
     Ok(())
 }
@@ -7496,7 +7496,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
@@ -7511,7 +7511,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 8u64, "result != expected");
     Ok(())
 }
@@ -7523,7 +7523,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![45usize, 170usize, 323usize, 473usize, 672usize, 883usize, 1013usize, 1100usize,],
@@ -7539,7 +7539,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -7563,7 +7563,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 8u64, "result != expected");
     Ok(())
 }
@@ -7575,7 +7575,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![45usize, 170usize, 323usize, 473usize, 672usize, 883usize, 1013usize, 1100usize,],
@@ -7591,7 +7591,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -7615,7 +7615,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 8u64, "result != expected");
     Ok(())
 }
@@ -7627,7 +7627,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![45usize, 170usize, 323usize, 473usize, 672usize, 883usize, 1013usize, 1100usize,],
@@ -7643,7 +7643,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -7667,7 +7667,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -7679,7 +7679,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![1100usize,], "result != expected");
     Ok(())
 }
@@ -7691,7 +7691,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/blQy8JxViF\""];
@@ -7706,7 +7706,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -7718,7 +7718,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![1100usize,], "result != expected");
     Ok(())
 }
@@ -7730,7 +7730,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/blQy8JxViF\""];
@@ -7745,7 +7745,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -7757,7 +7757,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![1100usize,], "result != expected");
     Ok(())
 }
@@ -7769,7 +7769,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/twitter_urls.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/blQy8JxViF\""];
@@ -7784,7 +7784,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/memchr_trap.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -7796,7 +7796,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/memchr_trap.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![12usize,], "result != expected");
     Ok(())
 }
@@ -7808,7 +7808,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/memchr_trap.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -7823,7 +7823,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/memchr_trap.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -7835,7 +7835,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/memchr_trap.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![12usize,], "result != expected");
     Ok(())
 }
@@ -7847,7 +7847,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/memchr_trap.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -7862,7 +7862,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/memchr_trap.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -7874,7 +7874,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/memchr_trap.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![12usize,], "result != expected");
     Ok(())
 }
@@ -7886,7 +7886,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/memchr_trap.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -7901,7 +7901,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/memchr_trap.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -7913,7 +7913,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/memchr_trap.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![19usize,], "result != expected");
     Ok(())
 }
@@ -7925,7 +7925,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/memchr_trap.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -7940,7 +7940,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/memchr_trap.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -7952,7 +7952,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/memchr_trap.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![19usize,], "result != expected");
     Ok(())
 }
@@ -7964,7 +7964,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/memchr_trap.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -7979,7 +7979,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/memchr_trap.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -7991,7 +7991,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/memchr_trap.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![19usize,], "result != expected");
     Ok(())
 }
@@ -8003,7 +8003,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/memchr_trap.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -8018,7 +8018,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/memchr_trap.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -8030,7 +8030,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/memchr_trap.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![28usize,], "result != expected");
     Ok(())
 }
@@ -8042,7 +8042,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/memchr_trap.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -8057,7 +8057,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/memchr_trap.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -8069,7 +8069,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/memchr_trap.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![28usize,], "result != expected");
     Ok(())
 }
@@ -8081,7 +8081,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/memchr_trap.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -8096,7 +8096,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/memchr_trap.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -8108,7 +8108,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/memchr_trap.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![28usize,], "result != expected");
     Ok(())
 }
@@ -8120,7 +8120,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/memchr_trap.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -8135,7 +8135,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/memchr_trap.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -8147,7 +8147,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/memchr_trap.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![45usize,], "result != expected");
     Ok(())
 }
@@ -8159,7 +8159,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/memchr_trap.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -8174,7 +8174,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/memchr_trap.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -8186,7 +8186,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/memchr_trap.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![45usize,], "result != expected");
     Ok(())
 }
@@ -8198,7 +8198,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/memchr_trap.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -8213,7 +8213,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/memchr_trap.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -8225,7 +8225,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/memchr_trap.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![45usize,], "result != expected");
     Ok(())
 }
@@ -8237,7 +8237,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/memchr_trap.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -8252,7 +8252,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_claims
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 37736u64, "result != expected");
     Ok(())
 }
@@ -8264,7 +8264,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_claims
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 37736u64, "result != expected");
     Ok(())
 }
@@ -8276,7 +8276,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_claims
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 37736u64, "result != expected");
     Ok(())
 }
@@ -8288,7 +8288,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_datava
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 25093u64, "result != expected");
     Ok(())
 }
@@ -8300,7 +8300,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_datava
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 25093u64, "result != expected");
     Ok(())
 }
@@ -8312,7 +8312,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_datava
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 25093u64, "result != expected");
     Ok(())
 }
@@ -8324,7 +8324,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_en_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1753u64, "result != expected");
     Ok(())
 }
@@ -8336,7 +8336,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_en_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1753u64, "result != expected");
     Ok(())
 }
@@ -8348,7 +8348,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_en_the
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1753u64, "result != expected");
     Ok(())
 }
@@ -8360,7 +8360,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_en_val
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2360u64, "result != expected");
     Ok(())
 }
@@ -8372,7 +8372,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_en_val
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2360u64, "result != expected");
     Ok(())
 }
@@ -8384,7 +8384,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_en_val
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2360u64, "result != expected");
     Ok(())
 }
@@ -8396,7 +8396,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_mainsn
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 12958u64, "result != expected");
     Ok(())
 }
@@ -8408,7 +8408,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_mainsn
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 12958u64, "result != expected");
     Ok(())
 }
@@ -8420,7 +8420,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_mainsn
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 12958u64, "result != expected");
     Ok(())
 }
@@ -8432,7 +8432,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_mainsn
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 26115u64, "result != expected");
     Ok(())
 }
@@ -8444,7 +8444,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_mainsn
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 26115u64, "result != expected");
     Ok(())
 }
@@ -8456,7 +8456,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_mainsn
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 26115u64, "result != expected");
     Ok(())
 }
@@ -8468,7 +8468,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_refere
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 11113u64, "result != expected");
     Ok(())
 }
@@ -8480,7 +8480,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_refere
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 11113u64, "result != expected");
     Ok(())
 }
@@ -8492,7 +8492,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_refere
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 11113u64, "result != expected");
     Ok(())
 }
@@ -8504,7 +8504,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_refere
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 25118u64, "result != expected");
     Ok(())
 }
@@ -8516,7 +8516,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_refere
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 25118u64, "result != expected");
     Ok(())
 }
@@ -8528,7 +8528,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_refere
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 25118u64, "result != expected");
     Ok(())
 }
@@ -8540,7 +8540,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_refere
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 25118u64, "result != expected");
     Ok(())
 }
@@ -8552,7 +8552,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_refere
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 25118u64, "result != expected");
     Ok(())
 }
@@ -8564,7 +8564,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_refere
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 25118u64, "result != expected");
     Ok(())
 }
@@ -8576,7 +8576,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_snaks_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 25118u64, "result != expected");
     Ok(())
 }
@@ -8588,7 +8588,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_snaks_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 25118u64, "result != expected");
     Ok(())
 }
@@ -8600,7 +8600,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_snaks_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 25118u64, "result != expected");
     Ok(())
 }
@@ -8612,7 +8612,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_snaks_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 11113u64, "result != expected");
     Ok(())
 }
@@ -8624,7 +8624,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_snaks_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 11113u64, "result != expected");
     Ok(())
 }
@@ -8636,7 +8636,7 @@ fn large_wikidata_dump_person_compressed_with_query_descendant_search_for_snaks_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 11113u64, "result != expected");
     Ok(())
 }
@@ -8648,7 +8648,7 @@ fn large_wikidata_dump_person_compressed_with_query_select_all_nodes_with_buffer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 970442u64, "result != expected");
     Ok(())
 }
@@ -8660,7 +8660,7 @@ fn large_wikidata_dump_person_compressed_with_query_select_all_nodes_with_mmap_i
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 970442u64, "result != expected");
     Ok(())
 }
@@ -8672,7 +8672,7 @@ fn large_wikidata_dump_person_compressed_with_query_select_all_nodes_with_owned_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 970442u64, "result != expected");
     Ok(())
 }
@@ -8684,7 +8684,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_claims_references
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 37736u64, "result != expected");
     Ok(())
 }
@@ -8696,7 +8696,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_claims_references
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 37736u64, "result != expected");
     Ok(())
 }
@@ -8708,7 +8708,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_claims_references
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 37736u64, "result != expected");
     Ok(())
 }
@@ -8720,7 +8720,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_datavalue_value_i
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 25093u64, "result != expected");
     Ok(())
 }
@@ -8732,7 +8732,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_datavalue_value_i
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 25093u64, "result != expected");
     Ok(())
 }
@@ -8744,7 +8744,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_datavalue_value_i
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 25093u64, "result != expected");
     Ok(())
 }
@@ -8756,7 +8756,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_en_then_directly_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1753u64, "result != expected");
     Ok(())
 }
@@ -8768,7 +8768,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_en_then_directly_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1753u64, "result != expected");
     Ok(())
 }
@@ -8780,7 +8780,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_en_then_directly_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1753u64, "result != expected");
     Ok(())
 }
@@ -8792,7 +8792,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_en_value_with_buf
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2360u64, "result != expected");
     Ok(())
 }
@@ -8804,7 +8804,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_en_value_with_mma
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2360u64, "result != expected");
     Ok(())
 }
@@ -8816,7 +8816,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_en_value_with_own
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2360u64, "result != expected");
     Ok(())
 }
@@ -8828,7 +8828,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_mainsnak_datavalu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 12958u64, "result != expected");
     Ok(())
 }
@@ -8840,7 +8840,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_mainsnak_datavalu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 12958u64, "result != expected");
     Ok(())
 }
@@ -8852,7 +8852,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_mainsnak_datavalu
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 12958u64, "result != expected");
     Ok(())
 }
@@ -8864,7 +8864,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_mainsnak_datavalu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 26115u64, "result != expected");
     Ok(())
 }
@@ -8876,7 +8876,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_mainsnak_datavalu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 26115u64, "result != expected");
     Ok(())
 }
@@ -8888,7 +8888,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_mainsnak_datavalu
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 26115u64, "result != expected");
     Ok(())
 }
@@ -8900,7 +8900,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_references_snaks_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 11113u64, "result != expected");
     Ok(())
 }
@@ -8912,7 +8912,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_references_snaks_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 11113u64, "result != expected");
     Ok(())
 }
@@ -8924,7 +8924,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_references_snaks_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 11113u64, "result != expected");
     Ok(())
 }
@@ -8936,7 +8936,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_references_snaks_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 25118u64, "result != expected");
     Ok(())
 }
@@ -8948,7 +8948,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_references_snaks_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 25118u64, "result != expected");
     Ok(())
 }
@@ -8960,7 +8960,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_references_snaks_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 25118u64, "result != expected");
     Ok(())
 }
@@ -8972,7 +8972,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_references_snaks_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 25118u64, "result != expected");
     Ok(())
 }
@@ -8984,7 +8984,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_references_snaks_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 25118u64, "result != expected");
     Ok(())
 }
@@ -8996,7 +8996,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_references_snaks_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 25118u64, "result != expected");
     Ok(())
 }
@@ -9008,7 +9008,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_snaks_datavalue_v
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 25118u64, "result != expected");
     Ok(())
 }
@@ -9020,7 +9020,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_snaks_datavalue_v
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 25118u64, "result != expected");
     Ok(())
 }
@@ -9032,7 +9032,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_snaks_datavalue_v
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 25118u64, "result != expected");
     Ok(())
 }
@@ -9044,7 +9044,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_snaks_then_any_de
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 11113u64, "result != expected");
     Ok(())
 }
@@ -9056,7 +9056,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_snaks_then_any_de
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 11113u64, "result != expected");
     Ok(())
 }
@@ -9068,7 +9068,7 @@ fn large_wikidata_dump_person_with_query_descendant_search_for_snaks_then_any_de
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 11113u64, "result != expected");
     Ok(())
 }
@@ -9080,7 +9080,7 @@ fn large_wikidata_dump_person_with_query_select_all_nodes_with_buffered_input_an
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 970442u64, "result != expected");
     Ok(())
 }
@@ -9092,7 +9092,7 @@ fn large_wikidata_dump_person_with_query_select_all_nodes_with_mmap_input_and_co
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 970442u64, "result != expected");
     Ok(())
 }
@@ -9104,7 +9104,7 @@ fn large_wikidata_dump_person_with_query_select_all_nodes_with_owned_bytes_and_c
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_person.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 970442u64, "result != expected");
     Ok(())
 }
@@ -9116,7 +9116,7 @@ fn large_wikidata_dump_profession_compressed_with_query_all_nodes_with_buffered_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_profession.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1702482u64, "result != expected");
     Ok(())
 }
@@ -9128,7 +9128,7 @@ fn large_wikidata_dump_profession_compressed_with_query_all_nodes_with_mmap_inpu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_profession.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1702482u64, "result != expected");
     Ok(())
 }
@@ -9141,7 +9141,7 @@ fn large_wikidata_dump_profession_compressed_with_query_all_nodes_with_owned_byt
         fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_profession.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1702482u64, "result != expected");
     Ok(())
 }
@@ -9153,7 +9153,7 @@ fn large_wikidata_dump_profession_compressed_with_query_descendant_search_for_an
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_profession.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 98805u64, "result != expected");
     Ok(())
 }
@@ -9165,7 +9165,7 @@ fn large_wikidata_dump_profession_compressed_with_query_descendant_search_for_an
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_profession.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 98805u64, "result != expected");
     Ok(())
 }
@@ -9178,7 +9178,7 @@ fn large_wikidata_dump_profession_compressed_with_query_descendant_search_for_an
         fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_profession.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 98805u64, "result != expected");
     Ok(())
 }
@@ -9190,7 +9190,7 @@ fn large_wikidata_dump_profession_compressed_with_query_descendant_search_for_cl
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_profession.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 59112u64, "result != expected");
     Ok(())
 }
@@ -9202,7 +9202,7 @@ fn large_wikidata_dump_profession_compressed_with_query_descendant_search_for_cl
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_profession.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 59112u64, "result != expected");
     Ok(())
 }
@@ -9215,7 +9215,7 @@ fn large_wikidata_dump_profession_compressed_with_query_descendant_search_for_cl
         fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_profession.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 59112u64, "result != expected");
     Ok(())
 }
@@ -9227,7 +9227,7 @@ fn large_wikidata_dump_profession_compressed_with_query_descendant_search_for_en
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_profession.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 9452u64, "result != expected");
     Ok(())
 }
@@ -9239,7 +9239,7 @@ fn large_wikidata_dump_profession_compressed_with_query_descendant_search_for_en
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_profession.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 9452u64, "result != expected");
     Ok(())
 }
@@ -9252,7 +9252,7 @@ fn large_wikidata_dump_profession_compressed_with_query_descendant_search_for_en
         fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_profession.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 9452u64, "result != expected");
     Ok(())
 }
@@ -9264,7 +9264,7 @@ fn large_wikidata_dump_profession_compressed_with_query_descendant_search_for_en
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_profession.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 13634u64, "result != expected");
     Ok(())
 }
@@ -9276,7 +9276,7 @@ fn large_wikidata_dump_profession_compressed_with_query_descendant_search_for_en
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_profession.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 13634u64, "result != expected");
     Ok(())
 }
@@ -9289,7 +9289,7 @@ fn large_wikidata_dump_profession_compressed_with_query_descendant_search_for_en
         fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_profession.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 13634u64, "result != expected");
     Ok(())
 }
@@ -9301,7 +9301,7 @@ fn large_wikidata_dump_profession_with_query_all_nodes_with_buffered_input_and_c
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_profession.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1702482u64, "result != expected");
     Ok(())
 }
@@ -9313,7 +9313,7 @@ fn large_wikidata_dump_profession_with_query_all_nodes_with_mmap_input_and_count
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_profession.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1702482u64, "result != expected");
     Ok(())
 }
@@ -9325,7 +9325,7 @@ fn large_wikidata_dump_profession_with_query_all_nodes_with_owned_bytes_and_coun
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_profession.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1702482u64, "result != expected");
     Ok(())
 }
@@ -9337,7 +9337,7 @@ fn large_wikidata_dump_profession_with_query_descendant_search_for_any_node_and_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_profession.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 98805u64, "result != expected");
     Ok(())
 }
@@ -9349,7 +9349,7 @@ fn large_wikidata_dump_profession_with_query_descendant_search_for_any_node_and_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_profession.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 98805u64, "result != expected");
     Ok(())
 }
@@ -9361,7 +9361,7 @@ fn large_wikidata_dump_profession_with_query_descendant_search_for_any_node_and_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_profession.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 98805u64, "result != expected");
     Ok(())
 }
@@ -9373,7 +9373,7 @@ fn large_wikidata_dump_profession_with_query_descendant_search_for_claims_mainsn
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_profession.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 59112u64, "result != expected");
     Ok(())
 }
@@ -9385,7 +9385,7 @@ fn large_wikidata_dump_profession_with_query_descendant_search_for_claims_mainsn
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_profession.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 59112u64, "result != expected");
     Ok(())
 }
@@ -9397,7 +9397,7 @@ fn large_wikidata_dump_profession_with_query_descendant_search_for_claims_mainsn
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_profession.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 59112u64, "result != expected");
     Ok(())
 }
@@ -9409,7 +9409,7 @@ fn large_wikidata_dump_profession_with_query_descendant_search_for_en_then_its_v
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_profession.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 9452u64, "result != expected");
     Ok(())
 }
@@ -9421,7 +9421,7 @@ fn large_wikidata_dump_profession_with_query_descendant_search_for_en_then_its_v
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_profession.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 9452u64, "result != expected");
     Ok(())
 }
@@ -9433,7 +9433,7 @@ fn large_wikidata_dump_profession_with_query_descendant_search_for_en_then_its_v
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_profession.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 9452u64, "result != expected");
     Ok(())
 }
@@ -9445,7 +9445,7 @@ fn large_wikidata_dump_profession_with_query_descendant_search_for_en_value_with
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_profession.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 13634u64, "result != expected");
     Ok(())
 }
@@ -9457,7 +9457,7 @@ fn large_wikidata_dump_profession_with_query_descendant_search_for_en_value_with
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_profession.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 13634u64, "result != expected");
     Ok(())
 }
@@ -9469,7 +9469,7 @@ fn large_wikidata_dump_profession_with_query_descendant_search_for_en_value_with
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_profession.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 13634u64, "result != expected");
     Ok(())
 }
@@ -9481,7 +9481,7 @@ fn large_wikidata_dump_properties_compressed_with_query_all_nodes_with_buffered_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 922519u64, "result != expected");
     Ok(())
 }
@@ -9493,7 +9493,7 @@ fn large_wikidata_dump_properties_compressed_with_query_all_nodes_with_mmap_inpu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 922519u64, "result != expected");
     Ok(())
 }
@@ -9506,7 +9506,7 @@ fn large_wikidata_dump_properties_compressed_with_query_all_nodes_with_owned_byt
         fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 922519u64, "result != expected");
     Ok(())
 }
@@ -9518,7 +9518,7 @@ fn large_wikidata_dump_properties_compressed_with_query_descendant_search_for_an
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 132188u64, "result != expected");
     Ok(())
 }
@@ -9530,7 +9530,7 @@ fn large_wikidata_dump_properties_compressed_with_query_descendant_search_for_an
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 132188u64, "result != expected");
     Ok(())
 }
@@ -9543,7 +9543,7 @@ fn large_wikidata_dump_properties_compressed_with_query_descendant_search_for_an
         fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 132188u64, "result != expected");
     Ok(())
 }
@@ -9555,7 +9555,7 @@ fn large_wikidata_dump_properties_compressed_with_query_descendant_search_for_en
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1760u64, "result != expected");
     Ok(())
 }
@@ -9567,7 +9567,7 @@ fn large_wikidata_dump_properties_compressed_with_query_descendant_search_for_en
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1760u64, "result != expected");
     Ok(())
 }
@@ -9580,7 +9580,7 @@ fn large_wikidata_dump_properties_compressed_with_query_descendant_search_for_en
         fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1760u64, "result != expected");
     Ok(())
 }
@@ -9592,7 +9592,7 @@ fn large_wikidata_dump_properties_compressed_with_query_descendant_search_for_en
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4504u64, "result != expected");
     Ok(())
 }
@@ -9604,7 +9604,7 @@ fn large_wikidata_dump_properties_compressed_with_query_descendant_search_for_en
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4504u64, "result != expected");
     Ok(())
 }
@@ -9617,7 +9617,7 @@ fn large_wikidata_dump_properties_compressed_with_query_descendant_search_for_en
         fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4504u64, "result != expected");
     Ok(())
 }
@@ -9629,7 +9629,7 @@ fn large_wikidata_dump_properties_compressed_with_query_descendant_search_for_qu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 18219u64, "result != expected");
     Ok(())
 }
@@ -9641,7 +9641,7 @@ fn large_wikidata_dump_properties_compressed_with_query_descendant_search_for_qu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 18219u64, "result != expected");
     Ok(())
 }
@@ -9654,7 +9654,7 @@ fn large_wikidata_dump_properties_compressed_with_query_descendant_search_for_qu
         fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 18219u64, "result != expected");
     Ok(())
 }
@@ -9666,7 +9666,7 @@ fn large_wikidata_dump_properties_compressed_with_query_descendant_search_for_th
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2511u64, "result != expected");
     Ok(())
 }
@@ -9678,7 +9678,7 @@ fn large_wikidata_dump_properties_compressed_with_query_descendant_search_for_th
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2511u64, "result != expected");
     Ok(())
 }
@@ -9691,7 +9691,7 @@ fn large_wikidata_dump_properties_compressed_with_query_descendant_search_for_th
         fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2511u64, "result != expected");
     Ok(())
 }
@@ -9703,7 +9703,7 @@ fn large_wikidata_dump_properties_compressed_with_query_path_to_p7103_claims_p31
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -9715,7 +9715,7 @@ fn large_wikidata_dump_properties_compressed_with_query_path_to_p7103_claims_p31
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![21204179usize,], "result != expected");
     Ok(())
 }
@@ -9727,7 +9727,7 @@ fn large_wikidata_dump_properties_compressed_with_query_path_to_p7103_claims_p31
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -9739,7 +9739,7 @@ fn large_wikidata_dump_properties_compressed_with_query_path_to_p7103_claims_p31
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![21204179usize,], "result != expected");
     Ok(())
 }
@@ -9752,7 +9752,7 @@ fn large_wikidata_dump_properties_compressed_with_query_path_to_p7103_claims_p31
         fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -9765,7 +9765,7 @@ fn large_wikidata_dump_properties_compressed_with_query_path_to_p7103_claims_p31
         fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/wikidata_properties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![21204179usize,], "result != expected");
     Ok(())
 }
@@ -9777,7 +9777,7 @@ fn large_wikidata_dump_properties_with_query_all_nodes_with_buffered_input_and_c
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 922519u64, "result != expected");
     Ok(())
 }
@@ -9789,7 +9789,7 @@ fn large_wikidata_dump_properties_with_query_all_nodes_with_mmap_input_and_count
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 922519u64, "result != expected");
     Ok(())
 }
@@ -9801,7 +9801,7 @@ fn large_wikidata_dump_properties_with_query_all_nodes_with_owned_bytes_and_coun
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 922519u64, "result != expected");
     Ok(())
 }
@@ -9813,7 +9813,7 @@ fn large_wikidata_dump_properties_with_query_descendant_search_for_any_node_and_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 132188u64, "result != expected");
     Ok(())
 }
@@ -9825,7 +9825,7 @@ fn large_wikidata_dump_properties_with_query_descendant_search_for_any_node_and_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 132188u64, "result != expected");
     Ok(())
 }
@@ -9837,7 +9837,7 @@ fn large_wikidata_dump_properties_with_query_descendant_search_for_any_node_and_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 132188u64, "result != expected");
     Ok(())
 }
@@ -9849,7 +9849,7 @@ fn large_wikidata_dump_properties_with_query_descendant_search_for_en_and_then_i
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1760u64, "result != expected");
     Ok(())
 }
@@ -9861,7 +9861,7 @@ fn large_wikidata_dump_properties_with_query_descendant_search_for_en_and_then_i
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1760u64, "result != expected");
     Ok(())
 }
@@ -9873,7 +9873,7 @@ fn large_wikidata_dump_properties_with_query_descendant_search_for_en_and_then_i
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1760u64, "result != expected");
     Ok(())
 }
@@ -9885,7 +9885,7 @@ fn large_wikidata_dump_properties_with_query_descendant_search_for_en_value_with
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4504u64, "result != expected");
     Ok(())
 }
@@ -9897,7 +9897,7 @@ fn large_wikidata_dump_properties_with_query_descendant_search_for_en_value_with
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4504u64, "result != expected");
     Ok(())
 }
@@ -9909,7 +9909,7 @@ fn large_wikidata_dump_properties_with_query_descendant_search_for_en_value_with
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4504u64, "result != expected");
     Ok(())
 }
@@ -9921,7 +9921,7 @@ fn large_wikidata_dump_properties_with_query_descendant_search_for_qualifiers_da
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 18219u64, "result != expected");
     Ok(())
 }
@@ -9933,7 +9933,7 @@ fn large_wikidata_dump_properties_with_query_descendant_search_for_qualifiers_da
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 18219u64, "result != expected");
     Ok(())
 }
@@ -9945,7 +9945,7 @@ fn large_wikidata_dump_properties_with_query_descendant_search_for_qualifiers_da
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 18219u64, "result != expected");
     Ok(())
 }
@@ -9957,7 +9957,7 @@ fn large_wikidata_dump_properties_with_query_descendant_search_for_the_fifth_arr
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2511u64, "result != expected");
     Ok(())
 }
@@ -9969,7 +9969,7 @@ fn large_wikidata_dump_properties_with_query_descendant_search_for_the_fifth_arr
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2511u64, "result != expected");
     Ok(())
 }
@@ -9981,7 +9981,7 @@ fn large_wikidata_dump_properties_with_query_descendant_search_for_the_fifth_arr
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2511u64, "result != expected");
     Ok(())
 }
@@ -9993,7 +9993,7 @@ fn large_wikidata_dump_properties_with_query_path_to_p7103_claims_p31_references
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -10005,7 +10005,7 @@ fn large_wikidata_dump_properties_with_query_path_to_p7103_claims_p31_references
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![22639035usize,], "result != expected");
     Ok(())
 }
@@ -10017,7 +10017,7 @@ fn large_wikidata_dump_properties_with_query_path_to_p7103_claims_p31_references
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -10029,7 +10029,7 @@ fn large_wikidata_dump_properties_with_query_path_to_p7103_claims_p31_references
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![22639035usize,], "result != expected");
     Ok(())
 }
@@ -10041,7 +10041,7 @@ fn large_wikidata_dump_properties_with_query_path_to_p7103_claims_p31_references
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -10053,7 +10053,7 @@ fn large_wikidata_dump_properties_with_query_path_to_p7103_claims_p31_references
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/wikidata_properties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![22639035usize,], "result != expected");
     Ok(())
 }
@@ -10065,7 +10065,7 @@ fn list_with_mixed_atomic_integers_and_objects_compressed_with_query_select_all_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/heterogenous_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -10077,7 +10077,7 @@ fn list_with_mixed_atomic_integers_and_objects_compressed_with_query_select_all_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/heterogenous_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![6usize, 9usize, 18usize,], "result != expected");
     Ok(())
 }
@@ -10089,7 +10089,7 @@ fn list_with_mixed_atomic_integers_and_objects_compressed_with_query_select_all_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/heterogenous_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "{\"b\":43}", "44"];
@@ -10104,7 +10104,7 @@ fn list_with_mixed_atomic_integers_and_objects_compressed_with_query_select_all_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/heterogenous_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -10116,7 +10116,7 @@ fn list_with_mixed_atomic_integers_and_objects_compressed_with_query_select_all_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/heterogenous_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![6usize, 9usize, 18usize,], "result != expected");
     Ok(())
 }
@@ -10128,7 +10128,7 @@ fn list_with_mixed_atomic_integers_and_objects_compressed_with_query_select_all_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/heterogenous_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "{\"b\":43}", "44"];
@@ -10143,7 +10143,7 @@ fn list_with_mixed_atomic_integers_and_objects_compressed_with_query_select_all_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/heterogenous_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -10155,7 +10155,7 @@ fn list_with_mixed_atomic_integers_and_objects_compressed_with_query_select_all_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/heterogenous_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![6usize, 9usize, 18usize,], "result != expected");
     Ok(())
 }
@@ -10167,7 +10167,7 @@ fn list_with_mixed_atomic_integers_and_objects_compressed_with_query_select_all_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/heterogenous_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "{\"b\":43}", "44"];
@@ -10182,7 +10182,7 @@ fn list_with_mixed_atomic_integers_and_objects_with_query_select_all_elements_on
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/heterogenous_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -10194,7 +10194,7 @@ fn list_with_mixed_atomic_integers_and_objects_with_query_select_all_elements_on
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/heterogenous_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![15usize, 23usize, 50usize,], "result != expected");
     Ok(())
 }
@@ -10206,7 +10206,7 @@ fn list_with_mixed_atomic_integers_and_objects_with_query_select_all_elements_on
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/heterogenous_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "{\n      \"b\": 43\n    }", "44"];
@@ -10221,7 +10221,7 @@ fn list_with_mixed_atomic_integers_and_objects_with_query_select_all_elements_on
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/heterogenous_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -10233,7 +10233,7 @@ fn list_with_mixed_atomic_integers_and_objects_with_query_select_all_elements_on
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/heterogenous_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![15usize, 23usize, 50usize,], "result != expected");
     Ok(())
 }
@@ -10245,7 +10245,7 @@ fn list_with_mixed_atomic_integers_and_objects_with_query_select_all_elements_on
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/heterogenous_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "{\n      \"b\": 43\n    }", "44"];
@@ -10260,7 +10260,7 @@ fn list_with_mixed_atomic_integers_and_objects_with_query_select_all_elements_on
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/heterogenous_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -10272,7 +10272,7 @@ fn list_with_mixed_atomic_integers_and_objects_with_query_select_all_elements_on
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/heterogenous_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![15usize, 23usize, 50usize,], "result != expected");
     Ok(())
 }
@@ -10284,7 +10284,7 @@ fn list_with_mixed_atomic_integers_and_objects_with_query_select_all_elements_on
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/heterogenous_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "{\n      \"b\": 43\n    }", "44"];
@@ -10299,7 +10299,7 @@ fn list_with_nested_sublists_to_stress_output_ordering_compressed_with_query_sel
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/ordered_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 7u64, "result != expected");
     Ok(())
 }
@@ -10311,7 +10311,7 @@ fn list_with_nested_sublists_to_stress_output_ordering_compressed_with_query_sel
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/ordered_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![1usize, 3usize, 5usize, 6usize, 9usize, 12usize, 13usize,],
@@ -10327,7 +10327,7 @@ fn list_with_nested_sublists_to_stress_output_ordering_compressed_with_query_sel
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/ordered_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["1", "2", "[{},4]", "{}", "4", "[5]", "5"];
@@ -10342,7 +10342,7 @@ fn list_with_nested_sublists_to_stress_output_ordering_compressed_with_query_sel
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/ordered_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 7u64, "result != expected");
     Ok(())
 }
@@ -10354,7 +10354,7 @@ fn list_with_nested_sublists_to_stress_output_ordering_compressed_with_query_sel
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/ordered_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![1usize, 3usize, 5usize, 6usize, 9usize, 12usize, 13usize,],
@@ -10370,7 +10370,7 @@ fn list_with_nested_sublists_to_stress_output_ordering_compressed_with_query_sel
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/ordered_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["1", "2", "[{},4]", "{}", "4", "[5]", "5"];
@@ -10385,7 +10385,7 @@ fn list_with_nested_sublists_to_stress_output_ordering_compressed_with_query_sel
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/ordered_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 7u64, "result != expected");
     Ok(())
 }
@@ -10397,7 +10397,7 @@ fn list_with_nested_sublists_to_stress_output_ordering_compressed_with_query_sel
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/ordered_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![1usize, 3usize, 5usize, 6usize, 9usize, 12usize, 13usize,],
@@ -10413,7 +10413,7 @@ fn list_with_nested_sublists_to_stress_output_ordering_compressed_with_query_sel
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/ordered_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["1", "2", "[{},4]", "{}", "4", "[5]", "5"];
@@ -10428,7 +10428,7 @@ fn list_with_nested_sublists_to_stress_output_ordering_with_query_select_all_sub
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/ordered_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 7u64, "result != expected");
     Ok(())
 }
@@ -10440,7 +10440,7 @@ fn list_with_nested_sublists_to_stress_output_ordering_with_query_select_all_sub
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/ordered_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![4usize, 9usize, 14usize, 20usize, 28usize, 37usize, 43usize,],
@@ -10456,7 +10456,7 @@ fn list_with_nested_sublists_to_stress_output_ordering_with_query_select_all_sub
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/ordered_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["1", "2", "[\n    {},\n    4\n  ]", "{}", "4", "[\n    5\n  ]", "5"];
@@ -10471,7 +10471,7 @@ fn list_with_nested_sublists_to_stress_output_ordering_with_query_select_all_sub
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/ordered_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 7u64, "result != expected");
     Ok(())
 }
@@ -10483,7 +10483,7 @@ fn list_with_nested_sublists_to_stress_output_ordering_with_query_select_all_sub
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/ordered_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![4usize, 9usize, 14usize, 20usize, 28usize, 37usize, 43usize,],
@@ -10499,7 +10499,7 @@ fn list_with_nested_sublists_to_stress_output_ordering_with_query_select_all_sub
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/ordered_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["1", "2", "[\n    {},\n    4\n  ]", "{}", "4", "[\n    5\n  ]", "5"];
@@ -10514,7 +10514,7 @@ fn list_with_nested_sublists_to_stress_output_ordering_with_query_select_all_sub
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/ordered_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 7u64, "result != expected");
     Ok(())
 }
@@ -10526,7 +10526,7 @@ fn list_with_nested_sublists_to_stress_output_ordering_with_query_select_all_sub
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/ordered_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![4usize, 9usize, 14usize, 20usize, 28usize, 37usize, 43usize,],
@@ -10542,7 +10542,7 @@ fn list_with_nested_sublists_to_stress_output_ordering_with_query_select_all_sub
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/ordered_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["1", "2", "[\n    {},\n    4\n  ]", "{}", "4", "[\n    5\n  ]", "5"];
@@ -10557,7 +10557,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/escapes.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -10569,7 +10569,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/escapes.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![525usize,], "result != expected");
     Ok(())
 }
@@ -10581,7 +10581,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/escapes.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -10596,7 +10596,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/escapes.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -10608,7 +10608,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/escapes.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![525usize,], "result != expected");
     Ok(())
 }
@@ -10620,7 +10620,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/escapes.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -10635,7 +10635,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/escapes.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -10647,7 +10647,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/escapes.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![525usize,], "result != expected");
     Ok(())
 }
@@ -10659,7 +10659,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/escapes.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -10674,7 +10674,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/escapes.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -10686,7 +10686,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/escapes.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -10698,7 +10698,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/escapes.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -10713,7 +10713,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/escapes.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -10725,7 +10725,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/escapes.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -10737,7 +10737,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/escapes.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -10752,7 +10752,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/escapes.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -10764,7 +10764,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/escapes.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -10776,7 +10776,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/escapes.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -10791,7 +10791,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/escapes.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -10803,7 +10803,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/escapes.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![611usize,], "result != expected");
     Ok(())
 }
@@ -10815,7 +10815,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/escapes.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -10830,7 +10830,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/escapes.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -10842,7 +10842,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/escapes.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![611usize,], "result != expected");
     Ok(())
 }
@@ -10854,7 +10854,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/escapes.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -10869,7 +10869,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/escapes.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -10881,7 +10881,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/escapes.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![611usize,], "result != expected");
     Ok(())
 }
@@ -10893,7 +10893,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/escapes.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -10908,7 +10908,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/escapes.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -10920,7 +10920,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/escapes.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -10932,7 +10932,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/escapes.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -10947,7 +10947,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/escapes.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -10959,7 +10959,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/escapes.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -10971,7 +10971,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/escapes.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -10986,7 +10986,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/escapes.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -10998,7 +10998,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/escapes.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -11010,7 +11010,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/escapes.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -11025,7 +11025,7 @@ fn nested_atomic_member_compressed_with_query_look_for_b_on_at_least_one_level_o
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -11037,7 +11037,7 @@ fn nested_atomic_member_compressed_with_query_look_for_b_on_at_least_one_level_o
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![18usize,], "result != expected");
     Ok(())
 }
@@ -11049,7 +11049,7 @@ fn nested_atomic_member_compressed_with_query_look_for_b_on_at_least_one_level_o
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -11064,7 +11064,7 @@ fn nested_atomic_member_compressed_with_query_look_for_b_on_at_least_one_level_o
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -11076,7 +11076,7 @@ fn nested_atomic_member_compressed_with_query_look_for_b_on_at_least_one_level_o
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![18usize,], "result != expected");
     Ok(())
 }
@@ -11088,7 +11088,7 @@ fn nested_atomic_member_compressed_with_query_look_for_b_on_at_least_one_level_o
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -11103,7 +11103,7 @@ fn nested_atomic_member_compressed_with_query_look_for_b_on_at_least_one_level_o
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -11115,7 +11115,7 @@ fn nested_atomic_member_compressed_with_query_look_for_b_on_at_least_one_level_o
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![18usize,], "result != expected");
     Ok(())
 }
@@ -11127,7 +11127,7 @@ fn nested_atomic_member_compressed_with_query_look_for_b_on_at_least_one_level_o
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -11142,7 +11142,7 @@ fn nested_atomic_member_compressed_with_query_look_for_descendants_of_an_atomic_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -11154,7 +11154,7 @@ fn nested_atomic_member_compressed_with_query_look_for_descendants_of_an_atomic_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -11166,7 +11166,7 @@ fn nested_atomic_member_compressed_with_query_look_for_descendants_of_an_atomic_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -11181,7 +11181,7 @@ fn nested_atomic_member_compressed_with_query_look_for_descendants_of_an_atomic_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -11193,7 +11193,7 @@ fn nested_atomic_member_compressed_with_query_look_for_descendants_of_an_atomic_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -11205,7 +11205,7 @@ fn nested_atomic_member_compressed_with_query_look_for_descendants_of_an_atomic_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -11220,7 +11220,7 @@ fn nested_atomic_member_compressed_with_query_look_for_descendants_of_an_atomic_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -11232,7 +11232,7 @@ fn nested_atomic_member_compressed_with_query_look_for_descendants_of_an_atomic_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -11244,7 +11244,7 @@ fn nested_atomic_member_compressed_with_query_look_for_descendants_of_an_atomic_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -11259,7 +11259,7 @@ fn nested_atomic_member_compressed_with_query_select_a_number_that_is_a_child_wi
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -11271,7 +11271,7 @@ fn nested_atomic_member_compressed_with_query_select_a_number_that_is_a_child_wi
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![5usize,], "result != expected");
     Ok(())
 }
@@ -11283,7 +11283,7 @@ fn nested_atomic_member_compressed_with_query_select_a_number_that_is_a_child_wi
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -11298,7 +11298,7 @@ fn nested_atomic_member_compressed_with_query_select_a_number_that_is_a_child_wi
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -11310,7 +11310,7 @@ fn nested_atomic_member_compressed_with_query_select_a_number_that_is_a_child_wi
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![5usize,], "result != expected");
     Ok(())
 }
@@ -11322,7 +11322,7 @@ fn nested_atomic_member_compressed_with_query_select_a_number_that_is_a_child_wi
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -11337,7 +11337,7 @@ fn nested_atomic_member_compressed_with_query_select_a_number_that_is_a_child_wi
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -11349,7 +11349,7 @@ fn nested_atomic_member_compressed_with_query_select_a_number_that_is_a_child_wi
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![5usize,], "result != expected");
     Ok(())
 }
@@ -11361,7 +11361,7 @@ fn nested_atomic_member_compressed_with_query_select_a_number_that_is_a_child_wi
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -11376,7 +11376,7 @@ fn nested_atomic_member_compressed_with_query_select_all_decsendants_with_buffer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4u64, "result != expected");
     Ok(())
 }
@@ -11388,7 +11388,7 @@ fn nested_atomic_member_compressed_with_query_select_all_decsendants_with_buffer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![5usize, 12usize, 13usize, 18usize,],
@@ -11404,7 +11404,7 @@ fn nested_atomic_member_compressed_with_query_select_all_decsendants_with_buffer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "[{\"b\":43}]", "{\"b\":43}", "43"];
@@ -11419,7 +11419,7 @@ fn nested_atomic_member_compressed_with_query_select_all_decsendants_with_mmap_i
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4u64, "result != expected");
     Ok(())
 }
@@ -11431,7 +11431,7 @@ fn nested_atomic_member_compressed_with_query_select_all_decsendants_with_mmap_i
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![5usize, 12usize, 13usize, 18usize,],
@@ -11447,7 +11447,7 @@ fn nested_atomic_member_compressed_with_query_select_all_decsendants_with_mmap_i
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "[{\"b\":43}]", "{\"b\":43}", "43"];
@@ -11462,7 +11462,7 @@ fn nested_atomic_member_compressed_with_query_select_all_decsendants_with_owned_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4u64, "result != expected");
     Ok(())
 }
@@ -11474,7 +11474,7 @@ fn nested_atomic_member_compressed_with_query_select_all_decsendants_with_owned_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![5usize, 12usize, 13usize, 18usize,],
@@ -11490,7 +11490,7 @@ fn nested_atomic_member_compressed_with_query_select_all_decsendants_with_owned_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "[{\"b\":43}]", "{\"b\":43}", "43"];
@@ -11505,7 +11505,7 @@ fn nested_atomic_member_compressed_with_query_select_first_item_from_list_descen
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -11517,7 +11517,7 @@ fn nested_atomic_member_compressed_with_query_select_first_item_from_list_descen
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![13usize,], "result != expected");
     Ok(())
 }
@@ -11529,7 +11529,7 @@ fn nested_atomic_member_compressed_with_query_select_first_item_from_list_descen
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"b\":43}"];
@@ -11544,7 +11544,7 @@ fn nested_atomic_member_compressed_with_query_select_first_item_from_list_descen
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -11556,7 +11556,7 @@ fn nested_atomic_member_compressed_with_query_select_first_item_from_list_descen
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![13usize,], "result != expected");
     Ok(())
 }
@@ -11568,7 +11568,7 @@ fn nested_atomic_member_compressed_with_query_select_first_item_from_list_descen
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"b\":43}"];
@@ -11583,7 +11583,7 @@ fn nested_atomic_member_compressed_with_query_select_first_item_from_list_descen
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -11595,7 +11595,7 @@ fn nested_atomic_member_compressed_with_query_select_first_item_from_list_descen
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![13usize,], "result != expected");
     Ok(())
 }
@@ -11607,7 +11607,7 @@ fn nested_atomic_member_compressed_with_query_select_first_item_from_list_descen
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"b\":43}"];
@@ -11622,7 +11622,7 @@ fn nested_atomic_member_compressed_with_query_select_the_first_element_of_b_with
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -11634,7 +11634,7 @@ fn nested_atomic_member_compressed_with_query_select_the_first_element_of_b_with
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![13usize,], "result != expected");
     Ok(())
 }
@@ -11646,7 +11646,7 @@ fn nested_atomic_member_compressed_with_query_select_the_first_element_of_b_with
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"b\":43}"];
@@ -11661,7 +11661,7 @@ fn nested_atomic_member_compressed_with_query_select_the_first_element_of_b_with
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -11673,7 +11673,7 @@ fn nested_atomic_member_compressed_with_query_select_the_first_element_of_b_with
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![13usize,], "result != expected");
     Ok(())
 }
@@ -11685,7 +11685,7 @@ fn nested_atomic_member_compressed_with_query_select_the_first_element_of_b_with
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"b\":43}"];
@@ -11700,7 +11700,7 @@ fn nested_atomic_member_compressed_with_query_select_the_first_element_of_b_with
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -11712,7 +11712,7 @@ fn nested_atomic_member_compressed_with_query_select_the_first_element_of_b_with
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![13usize,], "result != expected");
     Ok(())
 }
@@ -11724,7 +11724,7 @@ fn nested_atomic_member_compressed_with_query_select_the_first_element_of_b_with
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"b\":43}"];
@@ -11739,7 +11739,7 @@ fn nested_atomic_member_compressed_with_query_select_the_nested_b_directly_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -11751,7 +11751,7 @@ fn nested_atomic_member_compressed_with_query_select_the_nested_b_directly_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![18usize,], "result != expected");
     Ok(())
 }
@@ -11763,7 +11763,7 @@ fn nested_atomic_member_compressed_with_query_select_the_nested_b_directly_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -11778,7 +11778,7 @@ fn nested_atomic_member_compressed_with_query_select_the_nested_b_directly_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -11790,7 +11790,7 @@ fn nested_atomic_member_compressed_with_query_select_the_nested_b_directly_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![18usize,], "result != expected");
     Ok(())
 }
@@ -11802,7 +11802,7 @@ fn nested_atomic_member_compressed_with_query_select_the_nested_b_directly_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -11817,7 +11817,7 @@ fn nested_atomic_member_compressed_with_query_select_the_nested_b_directly_with_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -11829,7 +11829,7 @@ fn nested_atomic_member_compressed_with_query_select_the_nested_b_directly_with_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![18usize,], "result != expected");
     Ok(())
 }
@@ -11841,7 +11841,7 @@ fn nested_atomic_member_compressed_with_query_select_the_nested_b_directly_with_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -11856,7 +11856,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_b_whi
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -11868,7 +11868,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_b_whi
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -11880,7 +11880,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_b_whi
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -11895,7 +11895,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_b_whi
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -11907,7 +11907,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_b_whi
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -11919,7 +11919,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_b_whi
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -11934,7 +11934,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_b_whi
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -11946,7 +11946,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_b_whi
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -11958,7 +11958,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_b_whi
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -11973,7 +11973,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_the_r
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -11985,7 +11985,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_the_r
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -11997,7 +11997,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_the_r
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -12012,7 +12012,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_the_r
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -12024,7 +12024,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_the_r
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -12036,7 +12036,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_the_r
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -12051,7 +12051,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_the_r
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -12063,7 +12063,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_the_r
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -12075,7 +12075,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_the_r
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -12090,7 +12090,7 @@ fn nested_atomic_member_with_query_look_for_b_on_at_least_one_level_of_nesting_w
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -12102,7 +12102,7 @@ fn nested_atomic_member_with_query_look_for_b_on_at_least_one_level_of_nesting_w
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![53usize,], "result != expected");
     Ok(())
 }
@@ -12114,7 +12114,7 @@ fn nested_atomic_member_with_query_look_for_b_on_at_least_one_level_of_nesting_w
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -12129,7 +12129,7 @@ fn nested_atomic_member_with_query_look_for_b_on_at_least_one_level_of_nesting_w
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -12141,7 +12141,7 @@ fn nested_atomic_member_with_query_look_for_b_on_at_least_one_level_of_nesting_w
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![53usize,], "result != expected");
     Ok(())
 }
@@ -12153,7 +12153,7 @@ fn nested_atomic_member_with_query_look_for_b_on_at_least_one_level_of_nesting_w
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -12168,7 +12168,7 @@ fn nested_atomic_member_with_query_look_for_b_on_at_least_one_level_of_nesting_w
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -12180,7 +12180,7 @@ fn nested_atomic_member_with_query_look_for_b_on_at_least_one_level_of_nesting_w
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![53usize,], "result != expected");
     Ok(())
 }
@@ -12192,7 +12192,7 @@ fn nested_atomic_member_with_query_look_for_b_on_at_least_one_level_of_nesting_w
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -12207,7 +12207,7 @@ fn nested_atomic_member_with_query_look_for_descendants_of_an_atomic_value_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -12219,7 +12219,7 @@ fn nested_atomic_member_with_query_look_for_descendants_of_an_atomic_value_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -12231,7 +12231,7 @@ fn nested_atomic_member_with_query_look_for_descendants_of_an_atomic_value_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -12246,7 +12246,7 @@ fn nested_atomic_member_with_query_look_for_descendants_of_an_atomic_value_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -12258,7 +12258,7 @@ fn nested_atomic_member_with_query_look_for_descendants_of_an_atomic_value_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -12270,7 +12270,7 @@ fn nested_atomic_member_with_query_look_for_descendants_of_an_atomic_value_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -12285,7 +12285,7 @@ fn nested_atomic_member_with_query_look_for_descendants_of_an_atomic_value_with_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -12297,7 +12297,7 @@ fn nested_atomic_member_with_query_look_for_descendants_of_an_atomic_value_with_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -12309,7 +12309,7 @@ fn nested_atomic_member_with_query_look_for_descendants_of_an_atomic_value_with_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -12324,7 +12324,7 @@ fn nested_atomic_member_with_query_select_a_number_that_is_a_child_with_buffered
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -12336,7 +12336,7 @@ fn nested_atomic_member_with_query_select_a_number_that_is_a_child_with_buffered
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![11usize,], "result != expected");
     Ok(())
 }
@@ -12348,7 +12348,7 @@ fn nested_atomic_member_with_query_select_a_number_that_is_a_child_with_buffered
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -12363,7 +12363,7 @@ fn nested_atomic_member_with_query_select_a_number_that_is_a_child_with_mmap_inp
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -12375,7 +12375,7 @@ fn nested_atomic_member_with_query_select_a_number_that_is_a_child_with_mmap_inp
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![11usize,], "result != expected");
     Ok(())
 }
@@ -12387,7 +12387,7 @@ fn nested_atomic_member_with_query_select_a_number_that_is_a_child_with_mmap_inp
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -12402,7 +12402,7 @@ fn nested_atomic_member_with_query_select_a_number_that_is_a_child_with_owned_by
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -12414,7 +12414,7 @@ fn nested_atomic_member_with_query_select_a_number_that_is_a_child_with_owned_by
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![11usize,], "result != expected");
     Ok(())
 }
@@ -12426,7 +12426,7 @@ fn nested_atomic_member_with_query_select_a_number_that_is_a_child_with_owned_by
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -12441,7 +12441,7 @@ fn nested_atomic_member_with_query_select_all_decsendants_with_buffered_input_an
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4u64, "result != expected");
     Ok(())
 }
@@ -12453,7 +12453,7 @@ fn nested_atomic_member_with_query_select_all_decsendants_with_buffered_input_an
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![11usize, 24usize, 34usize, 53usize,],
@@ -12469,7 +12469,7 @@ fn nested_atomic_member_with_query_select_all_decsendants_with_buffered_input_an
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -12489,7 +12489,7 @@ fn nested_atomic_member_with_query_select_all_decsendants_with_mmap_input_and_co
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4u64, "result != expected");
     Ok(())
 }
@@ -12501,7 +12501,7 @@ fn nested_atomic_member_with_query_select_all_decsendants_with_mmap_input_and_in
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![11usize, 24usize, 34usize, 53usize,],
@@ -12517,7 +12517,7 @@ fn nested_atomic_member_with_query_select_all_decsendants_with_mmap_input_and_no
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -12537,7 +12537,7 @@ fn nested_atomic_member_with_query_select_all_decsendants_with_owned_bytes_and_c
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4u64, "result != expected");
     Ok(())
 }
@@ -12549,7 +12549,7 @@ fn nested_atomic_member_with_query_select_all_decsendants_with_owned_bytes_and_i
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![11usize, 24usize, 34usize, 53usize,],
@@ -12565,7 +12565,7 @@ fn nested_atomic_member_with_query_select_all_decsendants_with_owned_bytes_and_n
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -12585,7 +12585,7 @@ fn nested_atomic_member_with_query_select_first_item_from_list_descendants_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -12597,7 +12597,7 @@ fn nested_atomic_member_with_query_select_first_item_from_list_descendants_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![34usize,], "result != expected");
     Ok(())
 }
@@ -12609,7 +12609,7 @@ fn nested_atomic_member_with_query_select_first_item_from_list_descendants_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\n            \"b\": 43\n        }"];
@@ -12624,7 +12624,7 @@ fn nested_atomic_member_with_query_select_first_item_from_list_descendants_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -12636,7 +12636,7 @@ fn nested_atomic_member_with_query_select_first_item_from_list_descendants_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![34usize,], "result != expected");
     Ok(())
 }
@@ -12648,7 +12648,7 @@ fn nested_atomic_member_with_query_select_first_item_from_list_descendants_with_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\n            \"b\": 43\n        }"];
@@ -12663,7 +12663,7 @@ fn nested_atomic_member_with_query_select_first_item_from_list_descendants_with_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -12675,7 +12675,7 @@ fn nested_atomic_member_with_query_select_first_item_from_list_descendants_with_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![34usize,], "result != expected");
     Ok(())
 }
@@ -12687,7 +12687,7 @@ fn nested_atomic_member_with_query_select_first_item_from_list_descendants_with_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\n            \"b\": 43\n        }"];
@@ -12702,7 +12702,7 @@ fn nested_atomic_member_with_query_select_the_first_element_of_b_with_buffered_i
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -12714,7 +12714,7 @@ fn nested_atomic_member_with_query_select_the_first_element_of_b_with_buffered_i
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![34usize,], "result != expected");
     Ok(())
 }
@@ -12726,7 +12726,7 @@ fn nested_atomic_member_with_query_select_the_first_element_of_b_with_buffered_i
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\n            \"b\": 43\n        }"];
@@ -12741,7 +12741,7 @@ fn nested_atomic_member_with_query_select_the_first_element_of_b_with_mmap_input
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -12753,7 +12753,7 @@ fn nested_atomic_member_with_query_select_the_first_element_of_b_with_mmap_input
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![34usize,], "result != expected");
     Ok(())
 }
@@ -12765,7 +12765,7 @@ fn nested_atomic_member_with_query_select_the_first_element_of_b_with_mmap_input
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\n            \"b\": 43\n        }"];
@@ -12780,7 +12780,7 @@ fn nested_atomic_member_with_query_select_the_first_element_of_b_with_owned_byte
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -12792,7 +12792,7 @@ fn nested_atomic_member_with_query_select_the_first_element_of_b_with_owned_byte
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![34usize,], "result != expected");
     Ok(())
 }
@@ -12804,7 +12804,7 @@ fn nested_atomic_member_with_query_select_the_first_element_of_b_with_owned_byte
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\n            \"b\": 43\n        }"];
@@ -12819,7 +12819,7 @@ fn nested_atomic_member_with_query_select_the_nested_b_directly_with_buffered_in
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -12831,7 +12831,7 @@ fn nested_atomic_member_with_query_select_the_nested_b_directly_with_buffered_in
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![53usize,], "result != expected");
     Ok(())
 }
@@ -12843,7 +12843,7 @@ fn nested_atomic_member_with_query_select_the_nested_b_directly_with_buffered_in
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -12858,7 +12858,7 @@ fn nested_atomic_member_with_query_select_the_nested_b_directly_with_mmap_input_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -12870,7 +12870,7 @@ fn nested_atomic_member_with_query_select_the_nested_b_directly_with_mmap_input_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![53usize,], "result != expected");
     Ok(())
 }
@@ -12882,7 +12882,7 @@ fn nested_atomic_member_with_query_select_the_nested_b_directly_with_mmap_input_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -12897,7 +12897,7 @@ fn nested_atomic_member_with_query_select_the_nested_b_directly_with_owned_bytes
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -12909,7 +12909,7 @@ fn nested_atomic_member_with_query_select_the_nested_b_directly_with_owned_bytes
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![53usize,], "result != expected");
     Ok(())
 }
@@ -12921,7 +12921,7 @@ fn nested_atomic_member_with_query_select_the_nested_b_directly_with_owned_bytes
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -12936,7 +12936,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_b_which_does_not
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -12948,7 +12948,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_b_which_does_not
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -12960,7 +12960,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_b_which_does_not
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -12975,7 +12975,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_b_which_does_not
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -12987,7 +12987,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_b_which_does_not
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -12999,7 +12999,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_b_which_does_not
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -13014,7 +13014,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_b_which_does_not
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -13026,7 +13026,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_b_which_does_not
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -13038,7 +13038,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_b_which_does_not
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -13053,7 +13053,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_the_root_which_i
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -13065,7 +13065,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_the_root_which_i
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -13077,7 +13077,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_the_root_which_i
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -13092,7 +13092,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_the_root_which_i
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -13104,7 +13104,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_the_root_which_i
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -13116,7 +13116,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_the_root_which_i
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -13131,7 +13131,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_the_root_which_i
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -13143,7 +13143,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_the_root_which_i
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -13155,7 +13155,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_the_root_which_i
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_descendant.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -13170,7 +13170,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -13182,7 +13182,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![31usize,], "result != expected");
     Ok(())
 }
@@ -13194,7 +13194,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["45"];
@@ -13209,7 +13209,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -13221,7 +13221,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![31usize,], "result != expected");
     Ok(())
 }
@@ -13233,7 +13233,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["45"];
@@ -13248,7 +13248,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -13260,7 +13260,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![31usize,], "result != expected");
     Ok(())
 }
@@ -13272,7 +13272,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["45"];
@@ -13287,7 +13287,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -13299,7 +13299,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![31usize,], "result != expected");
     Ok(())
 }
@@ -13311,7 +13311,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["45"];
@@ -13326,7 +13326,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -13338,7 +13338,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![31usize,], "result != expected");
     Ok(())
 }
@@ -13350,7 +13350,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["45"];
@@ -13365,7 +13365,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -13377,7 +13377,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![31usize,], "result != expected");
     Ok(())
 }
@@ -13389,7 +13389,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["45"];
@@ -13404,7 +13404,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -13416,7 +13416,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![6usize,], "result != expected");
     Ok(())
 }
@@ -13428,7 +13428,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"c\":{\"d\":[42,43,44],\"b\":45}}"];
@@ -13443,7 +13443,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -13455,7 +13455,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![6usize,], "result != expected");
     Ok(())
 }
@@ -13467,7 +13467,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"c\":{\"d\":[42,43,44],\"b\":45}}"];
@@ -13482,7 +13482,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -13494,7 +13494,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![6usize,], "result != expected");
     Ok(())
 }
@@ -13506,7 +13506,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"c\":{\"d\":[42,43,44],\"b\":45}}"];
@@ -13521,7 +13521,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -13533,7 +13533,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -13545,7 +13545,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -13560,7 +13560,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -13572,7 +13572,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -13584,7 +13584,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -13599,7 +13599,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -13611,7 +13611,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -13623,7 +13623,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -13638,7 +13638,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -13650,7 +13650,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![23usize,], "result != expected");
     Ok(())
 }
@@ -13662,7 +13662,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["44"];
@@ -13677,7 +13677,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -13689,7 +13689,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![23usize,], "result != expected");
     Ok(())
 }
@@ -13701,7 +13701,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["44"];
@@ -13716,7 +13716,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -13728,7 +13728,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![23usize,], "result != expected");
     Ok(())
 }
@@ -13740,7 +13740,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["44"];
@@ -13755,7 +13755,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -13767,7 +13767,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![23usize,], "result != expected");
     Ok(())
 }
@@ -13779,7 +13779,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["44"];
@@ -13794,7 +13794,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -13806,7 +13806,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![23usize,], "result != expected");
     Ok(())
 }
@@ -13818,7 +13818,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["44"];
@@ -13833,7 +13833,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -13845,7 +13845,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![23usize,], "result != expected");
     Ok(())
 }
@@ -13857,7 +13857,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["44"];
@@ -13872,7 +13872,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -13884,7 +13884,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![176usize,], "result != expected");
     Ok(())
 }
@@ -13896,7 +13896,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["45"];
@@ -13911,7 +13911,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -13923,7 +13923,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![176usize,], "result != expected");
     Ok(())
 }
@@ -13935,7 +13935,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["45"];
@@ -13950,7 +13950,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -13962,7 +13962,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![176usize,], "result != expected");
     Ok(())
 }
@@ -13974,7 +13974,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["45"];
@@ -13989,7 +13989,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -14001,7 +14001,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![176usize,], "result != expected");
     Ok(())
 }
@@ -14013,7 +14013,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["45"];
@@ -14028,7 +14028,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -14040,7 +14040,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![176usize,], "result != expected");
     Ok(())
 }
@@ -14052,7 +14052,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["45"];
@@ -14067,7 +14067,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -14079,7 +14079,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![176usize,], "result != expected");
     Ok(())
 }
@@ -14091,7 +14091,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["45"];
@@ -14106,7 +14106,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -14118,7 +14118,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![21usize,], "result != expected");
     Ok(())
 }
@@ -14130,7 +14130,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["{\n            \"c\": {\n                \"d\": [\n                    42,\n                    43,\n                    44\n                ],\n                \"b\": 45\n            }\n        }" ,] ;
@@ -14145,7 +14145,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -14157,7 +14157,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![21usize,], "result != expected");
     Ok(())
 }
@@ -14169,7 +14169,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["{\n            \"c\": {\n                \"d\": [\n                    42,\n                    43,\n                    44\n                ],\n                \"b\": 45\n            }\n        }" ,] ;
@@ -14184,7 +14184,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -14196,7 +14196,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![21usize,], "result != expected");
     Ok(())
 }
@@ -14208,7 +14208,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["{\n            \"c\": {\n                \"d\": [\n                    42,\n                    43,\n                    44\n                ],\n                \"b\": 45\n            }\n        }" ,] ;
@@ -14223,7 +14223,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -14235,7 +14235,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -14247,7 +14247,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -14262,7 +14262,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -14274,7 +14274,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -14286,7 +14286,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -14301,7 +14301,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 0u64, "result != expected");
     Ok(())
 }
@@ -14313,7 +14313,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![], "result != expected");
     Ok(())
 }
@@ -14325,7 +14325,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -14340,7 +14340,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -14352,7 +14352,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![133usize,], "result != expected");
     Ok(())
 }
@@ -14364,7 +14364,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["44"];
@@ -14379,7 +14379,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -14391,7 +14391,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![133usize,], "result != expected");
     Ok(())
 }
@@ -14403,7 +14403,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["44"];
@@ -14418,7 +14418,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -14430,7 +14430,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![133usize,], "result != expected");
     Ok(())
 }
@@ -14442,7 +14442,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["44"];
@@ -14457,7 +14457,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -14469,7 +14469,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![133usize,], "result != expected");
     Ok(())
 }
@@ -14481,7 +14481,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["44"];
@@ -14496,7 +14496,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -14508,7 +14508,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![133usize,], "result != expected");
     Ok(())
 }
@@ -14520,7 +14520,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["44"];
@@ -14535,7 +14535,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -14547,7 +14547,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![133usize,], "result != expected");
     Ok(())
 }
@@ -14559,7 +14559,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/atomic_after_list.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["44"];
@@ -14574,7 +14574,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/quote_escape.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -14586,7 +14586,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/quote_escape.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![14usize,], "result != expected");
     Ok(())
 }
@@ -14598,7 +14598,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/quote_escape.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["17"];
@@ -14613,7 +14613,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/quote_escape.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -14625,7 +14625,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/quote_escape.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![14usize,], "result != expected");
     Ok(())
 }
@@ -14637,7 +14637,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/quote_escape.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["17"];
@@ -14652,7 +14652,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/quote_escape.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -14664,7 +14664,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/quote_escape.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![14usize,], "result != expected");
     Ok(())
 }
@@ -14676,7 +14676,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/quote_escape.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["17"];
@@ -14691,7 +14691,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/quote_escape.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -14703,7 +14703,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/quote_escape.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![7usize,], "result != expected");
     Ok(())
 }
@@ -14715,7 +14715,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/quote_escape.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -14730,7 +14730,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/quote_escape.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -14742,7 +14742,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/quote_escape.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![7usize,], "result != expected");
     Ok(())
 }
@@ -14754,7 +14754,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/quote_escape.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -14769,7 +14769,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/quote_escape.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -14781,7 +14781,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/quote_escape.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![7usize,], "result != expected");
     Ok(())
 }
@@ -14793,7 +14793,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/quote_escape.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -14808,7 +14808,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/quote_escape.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -14820,7 +14820,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/quote_escape.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![26usize,], "result != expected");
     Ok(())
 }
@@ -14832,7 +14832,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/quote_escape.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["17"];
@@ -14847,7 +14847,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/quote_escape.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -14859,7 +14859,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/quote_escape.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![26usize,], "result != expected");
     Ok(())
 }
@@ -14871,7 +14871,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/quote_escape.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["17"];
@@ -14886,7 +14886,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/quote_escape.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -14898,7 +14898,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/quote_escape.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![26usize,], "result != expected");
     Ok(())
 }
@@ -14910,7 +14910,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/quote_escape.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["17"];
@@ -14925,7 +14925,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/quote_escape.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -14937,7 +14937,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/quote_escape.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![13usize,], "result != expected");
     Ok(())
 }
@@ -14949,7 +14949,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/quote_escape.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -14964,7 +14964,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/quote_escape.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -14976,7 +14976,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/quote_escape.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![13usize,], "result != expected");
     Ok(())
 }
@@ -14988,7 +14988,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/quote_escape.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -15003,7 +15003,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/quote_escape.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -15015,7 +15015,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/quote_escape.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![13usize,], "result != expected");
     Ok(())
 }
@@ -15027,7 +15027,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/quote_escape.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -15042,7 +15042,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -15054,7 +15054,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![19usize,], "result != expected");
     Ok(())
 }
@@ -15066,7 +15066,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0"];
@@ -15081,7 +15081,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -15093,7 +15093,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![19usize,], "result != expected");
     Ok(())
 }
@@ -15105,7 +15105,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0"];
@@ -15120,7 +15120,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -15132,7 +15132,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![19usize,], "result != expected");
     Ok(())
 }
@@ -15144,7 +15144,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0"];
@@ -15159,7 +15159,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -15171,7 +15171,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![15usize, 22usize, 29usize,], "result != expected");
     Ok(())
 }
@@ -15183,7 +15183,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[[],0]", "[[],0]", "[[],0]"];
@@ -15198,7 +15198,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -15210,7 +15210,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![15usize, 22usize, 29usize,], "result != expected");
     Ok(())
 }
@@ -15222,7 +15222,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[[],0]", "[[],0]", "[[],0]"];
@@ -15237,7 +15237,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -15249,7 +15249,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![15usize, 22usize, 29usize,], "result != expected");
     Ok(())
 }
@@ -15261,7 +15261,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[[],0]", "[[],0]", "[[],0]"];
@@ -15276,7 +15276,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -15288,7 +15288,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![2usize, 11usize,], "result != expected");
     Ok(())
 }
@@ -15300,7 +15300,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0]", "[]"];
@@ -15315,7 +15315,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -15327,7 +15327,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![2usize, 11usize,], "result != expected");
     Ok(())
 }
@@ -15339,7 +15339,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0]", "[]"];
@@ -15354,7 +15354,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -15366,7 +15366,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![2usize, 11usize,], "result != expected");
     Ok(())
 }
@@ -15378,7 +15378,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0]", "[]"];
@@ -15393,7 +15393,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 16u64, "result != expected");
     Ok(())
 }
@@ -15405,7 +15405,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![
@@ -15424,7 +15424,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -15456,7 +15456,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 16u64, "result != expected");
     Ok(())
 }
@@ -15468,7 +15468,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![
@@ -15487,7 +15487,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -15519,7 +15519,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 16u64, "result != expected");
     Ok(())
 }
@@ -15531,7 +15531,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![
@@ -15550,7 +15550,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -15582,7 +15582,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -15594,7 +15594,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![2usize,], "result != expected");
     Ok(())
 }
@@ -15606,7 +15606,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0]"];
@@ -15621,7 +15621,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -15633,7 +15633,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![2usize,], "result != expected");
     Ok(())
 }
@@ -15645,7 +15645,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0]"];
@@ -15660,7 +15660,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -15672,7 +15672,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![2usize,], "result != expected");
     Ok(())
 }
@@ -15684,7 +15684,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0]"];
@@ -15699,7 +15699,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 7u64, "result != expected");
     Ok(())
 }
@@ -15711,7 +15711,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![2usize, 3usize, 11usize, 15usize, 16usize, 23usize, 30usize,],
@@ -15727,7 +15727,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0]", "0", "[]", "[[],0]", "[]", "[]", "[]"];
@@ -15742,7 +15742,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 7u64, "result != expected");
     Ok(())
 }
@@ -15754,7 +15754,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![2usize, 3usize, 11usize, 15usize, 16usize, 23usize, 30usize,],
@@ -15770,7 +15770,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0]", "0", "[]", "[[],0]", "[]", "[]", "[]"];
@@ -15785,7 +15785,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 7u64, "result != expected");
     Ok(())
 }
@@ -15797,7 +15797,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![2usize, 3usize, 11usize, 15usize, 16usize, 23usize, 30usize,],
@@ -15813,7 +15813,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0]", "0", "[]", "[[],0]", "[]", "[]", "[]"];
@@ -15828,7 +15828,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -15840,7 +15840,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![11usize,], "result != expected");
     Ok(())
 }
@@ -15852,7 +15852,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -15867,7 +15867,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -15879,7 +15879,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![11usize,], "result != expected");
     Ok(())
 }
@@ -15891,7 +15891,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -15906,7 +15906,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -15918,7 +15918,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![11usize,], "result != expected");
     Ok(())
 }
@@ -15930,7 +15930,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -15945,7 +15945,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -15957,7 +15957,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![1usize,], "result != expected");
     Ok(())
 }
@@ -15969,7 +15969,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[[0]]"];
@@ -15984,7 +15984,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -15996,7 +15996,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![1usize,], "result != expected");
     Ok(())
 }
@@ -16008,7 +16008,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[[0]]"];
@@ -16023,7 +16023,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -16035,7 +16035,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![1usize,], "result != expected");
     Ok(())
 }
@@ -16047,7 +16047,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[[0]]"];
@@ -16062,7 +16062,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 11u64, "result != expected");
     Ok(())
 }
@@ -16074,7 +16074,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![11usize, 14usize, 15usize, 16usize, 19usize, 22usize, 23usize, 26usize, 29usize, 30usize, 33usize,],
@@ -16090,7 +16090,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -16117,7 +16117,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 11u64, "result != expected");
     Ok(())
 }
@@ -16129,7 +16129,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![11usize, 14usize, 15usize, 16usize, 19usize, 22usize, 23usize, 26usize, 29usize, 30usize, 33usize,],
@@ -16145,7 +16145,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -16172,7 +16172,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 11u64, "result != expected");
     Ok(())
 }
@@ -16184,7 +16184,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![11usize, 14usize, 15usize, 16usize, 19usize, 22usize, 23usize, 26usize, 29usize, 30usize, 33usize,],
@@ -16200,7 +16200,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -16227,7 +16227,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -16239,7 +16239,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![19usize, 26usize, 33usize,], "result != expected");
     Ok(())
 }
@@ -16251,7 +16251,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "0", "0"];
@@ -16266,7 +16266,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -16278,7 +16278,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![19usize, 26usize, 33usize,], "result != expected");
     Ok(())
 }
@@ -16290,7 +16290,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "0", "0"];
@@ -16305,7 +16305,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -16317,7 +16317,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![19usize, 26usize, 33usize,], "result != expected");
     Ok(())
 }
@@ -16329,7 +16329,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "0", "0"];
@@ -16344,7 +16344,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -16356,7 +16356,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![22usize,], "result != expected");
     Ok(())
 }
@@ -16368,7 +16368,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[[],0]"];
@@ -16383,7 +16383,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -16395,7 +16395,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![22usize,], "result != expected");
     Ok(())
 }
@@ -16407,7 +16407,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[[],0]"];
@@ -16422,7 +16422,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -16434,7 +16434,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![22usize,], "result != expected");
     Ok(())
 }
@@ -16446,7 +16446,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[[],0]"];
@@ -16461,7 +16461,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -16473,7 +16473,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![19usize, 26usize, 33usize,], "result != expected");
     Ok(())
 }
@@ -16485,7 +16485,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "0", "0"];
@@ -16500,7 +16500,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -16512,7 +16512,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![19usize, 26usize, 33usize,], "result != expected");
     Ok(())
 }
@@ -16524,7 +16524,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "0", "0"];
@@ -16539,7 +16539,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -16551,7 +16551,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![19usize, 26usize, 33usize,], "result != expected");
     Ok(())
 }
@@ -16563,7 +16563,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "0", "0"];
@@ -16578,7 +16578,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -16590,7 +16590,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![14usize,], "result != expected");
     Ok(())
 }
@@ -16602,7 +16602,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[[[],0],[[],0],[[],0]]"];
@@ -16617,7 +16617,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -16629,7 +16629,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![14usize,], "result != expected");
     Ok(())
 }
@@ -16641,7 +16641,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[[[],0],[[],0],[[],0]]"];
@@ -16656,7 +16656,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -16668,7 +16668,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![14usize,], "result != expected");
     Ok(())
 }
@@ -16680,7 +16680,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[[[],0],[[],0],[[],0]]"];
@@ -16695,7 +16695,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_0_1_w
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -16707,7 +16707,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_0_1_w
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![113usize,], "result != expected");
     Ok(())
 }
@@ -16719,7 +16719,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_0_1_w
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0"];
@@ -16734,7 +16734,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_0_1_w
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -16746,7 +16746,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_0_1_w
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![113usize,], "result != expected");
     Ok(())
 }
@@ -16758,7 +16758,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_0_1_w
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0"];
@@ -16773,7 +16773,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_0_1_w
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -16785,7 +16785,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_0_1_w
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![113usize,], "result != expected");
     Ok(())
 }
@@ -16797,7 +16797,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_0_1_w
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0"];
@@ -16812,7 +16812,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_and_t
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -16824,7 +16824,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_and_t
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![75usize, 142usize, 209usize,], "result != expected");
     Ok(())
 }
@@ -16836,7 +16836,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_and_t
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -16855,7 +16855,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_and_t
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -16867,7 +16867,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_and_t
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![75usize, 142usize, 209usize,], "result != expected");
     Ok(())
 }
@@ -16879,7 +16879,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_and_t
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -16898,7 +16898,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_and_t
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -16910,7 +16910,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_and_t
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![75usize, 142usize, 209usize,], "result != expected");
     Ok(())
 }
@@ -16922,7 +16922,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_and_t
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -16941,7 +16941,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_nodes_at_d
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -16953,7 +16953,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_nodes_at_d
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![16usize, 49usize,], "result != expected");
     Ok(())
 }
@@ -16965,7 +16965,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_nodes_at_d
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0]", "[]"];
@@ -16980,7 +16980,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_nodes_at_d
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -16992,7 +16992,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_nodes_at_d
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![16usize, 49usize,], "result != expected");
     Ok(())
 }
@@ -17004,7 +17004,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_nodes_at_d
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0]", "[]"];
@@ -17019,7 +17019,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_nodes_at_d
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -17031,7 +17031,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_nodes_at_d
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![16usize, 49usize,], "result != expected");
     Ok(())
 }
@@ -17043,7 +17043,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_nodes_at_d
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0]", "[]"];
@@ -17058,7 +17058,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_non_root_n
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 16u64, "result != expected");
     Ok(())
 }
@@ -17070,7 +17070,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_non_root_n
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![
@@ -17089,7 +17089,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_non_root_n
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["[\n        [0]\n    ]" , "[0]" , "0" , "[]" , "[\n        [],\n        [\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]\n    ]" , "[]" , "[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" ,] ;
@@ -17104,7 +17104,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_non_root_n
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 16u64, "result != expected");
     Ok(())
 }
@@ -17116,7 +17116,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_non_root_n
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![
@@ -17135,7 +17135,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_non_root_n
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["[\n        [0]\n    ]" , "[0]" , "0" , "[]" , "[\n        [],\n        [\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]\n    ]" , "[]" , "[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" ,] ;
@@ -17150,7 +17150,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_non_root_n
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 16u64, "result != expected");
     Ok(())
 }
@@ -17162,7 +17162,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_non_root_n
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![
@@ -17181,7 +17181,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_non_root_n
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["[\n        [0]\n    ]" , "[0]" , "0" , "[]" , "[\n        [],\n        [\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]\n    ]" , "[]" , "[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" ,] ;
@@ -17196,7 +17196,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -17208,7 +17208,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![16usize,], "result != expected");
     Ok(())
 }
@@ -17220,7 +17220,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0]"];
@@ -17235,7 +17235,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -17247,7 +17247,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![16usize,], "result != expected");
     Ok(())
 }
@@ -17259,7 +17259,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0]"];
@@ -17274,7 +17274,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -17286,7 +17286,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![16usize,], "result != expected");
     Ok(())
 }
@@ -17298,7 +17298,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0]"];
@@ -17313,7 +17313,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 7u64, "result != expected");
     Ok(())
 }
@@ -17325,7 +17325,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![16usize, 17usize, 49usize, 75usize, 93usize, 160usize, 227usize,],
@@ -17341,7 +17341,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -17364,7 +17364,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 7u64, "result != expected");
     Ok(())
 }
@@ -17376,7 +17376,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![16usize, 17usize, 49usize, 75usize, 93usize, 160usize, 227usize,],
@@ -17392,7 +17392,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -17415,7 +17415,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 7u64, "result != expected");
     Ok(())
 }
@@ -17427,7 +17427,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![16usize, 17usize, 49usize, 75usize, 93usize, 160usize, 227usize,],
@@ -17443,7 +17443,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -17466,7 +17466,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -17478,7 +17478,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![49usize,], "result != expected");
     Ok(())
 }
@@ -17490,7 +17490,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -17505,7 +17505,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -17517,7 +17517,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![49usize,], "result != expected");
     Ok(())
 }
@@ -17529,7 +17529,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -17544,7 +17544,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -17556,7 +17556,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![49usize,], "result != expected");
     Ok(())
 }
@@ -17568,7 +17568,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -17583,7 +17583,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -17595,7 +17595,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![6usize,], "result != expected");
     Ok(())
 }
@@ -17607,7 +17607,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[\n        [0]\n    ]"];
@@ -17622,7 +17622,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -17634,7 +17634,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![6usize,], "result != expected");
     Ok(())
 }
@@ -17646,7 +17646,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[\n        [0]\n    ]"];
@@ -17661,7 +17661,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -17673,7 +17673,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![6usize,], "result != expected");
     Ok(())
 }
@@ -17685,7 +17685,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[\n        [0]\n    ]"];
@@ -17700,7 +17700,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 11u64, "result != expected");
     Ok(())
 }
@@ -17712,7 +17712,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![49usize, 61usize, 75usize, 93usize, 113usize, 142usize, 160usize, 180usize, 209usize, 227usize, 247usize,],
@@ -17728,7 +17728,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["[]" , "[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" ,] ;
@@ -17743,7 +17743,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 11u64, "result != expected");
     Ok(())
 }
@@ -17755,7 +17755,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![49usize, 61usize, 75usize, 93usize, 113usize, 142usize, 160usize, 180usize, 209usize, 227usize, 247usize,],
@@ -17771,7 +17771,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["[]" , "[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" ,] ;
@@ -17786,7 +17786,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 11u64, "result != expected");
     Ok(())
 }
@@ -17798,7 +17798,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![49usize, 61usize, 75usize, 93usize, 113usize, 142usize, 160usize, 180usize, 209usize, 227usize, 247usize,],
@@ -17814,7 +17814,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["[]" , "[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" ,] ;
@@ -17829,7 +17829,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -17841,7 +17841,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![113usize, 180usize, 247usize,], "result != expected");
     Ok(())
 }
@@ -17853,7 +17853,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "0", "0"];
@@ -17868,7 +17868,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -17880,7 +17880,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![113usize, 180usize, 247usize,], "result != expected");
     Ok(())
 }
@@ -17892,7 +17892,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "0", "0"];
@@ -17907,7 +17907,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -17919,7 +17919,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![113usize, 180usize, 247usize,], "result != expected");
     Ok(())
 }
@@ -17931,7 +17931,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "0", "0"];
@@ -17946,7 +17946,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -17958,7 +17958,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![142usize,], "result != expected");
     Ok(())
 }
@@ -17970,7 +17970,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[\n                [],\n                0\n            ]"];
@@ -17985,7 +17985,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -17997,7 +17997,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![142usize,], "result != expected");
     Ok(())
 }
@@ -18009,7 +18009,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[\n                [],\n                0\n            ]"];
@@ -18024,7 +18024,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -18036,7 +18036,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![142usize,], "result != expected");
     Ok(())
 }
@@ -18048,7 +18048,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[\n                [],\n                0\n            ]"];
@@ -18063,7 +18063,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_path_2_1_t
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -18075,7 +18075,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_path_2_1_t
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![113usize, 180usize, 247usize,], "result != expected");
     Ok(())
 }
@@ -18087,7 +18087,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_path_2_1_t
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "0", "0"];
@@ -18102,7 +18102,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_path_2_1_t
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -18114,7 +18114,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_path_2_1_t
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![113usize, 180usize, 247usize,], "result != expected");
     Ok(())
 }
@@ -18126,7 +18126,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_path_2_1_t
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "0", "0"];
@@ -18141,7 +18141,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_path_2_1_t
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -18153,7 +18153,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_path_2_1_t
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![113usize, 180usize, 247usize,], "result != expected");
     Ok(())
 }
@@ -18165,7 +18165,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_path_2_1_t
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "0", "0"];
@@ -18180,7 +18180,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_second_ele
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -18192,7 +18192,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_second_ele
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![61usize,], "result != expected");
     Ok(())
 }
@@ -18204,7 +18204,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_second_ele
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" ,] ;
@@ -18219,7 +18219,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_second_ele
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -18231,7 +18231,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_second_ele
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![61usize,], "result != expected");
     Ok(())
 }
@@ -18243,7 +18243,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_second_ele
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" ,] ;
@@ -18258,7 +18258,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_second_ele
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -18270,7 +18270,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_second_ele
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![61usize,], "result != expected");
     Ok(())
 }
@@ -18282,7 +18282,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_second_ele
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/lists.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" ,] ;
@@ -18297,7 +18297,7 @@ fn short_description_of_the_inline_input_structure_compressed_with_query_select_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/test_template_inline.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -18309,7 +18309,7 @@ fn short_description_of_the_inline_input_structure_compressed_with_query_select_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/test_template_inline.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![8usize, 25usize,], "result != expected");
     Ok(())
 }
@@ -18321,7 +18321,7 @@ fn short_description_of_the_inline_input_structure_compressed_with_query_select_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/test_template_inline.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"value1\"", "42"];
@@ -18336,7 +18336,7 @@ fn short_description_of_the_inline_input_structure_compressed_with_query_select_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/test_template_inline.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -18348,7 +18348,7 @@ fn short_description_of_the_inline_input_structure_compressed_with_query_select_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/test_template_inline.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![8usize, 25usize,], "result != expected");
     Ok(())
 }
@@ -18360,7 +18360,7 @@ fn short_description_of_the_inline_input_structure_compressed_with_query_select_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/test_template_inline.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"value1\"", "42"];
@@ -18375,7 +18375,7 @@ fn short_description_of_the_inline_input_structure_compressed_with_query_select_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/test_template_inline.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -18387,7 +18387,7 @@ fn short_description_of_the_inline_input_structure_compressed_with_query_select_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/test_template_inline.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![8usize, 25usize,], "result != expected");
     Ok(())
 }
@@ -18399,7 +18399,7 @@ fn short_description_of_the_inline_input_structure_compressed_with_query_select_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/test_template_inline.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"value1\"", "42"];
@@ -18414,7 +18414,7 @@ fn short_description_of_the_inline_input_structure_with_query_select_all_subdocu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/test_template_inline.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -18426,7 +18426,7 @@ fn short_description_of_the_inline_input_structure_with_query_select_all_subdocu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/test_template_inline.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![12usize, 33usize,], "result != expected");
     Ok(())
 }
@@ -18438,7 +18438,7 @@ fn short_description_of_the_inline_input_structure_with_query_select_all_subdocu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/test_template_inline.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"value1\"", "42"];
@@ -18453,7 +18453,7 @@ fn short_description_of_the_inline_input_structure_with_query_select_all_subdocu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/test_template_inline.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -18465,7 +18465,7 @@ fn short_description_of_the_inline_input_structure_with_query_select_all_subdocu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/test_template_inline.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![12usize, 33usize,], "result != expected");
     Ok(())
 }
@@ -18477,7 +18477,7 @@ fn short_description_of_the_inline_input_structure_with_query_select_all_subdocu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/test_template_inline.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"value1\"", "42"];
@@ -18492,7 +18492,7 @@ fn short_description_of_the_inline_input_structure_with_query_select_all_subdocu
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/test_template_inline.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -18504,7 +18504,7 @@ fn short_description_of_the_inline_input_structure_with_query_select_all_subdocu
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/test_template_inline.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![12usize, 33usize,], "result != expected");
     Ok(())
 }
@@ -18516,7 +18516,7 @@ fn short_description_of_the_inline_input_structure_with_query_select_all_subdocu
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/test_template_inline.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"value1\"", "42"];
@@ -18531,7 +18531,7 @@ fn short_description_of_the_input_file_structure_compressed_with_query_select_al
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/test_template_large.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1000000u64, "result != expected");
     Ok(())
 }
@@ -18543,7 +18543,7 @@ fn short_description_of_the_input_file_structure_compressed_with_query_select_al
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/test_template_large.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1000000u64, "result != expected");
     Ok(())
 }
@@ -18556,7 +18556,7 @@ fn short_description_of_the_input_file_structure_compressed_with_query_select_al
         fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/test_template_large.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1000000u64, "result != expected");
     Ok(())
 }
@@ -18568,7 +18568,7 @@ fn short_description_of_the_input_file_structure_with_query_select_all_subdocume
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/test_template_large.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1000000u64, "result != expected");
     Ok(())
 }
@@ -18580,7 +18580,7 @@ fn short_description_of_the_input_file_structure_with_query_select_all_subdocume
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/test_template_large.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1000000u64, "result != expected");
     Ok(())
 }
@@ -18592,7 +18592,7 @@ fn short_description_of_the_input_file_structure_with_query_select_all_subdocume
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/test_template_large.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1000000u64, "result != expected");
     Ok(())
 }
@@ -18604,7 +18604,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -18616,7 +18616,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![169usize, 211usize,], "result != expected");
     Ok(())
 }
@@ -18628,7 +18628,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"0123-4567-8888\"", "\"0123-4567-8910\""];
@@ -18643,7 +18643,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -18655,7 +18655,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![169usize, 211usize,], "result != expected");
     Ok(())
 }
@@ -18667,7 +18667,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"0123-4567-8888\"", "\"0123-4567-8910\""];
@@ -18682,7 +18682,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -18694,7 +18694,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![169usize, 211usize,], "result != expected");
     Ok(())
 }
@@ -18706,7 +18706,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"0123-4567-8888\"", "\"0123-4567-8910\""];
@@ -18721,7 +18721,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -18733,7 +18733,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![151usize,], "result != expected");
     Ok(())
 }
@@ -18745,7 +18745,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"iPhone\""];
@@ -18760,7 +18760,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -18772,7 +18772,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![151usize,], "result != expected");
     Ok(())
 }
@@ -18784,7 +18784,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"iPhone\""];
@@ -18799,7 +18799,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -18811,7 +18811,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![151usize,], "result != expected");
     Ok(())
 }
@@ -18823,7 +18823,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"iPhone\""];
@@ -18838,7 +18838,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -18850,7 +18850,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![143usize,], "result != expected");
     Ok(())
 }
@@ -18862,7 +18862,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"type\":\"iPhone\",\"number\":\"0123-4567-8888\"}"];
@@ -18877,7 +18877,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -18889,7 +18889,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![143usize,], "result != expected");
     Ok(())
 }
@@ -18901,7 +18901,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"type\":\"iPhone\",\"number\":\"0123-4567-8888\"}"];
@@ -18916,7 +18916,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -18928,7 +18928,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![143usize,], "result != expected");
     Ok(())
 }
@@ -18940,7 +18940,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"type\":\"iPhone\",\"number\":\"0123-4567-8888\"}"];
@@ -18955,7 +18955,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -18967,7 +18967,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![271usize, 359usize,], "result != expected");
     Ok(())
 }
@@ -18979,7 +18979,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"0123-4567-8888\"", "\"0123-4567-8910\""];
@@ -18994,7 +18994,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -19006,7 +19006,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![271usize, 359usize,], "result != expected");
     Ok(())
 }
@@ -19018,7 +19018,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"0123-4567-8888\"", "\"0123-4567-8910\""];
@@ -19033,7 +19033,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -19045,7 +19045,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![271usize, 359usize,], "result != expected");
     Ok(())
 }
@@ -19057,7 +19057,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"0123-4567-8888\"", "\"0123-4567-8910\""];
@@ -19072,7 +19072,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -19084,7 +19084,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![239usize,], "result != expected");
     Ok(())
 }
@@ -19096,7 +19096,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"iPhone\""];
@@ -19111,7 +19111,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -19123,7 +19123,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![239usize,], "result != expected");
     Ok(())
 }
@@ -19135,7 +19135,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"iPhone\""];
@@ -19150,7 +19150,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -19162,7 +19162,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![239usize,], "result != expected");
     Ok(())
 }
@@ -19174,7 +19174,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"iPhone\""];
@@ -19189,7 +19189,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -19201,7 +19201,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![217usize,], "result != expected");
     Ok(())
 }
@@ -19213,7 +19213,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> =
@@ -19229,7 +19229,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -19241,7 +19241,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![217usize,], "result != expected");
     Ok(())
 }
@@ -19253,7 +19253,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> =
@@ -19269,7 +19269,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -19281,7 +19281,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![217usize,], "result != expected");
     Ok(())
 }
@@ -19293,7 +19293,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/jsonpath_com_example.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> =
@@ -19309,7 +19309,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -19321,7 +19321,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![6usize, 15usize,], "result != expected");
     Ok(())
 }
@@ -19333,7 +19333,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}", "[]"];
@@ -19348,7 +19348,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -19360,7 +19360,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![6usize, 15usize,], "result != expected");
     Ok(())
 }
@@ -19372,7 +19372,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}", "[]"];
@@ -19387,7 +19387,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -19399,7 +19399,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![6usize, 15usize,], "result != expected");
     Ok(())
 }
@@ -19411,7 +19411,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}", "[]"];
@@ -19426,7 +19426,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4u64, "result != expected");
     Ok(())
 }
@@ -19438,7 +19438,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![5usize, 14usize, 23usize, 30usize,],
@@ -19454,7 +19454,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[{}]", "[[]]", "[]", "{}"];
@@ -19469,7 +19469,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4u64, "result != expected");
     Ok(())
 }
@@ -19481,7 +19481,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![5usize, 14usize, 23usize, 30usize,],
@@ -19497,7 +19497,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[{}]", "[[]]", "[]", "{}"];
@@ -19512,7 +19512,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4u64, "result != expected");
     Ok(())
 }
@@ -19524,7 +19524,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![5usize, 14usize, 23usize, 30usize,],
@@ -19540,7 +19540,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[{}]", "[[]]", "[]", "{}"];
@@ -19555,7 +19555,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -19567,7 +19567,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![6usize, 15usize,], "result != expected");
     Ok(())
 }
@@ -19579,7 +19579,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}", "[]"];
@@ -19594,7 +19594,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -19606,7 +19606,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![6usize, 15usize,], "result != expected");
     Ok(())
 }
@@ -19618,7 +19618,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}", "[]"];
@@ -19633,7 +19633,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -19645,7 +19645,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![6usize, 15usize,], "result != expected");
     Ok(())
 }
@@ -19657,7 +19657,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}", "[]"];
@@ -19672,7 +19672,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 6u64, "result != expected");
     Ok(())
 }
@@ -19684,7 +19684,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![5usize, 6usize, 14usize, 15usize, 23usize, 30usize,],
@@ -19700,7 +19700,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[{}]", "{}", "[[]]", "[]", "[]", "{}"];
@@ -19715,7 +19715,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 6u64, "result != expected");
     Ok(())
 }
@@ -19727,7 +19727,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![5usize, 6usize, 14usize, 15usize, 23usize, 30usize,],
@@ -19743,7 +19743,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[{}]", "{}", "[[]]", "[]", "[]", "{}"];
@@ -19758,7 +19758,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 6u64, "result != expected");
     Ok(())
 }
@@ -19770,7 +19770,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![5usize, 6usize, 14usize, 15usize, 23usize, 30usize,],
@@ -19786,7 +19786,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[{}]", "{}", "[[]]", "[]", "[]", "{}"];
@@ -19801,7 +19801,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -19813,7 +19813,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![21usize, 50usize,], "result != expected");
     Ok(())
 }
@@ -19825,7 +19825,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}", "[]"];
@@ -19840,7 +19840,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -19852,7 +19852,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![21usize, 50usize,], "result != expected");
     Ok(())
 }
@@ -19864,7 +19864,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}", "[]"];
@@ -19879,7 +19879,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -19891,7 +19891,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![21usize, 50usize,], "result != expected");
     Ok(())
 }
@@ -19903,7 +19903,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}", "[]"];
@@ -19918,7 +19918,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4u64, "result != expected");
     Ok(())
 }
@@ -19930,7 +19930,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![11usize, 40usize, 69usize, 82usize,],
@@ -19946,7 +19946,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[\n        {}\n    ]", "[\n        []\n    ]", "[]", "{}"];
@@ -19961,7 +19961,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4u64, "result != expected");
     Ok(())
 }
@@ -19973,7 +19973,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![11usize, 40usize, 69usize, 82usize,],
@@ -19989,7 +19989,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[\n        {}\n    ]", "[\n        []\n    ]", "[]", "{}"];
@@ -20004,7 +20004,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4u64, "result != expected");
     Ok(())
 }
@@ -20016,7 +20016,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![11usize, 40usize, 69usize, 82usize,],
@@ -20032,7 +20032,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[\n        {}\n    ]", "[\n        []\n    ]", "[]", "{}"];
@@ -20047,7 +20047,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -20059,7 +20059,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![21usize, 50usize,], "result != expected");
     Ok(())
 }
@@ -20071,7 +20071,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}", "[]"];
@@ -20086,7 +20086,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -20098,7 +20098,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![21usize, 50usize,], "result != expected");
     Ok(())
 }
@@ -20110,7 +20110,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}", "[]"];
@@ -20125,7 +20125,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 2u64, "result != expected");
     Ok(())
 }
@@ -20137,7 +20137,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![21usize, 50usize,], "result != expected");
     Ok(())
 }
@@ -20149,7 +20149,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}", "[]"];
@@ -20164,7 +20164,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 6u64, "result != expected");
     Ok(())
 }
@@ -20176,7 +20176,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![11usize, 21usize, 40usize, 50usize, 69usize, 82usize,],
@@ -20192,7 +20192,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[\n        {}\n    ]", "{}", "[\n        []\n    ]", "[]", "[]", "{}"];
@@ -20207,7 +20207,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 6u64, "result != expected");
     Ok(())
 }
@@ -20219,7 +20219,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![11usize, 21usize, 40usize, 50usize, 69usize, 82usize,],
@@ -20235,7 +20235,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[\n        {}\n    ]", "{}", "[\n        []\n    ]", "[]", "[]", "{}"];
@@ -20250,7 +20250,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 6u64, "result != expected");
     Ok(())
 }
@@ -20262,7 +20262,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![11usize, 21usize, 40usize, 50usize, 69usize, 82usize,],
@@ -20278,7 +20278,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/singletons_and_empties.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[\n        {}\n    ]", "{}", "[\n        []\n    ]", "[]", "[]", "{}"];
@@ -20294,7 +20294,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
         fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4u64, "result != expected");
     Ok(())
 }
@@ -20307,7 +20307,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
         fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![178usize, 220usize, 426usize, 468usize,],
@@ -20324,7 +20324,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
         fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -20345,7 +20345,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
         fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4u64, "result != expected");
     Ok(())
 }
@@ -20358,7 +20358,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
         fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![178usize, 220usize, 426usize, 468usize,],
@@ -20375,7 +20375,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
         fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -20396,7 +20396,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
         fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4u64, "result != expected");
     Ok(())
 }
@@ -20409,7 +20409,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
         fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![178usize, 220usize, 426usize, 468usize,],
@@ -20426,7 +20426,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
         fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -20447,7 +20447,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
         fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4u64, "result != expected");
     Ok(())
 }
@@ -20460,7 +20460,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
         fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![160usize, 204usize, 408usize, 452usize,],
@@ -20477,7 +20477,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
         fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"iPhone\"", "\"home\"", "\"iPhone\"", "\"home\""];
@@ -20493,7 +20493,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
         fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4u64, "result != expected");
     Ok(())
 }
@@ -20506,7 +20506,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
         fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![160usize, 204usize, 408usize, 452usize,],
@@ -20523,7 +20523,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
         fs::File::open("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"iPhone\"", "\"home\"", "\"iPhone\"", "\"home\""];
@@ -20539,7 +20539,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
         fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4u64, "result != expected");
     Ok(())
 }
@@ -20552,7 +20552,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
         fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![160usize, 204usize, 408usize, 452usize,],
@@ -20569,7 +20569,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
         fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/jsonpath_com_example_extended.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"iPhone\"", "\"home\"", "\"iPhone\"", "\"home\""];
@@ -20584,7 +20584,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example_extended.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4u64, "result != expected");
     Ok(())
 }
@@ -20596,7 +20596,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example_extended.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![334usize, 438usize, 936usize, 1072usize,],
@@ -20612,7 +20612,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example_extended.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -20632,7 +20632,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example_extended.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4u64, "result != expected");
     Ok(())
 }
@@ -20644,7 +20644,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example_extended.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![334usize, 438usize, 936usize, 1072usize,],
@@ -20660,7 +20660,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example_extended.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -20680,7 +20680,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/jsonpath_com_example_extended.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4u64, "result != expected");
     Ok(())
 }
@@ -20692,7 +20692,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/jsonpath_com_example_extended.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![334usize, 438usize, 936usize, 1072usize,],
@@ -20708,7 +20708,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/jsonpath_com_example_extended.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -20728,7 +20728,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example_extended.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4u64, "result != expected");
     Ok(())
 }
@@ -20740,7 +20740,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example_extended.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![298usize, 404usize, 892usize, 1030usize,],
@@ -20756,7 +20756,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example_extended.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"iPhone\"", "\"home\"", "\"iPhone\"", "\"home\""];
@@ -20771,7 +20771,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example_extended.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4u64, "result != expected");
     Ok(())
 }
@@ -20783,7 +20783,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example_extended.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![298usize, 404usize, 892usize, 1030usize,],
@@ -20799,7 +20799,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/jsonpath_com_example_extended.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"iPhone\"", "\"home\"", "\"iPhone\"", "\"home\""];
@@ -20814,7 +20814,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/jsonpath_com_example_extended.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 4u64, "result != expected");
     Ok(())
 }
@@ -20826,7 +20826,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/jsonpath_com_example_extended.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![298usize, 404usize, 892usize, 1030usize,],
@@ -20842,7 +20842,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/jsonpath_com_example_extended.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"iPhone\"", "\"home\"", "\"iPhone\"", "\"home\""];
@@ -20857,7 +20857,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_descendant_us
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 18u64, "result != expected");
     Ok(())
 }
@@ -20869,7 +20869,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_descendant_us
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![
@@ -20904,7 +20904,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_descendant_us
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 18u64, "result != expected");
     Ok(())
 }
@@ -20916,7 +20916,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_descendant_us
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![
@@ -20951,7 +20951,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_descendant_us
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 18u64, "result != expected");
     Ok(())
 }
@@ -20963,7 +20963,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_descendant_us
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![
@@ -20998,7 +20998,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_descendant_us
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 44u64, "result != expected");
     Ok(())
 }
@@ -21010,7 +21010,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_descendant_us
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![
@@ -21071,7 +21071,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_descendant_us
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 44u64, "result != expected");
     Ok(())
 }
@@ -21083,7 +21083,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_descendant_us
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![
@@ -21144,7 +21144,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_descendant_us
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 44u64, "result != expected");
     Ok(())
 }
@@ -21156,7 +21156,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_descendant_us
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![
@@ -21217,7 +21217,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_count_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -21229,7 +21229,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_count_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![466869usize,], "result != expected");
     Ok(())
 }
@@ -21241,7 +21241,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_count_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -21256,7 +21256,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_count_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -21268,7 +21268,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_count_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![466869usize,], "result != expected");
     Ok(())
 }
@@ -21280,7 +21280,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_count_
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -21295,7 +21295,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_count_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -21307,7 +21307,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_count_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![466869usize,], "result != expected");
     Ok(())
 }
@@ -21319,7 +21319,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_count_
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -21334,7 +21334,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -21346,7 +21346,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![466869usize,], "result != expected");
     Ok(())
 }
@@ -21358,7 +21358,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -21373,7 +21373,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -21385,7 +21385,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![466869usize,], "result != expected");
     Ok(())
 }
@@ -21397,7 +21397,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -21412,7 +21412,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -21424,7 +21424,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![466869usize,], "result != expected");
     Ok(())
 }
@@ -21436,7 +21436,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -21451,7 +21451,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -21463,7 +21463,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![466869usize,], "result != expected");
     Ok(())
 }
@@ -21475,7 +21475,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -21490,7 +21490,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -21502,7 +21502,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![466869usize,], "result != expected");
     Ok(())
 }
@@ -21514,7 +21514,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -21529,7 +21529,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -21541,7 +21541,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![466869usize,], "result != expected");
     Ok(())
 }
@@ -21553,7 +21553,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -21568,7 +21568,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -21580,7 +21580,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![466869usize,], "result != expected");
     Ok(())
 }
@@ -21592,7 +21592,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -21607,7 +21607,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -21619,7 +21619,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![466869usize,], "result != expected");
     Ok(())
 }
@@ -21631,7 +21631,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -21646,7 +21646,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -21658,7 +21658,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![466869usize,], "result != expected");
     Ok(())
 }
@@ -21670,7 +21670,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -21685,7 +21685,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -21697,7 +21697,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![466869usize,], "result != expected");
     Ok(())
 }
@@ -21709,7 +21709,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -21724,7 +21724,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -21736,7 +21736,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![466869usize,], "result != expected");
     Ok(())
 }
@@ -21748,7 +21748,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -21763,7 +21763,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -21775,7 +21775,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![466869usize,], "result != expected");
     Ok(())
 }
@@ -21787,7 +21787,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/compressed/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -21802,7 +21802,7 @@ fn twitter_json_from_simdjson_github_example_with_query_descendant_user_entities
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 18u64, "result != expected");
     Ok(())
 }
@@ -21814,7 +21814,7 @@ fn twitter_json_from_simdjson_github_example_with_query_descendant_user_entities
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![
@@ -21849,7 +21849,7 @@ fn twitter_json_from_simdjson_github_example_with_query_descendant_user_entities
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 18u64, "result != expected");
     Ok(())
 }
@@ -21861,7 +21861,7 @@ fn twitter_json_from_simdjson_github_example_with_query_descendant_user_entities
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![
@@ -21896,7 +21896,7 @@ fn twitter_json_from_simdjson_github_example_with_query_descendant_user_entities
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 18u64, "result != expected");
     Ok(())
 }
@@ -21908,7 +21908,7 @@ fn twitter_json_from_simdjson_github_example_with_query_descendant_user_entities
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![
@@ -21943,7 +21943,7 @@ fn twitter_json_from_simdjson_github_example_with_query_descendant_user_entities
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 44u64, "result != expected");
     Ok(())
 }
@@ -21955,7 +21955,7 @@ fn twitter_json_from_simdjson_github_example_with_query_descendant_user_entities
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![
@@ -22016,7 +22016,7 @@ fn twitter_json_from_simdjson_github_example_with_query_descendant_user_entities
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 44u64, "result != expected");
     Ok(())
 }
@@ -22028,7 +22028,7 @@ fn twitter_json_from_simdjson_github_example_with_query_descendant_user_entities
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![
@@ -22089,7 +22089,7 @@ fn twitter_json_from_simdjson_github_example_with_query_descendant_user_entities
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 44u64, "result != expected");
     Ok(())
 }
@@ -22101,7 +22101,7 @@ fn twitter_json_from_simdjson_github_example_with_query_descendant_user_entities
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(
         result.get(),
         vec![
@@ -22162,7 +22162,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_count_by_descenda
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -22174,7 +22174,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_count_by_descenda
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![767233usize,], "result != expected");
     Ok(())
 }
@@ -22186,7 +22186,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_count_by_descenda
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -22201,7 +22201,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_count_by_descenda
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -22213,7 +22213,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_count_by_descenda
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![767233usize,], "result != expected");
     Ok(())
 }
@@ -22225,7 +22225,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_count_by_descenda
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -22240,7 +22240,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_count_by_descenda
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -22252,7 +22252,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_count_by_descenda
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![767233usize,], "result != expected");
     Ok(())
 }
@@ -22264,7 +22264,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_count_by_descenda
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -22279,7 +22279,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_and_coun
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -22291,7 +22291,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_and_coun
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![767233usize,], "result != expected");
     Ok(())
 }
@@ -22303,7 +22303,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_and_coun
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -22318,7 +22318,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_and_coun
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -22330,7 +22330,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_and_coun
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![767233usize,], "result != expected");
     Ok(())
 }
@@ -22342,7 +22342,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_and_coun
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -22357,7 +22357,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_and_coun
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -22369,7 +22369,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_and_coun
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![767233usize,], "result != expected");
     Ok(())
 }
@@ -22381,7 +22381,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_and_coun
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -22396,7 +22396,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_by
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -22408,7 +22408,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_by
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![767233usize,], "result != expected");
     Ok(())
 }
@@ -22420,7 +22420,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_by
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -22435,7 +22435,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_by
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -22447,7 +22447,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_by
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![767233usize,], "result != expected");
     Ok(())
 }
@@ -22459,7 +22459,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_by
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -22474,7 +22474,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_by
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -22486,7 +22486,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_by
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![767233usize,], "result != expected");
     Ok(())
 }
@@ -22498,7 +22498,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_by
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -22513,7 +22513,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_di
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -22525,7 +22525,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_di
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![767233usize,], "result != expected");
     Ok(())
 }
@@ -22537,7 +22537,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_di
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -22552,7 +22552,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_di
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -22564,7 +22564,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_di
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![767233usize,], "result != expected");
     Ok(())
 }
@@ -22576,7 +22576,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_di
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -22591,7 +22591,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_di
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -22603,7 +22603,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_di
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![767233usize,], "result != expected");
     Ok(())
 }
@@ -22615,7 +22615,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_di
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -22630,7 +22630,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_directly
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -22642,7 +22642,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_directly
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![767233usize,], "result != expected");
     Ok(())
 }
@@ -22654,7 +22654,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_directly
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -22669,7 +22669,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_directly
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -22681,7 +22681,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_directly
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![767233usize,], "result != expected");
     Ok(())
 }
@@ -22693,7 +22693,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_directly
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -22708,7 +22708,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_directly
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -22720,7 +22720,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_directly
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![767233usize,], "result != expected");
     Ok(())
 }
@@ -22732,7 +22732,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_directly
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/large/twitter.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -22747,7 +22747,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -22759,7 +22759,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![5usize,], "result != expected");
     Ok(())
 }
@@ -22771,7 +22771,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0,1,2]"];
@@ -22786,7 +22786,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -22798,7 +22798,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![5usize,], "result != expected");
     Ok(())
 }
@@ -22810,7 +22810,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0,1,2]"];
@@ -22825,7 +22825,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -22837,7 +22837,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![5usize,], "result != expected");
     Ok(())
 }
@@ -22849,7 +22849,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0,1,2]"];
@@ -22864,7 +22864,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -22876,7 +22876,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![5usize,], "result != expected");
     Ok(())
 }
@@ -22888,7 +22888,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0,1,2]"];
@@ -22903,7 +22903,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -22915,7 +22915,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![5usize,], "result != expected");
     Ok(())
 }
@@ -22927,7 +22927,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0,1,2]"];
@@ -22942,7 +22942,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -22954,7 +22954,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![5usize,], "result != expected");
     Ok(())
 }
@@ -22966,7 +22966,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0,1,2]"];
@@ -22981,7 +22981,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -22993,7 +22993,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![6usize, 8usize, 10usize,], "result != expected");
     Ok(())
 }
@@ -23005,7 +23005,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "1", "2"];
@@ -23020,7 +23020,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -23032,7 +23032,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![6usize, 8usize, 10usize,], "result != expected");
     Ok(())
 }
@@ -23044,7 +23044,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "1", "2"];
@@ -23059,7 +23059,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -23071,7 +23071,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![6usize, 8usize, 10usize,], "result != expected");
     Ok(())
 }
@@ -23083,7 +23083,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "1", "2"];
@@ -23098,7 +23098,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -23110,7 +23110,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![0usize,], "result != expected");
     Ok(())
 }
@@ -23122,7 +23122,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"a\":[0,1,2]}"];
@@ -23137,7 +23137,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -23149,7 +23149,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![0usize,], "result != expected");
     Ok(())
 }
@@ -23161,7 +23161,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"a\":[0,1,2]}"];
@@ -23176,7 +23176,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -23188,7 +23188,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![0usize,], "result != expected");
     Ok(())
 }
@@ -23200,7 +23200,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"a\":[0,1,2]}"];
@@ -23215,7 +23215,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -23227,7 +23227,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![9usize,], "result != expected");
     Ok(())
 }
@@ -23239,7 +23239,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0  ,  1  ,  2]"];
@@ -23254,7 +23254,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -23266,7 +23266,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![9usize,], "result != expected");
     Ok(())
 }
@@ -23278,7 +23278,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0  ,  1  ,  2]"];
@@ -23293,7 +23293,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -23305,7 +23305,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![9usize,], "result != expected");
     Ok(())
 }
@@ -23317,7 +23317,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0  ,  1  ,  2]"];
@@ -23332,7 +23332,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -23344,7 +23344,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![9usize,], "result != expected");
     Ok(())
 }
@@ -23356,7 +23356,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0  ,  1  ,  2]"];
@@ -23371,7 +23371,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -23383,7 +23383,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![9usize,], "result != expected");
     Ok(())
 }
@@ -23395,7 +23395,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0  ,  1  ,  2]"];
@@ -23410,7 +23410,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -23422,7 +23422,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![9usize,], "result != expected");
     Ok(())
 }
@@ -23434,7 +23434,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0  ,  1  ,  2]"];
@@ -23449,7 +23449,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -23461,7 +23461,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![10usize, 16usize, 22usize,], "result != expected");
     Ok(())
 }
@@ -23473,7 +23473,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "1", "2"];
@@ -23488,7 +23488,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -23500,7 +23500,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![10usize, 16usize, 22usize,], "result != expected");
     Ok(())
 }
@@ -23512,7 +23512,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "1", "2"];
@@ -23527,7 +23527,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 3u64, "result != expected");
     Ok(())
 }
@@ -23539,7 +23539,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![10usize, 16usize, 22usize,], "result != expected");
     Ok(())
 }
@@ -23551,7 +23551,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "1", "2"];
@@ -23566,7 +23566,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -23578,7 +23578,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![0usize,], "result != expected");
     Ok(())
 }
@@ -23590,7 +23590,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"a\"  :  [0  ,  1  ,  2]}"];
@@ -23605,7 +23605,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -23617,7 +23617,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![0usize,], "result != expected");
     Ok(())
 }
@@ -23629,7 +23629,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"a\"  :  [0  ,  1  ,  2]}"];
@@ -23644,7 +23644,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, CountRecorder>(&input)?;
+    let result = engine.run::<_, CountRecorderSpec>(&input)?;
     assert_eq!(result.get(), 1u64, "result != expected");
     Ok(())
 }
@@ -23656,7 +23656,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, IndexRecorder>(&input)?;
+    let result = engine.run::<_, IndexRecorderSpec>(&input)?;
     assert_eq!(result.get(), vec![0usize,], "result != expected");
     Ok(())
 }
@@ -23668,7 +23668,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/index_result.json")?;
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
-    let result = engine.run::<_, NodesRecorder>(&input)?;
+    let result = engine.run::<_, NodesRecorderSpec>(&input)?;
     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"a\"  :  [0  ,  1  ,  2]}"];

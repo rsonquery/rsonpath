@@ -140,7 +140,7 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> impl IntoIterator<Item = T
             ResultTypeToTest::Count => {
                 let count = query.results.count;
                 quote! {
-                    let result = #engine_ident.run::<_, CountRecorder>(&#input_ident)?;
+                    let result = #engine_ident.run::<_, CountRecorderSpec>(&#input_ident)?;
 
                     assert_eq!(result.get(), #count, "result != expected");
                 }
@@ -152,7 +152,7 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> impl IntoIterator<Item = T
                     .as_ref()
                     .expect("result without data in toml should be filtered out in get_available_results");
                 quote! {
-                    let result = #engine_ident.run::<_, IndexRecorder>(&#input_ident)?;
+                    let result = #engine_ident.run::<_, IndexRecorderSpec>(&#input_ident)?;
 
                     assert_eq!(result.get(), vec![#(#bytes,)*], "result != expected");
                 }
@@ -164,7 +164,7 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> impl IntoIterator<Item = T
                     .as_ref()
                     .expect("result without data in toml should be filtered out in get_available_results");
                 quote! {
-                    let result = #engine_ident.run::<_, NodesRecorder>(&#input_ident)?;
+                    let result = #engine_ident.run::<_, NodesRecorderSpec>(&#input_ident)?;
                     let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
                     let utf8 = utf8.expect("valid utf8");
                     let expected: Vec<&str> = vec![#(#node_strings,)*];
@@ -195,7 +195,7 @@ pub(crate) fn generate_imports() -> TokenStream {
         use rsonpath::engine::{Compiler, Engine, main::MainEngine};
         use rsonpath::input::*;
         use rsonpath::query::JsonPathQuery;
-        use rsonpath::result::{count::CountRecorder, index::IndexRecorder, nodes::NodesRecorder};
+        use rsonpath::result::{count::CountRecorderSpec, index::IndexRecorderSpec, nodes::NodesRecorderSpec};
         use pretty_assertions::assert_eq;
         use std::error::Error;
         use std::fs;

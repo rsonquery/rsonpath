@@ -23,7 +23,7 @@ use crate::{
         error::CompilerError,
         JsonPathQuery, JsonString, NonNegativeArrayIndex,
     },
-    result::{MatchedNodeType, Recorder},
+    result::{MatchedNodeType, Recorder, RecorderSpec},
     FallibleIterator, BLOCK_SIZE,
 };
 use smallvec::{smallvec, SmallVec};
@@ -55,7 +55,7 @@ impl Compiler for MainEngine<'_> {
 
 impl Engine for MainEngine<'_> {
     #[inline]
-    fn run<I: Input, R: Recorder>(&self, input: &I) -> Result<R::Result, EngineError> {
+    fn run<I: Input, R: RecorderSpec>(&self, input: &I) -> Result<R::Result, EngineError> {
         if self.automaton.is_empty_query() {
             return empty_query::<I, R>(input);
         }
@@ -68,7 +68,7 @@ impl Engine for MainEngine<'_> {
     }
 }
 
-fn empty_query<I: Input, R: Recorder>(bytes: &I) -> Result<R::Result, EngineError> {
+fn empty_query<I: Input, R: RecorderSpec>(bytes: &I) -> Result<R::Result, EngineError> {
     let recorder = R::new();
     {
         let iter = bytes.iter_blocks(&recorder);
@@ -107,7 +107,7 @@ macro_rules! Classifier {
     };
 }
 
-struct Executor<'i, 'q, 'r, I: Input, R: Recorder> {
+struct Executor<'i, 'q, 'r, I, R> {
     depth: Depth,
     state: State,
     stack: SmallStack,
@@ -121,11 +121,15 @@ struct Executor<'i, 'q, 'r, I: Input, R: Recorder> {
     has_any_array_item_transition_to_accepting: bool,
 }
 
-fn query_executor<'i, 'q, 'r, I: Input, R: Recorder>(
+fn query_executor<'i, 'q, 'r, I, R>(
     automaton: &'i Automaton<'q>,
     input: &'i I,
     recorder: &'r R,
-) -> Executor<'i, 'q, 'r, I, R> {
+) -> Executor<'i, 'q, 'r, I, R>
+where
+    I: Input,
+    R: Recorder<I::Block<'i, BLOCK_SIZE>>,
+{
     Executor {
         depth: Depth::ZERO,
         state: automaton.initial_state(),
@@ -141,9 +145,11 @@ fn query_executor<'i, 'q, 'r, I: Input, R: Recorder>(
     }
 }
 
-impl<'i, 'q, 'r, I: Input, R: Recorder> Executor<'i, 'q, 'r, I, R>
+impl<'i, 'q, 'r, I, R> Executor<'i, 'q, 'r, I, R>
 where
     'i: 'r,
+    I: Input,
+    R: Recorder<I::Block<'i, BLOCK_SIZE>>,
 {
     fn run(mut self) -> Result<(), EngineError> {
         let mb_head_skip = HeadSkip::new(self.input, self.automaton);
@@ -603,7 +609,7 @@ impl SmallStack {
 impl<'i, 'q, 'r, I, R> CanHeadSkip<'i, 'r, I, R, BLOCK_SIZE> for Executor<'i, 'q, 'r, I, R>
 where
     I: Input,
-    R: Recorder,
+    R: Recorder<I::Block<'i, BLOCK_SIZE>>,
     'i: 'r,
 {
     fn run_on_subtree<Q, S>(

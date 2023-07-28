@@ -43,10 +43,9 @@ repr_align_block_size! {
 }
 
 /// Iterator over a [`BufferedInput`].
-pub struct BufferedInputBlockIterator<'a, 'r, R, IR: InputRecorder, const N: usize> {
+pub struct BufferedInputBlockIterator<'a, 'r, R, IR, const N: usize> {
     input: &'a BufferedInput<R>,
     idx: usize,
-    current_block: Option<[u8; N]>,
     recorder: &'r IR,
 }
 
@@ -124,19 +123,20 @@ impl<R: Read> BufferedInput<R> {
 }
 
 impl<R: Read> Input for BufferedInput<R> {
-    type BlockIterator<'a, 'r, const N: usize, IR: InputRecorder + 'r> = BufferedInputBlockIterator<'a, 'r, R, IR, N> where Self: 'a;
+    type BlockIterator<'a, 'r, const N: usize, IR> = BufferedInputBlockIterator<'a, 'r, R, IR, N>
+        where Self: 'a,
+              IR: InputRecorder<BufferedInputBlock<N>> + 'r;
 
     type Block<'a, const N: usize> = BufferedInputBlock<N> where Self: 'a;
 
     #[inline(always)]
-    fn iter_blocks<'a, 'r, IR: InputRecorder, const N: usize>(
-        &'a self,
-        recorder: &'r IR,
-    ) -> Self::BlockIterator<'a, 'r, N, IR> {
+    fn iter_blocks<'i, 'r, IR, const N: usize>(&'i self, recorder: &'r IR) -> Self::BlockIterator<'i, 'r, N, IR>
+    where
+        IR: InputRecorder<Self::Block<'i, N>>,
+    {
         BufferedInputBlockIterator {
             input: self,
             idx: 0,
-            current_block: None,
             recorder,
         }
     }
@@ -226,18 +226,15 @@ impl<R: Read> Input for BufferedInput<R> {
     }
 }
 
-impl<'a, 'r, R: Read, IR: InputRecorder, const N: usize> FallibleIterator
-    for BufferedInputBlockIterator<'a, 'r, R, IR, N>
+impl<'a, 'r, R: Read, IR, const N: usize> FallibleIterator for BufferedInputBlockIterator<'a, 'r, R, IR, N>
+where
+    IR: InputRecorder<BufferedInputBlock<N>>,
 {
     type Item = BufferedInputBlock<N>;
     type Error = InputError;
 
     #[inline]
     fn next(&mut self) -> Result<Option<Self::Item>, Self::Error> {
-        if let Some(block) = self.current_block.take() {
-            self.recorder.record_block_end(&block);
-        }
-
         let buf = self.input.0.borrow();
 
         if self.idx + N < buf.len() {
@@ -246,7 +243,8 @@ impl<'a, 'r, R: Read, IR: InputRecorder, const N: usize> FallibleIterator
                 .try_into()
                 .map_err(|err| InternalRsonpathError::from_error(err, "slice of size N is not of size N"))?;
             self.idx += N;
-            self.current_block = Some(block);
+
+            self.recorder.record_block_start(BufferedInputBlock(block));
 
             Ok(Some(BufferedInputBlock(block)))
         } else {
@@ -263,8 +261,9 @@ impl<'a, 'r, R: Read, IR: InputRecorder, const N: usize> FallibleIterator
     }
 }
 
-impl<'a, 'r, R: Read, IR: InputRecorder, const N: usize> InputBlockIterator<'a, N>
-    for BufferedInputBlockIterator<'a, 'r, R, IR, N>
+impl<'a, 'r, R: Read, IR, const N: usize> InputBlockIterator<'a, N> for BufferedInputBlockIterator<'a, 'r, R, IR, N>
+where
+    IR: InputRecorder<BufferedInputBlock<N>>,
 {
     type Block = BufferedInputBlock<N>;
 
@@ -294,14 +293,5 @@ impl<'a, const N: usize> InputBlock<'a, N> for BufferedInputBlock<N> {
     fn halves(&self) -> (&[u8], &[u8]) {
         assert_eq!(N % 2, 0);
         (&self[..N / 2], &self[N / 2..])
-    }
-}
-
-impl<'a, 'r, R, IR: InputRecorder, const N: usize> Drop for BufferedInputBlockIterator<'a, 'r, R, IR, N> {
-    #[inline]
-    fn drop(&mut self) {
-        if let Some(block) = self.current_block.take() {
-            self.recorder.record_block_end(&block);
-        }
     }
 }

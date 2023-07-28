@@ -25,12 +25,21 @@ use core::arch::x86_64::*;
 
 const SIZE: usize = 64;
 
-pub(crate) struct Avx2MemmemClassifier<'i, 'b, 'r, I: Input, R: InputRecorder + 'r> {
+pub(crate) struct Avx2MemmemClassifier<'i, 'b, 'r, I, R>
+where
+    I: Input,
+    R: InputRecorder<I::Block<'i, BLOCK_SIZE>> + 'r,
+{
     input: &'i I,
     iter: &'b mut I::BlockIterator<'i, 'r, SIZE, R>,
 }
 
-impl<'i, 'b, 'r, I: Input, R: InputRecorder> Avx2MemmemClassifier<'i, 'b, 'r, I, R> {
+impl<'i, 'b, 'r, I, R> Avx2MemmemClassifier<'i, 'b, 'r, I, R>
+where
+    I: Input,
+    R: InputRecorder<I::Block<'i, BLOCK_SIZE>>,
+    'i: 'r,
+{
     #[inline]
     pub(crate) fn new(input: &'i I, iter: &'b mut I::BlockIterator<'i, 'r, SIZE, R>) -> Self {
         Self { input, iter }
@@ -126,8 +135,10 @@ impl<'i, 'b, 'r, I: Input, R: InputRecorder> Avx2MemmemClassifier<'i, 'b, 'r, I,
     }
 }
 
-impl<'i, 'b, 'r, I: Input, R: InputRecorder> Memmem<'i, 'b, 'r, I, SIZE> for Avx2MemmemClassifier<'i, 'b, 'r, I, R>
+impl<'i, 'b, 'r, I, R> Memmem<'i, 'b, 'r, I, SIZE> for Avx2MemmemClassifier<'i, 'b, 'r, I, R>
 where
+    I: Input,
+    R: InputRecorder<I::Block<'i, BLOCK_SIZE>>,
     'i: 'r,
 {
     // Output the relative offsets

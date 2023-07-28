@@ -15,17 +15,32 @@ impl Display for EmptyResult {
 
 impl QueryResult for EmptyResult {}
 
+pub struct EmptyRecorderSpec;
+
+impl RecorderSpec for EmptyRecorderSpec {
+    type Result = EmptyResult;
+
+    type Recorder<B> = EmptyRecorder
+    where
+        B: Deref<Target = [u8]>;
+
+    #[inline(always)]
+    fn new<B: Deref<Target = [u8]>>() -> Self::Recorder<B> {
+        <EmptyRecorder as Recorder<B>>::new()
+    }
+}
+
 /// Recorder for [`EmptyResult`].
 pub struct EmptyRecorder;
 
-impl InputRecorder for EmptyRecorder {
+impl<B: Deref<Target = [u8]>> InputRecorder<B> for EmptyRecorder {
     #[inline]
-    fn record_block_end(&self, _new_block: &[u8]) {
+    fn record_block_start(&self, _new_block: B) {
         // Intentionally left empty.
     }
 }
 
-impl Recorder for EmptyRecorder {
+impl<B: Deref<Target = [u8]>> Recorder<B> for EmptyRecorder {
     type Result = EmptyResult;
 
     #[inline]

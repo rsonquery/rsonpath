@@ -31,19 +31,34 @@ impl Display for CountResult {
 
 impl QueryResult for CountResult {}
 
+pub struct CountRecorderSpec;
+
+impl RecorderSpec for CountRecorderSpec {
+    type Result = CountResult;
+
+    type Recorder<B> = CountRecorder
+    where
+        B: Deref<Target = [u8]>;
+
+    #[inline(always)]
+    fn new<B: Deref<Target = [u8]>>() -> Self::Recorder<B> {
+        <CountRecorder as Recorder<B>>::new()
+    }
+}
+
 /// Recorder for [`CountResult`].
 pub struct CountRecorder {
     count: Cell<u64>,
 }
 
-impl InputRecorder for CountRecorder {
+impl<B: Deref<Target = [u8]>> InputRecorder<B> for CountRecorder {
     #[inline(always)]
-    fn record_block_end(&self, _new_block: &[u8]) {
+    fn record_block_start(&self, _new_block: B) {
         // Intentionally left empty.
     }
 }
 
-impl Recorder for CountRecorder {
+impl<B: Deref<Target = [u8]>> Recorder<B> for CountRecorder {
     type Result = CountResult;
 
     #[inline]
