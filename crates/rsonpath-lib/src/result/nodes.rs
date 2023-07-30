@@ -6,6 +6,7 @@
 // and handling of Depth that should be properly error-handled by the engine, not here.
 // Using `expect` here is idiomatic.
 #![allow(clippy::expect_used)]
+
 use super::*;
 use crate::{debug, depth::Depth};
 use std::{
@@ -104,7 +105,7 @@ impl<B: Deref<Target = [u8]>> Recorder<B> for NodesRecorder<B> {
     #[inline]
     fn record_match(&self, idx: usize, depth: Depth, ty: MatchedNodeType) {
         debug!("Recording match at {idx}");
-        self.internal.borrow_mut().record_match(idx, depth, ty)
+        self.internal.borrow_mut().record_match(idx, depth, ty);
     }
 
     #[inline]
@@ -192,7 +193,175 @@ STACK             | DONE (off. 5)
 (6, [5...)        | None
 */
 
-struct InternalRecorder<B> {
+enum InternalRecorder<B> {
+    Simple(SimpleRecorder<B>),
+    Stack(StackRecorder<B>),
+    Transition,
+}
+
+impl<B: Deref<Target = [u8]>> InternalRecorder<B> {
+    fn new() -> Self {
+        Self::Simple(SimpleRecorder::new())
+    }
+
+    #[inline(always)]
+    fn record_block(&mut self, block: B) {
+        match self {
+            Self::Simple(r) => r.record_block(block),
+            Self::Stack(r) => r.record_block(block),
+            Self::Transition => unreachable!(),
+        }
+    }
+
+    #[inline(always)]
+    fn record_match(&mut self, idx: usize, depth: Depth, ty: MatchedNodeType) {
+        match self {
+            Self::Simple(simple) => {
+                if !simple.try_record_match(idx, depth, ty) {
+                    let simple = match std::mem::replace(self, Self::Transition) {
+                        Self::Simple(s) => s,
+                        Self::Stack(_) | Self::Transition => unreachable!(),
+                    };
+                    let mut stack = simple.transform_to_stack();
+                    stack.record_match(idx, depth, ty);
+                    *self = Self::Stack(stack);
+                }
+            }
+            Self::Stack(stack) => stack.record_match(idx, depth, ty),
+            Self::Transition => unreachable!(),
+        }
+    }
+
+    #[inline(always)]
+    fn record_value_terminator(&mut self, idx: usize, depth: Depth) {
+        match self {
+            Self::Simple(r) => r.record_value_terminator(idx, depth),
+            Self::Stack(r) => r.record_value_terminator(idx, depth),
+            Self::Transition => unreachable!(),
+        }
+    }
+
+    #[inline(always)]
+    fn finish(self) -> NodesResult {
+        match self {
+            Self::Simple(r) => r.finish(),
+            Self::Stack(r) => r.finish(),
+            Self::Transition => unreachable!(),
+        }
+    }
+}
+
+struct SimpleRecorder<B> {
+    idx: usize,
+    current_block: Option<B>,
+    node: Option<SimplePartialNode>,
+    finished: Vec<Vec<u8>>,
+}
+
+struct SimplePartialNode {
+    start_idx: usize,
+    start_depth: Depth,
+    buf: Vec<u8>,
+    ty: MatchedNodeType,
+}
+
+impl<B: Deref<Target = [u8]>> SimpleRecorder<B> {
+    fn new() -> Self {
+        Self {
+            idx: 0,
+            current_block: None,
+            node: None,
+            finished: vec![],
+        }
+    }
+
+    fn record_block(&mut self, block: B) {
+        if let Some(finished) = self.current_block.as_ref() {
+            if let Some(node) = self.node.as_mut() {
+                debug!("Continuing node, idx is {}", self.idx);
+                append_block(&mut node.buf, finished, self.idx, node.start_idx)
+            }
+
+            self.idx += finished.len();
+        }
+
+        self.current_block = Some(block);
+        debug!("New block, idx = {}", self.idx);
+    }
+
+    fn record_value_terminator(&mut self, idx: usize, depth: Depth) {
+        debug!("Value terminator at {idx}, depth {depth}");
+        if let Some(node) = self.node.as_ref() {
+            if node.start_depth >= depth {
+                let mut node = self.node.take().unwrap();
+                debug!("Mark node as ended at {}", idx + 1);
+                append_final_block(
+                    &mut node.buf,
+                    self.current_block.as_ref().unwrap(),
+                    self.idx,
+                    node.start_idx,
+                    idx + 1,
+                );
+                finalize_node(&mut node.buf, node.ty);
+
+                debug!("Committing and outputting node");
+                self.finished.push(node.buf);
+            }
+        }
+    }
+
+    fn try_record_match(&mut self, idx: usize, depth: Depth, ty: MatchedNodeType) -> bool {
+        if self.node.is_some() {
+            debug!("nested match detected, switching to stack");
+            return false;
+        }
+
+        let node = SimplePartialNode {
+            start_idx: idx,
+            start_depth: depth,
+            buf: vec![],
+            ty,
+        };
+        self.node = Some(node);
+
+        true
+    }
+
+    fn transform_to_stack(self) -> StackRecorder<B> {
+        match self.node {
+            Some(node) => StackRecorder {
+                idx: self.idx,
+                match_count: 1,
+                current_block: self.current_block,
+                stack: vec![PartialNode {
+                    id: 0,
+                    start_idx: node.start_idx,
+                    start_depth: node.start_depth,
+                    buf: node.buf,
+                    ty: node.ty,
+                }],
+                output_queue: OutputQueue::new(),
+                finished: self.finished,
+            },
+            None => StackRecorder {
+                idx: self.idx,
+                match_count: 0,
+                current_block: self.current_block,
+                stack: vec![],
+                output_queue: OutputQueue::new(),
+                finished: self.finished,
+            },
+        }
+    }
+
+    fn finish(self) -> NodesResult {
+        debug_assert!(self.node.is_none());
+
+        NodesResult { spans: self.finished }
+    }
+}
+
+struct StackRecorder<B> {
     idx: usize,
     match_count: usize,
     current_block: Option<B>,
@@ -246,18 +415,7 @@ impl OutputQueue {
     }
 }
 
-impl<B: Deref<Target = [u8]>> InternalRecorder<B> {
-    fn new() -> Self {
-        Self {
-            idx: 0,
-            match_count: 0,
-            current_block: None,
-            stack: vec![],
-            output_queue: OutputQueue::new(),
-            finished: vec![],
-        }
-    }
-
+impl<B: Deref<Target = [u8]>> StackRecorder<B> {
     fn record_block(&mut self, block: B) {
         if let Some(finished) = self.current_block.as_ref() {
             for node in &mut self.stack {
@@ -270,21 +428,6 @@ impl<B: Deref<Target = [u8]>> InternalRecorder<B> {
 
         self.current_block = Some(block);
         debug!("New block, idx = {}", self.idx);
-
-        fn append_block(dest: &mut Vec<u8>, src: &[u8], src_start: usize, read_start: usize) {
-            if read_start >= src_start + src.len() {
-                return;
-            }
-
-            let to_extend = if read_start > src_start {
-                let in_block_start = read_start - src_start;
-                &src[in_block_start..]
-            } else {
-                src
-            };
-
-            dest.extend(to_extend);
-        }
     }
 
     fn record_match(&mut self, idx: usize, depth: Depth, ty: MatchedNodeType) {
@@ -315,7 +458,7 @@ impl<B: Deref<Target = [u8]>> InternalRecorder<B> {
                     node.start_idx,
                     idx + 1,
                 );
-                finalize_node(&mut node);
+                finalize_node(&mut node.buf, node.ty);
 
                 debug!("Committing node: {node:?}");
                 self.output_queue.insert(node);
@@ -328,34 +471,6 @@ impl<B: Deref<Target = [u8]>> InternalRecorder<B> {
             debug!("Outputting batch of nodes.");
             self.output_queue.output_to(&mut self.finished);
         }
-
-        fn finalize_node(node: &mut PartialNode) {
-            debug!("Finalizing node: {node:?}");
-
-            if node.ty == MatchedNodeType::Atomic {
-                // Atomic nodes are finished when the next structural character is matched.
-                // The buffer includes that character and all preceding whitespace.
-                // We need to remove it before saving the result.
-                let mut i = node.buf.len() - 2;
-                while node.buf[i] == b' ' || node.buf[i] == b'\t' || node.buf[i] == b'\n' || node.buf[i] == b'\r' {
-                    i -= 1;
-                }
-
-                node.buf.truncate(i + 1);
-            }
-        }
-
-        fn append_final_block(dest: &mut Vec<u8>, src: &[u8], src_start: usize, read_start: usize, read_end: usize) {
-            debug_assert!(read_end >= src_start);
-            let in_block_start = if read_start > src_start {
-                read_start - src_start
-            } else {
-                0
-            };
-            let in_block_end = read_end - src_start;
-
-            dest.extend(&src[in_block_start..in_block_end]);
-        }
     }
 
     fn finish(self) -> NodesResult {
@@ -363,6 +478,52 @@ impl<B: Deref<Target = [u8]>> InternalRecorder<B> {
         debug_assert!(self.output_queue.is_empty());
 
         NodesResult { spans: self.finished }
+    }
+}
+
+#[inline(always)]
+fn append_block(dest: &mut Vec<u8>, src: &[u8], src_start: usize, read_start: usize) {
+    if read_start >= src_start + src.len() {
+        return;
+    }
+
+    let to_extend = if read_start > src_start {
+        let in_block_start = read_start - src_start;
+        &src[in_block_start..]
+    } else {
+        src
+    };
+
+    dest.extend(to_extend);
+}
+
+#[inline(always)]
+fn append_final_block(dest: &mut Vec<u8>, src: &[u8], src_start: usize, read_start: usize, read_end: usize) {
+    debug_assert!(read_end >= src_start);
+    let in_block_start = if read_start > src_start {
+        read_start - src_start
+    } else {
+        0
+    };
+    let in_block_end = read_end - src_start;
+
+    dest.extend(&src[in_block_start..in_block_end]);
+}
+
+#[inline(always)]
+fn finalize_node(buf: &mut Vec<u8>, ty: MatchedNodeType) {
+    debug!("Finalizing node");
+
+    if ty == MatchedNodeType::Atomic {
+        // Atomic nodes are finished when the next structural character is matched.
+        // The buffer includes that character and all preceding whitespace.
+        // We need to remove it before saving the result.
+        let mut i = buf.len() - 2;
+        while buf[i] == b' ' || buf[i] == b'\t' || buf[i] == b'\n' || buf[i] == b'\r' {
+            i -= 1;
+        }
+
+        buf.truncate(i + 1);
     }
 }
 
