@@ -64,59 +64,52 @@ impl Display for NodesResult {
 }
 
 impl QueryResult for NodesResult {}
+/// Recorder for [`NodesResult`].
+pub struct NodesRecorder<'s, B, S> {
+    internal: RefCell<InternalRecorder<'s, B, S>>,
+}
 
-pub struct NodesRecorderSpec;
-
-impl RecorderSpec for NodesRecorderSpec {
-    type Result = NodesResult;
-
-    type Recorder<B> = NodesRecorder<B>
-    where
-        B: Deref<Target = [u8]>;
-
-    #[inline(always)]
-    fn new<B: Deref<Target = [u8]>>() -> Self::Recorder<B> {
-        NodesRecorder::new()
+impl<'s, B, S> NodesRecorder<'s, B, S>
+where
+    B: Deref<Target = [u8]>,
+    S: Sink<Match>,
+{
+    pub(crate) fn build_recorder(sink: &'s mut S) -> Self {
+        Self {
+            internal: RefCell::new(InternalRecorder::new(sink)),
+        }
     }
 }
 
-/// Recorder for [`NodesResult`].
-pub struct NodesRecorder<B> {
-    internal: RefCell<InternalRecorder<B>>,
-}
-
-impl<B: Deref<Target = [u8]>> InputRecorder<B> for NodesRecorder<B> {
+impl<'s, B, S> InputRecorder<B> for NodesRecorder<'s, B, S>
+where
+    B: Deref<Target = [u8]>,
+    S: Sink<Match>,
+{
     #[inline(always)]
     fn record_block_start(&self, new_block: B) {
         self.internal.borrow_mut().record_block(new_block)
     }
 }
 
-impl<B: Deref<Target = [u8]>> Recorder<B> for NodesRecorder<B> {
-    type Result = NodesResult;
-
+impl<'s, B, S> Recorder<B> for NodesRecorder<'s, B, S>
+where
+    B: Deref<Target = [u8]>,
+    S: Sink<Match>,
+{
     #[inline]
-    fn new() -> Self {
-        Self {
-            internal: RefCell::new(InternalRecorder::new()),
-        }
-    }
-
-    #[inline]
-    fn record_match(&self, idx: usize, depth: Depth, ty: MatchedNodeType) {
+    fn record_match(&self, idx: usize, depth: Depth, ty: MatchedNodeType) -> Result<(), EngineError> {
         debug!("Recording match at {idx}");
         self.internal.borrow_mut().record_match(idx, depth, ty);
+        Ok(())
     }
 
     #[inline]
-    fn record_value_terminator(&self, idx: usize, depth: Depth) {
-        self.internal.borrow_mut().record_value_terminator(idx, depth)
-    }
-
-    #[inline]
-    fn finish(self) -> Self::Result {
-        debug!("Finish recording.");
-        self.internal.into_inner().finish()
+    fn record_value_terminator(&self, idx: usize, depth: Depth) -> Result<(), EngineError> {
+        self.internal
+            .borrow_mut()
+            .record_value_terminator(idx, depth)
+            .map_err(|err| EngineError::SinkError(Box::new(err)))
     }
 }
 
@@ -193,15 +186,19 @@ STACK             | DONE (off. 5)
 (6, [5...)        | None
 */
 
-enum InternalRecorder<B> {
-    Simple(SimpleRecorder<B>),
-    Stack(StackRecorder<B>),
+enum InternalRecorder<'s, B, S> {
+    Simple(SimpleRecorder<'s, B, S>),
+    Stack(StackRecorder<'s, B, S>),
     Transition,
 }
 
-impl<B: Deref<Target = [u8]>> InternalRecorder<B> {
-    fn new() -> Self {
-        Self::Simple(SimpleRecorder::new())
+impl<'s, B, S> InternalRecorder<'s, B, S>
+where
+    B: Deref<Target = [u8]>,
+    S: Sink<Match>,
+{
+    fn new(sink: &'s mut S) -> Self {
+        Self::Simple(SimpleRecorder::new(sink))
     }
 
     #[inline(always)]
@@ -233,29 +230,20 @@ impl<B: Deref<Target = [u8]>> InternalRecorder<B> {
     }
 
     #[inline(always)]
-    fn record_value_terminator(&mut self, idx: usize, depth: Depth) {
+    fn record_value_terminator(&mut self, idx: usize, depth: Depth) -> Result<(), S::Error> {
         match self {
             Self::Simple(r) => r.record_value_terminator(idx, depth),
             Self::Stack(r) => r.record_value_terminator(idx, depth),
             Self::Transition => unreachable!(),
         }
     }
-
-    #[inline(always)]
-    fn finish(self) -> NodesResult {
-        match self {
-            Self::Simple(r) => r.finish(),
-            Self::Stack(r) => r.finish(),
-            Self::Transition => unreachable!(),
-        }
-    }
 }
 
-struct SimpleRecorder<B> {
+struct SimpleRecorder<'s, B, S> {
     idx: usize,
     current_block: Option<B>,
     node: Option<SimplePartialNode>,
-    finished: Vec<Vec<u8>>,
+    sink: &'s mut S,
 }
 
 struct SimplePartialNode {
@@ -265,13 +253,17 @@ struct SimplePartialNode {
     ty: MatchedNodeType,
 }
 
-impl<B: Deref<Target = [u8]>> SimpleRecorder<B> {
-    fn new() -> Self {
+impl<'s, B, S> SimpleRecorder<'s, B, S>
+where
+    B: Deref<Target = [u8]>,
+    S: Sink<Match>,
+{
+    fn new(sink: &'s mut S) -> Self {
         Self {
             idx: 0,
             current_block: None,
             node: None,
-            finished: vec![],
+            sink,
         }
     }
 
@@ -289,7 +281,7 @@ impl<B: Deref<Target = [u8]>> SimpleRecorder<B> {
         debug!("New block, idx = {}", self.idx);
     }
 
-    fn record_value_terminator(&mut self, idx: usize, depth: Depth) {
+    fn record_value_terminator(&mut self, idx: usize, depth: Depth) -> Result<(), S::Error> {
         debug!("Value terminator at {idx}, depth {depth}");
         if let Some(node) = self.node.as_ref() {
             if node.start_depth >= depth {
@@ -305,9 +297,17 @@ impl<B: Deref<Target = [u8]>> SimpleRecorder<B> {
                 finalize_node(&mut node.buf, node.ty);
 
                 debug!("Committing and outputting node");
-                self.finished.push(node.buf);
+                self.sink.add_match(Match {
+                    bytes: node.buf,
+                    span: MatchSpan {
+                        start_idx: node.start_idx,
+                        end_idx: idx + 1,
+                    },
+                })?;
             }
         }
+
+        Ok(())
     }
 
     fn try_record_match(&mut self, idx: usize, depth: Depth, ty: MatchedNodeType) -> bool {
@@ -327,7 +327,7 @@ impl<B: Deref<Target = [u8]>> SimpleRecorder<B> {
         true
     }
 
-    fn transform_to_stack(self) -> StackRecorder<B> {
+    fn transform_to_stack(self) -> StackRecorder<'s, B, S> {
         match self.node {
             Some(node) => StackRecorder {
                 idx: self.idx,
@@ -341,7 +341,7 @@ impl<B: Deref<Target = [u8]>> SimpleRecorder<B> {
                     ty: node.ty,
                 }],
                 output_queue: OutputQueue::new(),
-                finished: self.finished,
+                sink: self.sink,
             },
             None => StackRecorder {
                 idx: self.idx,
@@ -349,25 +349,19 @@ impl<B: Deref<Target = [u8]>> SimpleRecorder<B> {
                 current_block: self.current_block,
                 stack: vec![],
                 output_queue: OutputQueue::new(),
-                finished: self.finished,
+                sink: self.sink,
             },
         }
     }
-
-    fn finish(self) -> NodesResult {
-        debug_assert!(self.node.is_none());
-
-        NodesResult { spans: self.finished }
-    }
 }
 
-struct StackRecorder<B> {
+struct StackRecorder<'s, B, S> {
     idx: usize,
     match_count: usize,
     current_block: Option<B>,
     stack: Vec<PartialNode>,
     output_queue: OutputQueue,
-    finished: Vec<Vec<u8>>,
+    sink: &'s mut S,
 }
 
 struct PartialNode {
@@ -380,7 +374,7 @@ struct PartialNode {
 
 struct OutputQueue {
     offset: usize,
-    nodes: Vec<Option<Vec<u8>>>,
+    nodes: Vec<Option<Match>>,
 }
 
 impl OutputQueue {
@@ -391,31 +385,35 @@ impl OutputQueue {
         }
     }
 
-    fn is_empty(&self) -> bool {
-        self.nodes.is_empty()
-    }
-
-    fn insert(&mut self, node: PartialNode) {
-        let actual_idx = node.id - self.offset;
+    fn insert(&mut self, id: usize, node: Match) {
+        let actual_idx = id - self.offset;
 
         while self.nodes.len() <= actual_idx {
             self.nodes.push(None);
         }
 
-        self.nodes[actual_idx] = Some(node.buf);
+        self.nodes[actual_idx] = Some(node);
     }
 
-    fn output_to(&mut self, finished: &mut Vec<Vec<u8>>) {
+    fn output_to<S>(&mut self, sink: &mut S) -> Result<(), S::Error>
+    where
+        S: Sink<Match>,
+    {
         self.offset += self.nodes.len();
 
         for node in self.nodes.drain(..) {
-            debug!("Outputting {node:?}");
-            finished.push(node.unwrap());
+            sink.add_match(node.unwrap())?;
         }
+
+        Ok(())
     }
 }
 
-impl<B: Deref<Target = [u8]>> StackRecorder<B> {
+impl<'s, B, S> StackRecorder<'s, B, S>
+where
+    B: Deref<Target = [u8]>,
+    S: Sink<Match>,
+{
     fn record_block(&mut self, block: B) {
         if let Some(finished) = self.current_block.as_ref() {
             for node in &mut self.stack {
@@ -445,7 +443,7 @@ impl<B: Deref<Target = [u8]>> StackRecorder<B> {
     }
 
     #[inline]
-    fn record_value_terminator(&mut self, idx: usize, depth: Depth) {
+    fn record_value_terminator(&mut self, idx: usize, depth: Depth) -> Result<(), S::Error> {
         debug!("Value terminator at {idx}, depth {depth}");
         while let Some(node) = self.stack.last() {
             if node.start_depth >= depth {
@@ -461,7 +459,16 @@ impl<B: Deref<Target = [u8]>> StackRecorder<B> {
                 finalize_node(&mut node.buf, node.ty);
 
                 debug!("Committing node: {node:?}");
-                self.output_queue.insert(node);
+                self.output_queue.insert(
+                    node.id,
+                    Match {
+                        bytes: node.buf,
+                        span: MatchSpan {
+                            start_idx: node.start_idx,
+                            end_idx: idx + 1,
+                        },
+                    },
+                );
             } else {
                 break;
             }
@@ -469,15 +476,10 @@ impl<B: Deref<Target = [u8]>> StackRecorder<B> {
 
         if self.stack.is_empty() {
             debug!("Outputting batch of nodes.");
-            self.output_queue.output_to(&mut self.finished);
+            self.output_queue.output_to(self.sink)?;
         }
-    }
 
-    fn finish(self) -> NodesResult {
-        debug_assert!(self.stack.is_empty());
-        debug_assert!(self.output_queue.is_empty());
-
-        NodesResult { spans: self.finished }
+        Ok(())
     }
 }
 

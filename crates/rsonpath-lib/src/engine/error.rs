@@ -17,6 +17,8 @@ pub enum EngineError {
     /// Error while reading from the supplied [`Input`](crate::input::Input) implementation.
     #[error(transparent)]
     InputError(#[from] InputError),
+    #[error("Error writing a result to sink: '{0}'")]
+    SinkError(#[source] Box<dyn std::error::Error + Send + Sync>),
     /// Document depth fell below zero, which can only happen
     /// if there are more closing than opening braces.
     /// The inner [`usize`] value indicates the position of the mismatched closing character.

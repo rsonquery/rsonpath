@@ -2,16 +2,22 @@ use super::*;
 use crate::classification::{quotes::QuoteClassifiedBlock, ResumeClassifierBlockState, ResumeClassifierState};
 use crate::debug;
 
-struct Block<'a, I: Input + 'a, const N: usize> {
-    quote_classified: QuoteClassifiedBlock<I::Block<'a, N>, N>,
+struct Block<'i, I, const N: usize>
+where
+    I: InputBlockIterator<'i, N>,
+{
+    quote_classified: QuoteClassifiedBlock<I::Block, N>,
     idx: usize,
     are_colons_on: bool,
     are_commas_on: bool,
 }
 
-impl<'a, I: Input, const N: usize> Block<'a, I, N> {
+impl<'i, I, const N: usize> Block<'i, I, N>
+where
+    I: InputBlockIterator<'i, N>,
+{
     fn new(
-        quote_classified_block: QuoteClassifiedBlock<I::Block<'a, N>, N>,
+        quote_classified_block: QuoteClassifiedBlock<I::Block, N>,
         are_colons_on: bool,
         are_commas_on: bool,
     ) -> Self {
@@ -24,7 +30,7 @@ impl<'a, I: Input, const N: usize> Block<'a, I, N> {
     }
 
     fn from_idx(
-        quote_classified_block: QuoteClassifiedBlock<I::Block<'a, N>, N>,
+        quote_classified_block: QuoteClassifiedBlock<I::Block, N>,
         idx: usize,
         are_colons_on: bool,
         are_commas_on: bool,
@@ -38,7 +44,10 @@ impl<'a, I: Input, const N: usize> Block<'a, I, N> {
     }
 }
 
-impl<'a, I: Input, const N: usize> Iterator for Block<'a, I, N> {
+impl<'i, I, const N: usize> Iterator for Block<'i, I, N>
+where
+    I: InputBlockIterator<'i, N>,
+{
     type Item = Structural;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -69,14 +78,21 @@ impl<'a, I: Input, const N: usize> Iterator for Block<'a, I, N> {
     }
 }
 
-pub(crate) struct SequentialClassifier<'a, I: Input, Q, const N: usize> {
+pub(crate) struct SequentialClassifier<'i, I, Q, const N: usize>
+where
+    I: InputBlockIterator<'i, N>,
+{
     iter: Q,
-    block: Option<Block<'a, I, N>>,
+    block: Option<Block<'i, I, N>>,
     are_colons_on: bool,
     are_commas_on: bool,
 }
 
-impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> SequentialClassifier<'a, I, Q, N> {
+impl<'i, I, Q, const N: usize> SequentialClassifier<'i, I, Q, N>
+where
+    I: InputBlockIterator<'i, N>,
+    Q: QuoteClassifiedIterator<'i, I, N>,
+{
     #[inline(always)]
     pub(crate) fn new(iter: Q) -> Self {
         Self {
@@ -108,8 +124,10 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> Sequent
     }
 }
 
-impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> FallibleIterator
-    for SequentialClassifier<'a, I, Q, N>
+impl<'i, I, Q, const N: usize> FallibleIterator for SequentialClassifier<'i, I, Q, N>
+where
+    I: InputBlockIterator<'i, N>,
+    Q: QuoteClassifiedIterator<'i, I, N>,
 {
     type Item = Structural;
     type Error = InputError;
@@ -133,8 +151,10 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> Fallibl
     }
 }
 
-impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> StructuralIterator<'a, I, Q, N>
-    for SequentialClassifier<'a, I, Q, N>
+impl<'i, I, Q, const N: usize> StructuralIterator<'i, I, Q, N> for SequentialClassifier<'i, I, Q, N>
+where
+    I: InputBlockIterator<'i, N>,
+    Q: QuoteClassifiedIterator<'i, I, N>,
 {
     fn turn_colons_and_commas_on(&mut self, idx: usize) {
         if !self.are_commas_on && !self.are_colons_on {
@@ -190,7 +210,7 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> Structu
         debug!("Turning colons off.");
     }
 
-    fn stop(self) -> ResumeClassifierState<'a, I, Q, N> {
+    fn stop(self) -> ResumeClassifierState<'i, I, Q, N> {
         let block = self.block.map(|b| ResumeClassifierBlockState {
             block: b.quote_classified,
             idx: b.idx,
@@ -203,7 +223,7 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> Structu
         }
     }
 
-    fn resume(state: ResumeClassifierState<'a, I, Q, N>) -> Self {
+    fn resume(state: ResumeClassifierState<'i, I, Q, N>) -> Self {
         Self {
             iter: state.iter,
             block: state.block.map(|b| Block {

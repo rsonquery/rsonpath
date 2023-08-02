@@ -23,7 +23,10 @@ use crate::{
         error::CompilerError,
         JsonPathQuery, JsonString, NonNegativeArrayIndex,
     },
-    result::{MatchedNodeType, Recorder, RecorderSpec},
+    result::{
+        count::CountRecorder, index::IndexRecorder, nodes::NodesRecorder, Match, MatchCount, MatchIndex,
+        MatchedNodeType, Recorder, Sink,
+    },
     FallibleIterator, BLOCK_SIZE,
 };
 use smallvec::{smallvec, SmallVec};
@@ -55,35 +58,80 @@ impl Compiler for MainEngine<'_> {
 
 impl Engine for MainEngine<'_> {
     #[inline]
-    fn run<I: Input, R: RecorderSpec>(&self, input: &I) -> Result<R::Result, EngineError> {
+    fn count<I>(&self, input: &I) -> Result<MatchCount, EngineError>
+    where
+        I: Input,
+    {
+        let recorder = CountRecorder::new();
+
         if self.automaton.is_empty_query() {
-            return empty_query::<I, R>(input);
+            empty_query(input, &recorder)?;
+            return Ok(recorder.into());
         }
 
-        let recorder = R::new();
         let executor = query_executor(&self.automaton, input, &recorder);
         executor.run()?;
 
-        Ok(recorder.finish())
+        Ok(recorder.into())
+    }
+
+    #[inline]
+    fn indices<I, S>(&self, input: &I, sink: &mut S) -> Result<(), EngineError>
+    where
+        I: Input,
+        S: Sink<MatchIndex>,
+    {
+        let recorder = IndexRecorder::new(sink);
+
+        if self.automaton.is_empty_query() {
+            empty_query(input, &recorder)?;
+            return Ok(());
+        }
+
+        let executor = query_executor(&self.automaton, input, &recorder);
+        executor.run()?;
+
+        Ok(())
+    }
+
+    #[inline]
+    fn run<I, S>(&self, input: &I, sink: &mut S) -> Result<(), EngineError>
+    where
+        I: Input,
+        S: Sink<Match>,
+    {
+        let recorder = NodesRecorder::build_recorder(sink);
+
+        if self.automaton.is_empty_query() {
+            return empty_query(input, &recorder);
+        }
+
+        let executor = query_executor(&self.automaton, input, &recorder);
+        executor.run()?;
+
+        Ok(())
     }
 }
 
-fn empty_query<I: Input, R: RecorderSpec>(bytes: &I) -> Result<R::Result, EngineError> {
-    let recorder = R::new();
+fn empty_query<'i, I, R>(input: &'i I, recorder: &R) -> Result<(), EngineError>
+where
+    I: Input + 'i,
+    R: Recorder<I::Block<'i, BLOCK_SIZE>>,
+{
     {
-        let iter = bytes.iter_blocks(&recorder);
+        let iter = input.iter_blocks(recorder);
         let quote_classifier = classify_quoted_sequences(iter);
         let mut block_event_source = classify_structural_characters(quote_classifier);
 
         let last_event = block_event_source.next()?;
         if let Some(Structural::Opening(_, idx)) = last_event {
             let mut depth = Depth::ONE;
-            recorder.record_match(idx, depth, MatchedNodeType::Complex);
+            recorder.record_match(idx, depth, MatchedNodeType::Complex)?;
 
             while let Some(ev) = block_event_source.next()? {
                 match ev {
                     Structural::Closing(_, idx) => {
-                        recorder.record_value_terminator(idx, depth);
+                        recorder.record_value_terminator(idx, depth)?;
                         depth.decrement().map_err(|err| EngineError::DepthBelowZero(idx, err))?;
                     }
                     Structural::Colon(_) => (),
@@ -92,13 +140,13 @@ fn empty_query<I: Input, R: RecorderSpec>(bytes: &I) -> Result<R::Result, Engine
                             .increment()
                             .map_err(|err| EngineError::DepthAboveLimit(idx, err))?;
                     }
-                    Structural::Comma(idx) => recorder.record_value_terminator(idx, depth),
+                    Structural::Comma(idx) => recorder.record_value_terminator(idx, depth)?,
                 }
             }
         }
     }
 
-    Ok(recorder.finish())
+    Ok(())
 }
 
 macro_rules! Classifier {
@@ -223,10 +271,7 @@ where
         .map(|x| x.0);
 
         match index {
-            Some(idx) => {
-                self.recorder.record_match(idx, self.depth, hint.into());
-                Ok(())
-            }
+            Some(idx) => self.recorder.record_match(idx, self.depth, hint.into()),
             None => Err(EngineError::MissingItem()),
         }
     }
@@ -278,9 +323,9 @@ where
                     if let Some(s) = self.next_event {
                         match s {
                             Structural::Closing(_, idx) => {
-                                self.recorder.record_value_terminator(idx, self.depth);
+                                self.recorder.record_value_terminator(idx, self.depth)?;
                             }
-                            Structural::Comma(idx) => self.recorder.record_value_terminator(idx, self.depth),
+                            Structural::Comma(idx) => self.recorder.record_value_terminator(idx, self.depth)?,
                             Structural::Colon(_) | Structural::Opening(_, _) => (),
                         }
                     }
@@ -300,7 +345,7 @@ where
         Q: QuoteClassifiedIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, BLOCK_SIZE>,
         S: StructuralIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, Q, BLOCK_SIZE>,
     {
-        self.recorder.record_value_terminator(idx, self.depth);
+        self.recorder.record_value_terminator(idx, self.depth)?;
         let is_next_opening = if let Some((_, c)) = self.input.seek_non_whitespace_forward(idx + 1)? {
             c == b'{' || c == b'['
         } else {
@@ -382,8 +427,7 @@ where
 
             if self.automaton.is_rejecting(fallback) {
                 let closing_idx = classifier.skip(bracket_type)?;
-                self.recorder.record_value_terminator(closing_idx, self.depth);
-                return Ok(());
+                return self.recorder.record_value_terminator(closing_idx, self.depth);
             } else {
                 self.transition_to(fallback, bracket_type);
             }
@@ -457,7 +501,7 @@ where
         self.depth
             .decrement()
             .map_err(|err| EngineError::DepthBelowZero(idx, err))?;
-        self.recorder.record_value_terminator(idx, self.depth);
+        self.recorder.record_value_terminator(idx, self.depth)?;
 
         if let Some(stack_frame) = self.stack.pop_if_at_or_below(*self.depth) {
             self.state = stack_frame.state;

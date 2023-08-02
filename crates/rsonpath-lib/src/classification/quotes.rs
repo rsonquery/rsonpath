@@ -77,9 +77,9 @@ pub trait InnerIter<I> {
     fn into_inner(self) -> I;
 }
 
-impl<'a, B, const N: usize> QuoteClassifiedBlock<B, N>
+impl<'i, B, const N: usize> QuoteClassifiedBlock<B, N>
 where
-    B: InputBlock<'a, N>,
+    B: InputBlock<'i, N>,
 {
     /// Returns the length of the classified block.
     #[must_use]
@@ -99,11 +99,11 @@ where
 cfg_if! {
     if #[cfg(any(doc, not(feature = "simd")))] {
         mod nosimd;
-        type ClassifierImpl<'a, 'r, I, R, const N: usize> = nosimd::SequentialQuoteClassifier<'a, 'r, I, R, N>;
+        type ClassifierImpl<'i, I, const N: usize> = nosimd::SequentialQuoteClassifier<'i, I, N>;
     }
     else if #[cfg(simd = "avx2")] {
         mod avx2;
-        type ClassifierImpl<'a, I> = avx2::Avx2QuoteClassifier<'a, I>;
+        type ClassifierImpl<'i, I> = avx2::Avx2QuoteClassifier<'i, I>;
     }
     else {
         compile_error!("Target architecture is not supported by SIMD features of this crate. Disable the default `simd` feature.");

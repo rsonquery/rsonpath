@@ -29,7 +29,7 @@ pub(crate) struct VectorIterator<'i, I, Q> {
     classifier: DelimiterClassifierImpl,
     were_commas_on: bool,
     were_colons_on: bool,
-    _phantom: (PhantomData<I>, PhantomData<&'i ()>),
+    phantom: PhantomData<(&'i (), I)>,
 }
 
 impl<'a, I, Q> VectorIterator<'a, I, Q>
@@ -41,9 +41,9 @@ where
         Self {
             iter,
             classifier: DelimiterClassifierImpl::new(opening),
-            _phantom: (PhantomData, PhantomData),
             were_commas_on: false,
             were_colons_on: false,
+            phantom: PhantomData,
         }
     }
 }
@@ -107,7 +107,7 @@ where
             VectorIterator {
                 iter: state.iter,
                 classifier,
-                _phantom: (PhantomData, PhantomData),
+                phantom: PhantomData,
                 were_commas_on: state.are_commas_on,
                 were_colons_on: state.are_colons_on,
             },

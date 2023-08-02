@@ -54,6 +54,7 @@ pub fn report_engine_error(error: EngineError) -> eyre::Report {
         EngineError::NotSupported(unsupported) => report_unsupported_error(unsupported),
         EngineError::InternalError(_) => eyre::Report::new(error),
         EngineError::InputError(_) => eyre::Report::new(error),
+        EngineError::SinkError(_) => eyre::Report::new(error),
     }
 }
 

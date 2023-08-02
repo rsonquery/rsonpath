@@ -10,11 +10,23 @@ mod tail_skipping;
 pub use main::MainEngine as RsonpathEngine;
 
 use self::error::EngineError;
-use crate::query::{automaton::Automaton, error::CompilerError, JsonPathQuery};
-use crate::{input::Input, result::RecorderSpec};
+use crate::{
+    input::Input,
+    query::{automaton::Automaton, error::CompilerError, JsonPathQuery},
+    result::{Match, MatchCount, MatchIndex, Sink},
+};
 
 /// An engine that can run its query on a given input.
 pub trait Engine {
+    fn count<I>(&self, input: &I) -> Result<MatchCount, EngineError>
+    where
+        I: Input;
+
+    fn indices<I, S>(&self, input: &I, sink: &mut S) -> Result<(), EngineError>
+    where
+        I: Input,
+        S: Sink<MatchIndex>;
+
     /// Compute a result using the given [`Recorder`] type on given [`Input`].
     ///
     /// # Errors
@@ -25,10 +37,10 @@ pub trait Engine {
     /// Some glaring errors like mismatched braces or double quotes are raised,
     /// but in general the result of an engine run on an invalid JSON is undefined.
     /// It _is_ guaranteed that the computation terminates and does not panic.
-    fn run<I, R>(&self, input: &I) -> Result<R::Result, EngineError>
+    fn run<I, S>(&self, input: &I, sink: &mut S) -> Result<(), EngineError>
     where
         I: Input,
-        R: RecorderSpec;
+        S: Sink<Match>;
 }
 
 /// An engine that can be created by compiling a [`JsonPathQuery`].

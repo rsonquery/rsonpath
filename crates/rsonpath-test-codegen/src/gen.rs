@@ -140,9 +140,9 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> impl IntoIterator<Item = T
             ResultTypeToTest::Count => {
                 let count = query.results.count;
                 quote! {
-                    let result = #engine_ident.run::<_, CountRecorderSpec>(&#input_ident)?;
+                    let result = #engine_ident.count(&#input_ident)?;
 
-                    assert_eq!(result.get(), #count, "result != expected");
+                    assert_eq!(result, #count, "result != expected");
                 }
             }
             ResultTypeToTest::Bytes => {
@@ -152,9 +152,10 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> impl IntoIterator<Item = T
                     .as_ref()
                     .expect("result without data in toml should be filtered out in get_available_results");
                 quote! {
-                    let result = #engine_ident.run::<_, IndexRecorderSpec>(&#input_ident)?;
+                    let mut result = vec![];
+                    #engine_ident.indices(&#input_ident, &mut result)?;
 
-                    assert_eq!(result.get(), vec![#(#bytes,)*], "result != expected");
+                    assert_eq!(result, vec![#(#bytes,)*], "result != expected");
                 }
             }
             ResultTypeToTest::Nodes => {
@@ -164,8 +165,10 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> impl IntoIterator<Item = T
                     .as_ref()
                     .expect("result without data in toml should be filtered out in get_available_results");
                 quote! {
-                    let result = #engine_ident.run::<_, NodesRecorderSpec>(&#input_ident)?;
-                    let utf8: Result<Vec<&str>, _> = result.iter_as_utf8().into_iter().collect();
+                    let mut result = vec![];
+                    #engine_ident.run(&#input_ident, &mut result)?;
+
+                    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
                     let utf8 = utf8.expect("valid utf8");
                     let expected: Vec<&str> = vec![#(#node_strings,)*];
 
@@ -195,10 +198,10 @@ pub(crate) fn generate_imports() -> TokenStream {
         use rsonpath::engine::{Compiler, Engine, main::MainEngine};
         use rsonpath::input::*;
         use rsonpath::query::JsonPathQuery;
-        use rsonpath::result::{count::CountRecorderSpec, index::IndexRecorderSpec, nodes::NodesRecorderSpec};
         use pretty_assertions::assert_eq;
         use std::error::Error;
         use std::fs;
+        use std::str;
     }
 }
 

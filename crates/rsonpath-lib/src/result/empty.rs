@@ -15,21 +15,6 @@ impl Display for EmptyResult {
 
 impl QueryResult for EmptyResult {}
 
-pub struct EmptyRecorderSpec;
-
-impl RecorderSpec for EmptyRecorderSpec {
-    type Result = EmptyResult;
-
-    type Recorder<B> = EmptyRecorder
-    where
-        B: Deref<Target = [u8]>;
-
-    #[inline(always)]
-    fn new<B: Deref<Target = [u8]>>() -> Self::Recorder<B> {
-        <EmptyRecorder as Recorder<B>>::new()
-    }
-}
-
 /// Recorder for [`EmptyResult`].
 pub struct EmptyRecorder;
 
@@ -41,25 +26,15 @@ impl<B: Deref<Target = [u8]>> InputRecorder<B> for EmptyRecorder {
 }
 
 impl<B: Deref<Target = [u8]>> Recorder<B> for EmptyRecorder {
-    type Result = EmptyResult;
-
     #[inline]
-    fn new() -> Self {
-        Self
-    }
-
-    #[inline]
-    fn record_match(&self, _idx: usize, _depth: Depth, _ty: MatchedNodeType) {
+    fn record_match(&self, _idx: usize, _depth: Depth, _ty: MatchedNodeType) -> Result<(), EngineError> {
         // Intentionally left empty.
+        Ok(())
     }
 
     #[inline]
-    fn record_value_terminator(&self, _idx: usize, _depth: Depth) {
+    fn record_value_terminator(&self, _idx: usize, _depth: Depth) -> Result<(), EngineError> {
         // Intentionally left empty.
-    }
-
-    #[inline]
-    fn finish(self) -> Self::Result {
-        EmptyResult
+        Ok(())
     }
 }

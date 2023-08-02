@@ -43,55 +43,45 @@ impl QueryResult for IndexResult {}
 
 pub struct IndexRecorderSpec;
 
-impl RecorderSpec for IndexRecorderSpec {
-    type Result = IndexResult;
+/// Recorder for [`IndexResult`].
+pub struct IndexRecorder<'s, S> {
+    sink: RefCell<&'s mut S>,
+}
 
-    type Recorder<B> = IndexRecorder
-    where
-        B: Deref<Target = [u8]>;
-
-    #[inline(always)]
-    fn new<B: Deref<Target = [u8]>>() -> Self::Recorder<B> {
-        <IndexRecorder as Recorder<B>>::new()
+impl<'s, S> IndexRecorder<'s, S> {
+    #[inline]
+    pub fn new(sink: &'s mut S) -> Self {
+        Self {
+            sink: RefCell::new(sink),
+        }
     }
 }
 
-/// Recorder for [`IndexResult`].
-pub struct IndexRecorder {
-    indices: RefCell<Vec<usize>>,
-}
-
-impl<B: Deref<Target = [u8]>> InputRecorder<B> for IndexRecorder {
+impl<'s, B: Deref<Target = [u8]>, S> InputRecorder<B> for IndexRecorder<'s, S>
+where
+    S: Sink<MatchIndex>,
+{
     #[inline(always)]
     fn record_block_start(&self, _new_block: B) {
         // Intentionally left empty.
     }
 }
 
-impl<B: Deref<Target = [u8]>> Recorder<B> for IndexRecorder {
-    type Result = IndexResult;
-
+impl<'s, B: Deref<Target = [u8]>, S> Recorder<B> for IndexRecorder<'s, S>
+where
+    S: Sink<MatchIndex>,
+{
     #[inline]
-    fn new() -> Self {
-        Self {
-            indices: RefCell::new(vec![]),
-        }
+    fn record_match(&self, idx: usize, _depth: Depth, _ty: MatchedNodeType) -> Result<(), EngineError> {
+        self.sink
+            .borrow_mut()
+            .add_match(idx)
+            .map_err(|err| EngineError::SinkError(Box::new(err)))
     }
 
     #[inline]
-    fn record_match(&self, idx: usize, _depth: Depth, _ty: MatchedNodeType) {
-        self.indices.borrow_mut().push(idx);
-    }
-
-    #[inline]
-    fn record_value_terminator(&self, _idx: usize, _depth: Depth) {
+    fn record_value_terminator(&self, _idx: usize, _depth: Depth) -> Result<(), EngineError> {
         // Intentionally left empty.
-    }
-
-    #[inline]
-    fn finish(self) -> Self::Result {
-        IndexResult {
-            indices: self.indices.into_inner(),
-        }
+        Ok(())
     }
 }

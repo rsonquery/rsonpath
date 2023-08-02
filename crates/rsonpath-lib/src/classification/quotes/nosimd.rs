@@ -1,34 +1,38 @@
 use super::*;
 use crate::{debug, input::InputBlockIterator, FallibleIterator};
+use std::marker::PhantomData;
 
-pub(crate) struct SequentialQuoteClassifier<'a, 'r, I: Input + 'a, R: InputRecorder, const N: usize>
+pub(crate) struct SequentialQuoteClassifier<'i, I, const N: usize>
 where
-    R: 'r,
+    I: InputBlockIterator<'i, N>,
 {
-    iter: I::BlockIterator<'a, 'r, N, R>,
+    iter: I,
     escaped: bool,
     in_quotes: bool,
+    phantom: PhantomData<&'i ()>,
 }
 
-impl<'a, 'r, I: Input, R: InputRecorder, const N: usize> SequentialQuoteClassifier<'a, 'r, I, R, N> {
+impl<'i, I, const N: usize> SequentialQuoteClassifier<'i, I, N>
+where
+    I: InputBlockIterator<'i, N>,
+{
     #[inline(always)]
-    pub(crate) fn new(input: &'a I, recorder: &'r R) -> Self {
+    pub(crate) fn new(iter: I) -> Self {
         Self {
-            iter: input.iter_blocks(recorder),
+            iter,
             escaped: false,
             in_quotes: false,
+            phantom: PhantomData,
         }
     }
 
     #[inline]
-    pub(crate) fn resume(
-        iter: I::BlockIterator<'a, 'r, N, R>,
-        first_block: Option<I::Block<'a, N>>,
-    ) -> (Self, Option<QuoteClassifiedBlock<I::Block<'a, N>, N>>) {
+    pub(crate) fn resume(iter: I, first_block: Option<I::Block>) -> (Self, Option<QuoteClassifiedBlock<I::Block, N>>) {
         let mut s = Self {
             iter,
             escaped: false,
             in_quotes: false,
+            phantom: PhantomData,
         };
 
         let block = first_block.map(|b| s.classify_block(b));
@@ -36,7 +40,7 @@ impl<'a, 'r, I: Input, R: InputRecorder, const N: usize> SequentialQuoteClassifi
         (s, block)
     }
 
-    fn classify_block(&mut self, block: I::Block<'a, N>) -> QuoteClassifiedBlock<I::Block<'a, N>, N> {
+    fn classify_block(&mut self, block: I::Block) -> QuoteClassifiedBlock<I::Block, N> {
         let mut mask = 0_u64;
         let mut idx_mask = 1;
 
@@ -65,10 +69,11 @@ impl<'a, 'r, I: Input, R: InputRecorder, const N: usize> SequentialQuoteClassifi
     }
 }
 
-impl<'a, 'r, I: Input, R: InputRecorder, const N: usize> FallibleIterator
-    for SequentialQuoteClassifier<'a, 'r, I, R, N>
+impl<'i, I, const N: usize> FallibleIterator for SequentialQuoteClassifier<'i, I, N>
+where
+    I: InputBlockIterator<'i, N>,
 {
-    type Item = QuoteClassifiedBlock<I::Block<'a, N>, N>;
+    type Item = QuoteClassifiedBlock<I::Block, N>;
     type Error = InputError;
 
     #[inline(always)]
@@ -80,18 +85,18 @@ impl<'a, 'r, I: Input, R: InputRecorder, const N: usize> FallibleIterator
     }
 }
 
-impl<'a, 'r, I: Input, R: InputRecorder, const N: usize> InnerIter<'a, 'r, I, R, N>
-    for SequentialQuoteClassifier<'a, 'r, I, R, N>
+impl<'i, I, const N: usize> InnerIter<I> for SequentialQuoteClassifier<'i, I, N>
+where
+    I: InputBlockIterator<'i, N>,
 {
-    fn into_inner(self) -> I::BlockIterator<'a, 'r, N, R> {
+    fn into_inner(self) -> I {
         self.iter
     }
 }
 
-impl<'a, 'r, I: Input, R: InputRecorder, const N: usize> QuoteClassifiedIterator<'a, I, N>
-    for SequentialQuoteClassifier<'a, 'r, I, R, N>
+impl<'i, I, const N: usize> QuoteClassifiedIterator<'i, I, N> for SequentialQuoteClassifier<'i, I, N>
 where
-    Self: 'a,
+    I: InputBlockIterator<'i, N>,
 {
     fn get_offset(&self) -> usize {
         self.iter.get_offset() - 64

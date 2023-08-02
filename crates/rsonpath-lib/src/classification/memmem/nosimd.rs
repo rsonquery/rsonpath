@@ -6,14 +6,22 @@ use crate::result::InputRecorder;
 use crate::FallibleIterator;
 use crate::{block, debug};
 
-pub(crate) struct SequentialMemmemClassifier<'a, 'b, 'r: 'a, I: Input, R: InputRecorder + 'r, const N: usize> {
-    input: &'a I,
-    iter: &'b mut I::BlockIterator<'a, 'r, N, R>,
+pub(crate) struct SequentialMemmemClassifier<'i, 'b, 'r, I, R, const N: usize>
+where
+    I: Input,
+    R: InputRecorder<I::Block<'i, N>> + 'r,
+{
+    input: &'i I,
+    iter: &'b mut I::BlockIterator<'i, 'r, N, R>,
 }
 
-impl<'a, 'b, 'r, I: Input, R: InputRecorder, const N: usize> SequentialMemmemClassifier<'a, 'b, 'r, I, R, N> {
+impl<'i, 'b, 'r, I, R, const N: usize> SequentialMemmemClassifier<'i, 'b, 'r, I, R, N>
+where
+    I: Input,
+    R: InputRecorder<I::Block<'i, N>> + 'r,
+{
     #[inline]
-    pub(crate) fn new(input: &'a I, iter: &'b mut I::BlockIterator<'a, 'r, N, R>) -> Self {
+    pub(crate) fn new(input: &'i I, iter: &'b mut I::BlockIterator<'i, 'r, N, R>) -> Self {
         Self { input, iter }
     }
 
@@ -22,7 +30,7 @@ impl<'a, 'b, 'r, I: Input, R: InputRecorder, const N: usize> SequentialMemmemCla
         &mut self,
         label: &JsonString,
         mut offset: usize,
-    ) -> Result<Option<(usize, I::Block<'a, N>)>, InputError> {
+    ) -> Result<Option<(usize, I::Block<'i, N>)>, InputError> {
         let label_size = label.bytes_with_quotes().len();
         let first_c = label.bytes()[0];
 
@@ -43,16 +51,18 @@ impl<'a, 'b, 'r, I: Input, R: InputRecorder, const N: usize> SequentialMemmemCla
     }
 }
 
-impl<'a, 'b, 'r, I: Input, R: InputRecorder, const N: usize> Memmem<'a, 'b, I, N>
-    for SequentialMemmemClassifier<'a, 'b, 'r, I, R, N>
+impl<'i, 'b, 'r, I, R, const N: usize> Memmem<'i, 'b, 'r, I, N> for SequentialMemmemClassifier<'i, 'b, 'r, I, R, N>
+where
+    I: Input,
+    R: InputRecorder<I::Block<'i, N>> + 'r,
 {
     // Output the relative offsets
     fn find_label(
         &mut self,
-        first_block: Option<I::Block<'a, N>>,
+        first_block: Option<I::Block<'i, N>>,
         start_idx: usize,
         label: &JsonString,
-    ) -> Result<Option<(usize, I::Block<'a, N>)>, InputError> {
+    ) -> Result<Option<(usize, I::Block<'i, N>)>, InputError> {
         let next_block_offset = self.iter.get_offset();
         if let Some(b) = first_block {
             let block_idx = start_idx % N;

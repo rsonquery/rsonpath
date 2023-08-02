@@ -31,24 +31,22 @@ impl Display for CountResult {
 
 impl QueryResult for CountResult {}
 
-pub struct CountRecorderSpec;
-
-impl RecorderSpec for CountRecorderSpec {
-    type Result = CountResult;
-
-    type Recorder<B> = CountRecorder
-    where
-        B: Deref<Target = [u8]>;
-
-    #[inline(always)]
-    fn new<B: Deref<Target = [u8]>>() -> Self::Recorder<B> {
-        <CountRecorder as Recorder<B>>::new()
-    }
-}
-
 /// Recorder for [`CountResult`].
 pub struct CountRecorder {
     count: Cell<u64>,
+}
+
+impl CountRecorder {
+    pub(crate) fn new() -> Self {
+        Self { count: Cell::new(0) }
+    }
+}
+
+impl From<CountRecorder> for u64 {
+    #[inline]
+    fn from(val: CountRecorder) -> Self {
+        val.count.into_inner()
+    }
 }
 
 impl<B: Deref<Target = [u8]>> InputRecorder<B> for CountRecorder {
@@ -59,27 +57,15 @@ impl<B: Deref<Target = [u8]>> InputRecorder<B> for CountRecorder {
 }
 
 impl<B: Deref<Target = [u8]>> Recorder<B> for CountRecorder {
-    type Result = CountResult;
-
     #[inline]
-    fn new() -> Self {
-        Self { count: Cell::new(0) }
-    }
-
-    #[inline]
-    fn record_match(&self, _idx: usize, _depth: Depth, _ty: MatchedNodeType) {
+    fn record_match(&self, _idx: usize, _depth: Depth, _ty: MatchedNodeType) -> Result<(), EngineError> {
         self.count.set(self.count.get() + 1);
+        Ok(())
     }
 
     #[inline]
-    fn finish(self) -> Self::Result {
-        CountResult {
-            count: self.count.into_inner(),
-        }
-    }
-
-    #[inline]
-    fn record_value_terminator(&self, _idx: usize, _depth: Depth) {
+    fn record_value_terminator(&self, _idx: usize, _depth: Depth) -> Result<(), EngineError> {
         // Intentionally left empty.
+        Ok(())
     }
 }

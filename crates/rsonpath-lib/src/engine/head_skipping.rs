@@ -187,7 +187,7 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
                                         next_idx,
                                         Depth::ZERO,
                                         crate::result::MatchedNodeType::Complex,
-                                    );
+                                    )?;
                                 }
                                 let classifier = resume_structural_classification(classifier_state);
                                 engine.run_on_subtree(
@@ -208,12 +208,12 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
                                     next_idx,
                                     Depth::ZERO,
                                     crate::result::MatchedNodeType::Atomic,
-                                );
+                                )?;
                                 let mut classifier = resume_structural_classification(classifier_state);
                                 let next_structural = classifier.next()?;
 
                                 match next_structural {
-                                    Some(s) => engine.recorder().record_value_terminator(s.idx(), Depth::ZERO),
+                                    Some(s) => engine.recorder().record_value_terminator(s.idx(), Depth::ZERO)?,
                                     None => return Err(EngineError::MissingClosingCharacter()),
                                 }
                                 classifier.stop()
