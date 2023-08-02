@@ -40,7 +40,7 @@
 //! // Compile the query. The engine can be reused to run the same query on different contents.
 //! let engine = RsonpathEngine::compile_query(&query)?;
 //! // Count the number of occurrences of elements satisfying the query.
-//! let count = engine.run::<_, CountRecorder>(&input)?.get();
+//! let count = engine.count(&input)?;
 //!
 //! assert_eq!(2, count);
 //! # Ok(())

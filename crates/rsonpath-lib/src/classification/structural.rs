@@ -15,12 +15,13 @@
 //! # Examples
 //! ```rust
 //! use rsonpath::classification::structural::{BracketType, Structural, classify_structural_characters};
-//! use rsonpath::input::OwnedBytes;
+//! use rsonpath::input::{Input, OwnedBytes};
 //! use rsonpath::result::empty::EmptyRecorder;
 //! use rsonpath::FallibleIterator;
 //!
 //! let json = r#"{"x": [{"y": 42}, {}]}""#.to_owned();
 //! let aligned = OwnedBytes::try_from(json).unwrap();
+//! let iter = aligned.iter_blocks::<_, 64>(&EmptyRecorder);
 //! let expected = vec![
 //!     Structural::Opening(BracketType::Curly, 0),
 //!     Structural::Opening(BracketType::Square, 6),
@@ -31,24 +32,25 @@
 //!     Structural::Closing(BracketType::Square, 20),
 //!     Structural::Closing(BracketType::Curly, 21)
 //! ];
-//! let quote_classifier = rsonpath::classification::quotes::classify_quoted_sequences(&aligned, &EmptyRecorder);
+//! let quote_classifier = rsonpath::classification::quotes::classify_quoted_sequences(iter);
 //! let actual = classify_structural_characters(quote_classifier).collect::<Vec<Structural>>().unwrap();
 //! assert_eq!(expected, actual);
 //! ```
 //! ```rust
 //! use rsonpath::classification::structural::{BracketType, Structural, classify_structural_characters};
 //! use rsonpath::classification::quotes::classify_quoted_sequences;
-//! use rsonpath::input::OwnedBytes;
+//! use rsonpath::input::{Input, OwnedBytes};
 //! use rsonpath::result::empty::EmptyRecorder;
 //! use rsonpath::FallibleIterator;
 //!
 //! let json = r#"{"x": "[\"\"]"}""#.to_owned();
 //! let aligned = OwnedBytes::try_from(json).unwrap();
+//! let iter = aligned.iter_blocks::<_, 64>(&EmptyRecorder);
 //! let expected = vec![
 //!     Structural::Opening(BracketType::Curly, 0),
 //!     Structural::Closing(BracketType::Curly, 14)
 //! ];
-//! let quote_classifier = classify_quoted_sequences(&aligned, &EmptyRecorder);
+//! let quote_classifier = classify_quoted_sequences(iter);
 //! let actual = classify_structural_characters(quote_classifier).collect::<Vec<Structural>>().unwrap();
 //! assert_eq!(expected, actual);
 //! ```

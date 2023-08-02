@@ -16,7 +16,7 @@
 //! # Examples
 //! ```
 //! use rsonpath::classification::quotes::{classify_quoted_sequences, QuoteClassifiedIterator};
-//! use rsonpath::input::OwnedBytes;
+//! use rsonpath::input::{Input, OwnedBytes};
 //! use rsonpath::result::empty::EmptyRecorder;
 //! use rsonpath::FallibleIterator;
 //!
@@ -25,7 +25,8 @@
 //! // The mask below appears reversed due to endianness.
 //! let expd = 0b000111111111111000110000110001111111000110;
 //! let input = OwnedBytes::try_from(json).unwrap();
-//! let mut quote_classifier = classify_quoted_sequences(&input, &EmptyRecorder);
+//! let iter = input.iter_blocks::<_, 64>(&EmptyRecorder);
+//! let mut quote_classifier = classify_quoted_sequences(iter);
 //!
 //! let block = quote_classifier.next().unwrap().unwrap();
 //! assert_eq!(expd, block.within_quotes_mask);
