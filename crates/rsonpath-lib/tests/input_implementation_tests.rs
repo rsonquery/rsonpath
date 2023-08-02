@@ -1,6 +1,7 @@
 use pretty_assertions::assert_eq;
 use rsonpath::{
     input::{error::InputError, *},
+    result::empty::EmptyRecorder,
     FallibleIterator,
 };
 use std::{cmp, fs, iter};
@@ -26,24 +27,6 @@ macro_rules! file_test_cases {
 file_test_cases!(buffered_input, FileTestInput::Buffered);
 file_test_cases!(mmap_input, FileTestInput::Mmap);
 file_test_cases!(owned_bytes, FileTestInput::Owned);
-
-mod in_memory_proptests {
-    use proptest::{collection, num, prelude::*};
-
-    use crate::InMemoryTestInput;
-
-    proptest! {
-        #[test]
-        fn buffered_input_represents_the_same_bytes_padded(input in collection::vec(num::u8::ANY, collection::SizeRange::default())) {
-            InMemoryTestInput::Buffered.test_on_bytes(&input)
-        }
-
-        #[test]
-        fn owned_bytes_represents_the_same_bytes_padded(input in collection::vec(num::u8::ANY, collection::SizeRange::default())) {
-            InMemoryTestInput::Owned.test_on_bytes(&input)
-        }
-    }
-}
 
 #[derive(Debug)]
 enum FileTestInput {
@@ -140,7 +123,7 @@ fn test_equivalence<I: Input>(original_contents: &[u8], input: I) {
 
 fn read_input_to_end<I: Input>(input: I) -> Result<Vec<u8>, InputError> {
     let mut result: Vec<u8> = vec![];
-    let mut iter = input.iter_blocks::<BLOCK_SIZE>();
+    let mut iter = input.iter_blocks::<_, BLOCK_SIZE>(&EmptyRecorder);
 
     while let Some(block) = iter.next()? {
         result.extend_from_slice(&block)
@@ -201,6 +184,24 @@ impl<'a> Read for ReadBytes<'a> {
             Ok(size)
         } else {
             Ok(0)
+        }
+    }
+}
+
+mod in_memory_proptests {
+    use proptest::{collection, num, prelude::*};
+
+    use crate::InMemoryTestInput;
+
+    proptest! {
+        #[test]
+        fn buffered_input_represents_the_same_bytes_padded(input in collection::vec(num::u8::ANY, collection::SizeRange::default())) {
+            InMemoryTestInput::Buffered.test_on_bytes(&input)
+        }
+
+        #[test]
+        fn owned_bytes_represents_the_same_bytes_padded(input in collection::vec(num::u8::ANY, collection::SizeRange::default())) {
+            InMemoryTestInput::Owned.test_on_bytes(&input)
         }
     }
 }

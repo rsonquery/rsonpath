@@ -2,9 +2,10 @@ use super::error::{ArrayIndexError, ParseErrorReport, ParserError};
 use crate::debug;
 use crate::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, JsonString, NonNegativeArrayIndex};
 use nom::{branch::*, bytes::complete::*, character::complete::*, combinator::*, multi::*, sequence::*, *};
-use std::borrow::Borrow;
-use std::fmt::{self, Display};
-
+use std::{
+    borrow::Borrow,
+    fmt::{self, Display},
+};
 #[derive(Debug, Clone)]
 enum Token<'a> {
     Root,
@@ -69,13 +70,15 @@ pub(crate) fn parse_json_path_query(query_string: &str) -> Result<JsonPathQuery,
     let finished = tokens_result.finish();
 
     match finished {
-        #[allow(unused_variables)]
-        Ok(("", (root_token, tokens))) => {
-            debug!(
-                "Parsed tokens: {}",
-                root_token.map_or(String::new(), |x| format!("{x}"))
-                    + &tokens.iter().map(|x| format!("({x:?})")).collect::<String>()
-            );
+        Ok(("", (_root_token, tokens))) => {
+            debug!("Parsed tokens: {}", {
+                use fmt::Write;
+                _root_token.map_or(String::new(), |x| format!("{x}"))
+                    + &tokens.iter().fold(String::new(), |mut out, x| {
+                        write!(out, "({x:?})").expect("infallible");
+                        out
+                    })
+            });
             let node = tokens_to_node(&mut tokens.into_iter())?;
             Ok(match node {
                 None => JsonPathQuery::new(Box::new(JsonPathQueryNode::Root(None))),

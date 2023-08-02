@@ -59,14 +59,14 @@ description = "descendant search for url"
 count = 8
 bytes = [45, 170, 323, 473, 672, 883, 1013, 1100]
 nodes = [
-    '''http:\/\/www.roadshowrigoletto.com\/''',
-    '''http:\/\/www.thinkprogress.org''',
-    '''https:\/\/t.co\/B6T1jj2hST''',
-    '''https:\/\/t.co\/blQy8JxViF''',
-    '''https:\/\/t.co\/blQy8JxViF''',
-    '''https:\/\/t.co\/B6T1jj2hST''',
-    '''https:\/\/t.co\/blQy8JxViF''',
-    '''https:\/\/t.co\/blQy8JxViF''',
+    '''"http:\/\/www.roadshowrigoletto.com\/"''',
+    '''"http:\/\/www.thinkprogress.org"''',
+    '''"https:\/\/t.co\/B6T1jj2hST"''',
+    '''"https:\/\/t.co\/blQy8JxViF"''',
+    '''"https:\/\/t.co\/blQy8JxViF"''',
+    '''"https:\/\/t.co\/B6T1jj2hST"''',
+    '''"https:\/\/t.co\/blQy8JxViF"''',
+    '''"https:\/\/t.co\/blQy8JxViF"''',
 ]
 
 [[queries]]
@@ -77,10 +77,10 @@ description = "descendant entities then url"
 count = 4
 bytes = [323, 473, 883, 1013]
 nodes = [
-    '''https:\/\/t.co\/B6T1jj2hST''',
-    '''https:\/\/t.co\/blQy8JxViF''',
-    '''https:\/\/t.co\/B6T1jj2hST''',
-    '''https:\/\/t.co\/blQy8JxViF''',
+    '''"https:\/\/t.co\/B6T1jj2hST"''',
+    '''"https:\/\/t.co\/blQy8JxViF"''',
+    '''"https:\/\/t.co\/B6T1jj2hST"''',
+    '''"https:\/\/t.co\/blQy8JxViF"''',
 ]
 
 [[queries]]
@@ -91,8 +91,8 @@ description = "descendant for url limited to urls arrays"
 count = 2
 bytes = [323, 883]
 nodes = [
-    '''https:\/\/t.co\/B6T1jj2hST''',
-    '''https:\/\/t.co\/B6T1jj2hST''',
+    '''"https:\/\/t.co\/B6T1jj2hST"''',
+    '''"https:\/\/t.co\/B6T1jj2hST"''',
 ]
 
 [[queries]]
@@ -103,8 +103,8 @@ description = "descendant for url limited to direct urls arrays"
 count = 2
 bytes = [323, 883]
 nodes = [
-    '''https:\/\/t.co\/B6T1jj2hST''',
-    '''https:\/\/t.co\/B6T1jj2hST''',
+    '''"https:\/\/t.co\/B6T1jj2hST"''',
+    '''"https:\/\/t.co\/B6T1jj2hST"''',
 ]
 
 [[queries]]
@@ -115,5 +115,5 @@ description = "direct path to the top-level url"
 count = 1
 bytes = [1100]
 nodes = [
-    '''https:\/\/t.co\/blQy8JxViF''',
+    '''"https:\/\/t.co\/blQy8JxViF"''',
 ]

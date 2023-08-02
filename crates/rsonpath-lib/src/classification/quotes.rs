@@ -16,7 +16,8 @@
 //! # Examples
 //! ```
 //! use rsonpath::classification::quotes::{classify_quoted_sequences, QuoteClassifiedIterator};
-//! use rsonpath::input::OwnedBytes;
+//! use rsonpath::input::{Input, OwnedBytes};
+//! use rsonpath::result::empty::EmptyRecorder;
 //! use rsonpath::FallibleIterator;
 //!
 //! let json = r#"{"x": "string", "y": {"z": "\"escaped\""}}"#.to_owned();
@@ -24,14 +25,15 @@
 //! // The mask below appears reversed due to endianness.
 //! let expd = 0b000111111111111000110000110001111111000110;
 //! let input = OwnedBytes::try_from(json).unwrap();
-//! let mut quote_classifier = classify_quoted_sequences(&input);
+//! let iter = input.iter_blocks::<_, 64>(&EmptyRecorder);
+//! let mut quote_classifier = classify_quoted_sequences(iter);
 //!
 //! let block = quote_classifier.next().unwrap().unwrap();
 //! assert_eq!(expd, block.within_quotes_mask);
 //! ```
 
 use crate::input::error::InputError;
-use crate::input::{IBlock, Input, InputBlock};
+use crate::input::{InputBlock, InputBlockIterator};
 use crate::{FallibleIterator, BLOCK_SIZE};
 use cfg_if::cfg_if;
 
@@ -53,8 +55,8 @@ pub struct QuoteClassifiedBlock<B, const N: usize> {
 /// Trait for quote classifier iterators, i.e. finite iterators
 /// enriching blocks of input with quote bitmasks.
 /// Iterator is allowed to hold a reference to the JSON document valid for `'a`.
-pub trait QuoteClassifiedIterator<'a, I: Input + 'a, const N: usize>:
-    FallibleIterator<Item = QuoteClassifiedBlock<IBlock<'a, I, N>, N>, Error = InputError> + 'a
+pub trait QuoteClassifiedIterator<'i, I: InputBlockIterator<'i, N>, const N: usize>:
+    FallibleIterator<Item = QuoteClassifiedBlock<I::Block, N>, Error = InputError>
 {
     /// Get the total offset in bytes from the beginning of input.
     fn get_offset(&self) -> usize;
@@ -70,9 +72,16 @@ pub trait QuoteClassifiedIterator<'a, I: Input + 'a, const N: usize>:
     fn flip_quotes_bit(&mut self);
 }
 
-impl<'a, B, const N: usize> QuoteClassifiedBlock<B, N>
+/// Higher-level classifier that can be consumed to retrieve the inner
+/// [`Input::BlockIterator`](crate::input::Input::BlockIterator).
+pub trait InnerIter<I> {
+    /// Consume `self` and return the wrapped [`Input::BlockIterator`](crate::input::Input::BlockIterator).
+    fn into_inner(self) -> I;
+}
+
+impl<'i, B, const N: usize> QuoteClassifiedBlock<B, N>
 where
-    B: InputBlock<'a, N>,
+    B: InputBlock<'i, N>,
 {
     /// Returns the length of the classified block.
     #[must_use]
@@ -92,11 +101,11 @@ where
 cfg_if! {
     if #[cfg(any(doc, not(feature = "simd")))] {
         mod nosimd;
-        type ClassifierImpl<'a, I, const N: usize> = nosimd::SequentialQuoteClassifier<'a, I, N>;
+        type ClassifierImpl<'i, I, const N: usize> = nosimd::SequentialQuoteClassifier<'i, I, N>;
     }
     else if #[cfg(simd = "avx2")] {
         mod avx2;
-        type ClassifierImpl<'a, I> = avx2::Avx2QuoteClassifier<'a, I>;
+        type ClassifierImpl<'i, I> = avx2::Avx2QuoteClassifier<'i, I>;
     }
     else {
         compile_error!("Target architecture is not supported by SIMD features of this crate. Disable the default `simd` feature.");
@@ -107,6 +116,22 @@ cfg_if! {
 /// and classify quoted sequences.
 #[must_use]
 #[inline(always)]
-pub fn classify_quoted_sequences<I: Input>(bytes: &I) -> impl QuoteClassifiedIterator<I, BLOCK_SIZE> {
-    ClassifierImpl::new(bytes)
+pub fn classify_quoted_sequences<'i, I>(iter: I) -> impl QuoteClassifiedIterator<'i, I, BLOCK_SIZE> + InnerIter<I>
+where
+    I: InputBlockIterator<'i, BLOCK_SIZE>,
+{
+    ClassifierImpl::new(iter)
+}
+
+pub(crate) fn resume_quote_classification<'i, I>(
+    iter: I,
+    first_block: Option<I::Block>,
+) -> (
+    impl QuoteClassifiedIterator<'i, I, BLOCK_SIZE> + InnerIter<I>,
+    Option<QuoteClassifiedBlock<I::Block, BLOCK_SIZE>>,
+)
+where
+    I: InputBlockIterator<'i, BLOCK_SIZE>,
+{
+    ClassifierImpl::resume(iter, first_block)
 }

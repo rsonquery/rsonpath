@@ -1,18 +1,17 @@
 use super::*;
 use crate::classification::{quotes::QuoteClassifiedBlock, ResumeClassifierBlockState};
 use crate::debug;
-use crate::input::IBlock;
 use std::marker::PhantomData;
 
-pub(crate) struct VectorIterator<'a, I: Input, Q, const N: usize> {
+pub(crate) struct VectorIterator<'i, I, Q, const N: usize> {
     iter: Q,
     opening: BracketType,
     were_commas_on: bool,
     were_colons_on: bool,
-    phantom: PhantomData<&'a I>,
+    phantom: PhantomData<(&'i (), I)>,
 }
 
-impl<'a, I: Input, Q, const N: usize> VectorIterator<'a, I, Q, N> {
+impl<'i, I, Q, const N: usize> VectorIterator<'i, I, Q, N> {
     pub(crate) fn new(iter: Q, opening: BracketType) -> Self {
         Self {
             iter,
@@ -24,10 +23,12 @@ impl<'a, I: Input, Q, const N: usize> VectorIterator<'a, I, Q, N> {
     }
 }
 
-impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> FallibleIterator
-    for VectorIterator<'a, I, Q, N>
+impl<'i, I, Q, const N: usize> FallibleIterator for VectorIterator<'i, I, Q, N>
+where
+    I: InputBlockIterator<'i, N>,
+    Q: QuoteClassifiedIterator<'i, I, N>,
 {
-    type Item = Vector<'a, I, N>;
+    type Item = Vector<'i, I, N>;
     type Error = InputError;
 
     fn next(&mut self) -> Result<Option<Self::Item>, InputError> {
@@ -36,12 +37,14 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> Fallibl
     }
 }
 
-impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> DepthIterator<'a, I, Q, N>
-    for VectorIterator<'a, I, Q, N>
+impl<'i, I, Q, const N: usize> DepthIterator<'i, I, Q, N> for VectorIterator<'i, I, Q, N>
+where
+    I: InputBlockIterator<'i, N>,
+    Q: QuoteClassifiedIterator<'i, I, N>,
 {
-    type Block = Vector<'a, I, N>;
+    type Block = Vector<'i, I, N>;
 
-    fn stop(self, block: Option<Self::Block>) -> ResumeClassifierState<'a, I, Q, N> {
+    fn stop(self, block: Option<Self::Block>) -> ResumeClassifierState<'i, I, Q, N> {
         let block_state = block.and_then(|b| {
             debug!("Depth iterator stopping at index {}", b.idx);
             if b.idx >= b.quote_classified.len() {
@@ -62,7 +65,7 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> DepthIt
         }
     }
 
-    fn resume(state: ResumeClassifierState<'a, I, Q, N>, opening: BracketType) -> (Option<Self::Block>, Self) {
+    fn resume(state: ResumeClassifierState<'i, I, Q, N>, opening: BracketType) -> (Option<Self::Block>, Self) {
         let first_block = state.block.map(|b| Vector::new_from(b.block, opening, b.idx));
 
         (
@@ -78,21 +81,27 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> DepthIt
     }
 }
 
-pub(crate) struct Vector<'a, I: Input + 'a, const N: usize> {
-    quote_classified: QuoteClassifiedBlock<IBlock<'a, I, N>, N>,
+pub(crate) struct Vector<'i, I, const N: usize>
+where
+    I: InputBlockIterator<'i, N>,
+{
+    quote_classified: QuoteClassifiedBlock<I::Block, N>,
     depth: isize,
     idx: usize,
     bracket_type: BracketType,
 }
 
-impl<'a, I: Input, const N: usize> Vector<'a, I, N> {
+impl<'i, I, const N: usize> Vector<'i, I, N>
+where
+    I: InputBlockIterator<'i, N>,
+{
     #[inline]
-    pub(crate) fn new(bytes: QuoteClassifiedBlock<IBlock<'a, I, N>, N>, opening: BracketType) -> Self {
+    pub(crate) fn new(bytes: QuoteClassifiedBlock<I::Block, N>, opening: BracketType) -> Self {
         Self::new_from(bytes, opening, 0)
     }
 
     #[inline]
-    fn new_from(bytes: QuoteClassifiedBlock<IBlock<'a, I, N>, N>, opening: BracketType, idx: usize) -> Self {
+    fn new_from(bytes: QuoteClassifiedBlock<I::Block, N>, opening: BracketType, idx: usize) -> Self {
         Self {
             quote_classified: bytes,
             depth: 0,
@@ -135,7 +144,10 @@ impl<'a, I: Input, const N: usize> Vector<'a, I, N> {
     }
 }
 
-impl<'a, I: Input, const N: usize> DepthBlock<'a> for Vector<'a, I, N> {
+impl<'i, I, const N: usize> DepthBlock<'i> for Vector<'i, I, N>
+where
+    I: InputBlockIterator<'i, N>,
+{
     #[inline]
     fn get_depth(&self) -> isize {
         self.depth

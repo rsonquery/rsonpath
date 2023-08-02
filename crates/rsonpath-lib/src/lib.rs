@@ -8,7 +8,7 @@
 //! use rsonpath::engine::{Compiler, Engine, RsonpathEngine};
 //! use rsonpath::input::OwnedBytes;
 //! use rsonpath::query::JsonPathQuery;
-//! use rsonpath::result::CountResult;
+//! use rsonpath::result::count::CountRecorder;
 //! # use std::error::Error;
 //!
 //! # fn main() -> Result<(), Box<dyn Error>> {
@@ -40,7 +40,7 @@
 //! // Compile the query. The engine can be reused to run the same query on different contents.
 //! let engine = RsonpathEngine::compile_query(&query)?;
 //! // Count the number of occurrences of elements satisfying the query.
-//! let count = engine.run::<_, CountResult>(&input)?.get();
+//! let count = engine.count(&input)?;
 //!
 //! assert_eq!(2, count);
 //! # Ok(())
@@ -199,6 +199,7 @@
 /*#![cfg_attr(not(feature = "simd"), forbid(unsafe_code))]*/
 
 pub mod classification;
+mod depth;
 pub mod engine;
 pub mod error;
 pub mod input;
@@ -223,6 +224,21 @@ cfg_if::cfg_if! {
 macro_rules! debug {
     (target: $target:expr, $($arg:tt)+) => (log::debug!(target: $target, $($arg)+));
     ($($arg:tt)+) => (log::debug!($($arg)+))
+}
+
+macro_rules! block {
+    ($b:expr) => {
+        crate::debug!(
+            "{: >24}: {}",
+            "block",
+            std::str::from_utf8(
+                &$b.iter()
+                    .map(|x| if x.is_ascii_whitespace() { b' ' } else { *x })
+                    .collect::<Vec<_>>()
+            )
+            .unwrap()
+        );
+    };
 }
 
 /// Macro for debug logging. Evaluates to [`log::debug`], if debug assertions are enabled.
@@ -258,6 +274,7 @@ macro_rules! bin {
 
 #[allow(unused_imports)]
 pub(crate) use bin;
+pub(crate) use block;
 pub(crate) use debug;
 
 /// Variation of the [`Iterator`] trait where each read can fail.

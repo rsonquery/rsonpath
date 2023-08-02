@@ -9,8 +9,10 @@
 //! This type of input is the fastest to process for the engine,
 //! since there is no additional overhead from loading anything to memory.
 
+use log::debug;
+
 use super::*;
-use crate::query::JsonString;
+use crate::{query::JsonString, result::InputRecorder};
 
 /// Input wrapping a borrowed [`[u8]`] buffer.
 pub struct BorrowedBytes<'a> {
@@ -19,10 +21,11 @@ pub struct BorrowedBytes<'a> {
 }
 
 /// Iterator over blocks of [`BorrowedBytes`] of size exactly `N`.
-pub struct BorrowedBytesBlockIterator<'a, const N: usize> {
+pub struct BorrowedBytesBlockIterator<'a, 'r, const N: usize, R> {
     input: &'a [u8],
     last_block: &'a LastBlock,
     idx: usize,
+    recorder: &'r R,
 }
 
 impl<'a> BorrowedBytes<'a> {
@@ -71,27 +74,39 @@ impl<'a> AsRef<[u8]> for BorrowedBytes<'a> {
     }
 }
 
-impl<'a, const N: usize> BorrowedBytesBlockIterator<'a, N> {
+impl<'a, 'r, const N: usize, R> BorrowedBytesBlockIterator<'a, 'r, N, R>
+where
+    R: InputRecorder<&'a [u8]>,
+{
     #[must_use]
     #[inline(always)]
-    pub(super) fn new(bytes: &'a [u8], last_block: &'a LastBlock) -> Self {
+    pub(super) fn new(bytes: &'a [u8], last_block: &'a LastBlock, recorder: &'r R) -> Self {
         Self {
             input: bytes,
             idx: 0,
             last_block,
+            recorder,
         }
     }
 }
 
 impl<'a> Input for BorrowedBytes<'a> {
-    type BlockIterator<'b, const N: usize> = BorrowedBytesBlockIterator<'b, N> where Self: 'b;
+    type BlockIterator<'b, 'r, const N: usize, R> = BorrowedBytesBlockIterator<'b, 'r, N, R>
+    where Self: 'b,
+          R: InputRecorder<&'b [u8]> + 'r;
+
+    type Block<'b, const N: usize> = &'b [u8] where Self: 'b;
 
     #[inline(always)]
-    fn iter_blocks<const N: usize>(&self) -> Self::BlockIterator<'_, N> {
+    fn iter_blocks<'b, 'r, R, const N: usize>(&'b self, recorder: &'r R) -> Self::BlockIterator<'b, 'r, N, R>
+    where
+        R: InputRecorder<&'b [u8]>,
+    {
         Self::BlockIterator {
             input: self.bytes,
             idx: 0,
             last_block: &self.last_block,
+            recorder,
         }
     }
 
@@ -126,34 +141,54 @@ impl<'a> Input for BorrowedBytes<'a> {
     }
 }
 
-impl<'a, const N: usize> FallibleIterator for BorrowedBytesBlockIterator<'a, N> {
+impl<'a, 'r, const N: usize, R> FallibleIterator for BorrowedBytesBlockIterator<'a, 'r, N, R>
+where
+    R: InputRecorder<&'a [u8]>,
+{
     type Item = &'a [u8];
     type Error = InputError;
 
     #[inline]
     fn next(&mut self) -> Result<Option<Self::Item>, Self::Error> {
+        debug!("next!");
+
         if self.idx >= self.input.len() {
             Ok(None)
         } else if self.idx >= self.last_block.absolute_start {
             let i = self.idx - self.last_block.absolute_start;
             self.idx += N;
+            let block = &self.last_block.bytes[i..i + N];
 
-            Ok(Some(&self.last_block.bytes[i..i + N]))
+            self.recorder.record_block_start(block);
+
+            Ok(Some(block))
         } else {
             let block = &self.input[self.idx..self.idx + N];
             self.idx += N;
+
+            self.recorder.record_block_start(block);
 
             Ok(Some(block))
         }
     }
 }
 
-impl<'a, const N: usize> InputBlockIterator<'a, N> for BorrowedBytesBlockIterator<'a, N> {
+impl<'a, 'r, const N: usize, R> InputBlockIterator<'a, N> for BorrowedBytesBlockIterator<'a, 'r, N, R>
+where
+    R: InputRecorder<&'a [u8]> + 'r,
+{
     type Block = &'a [u8];
 
     #[inline(always)]
     fn offset(&mut self, count: isize) {
         assert!(count >= 0);
+        debug!("offsetting input iter by {count}");
         self.idx += count as usize * N;
+    }
+
+    #[inline(always)]
+    fn get_offset(&self) -> usize {
+        debug!("getting input iter {}", self.idx);
+        self.idx
     }
 }

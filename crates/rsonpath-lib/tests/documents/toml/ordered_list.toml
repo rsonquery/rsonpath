@@ -1,0 +1,51 @@
+# Define the JSON input for all query test cases.
+[input]
+# Short description of the input structure.
+description = "List with nested sublists to stress output ordering."
+ # Set to true only if your specific test input is fully compressed (no extraneous whitespace).
+is_compressed = false
+
+# Inline JSON document.
+[input.source]
+json_string = '''
+[
+  1,
+  2,
+  [
+    {},
+    4
+  ],
+  [
+    5
+  ]
+]
+'''
+
+# Define queries to test on the input.
+[[queries]]
+ # Valid JSONPath query string.
+query = "$..*"
+# Short descritpion of the query semantics.
+description = "select all subdocuments"
+
+[queries.results]
+# Number of expected matches.
+count = 7
+# Byte locations of starts of all matches, in order.
+bytes = [4, 9, 14, 20, 28, 37, 43] 
+# Stringified values of all matches, verbatim as in the input,
+# in the same order as above.
+nodes = [
+  "1",
+  "2",
+  '''[
+    {},
+    4
+  ]''',
+  "{}",
+  "4",
+  '''[
+    5
+  ]''',
+  "5"
+]

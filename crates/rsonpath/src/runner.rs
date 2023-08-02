@@ -9,7 +9,7 @@ use rsonpath_lib::{
     engine::{error::EngineError, main::MainEngine, Compiler, Engine},
     input::{BufferedInput, Input, MmapInput, OwnedBytes},
     query::automaton::Automaton,
-    result::{CountResult, IndexResult},
+    result::MatchWriter,
 };
 use std::{
     fs,
@@ -56,6 +56,7 @@ pub fn resolve_output(result_arg: ResultArg) -> ResolvedOutput {
     match result_arg {
         ResultArg::Bytes => ResolvedOutput::Index,
         ResultArg::Count => ResolvedOutput::Count,
+        ResultArg::Nodes => ResolvedOutput::Nodes,
     }
 }
 
@@ -76,6 +77,7 @@ pub struct ResolvedInput {
 pub enum ResolvedOutput {
     Count,
     Index,
+    Nodes,
 }
 
 impl ResolvedInput {
@@ -122,12 +124,16 @@ impl ResolvedOutput {
         fn run_impl<E: Engine, I: Input>(out: ResolvedOutput, engine: E, input: I) -> Result<(), EngineError> {
             match out {
                 ResolvedOutput::Count => {
-                    let result = engine.run::<_, CountResult>(&input)?;
+                    let result = engine.count(&input)?;
                     print!("{result}");
                 }
                 ResolvedOutput::Index => {
-                    let result = engine.run::<_, IndexResult>(&input)?;
-                    print!("{result}");
+                    let mut sink = MatchWriter::from(io::stdout().lock());
+                    engine.indices(&input, &mut sink)?;
+                }
+                ResolvedOutput::Nodes => {
+                    let mut sink = MatchWriter::from(io::stdout().lock());
+                    engine.matches(&input, &mut sink)?;
                 }
             }
 

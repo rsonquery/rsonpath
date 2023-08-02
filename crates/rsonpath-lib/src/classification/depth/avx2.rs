@@ -14,7 +14,7 @@ cfg_if::cfg_if! {
 
 use crate::classification::{quotes::QuoteClassifiedBlock, ResumeClassifierBlockState};
 use crate::input::error::InputError;
-use crate::input::{IBlock, Input, InputBlock};
+use crate::input::InputBlock;
 use crate::{bin, debug, FallibleIterator};
 use std::marker::PhantomData;
 
@@ -24,28 +24,36 @@ use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 
-pub(crate) struct VectorIterator<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> {
+pub(crate) struct VectorIterator<'i, I, Q> {
     iter: Q,
     classifier: DelimiterClassifierImpl,
     were_commas_on: bool,
     were_colons_on: bool,
-    phantom: PhantomData<&'a I>,
+    phantom: PhantomData<(&'i (), I)>,
 }
 
-impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> VectorIterator<'a, I, Q> {
+impl<'a, I, Q> VectorIterator<'a, I, Q>
+where
+    I: InputBlockIterator<'a, 64>,
+    Q: QuoteClassifiedIterator<'a, I, 64>,
+{
     pub(crate) fn new(iter: Q, opening: BracketType) -> Self {
         Self {
             iter,
             classifier: DelimiterClassifierImpl::new(opening),
-            phantom: PhantomData,
             were_commas_on: false,
             were_colons_on: false,
+            phantom: PhantomData,
         }
     }
 }
 
-impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> FallibleIterator for VectorIterator<'a, I, Q> {
-    type Item = Vector<'a, I>;
+impl<'a, I, Q> FallibleIterator for VectorIterator<'a, I, Q>
+where
+    I: InputBlockIterator<'a, 64>,
+    Q: QuoteClassifiedIterator<'a, I, 64>,
+{
+    type Item = Vector<'a, I::Block>;
     type Error = InputError;
 
     #[inline(always)]
@@ -55,8 +63,12 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> FallibleIterator for V
     }
 }
 
-impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> DepthIterator<'a, I, Q, 64> for VectorIterator<'a, I, Q> {
-    type Block = Vector<'a, I>;
+impl<'a, I, Q> DepthIterator<'a, I, Q, 64> for VectorIterator<'a, I, Q>
+where
+    I: InputBlockIterator<'a, 64>,
+    Q: QuoteClassifiedIterator<'a, I, 64>,
+{
+    type Block = Vector<'a, I::Block>;
 
     fn stop(self, block: Option<Self::Block>) -> ResumeClassifierState<'a, I, Q, 64> {
         let block_state = block.and_then(|b| {
@@ -116,27 +128,24 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, 64>> DepthIterator<'a, I, Q
     doc(cfg(all(target_feature = "avx2", any(target_arch = "x86", target_arch = "x86_64"))))
 )]
 
-pub(crate) struct Vector<'a, I: Input + 'a> {
-    quote_classified: QuoteClassifiedBlock<IBlock<'a, I, 64>, 64>,
+pub(crate) struct Vector<'a, B: InputBlock<'a, 64>> {
+    quote_classified: QuoteClassifiedBlock<B, 64>,
     opening_mask: u64,
     opening_count: u32,
     closing_mask: u64,
     idx: usize,
     depth: i32,
+    phantom: PhantomData<&'a ()>,
 }
 
-impl<'a, I: Input> Vector<'a, I> {
+impl<'a, B: InputBlock<'a, 64>> Vector<'a, B> {
     #[inline]
-    fn new(bytes: QuoteClassifiedBlock<IBlock<'a, I, 64>, 64>, classifier: &DelimiterClassifierImpl) -> Self {
+    fn new(bytes: QuoteClassifiedBlock<B, 64>, classifier: &DelimiterClassifierImpl) -> Self {
         Self::new_from(bytes, classifier, 0)
     }
 
     #[inline]
-    fn new_from(
-        bytes: QuoteClassifiedBlock<IBlock<'a, I, 64>, 64>,
-        classifier: &DelimiterClassifierImpl,
-        idx: usize,
-    ) -> Self {
+    fn new_from(bytes: QuoteClassifiedBlock<B, 64>, classifier: &DelimiterClassifierImpl, idx: usize) -> Self {
         // SAFETY: target_feature invariant
         unsafe { Self::new_avx2(bytes, classifier, idx) }
     }
@@ -144,7 +153,7 @@ impl<'a, I: Input> Vector<'a, I> {
     #[target_feature(enable = "avx2")]
     #[inline]
     unsafe fn new_avx2(
-        bytes: QuoteClassifiedBlock<IBlock<'a, I, 64>, 64>,
+        bytes: QuoteClassifiedBlock<B, 64>,
         classifier: &DelimiterClassifierImpl,
         start_idx: usize,
     ) -> Self {
@@ -171,11 +180,12 @@ impl<'a, I: Input> Vector<'a, I> {
             opening_count: opening_mask.count_ones(),
             depth: 0,
             idx: 0,
+            phantom: PhantomData,
         }
     }
 }
 
-impl<'a, I: Input> DepthBlock<'a> for Vector<'a, I> {
+impl<'a, B: InputBlock<'a, 64>> DepthBlock<'a> for Vector<'a, B> {
     #[inline(always)]
     fn advance_to_next_depth_decrease(&mut self) -> bool {
         let next_closing = self.closing_mask.trailing_zeros() as usize;
@@ -231,8 +241,7 @@ impl<'a, I: Input> DepthBlock<'a> for Vector<'a, I> {
 }
 
 struct DelimiterClassifierImpl {
-    opening_mask: __m256i,
-    closing_mask: __m256i,
+    opening: i8,
 }
 
 impl DelimiterClassifierImpl {
@@ -242,28 +251,28 @@ impl DelimiterClassifierImpl {
             BracketType::Square => b'[',
             BracketType::Curly => b'{',
         };
-        let closing = opening + 2;
 
-        // SAFETY: target_feature invariant
-        unsafe {
-            let opening_mask = _mm256_set1_epi8(opening as i8);
-            let closing_mask = _mm256_set1_epi8(closing as i8);
-
-            Self {
-                opening_mask,
-                closing_mask,
-            }
-        }
+        Self { opening: opening as i8 }
     }
 
-    #[inline(always)]
-    fn get_opening_and_closing_vectors(&self, bytes: &[u8]) -> (__m256i, __m256i) {
+    #[target_feature(enable = "avx2")]
+    unsafe fn opening_mask(&self) -> __m256i {
+        _mm256_set1_epi8(self.opening)
+    }
+
+    #[target_feature(enable = "avx2")]
+    unsafe fn closing_mask(&self) -> __m256i {
+        _mm256_set1_epi8(self.opening + 2)
+    }
+
+    #[target_feature(enable = "avx2")]
+    unsafe fn get_opening_and_closing_vectors(&self, bytes: &[u8]) -> (__m256i, __m256i) {
         assert_eq!(32, bytes.len());
         // SAFETY: target_feature invariant
         unsafe {
             let byte_vector = _mm256_loadu_si256(bytes.as_ptr().cast::<__m256i>());
-            let opening_brace_cmp = _mm256_cmpeq_epi8(byte_vector, self.opening_mask);
-            let closing_brace_cmp = _mm256_cmpeq_epi8(byte_vector, self.closing_mask);
+            let opening_brace_cmp = _mm256_cmpeq_epi8(byte_vector, self.opening_mask());
+            let closing_brace_cmp = _mm256_cmpeq_epi8(byte_vector, self.closing_mask());
             (opening_brace_cmp, closing_brace_cmp)
         }
     }

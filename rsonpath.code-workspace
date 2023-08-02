@@ -8,6 +8,7 @@
 	"settings": {
 		"cSpell.words": [
 			"bitmasks",
+			"bufs",
 			"canonicalize",
 			"clippy",
 			"clmulepi",
@@ -64,6 +65,7 @@
 			"tomls",
 			"Uninit",
 			"unseparated",
+			"Vecs",
 			"vectorially",
 			"VERGEN",
 			"walkdir",

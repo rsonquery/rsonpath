@@ -20,12 +20,14 @@
 //!     classify_structural_characters, resume_structural_classification,
 //!     BracketType, Structural, StructuralIterator,
 //! };
-//! use rsonpath::input::OwnedBytes;
+//! use rsonpath::input::{Input, OwnedBytes};
+//! use rsonpath::result::empty::EmptyRecorder;
 //! use rsonpath::FallibleIterator;
 //!
 //! let json = r#"{"a":[42, {}, 44]}"#.to_owned();
 //! let input = OwnedBytes::try_from(json).unwrap();
-//! let quote_classifier = classify_quoted_sequences(&input);
+//! let iter = input.iter_blocks::<_, 64>(&EmptyRecorder);
+//! let quote_classifier = classify_quoted_sequences(iter);
 //! let mut structural_classifier = classify_structural_characters(quote_classifier);
 //! structural_classifier.turn_colons_on(0);
 //! structural_classifier.turn_commas_on(0);
@@ -56,22 +58,26 @@
 //! );
 //! ```
 pub mod depth;
+pub mod memmem;
 pub mod quotes;
 pub mod structural;
 
 use crate::{
     debug,
-    input::{error::InputError, IBlock, Input},
+    input::{error::InputError, InputBlockIterator},
 };
 use quotes::{QuoteClassifiedBlock, QuoteClassifiedIterator};
 
 /// State allowing resumption of a classifier from a particular place
 /// in the input along with the stopped [`QuoteClassifiedIterator`].
-pub struct ResumeClassifierState<'a, I: Input, Q, const N: usize> {
+pub struct ResumeClassifierState<'i, I, Q, const N: usize>
+where
+    I: InputBlockIterator<'i, N>,
+{
     /// The stopped iterator.
     pub iter: Q,
     /// The block at which classification was stopped.
-    pub block: Option<ResumeClassifierBlockState<'a, I, N>>,
+    pub block: Option<ResumeClassifierBlockState<'i, I, N>>,
     /// Was comma classification turned on when the classification was stopped.
     pub are_commas_on: bool,
     /// Was colon classification turned on when the classification was stopped.
@@ -79,14 +85,21 @@ pub struct ResumeClassifierState<'a, I: Input, Q, const N: usize> {
 }
 
 /// State of the block at which classification was stopped.
-pub struct ResumeClassifierBlockState<'a, I: Input + 'a, const N: usize> {
+pub struct ResumeClassifierBlockState<'i, I, const N: usize>
+where
+    I: InputBlockIterator<'i, N>,
+{
     /// Quote classified information about the block.
-    pub block: QuoteClassifiedBlock<IBlock<'a, I, N>, N>,
+    pub block: QuoteClassifiedBlock<I::Block, N>,
     /// The index at which classification was stopped.
     pub idx: usize,
 }
 
-impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> ResumeClassifierState<'a, I, Q, N> {
+impl<'i, I, Q, const N: usize> ResumeClassifierState<'i, I, Q, N>
+where
+    I: InputBlockIterator<'i, N>,
+    Q: QuoteClassifiedIterator<'i, I, N>,
+{
     /// Get the index in the original bytes input at which classification has stopped.
     #[inline(always)]
     pub fn get_idx(&self) -> usize {
@@ -103,7 +116,7 @@ impl<'a, I: Input, Q: QuoteClassifiedIterator<'a, I, N>, const N: usize> ResumeC
     ///
     /// # Errors
     /// If the offset crosses block boundaries, then a new block is read from the underlying
-    /// [`Input`] implementation, which can fail.
+    /// [`Input`](crate::input::Input) implementation, which can fail.
     ///
     /// # Panics
     /// If the `count` is not positive.

@@ -1,0 +1,31 @@
+# Define the JSON input for all query test cases.
+[input]
+# Short description of the input structure.
+description = "Short description of the input file structure."
+ # Set to true only if your specific test input is fully compressed (no extraneous whitespace).
+is_compressed = false
+
+# Large JSON document sourced from a file.
+[input.source]
+large_file = "large/test_template_large.json"
+
+# Define queries to test on the input.
+[[queries]]
+ # Valid JSONPath query string.
+query = "$..*"
+# Short descritpion of the query semantics.
+description = "select all subdocuments"
+
+[queries.results]
+# Number of expected matches.
+count = 1000000
+
+# Other result modes are too verbose to make a readable test case for large files.
+# If the query you're testing is very selective (a few dozen matches at most), it might make sense
+# to include them, though.
+
+# Byte locations of starts of all matches, in order.
+# bytes = [] 
+# Stringified values of all matches, verbatim as in the input,
+# in the same order as above.
+# nodes = []

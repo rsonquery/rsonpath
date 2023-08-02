@@ -1,3 +1,4 @@
+#![allow(clippy::expect_used)] // Enforcing the classifier invariant is clunky without this.
 use crate::{
     classification::{
         depth::{resume_depth_classification, DepthBlock, DepthIterator, DepthIteratorResumeOutcome},
@@ -7,32 +8,26 @@ use crate::{
     },
     debug,
     engine::error::EngineError,
-    input::Input,
+    input::InputBlockIterator,
     FallibleIterator, BLOCK_SIZE,
 };
-use replace_with::replace_with_or_abort;
 use std::marker::PhantomData;
 
-pub(crate) struct TailSkip<'b, I, Q, S, const N: usize>
-where
-    I: Input,
-    Q: QuoteClassifiedIterator<'b, I, N>,
-    S: StructuralIterator<'b, I, Q, N>,
-{
-    classifier: S,
-    phantom: PhantomData<&'b (I, Q)>,
+pub(crate) struct TailSkip<'i, I, Q, S, const N: usize> {
+    classifier: Option<S>,
+    _phantom: (PhantomData<&'i ()>, PhantomData<(I, Q)>),
 }
 
-impl<'b, I, Q, S> TailSkip<'b, I, Q, S, BLOCK_SIZE>
+impl<'i, I, Q, S> TailSkip<'i, I, Q, S, BLOCK_SIZE>
 where
-    I: Input,
-    Q: QuoteClassifiedIterator<'b, I, BLOCK_SIZE>,
-    S: StructuralIterator<'b, I, Q, BLOCK_SIZE>,
+    I: InputBlockIterator<'i, BLOCK_SIZE>,
+    Q: QuoteClassifiedIterator<'i, I, BLOCK_SIZE>,
+    S: StructuralIterator<'i, I, Q, BLOCK_SIZE>,
 {
     pub(crate) fn new(classifier: S) -> Self {
         Self {
-            classifier,
-            phantom: PhantomData,
+            classifier: Some(classifier),
+            _phantom: (PhantomData, PhantomData),
         }
     }
 
@@ -41,7 +36,9 @@ where
         let mut idx = 0;
         let mut err = None;
 
-        replace_with_or_abort(&mut self.classifier, |classifier| {
+        let classifier = self.classifier.take().expect("tail skip must always hold a classifier");
+
+        self.classifier = Some('a: {
             let resume_state = classifier.stop();
             let DepthIteratorResumeOutcome(first_vector, mut depth_classifier) =
                 resume_depth_classification(resume_state, opening);
@@ -53,7 +50,7 @@ where
                     Err(e) => {
                         err = Some(e);
                         let resume_state = depth_classifier.stop(None);
-                        return S::resume(resume_state);
+                        break 'a S::resume(resume_state);
                     }
                 },
             };
@@ -80,7 +77,7 @@ where
                     Err(e) => {
                         err = Some(e);
                         let resume_state = depth_classifier.stop(None);
-                        return S::resume(resume_state);
+                        break 'a S::resume(resume_state);
                     }
                 };
             }
@@ -99,31 +96,35 @@ where
         }
     }
 
-    pub(crate) fn stop(self) -> ResumeClassifierState<'b, I, Q, BLOCK_SIZE> {
-        self.classifier.stop()
+    pub(crate) fn stop(self) -> ResumeClassifierState<'i, I, Q, BLOCK_SIZE> {
+        self.classifier.expect("tail skip must always hold a classifier").stop()
     }
 }
 
-impl<'b, I, Q, S, const N: usize> std::ops::Deref for TailSkip<'b, I, Q, S, N>
+impl<'i, I, Q, S, const N: usize> std::ops::Deref for TailSkip<'i, I, Q, S, N>
 where
-    I: Input,
-    Q: QuoteClassifiedIterator<'b, I, N>,
-    S: StructuralIterator<'b, I, Q, N>,
+    I: InputBlockIterator<'i, N>,
+    Q: QuoteClassifiedIterator<'i, I, N>,
+    S: StructuralIterator<'i, I, Q, N>,
 {
     type Target = S;
 
     fn deref(&self) -> &Self::Target {
-        &self.classifier
+        self.classifier
+            .as_ref()
+            .expect("tail skip must always hold a classifier")
     }
 }
 
-impl<'b, I, Q, S, const N: usize> std::ops::DerefMut for TailSkip<'b, I, Q, S, N>
+impl<'i, I, Q, S, const N: usize> std::ops::DerefMut for TailSkip<'i, I, Q, S, N>
 where
-    I: Input,
-    Q: QuoteClassifiedIterator<'b, I, N>,
-    S: StructuralIterator<'b, I, Q, N>,
+    I: InputBlockIterator<'i, N>,
+    Q: QuoteClassifiedIterator<'i, I, N>,
+    S: StructuralIterator<'i, I, Q, N>,
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.classifier
+        self.classifier
+            .as_mut()
+            .expect("tail skip must always hold a classifier")
     }
 }

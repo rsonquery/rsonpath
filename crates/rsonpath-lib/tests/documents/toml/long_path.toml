@@ -72,7 +72,7 @@ description = "descendant a star star, then descendant b star star"
 count = 9
 bytes = [654, 711, 751, 793, 857, 901, 1715, 1813, 1878]
 nodes = [
-    '$.x1.a.a.x2.b.b"',
+    '"$.x1.a.a.x2.b.b"',
     "true",
     '''{
                                 "path": "$.x1.a.a.x2.b.b.x5",

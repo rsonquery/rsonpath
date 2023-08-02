@@ -24,15 +24,8 @@ pub mod mmap;
 pub use mmap::MmapInput;
 
 use self::error::InputError;
-use crate::{query::JsonString, FallibleIterator};
+use crate::{query::JsonString, result::InputRecorder, FallibleIterator};
 use std::ops::Deref;
-
-/// Shorthand for the associated [`InputBlock`] type for given
-/// [`Input`]'s iterator.
-///
-/// Typing `IBlock<'a, I, N>` is a bit more ergonomic than
-/// `<<I as Input>::BlockIterator<'a, N> as InputBlockIterator<'a, N>>::Block`.
-pub type IBlock<'a, I, const N: usize> = <<I as Input>::BlockIterator<'a, N> as InputBlockIterator<'a, N>>::Block;
 
 /// Make the struct repr(C) with alignment equal to [`MAX_BLOCK_SIZE`].
 macro_rules! repr_align_block_size {
@@ -59,14 +52,22 @@ pub const MAX_BLOCK_SIZE: usize = 128;
 pub trait Input: Sized {
     /// Type of the iterator used by [`iter_blocks`](Input::iter_blocks), parameterized
     /// by the lifetime of source input and the size of the block.
-    type BlockIterator<'a, const N: usize>: InputBlockIterator<'a, N>
+    type BlockIterator<'i, 'r, const N: usize, R>: InputBlockIterator<'i, N, Block = Self::Block<'i, N>>
     where
-        Self: 'a;
+        Self: 'i,
+        R: InputRecorder<Self::Block<'i, N>> + 'r;
+
+    /// Type of the blocks returned by the `BlockIterator`.
+    type Block<'i, const N: usize>: InputBlock<'i, N>
+    where
+        Self: 'i;
 
     /// Iterate over blocks of size `N` of the input.
     /// `N` has to be a power of two larger than 1.
     #[must_use]
-    fn iter_blocks<const N: usize>(&self) -> Self::BlockIterator<'_, N>;
+    fn iter_blocks<'i, 'r, R, const N: usize>(&'i self, recorder: &'r R) -> Self::BlockIterator<'i, 'r, N, R>
+    where
+        R: InputRecorder<Self::Block<'i, N>>;
 
     /// Search for an occurrence of `needle` in the input,
     /// starting from `from` and looking back. Returns the index
@@ -128,9 +129,16 @@ pub trait Input: Sized {
 /// An iterator over blocks of input of size `N`.
 /// Implementations MUST guarantee that the blocks returned from `next`
 /// are *exactly* of size `N`.
-pub trait InputBlockIterator<'a, const N: usize>: FallibleIterator<Item = Self::Block, Error = InputError> {
+pub trait InputBlockIterator<'i, const N: usize>: FallibleIterator<Item = Self::Block, Error = InputError> {
     /// The type of blocks returned.
-    type Block: InputBlock<'a, N>;
+    type Block: InputBlock<'i, N>;
+
+    /// Get the offset of the iterator in the input.
+    ///
+    /// The offset is the starting point of the block that will be returned next
+    /// from this iterator, if any. It starts as 0 and increases by `N` on every
+    /// block retrieved.
+    fn get_offset(&self) -> usize;
 
     /// Offset the iterator by `count` full blocks forward.
     ///
@@ -139,12 +147,12 @@ pub trait InputBlockIterator<'a, const N: usize>: FallibleIterator<Item = Self::
 }
 
 /// A block of bytes of size `N` returned from [`InputBlockIterator`].
-pub trait InputBlock<'a, const N: usize>: Deref<Target = [u8]> {
+pub trait InputBlock<'i, const N: usize>: Deref<Target = [u8]> {
     /// Split the block in half, giving two slices of size `N`/2.
     fn halves(&self) -> (&[u8], &[u8]);
 }
 
-impl<'a, const N: usize> InputBlock<'a, N> for &'a [u8] {
+impl<'i, const N: usize> InputBlock<'i, N> for &'i [u8] {
     #[inline(always)]
     fn halves(&self) -> (&[u8], &[u8]) {
         assert_eq!(N % 2, 0);
@@ -280,6 +288,9 @@ pub(super) mod in_slice {
 
     #[inline]
     pub(super) fn is_member_match(bytes: &[u8], from: usize, to: usize, member: &JsonString) -> bool {
+        if to >= bytes.len() {
+            return false;
+        }
         let slice = &bytes[from..to + 1];
         member.bytes_with_quotes() == slice && (from == 0 || bytes[from - 1] != b'\\')
     }

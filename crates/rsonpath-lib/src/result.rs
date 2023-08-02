@@ -1,214 +1,147 @@
 //! Result types that can be returned by a JSONPath query engine.
-use crate::{classification::structural::BracketType, debug, engine::error::EngineError, input::Input};
-use std::fmt::{self, Display};
+use crate::{depth::Depth, engine::error::EngineError};
+use std::{convert::Infallible, fmt::Display, io, ops::Deref};
 
-/// Hint given by the engine to a [`QueryResultBuilder`] as to what type of node was matched.
+pub mod count;
+pub mod empty;
+pub mod index;
+pub mod nodes;
+
+/// Result of counting query matches.
+pub type MatchCount = u64;
+
+/// Representation of the starting index of a match.
+pub type MatchIndex = usize;
+
+/// Span of a match &ndash; its start and end index.
 ///
-/// Since the byte offset given by the engine is not stable and can fall anywhere between
-/// the actual value's start and the preceding structural character, this helps a builder quickly
-/// advance to the actual value and parse it.
-///
-/// This is non_exhaustive, since we may add more hints for performance reasons, and the implementations
-/// are already forced to handle the [`Any`](`NodeTypeHint::Any`) variant. The behavior for "unknown"
-/// hints should be the same as for [`Any`](`NodeTypeHint::Any`).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-#[non_exhaustive]
-pub enum NodeTypeHint {
-    /// The value is any atom (number, string, boolean, null).
-    Atomic,
-    /// The value is an object or an array, and we know what type of bracket to look for.
-    Complex(BracketType),
-    /// The value is an object or an array, but we do not know which. The builder should seek for a '{' *or* '['.
-    AnyComplex,
-    /// The value can be any JSON value, we know nothing more.
-    Any,
+/// The end index is **inclusive**. For example, the value
+/// `true` may have the span of (17, 21), meaning that
+/// the first character, 't', occurs at index 17, and the last
+/// character, `e` occurs at index 21.
+pub struct MatchSpan {
+    /// Starting index of the match.
+    pub start_idx: MatchIndex,
+    /// Last index of the match.
+    pub end_idx: MatchIndex,
 }
 
-/// Result that can be built with some [`QueryResultBuilder`] and returned from a query run.
-pub trait QueryResult: Default + Display + PartialEq {
-    /// The associated type of the builder.
-    type Builder<'i, I: Input + 'i>: QueryResultBuilder<'i, I, Self>;
+/// Full information of a query match &ndash; its span and the input bytes
+/// in that span.
+pub struct Match {
+    /// JSON contents of the match.
+    pub bytes: Vec<u8>,
+    /// Span of the match.
+    pub span: MatchSpan,
 }
 
-/// A builder for a [`QueryResult`] with access to the underlying input.
-pub trait QueryResultBuilder<'i, I: Input, R: QueryResult> {
-    /// Create a new, empty builder, with access to the underlying JSON input.
-    ///
-    /// Implementations should make sure that the result produced from an empty builder
-    /// is the same as the empty instance of that result (defined by the [`Default`] trait).
-    /// In other words, for any `builder` of result type `R` it should hold that:
-    ///
-    /// ```ignore
-    /// builder.new(input).finish() == R::default()
-    /// ```
-    fn new(input: &'i I) -> Self;
+impl Display for Match {
+    #[inline]
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let display = String::from_utf8_lossy(&self.bytes);
+        write!(f, "{display}")
+    }
+}
 
-    /// Report a match of the query. The `index` is guaranteed to be between the first character
-    /// of the matched value and the previous structural character.
-    ///
-    /// When the engine finds a match, it will usually occur at some structural character.
-    /// It is guaranteed that `index` points to either:
-    /// 1. the first character of the matched value; or
-    /// 2. the character right after the colon or comma structural character directly preceding the matched value; or
-    /// 3. a whitespace character before the matched value, such that the next non-whitespace
-    /// character is the first character of the matched value.
-    ///
-    /// The builder should use the `index` and the provided `hint` to find the start of the
-    /// actual value being reported. Note that it is always possible to do so without the hint
-    /// (or, equivalently, when [`NodeTypeHint::Any`] is given), but the hint can improve performance.
-    /// For example, when the hint is [`NodeTypeHint::Complex`] with the curly bracket type, the
-    /// result builder can do a quick direct search for the next '{' character.
-    ///
-    /// ```json
-    /// {
-    ///   "match":       42
-    ///   //      ^^^^^^^^
-    ///   // any of these characters can be reported for the query $.match
-    /// }
-    /// ```
-    ///
-    /// ```json
-    /// {
-    ///   "match": [42,     30]
-    ///   //           ^^^^^^
-    ///   // any of these characters can be reported for the query $.match[1]
-    /// }
-    /// ```
+/// Output sink consuming matches of the type `D`.
+pub trait Sink<D> {
+    /// Error type that can be raised when consuming a match.
+    type Error: std::error::Error + Send + Sync + 'static;
+
+    /// Consume a single match of type `D`.
     ///
     /// # Errors
-    /// This function may access the input, which can raise an [`EngineError::InputError`].
-    /// More errors can occur if the input JSON is malformed (for example the document abruptly ends),
-    /// but they are not guaranteed to be detected or reported.
-    fn report(&mut self, index: usize, hint: NodeTypeHint) -> Result<(), EngineError>;
-
-    /// Finish building the result and return it.
-    fn finish(self) -> R;
+    /// An error depending on the implementor can be raised.
+    /// For example, implementations using an underlying [`io::Write`]
+    /// may raise an [`io::Error`].
+    fn add_match(&mut self, data: D) -> Result<(), Self::Error>;
 }
 
-/// Result informing on the number of values matching the executed query.
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct CountResult {
-    count: u64,
-}
-
-impl CountResult {
-    /// Number of values matched by the executed query.
-    #[must_use]
-    #[inline(always)]
-    pub fn get(&self) -> u64 {
-        self.count
-    }
-}
-
-impl Display for CountResult {
-    #[inline]
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.count)
-    }
-}
-
-impl QueryResult for CountResult {
-    type Builder<'i, I: Input + 'i> = CountResultBuilder;
-}
-
-/// The [`QueryResultBuilder`] for [`CountResult`].
-#[must_use]
-pub struct CountResultBuilder {
-    count: u64,
-}
-
-impl<'i, I: Input> QueryResultBuilder<'i, I, CountResult> for CountResultBuilder {
-    #[inline(always)]
-    fn new(_input: &'i I) -> Self {
-        Self { count: 0 }
-    }
+impl<D> Sink<D> for Vec<D> {
+    type Error = Infallible;
 
     #[inline(always)]
-    fn report(&mut self, _item: usize, _hint: NodeTypeHint) -> Result<(), EngineError> {
-        debug!("Reporting result: {_item}");
-        self.count += 1;
-
+    fn add_match(&mut self, data: D) -> Result<(), Infallible> {
+        self.push(data);
         Ok(())
     }
-
-    #[must_use]
-    #[inline(always)]
-    fn finish(self) -> CountResult {
-        CountResult { count: self.count }
-    }
 }
 
-/// Query result containing all indices of colons that constitute a match.
-#[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct IndexResult {
-    indices: Vec<usize>,
-}
+/// Empty sink that consumes all matches into the void.
+pub struct NullSink;
 
-impl IndexResult {
-    /// Get indices of colons constituting matches of the query.
-    #[must_use]
-    #[inline(always)]
-    pub fn get(&self) -> &[usize] {
-        &self.indices
-    }
-}
-
-impl From<IndexResult> for Vec<usize> {
-    #[inline(always)]
-    fn from(result: IndexResult) -> Self {
-        result.indices
-    }
-}
-
-impl Display for IndexResult {
-    #[inline]
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self.indices)
-    }
-}
-
-impl QueryResult for IndexResult {
-    type Builder<'i, I: Input + 'i> = IndexResultBuilder<'i, I>;
-}
-
-/// The [`QueryResultBuilder`] for [`IndexResult`].
-#[must_use]
-pub struct IndexResultBuilder<'i, I> {
-    input: &'i I,
-    indices: Vec<usize>,
-}
-
-impl<'i, I: Input> QueryResultBuilder<'i, I, IndexResult> for IndexResultBuilder<'i, I> {
-    #[inline(always)]
-    fn new(input: &'i I) -> Self {
-        Self { input, indices: vec![] }
-    }
+impl<D> Sink<D> for NullSink {
+    type Error = Infallible;
 
     #[inline(always)]
-    fn report(&mut self, item: usize, hint: NodeTypeHint) -> Result<(), EngineError> {
-        debug!("Reporting result: {item} with hint {hint:?}");
-
-        let index = match hint {
-            NodeTypeHint::Complex(BracketType::Curly) => self.input.seek_forward(item, [b'{'])?,
-            NodeTypeHint::Complex(BracketType::Square) => self.input.seek_forward(item, [b'['])?,
-            NodeTypeHint::AnyComplex | NodeTypeHint::Any | NodeTypeHint::Atomic => {
-                self.input.seek_non_whitespace_forward(item)?
-            }
-        }
-        .map(|x| x.0);
-
-        match index {
-            Some(idx) => {
-                self.indices.push(idx);
-                Ok(())
-            }
-            None => Err(EngineError::MissingItem()),
-        }
+    fn add_match(&mut self, _data: D) -> Result<(), Infallible> {
+        Ok(())
     }
+}
 
-    #[must_use]
+/// Thin wrapper over an [`io::Write`] to provide a [`Sink`] impl.
+pub struct MatchWriter<W>(W);
+
+impl<W> From<W> for MatchWriter<W>
+where
+    W: io::Write,
+{
     #[inline(always)]
-    fn finish(self) -> IndexResult {
-        IndexResult { indices: self.indices }
+    fn from(value: W) -> Self {
+        Self(value)
     }
+}
+
+impl<D, W> Sink<D> for MatchWriter<W>
+where
+    D: Display,
+    W: io::Write,
+{
+    type Error = io::Error;
+
+    #[inline(always)]
+    fn add_match(&mut self, data: D) -> Result<(), io::Error> {
+        writeln!(self.0, "{data}")
+    }
+}
+
+/// Type of a value being reported to a [`Recorder`].
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+pub enum MatchedNodeType {
+    /// JSON string, number, or literal value.
+    Atomic,
+    /// JSON object or array.
+    Complex,
+}
+
+/// Base trait of any recorder, one that can react to a block of input being processed.
+pub trait InputRecorder<B: Deref<Target = [u8]>> {
+    /// Record that all processing of a block was started
+    ///
+    /// The recorder may assume that only matches or terminators with indices pointing to
+    /// the block that was last recorded as started are reported.
+    fn record_block_start(&self, new_block: B);
+}
+
+/// An observer that can determine the query result
+/// based on match and structural events coming from the execution engine.
+pub trait Recorder<B: Deref<Target = [u8]>>: InputRecorder<B> {
+    /// Record a match of the query at a given `depth`.
+    /// The `idx` is guaranteed to be the first character of the matched value.
+    ///
+    /// The type MUST accurately describe the value being matched.
+    ///
+    /// # Errors
+    /// An error can be raised if an output write occurs and the underlying [`Sink`] implementation
+    /// returns an error ([`EngineError::SinkError`]).
+    fn record_match(&self, idx: usize, depth: Depth, ty: MatchedNodeType) -> Result<(), EngineError>;
+
+    /// Record a structural character signifying the end of a value at a given `idx`
+    /// and with given `depth`.
+    ///
+    /// # Errors
+    /// An error can be raised if an output write occurs and the underlying [`Sink`] implementation
+    /// returns an error ([`EngineError::SinkError`]), or if the terminator was not expected
+    /// ([`EngineError::MissingOpeningCharacter`]).
+    fn record_value_terminator(&self, idx: usize, depth: Depth) -> Result<(), EngineError>;
 }

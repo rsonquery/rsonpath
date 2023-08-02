@@ -13,51 +13,77 @@ cfg_if::cfg_if! {
 }
 
 use super::*;
-use crate::bin;
 use crate::debug;
-use crate::input::{Input, InputBlock, InputBlockIterator};
+use crate::input::{InputBlock, InputBlockIterator};
 use crate::FallibleIterator;
+use crate::{bin, block};
 
 #[cfg(target_arch = "x86")]
 use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
+use std::marker::PhantomData;
 
 const SIZE: usize = 64;
 
-pub(crate) struct Avx2QuoteClassifier<'a, I: Input> {
-    _input: &'a I,
-    iter: I::BlockIterator<'a, SIZE>,
-    offset: Option<usize>,
+pub(crate) struct Avx2QuoteClassifier<'i, I>
+where
+    I: InputBlockIterator<'i, SIZE>,
+{
+    iter: I,
     classifier: BlockAvx2Classifier,
+    phantom: PhantomData<&'i ()>,
 }
 
-impl<'a, I: Input> Avx2QuoteClassifier<'a, I> {
+impl<'i, I> Avx2QuoteClassifier<'i, I>
+where
+    I: InputBlockIterator<'i, SIZE>,
+{
     #[inline]
-    pub(crate) fn new(input: &'a I) -> Self {
+    pub(crate) fn new(iter: I) -> Self {
         Self {
-            _input: input,
-            iter: input.iter_blocks::<SIZE>(),
-            offset: None,
+            iter,
             // SAFETY: target_feature invariant
             classifier: unsafe { BlockAvx2Classifier::new() },
+            phantom: PhantomData,
         }
+    }
+
+    #[inline]
+    pub(crate) fn resume(
+        iter: I,
+        first_block: Option<I::Block>,
+    ) -> (Self, Option<QuoteClassifiedBlock<I::Block, SIZE>>) {
+        let mut s = Self {
+            iter,
+            // SAFETY: target feature invariant
+            classifier: unsafe { BlockAvx2Classifier::new() },
+            phantom: PhantomData,
+        };
+
+        let block = first_block.map(|b| {
+            // SAFETY: target feature invariant
+            let mask = unsafe { s.classifier.classify(&b) };
+            QuoteClassifiedBlock {
+                block: b,
+                within_quotes_mask: mask,
+            }
+        });
+
+        (s, block)
     }
 }
 
-impl<'a, I: Input + 'a> FallibleIterator for Avx2QuoteClassifier<'a, I> {
-    type Item = QuoteClassifiedBlock<<<I as Input>::BlockIterator<'a, 64> as InputBlockIterator<'a, 64>>::Block, 64>;
+impl<'i, I> FallibleIterator for Avx2QuoteClassifier<'i, I>
+where
+    I: InputBlockIterator<'i, SIZE>,
+{
+    type Item = QuoteClassifiedBlock<I::Block, SIZE>;
     type Error = InputError;
 
     fn next(&mut self) -> Result<Option<Self::Item>, Self::Error> {
         match self.iter.next()? {
             Some(block) => {
-                if let Some(offset) = self.offset {
-                    self.offset = Some(offset + block.len());
-                } else {
-                    self.offset = Some(0);
-                }
-
                 // SAFETY: target_feature invariant
                 let mask = unsafe { self.classifier.classify(&block) };
                 let classified_block = QuoteClassifiedBlock {
@@ -71,9 +97,12 @@ impl<'a, I: Input + 'a> FallibleIterator for Avx2QuoteClassifier<'a, I> {
     }
 }
 
-impl<'a, I: Input + 'a> QuoteClassifiedIterator<'a, I, 64> for Avx2QuoteClassifier<'a, I> {
+impl<'i, I> QuoteClassifiedIterator<'i, I, SIZE> for Avx2QuoteClassifier<'i, I>
+where
+    I: InputBlockIterator<'i, SIZE>,
+{
     fn get_offset(&self) -> usize {
-        self.offset.unwrap_or(0)
+        self.iter.get_offset() - 64
     }
 
     fn offset(&mut self, count: isize) {
@@ -85,15 +114,19 @@ impl<'a, I: Input + 'a> QuoteClassifiedIterator<'a, I, 64> for Avx2QuoteClassifi
         }
 
         self.iter.offset(count);
-
-        self.offset = Some(match self.offset {
-            None => (count as usize - 1) * BLOCK_SIZE,
-            Some(offset) => offset + (count as usize) * BLOCK_SIZE,
-        });
     }
 
     fn flip_quotes_bit(&mut self) {
         self.classifier.flip_prev_quote_mask();
+    }
+}
+
+impl<'i, I> InnerIter<I> for Avx2QuoteClassifier<'i, I>
+where
+    I: InputBlockIterator<'i, SIZE>,
+{
+    fn into_inner(self) -> I {
+        self.iter
     }
 }
 
@@ -103,12 +136,6 @@ struct BlockAvx2Classifier {
     /// The second bit is lit iff the previous block ended with a starting quote,
     /// meaning that it was not escaped, nor was it the closing quote of a quoted sequence.
     prev_block_mask: u8,
-    /// Constant mask for comparing against the double quote character
-    quote_mask: __m256i,
-    /// Constant mask for comparing against the backslash character
-    slash_mask: __m256i,
-    /// Constant mask filled with ones for use with clmul.
-    all_ones128: __m128i,
 }
 
 struct BlockClassification {
@@ -146,19 +173,27 @@ impl BlockAvx2Classifier {
     }
 
     #[target_feature(enable = "avx2")]
-    #[inline]
     unsafe fn new() -> Self {
-        Self {
-            prev_block_mask: 0,
-            quote_mask: _mm256_set1_epi8(b'"' as i8),
-            slash_mask: _mm256_set1_epi8(b'\\' as i8),
-            all_ones128: _mm_set1_epi8(0xFF_u8 as i8),
-        }
+        Self { prev_block_mask: 0 }
+    }
+
+    #[target_feature(enable = "avx2")]
+    unsafe fn quote_mask() -> __m256i {
+        _mm256_set1_epi8(b'"' as i8)
+    }
+
+    #[target_feature(enable = "avx2")]
+    unsafe fn slash_mask() -> __m256i {
+        _mm256_set1_epi8(b'\\' as i8)
+    }
+
+    #[target_feature(enable = "avx2")]
+    unsafe fn all_ones128() -> __m128i {
+        _mm_set1_epi8(0xFF_u8 as i8)
     }
 
     #[target_feature(enable = "avx2")]
     #[target_feature(enable = "pclmulqdq")]
-    #[inline]
     unsafe fn classify<'a, B: InputBlock<'a, 64>>(&mut self, two_blocks: &B) -> u64 {
         /* For a 64-bit architecture, we classify two adjacent 32-byte blocks and combine their masks
          * into a single 64-bit mask, which is significantly more performant.
@@ -180,8 +215,8 @@ impl BlockAvx2Classifier {
 
         // Steps I.1., II.1.
         let (block1, block2) = two_blocks.halves();
-        let classification1 = self.classify_block(block1);
-        let classification2 = self.classify_block(block2);
+        let classification1 = Self::classify_block(block1);
+        let classification2 = Self::classify_block(block2);
 
         // Masks are combined by shifting the latter block's 32-bit masks left by 32 bits.
         // From now on when we refer to a "block" we mean the combined 64 bytes of the input.
@@ -311,21 +346,12 @@ impl BlockAvx2Classifier {
          *  cumulative_xor      | 11100001 11000111 |
          */
         let nonescaped_quotes_vector = _mm_set_epi64x(0, nonescaped_quotes as i64);
-        let cumulative_xor = _mm_clmulepi64_si128::<0>(nonescaped_quotes_vector, self.all_ones128);
+        let cumulative_xor = _mm_clmulepi64_si128::<0>(nonescaped_quotes_vector, Self::all_ones128());
 
         let within_quotes = _mm_cvtsi128_si64(cumulative_xor) as u64;
         self.update_prev_block_mask(set_prev_slash_mask, within_quotes);
 
-        debug!(
-            "{: >24}: {}",
-            "block",
-            std::str::from_utf8_unchecked(
-                &two_blocks[..64]
-                    .iter()
-                    .map(|x| if x.is_ascii_whitespace() { b' ' } else { *x })
-                    .collect::<Vec<_>>()
-            )
-        );
+        block!(two_blocks[..64]);
         bin!("slashes", slashes);
         bin!("quotes", quotes);
         bin!("prev_slash_bit", self.get_prev_slash_mask());
@@ -339,14 +365,13 @@ impl BlockAvx2Classifier {
     }
 
     #[target_feature(enable = "avx2")]
-    #[inline]
-    unsafe fn classify_block(&self, block: &[u8]) -> BlockClassification {
+    unsafe fn classify_block(block: &[u8]) -> BlockClassification {
         let byte_vector = _mm256_loadu_si256(block.as_ptr().cast::<__m256i>());
 
-        let slash_cmp = _mm256_cmpeq_epi8(byte_vector, self.slash_mask);
+        let slash_cmp = _mm256_cmpeq_epi8(byte_vector, Self::slash_mask());
         let slashes = _mm256_movemask_epi8(slash_cmp) as u32;
 
-        let quote_cmp = _mm256_cmpeq_epi8(byte_vector, self.quote_mask);
+        let quote_cmp = _mm256_cmpeq_epi8(byte_vector, Self::quote_mask());
         let quotes = _mm256_movemask_epi8(quote_cmp) as u32;
 
         BlockClassification { slashes, quotes }
@@ -356,7 +381,11 @@ impl BlockAvx2Classifier {
 #[cfg(test)]
 mod tests {
     use super::Avx2QuoteClassifier;
-    use crate::{input::OwnedBytes, FallibleIterator};
+    use crate::{
+        input::{Input, OwnedBytes},
+        result::empty::EmptyRecorder,
+        FallibleIterator,
+    };
     use test_case::test_case;
 
     #[test_case("" => None)]
@@ -369,7 +398,8 @@ mod tests {
     fn single_block(str: &str) -> Option<u64> {
         let owned_str = str.to_owned();
         let input = OwnedBytes::new(&owned_str).unwrap();
-        let mut classifier = Avx2QuoteClassifier::new(&input);
+        let iter = input.iter_blocks::<_, 64>(&EmptyRecorder);
+        let mut classifier = Avx2QuoteClassifier::new(iter);
         classifier.next().unwrap().map(|x| x.within_quotes_mask)
     }
 }

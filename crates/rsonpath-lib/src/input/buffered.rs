@@ -19,7 +19,7 @@
 use super::{
     error::InputError, in_slice, repr_align_block_size, Input, InputBlock, InputBlockIterator, MAX_BLOCK_SIZE,
 };
-use crate::{error::InternalRsonpathError, query::JsonString, FallibleIterator};
+use crate::{error::InternalRsonpathError, query::JsonString, result::InputRecorder, FallibleIterator};
 use std::cmp;
 use std::{cell::RefCell, io::Read, ops::Deref, slice};
 
@@ -43,9 +43,10 @@ repr_align_block_size! {
 }
 
 /// Iterator over a [`BufferedInput`].
-pub struct BufferedInputBlockIterator<'a, R, const N: usize> {
+pub struct BufferedInputBlockIterator<'a, 'r, R, IR, const N: usize> {
     input: &'a BufferedInput<R>,
     idx: usize,
+    recorder: &'r IR,
 }
 
 /// Block returned from a [`BufferedInputBlockIterator`].
@@ -122,11 +123,22 @@ impl<R: Read> BufferedInput<R> {
 }
 
 impl<R: Read> Input for BufferedInput<R> {
-    type BlockIterator<'a, const N: usize> = BufferedInputBlockIterator<'a, R, N> where Self: 'a;
+    type BlockIterator<'a, 'r, const N: usize, IR> = BufferedInputBlockIterator<'a, 'r, R, IR, N>
+        where Self: 'a,
+              IR: InputRecorder<BufferedInputBlock<N>> + 'r;
+
+    type Block<'a, const N: usize> = BufferedInputBlock<N> where Self: 'a;
 
     #[inline(always)]
-    fn iter_blocks<const N: usize>(&self) -> Self::BlockIterator<'_, N> {
-        BufferedInputBlockIterator { input: self, idx: 0 }
+    fn iter_blocks<'i, 'r, IR, const N: usize>(&'i self, recorder: &'r IR) -> Self::BlockIterator<'i, 'r, N, IR>
+    where
+        IR: InputRecorder<Self::Block<'i, N>>,
+    {
+        BufferedInputBlockIterator {
+            input: self,
+            idx: 0,
+            recorder,
+        }
     }
 
     #[inline(always)]
@@ -214,7 +226,10 @@ impl<R: Read> Input for BufferedInput<R> {
     }
 }
 
-impl<'a, R: Read, const N: usize> FallibleIterator for BufferedInputBlockIterator<'a, R, N> {
+impl<'a, 'r, R: Read, IR, const N: usize> FallibleIterator for BufferedInputBlockIterator<'a, 'r, R, IR, N>
+where
+    IR: InputRecorder<BufferedInputBlock<N>>,
+{
     type Item = BufferedInputBlock<N>;
     type Error = InputError;
 
@@ -228,6 +243,8 @@ impl<'a, R: Read, const N: usize> FallibleIterator for BufferedInputBlockIterato
                 .try_into()
                 .map_err(|err| InternalRsonpathError::from_error(err, "slice of size N is not of size N"))?;
             self.idx += N;
+
+            self.recorder.record_block_start(BufferedInputBlock(block));
 
             Ok(Some(BufferedInputBlock(block)))
         } else {
@@ -244,13 +261,21 @@ impl<'a, R: Read, const N: usize> FallibleIterator for BufferedInputBlockIterato
     }
 }
 
-impl<'a, R: Read, const N: usize> InputBlockIterator<'a, N> for BufferedInputBlockIterator<'a, R, N> {
+impl<'a, 'r, R: Read, IR, const N: usize> InputBlockIterator<'a, N> for BufferedInputBlockIterator<'a, 'r, R, IR, N>
+where
+    IR: InputRecorder<BufferedInputBlock<N>>,
+{
     type Block = BufferedInputBlock<N>;
 
     #[inline(always)]
     fn offset(&mut self, count: isize) {
         assert!(count >= 0);
         self.idx += count as usize * N;
+    }
+
+    #[inline(always)]
+    fn get_offset(&self) -> usize {
+        self.idx
     }
 }
 
