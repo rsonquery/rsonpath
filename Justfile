@@ -268,9 +268,9 @@ release-patch ver:
 [private]
 release-readme:
     #!/usr/bin/env nu
-    let rsonpath_deps = (cargo tree --package rsonpath --edges normal --depth 1);
-    let rsonpath_lib_deps = (cargo tree --package rsonpath-lib --edges normal --depth 1);
-    let rsonpath_full_deps = (cargo tree --package rsonpath --edges normal);
+    let rsonpath_deps = (cargo tree --package rsonpath --edges normal --edges build --depth 1);
+    let rsonpath_lib_deps = (cargo tree --package rsonpath-lib --edges normal --edges build --depth 1);
+    let rsonpath_full_deps = (cargo tree --package rsonpath --edges normal --edges build);
     let params = [
         [$rsonpath_deps, "rsonpath", "./README.md"],
         [$rsonpath_lib_deps, "rsonpath-lib", "./README.md"],

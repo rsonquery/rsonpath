@@ -708,30 +708,10 @@ dependencies = [
  "color-eyre",
  "eyre",
  "log",
- "rsonpath-lib 0.5.1",
+ "rsonpath-lib",
  "rustflags",
  "simple_logger",
  "vergen",
-]
-
-[[package]]
-name = "rsonpath-lib"
-version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "79de2d69e7f80b35608f0d9c18a151b907e73d1ad9077f9626f235aaf191cc51"
-dependencies = [
- "cfg-if",
- "eyre",
- "log",
- "md5",
- "memchr",
- "memmap2",
- "nom",
- "replace_with",
- "smallvec",
- "static_assertions",
- "thiserror",
- "vector-map",
 ]
 
 [[package]]

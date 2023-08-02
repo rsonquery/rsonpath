@@ -33,16 +33,9 @@ For details, consult `rq --help`.
 
 ### Results
 
-The results are presented as an array of indices at which a colon of a matching record was found,
-the comma directly preceding the matched record in a list,
-or the opening bracket of the list in case of the first element in it.
-Alternatively, passing `--result count` returns only the number of matches.
-**Work to support more useful result reports is ongoing and prioritized ([#56](https://github.com/V0ldek/rsonpath/issues/56)).**
-
-### Engine
-
-By default, the main SIMD engine is used. On machines not supporting SIMD, the recursive implementation
-might be faster in some cases. To change the engine use `--engine recursive`.
+The result of running a query is a sequence of matched values, delimited by newlines.
+Alternatively, passing `--result count` returns only the number of matches, which might be much faster.
+For other result modes consult the `--help` usage page.
 
 ## Query language
 
@@ -142,7 +135,7 @@ the engine will simply match the _first_ such key.
 ```bash
 > rq '$.key'
 {"key":"value","key":"other value"}
-[6]
+"value"
 ```
 
 This behavior can be overriden with a custom installation of `rsonpath`, disabling the default `unique-members` feature. This will hurt performance.
@@ -151,7 +144,8 @@ This behavior can be overriden with a custom installation of `rsonpath`, disabli
 > cargo install rsonpath --no-default-features -F simd -F head-skip -F tail-skip
 > rq '$.key'
 {"key":"value","key":"other value"}
-[6, 20]
+"value"
+"other value"
 ```
 
 ### Unicode
@@ -202,8 +196,12 @@ rsonpath v0.6.0 (/home/mat/rsonpath/crates/rsonpath)
 ├── color-eyre v0.6.2
 ├── eyre v0.6.8
 ├── log v0.4.19
-├── rsonpath-lib v0.5.1
+├── rsonpath-lib v0.6.0 (/home/mat/rsonpath/crates/rsonpath-lib)
 └── simple_logger v4.2.0
+[build-dependencies]
+├── rustflags v0.1.4
+└── vergen v8.2.4
+    [build-dependencies]
 ```
 <!-- rsonpath dependencies end -->
 
@@ -297,6 +295,9 @@ rsonpath v0.6.0 (/home/mat/rsonpath/crates/rsonpath)
 │   │   ├── object v0.31.1
 │   │   │   └── memchr v2.5.0
 │   │   └── rustc-demangle v0.1.23
+│   │   [build-dependencies]
+│   │   └── cc v1.0.81
+│   │       └── libc v0.2.147
 │   ├── eyre v0.6.8
 │   │   ├── indenter v0.3.3
 │   │   └── once_cell v1.18.0
@@ -305,7 +306,7 @@ rsonpath v0.6.0 (/home/mat/rsonpath/crates/rsonpath)
 │   └── owo-colors v3.5.0
 ├── eyre v0.6.8 (*)
 ├── log v0.4.19
-├── rsonpath-lib v0.5.1
+├── rsonpath-lib v0.6.0 (/home/mat/rsonpath/crates/rsonpath-lib)
 │   ├── cfg-if v1.0.0
 │   ├── log v0.4.19
 │   ├── memchr v2.5.0
@@ -353,5 +354,19 @@ rsonpath v0.6.0 (/home/mat/rsonpath/crates/rsonpath)
         ├── time-core v0.1.1
         └── time-macros v0.2.11 (proc-macro)
             └── time-core v0.1.1
+[build-dependencies]
+├── rustflags v0.1.4
+└── vergen v8.2.4
+    ├── anyhow v1.0.72
+    ├── rustc_version v0.4.0
+    │   └── semver v1.0.18
+    └── time v0.3.25
+        ├── deranged v0.3.7
+        ├── itoa v1.0.9
+        ├── libc v0.2.147
+        ├── num_threads v0.1.6
+        └── time-core v0.1.1
+    [build-dependencies]
+    └── rustversion v1.0.14 (proc-macro)
 ```
 <!-- rsonpath-full dependencies end -->

@@ -2,6 +2,45 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.0] - 2023-08-02
+
+### Features
+
+- [**breaking**] Full match result mode. ([#56](https://github.com/V0ldek/rsonpath/issues/56))
+This includes a revamp of all the internals that would be too long to describe in the log.
+In short:
+  - `memmem` was rewritten to a custom implementation (courtesy of @charles-paperman)
+  - Each of the result modes has a separate `Recorder` that takes care of producing the results
+  - The results are written to a `Sink`, provided by the user; this might be a `Vec`, the stdout,
+    or some other `io::Write` implementation.
+  - Matches contain the full byte span of the value matched.
+  - A lot of `Input` and classifier APIs have massive breaking changes to accomodate this.
+
+- [**breaking**] Removed the Recursive engine.
+  - The Recursive implementation has outlived its usefulness.
+Over time it became a near-duplicate of Main,
+which was manifested by a need to implement
+the same features twice with the exact same code
+and to refactor/fix bugs with exact same code changes
+but in two different files. We will focus efforts on the Main engine.
+The `--engine` CLI option was disabled, as there is only one engine now.
+
+### Reliability
+
+- Qol improvement by separate test gen crate.
+  - This removes the confusing `gen-tests` feature from lib,
+reduces its build dependencies, should improve
+build times.
+
+### Dependencies
+
+- Bump clap from 4.3.10 to 4.3.19.
+- Bump colored (dependency of simple_logger) from 2.0.0 to 2.0.4.
+  - This removes a transitive dependency on atty with a CVE.
+- Bump rustflags from 0.1.3 to 0.1.4.
+- Bump smallvec from 1.10.0 to 1.11.0.
+- Bump thiserror from 1.0.40 to 1.0.44.
+
 ## [0.5.1] - 2023-07-03
 
 ### Features
@@ -38,28 +77,9 @@ of input-engine-result types.
 
 ### Dependencies
 
-- Bump addr2line from v0.19.0 to v0.20.0
-- Bump anstyle from v1.0.0 to v1.0.1
-- Bump anstyle-parse from v0.2.0 to v0.2.1
-- Bump backtrace from v0.3.67 to v0.3.68
 - Bump clap from 4.3.4 to 4.3.10.
-- Bump gimli from v0.27.2 to v0.27.3
-- Bump hashbrown from v0.12.3 to v0.14.0
-- Bump indexmap from v1.9.3 to v2.0.0
-- Bump is-terminal from v0.4.7 to v0.4.8
-- Bump libc from v0.2.146 to v0.2.147
 - Bump memmap2 from 0.7.0 to 0.7.1.
-- Bump miniz_oxide from v0.6.2 to v0.7.1
-- Bump object from v0.30.4 to v0.31.1
-- Bump proc-macro2 from v1.0.60 to v1.0.63
-- Bump quote from v1.0.28 to v1.0.29
-- Bump serde_spanned from v0.6.2 to v0.6.3
-- Bump syn from v2.0.18 to v2.0.22
-- Bump toml from v0.7.4 to v0.7.5
-- Bump toml_datetime from v0.6.2 to v0.6.3
-- Bump toml_edit from v0.19.10 to v0.19.11
 - Bump vergen from v8.2.1 to v8.2.3
-- Bump windows-targets from v0.48.0 to v0.48.1
 
 ### Documentation
 
