@@ -63,7 +63,6 @@ impl Display for NodesResult {
     }
 }
 
-impl QueryResult for NodesResult {}
 /// Recorder for [`NodesResult`].
 pub struct NodesRecorder<'s, B, S> {
     internal: RefCell<InternalRecorder<'s, B, S>>,
@@ -229,8 +228,9 @@ where
         }
     }
 
+    #[allow(clippy::panic_in_result_fn)] // Reaching unreachable is an unrecoverable bug.
     #[inline(always)]
-    fn record_value_terminator(&mut self, idx: usize, depth: Depth) -> Result<(), S::Error> {
+    fn record_value_terminator(&mut self, idx: usize, depth: Depth) -> Result<(), EngineError> {
         match self {
             Self::Simple(r) => r.record_value_terminator(idx, depth),
             Self::Stack(r) => r.record_value_terminator(idx, depth),
@@ -281,15 +281,17 @@ where
         debug!("New block, idx = {}", self.idx);
     }
 
-    fn record_value_terminator(&mut self, idx: usize, depth: Depth) -> Result<(), S::Error> {
+    fn record_value_terminator(&mut self, idx: usize, depth: Depth) -> Result<(), EngineError> {
         debug!("Value terminator at {idx}, depth {depth}");
         if let Some(node) = self.node.as_ref() {
             if node.start_depth >= depth {
-                let mut node = self.node.take().unwrap();
+                let mut node = self.node.take().expect("node is Some");
                 debug!("Mark node as ended at {}", idx + 1);
                 append_final_block(
                     &mut node.buf,
-                    self.current_block.as_ref().unwrap(),
+                    self.current_block
+                        .as_ref()
+                        .ok_or(EngineError::MissingOpeningCharacter())?,
                     self.idx,
                     node.start_idx,
                     idx + 1,
@@ -297,13 +299,15 @@ where
                 finalize_node(&mut node.buf, node.ty);
 
                 debug!("Committing and outputting node");
-                self.sink.add_match(Match {
-                    bytes: node.buf,
-                    span: MatchSpan {
-                        start_idx: node.start_idx,
-                        end_idx: idx + 1,
-                    },
-                })?;
+                self.sink
+                    .add_match(Match {
+                        bytes: node.buf,
+                        span: MatchSpan {
+                            start_idx: node.start_idx,
+                            end_idx: idx + 1,
+                        },
+                    })
+                    .map_err(|err| EngineError::SinkError(Box::new(err)))?;
             }
         }
 
@@ -402,7 +406,7 @@ impl OutputQueue {
         self.offset += self.nodes.len();
 
         for node in self.nodes.drain(..) {
-            sink.add_match(node.unwrap())?;
+            sink.add_match(node.expect("output_to called only after all matches are complete"))?;
         }
 
         Ok(())
@@ -443,7 +447,7 @@ where
     }
 
     #[inline]
-    fn record_value_terminator(&mut self, idx: usize, depth: Depth) -> Result<(), S::Error> {
+    fn record_value_terminator(&mut self, idx: usize, depth: Depth) -> Result<(), EngineError> {
         debug!("Value terminator at {idx}, depth {depth}");
         while let Some(node) = self.stack.last() {
             if node.start_depth >= depth {
@@ -451,7 +455,9 @@ where
                 let mut node = self.stack.pop().expect("last was Some, pop must succeed");
                 append_final_block(
                     &mut node.buf,
-                    self.current_block.as_ref().unwrap(),
+                    self.current_block
+                        .as_ref()
+                        .ok_or(EngineError::MissingOpeningCharacter())?,
                     self.idx,
                     node.start_idx,
                     idx + 1,
@@ -476,7 +482,9 @@ where
 
         if self.stack.is_empty() {
             debug!("Outputting batch of nodes.");
-            self.output_queue.output_to(self.sink)?;
+            self.output_queue
+                .output_to(self.sink)
+                .map_err(|err| EngineError::SinkError(Box::new(err)))?;
         }
 
         Ok(())

@@ -124,18 +124,16 @@ impl ResolvedOutput {
         fn run_impl<E: Engine, I: Input>(out: ResolvedOutput, engine: E, input: I) -> Result<(), EngineError> {
             match out {
                 ResolvedOutput::Count => {
-                    todo!()
-                    /*let result = engine.run::<_, CountRecorderSpec>(&input)?;
-                    print!("{result}");*/
+                    let result = engine.count(&input)?;
+                    print!("{result}");
                 }
                 ResolvedOutput::Index => {
-                    todo!()
-                    /*let result = engine.run::<_, IndexRecorderSpec>(&input)?;
-                    print!("{result}");*/
+                    let mut sink = MatchWriter::from(io::stdout().lock());
+                    engine.indices(&input, &mut sink)?;
                 }
                 ResolvedOutput::Nodes => {
-                    let mut sink = MatchWriter::from(io::stdout());
-                    engine.run(&input, &mut sink)?;
+                    let mut sink = MatchWriter::from(io::stdout().lock());
+                    engine.matches(&input, &mut sink)?;
                 }
             }
 

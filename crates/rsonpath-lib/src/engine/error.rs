@@ -17,6 +17,7 @@ pub enum EngineError {
     /// Error while reading from the supplied [`Input`](crate::input::Input) implementation.
     #[error(transparent)]
     InputError(#[from] InputError),
+    /// Error while writing to the supplied [`Sink`](crate::result::Sink) implementation.
     #[error("Error writing a result to sink: '{0}'")]
     SinkError(#[source] Box<dyn std::error::Error + Send + Sync>),
     /// Document depth fell below zero, which can only happen
@@ -34,6 +35,10 @@ pub enum EngineError {
     /// closing characters.
     #[error("Malformed input JSON; end of input was reached, but unmatched opening characters remained.")]
     MissingClosingCharacter(),
+    /// The engine reached a structural character that should occur only in an object or list,
+    /// but there was no preceding opening character.
+    #[error("Malformed input JSON; structural characters present, but no opening character read.")]
+    MissingOpeningCharacter(),
     /// The engine found a query match, but no value associated with it.
     #[error("Malformed input JSON; a query match was found, but there was no associated value")]
     MissingItem(),

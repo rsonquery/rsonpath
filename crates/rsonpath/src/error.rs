@@ -49,6 +49,7 @@ pub fn report_engine_error(error: EngineError) -> eyre::Report {
             add_unsupported_context(eyre::Report::new(error), UnsupportedFeatureError::large_json_depths())
         }
         EngineError::MissingClosingCharacter() => eyre::Report::new(error),
+        EngineError::MissingOpeningCharacter() => eyre::Report::new(error),
         EngineError::MissingItem() => eyre::Report::new(error),
         EngineError::MalformedStringQuotes(_) => eyre::Report::new(error),
         EngineError::NotSupported(unsupported) => report_unsupported_error(unsupported),

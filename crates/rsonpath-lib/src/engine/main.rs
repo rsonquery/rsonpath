@@ -95,7 +95,7 @@ impl Engine for MainEngine<'_> {
     }
 
     #[inline]
-    fn run<I, S>(&self, input: &I, sink: &mut S) -> Result<(), EngineError>
+    fn matches<I, S>(&self, input: &I, sink: &mut S) -> Result<(), EngineError>
     where
         I: Input,
         S: Sink<Match>,

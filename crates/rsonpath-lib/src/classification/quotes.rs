@@ -72,9 +72,10 @@ pub trait QuoteClassifiedIterator<'i, I: InputBlockIterator<'i, N>, const N: usi
     fn flip_quotes_bit(&mut self);
 }
 
-/// Higher-level classifier that can be consumed to retrieve the inner [`Input::BlockIterator`].
+/// Higher-level classifier that can be consumed to retrieve the inner
+/// [`Input::BlockIterator`](crate::input::Input::BlockIterator).
 pub trait InnerIter<I> {
-    /// Consume `self` and return the wrapped [`Input::BlockIterator`].
+    /// Consume `self` and return the wrapped [`Input::BlockIterator`](crate::input::Input::BlockIterator).
     fn into_inner(self) -> I;
 }
 

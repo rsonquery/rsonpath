@@ -2,34 +2,7 @@
 //!
 //! This is faster than any recorder that actually examines the values.
 use super::*;
-use std::{
-    cell::Cell,
-    fmt::{self, Display},
-};
-
-/// [`QueryResult`] informing on the number of values matching the executed query.
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct CountResult {
-    count: u64,
-}
-
-impl CountResult {
-    /// Number of values matched by the executed query.
-    #[must_use]
-    #[inline(always)]
-    pub fn get(&self) -> u64 {
-        self.count
-    }
-}
-
-impl Display for CountResult {
-    #[inline]
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.count)
-    }
-}
-
-impl QueryResult for CountResult {}
+use std::cell::Cell;
 
 /// Recorder for [`CountResult`].
 pub struct CountRecorder {

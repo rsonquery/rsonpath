@@ -1,4 +1,4 @@
-// dbebb700624fe8d6ed353d907a2d60c6
+// fc8d21b99a7454b201b4bff92524ec24
 use pretty_assertions::assert_eq;
 use rsonpath::engine::{main::MainEngine, Compiler, Engine};
 use rsonpath::input::*;
@@ -40,7 +40,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -81,7 +81,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -122,7 +122,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -163,7 +163,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -204,7 +204,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -245,7 +245,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -286,7 +286,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -327,7 +327,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -368,7 +368,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -409,7 +409,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -450,7 +450,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -491,7 +491,7 @@ fn artificial_json_with_an_object_with_many_leaves_preceding_an_atomic_member_de
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -532,7 +532,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_compressed_with_
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"hit1\"", "\"hit2\"", "\"hit3\""];
@@ -573,7 +573,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_compressed_with_
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"hit1\"", "\"hit2\"", "\"hit3\""];
@@ -614,7 +614,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_compressed_with_
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"hit1\"", "\"hit2\"", "\"hit3\""];
@@ -655,7 +655,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_with_query_mix_d
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"hit1\"", "\"hit2\"", "\"hit3\""];
@@ -696,7 +696,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_with_query_mix_d
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"hit1\"", "\"hit2\"", "\"hit3\""];
@@ -737,7 +737,7 @@ fn artificial_json_with_deep_nesting_and_repeating_member_names_with_query_mix_d
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"hit1\"", "\"hit2\"", "\"hit3\""];
@@ -778,7 +778,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -819,7 +819,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -860,7 +860,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -901,7 +901,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -942,7 +942,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -983,7 +983,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -1024,7 +1024,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -1065,7 +1065,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -1106,7 +1106,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_compresse
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -1147,7 +1147,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -1188,7 +1188,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -1229,7 +1229,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -1270,7 +1270,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -1311,7 +1311,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -1352,7 +1352,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -1393,7 +1393,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -1434,7 +1434,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -1475,7 +1475,7 @@ fn artificial_json_with_excessive_whitespace_between_structural_colons_with_quer
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "42"];
@@ -1520,7 +1520,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["\"value1\"" , "{\"v\":\"this c is also a hit\",\"c\":\"but this one is a miss\",\"a\":{\"b\":{\"a\":{\"b\":{\"c\":\"value2\"}}}}}" , "\"value2\"" , "\"value3\"" , "\"value4\"" , "\"value5\"" ,] ;
@@ -1565,7 +1565,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["\"value1\"" , "{\"v\":\"this c is also a hit\",\"c\":\"but this one is a miss\",\"a\":{\"b\":{\"a\":{\"b\":{\"c\":\"value2\"}}}}}" , "\"value2\"" , "\"value3\"" , "\"value4\"" , "\"value5\"" ,] ;
@@ -1610,7 +1610,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["\"value1\"" , "{\"v\":\"this c is also a hit\",\"c\":\"but this one is a miss\",\"a\":{\"b\":{\"a\":{\"b\":{\"c\":\"value2\"}}}}}" , "\"value2\"" , "\"value3\"" , "\"value4\"" , "\"value5\"" ,] ;
@@ -1655,7 +1655,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["\"value1\"" , "{\n                                                \"v\": \"this c is also a hit\",\n                                                \"c\": \"but this one is a miss\",\n                                                \"a\": {\n                                                    \"b\": {\n                                                        \"a\": {\n                                                            \"b\": {\n                                                                \"c\": \"value2\"\n                                                            }\n                                                        }\n                                                    }\n                                                }\n                                            }" , "\"value2\"" , "\"value3\"" , "\"value4\"" , "\"value5\"" ,] ;
@@ -1700,7 +1700,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["\"value1\"" , "{\n                                                \"v\": \"this c is also a hit\",\n                                                \"c\": \"but this one is a miss\",\n                                                \"a\": {\n                                                    \"b\": {\n                                                        \"a\": {\n                                                            \"b\": {\n                                                                \"c\": \"value2\"\n                                                            }\n                                                        }\n                                                    }\n                                                }\n                                            }" , "\"value2\"" , "\"value3\"" , "\"value4\"" , "\"value5\"" ,] ;
@@ -1745,7 +1745,7 @@ fn artificial_json_with_many_equal_member_names_nested_in_each_other_to_stress_t
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["\"value1\"" , "{\n                                                \"v\": \"this c is also a hit\",\n                                                \"c\": \"but this one is a miss\",\n                                                \"a\": {\n                                                    \"b\": {\n                                                        \"a\": {\n                                                            \"b\": {\n                                                                \"c\": \"value2\"\n                                                            }\n                                                        }\n                                                    }\n                                                }\n                                            }" , "\"value2\"" , "\"value3\"" , "\"value4\"" , "\"value5\"" ,] ;
@@ -1795,7 +1795,7 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -1847,7 +1847,7 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -1899,7 +1899,7 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -1949,7 +1949,7 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -1999,7 +1999,7 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -2049,7 +2049,7 @@ fn deeply_nested_list_with_all_data_types_compressed_with_query_select_all_nodes
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -2099,7 +2099,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -2160,7 +2160,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -2221,7 +2221,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -2282,7 +2282,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -2342,7 +2342,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -2402,7 +2402,7 @@ fn deeply_nested_list_with_all_data_types_with_query_select_all_nodes_in_bs_with
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -2459,7 +2459,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["1", "2", "{}", "[]", "[[[[]]]]", "[[[]]]", "[[]]", "[]", "3"];
@@ -2504,7 +2504,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["1", "2", "{}", "[]", "[[[[]]]]", "[[[]]]", "[[]]", "[]", "3"];
@@ -2549,7 +2549,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["1", "2", "{}", "[]", "[[[[]]]]", "[[[]]]", "[[]]", "[]", "3"];
@@ -2594,7 +2594,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["1", "2", "{}", "[]", "[[[[]]]]", "3"];
@@ -2639,7 +2639,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["1", "2", "{}", "[]", "[[[[]]]]", "3"];
@@ -2684,7 +2684,7 @@ fn deeply_nested_lists_compressed_with_query_select_all_nodes_in_the_top_level_l
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["1", "2", "{}", "[]", "[[[[]]]]", "3"];
@@ -2729,7 +2729,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_and_bel
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["1" , "2" , "{}" , "[]" , "[\n                    [\n                        [\n                            []\n                        ]\n                    ]\n                ]" , "[\n                        [\n                            []\n                        ]\n                    ]" , "[\n                            []\n                        ]" , "[]" , "3" ,] ;
@@ -2774,7 +2774,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_and_bel
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["1" , "2" , "{}" , "[]" , "[\n                    [\n                        [\n                            []\n                        ]\n                    ]\n                ]" , "[\n                        [\n                            []\n                        ]\n                    ]" , "[\n                            []\n                        ]" , "[]" , "3" ,] ;
@@ -2819,7 +2819,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_and_bel
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["1" , "2" , "{}" , "[]" , "[\n                    [\n                        [\n                            []\n                        ]\n                    ]\n                ]" , "[\n                        [\n                            []\n                        ]\n                    ]" , "[\n                            []\n                        ]" , "[]" , "3" ,] ;
@@ -2864,7 +2864,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_with_bu
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["1" , "2" , "{}" , "[]" , "[\n                    [\n                        [\n                            []\n                        ]\n                    ]\n                ]" , "3" ,] ;
@@ -2909,7 +2909,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_with_mm
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["1" , "2" , "{}" , "[]" , "[\n                    [\n                        [\n                            []\n                        ]\n                    ]\n                ]" , "3" ,] ;
@@ -2954,7 +2954,7 @@ fn deeply_nested_lists_with_query_select_all_nodes_in_the_top_level_list_with_ow
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["1" , "2" , "{}" , "[]" , "[\n                    [\n                        [\n                            []\n                        ]\n                    ]\n                ]" , "3" ,] ;
@@ -2999,7 +2999,7 @@ fn deeply_nested_object_with_path_annotations_compressed_with_query_descendant_a
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["\"$.x1.a.a.x2.b.b\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5\",\"is_hit\":true,\"x6\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6\",\"is_hit\":false,\"x7\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7\",\"is_hit\":false,\"x8\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\"is_hit\":false,\"b\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\"is_hit\":false,\"x9\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\"is_hit\":true,\"x10\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}}}}}}}" , "\"$.x1.a.a.x2.b.b.x5\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5.x6\",\"is_hit\":false,\"x7\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7\",\"is_hit\":false,\"x8\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\"is_hit\":false,\"b\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\"is_hit\":false,\"x9\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\"is_hit\":true,\"x10\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}}}}}}" , "\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}" ,] ;
@@ -3044,7 +3044,7 @@ fn deeply_nested_object_with_path_annotations_compressed_with_query_descendant_a
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["\"$.x1.a.a.x2.b.b\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5\",\"is_hit\":true,\"x6\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6\",\"is_hit\":false,\"x7\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7\",\"is_hit\":false,\"x8\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\"is_hit\":false,\"b\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\"is_hit\":false,\"x9\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\"is_hit\":true,\"x10\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}}}}}}}" , "\"$.x1.a.a.x2.b.b.x5\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5.x6\",\"is_hit\":false,\"x7\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7\",\"is_hit\":false,\"x8\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\"is_hit\":false,\"b\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\"is_hit\":false,\"x9\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\"is_hit\":true,\"x10\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}}}}}}" , "\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}" ,] ;
@@ -3089,7 +3089,7 @@ fn deeply_nested_object_with_path_annotations_compressed_with_query_descendant_a
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["\"$.x1.a.a.x2.b.b\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5\",\"is_hit\":true,\"x6\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6\",\"is_hit\":false,\"x7\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7\",\"is_hit\":false,\"x8\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\"is_hit\":false,\"b\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\"is_hit\":false,\"x9\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\"is_hit\":true,\"x10\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}}}}}}}" , "\"$.x1.a.a.x2.b.b.x5\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5.x6\",\"is_hit\":false,\"x7\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7\",\"is_hit\":false,\"x8\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\"is_hit\":false,\"b\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\"is_hit\":false,\"x9\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\"is_hit\":true,\"x10\":{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}}}}}}" , "\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\"" , "true" , "{\"path\":\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\"is_hit\":false}" ,] ;
@@ -3134,7 +3134,7 @@ fn deeply_nested_object_with_path_annotations_with_query_descendant_a_star_star_
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["\"$.x1.a.a.x2.b.b\"" , "true" , "{\n                                \"path\": \"$.x1.a.a.x2.b.b.x5\",\n                                \"is_hit\": true,\n                                \"x6\": {\n                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6\",\n                                    \"is_hit\": false,\n                                    \"x7\": {\n                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7\",\n                                        \"is_hit\": false,\n                                        \"x8\": {\n                                            \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\n                                            \"is_hit\": false,\n                                            \"b\": {\n                                                \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\n                                                \"is_hit\": false,\n                                                \"x9\": {\n                                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\n                                                    \"is_hit\": true,\n                                                    \"x10\": {\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }\n                                                }\n                                            }\n                                        }\n                                    }\n                                }\n                            }" , "\"$.x1.a.a.x2.b.b.x5\"" , "true" , "{\n                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6\",\n                                    \"is_hit\": false,\n                                    \"x7\": {\n                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7\",\n                                        \"is_hit\": false,\n                                        \"x8\": {\n                                            \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\n                                            \"is_hit\": false,\n                                            \"b\": {\n                                                \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\n                                                \"is_hit\": false,\n                                                \"x9\": {\n                                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\n                                                    \"is_hit\": true,\n                                                    \"x10\": {\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }\n                                                }\n                                            }\n                                        }\n                                    }\n                                }" , "\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\"" , "true" , "{\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }" ,] ;
@@ -3179,7 +3179,7 @@ fn deeply_nested_object_with_path_annotations_with_query_descendant_a_star_star_
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["\"$.x1.a.a.x2.b.b\"" , "true" , "{\n                                \"path\": \"$.x1.a.a.x2.b.b.x5\",\n                                \"is_hit\": true,\n                                \"x6\": {\n                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6\",\n                                    \"is_hit\": false,\n                                    \"x7\": {\n                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7\",\n                                        \"is_hit\": false,\n                                        \"x8\": {\n                                            \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\n                                            \"is_hit\": false,\n                                            \"b\": {\n                                                \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\n                                                \"is_hit\": false,\n                                                \"x9\": {\n                                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\n                                                    \"is_hit\": true,\n                                                    \"x10\": {\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }\n                                                }\n                                            }\n                                        }\n                                    }\n                                }\n                            }" , "\"$.x1.a.a.x2.b.b.x5\"" , "true" , "{\n                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6\",\n                                    \"is_hit\": false,\n                                    \"x7\": {\n                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7\",\n                                        \"is_hit\": false,\n                                        \"x8\": {\n                                            \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\n                                            \"is_hit\": false,\n                                            \"b\": {\n                                                \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\n                                                \"is_hit\": false,\n                                                \"x9\": {\n                                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\n                                                    \"is_hit\": true,\n                                                    \"x10\": {\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }\n                                                }\n                                            }\n                                        }\n                                    }\n                                }" , "\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\"" , "true" , "{\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }" ,] ;
@@ -3224,7 +3224,7 @@ fn deeply_nested_object_with_path_annotations_with_query_descendant_a_star_star_
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["\"$.x1.a.a.x2.b.b\"" , "true" , "{\n                                \"path\": \"$.x1.a.a.x2.b.b.x5\",\n                                \"is_hit\": true,\n                                \"x6\": {\n                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6\",\n                                    \"is_hit\": false,\n                                    \"x7\": {\n                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7\",\n                                        \"is_hit\": false,\n                                        \"x8\": {\n                                            \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\n                                            \"is_hit\": false,\n                                            \"b\": {\n                                                \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\n                                                \"is_hit\": false,\n                                                \"x9\": {\n                                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\n                                                    \"is_hit\": true,\n                                                    \"x10\": {\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }\n                                                }\n                                            }\n                                        }\n                                    }\n                                }\n                            }" , "\"$.x1.a.a.x2.b.b.x5\"" , "true" , "{\n                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6\",\n                                    \"is_hit\": false,\n                                    \"x7\": {\n                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7\",\n                                        \"is_hit\": false,\n                                        \"x8\": {\n                                            \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8\",\n                                            \"is_hit\": false,\n                                            \"b\": {\n                                                \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b\",\n                                                \"is_hit\": false,\n                                                \"x9\": {\n                                                    \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\",\n                                                    \"is_hit\": true,\n                                                    \"x10\": {\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }\n                                                }\n                                            }\n                                        }\n                                    }\n                                }" , "\"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9\"" , "true" , "{\n                                                        \"path\": \"$.x1.a.a.x2.b.b.x5.x6.x7.x8.b.x9.x10\",\n                                                        \"is_hit\": false\n                                                    }" ,] ;
@@ -3269,7 +3269,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "43", "44", "{\"x\":45}", "45", "{\"a\":46,\"x\":47}", "46", "47"];
@@ -3314,7 +3314,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "43", "44", "{\"x\":45}", "45", "{\"a\":46,\"x\":47}", "46", "47"];
@@ -3359,7 +3359,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "43", "44", "{\"x\":45}", "45", "{\"a\":46,\"x\":47}", "46", "47"];
@@ -3404,7 +3404,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "43", "44", "{\"x\":45}", "{\"a\":46,\"x\":47}", "46", "47"];
@@ -3449,7 +3449,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "43", "44", "{\"x\":45}", "{\"a\":46,\"x\":47}", "46", "47"];
@@ -3494,7 +3494,7 @@ fn dense_integer_atomic_leaves_without_lists_compressed_with_query_descendant_se
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "43", "44", "{\"x\":45}", "{\"a\":46,\"x\":47}", "46", "47"];
@@ -3539,7 +3539,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -3593,7 +3593,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -3647,7 +3647,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -3701,7 +3701,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -3754,7 +3754,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -3807,7 +3807,7 @@ fn dense_integer_atomic_leaves_without_lists_with_query_descendant_search_for_a_
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -3856,7 +3856,7 @@ fn empty_array_root_compressed_with_query_select_any_descendant_there_are_none_w
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -3897,7 +3897,7 @@ fn empty_array_root_compressed_with_query_select_any_descendant_there_are_none_w
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -3938,7 +3938,7 @@ fn empty_array_root_compressed_with_query_select_any_descendant_there_are_none_w
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -3979,7 +3979,7 @@ fn empty_array_root_compressed_with_query_select_any_item_there_are_none_with_bu
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -4020,7 +4020,7 @@ fn empty_array_root_compressed_with_query_select_any_item_there_are_none_with_mm
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -4061,7 +4061,7 @@ fn empty_array_root_compressed_with_query_select_any_item_there_are_none_with_ow
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -4102,7 +4102,7 @@ fn empty_array_root_compressed_with_query_select_the_first_item_which_does_not_e
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -4143,7 +4143,7 @@ fn empty_array_root_compressed_with_query_select_the_first_item_which_does_not_e
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -4184,7 +4184,7 @@ fn empty_array_root_compressed_with_query_select_the_first_item_which_does_not_e
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -4225,7 +4225,7 @@ fn empty_array_root_compressed_with_query_select_the_root_empty_query_with_buffe
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -4266,7 +4266,7 @@ fn empty_array_root_compressed_with_query_select_the_root_empty_query_with_mmap_
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -4307,7 +4307,7 @@ fn empty_array_root_compressed_with_query_select_the_root_empty_query_with_owned
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -4348,7 +4348,7 @@ fn empty_array_root_compressed_with_query_select_the_root_with_buffered_input_an
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -4389,7 +4389,7 @@ fn empty_array_root_compressed_with_query_select_the_root_with_mmap_input_and_no
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -4430,7 +4430,7 @@ fn empty_array_root_compressed_with_query_select_the_root_with_owned_bytes_and_n
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -4471,7 +4471,7 @@ fn empty_array_root_with_query_select_any_descendant_there_are_none_with_buffere
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -4512,7 +4512,7 @@ fn empty_array_root_with_query_select_any_descendant_there_are_none_with_mmap_in
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -4553,7 +4553,7 @@ fn empty_array_root_with_query_select_any_descendant_there_are_none_with_owned_b
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -4594,7 +4594,7 @@ fn empty_array_root_with_query_select_any_item_there_are_none_with_buffered_inpu
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -4635,7 +4635,7 @@ fn empty_array_root_with_query_select_any_item_there_are_none_with_mmap_input_an
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -4676,7 +4676,7 @@ fn empty_array_root_with_query_select_any_item_there_are_none_with_owned_bytes_a
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -4717,7 +4717,7 @@ fn empty_array_root_with_query_select_the_first_item_which_does_not_exist_with_b
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -4758,7 +4758,7 @@ fn empty_array_root_with_query_select_the_first_item_which_does_not_exist_with_m
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -4799,7 +4799,7 @@ fn empty_array_root_with_query_select_the_first_item_which_does_not_exist_with_o
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -4840,7 +4840,7 @@ fn empty_array_root_with_query_select_the_root_empty_query_with_buffered_input_a
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -4881,7 +4881,7 @@ fn empty_array_root_with_query_select_the_root_empty_query_with_mmap_input_and_n
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -4922,7 +4922,7 @@ fn empty_array_root_with_query_select_the_root_empty_query_with_owned_bytes_and_
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -4963,7 +4963,7 @@ fn empty_array_root_with_query_select_the_root_with_buffered_input_and_nodes_res
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -5004,7 +5004,7 @@ fn empty_array_root_with_query_select_the_root_with_mmap_input_and_nodes_result_
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -5045,7 +5045,7 @@ fn empty_array_root_with_query_select_the_root_with_owned_bytes_and_nodes_result
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -5086,7 +5086,7 @@ fn empty_document_compressed_with_query_select_the_root_empty_query_with_buffere
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5127,7 +5127,7 @@ fn empty_document_compressed_with_query_select_the_root_empty_query_with_mmap_in
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5168,7 +5168,7 @@ fn empty_document_compressed_with_query_select_the_root_empty_query_with_owned_b
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5209,7 +5209,7 @@ fn empty_document_compressed_with_query_select_the_root_with_buffered_input_and_
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5250,7 +5250,7 @@ fn empty_document_compressed_with_query_select_the_root_with_mmap_input_and_node
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5291,7 +5291,7 @@ fn empty_document_compressed_with_query_select_the_root_with_owned_bytes_and_nod
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5332,7 +5332,7 @@ fn empty_document_with_query_select_the_root_empty_query_with_buffered_input_and
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5373,7 +5373,7 @@ fn empty_document_with_query_select_the_root_empty_query_with_mmap_input_and_nod
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5414,7 +5414,7 @@ fn empty_document_with_query_select_the_root_empty_query_with_owned_bytes_and_no
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5455,7 +5455,7 @@ fn empty_document_with_query_select_the_root_with_buffered_input_and_nodes_resul
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5496,7 +5496,7 @@ fn empty_document_with_query_select_the_root_with_mmap_input_and_nodes_result_us
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5537,7 +5537,7 @@ fn empty_document_with_query_select_the_root_with_owned_bytes_and_nodes_result_u
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5578,7 +5578,7 @@ fn empty_object_root_compressed_with_query_select_any_child_there_are_none_with_
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5619,7 +5619,7 @@ fn empty_object_root_compressed_with_query_select_any_child_there_are_none_with_
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5660,7 +5660,7 @@ fn empty_object_root_compressed_with_query_select_any_child_there_are_none_with_
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5701,7 +5701,7 @@ fn empty_object_root_compressed_with_query_select_any_descendant_there_are_none_
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5742,7 +5742,7 @@ fn empty_object_root_compressed_with_query_select_any_descendant_there_are_none_
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5783,7 +5783,7 @@ fn empty_object_root_compressed_with_query_select_any_descendant_there_are_none_
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5824,7 +5824,7 @@ fn empty_object_root_compressed_with_query_select_the_child_named_a_which_does_n
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5865,7 +5865,7 @@ fn empty_object_root_compressed_with_query_select_the_child_named_a_which_does_n
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5906,7 +5906,7 @@ fn empty_object_root_compressed_with_query_select_the_child_named_a_which_does_n
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -5947,7 +5947,7 @@ fn empty_object_root_compressed_with_query_select_the_root_empty_query_with_buff
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}"];
@@ -5988,7 +5988,7 @@ fn empty_object_root_compressed_with_query_select_the_root_empty_query_with_mmap
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}"];
@@ -6029,7 +6029,7 @@ fn empty_object_root_compressed_with_query_select_the_root_empty_query_with_owne
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}"];
@@ -6070,7 +6070,7 @@ fn empty_object_root_compressed_with_query_select_the_root_with_buffered_input_a
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}"];
@@ -6111,7 +6111,7 @@ fn empty_object_root_compressed_with_query_select_the_root_with_mmap_input_and_n
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}"];
@@ -6152,7 +6152,7 @@ fn empty_object_root_compressed_with_query_select_the_root_with_owned_bytes_and_
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}"];
@@ -6193,7 +6193,7 @@ fn empty_object_root_with_query_select_any_child_there_are_none_with_buffered_in
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -6234,7 +6234,7 @@ fn empty_object_root_with_query_select_any_child_there_are_none_with_mmap_input_
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -6275,7 +6275,7 @@ fn empty_object_root_with_query_select_any_child_there_are_none_with_owned_bytes
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -6316,7 +6316,7 @@ fn empty_object_root_with_query_select_any_descendant_there_are_none_with_buffer
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -6357,7 +6357,7 @@ fn empty_object_root_with_query_select_any_descendant_there_are_none_with_mmap_i
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -6398,7 +6398,7 @@ fn empty_object_root_with_query_select_any_descendant_there_are_none_with_owned_
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -6439,7 +6439,7 @@ fn empty_object_root_with_query_select_the_child_named_a_which_does_not_exist_wi
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -6480,7 +6480,7 @@ fn empty_object_root_with_query_select_the_child_named_a_which_does_not_exist_wi
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -6521,7 +6521,7 @@ fn empty_object_root_with_query_select_the_child_named_a_which_does_not_exist_wi
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -6562,7 +6562,7 @@ fn empty_object_root_with_query_select_the_root_empty_query_with_buffered_input_
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}"];
@@ -6603,7 +6603,7 @@ fn empty_object_root_with_query_select_the_root_empty_query_with_mmap_input_and_
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}"];
@@ -6644,7 +6644,7 @@ fn empty_object_root_with_query_select_the_root_empty_query_with_owned_bytes_and
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}"];
@@ -6685,7 +6685,7 @@ fn empty_object_root_with_query_select_the_root_with_buffered_input_and_nodes_re
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}"];
@@ -6726,7 +6726,7 @@ fn empty_object_root_with_query_select_the_root_with_mmap_input_and_nodes_result
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}"];
@@ -6767,7 +6767,7 @@ fn empty_object_root_with_query_select_the_root_with_owned_bytes_and_nodes_resul
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}"];
@@ -6812,7 +6812,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -6862,7 +6862,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -6912,7 +6912,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -6958,7 +6958,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
@@ -6999,7 +6999,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
@@ -7040,7 +7040,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
@@ -7081,7 +7081,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
@@ -7122,7 +7122,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
@@ -7163,7 +7163,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
@@ -7208,7 +7208,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -7262,7 +7262,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -7316,7 +7316,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -7366,7 +7366,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/blQy8JxViF\""];
@@ -7407,7 +7407,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/blQy8JxViF\""];
@@ -7448,7 +7448,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_compr
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/blQy8JxViF\""];
@@ -7493,7 +7493,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -7543,7 +7543,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -7593,7 +7593,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -7639,7 +7639,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
@@ -7680,7 +7680,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
@@ -7721,7 +7721,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
@@ -7762,7 +7762,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
@@ -7803,7 +7803,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
@@ -7844,7 +7844,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/B6T1jj2hST\"", "\"https:\\/\\/t.co\\/B6T1jj2hST\""];
@@ -7889,7 +7889,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -7943,7 +7943,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -7997,7 +7997,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -8047,7 +8047,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/blQy8JxViF\""];
@@ -8088,7 +8088,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/blQy8JxViF\""];
@@ -8129,7 +8129,7 @@ fn extract_from_twitter_json_containing_urls_with_multiple_escaped_slashes_with_
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"https:\\/\\/t.co\\/blQy8JxViF\""];
@@ -8170,7 +8170,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -8211,7 +8211,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -8252,7 +8252,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -8293,7 +8293,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -8334,7 +8334,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -8375,7 +8375,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_compressed_
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -8416,7 +8416,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -8457,7 +8457,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -8498,7 +8498,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -8539,7 +8539,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -8580,7 +8580,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -8621,7 +8621,7 @@ fn label_b_and_b_with_escaped_quote_to_trick_naive_string_comparison_with_query_
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -10481,7 +10481,7 @@ fn list_with_mixed_atomic_integers_and_objects_compressed_with_query_select_all_
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "{\"b\":43}", "44"];
@@ -10522,7 +10522,7 @@ fn list_with_mixed_atomic_integers_and_objects_compressed_with_query_select_all_
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "{\"b\":43}", "44"];
@@ -10563,7 +10563,7 @@ fn list_with_mixed_atomic_integers_and_objects_compressed_with_query_select_all_
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "{\"b\":43}", "44"];
@@ -10604,7 +10604,7 @@ fn list_with_mixed_atomic_integers_and_objects_with_query_select_all_elements_on
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "{\n      \"b\": 43\n    }", "44"];
@@ -10645,7 +10645,7 @@ fn list_with_mixed_atomic_integers_and_objects_with_query_select_all_elements_on
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "{\n      \"b\": 43\n    }", "44"];
@@ -10686,7 +10686,7 @@ fn list_with_mixed_atomic_integers_and_objects_with_query_select_all_elements_on
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "{\n      \"b\": 43\n    }", "44"];
@@ -10731,7 +10731,7 @@ fn list_with_nested_sublists_to_stress_output_ordering_compressed_with_query_sel
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["1", "2", "[{},4]", "{}", "4", "[5]", "5"];
@@ -10776,7 +10776,7 @@ fn list_with_nested_sublists_to_stress_output_ordering_compressed_with_query_sel
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["1", "2", "[{},4]", "{}", "4", "[5]", "5"];
@@ -10821,7 +10821,7 @@ fn list_with_nested_sublists_to_stress_output_ordering_compressed_with_query_sel
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["1", "2", "[{},4]", "{}", "4", "[5]", "5"];
@@ -10866,7 +10866,7 @@ fn list_with_nested_sublists_to_stress_output_ordering_with_query_select_all_sub
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["1", "2", "[\n    {},\n    4\n  ]", "{}", "4", "[\n    5\n  ]", "5"];
@@ -10911,7 +10911,7 @@ fn list_with_nested_sublists_to_stress_output_ordering_with_query_select_all_sub
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["1", "2", "[\n    {},\n    4\n  ]", "{}", "4", "[\n    5\n  ]", "5"];
@@ -10956,7 +10956,7 @@ fn list_with_nested_sublists_to_stress_output_ordering_with_query_select_all_sub
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["1", "2", "[\n    {},\n    4\n  ]", "{}", "4", "[\n    5\n  ]", "5"];
@@ -10997,7 +10997,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -11038,7 +11038,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -11079,7 +11079,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -11120,7 +11120,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -11161,7 +11161,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -11202,7 +11202,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_compressed_with_qu
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -11243,7 +11243,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -11284,7 +11284,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -11325,7 +11325,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -11366,7 +11366,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -11407,7 +11407,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -11448,7 +11448,7 @@ fn members_with_escaped_double_quotes_and_braces_and_brackets_with_query_select_
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -11489,7 +11489,7 @@ fn nested_atomic_member_compressed_with_query_look_for_b_on_at_least_one_level_o
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -11530,7 +11530,7 @@ fn nested_atomic_member_compressed_with_query_look_for_b_on_at_least_one_level_o
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -11571,7 +11571,7 @@ fn nested_atomic_member_compressed_with_query_look_for_b_on_at_least_one_level_o
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -11612,7 +11612,7 @@ fn nested_atomic_member_compressed_with_query_look_for_descendants_of_an_atomic_
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -11653,7 +11653,7 @@ fn nested_atomic_member_compressed_with_query_look_for_descendants_of_an_atomic_
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -11694,7 +11694,7 @@ fn nested_atomic_member_compressed_with_query_look_for_descendants_of_an_atomic_
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -11735,7 +11735,7 @@ fn nested_atomic_member_compressed_with_query_select_a_number_that_is_a_child_wi
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -11776,7 +11776,7 @@ fn nested_atomic_member_compressed_with_query_select_a_number_that_is_a_child_wi
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -11817,7 +11817,7 @@ fn nested_atomic_member_compressed_with_query_select_a_number_that_is_a_child_wi
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -11858,7 +11858,7 @@ fn nested_atomic_member_compressed_with_query_select_all_decsendants_with_buffer
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "[{\"b\":43}]", "{\"b\":43}", "43"];
@@ -11899,7 +11899,7 @@ fn nested_atomic_member_compressed_with_query_select_all_decsendants_with_mmap_i
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "[{\"b\":43}]", "{\"b\":43}", "43"];
@@ -11940,7 +11940,7 @@ fn nested_atomic_member_compressed_with_query_select_all_decsendants_with_owned_
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42", "[{\"b\":43}]", "{\"b\":43}", "43"];
@@ -11981,7 +11981,7 @@ fn nested_atomic_member_compressed_with_query_select_first_item_from_list_descen
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"b\":43}"];
@@ -12022,7 +12022,7 @@ fn nested_atomic_member_compressed_with_query_select_first_item_from_list_descen
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"b\":43}"];
@@ -12063,7 +12063,7 @@ fn nested_atomic_member_compressed_with_query_select_first_item_from_list_descen
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"b\":43}"];
@@ -12104,7 +12104,7 @@ fn nested_atomic_member_compressed_with_query_select_the_first_element_of_b_with
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"b\":43}"];
@@ -12145,7 +12145,7 @@ fn nested_atomic_member_compressed_with_query_select_the_first_element_of_b_with
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"b\":43}"];
@@ -12186,7 +12186,7 @@ fn nested_atomic_member_compressed_with_query_select_the_first_element_of_b_with
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"b\":43}"];
@@ -12227,7 +12227,7 @@ fn nested_atomic_member_compressed_with_query_select_the_nested_b_directly_with_
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -12268,7 +12268,7 @@ fn nested_atomic_member_compressed_with_query_select_the_nested_b_directly_with_
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -12309,7 +12309,7 @@ fn nested_atomic_member_compressed_with_query_select_the_nested_b_directly_with_
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -12350,7 +12350,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_b_whi
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -12391,7 +12391,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_b_whi
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -12432,7 +12432,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_b_whi
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -12473,7 +12473,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_the_r
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -12514,7 +12514,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_the_r
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -12555,7 +12555,7 @@ fn nested_atomic_member_compressed_with_query_select_the_second_element_of_the_r
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -12596,7 +12596,7 @@ fn nested_atomic_member_with_query_look_for_b_on_at_least_one_level_of_nesting_w
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -12637,7 +12637,7 @@ fn nested_atomic_member_with_query_look_for_b_on_at_least_one_level_of_nesting_w
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -12678,7 +12678,7 @@ fn nested_atomic_member_with_query_look_for_b_on_at_least_one_level_of_nesting_w
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -12719,7 +12719,7 @@ fn nested_atomic_member_with_query_look_for_descendants_of_an_atomic_value_with_
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -12760,7 +12760,7 @@ fn nested_atomic_member_with_query_look_for_descendants_of_an_atomic_value_with_
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -12801,7 +12801,7 @@ fn nested_atomic_member_with_query_look_for_descendants_of_an_atomic_value_with_
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -12842,7 +12842,7 @@ fn nested_atomic_member_with_query_select_a_number_that_is_a_child_with_buffered
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -12883,7 +12883,7 @@ fn nested_atomic_member_with_query_select_a_number_that_is_a_child_with_mmap_inp
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -12924,7 +12924,7 @@ fn nested_atomic_member_with_query_select_a_number_that_is_a_child_with_owned_by
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -12965,7 +12965,7 @@ fn nested_atomic_member_with_query_select_all_decsendants_with_buffered_input_an
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -13011,7 +13011,7 @@ fn nested_atomic_member_with_query_select_all_decsendants_with_mmap_input_and_no
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -13057,7 +13057,7 @@ fn nested_atomic_member_with_query_select_all_decsendants_with_owned_bytes_and_n
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -13103,7 +13103,7 @@ fn nested_atomic_member_with_query_select_first_item_from_list_descendants_with_
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\n            \"b\": 43\n        }"];
@@ -13144,7 +13144,7 @@ fn nested_atomic_member_with_query_select_first_item_from_list_descendants_with_
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\n            \"b\": 43\n        }"];
@@ -13185,7 +13185,7 @@ fn nested_atomic_member_with_query_select_first_item_from_list_descendants_with_
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\n            \"b\": 43\n        }"];
@@ -13226,7 +13226,7 @@ fn nested_atomic_member_with_query_select_the_first_element_of_b_with_buffered_i
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\n            \"b\": 43\n        }"];
@@ -13267,7 +13267,7 @@ fn nested_atomic_member_with_query_select_the_first_element_of_b_with_mmap_input
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\n            \"b\": 43\n        }"];
@@ -13308,7 +13308,7 @@ fn nested_atomic_member_with_query_select_the_first_element_of_b_with_owned_byte
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\n            \"b\": 43\n        }"];
@@ -13349,7 +13349,7 @@ fn nested_atomic_member_with_query_select_the_nested_b_directly_with_buffered_in
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -13390,7 +13390,7 @@ fn nested_atomic_member_with_query_select_the_nested_b_directly_with_mmap_input_
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -13431,7 +13431,7 @@ fn nested_atomic_member_with_query_select_the_nested_b_directly_with_owned_bytes
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["43"];
@@ -13472,7 +13472,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_b_which_does_not
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -13513,7 +13513,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_b_which_does_not
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -13554,7 +13554,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_b_which_does_not
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -13595,7 +13595,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_the_root_which_i
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -13636,7 +13636,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_the_root_which_i
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -13677,7 +13677,7 @@ fn nested_atomic_member_with_query_select_the_second_element_of_the_root_which_i
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -13718,7 +13718,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["45"];
@@ -13759,7 +13759,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["45"];
@@ -13800,7 +13800,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["45"];
@@ -13841,7 +13841,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["45"];
@@ -13882,7 +13882,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["45"];
@@ -13923,7 +13923,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["45"];
@@ -13964,7 +13964,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"c\":{\"d\":[42,43,44],\"b\":45}}"];
@@ -14005,7 +14005,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"c\":{\"d\":[42,43,44],\"b\":45}}"];
@@ -14046,7 +14046,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"c\":{\"d\":[42,43,44],\"b\":45}}"];
@@ -14087,7 +14087,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -14128,7 +14128,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -14169,7 +14169,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -14210,7 +14210,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["44"];
@@ -14251,7 +14251,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["44"];
@@ -14292,7 +14292,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["44"];
@@ -14333,7 +14333,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["44"];
@@ -14374,7 +14374,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["44"];
@@ -14415,7 +14415,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_compresse
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["44"];
@@ -14456,7 +14456,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["45"];
@@ -14497,7 +14497,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["45"];
@@ -14538,7 +14538,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["45"];
@@ -14579,7 +14579,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["45"];
@@ -14620,7 +14620,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["45"];
@@ -14661,7 +14661,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["45"];
@@ -14702,7 +14702,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["{\n            \"c\": {\n                \"d\": [\n                    42,\n                    43,\n                    44\n                ],\n                \"b\": 45\n            }\n        }" ,] ;
@@ -14743,7 +14743,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["{\n            \"c\": {\n                \"d\": [\n                    42,\n                    43,\n                    44\n                ],\n                \"b\": 45\n            }\n        }" ,] ;
@@ -14784,7 +14784,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["{\n            \"c\": {\n                \"d\": [\n                    42,\n                    43,\n                    44\n                ],\n                \"b\": 45\n            }\n        }" ,] ;
@@ -14825,7 +14825,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -14866,7 +14866,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -14907,7 +14907,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
@@ -14948,7 +14948,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["44"];
@@ -14989,7 +14989,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["44"];
@@ -15030,7 +15030,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["44"];
@@ -15071,7 +15071,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["44"];
@@ -15112,7 +15112,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["44"];
@@ -15153,7 +15153,7 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["44"];
@@ -15194,7 +15194,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["17"];
@@ -15235,7 +15235,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["17"];
@@ -15276,7 +15276,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["17"];
@@ -15317,7 +15317,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -15358,7 +15358,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -15399,7 +15399,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_compress
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -15440,7 +15440,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["17"];
@@ -15481,7 +15481,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["17"];
@@ -15522,7 +15522,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["17"];
@@ -15563,7 +15563,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -15604,7 +15604,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -15645,7 +15645,7 @@ fn object_with_two_labels_x_and_x_with_a_preceding_escaped_double_quote_with_que
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["42"];
@@ -15686,7 +15686,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0"];
@@ -15727,7 +15727,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0"];
@@ -15768,7 +15768,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0"];
@@ -15809,7 +15809,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[[],0]", "[[],0]", "[[],0]"];
@@ -15850,7 +15850,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[[],0]", "[[],0]", "[[],0]"];
@@ -15891,7 +15891,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_direct_pat
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[[],0]", "[[],0]", "[[],0]"];
@@ -15932,7 +15932,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0]", "[]"];
@@ -15973,7 +15973,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0]", "[]"];
@@ -16014,7 +16014,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0]", "[]"];
@@ -16062,7 +16062,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -16127,7 +16127,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -16192,7 +16192,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_all
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -16250,7 +16250,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0]"];
@@ -16291,7 +16291,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0]"];
@@ -16332,7 +16332,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0]"];
@@ -16377,7 +16377,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0]", "0", "[]", "[[],0]", "[]", "[]", "[]"];
@@ -16422,7 +16422,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0]", "0", "[]", "[[],0]", "[]", "[]", "[]"];
@@ -16467,7 +16467,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0]", "0", "[]", "[[],0]", "[]", "[]", "[]"];
@@ -16508,7 +16508,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -16549,7 +16549,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -16590,7 +16590,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -16631,7 +16631,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[[0]]"];
@@ -16672,7 +16672,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[[0]]"];
@@ -16713,7 +16713,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[[0]]"];
@@ -16758,7 +16758,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -16815,7 +16815,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -16872,7 +16872,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -16925,7 +16925,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "0", "0"];
@@ -16966,7 +16966,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "0", "0"];
@@ -17007,7 +17007,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "0", "0"];
@@ -17048,7 +17048,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[[],0]"];
@@ -17089,7 +17089,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[[],0]"];
@@ -17130,7 +17130,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[[],0]"];
@@ -17171,7 +17171,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "0", "0"];
@@ -17212,7 +17212,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "0", "0"];
@@ -17253,7 +17253,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "0", "0"];
@@ -17294,7 +17294,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[[[],0],[[],0],[[],0]]"];
@@ -17335,7 +17335,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[[[],0],[[],0],[[],0]]"];
@@ -17376,7 +17376,7 @@ fn only_lists_and_integers_nested_in_each_other_compressed_with_query_select_the
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[[[],0],[[],0],[[],0]]"];
@@ -17417,7 +17417,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_0_1_w
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0"];
@@ -17458,7 +17458,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_0_1_w
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0"];
@@ -17499,7 +17499,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_0_1_w
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0"];
@@ -17540,7 +17540,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_and_t
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -17585,7 +17585,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_and_t
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -17630,7 +17630,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_direct_path_2_1_and_t
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -17675,7 +17675,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_nodes_at_d
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0]", "[]"];
@@ -17716,7 +17716,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_nodes_at_d
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0]", "[]"];
@@ -17757,7 +17757,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_nodes_at_d
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0]", "[]"];
@@ -17805,7 +17805,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_non_root_n
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["[\n        [0]\n    ]" , "[0]" , "0" , "[]" , "[\n        [],\n        [\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]\n    ]" , "[]" , "[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" ,] ;
@@ -17853,7 +17853,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_non_root_n
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["[\n        [0]\n    ]" , "[0]" , "0" , "[]" , "[\n        [],\n        [\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]\n    ]" , "[]" , "[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" ,] ;
@@ -17901,7 +17901,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_all_non_root_n
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["[\n        [0]\n    ]" , "[0]" , "0" , "[]" , "[\n        [],\n        [\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]\n    ]" , "[]" , "[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" ,] ;
@@ -17942,7 +17942,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0]"];
@@ -17983,7 +17983,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0]"];
@@ -18024,7 +18024,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0]"];
@@ -18069,7 +18069,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -18122,7 +18122,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -18175,7 +18175,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -18224,7 +18224,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -18265,7 +18265,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -18306,7 +18306,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[]"];
@@ -18347,7 +18347,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[\n        [0]\n    ]"];
@@ -18388,7 +18388,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[\n        [0]\n    ]"];
@@ -18429,7 +18429,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_first_elem
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[\n        [0]\n    ]"];
@@ -18474,7 +18474,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["[]" , "[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" ,] ;
@@ -18519,7 +18519,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["[]" , "[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" ,] ;
@@ -18564,7 +18564,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["[]" , "[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" , "[\n                [],\n                0\n            ]" , "[]" , "0" ,] ;
@@ -18605,7 +18605,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "0", "0"];
@@ -18646,7 +18646,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "0", "0"];
@@ -18687,7 +18687,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "0", "0"];
@@ -18728,7 +18728,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[\n                [],\n                0\n            ]"];
@@ -18769,7 +18769,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[\n                [],\n                0\n            ]"];
@@ -18810,7 +18810,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_long_list_
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[\n                [],\n                0\n            ]"];
@@ -18851,7 +18851,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_path_2_1_t
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "0", "0"];
@@ -18892,7 +18892,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_path_2_1_t
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "0", "0"];
@@ -18933,7 +18933,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_path_2_1_t
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "0", "0"];
@@ -18974,7 +18974,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_second_ele
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" ,] ;
@@ -19015,7 +19015,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_second_ele
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" ,] ;
@@ -19056,7 +19056,7 @@ fn only_lists_and_integers_nested_in_each_other_with_query_select_the_second_ele
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected : Vec < & str > = vec ! ["[\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ],\n            [\n                [],\n                0\n            ]\n        ]" ,] ;
@@ -19097,7 +19097,7 @@ fn short_description_of_the_inline_input_structure_compressed_with_query_select_
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"value1\"", "42"];
@@ -19138,7 +19138,7 @@ fn short_description_of_the_inline_input_structure_compressed_with_query_select_
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"value1\"", "42"];
@@ -19179,7 +19179,7 @@ fn short_description_of_the_inline_input_structure_compressed_with_query_select_
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"value1\"", "42"];
@@ -19220,7 +19220,7 @@ fn short_description_of_the_inline_input_structure_with_query_select_all_subdocu
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"value1\"", "42"];
@@ -19261,7 +19261,7 @@ fn short_description_of_the_inline_input_structure_with_query_select_all_subdocu
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"value1\"", "42"];
@@ -19302,7 +19302,7 @@ fn short_description_of_the_inline_input_structure_with_query_select_all_subdocu
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"value1\"", "42"];
@@ -19416,7 +19416,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"0123-4567-8888\"", "\"0123-4567-8910\""];
@@ -19457,7 +19457,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"0123-4567-8888\"", "\"0123-4567-8910\""];
@@ -19498,7 +19498,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"0123-4567-8888\"", "\"0123-4567-8910\""];
@@ -19539,7 +19539,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"iPhone\""];
@@ -19580,7 +19580,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"iPhone\""];
@@ -19621,7 +19621,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"iPhone\""];
@@ -19662,7 +19662,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"type\":\"iPhone\",\"number\":\"0123-4567-8888\"}"];
@@ -19703,7 +19703,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"type\":\"iPhone\",\"number\":\"0123-4567-8888\"}"];
@@ -19744,7 +19744,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_compres
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"type\":\"iPhone\",\"number\":\"0123-4567-8888\"}"];
@@ -19785,7 +19785,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"0123-4567-8888\"", "\"0123-4567-8910\""];
@@ -19826,7 +19826,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"0123-4567-8888\"", "\"0123-4567-8910\""];
@@ -19867,7 +19867,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"0123-4567-8888\"", "\"0123-4567-8910\""];
@@ -19908,7 +19908,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"iPhone\""];
@@ -19949,7 +19949,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"iPhone\""];
@@ -19990,7 +19990,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"iPhone\""];
@@ -20031,7 +20031,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> =
@@ -20073,7 +20073,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> =
@@ -20115,7 +20115,7 @@ fn short_json_with_objects_and_lists_given_as_an_example_on_jsonpath_com_with_qu
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> =
@@ -20157,7 +20157,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}", "[]"];
@@ -20198,7 +20198,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}", "[]"];
@@ -20239,7 +20239,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}", "[]"];
@@ -20280,7 +20280,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[{}]", "[[]]", "[]", "{}"];
@@ -20321,7 +20321,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[{}]", "[[]]", "[]", "{}"];
@@ -20362,7 +20362,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[{}]", "[[]]", "[]", "{}"];
@@ -20403,7 +20403,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}", "[]"];
@@ -20444,7 +20444,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}", "[]"];
@@ -20485,7 +20485,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}", "[]"];
@@ -20530,7 +20530,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[{}]", "{}", "[[]]", "[]", "[]", "{}"];
@@ -20575,7 +20575,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[{}]", "{}", "[[]]", "[]", "[]", "{}"];
@@ -20620,7 +20620,7 @@ fn single_element_lists_empty_lists_and_empty_objects_compressed_with_query_sele
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[{}]", "{}", "[[]]", "[]", "[]", "{}"];
@@ -20661,7 +20661,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}", "[]"];
@@ -20702,7 +20702,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}", "[]"];
@@ -20743,7 +20743,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}", "[]"];
@@ -20784,7 +20784,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[\n        {}\n    ]", "[\n        []\n    ]", "[]", "{}"];
@@ -20825,7 +20825,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[\n        {}\n    ]", "[\n        []\n    ]", "[]", "{}"];
@@ -20866,7 +20866,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[\n        {}\n    ]", "[\n        []\n    ]", "[]", "{}"];
@@ -20907,7 +20907,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}", "[]"];
@@ -20948,7 +20948,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}", "[]"];
@@ -20989,7 +20989,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{}", "[]"];
@@ -21034,7 +21034,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[\n        {}\n    ]", "{}", "[\n        []\n    ]", "[]", "[]", "{}"];
@@ -21079,7 +21079,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[\n        {}\n    ]", "{}", "[\n        []\n    ]", "[]", "[]", "{}"];
@@ -21124,7 +21124,7 @@ fn single_element_lists_empty_lists_and_empty_objects_with_query_select_all_node
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[\n        {}\n    ]", "{}", "[\n        []\n    ]", "[]", "[]", "{}"];
@@ -21172,7 +21172,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -21225,7 +21225,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -21278,7 +21278,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -21331,7 +21331,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"iPhone\"", "\"home\"", "\"iPhone\"", "\"home\""];
@@ -21379,7 +21379,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"iPhone\"", "\"home\"", "\"iPhone\"", "\"home\""];
@@ -21427,7 +21427,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_compre
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"iPhone\"", "\"home\"", "\"iPhone\"", "\"home\""];
@@ -21472,7 +21472,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -21522,7 +21522,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -21572,7 +21572,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![
@@ -21622,7 +21622,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"iPhone\"", "\"home\"", "\"iPhone\"", "\"home\""];
@@ -21667,7 +21667,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"iPhone\"", "\"home\"", "\"iPhone\"", "\"home\""];
@@ -21712,7 +21712,7 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"iPhone\"", "\"home\"", "\"iPhone\"", "\"home\""];
@@ -22119,7 +22119,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_count_
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -22160,7 +22160,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_count_
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -22201,7 +22201,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_count_
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -22242,7 +22242,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -22283,7 +22283,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -22324,7 +22324,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -22365,7 +22365,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -22406,7 +22406,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -22447,7 +22447,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -22488,7 +22488,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -22529,7 +22529,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -22570,7 +22570,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -22611,7 +22611,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -22652,7 +22652,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -22693,7 +22693,7 @@ fn twitter_json_from_simdjson_github_example_compressed_with_query_select_metada
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -23100,7 +23100,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_count_by_descenda
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -23141,7 +23141,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_count_by_descenda
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -23182,7 +23182,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_count_by_descenda
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -23223,7 +23223,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_and_coun
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -23264,7 +23264,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_and_coun
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -23305,7 +23305,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_and_coun
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -23346,7 +23346,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_by
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -23387,7 +23387,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_by
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -23428,7 +23428,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_by
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -23469,7 +23469,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_di
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -23510,7 +23510,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_di
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -23551,7 +23551,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_count_di
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -23592,7 +23592,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_directly
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -23633,7 +23633,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_directly
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -23674,7 +23674,7 @@ fn twitter_json_from_simdjson_github_example_with_query_select_metadata_directly
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["100"];
@@ -23715,7 +23715,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0,1,2]"];
@@ -23756,7 +23756,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0,1,2]"];
@@ -23797,7 +23797,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0,1,2]"];
@@ -23838,7 +23838,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0,1,2]"];
@@ -23879,7 +23879,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0,1,2]"];
@@ -23920,7 +23920,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0,1,2]"];
@@ -23961,7 +23961,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "1", "2"];
@@ -24002,7 +24002,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "1", "2"];
@@ -24043,7 +24043,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "1", "2"];
@@ -24084,7 +24084,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"a\":[0,1,2]}"];
@@ -24125,7 +24125,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"a\":[0,1,2]}"];
@@ -24166,7 +24166,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"a\":[0,1,2]}"];
@@ -24207,7 +24207,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0  ,  1  ,  2]"];
@@ -24248,7 +24248,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0  ,  1  ,  2]"];
@@ -24289,7 +24289,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0  ,  1  ,  2]"];
@@ -24330,7 +24330,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0  ,  1  ,  2]"];
@@ -24371,7 +24371,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0  ,  1  ,  2]"];
@@ -24412,7 +24412,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["[0  ,  1  ,  2]"];
@@ -24453,7 +24453,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "1", "2"];
@@ -24494,7 +24494,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "1", "2"];
@@ -24535,7 +24535,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["0", "1", "2"];
@@ -24576,7 +24576,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let input = BufferedInput::new(json_file);
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"a\"  :  [0  ,  1  ,  2]}"];
@@ -24617,7 +24617,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let input = unsafe { MmapInput::map_file(&json_file)? };
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"a\"  :  [0  ,  1  ,  2]}"];
@@ -24658,7 +24658,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let input = OwnedBytes::new(&raw_json.as_bytes())?;
     let engine = MainEngine::compile_query(&jsonpath_query)?;
     let mut result = vec![];
-    engine.run(&input, &mut result)?;
+    engine.matches(&input, &mut result)?;
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["{\"a\"  :  [0  ,  1  ,  2]}"];

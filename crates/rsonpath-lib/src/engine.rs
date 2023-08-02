@@ -18,10 +18,37 @@ use crate::{
 
 /// An engine that can run its query on a given input.
 pub trait Engine {
+    /// Find the number of matches on the given [`Input`].
+    ///
+    /// The result is equivalent to using [`run`](Engine::run) and counting the matches,
+    /// but in general is much more time and memory efficient.
+    ///
+    /// # Errors
+    /// An appropriate [`EngineError`] is returned if the JSON input is malformed
+    /// and the syntax error is detected.
+    ///
+    /// **Please note** that detecting malformed JSONs is not guaranteed.
+    /// Some glaring errors like mismatched braces or double quotes are raised,
+    /// but in general **the result of an engine run on an invalid JSON is undefined**.
+    /// It _is_ guaranteed that the computation terminates and does not panic.
     fn count<I>(&self, input: &I) -> Result<MatchCount, EngineError>
     where
         I: Input;
 
+    /// Find the starting indices of matches on the given [`Input`].
+    ///
+    /// The result is equivalent to using [`run`](Engine::run) and extracting the
+    /// [`Match::span.start_idx`],
+    /// but in general is much more time and memory efficient.
+    ///
+    /// # Errors
+    /// An appropriate [`EngineError`] is returned if the JSON input is malformed
+    /// and the syntax error is detected.
+    ///
+    /// **Please note** that detecting malformed JSONs is not guaranteed.
+    /// Some glaring errors like mismatched braces or double quotes are raised,
+    /// but in general **the result of an engine run on an invalid JSON is undefined**.
+    /// It _is_ guaranteed that the computation terminates and does not panic.
     fn indices<I, S>(&self, input: &I, sink: &mut S) -> Result<(), EngineError>
     where
         I: Input,
@@ -35,9 +62,9 @@ pub trait Engine {
     ///
     /// **Please note** that detecting malformed JSONs is not guaranteed.
     /// Some glaring errors like mismatched braces or double quotes are raised,
-    /// but in general the result of an engine run on an invalid JSON is undefined.
+    /// but in general **the result of an engine run on an invalid JSON is undefined**.
     /// It _is_ guaranteed that the computation terminates and does not panic.
-    fn run<I, S>(&self, input: &I, sink: &mut S) -> Result<(), EngineError>
+    fn matches<I, S>(&self, input: &I, sink: &mut S) -> Result<(), EngineError>
     where
         I: Input,
         S: Sink<Match>;

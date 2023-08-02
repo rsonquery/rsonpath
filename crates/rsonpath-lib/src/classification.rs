@@ -116,7 +116,7 @@ where
     ///
     /// # Errors
     /// If the offset crosses block boundaries, then a new block is read from the underlying
-    /// [`Input`] implementation, which can fail.
+    /// [`Input`](crate::input::Input) implementation, which can fail.
     ///
     /// # Panics
     /// If the `count` is not positive.

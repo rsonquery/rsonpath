@@ -166,7 +166,7 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> impl IntoIterator<Item = T
                     .expect("result without data in toml should be filtered out in get_available_results");
                 quote! {
                     let mut result = vec![];
-                    #engine_ident.run(&#input_ident, &mut result)?;
+                    #engine_ident.matches(&#input_ident, &mut result)?;
 
                     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
                     let utf8 = utf8.expect("valid utf8");
