@@ -1,4 +1,4 @@
-//! [`QueryResult`] and [`Recorder`] implementation collecting the bytes of all matches.
+//! Main [`Recorder`] implementation collecting the bytes of all matches.
 //!
 //! This is the heaviest recorder. It will copy all bytes of all matches into [`Vecs`](`Vec`).
 //!
@@ -15,7 +15,8 @@ use std::{
     str::{self, Utf8Error},
 };
 
-/// [`QueryResult`] that collects all byte spans of matched values.
+/// Recorder that collects all byte spans of matched values
+/// and feeds [`Match`es](`super::Match`) to the [`Sink`].
 #[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct NodesResult {
     spans: Vec<Vec<u8>>,

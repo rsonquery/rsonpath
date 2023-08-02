@@ -1,12 +1,12 @@
-//! [`QueryResult`] and [`Recorder`] implementation for counting the number of matches.
+//! [`Recorder`] implementation for counting the number of matches.
 //!
 //! This is faster than any recorder that actually examines the values.
 use super::*;
 use std::cell::Cell;
 
-/// Recorder for [`CountResult`].
+/// Recorder that keeps only the number of matches, no details.
 pub struct CountRecorder {
-    count: Cell<u64>,
+    count: Cell<MatchCount>,
 }
 
 impl CountRecorder {
@@ -15,7 +15,7 @@ impl CountRecorder {
     }
 }
 
-impl From<CountRecorder> for u64 {
+impl From<CountRecorder> for MatchCount {
     #[inline]
     fn from(val: CountRecorder) -> Self {
         val.count.into_inner()

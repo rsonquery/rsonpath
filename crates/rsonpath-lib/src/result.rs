@@ -53,7 +53,7 @@ pub trait Sink<D> {
     /// # Errors
     /// An error depending on the implementor can be raised.
     /// For example, implementations using an underlying [`io::Write`]
-    /// may raise an [`io::error::Error`].
+    /// may raise an [`io::Error`].
     fn add_match(&mut self, data: D) -> Result<(), Self::Error>;
 }
 
@@ -123,7 +123,8 @@ pub trait InputRecorder<B: Deref<Target = [u8]>> {
     fn record_block_start(&self, new_block: B);
 }
 
-/// An observer that can build a [`QueryResult`] based on match and structural events coming from the execution engine.
+/// An observer that can determine the query result
+/// based on match and structural events coming from the execution engine.
 pub trait Recorder<B: Deref<Target = [u8]>>: InputRecorder<B> {
     /// Record a match of the query at a given `depth`.
     /// The `idx` is guaranteed to be the first character of the matched value.

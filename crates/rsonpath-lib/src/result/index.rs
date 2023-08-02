@@ -1,13 +1,9 @@
-//! [`QueryResult`] and [`Recorder`] implementation finding the starts of all matches.
-//!
-//! This is useful if you can provide a separate parsing function that will examine the
-//! matches after the search. The result provides starting indices for the parser.
-//! If the entire input is available, and you intend to parse the results manually,
-//! this search is significantly faster than more involved search techniques.
+//! [`Recorder`] implementation finding the starts of all matches.
+//! Faster than a full [`NodesRecorder`](super::nodes::NodesRecorder).
 use super::*;
 use std::cell::RefCell;
 
-/// Recorder for [`IndexResult`].
+/// Recorder that saves only the start indices to the [`Sink`].
 pub struct IndexRecorder<'s, S> {
     sink: RefCell<&'s mut S>,
 }

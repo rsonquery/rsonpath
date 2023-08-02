@@ -2,9 +2,10 @@ use super::error::{ArrayIndexError, ParseErrorReport, ParserError};
 use crate::debug;
 use crate::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, JsonString, NonNegativeArrayIndex};
 use nom::{branch::*, bytes::complete::*, character::complete::*, combinator::*, multi::*, sequence::*, *};
-use std::borrow::Borrow;
-use std::fmt::{self, Display};
-
+use std::{
+    borrow::Borrow,
+    fmt::{self, Display, Write},
+};
 #[derive(Debug, Clone)]
 enum Token<'a> {
     Root,
@@ -74,7 +75,10 @@ pub(crate) fn parse_json_path_query(query_string: &str) -> Result<JsonPathQuery,
             debug!(
                 "Parsed tokens: {}",
                 root_token.map_or(String::new(), |x| format!("{x}"))
-                    + &tokens.iter().map(|x| format!("({x:?})")).collect::<String>()
+                    + &tokens.iter().fold(String::new(), |mut out, x| {
+                        write!(out, "({x:?})").expect("infallible");
+                        out
+                    })
             );
             let node = tokens_to_node(&mut tokens.into_iter())?;
             Ok(match node {

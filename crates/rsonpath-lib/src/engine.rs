@@ -20,7 +20,7 @@ use crate::{
 pub trait Engine {
     /// Find the number of matches on the given [`Input`].
     ///
-    /// The result is equivalent to using [`run`](Engine::run) and counting the matches,
+    /// The result is equivalent to using [`matches`](Engine::matches) and counting the matches,
     /// but in general is much more time and memory efficient.
     ///
     /// # Errors
@@ -35,9 +35,9 @@ pub trait Engine {
     where
         I: Input;
 
-    /// Find the starting indices of matches on the given [`Input`].
+    /// Find the starting indices of matches on the given [`Input`] and write them to the [`Sink`].
     ///
-    /// The result is equivalent to using [`run`](Engine::run) and extracting the
+    /// The result is equivalent to using [`matches`](Engine::matches) and extracting the
     /// [`Match::span.start_idx`],
     /// but in general is much more time and memory efficient.
     ///
@@ -54,7 +54,7 @@ pub trait Engine {
         I: Input,
         S: Sink<MatchIndex>;
 
-    /// Compute a result using the given [`Recorder`] type on given [`Input`].
+    /// Find all matches on the given [`Input`] and write them to the [`Sink`].
     ///
     /// # Errors
     /// An appropriate [`EngineError`] is returned if the JSON input is malformed

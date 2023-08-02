@@ -1,7 +1,7 @@
-//! Empty [`QueryResult`] and [`Recorder`] implementation, mainly for testing purposes.
+//! Empty [`Recorder`] implementation, mainly for testing purposes.
 use super::*;
 
-/// Recorder for [`EmptyResult`].
+/// Recorder that does nothing.
 pub struct EmptyRecorder;
 
 impl<B: Deref<Target = [u8]>> InputRecorder<B> for EmptyRecorder {

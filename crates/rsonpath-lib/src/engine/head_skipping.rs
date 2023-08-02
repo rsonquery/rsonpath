@@ -132,7 +132,7 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
                 let seek_start_idx = idx + self.member_name.bytes_with_quotes().len();
 
                 match self.bytes.seek_non_whitespace_forward(seek_start_idx)? {
-                    Some((colon_idx, char)) if char == b':' => {
+                    Some((colon_idx, b':')) => {
                         let (next_idx, next_c) = self
                             .bytes
                             .seek_non_whitespace_forward(colon_idx + 1)?
