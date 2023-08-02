@@ -1,6 +1,6 @@
 [package]
 name = "rsonpath-test-codegen"
-version = "0.5.1"
+version = "0.6.0"
 authors = ["Mateusz Gienieczko <mat@gienieczko.com>"]
 edition = "2021"
 description = "Blazing fast JSONPath query engine powered by SIMD. TOML-based test codegen for rsonpath-lib."

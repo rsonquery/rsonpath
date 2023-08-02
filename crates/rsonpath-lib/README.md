@@ -7,7 +7,8 @@
 [![GitHub Release Date](https://img.shields.io/github/release-date/v0ldek/rsonpath)](https://github.com/V0ldek/rsonpath/releases)
 [![GitHub last commit](https://img.shields.io/github/last-commit/v0ldek/rsonpath?logo=github)](https://github.com/V0ldek/rsonpath/commits/main)
 
-[![Crates.io](https://img.shields.io/crates/l/rsonpath)](https://choosealicense.com/licenses/mit/)
+![MSRV](https://img.shields.io/badge/msrv-v1.67.1-orange?logo=rust "Minimum Supported Rust Version for `rq`")
+[![License](https://img.shields.io/crates/l/rsonpath)](https://choosealicense.com/licenses/mit/)
 
 Library for [`rsonpath`](https://crates.io/crates/rsonpath), the JSONPath engine for querying massive streamed datasets.
 
@@ -50,16 +51,16 @@ cargo tree --package rsonpath-lib --edges normal --depth 1
 
 <!-- rsonpath-lib dependencies start -->
 ```ini
-rsonpath-lib v0.5.1 (/home/mat/rsonpath/crates/rsonpath-lib)
+rsonpath-lib v0.6.0 (/home/mat/rsonpath/crates/rsonpath-lib)
 ├── cfg-if v1.0.0
 ├── log v0.4.19
 ├── memchr v2.5.0
 ├── memmap2 v0.7.1
 ├── nom v7.1.3
 ├── replace_with v0.1.7
-├── smallvec v1.10.0
+├── smallvec v1.11.0
 ├── static_assertions v1.1.0
-├── thiserror v1.0.40
+├── thiserror v1.0.44
 └── vector-map v1.0.1
 ```
 <!-- rsonpath-lib dependencies end -->
