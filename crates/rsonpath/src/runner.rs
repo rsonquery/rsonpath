@@ -1,4 +1,4 @@
-use crate::input::{self, FileOrStdin, ResolvedInputKind};
+use crate::input::{self, JsonSource, ResolvedInputKind};
 use crate::{
     args::{InputArg, ResultArg},
     error::report_engine_error,
@@ -17,14 +17,14 @@ use std::{
     path::Path,
 };
 
-pub struct Runner<'q> {
+pub struct Runner<'q, S> {
     pub with_compiled_query: Automaton<'q>,
     pub with_engine: ResolvedEngine,
-    pub with_input: ResolvedInput,
+    pub with_input: ResolvedInput<S>,
     pub with_output: ResolvedOutput,
 }
 
-impl<'q> Runner<'q> {
+impl<'q, S: AsRef<str>> Runner<'q, S> {
     pub fn run(self) -> Result<()> {
         match self.with_engine {
             ResolvedEngine::Main => {
@@ -37,10 +37,16 @@ impl<'q> Runner<'q> {
     }
 }
 
-pub fn resolve_input<P: AsRef<Path>>(file_path: Option<P>, force_input: Option<&InputArg>) -> Result<ResolvedInput> {
-    let file = match file_path {
-        Some(path) => FileOrStdin::File(fs::File::open(path).wrap_err("Error reading the provided file.")?),
-        None => FileOrStdin::Stdin(io::stdin()),
+pub fn resolve_input<P: AsRef<Path>, S: AsRef<str>>(
+    file_path: Option<P>,
+    inline_json: Option<S>,
+    force_input: Option<&InputArg>,
+) -> Result<ResolvedInput<S>> {
+    let file = match (file_path, inline_json) {
+        (Some(path), None) => JsonSource::File(fs::File::open(path).wrap_err("Error reading the provided file.")?),
+        (None, Some(json)) => JsonSource::Inline(json),
+        (None, None) => JsonSource::Stdin(io::stdin()),
+        (Some(_), Some(_)) => unreachable!("both file_path and json detected"),
     };
 
     let (kind, fallback_kind) = input::decide_input_strategy(&file, force_input)?;
@@ -68,8 +74,8 @@ pub enum ResolvedEngine {
     Main,
 }
 
-pub struct ResolvedInput {
-    file: FileOrStdin,
+pub struct ResolvedInput<S> {
+    file: JsonSource<S>,
     kind: ResolvedInputKind,
     fallback_kind: Option<ResolvedInputKind>,
 }
@@ -80,11 +86,15 @@ pub enum ResolvedOutput {
     Nodes,
 }
 
-impl ResolvedInput {
-    fn run_engine<E: Engine>(self, engine: E, with_output: ResolvedOutput) -> Result<()> {
+impl<S: AsRef<str>> ResolvedInput<S> {
+    fn run_engine<E: Engine>(mut self, engine: E, with_output: ResolvedOutput) -> Result<()> {
         match self.kind {
             ResolvedInputKind::Mmap => {
-                let mmap_result = unsafe { MmapInput::map_file(&self.file) };
+                let raw_desc = self
+                    .file
+                    .try_as_raw_desc()
+                    .ok_or_else(|| eyre::eyre!("Attempt to create a memory map on inline JSON input."))?;
+                let mmap_result = unsafe { MmapInput::map_file(raw_desc) };
 
                 match mmap_result {
                     Ok(input) => with_output.run_and_output(engine, input),
@@ -107,12 +117,26 @@ impl ResolvedInput {
                 }
             }
             ResolvedInputKind::Owned => {
-                let contents = get_contents(self.file)?;
-                let input = OwnedBytes::new(&contents)?;
+                let input = match self.file {
+                    JsonSource::File(f) => {
+                        let contents = get_contents(f)?;
+                        OwnedBytes::new(&contents)
+                    }
+                    JsonSource::Stdin(s) => {
+                        let contents = get_contents(s)?;
+                        OwnedBytes::new(&contents)
+                    }
+                    JsonSource::Inline(j) => OwnedBytes::new(&j.as_ref()),
+                }?;
+
                 with_output.run_and_output(engine, input)
             }
             ResolvedInputKind::Buffered => {
-                let input = BufferedInput::new(self.file);
+                let read = self
+                    .file
+                    .try_as_read()
+                    .ok_or_else(|| eyre::eyre!("Attempt to buffer reads on inline JSON input."))?;
+                let input = BufferedInput::new(read);
                 with_output.run_and_output(engine, input)
             }
         }
@@ -144,8 +168,10 @@ impl ResolvedOutput {
     }
 }
 
-fn get_contents(mut file: FileOrStdin) -> Result<String> {
+fn get_contents<R: Read>(mut stream: R) -> Result<String> {
     let mut result = String::new();
-    file.read_to_string(&mut result).wrap_err("Reading from file failed.")?;
+    stream
+        .read_to_string(&mut result)
+        .wrap_err("Reading from file failed.")?;
     Ok(result)
 }

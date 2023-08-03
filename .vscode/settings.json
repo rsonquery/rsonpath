@@ -70,6 +70,7 @@
         "tempfile",
         "thiserror",
         "tomls",
+        "trycmd",
         "Uninit",
         "unseparated",
         "Vecs",

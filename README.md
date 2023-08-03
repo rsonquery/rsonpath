@@ -23,11 +23,17 @@ Benchmarks of `rsonpath` against a reference no-SIMD engine on the
 
 To run a JSONPath query on a file execute:
 
-```bash
-rq '$..a.b' ./file.json
+```console,ignore
+$ rq '$..a.b' ./file.json
+[15]
 ```
 
-If the file is omitted, the engine reads standard input.
+If the file is omitted, the engine reads standard input. JSON can also be passed inline:
+
+```console
+$ rq '$..a.b' --json '{"c":{"a":{"b":42}}}'
+[15]
+```
 
 For details, consult `rq --help`.
 
@@ -77,13 +83,14 @@ all first-class support targets.
 
 Easiest way to install is via [`cargo`](https://doc.rust-lang.org/cargo/getting-started/installation.html).
 
-```bash
-cargo install rsonpath
+```console,ignore
+$ cargo install rsonpath
+...
 ```
 
 This might fail with the following error:
 
-```ini
+```console,ignore
 Target architecture is not supported by SIMD features of this crate. Disable the default `simd` feature.
 ```
 
@@ -101,8 +108,9 @@ but will squeeze out every last bit of throughput.
 
 To do this, run the following `cargo install` variant:
 
-```bash
-RUSTFLAGS="-C target-cpu=native" cargo install rsonpath
+```console,ignore
+$ RUSTFLAGS="-C target-cpu=native" cargo install rsonpath
+...
 ```
 
 ## Supported platforms
@@ -144,7 +152,8 @@ $ rq '$.key'
 The engine does _not_ parse unicode escape sequences in member names.
 This means that a key `"a"` is different from a key `"\u0041"`, even though semantically they represent the same string.
 This is actually as-designed with respect to the current JSONPath spec.
-It would be possible for a flag to exist to trigger this behavior, but it is not currently worked on.
+Parsing unicode sequences is costly, so the support for this was postponed
+in favour of high performance. This is tracked as [#117](https://github.com/v0ldek/rsonpath/issues/117).
 
 ## Contributing
 
@@ -155,9 +164,11 @@ The gist is: fork, implement, make a PR back here. More details are in the [CONT
 The dev workflow utilizes [`just`](https://github.com/casey/just).
 Use the included `Justfile`. It will automatically install Rust for you using the `rustup` tool if it detects there is no Cargo in your environment.
 
-```bash
-just build
-just test
+```console,ignore
+$ just build
+...
+$ just test
+...
 ```
 
 ## Benchmarks

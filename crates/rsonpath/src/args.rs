@@ -9,8 +9,12 @@ pub struct Args {
     pub query: String,
     /// Input JSON file to query.
     ///
-    /// If not specified uses the standard input stream.
+    /// If neither file nor --json is specified, uses the standard input stream.
     pub file_path: Option<String>,
+    /// Inline input JSON to query.
+    #[clap(long)]
+    #[arg(conflicts_with = "file_path")]
+    pub json: Option<String>,
     /// Include verbose debug information.
     #[clap(short, long)]
     pub verbose: bool,

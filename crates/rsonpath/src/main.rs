@@ -16,6 +16,7 @@ mod version;
 fn main() -> Result<()> {
     use color_eyre::owo_colors::OwoColorize;
     color_eyre::install()?;
+
     let args = Args::parse();
 
     logger::configure(args.verbose)?;
@@ -36,7 +37,11 @@ fn run_with_args(args: &Args) -> Result<()> {
         Ok(())
     } else {
         // Actual query execution.
-        let input = runner::resolve_input(args.file_path.as_deref(), args.force_input.as_ref())?;
+        let input = runner::resolve_input(
+            args.file_path.as_deref(),
+            args.json.as_deref(),
+            args.force_input.as_ref(),
+        )?;
         let engine = runner::resolve_engine();
         let output = runner::resolve_output(args.result);
 
