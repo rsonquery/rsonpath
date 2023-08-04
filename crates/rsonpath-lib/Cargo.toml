@@ -41,6 +41,5 @@ proptest = "1.2.0"
 test-case = "3.1.0"
 
 [features]
-default = ["simd", "unique-members"]
+default = ["simd"]
 simd = []
-unique-members = []

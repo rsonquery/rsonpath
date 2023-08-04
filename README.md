@@ -138,16 +138,6 @@ the engine will simply match the _first_ such key.
 "value"
 ```
 
-This behavior can be overriden with a custom installation of `rsonpath`, disabling the default `unique-members` feature. This will hurt performance.
-
-```bash
-> cargo install rsonpath --no-default-features -F simd -F head-skip -F tail-skip
-> rq '$.key'
-{"key":"value","key":"other value"}
-"value"
-"other value"
-```
-
 ### Unicode
 
 The engine does _not_ parse unicode escape sequences in member names.
