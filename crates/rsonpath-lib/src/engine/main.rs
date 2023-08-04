@@ -315,25 +315,22 @@ where
             if !any_matched && self.automaton.is_accepting(fallback_state) {
                 self.record_match_detected_at(idx + 1, NodeTypeHint::Atomic /* since is_next_opening is false */)?;
             }
-            #[cfg(feature = "unique-members")]
-            {
-                self.next_event = classifier.next()?;
-                let is_next_closing = self.next_event.map_or(false, |s| s.is_closing());
-                if any_matched && !is_next_closing && self.automaton.is_unitary(self.state) {
-                    if let Some(s) = self.next_event {
-                        match s {
-                            Structural::Closing(_, idx) => {
-                                self.recorder.record_value_terminator(idx, self.depth)?;
-                            }
-                            Structural::Comma(idx) => self.recorder.record_value_terminator(idx, self.depth)?,
-                            Structural::Colon(_) | Structural::Opening(_, _) => (),
+            self.next_event = classifier.next()?;
+            let is_next_closing = self.next_event.map_or(false, |s| s.is_closing());
+            if any_matched && !is_next_closing && self.automaton.is_unitary(self.state) {
+                if let Some(s) = self.next_event {
+                    match s {
+                        Structural::Closing(_, idx) => {
+                            self.recorder.record_value_terminator(idx, self.depth)?;
                         }
+                        Structural::Comma(idx) => self.recorder.record_value_terminator(idx, self.depth)?,
+                        Structural::Colon(_) | Structural::Opening(_, _) => (),
                     }
-                    let bracket_type = self.current_node_bracket_type();
-                    debug!("Skipping unique state from {bracket_type:?}");
-                    let stop_at = classifier.skip(bracket_type)?;
-                    self.next_event = Some(Structural::Closing(bracket_type, stop_at));
                 }
+                let bracket_type = self.current_node_bracket_type();
+                debug!("Skipping unique state from {bracket_type:?}");
+                let stop_at = classifier.skip(bracket_type)?;
+                self.next_event = Some(Structural::Closing(bracket_type, stop_at));
             }
         }
 
@@ -512,7 +509,6 @@ where
 
             debug!("Restored array count to {}", self.array_count);
 
-            #[cfg(feature = "unique-members")]
             if self.automaton.is_unitary(self.state) {
                 let bracket_type = self.current_node_bracket_type();
                 debug!("Skipping unique state from {bracket_type:?}");
@@ -599,7 +595,6 @@ where
         }
     }
 
-    #[cfg(feature = "unique-members")]
     fn current_node_bracket_type(&self) -> BracketType {
         if self.is_list {
             BracketType::Square

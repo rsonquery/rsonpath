@@ -37,7 +37,5 @@ rustflags = { version = "0.1.4" }
 vergen = { version = "8.2.4", features = ["cargo", "git", "gitcl", "rustc"] }
 
 [features]
-default = ["simd", "default-optimizations"]
+default = ["simd"]
 simd = ["rsonpath-lib/simd"]
-unique-members = ["rsonpath-lib/unique-members"]
-default-optimizations = ["unique-members"]
