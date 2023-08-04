@@ -132,10 +132,11 @@ The engine assumes that every object in the input JSON has no duplicate keys.
 Behavior on duplicate keys is not guaranteed to be stable, but currently
 the engine will simply match the _first_ such key.
 
-```bash
-> rq '$.key'
+```console
+$ rq '$.key'
 {"key":"value","key":"other value"}
 "value"
+
 ```
 
 ### Unicode
