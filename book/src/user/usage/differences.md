@@ -10,7 +10,12 @@ The standard semantics of the descendant segment lead to duplicated results,
 and a potentially exponential blowup in execution time and output size.
 In `rsonpath` we diverge from the spec to guarantee unduplicated results:
 
-{{#include ../examples/descendant-behavior.trycmd}}
+```console
+$ rq '$..a..a' --json '{"a":{"a":{"a":42}}}'
+{"a":42}
+42
+
+```
 
 In standard semantics the value `42` would be matched twice[^descendant-note].
 
@@ -22,7 +27,11 @@ Unicode escape sequences will be handled incorrectly.
 For example, the key `"a"` can be equivalently represented by
 `"\u0041"`.
 
-{{#include ../examples/unicode-correct.trycmd}}
+```console
+$ rq '$["a"]' --json '{"a":42}'
+42
+
+```
 
 The above results should be the same if either or both of the `"a"` characters
 were replaced with the `"\u0041"` unicode escape sequence, but `rsonpath` does

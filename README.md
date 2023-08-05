@@ -32,7 +32,8 @@ If the file is omitted, the engine reads standard input. JSON can also be passed
 
 ```console
 $ rq '$..a.b' --json '{"c":{"a":{"b":42}}}'
-[15]
+42
+
 ```
 
 For details, consult `rq --help`.
@@ -141,8 +142,7 @@ Behavior on duplicate keys is not guaranteed to be stable, but currently
 the engine will simply match the _first_ such key.
 
 ```console
-$ rq '$.key'
-{"key":"value","key":"other value"}
+$ rq '$.key' --json '{"key":"value","key":"other value"}'
 "value"
 
 ```

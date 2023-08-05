@@ -4,6 +4,6 @@ fn cli_tests() {
         .default_bin_name("rq")
         .case("tests/cmd/*.toml")
         .case("../../README.md")
-        .case("../../book/src/examples/*.trycmd")
+        .case("../../book/src/**/*.md")
         .run();
 }

@@ -5,15 +5,14 @@
 
 ---
 
-- [JSONPath reference](jsonpath.md)
-  - [`rsonpath`-specific behavior](jsonpath/differences.md)
-
 # Part I &ndash; CLI User Guide
 
 - [User introduction](user/intro.md)
 - [Installation](user/installation.md)
   - [Manual build for maximum performance](user/installation/manual.md)
 - [Usage](user/usage.md)
+  - [JSONPath reference](user/usage/jsonpath.md)
+  - [`rsonpath`-specific behavior](user/usage/differences.md)
 - [Query optimization](user/query-optimization.md)
 - [Reporting issues](user/issues.md)
 

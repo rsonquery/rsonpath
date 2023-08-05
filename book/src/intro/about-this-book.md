@@ -15,8 +15,8 @@ and a breakdown of all configuration knobs that can be tuned for performance.
 to `rsonpath`. It goes into the nitty-gritty details of the codebase, but
 should still be relatively broad and approachable.
 
-Regardless of which category of users you fall into, the first chapter
-you should read is [JSONPath Reference](/jsonpath.md).
+Regardless of which category of users you fall into, you need to understand JSONPath queries.
+We describe the semantics in [JSONPath Reference](/user/usage/jsonpath.md).
 
 ## Authors
 

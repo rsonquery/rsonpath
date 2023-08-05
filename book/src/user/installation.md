@@ -26,3 +26,12 @@ cargo install rsonpath --no-default-features -F default-optimizations
 
 This will greatly inhibit its performance, but the functional feature set
 will be the same.
+
+## Verify
+
+To verify installation, check if `rq` is available from your command line:
+
+```console
+$ rq --version
+x
+```
