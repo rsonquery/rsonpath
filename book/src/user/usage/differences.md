@@ -11,8 +11,8 @@ and a potentially exponential blowup in execution time and output size.
 In `rsonpath` we diverge from the spec to guarantee unduplicated results:
 
 ```console
-$ rq '$..a..a' --json '{"a":{"a":{"a":42}}}'
-{"a":42}
+$ rq '$..a..a' --json '{ "a": { "a": { "a": 42 } } }'
+{ "a": 42 }
 42
 
 ```
@@ -28,7 +28,7 @@ For example, the key `"a"` can be equivalently represented by
 `"\u0041"`.
 
 ```console
-$ rq '$["a"]' --json '{"a":42}'
+$ rq '$["a"]' --json '{ "a": 42 }'
 42
 
 ```

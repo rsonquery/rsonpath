@@ -39,10 +39,10 @@ pub struct Args {
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ResultArg {
-    /// Return a list of all bytes at which a match occurred.
-    Bytes,
     /// Return only the number of matches.
     Count,
+    /// Return a list of all bytes at which a match occurred.
+    Indices,
     /// Returns the full text of the matched nodes.
     Nodes,
 }

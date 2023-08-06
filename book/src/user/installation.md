@@ -32,6 +32,7 @@ will be the same.
 To verify installation, check if `rq` is available from your command line:
 
 ```console
-$ rq --version
-x
+$ rq -V
+rq 0.6.0
+
 ```

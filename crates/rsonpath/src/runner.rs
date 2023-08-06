@@ -60,7 +60,7 @@ pub fn resolve_input<P: AsRef<Path>, S: AsRef<str>>(
 
 pub fn resolve_output(result_arg: ResultArg) -> ResolvedOutput {
     match result_arg {
-        ResultArg::Bytes => ResolvedOutput::Index,
+        ResultArg::Indices => ResolvedOutput::Index,
         ResultArg::Count => ResolvedOutput::Count,
         ResultArg::Nodes => ResolvedOutput::Nodes,
     }

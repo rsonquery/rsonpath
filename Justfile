@@ -244,6 +244,7 @@ release-dry ver:
     cargo update
     just release-patch {{ver}}
     just release-readme
+    just release-bug-template
     just commit 'release v{{ver}}'
     cargo release --sign-tag --sign-commit
 
@@ -281,3 +282,7 @@ release-readme:
         let deps = ($x.0 | str replace '\n' '\n' --all | str replace '/' '\/' --all);
         sed -z -i $'s/<!-- ($x.1) dependencies start -->\n```ini\n.*```\n<!-- ($x.1) dependencies end -->/<!-- ($x.1) dependencies start -->\n```ini\n($deps)\n```\n<!-- ($x.1) dependencies end -->/' $x.2
     };
+
+[private]
+release-bug-template:
+    #!/usr/bin/env nu

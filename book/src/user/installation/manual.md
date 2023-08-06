@@ -47,9 +47,9 @@ To verify that your `rq` installation has native CPU support,
 consult `rq --version` and look for `target-cpu=native` in the "Codegen flags"
 field.
 
-```bash
-> rq --version
-rq 0.5.1
+```console,ignore
+$ rq --version
+rq 0.6.0
 
 Commit SHA:      0e17cbc941c638da85c07ecc3bd752eb08b51a3e
 Features:        default,default_optimizations,simd,unique_members

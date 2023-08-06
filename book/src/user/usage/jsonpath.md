@@ -47,6 +47,12 @@ and finally the value under `"d"`. For example, in the JSON:
 
 it will access the value `42` by digging into the structure key by key.
 
+```console
+$ rq '$.a.b.c.d' --json '{ "a": { "b": { "c": { "d": 42 } } } }'
+42
+
+```
+
 In general, a JSONPath query is a sequence of **segments**. Each segment
 contains one or more **selectors**. Canonically, selectors are delimited
 within square brackets, but some selectors have a shorthand _dot-notation_.
@@ -54,6 +60,12 @@ For example, the query above is equivalent to:
 
 ```jsonpath
 $['a']['b']['c']['d']
+```
+
+```console
+$ rq "$['a']['b']['c']['d']" --json '{ "a": { "b": { "c": { "d": 42 } } } }'
+42
+
 ```
 
 A valid query starts with the `$` character, which represents the root
@@ -93,10 +105,12 @@ For example:
 - `.a`, `['a']`, `["a"]` all select a child under the key `a`.
 - `['"']` selects a child under the key `"`.
 - `["'"]` selects a child under the key `'`.
-- `['complex\tname']` selects a child under the key containing a tab:
+- `['complex name']` selects a child under the key containing a space:
 
-```json
-{ "complex	name": 42 }
+```console
+$ rq "$['complex name']" --json '{ "complex name": 42 }'
+42
+
 ```
 
 ### Wildcard selector
@@ -113,7 +127,29 @@ on:
 }
 ```
 
-the query `$[*]` selects `42`, `1`, and `2`.
+the query `$[*]` selects `42`, and `[ 1, 2 ]`.
+
+```console
+$ rq '$[*]' --json '{ "a": 42, "b": [ 1, 2 ] }'
+42
+[ 1, 2 ]
+
+```
+
+Using the descendant selector we can recursively extract elements from the list:
+
+```console
+$ rq '$..[*]' --json '{ "a": 42, "b": [ 1, 2 ] }'
+42
+[ 1, 2 ]
+1
+2
+
+```
+
+In general, the query `..*` selects _all_ subdocuments of the JSON.
+It's not a smart query, as it can create outputs much longer than the source
+document itself, consuming a lot of resources.
 
 ### Index selector
 
@@ -128,3 +164,87 @@ It only has a bracketed form, `[index]`. For example, running on:
 - the query `$[1]` selects `2`;
 - the query `$[2]` selects `3`; and
 - the query `$[3]` selects nothing, since the list has only 3 elements.
+
+```console
+$ rq '$[0]' --json "[ 1, 2, 3 ]"
+1
+
+```
+
+```console
+$ rq '$[1]' --json "[ 1, 2, 3 ]"
+2
+
+```
+
+```console
+$ rq '$[2]' --json "[ 1, 2, 3 ]"
+3
+
+```
+
+```console
+$ rq '$[3]' --json "[ 1, 2, 3 ]"
+
+```
+
+## Combining segments
+
+Segments can be chained arbitrarily to create complex queries.
+For example, if we have a file `ex.json`
+
+```json
+{{#include jsonpath.in/ex.json}}
+```
+
+we can extract all phone numbers with:
+
+```console
+$ rq '$..phoneNumbers[*].number' ./ex.json
+"0123-4567-8888"
+"0123-4567-8910"
+"0123-4567-9999"
+"0123-4567-8910"
+
+```
+
+Note that each part of the query is needed here:
+
+- the first segment is descendant, so that we pick up both the root's
+number array and the one under "spouse";
+- without specifying the "phoneNumbers" key (for example running `$..number`)
+we wouldn't be able to filter out the two irrelevant "number" keys;
+- the wildcard selector `[*]` makes sure we select all the numbers,
+regardless of how long the list may be.
+
+## Selector availability
+
+Not all of JSONPath's functionality is supported by `rsonpath` as of right now.
+
+### Supported segments
+
+| Segment                        | Syntax                           | Supported | Since  | Tracking Issue |
+|--------------------------------|----------------------------------|-----------|--------|---------------:|
+| Child segment (single)         | `[<selector>]`                   | ✔️        | v0.1.0 |                |
+| Child segment (multiple)       | `[<selector1>,...,<selectorN>]`  | ❌        |        |                |
+| Descendant segment (single)    | `..[<selector>]`                 | ✔️        | v0.1.0 |                |
+| Descendant segment (multiple)  | `..[<selector1>,...,<selectorN>]`| ❌        |        |                |
+
+### Supported selectors
+
+| Selector                                 | Syntax                           | Supported | Since  | Tracking Issue |
+|------------------------------------------|----------------------------------|-----------|--------|---------------:|
+| Root                                     | `$`                              | ✔️        | v0.1.0 |                |
+| Name                                     | `.<member>`, `[<member>]`        | ✔️        | v0.1.0 |                |
+| Wildcard                                 | `.*`, `..*`, `[*]`               | ✔️        | v0.4.0 |                |
+| Index (array index)                      | `[<index>]`                      | ✔️        | v0.5.0 |                |
+| Index (array index from end)             | `[-<index>]`                     | ❌        |        |                |
+| Array slice (forward, positive bounds)   | `[<start>:<end>:<step>]`         | ❌        |        | [#152](https://github.com/V0ldek/rsonpath/issues/152) |
+| Array slice (forward, arbitrary bounds)  | `[<start>:<end>:<step>]`         | ❌        |        |                |
+| Array slice (backward, arbitrary bounds) | `[<start>:<end>:-<step>]`        | ❌        |        |                |
+| Filters &ndash; existential tests        | `[?<path>]`                      | ❌        |        | [#154](https://github.com/V0ldek/rsonpath/issues/154) |
+| Filters &ndash; const atom comparisons   | `[?<path> <binop> <atom>]`       | ❌        |        | [#156](https://github.com/V0ldek/rsonpath/issues/156) |
+| Filters &ndash; logical expressions      | `&&`, `\|\|`, `!`                | ❌        |        |                |
+| Filters &ndash; nesting                  | `[?<expr>[?<expr>]...]`          | ❌        |        |                |
+| Filters &ndash; arbitrary comparisons    | `[?<path> <binop> <path>]`       | ❌        |        |                |
+| Filters &ndash; function extensions      | `[?func(<path>)]`                | ❌        |        |                |
