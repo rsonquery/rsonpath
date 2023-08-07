@@ -2,6 +2,8 @@
 
 [![Rust](https://github.com/V0ldek/rsonpath/actions/workflows/rust.yml/badge.svg)](https://github.com/V0ldek/rsonpath/actions/workflows/rust.yml)
 [![docs.rs](https://img.shields.io/docsrs/rsonpath-lib?logo=docs.rs)](https://docs.rs/crate/rsonpath-lib/latest)
+[![Book](https://img.shields.io/badge/book-available-4DC720?logo=mdbook
+)](https://v0ldek.github.io/rsonpath/)
 
 [![Crates.io](https://img.shields.io/crates/v/rsonpath?logo=docs.rs)](https://crates.io/crates/rsonpath)
 [![GitHub Release Date](https://img.shields.io/github/release-date/v0ldek/rsonpath?logo=github)](https://github.com/V0ldek/rsonpath/releases)
@@ -25,7 +27,6 @@ To run a JSONPath query on a file execute:
 
 ```console,ignore
 $ rq '$..a.b' ./file.json
-[15]
 ```
 
 If the file is omitted, the engine reads standard input. JSON can also be passed inline:
@@ -36,46 +37,13 @@ $ rq '$..a.b' --json '{"c":{"a":{"b":42}}}'
 
 ```
 
-For details, consult `rq --help`.
+For details, consult `rq --help` or [the rsonbook](https://v0ldek.github.io/rsonpath/).
 
 ### Results
 
 The result of running a query is a sequence of matched values, delimited by newlines.
 Alternatively, passing `--result count` returns only the number of matches, which might be much faster.
 For other result modes consult the `--help` usage page.
-
-## Query language
-
-The project is actively developed and currently supports only a subset of the JSONPath query language.
-A query is a sequence of segments, each containing one or more selectors.
-
-### Supported segments
-
-| Segment                        | Syntax                           | Supported | Since  | Tracking Issue |
-|--------------------------------|----------------------------------|-----------|--------|---------------:|
-| Child segment (single)         | `[<selector>]`                   | ✔️        | v0.1.0 |                |
-| Child segment (multiple)       | `[<selector1>,...,<selectorN>]`  | ❌        |        |                |
-| Descendant segment (single)    | `..[<selector>]`                 | ✔️        | v0.1.0 |                |
-| Descendant segment (multiple)  | `..[<selector1>,...,<selectorN>]`| ❌        |        |                |
-
-### Supported selectors
-
-| Selector                                 | Syntax                           | Supported | Since  | Tracking Issue |
-|------------------------------------------|----------------------------------|-----------|--------|---------------:|
-| Root                                     | `$`                              | ✔️        | v0.1.0 |                |
-| Name                                     | `.<member>`, `[<member>]`        | ✔️        | v0.1.0 |                |
-| Wildcard                                 | `.*`, `..*`, `[*]`               | ✔️        | v0.4.0 |                |
-| Index (array index)                      | `[<index>]`                      | ✔️        | v0.5.0 |                |
-| Index (array index from end)             | `[-<index>]`                     | ❌        |        |                |
-| Array slice (forward, positive bounds)   | `[<start>:<end>:<step>]`         | ❌        |        | [#152](https://github.com/V0ldek/rsonpath/issues/152) |
-| Array slice (forward, arbitrary bounds)  | `[<start>:<end>:<step>]`         | ❌        |        |                |
-| Array slice (backward, arbitrary bounds) | `[<start>:<end>:-<step>]`        | ❌        |        |                |
-| Filters &ndash; existential tests        | `[?<path>]`                      | ❌        |        | [#154](https://github.com/V0ldek/rsonpath/issues/154) |
-| Filters &ndash; const atom comparisons   | `[?<path> <binop> <atom>]`       | ❌        |        | [#156](https://github.com/V0ldek/rsonpath/issues/156) |
-| Filters &ndash; logical expressions      | `&&`, `\|\|`, `!`                | ❌        |        |                |
-| Filters &ndash; nesting                  | `[?<expr>[?<expr>]...]`          | ❌        |        |                |
-| Filters &ndash; arbitrary comparisons    | `[?<path> <binop> <path>]`       | ❌        |        |                |
-| Filters &ndash; function extensions      | `[?func(<path>)]`                | ❌        |        |                |
 
 ## Installation
 
@@ -113,6 +81,39 @@ To do this, run the following `cargo install` variant:
 $ RUSTFLAGS="-C target-cpu=native" cargo install rsonpath
 ...
 ```
+
+## Query language
+
+The project is actively developed and currently supports only a subset of the JSONPath query language.
+A query is a sequence of segments, each containing one or more selectors.
+
+### Supported segments
+
+| Segment                        | Syntax                           | Supported | Since  | Tracking Issue |
+|--------------------------------|----------------------------------|-----------|--------|---------------:|
+| Child segment (single)         | `[<selector>]`                   | ✔️        | v0.1.0 |                |
+| Child segment (multiple)       | `[<selector1>,...,<selectorN>]`  | ❌        |        |                |
+| Descendant segment (single)    | `..[<selector>]`                 | ✔️        | v0.1.0 |                |
+| Descendant segment (multiple)  | `..[<selector1>,...,<selectorN>]`| ❌        |        |                |
+
+### Supported selectors
+
+| Selector                                 | Syntax                           | Supported | Since  | Tracking Issue |
+|------------------------------------------|----------------------------------|-----------|--------|---------------:|
+| Root                                     | `$`                              | ✔️        | v0.1.0 |                |
+| Name                                     | `.<member>`, `[<member>]`        | ✔️        | v0.1.0 |                |
+| Wildcard                                 | `.*`, `..*`, `[*]`               | ✔️        | v0.4.0 |                |
+| Index (array index)                      | `[<index>]`                      | ✔️        | v0.5.0 |                |
+| Index (array index from end)             | `[-<index>]`                     | ❌        |        |                |
+| Array slice (forward, positive bounds)   | `[<start>:<end>:<step>]`         | ❌        |        | [#152](https://github.com/V0ldek/rsonpath/issues/152) |
+| Array slice (forward, arbitrary bounds)  | `[<start>:<end>:<step>]`         | ❌        |        |                |
+| Array slice (backward, arbitrary bounds) | `[<start>:<end>:-<step>]`        | ❌        |        |                |
+| Filters &ndash; existential tests        | `[?<path>]`                      | ❌        |        | [#154](https://github.com/V0ldek/rsonpath/issues/154) |
+| Filters &ndash; const atom comparisons   | `[?<path> <binop> <atom>]`       | ❌        |        | [#156](https://github.com/V0ldek/rsonpath/issues/156) |
+| Filters &ndash; logical expressions      | `&&`, `\|\|`, `!`                | ❌        |        |                |
+| Filters &ndash; nesting                  | `[?<expr>[?<expr>]...]`          | ❌        |        |                |
+| Filters &ndash; arbitrary comparisons    | `[?<path> <binop> <path>]`       | ❌        |        |                |
+| Filters &ndash; function extensions      | `[?func(<path>)]`                | ❌        |        |                |
 
 ## Supported platforms
 

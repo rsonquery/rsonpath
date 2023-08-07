@@ -4,6 +4,9 @@ use clap::{Parser, ValueEnum};
 #[derive(Parser, Debug)]
 #[clap(name = "rq", author, version, about)]
 #[clap(long_version = version::get_long_version())]
+/// Blazing fast JSONPath CLI tool powered by SIMD.
+///
+/// A usage guide is available at https://v0ldek.github.io/rsonpath/.
 pub struct Args {
     /// JSONPath query to run against the input JSON.
     pub query: String,
