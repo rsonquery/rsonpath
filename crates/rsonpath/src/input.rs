@@ -39,6 +39,8 @@ impl<S> JsonSource<S> {
 
     #[cfg(windows)]
     pub(crate) fn try_as_raw_desc(&self) -> Option<os::windows::io::RawHandle> {
+        use os::windows::io::AsRawHandle;
+
         match self {
             JsonSource::File(f) => Some(f.as_raw_handle()),
             JsonSource::Stdin(s) => Some(s.as_raw_handle()),
