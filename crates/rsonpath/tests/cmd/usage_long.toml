@@ -1,0 +1,58 @@
+bin = { name = "rq" }
+
+args = ["--help"]
+stdout = """
+Blazing fast JSONPath CLI tool powered by SIMD
+
+Usage: rq[EXE] [OPTIONS] <QUERY> [FILE_PATH]
+
+Arguments:
+  <QUERY>
+          JSONPath query to run against the input JSON
+
+  [FILE_PATH]
+          Input JSON file to query.
+          
+          If neither file nor --json is specified, uses the standard input stream.
+
+Options:
+      --json <JSON>
+          Inline input JSON to query
+
+  -v, --verbose
+          Include verbose debug information
+
+  -c, --compile
+          Only compile the query and output the automaton, do not run the engine.
+          
+          Cannot be used with FILE_PATH.
+
+  -r, --result <RESULT>
+          Result reporting mode
+          
+          [default: nodes]
+
+          Possible values:
+          - count:   Return only the number of matches
+          - indices: Return a list of all bytes at which a match occurred
+          - nodes:   Returns the full text of the matched nodes
+
+      --force-input <FORCE_INPUT>
+          Bypass automatic resolution of the input strategy and force a specific one.
+          
+          This is not recommended in general, since the app automatically picks a strategy that will
+          result in best performance. It might be useful, however, if the automatic resolution picks
+          a subpar strategy, or if it is known ahead of time that memory maps are not available and
+          there is no need for the app to try to create one.
+
+          Possible values:
+          - mmap:     Use a memory map over a file
+          - eager:    Eagerly load all the input into memory before running the query
+          - buffered: Read the input in chunks with a buffer
+
+  -h, --help
+          Print help (see a summary with '-h')
+
+  -V, --version
+          Print version
+"""

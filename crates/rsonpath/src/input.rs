@@ -8,9 +8,15 @@ use std::{
 
 const MAX_EAGER_LEN: u64 = 1 << 20;
 
-pub enum FileOrStdin {
+pub enum JsonSource<S> {
     File(fs::File),
     Stdin(io::Stdin),
+    Inline(S),
+}
+
+pub enum JsonSourceRead<'a> {
+    File(&'a mut fs::File),
+    Stdin(&'a mut io::Stdin),
 }
 
 pub enum ResolvedInputKind {
@@ -19,37 +25,49 @@ pub enum ResolvedInputKind {
     Buffered,
 }
 
-#[cfg(unix)]
-impl os::fd::AsRawFd for FileOrStdin {
-    fn as_raw_fd(&self) -> os::fd::RawFd {
+impl<S> JsonSource<S> {
+    #[cfg(unix)]
+    pub(crate) fn try_as_raw_desc(&self) -> Option<os::fd::RawFd> {
+        use std::os::fd::AsRawFd;
+
         match self {
-            FileOrStdin::File(f) => f.as_raw_fd(),
-            FileOrStdin::Stdin(s) => s.as_raw_fd(),
+            JsonSource::File(f) => Some(f.as_raw_fd()),
+            JsonSource::Stdin(s) => Some(s.as_raw_fd()),
+            JsonSource::Inline(_) => None,
+        }
+    }
+
+    #[cfg(windows)]
+    pub(crate) fn try_as_raw_desc(&self) -> Option<os::windows::io::RawHandle> {
+        use os::windows::io::AsRawHandle;
+
+        match self {
+            JsonSource::File(f) => Some(f.as_raw_handle()),
+            JsonSource::Stdin(s) => Some(s.as_raw_handle()),
+            JsonSource::Inline(_) => None,
+        }
+    }
+
+    pub(crate) fn try_as_read(&mut self) -> Option<JsonSourceRead> {
+        match self {
+            JsonSource::File(f) => Some(JsonSourceRead::File(f)),
+            JsonSource::Stdin(s) => Some(JsonSourceRead::Stdin(s)),
+            JsonSource::Inline(_) => None,
         }
     }
 }
 
-#[cfg(windows)]
-impl os::windows::io::AsRawHandle for FileOrStdin {
-    fn as_raw_handle(&self) -> os::windows::io::RawHandle {
-        match self {
-            FileOrStdin::File(f) => f.as_raw_handle(),
-            FileOrStdin::Stdin(s) => s.as_raw_handle(),
-        }
-    }
-}
-
-impl Read for FileOrStdin {
+impl Read for JsonSourceRead<'_> {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         match self {
-            FileOrStdin::File(f) => f.read(buf),
-            FileOrStdin::Stdin(s) => s.read(buf),
+            Self::File(f) => f.read(buf),
+            Self::Stdin(s) => s.read(buf),
         }
     }
 }
 
-pub fn decide_input_strategy(
-    source: &FileOrStdin,
+pub fn decide_input_strategy<S>(
+    source: &JsonSource<S>,
     force_input: Option<&InputArg>,
 ) -> Result<(ResolvedInputKind, Option<ResolvedInputKind>)> {
     if let Some(force) = force_input {
@@ -62,18 +80,19 @@ pub fn decide_input_strategy(
         Ok((forced, None))
     } else {
         match source {
-            FileOrStdin::File(file) => match file.metadata() {
+            JsonSource::File(file) => match file.metadata() {
                 Ok(meta) if meta.len() <= MAX_EAGER_LEN => Ok((ResolvedInputKind::Owned, None)),
                 _ if is_mmap_available() => Ok((ResolvedInputKind::Mmap, Some(ResolvedInputKind::Buffered))),
                 _ => Ok((ResolvedInputKind::Buffered, None)),
             },
+            JsonSource::Inline(_) => Ok((ResolvedInputKind::Owned, None)),
             // There is not much that can be done for stdin. A memory map over stdin does not work unless
             // the input is a file (e.g. when ran as `rq query < file_path` from bash), but the user should
             // pass files directly as an argument, at which point they are handled by the path above.
             // Since there is no way to determine the length of content in stdin without reading it,
             // and an expected use case of rq is to chain multiple queries together (which might produce
             // large piped outputs), we pessimistically assume stdin is large and buffer it.
-            FileOrStdin::Stdin(_) => Ok((ResolvedInputKind::Buffered, None)),
+            JsonSource::Stdin(_) => Ok((ResolvedInputKind::Buffered, None)),
         }
     }
 }

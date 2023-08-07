@@ -9,8 +9,12 @@ pub struct Args {
     pub query: String,
     /// Input JSON file to query.
     ///
-    /// If not specified uses the standard input stream.
+    /// If neither file nor --json is specified, uses the standard input stream.
     pub file_path: Option<String>,
+    /// Inline input JSON to query.
+    #[clap(long)]
+    #[arg(conflicts_with = "file_path")]
+    pub json: Option<String>,
     /// Include verbose debug information.
     #[clap(short, long)]
     pub verbose: bool,
@@ -35,10 +39,10 @@ pub struct Args {
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ResultArg {
-    /// Return a list of all bytes at which a match occurred.
-    Bytes,
     /// Return only the number of matches.
     Count,
+    /// Return a list of all bytes at which a match occurred.
+    Indices,
     /// Returns the full text of the matched nodes.
     Nodes,
 }

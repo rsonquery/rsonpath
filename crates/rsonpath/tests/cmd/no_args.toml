@@ -1,0 +1,13 @@
+bin = { name = "rq" }
+
+args = []
+stdout = ""
+stderr = """
+error: the following required arguments were not provided:
+  <QUERY>
+
+Usage: rq[EXE] <QUERY> [FILE_PATH]
+
+For more information, try '--help'.
+"""
+status = { code = 2 }

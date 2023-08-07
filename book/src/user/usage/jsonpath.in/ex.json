@@ -1,0 +1,30 @@
+{
+    "firstName": "John",
+    "lastName": "Doe",
+    "number": "078-05-1120",
+    "phoneNumbers": [
+        {
+            "type": "work",
+            "number": "0123-4567-8888"
+        },
+        {
+            "type": "home",
+            "number": "0123-4567-8910"
+        }
+    ],
+    "spouse": {
+        "firstName": "Jane",
+        "lastName": "Doe",
+        "number": "078-05-1121",
+        "phoneNumbers": [
+            {
+                "type": "work",
+                "number": "0123-4567-9999"
+            },
+            {
+                "type": "home",
+                "number": "0123-4567-8910"
+            }
+        ]
+    }
+}

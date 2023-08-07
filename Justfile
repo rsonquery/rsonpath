@@ -114,11 +114,18 @@ test-parser:
 test-full: (gen-tests)
     -cargo install cargo-hack
     cargo rsontest
+    just test-book
 
 # Run doctests on the library.
 test-doc:
     -cargo install cargo-hack
     cargo rsontest -p rsonpath-lib --doc
+
+# Run doctests on the book.
+test-book:
+    rm -f ./target/debug/deps/librsonpath-*
+    cargo build -p rsonpath-lib
+    mdbook test ./book -L ./target/debug/deps
 
 @add-test name:
     f=`echo {{name}} | sed s/-/_/g` && \
@@ -244,6 +251,7 @@ release-dry ver:
     cargo update
     just release-patch {{ver}}
     just release-readme
+    just release-bug-template
     just commit 'release v{{ver}}'
     cargo release --sign-tag --sign-commit
 
@@ -252,6 +260,7 @@ release-execute ver:
     cargo update
     just release-patch {{ver}}
     just release-readme
+    just release-bug-template {{ver}}
     just commit 'release v{{ver}}'
     cargo release --sign-tag --sign-commit --execute --tag-prefix "" --tag-name "v{{ver}}"
 
@@ -281,3 +290,12 @@ release-readme:
         let deps = ($x.0 | str replace '\n' '\n' --all | str replace '/' '\/' --all);
         sed -z -i $'s/<!-- ($x.1) dependencies start -->\n```ini\n.*```\n<!-- ($x.1) dependencies end -->/<!-- ($x.1) dependencies start -->\n```ini\n($deps)\n```\n<!-- ($x.1) dependencies end -->/' $x.2
     };
+
+[private]
+release-bug-template ver:
+    #!/usr/bin/env nu
+    let path = './.github/ISSUE_TEMPLATE/bug_report.yml';
+    let idx = (cat $path | str index-of '# <newest-release=v{{ver}}>');
+    if ($idx == -1) {
+        sed -z -i 's/# <newest-release=v[^>]*>/# <newest-release=v{{ver}}>\n      - v{{ver}}/' $path;
+    }
