@@ -4,7 +4,7 @@ args = ["--help"]
 stdout = """
 Blazing fast JSONPath CLI tool powered by SIMD
 
-Usage: rq [OPTIONS] <QUERY> [FILE_PATH]
+Usage: rq[EXE] [OPTIONS] <QUERY> [FILE_PATH]
 
 Arguments:
   <QUERY>

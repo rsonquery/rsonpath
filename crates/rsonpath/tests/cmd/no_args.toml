@@ -6,7 +6,7 @@ stderr = """
 error: the following required arguments were not provided:
   <QUERY>
 
-Usage: rq <QUERY> [FILE_PATH]
+Usage: rq[EXE] <QUERY> [FILE_PATH]
 
 For more information, try '--help'.
 """
