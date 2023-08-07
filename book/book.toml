@@ -21,4 +21,4 @@ curly-quotes = true
 mathjax-support = false # we use katex
 additional-css = ["rsonbook.css"]
 git-repository-url = "https://github.com/v0ldek/rsonpath"
-edit-url-template = "https://github.com/v0ldek/rsonpath/book/{path}"
+edit-url-template = "https://github.com/V0ldek/rsonpath/edit/main/book/{path}"
