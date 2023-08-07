@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.1] - 2023-08-07
+
+### Features
+
+- [**breaking**] Remove the `unique-members`` feature.
+  - This clutters the API more than anything.
+If supporting duplicate keys is required in the future,
+it can be easily added as a `const` config option,
+not a compilation feature.
+
+- Add the `--json` CLI option for passing JSONs inline.
+
+### Reliability
+
+- Added snapshot tests for `rq` using [`trycmd`](https://crates.io/crates/trycmd).
+  - This is another layer of E2E tests, makes sure documentation examples
+  in the book are correct, and that our `--help` and `--version` outputs
+  remain consistent.
+
+### Documentation
+
+- [We have a book!](https://v0ldek.github.io/rsonpath/)
+  - The first part is a usage guide for `rq`, and contains a short
+    JSONPath reference.
+  - Other parts will follow, with a plan to finalize at least the library
+    usage guide before 1.0.0.
+
 ## [0.6.0] - 2023-08-02
 
 ### Features

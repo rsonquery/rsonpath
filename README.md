@@ -194,12 +194,12 @@ cargo tree --package rsonpath --edges normal --depth 1
 
 <!-- rsonpath dependencies start -->
 ```ini
-rsonpath v0.6.0 (/home/mat/rsonpath/crates/rsonpath)
+rsonpath v0.6.1 (/home/mat/rsonpath/crates/rsonpath)
 ├── clap v4.3.19
 ├── color-eyre v0.6.2
 ├── eyre v0.6.8
 ├── log v0.4.19
-├── rsonpath-lib v0.6.0 (/home/mat/rsonpath/crates/rsonpath-lib)
+├── rsonpath-lib v0.6.1 (/home/mat/rsonpath/crates/rsonpath-lib)
 └── simple_logger v4.2.0
 [build-dependencies]
 ├── rustflags v0.1.4
@@ -214,7 +214,7 @@ cargo tree --package rsonpath-lib --edges normal --depth 1
 
 <!-- rsonpath-lib dependencies start -->
 ```ini
-rsonpath-lib v0.6.0 (/home/mat/rsonpath/crates/rsonpath-lib)
+rsonpath-lib v0.6.1 (/home/mat/rsonpath/crates/rsonpath-lib)
 ├── cfg-if v1.0.0
 ├── log v0.4.19
 ├── memchr v2.5.0
@@ -252,7 +252,7 @@ cargo tree --package rsonpath --edges normal
 
 <!-- rsonpath-full dependencies start -->
 ```ini
-rsonpath v0.6.0 (/home/mat/rsonpath/crates/rsonpath)
+rsonpath v0.6.1 (/home/mat/rsonpath/crates/rsonpath)
 ├── clap v4.3.19
 │   ├── clap_builder v4.3.19
 │   │   ├── anstream v0.3.2
@@ -262,7 +262,7 @@ rsonpath v0.6.0 (/home/mat/rsonpath/crates/rsonpath)
 │   │   │   ├── anstyle-query v1.0.0
 │   │   │   ├── colorchoice v1.0.0
 │   │   │   ├── is-terminal v0.4.9
-│   │   │   │   └── rustix v0.38.6
+│   │   │   │   └── rustix v0.38.7
 │   │   │   │       ├── bitflags v2.3.3
 │   │   │   │       └── linux-raw-sys v0.4.5
 │   │   │   └── utf8parse v0.2.1
@@ -299,7 +299,7 @@ rsonpath v0.6.0 (/home/mat/rsonpath/crates/rsonpath)
 │   │   │   └── memchr v2.5.0
 │   │   └── rustc-demangle v0.1.23
 │   │   [build-dependencies]
-│   │   └── cc v1.0.81
+│   │   └── cc v1.0.82
 │   │       └── libc v0.2.147
 │   ├── eyre v0.6.8
 │   │   ├── indenter v0.3.3
@@ -309,7 +309,7 @@ rsonpath v0.6.0 (/home/mat/rsonpath/crates/rsonpath)
 │   └── owo-colors v3.5.0
 ├── eyre v0.6.8 (*)
 ├── log v0.4.19
-├── rsonpath-lib v0.6.0 (/home/mat/rsonpath/crates/rsonpath-lib)
+├── rsonpath-lib v0.6.1 (/home/mat/rsonpath/crates/rsonpath-lib)
 │   ├── cfg-if v1.0.0
 │   ├── log v0.4.19
 │   ├── memchr v2.5.0
