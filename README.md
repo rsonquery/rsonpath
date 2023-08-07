@@ -2,6 +2,8 @@
 
 [![Rust](https://github.com/V0ldek/rsonpath/actions/workflows/rust.yml/badge.svg)](https://github.com/V0ldek/rsonpath/actions/workflows/rust.yml)
 [![docs.rs](https://img.shields.io/docsrs/rsonpath-lib?logo=docs.rs)](https://docs.rs/crate/rsonpath-lib/latest)
+[![Book](https://img.shields.io/badge/book-available-4DC720?logo=mdbook
+)](https://v0ldek.github.io/rsonpath/)
 
 [![Crates.io](https://img.shields.io/crates/v/rsonpath?logo=docs.rs)](https://crates.io/crates/rsonpath)
 [![GitHub Release Date](https://img.shields.io/github/release-date/v0ldek/rsonpath?logo=github)](https://github.com/V0ldek/rsonpath/releases)
@@ -25,7 +27,6 @@ To run a JSONPath query on a file execute:
 
 ```console,ignore
 $ rq '$..a.b' ./file.json
-[15]
 ```
 
 If the file is omitted, the engine reads standard input. JSON can also be passed inline:
@@ -36,46 +37,13 @@ $ rq '$..a.b' --json '{"c":{"a":{"b":42}}}'
 
 ```
 
-For details, consult `rq --help`.
+For details, consult `rq --help` or [the rsonbook](https://v0ldek.github.io/rsonpath/).
 
 ### Results
 
 The result of running a query is a sequence of matched values, delimited by newlines.
 Alternatively, passing `--result count` returns only the number of matches, which might be much faster.
 For other result modes consult the `--help` usage page.
-
-## Query language
-
-The project is actively developed and currently supports only a subset of the JSONPath query language.
-A query is a sequence of segments, each containing one or more selectors.
-
-### Supported segments
-
-| Segment                        | Syntax                           | Supported | Since  | Tracking Issue |
-|--------------------------------|----------------------------------|-----------|--------|---------------:|
-| Child segment (single)         | `[<selector>]`                   | ✔️        | v0.1.0 |                |
-| Child segment (multiple)       | `[<selector1>,...,<selectorN>]`  | ❌        |        |                |
-| Descendant segment (single)    | `..[<selector>]`                 | ✔️        | v0.1.0 |                |
-| Descendant segment (multiple)  | `..[<selector1>,...,<selectorN>]`| ❌        |        |                |
-
-### Supported selectors
-
-| Selector                                 | Syntax                           | Supported | Since  | Tracking Issue |
-|------------------------------------------|----------------------------------|-----------|--------|---------------:|
-| Root                                     | `$`                              | ✔️        | v0.1.0 |                |
-| Name                                     | `.<member>`, `[<member>]`        | ✔️        | v0.1.0 |                |
-| Wildcard                                 | `.*`, `..*`, `[*]`               | ✔️        | v0.4.0 |                |
-| Index (array index)                      | `[<index>]`                      | ✔️        | v0.5.0 |                |
-| Index (array index from end)             | `[-<index>]`                     | ❌        |        |                |
-| Array slice (forward, positive bounds)   | `[<start>:<end>:<step>]`         | ❌        |        | [#152](https://github.com/V0ldek/rsonpath/issues/152) |
-| Array slice (forward, arbitrary bounds)  | `[<start>:<end>:<step>]`         | ❌        |        |                |
-| Array slice (backward, arbitrary bounds) | `[<start>:<end>:-<step>]`        | ❌        |        |                |
-| Filters &ndash; existential tests        | `[?<path>]`                      | ❌        |        | [#154](https://github.com/V0ldek/rsonpath/issues/154) |
-| Filters &ndash; const atom comparisons   | `[?<path> <binop> <atom>]`       | ❌        |        | [#156](https://github.com/V0ldek/rsonpath/issues/156) |
-| Filters &ndash; logical expressions      | `&&`, `\|\|`, `!`                | ❌        |        |                |
-| Filters &ndash; nesting                  | `[?<expr>[?<expr>]...]`          | ❌        |        |                |
-| Filters &ndash; arbitrary comparisons    | `[?<path> <binop> <path>]`       | ❌        |        |                |
-| Filters &ndash; function extensions      | `[?func(<path>)]`                | ❌        |        |                |
 
 ## Installation
 
@@ -113,6 +81,39 @@ To do this, run the following `cargo install` variant:
 $ RUSTFLAGS="-C target-cpu=native" cargo install rsonpath
 ...
 ```
+
+## Query language
+
+The project is actively developed and currently supports only a subset of the JSONPath query language.
+A query is a sequence of segments, each containing one or more selectors.
+
+### Supported segments
+
+| Segment                        | Syntax                           | Supported | Since  | Tracking Issue |
+|--------------------------------|----------------------------------|-----------|--------|---------------:|
+| Child segment (single)         | `[<selector>]`                   | ✔️        | v0.1.0 |                |
+| Child segment (multiple)       | `[<selector1>,...,<selectorN>]`  | ❌        |        |                |
+| Descendant segment (single)    | `..[<selector>]`                 | ✔️        | v0.1.0 |                |
+| Descendant segment (multiple)  | `..[<selector1>,...,<selectorN>]`| ❌        |        |                |
+
+### Supported selectors
+
+| Selector                                 | Syntax                           | Supported | Since  | Tracking Issue |
+|------------------------------------------|----------------------------------|-----------|--------|---------------:|
+| Root                                     | `$`                              | ✔️        | v0.1.0 |                |
+| Name                                     | `.<member>`, `[<member>]`        | ✔️        | v0.1.0 |                |
+| Wildcard                                 | `.*`, `..*`, `[*]`               | ✔️        | v0.4.0 |                |
+| Index (array index)                      | `[<index>]`                      | ✔️        | v0.5.0 |                |
+| Index (array index from end)             | `[-<index>]`                     | ❌        |        |                |
+| Array slice (forward, positive bounds)   | `[<start>:<end>:<step>]`         | ❌        |        | [#152](https://github.com/V0ldek/rsonpath/issues/152) |
+| Array slice (forward, arbitrary bounds)  | `[<start>:<end>:<step>]`         | ❌        |        |                |
+| Array slice (backward, arbitrary bounds) | `[<start>:<end>:-<step>]`        | ❌        |        |                |
+| Filters &ndash; existential tests        | `[?<path>]`                      | ❌        |        | [#154](https://github.com/V0ldek/rsonpath/issues/154) |
+| Filters &ndash; const atom comparisons   | `[?<path> <binop> <atom>]`       | ❌        |        | [#156](https://github.com/V0ldek/rsonpath/issues/156) |
+| Filters &ndash; logical expressions      | `&&`, `\|\|`, `!`                | ❌        |        |                |
+| Filters &ndash; nesting                  | `[?<expr>[?<expr>]...]`          | ❌        |        |                |
+| Filters &ndash; arbitrary comparisons    | `[?<path> <binop> <path>]`       | ❌        |        |                |
+| Filters &ndash; function extensions      | `[?func(<path>)]`                | ❌        |        |                |
 
 ## Supported platforms
 
@@ -193,12 +194,12 @@ cargo tree --package rsonpath --edges normal --depth 1
 
 <!-- rsonpath dependencies start -->
 ```ini
-rsonpath v0.6.0 (/home/mat/rsonpath/crates/rsonpath)
+rsonpath v0.6.1 (/home/mat/rsonpath/crates/rsonpath)
 ├── clap v4.3.19
 ├── color-eyre v0.6.2
 ├── eyre v0.6.8
 ├── log v0.4.19
-├── rsonpath-lib v0.6.0 (/home/mat/rsonpath/crates/rsonpath-lib)
+├── rsonpath-lib v0.6.1 (/home/mat/rsonpath/crates/rsonpath-lib)
 └── simple_logger v4.2.0
 [build-dependencies]
 ├── rustflags v0.1.4
@@ -213,7 +214,7 @@ cargo tree --package rsonpath-lib --edges normal --depth 1
 
 <!-- rsonpath-lib dependencies start -->
 ```ini
-rsonpath-lib v0.6.0 (/home/mat/rsonpath/crates/rsonpath-lib)
+rsonpath-lib v0.6.1 (/home/mat/rsonpath/crates/rsonpath-lib)
 ├── cfg-if v1.0.0
 ├── log v0.4.19
 ├── memchr v2.5.0
@@ -251,7 +252,7 @@ cargo tree --package rsonpath --edges normal
 
 <!-- rsonpath-full dependencies start -->
 ```ini
-rsonpath v0.6.0 (/home/mat/rsonpath/crates/rsonpath)
+rsonpath v0.6.1 (/home/mat/rsonpath/crates/rsonpath)
 ├── clap v4.3.19
 │   ├── clap_builder v4.3.19
 │   │   ├── anstream v0.3.2
@@ -261,7 +262,7 @@ rsonpath v0.6.0 (/home/mat/rsonpath/crates/rsonpath)
 │   │   │   ├── anstyle-query v1.0.0
 │   │   │   ├── colorchoice v1.0.0
 │   │   │   ├── is-terminal v0.4.9
-│   │   │   │   └── rustix v0.38.6
+│   │   │   │   └── rustix v0.38.7
 │   │   │   │       ├── bitflags v2.3.3
 │   │   │   │       └── linux-raw-sys v0.4.5
 │   │   │   └── utf8parse v0.2.1
@@ -298,7 +299,7 @@ rsonpath v0.6.0 (/home/mat/rsonpath/crates/rsonpath)
 │   │   │   └── memchr v2.5.0
 │   │   └── rustc-demangle v0.1.23
 │   │   [build-dependencies]
-│   │   └── cc v1.0.81
+│   │   └── cc v1.0.82
 │   │       └── libc v0.2.147
 │   ├── eyre v0.6.8
 │   │   ├── indenter v0.3.3
@@ -308,7 +309,7 @@ rsonpath v0.6.0 (/home/mat/rsonpath/crates/rsonpath)
 │   └── owo-colors v3.5.0
 ├── eyre v0.6.8 (*)
 ├── log v0.4.19
-├── rsonpath-lib v0.6.0 (/home/mat/rsonpath/crates/rsonpath-lib)
+├── rsonpath-lib v0.6.1 (/home/mat/rsonpath/crates/rsonpath-lib)
 │   ├── cfg-if v1.0.0
 │   ├── log v0.4.19
 │   ├── memchr v2.5.0

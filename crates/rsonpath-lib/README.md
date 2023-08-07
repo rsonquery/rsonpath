@@ -2,9 +2,11 @@
 
 [![Rust](https://github.com/V0ldek/rsonpath/actions/workflows/rust.yml/badge.svg)](https://github.com/V0ldek/rsonpath/actions/workflows/rust.yml)
 [![docs.rs](https://img.shields.io/docsrs/rsonpath-lib?logo=docs.rs)](https://docs.rs/crate/rsonpath-lib/latest)
+[![Book](https://img.shields.io/badge/book-available-4DC720?logo=mdbook
+)](https://v0ldek.github.io/rsonpath/)
 
 [![Crates.io](https://img.shields.io/crates/v/rsonpath?logo=docs.rs)](https://crates.io/crates/rsonpath)
-[![GitHub Release Date](https://img.shields.io/github/release-date/v0ldek/rsonpath)](https://github.com/V0ldek/rsonpath/releases)
+[![GitHub Release Date](https://img.shields.io/github/release-date/v0ldek/rsonpath?logo=github)](https://github.com/V0ldek/rsonpath/releases)
 [![GitHub last commit](https://img.shields.io/github/last-commit/v0ldek/rsonpath?logo=github)](https://github.com/V0ldek/rsonpath/commits/main)
 
 ![MSRV](https://img.shields.io/badge/msrv-v1.67.1-orange?logo=rust "Minimum Supported Rust Version for `rq`")
@@ -51,7 +53,7 @@ cargo tree --package rsonpath-lib --edges normal --depth 1
 
 <!-- rsonpath-lib dependencies start -->
 ```ini
-rsonpath-lib v0.6.0 (/home/mat/rsonpath/crates/rsonpath-lib)
+rsonpath-lib v0.6.1 (/home/mat/rsonpath/crates/rsonpath-lib)
 ├── cfg-if v1.0.0
 ├── log v0.4.19
 ├── memchr v2.5.0

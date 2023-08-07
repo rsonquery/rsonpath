@@ -251,7 +251,7 @@ release-dry ver:
     cargo update
     just release-patch {{ver}}
     just release-readme
-    just release-bug-template
+    just release-bug-template {{ver}}
     just commit 'release v{{ver}}'
     cargo release --sign-tag --sign-commit
 
