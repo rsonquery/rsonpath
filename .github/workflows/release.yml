@@ -10,6 +10,9 @@ env:
   RUST_BACKTRACE: 1
   CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: "aarch64-linux-gnu-gcc"
 
+permissions:
+  contents: read
+
 jobs:
   check-install:
     name: Check cargo install succeeds
@@ -159,6 +162,8 @@ jobs:
     name: Release on GitHub
     runs-on: ubuntu-latest
     needs: [build, check-install]
+    permissions:
+      contents: write
     steps:
     - name: Get version from git tag
       id: metadata
