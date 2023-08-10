@@ -3,12 +3,12 @@ on:
   issues:
     types: [closed]
 
+permissions: read-all
+
 jobs:
   label:
-
     runs-on: ubuntu-latest
     permissions:
-      contents: read
       issues: write
     steps:
     - uses: V0ldek/modify-label@v1.0.0
