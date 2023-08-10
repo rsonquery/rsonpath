@@ -3,15 +3,14 @@ on:
   issues:
     types: [opened, reopened]
 
+permissions: read-all
+
 jobs:
   label:
-
     runs-on: ubuntu-latest
     permissions:
-      contents: read
       issues: write
       repository-projects: write
-
     steps:
     - uses: V0ldek/modify-label@v1.0.0
       id: add-label
