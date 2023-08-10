@@ -4,6 +4,9 @@ on:
     branches: [ "main", "nix" ]
   push:
     branches: [ "main", "nix" ]
+    
+permissions:
+  contents: read
 
 jobs:
   nix-build:
