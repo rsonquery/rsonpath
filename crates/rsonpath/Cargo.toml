@@ -28,7 +28,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 clap = { version = "4.3.22", features = ["derive", "wrap_help"] }
 color-eyre = { version = "0.6.2", default-features = false }
 eyre = "0.6.8"
-log = "0.4.19"
+log = "0.4.20"
 rsonpath-lib = { package = "rsonpath-lib", version = "0.6.0", default-features = false }
 simple_logger = "4.2.0"
 
