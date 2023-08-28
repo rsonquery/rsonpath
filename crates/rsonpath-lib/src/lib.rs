@@ -207,11 +207,17 @@ pub mod query;
 pub mod result;
 
 cfg_if::cfg_if! {
-    if #[cfg(any(doc, not(feature = "simd")))] {
+    if #[cfg(any(simd = "avx2_64", simd = "ssse3_64"))] {
         pub(crate) const BLOCK_SIZE: usize = 64;
+        pub(crate) type MaskType = u64;
     }
-    else if #[cfg(simd = "avx2")] {
-        pub(crate) const BLOCK_SIZE: usize = 64;
+    else if #[cfg(any(simd = "avx2_32", simd = "ssse3_32"))] {
+        pub(crate) const BLOCK_SIZE: usize = 32;
+        pub(crate) type MaskType = u32;
+    }
+    else if #[cfg(any(doc, not(feature = "simd")))] {
+        pub(crate) const BLOCK_SIZE: usize = 8 * std::mem::size_of::<usize>();
+        pub(crate) type MaskType = usize;
     }
 }
 
@@ -254,7 +260,7 @@ macro_rules! debug {
 
 /// Debug log the given u64 expression by its full 64-bit binary string representation.
 #[allow(unused_macros)]
-macro_rules! bin {
+macro_rules! bin_u64 {
     ($name:expr, $e:expr) => {
         $crate::debug!(
             "{: >24}: {:064b} ({})",
@@ -272,8 +278,29 @@ macro_rules! bin {
     };
 }
 
+/// Debug log the given u32 expression by its full 32-bit binary string representation.
+#[allow(unused_macros)]
+macro_rules! bin_u32 {
+    ($name:expr, $e:expr) => {
+        $crate::debug!(
+            "{: >24}: {:032b} ({})",
+            $name,
+            {
+                let mut res = 0_u32;
+                for i in 0..32 {
+                    let bit = (($e) & (1 << i)) >> i;
+                    res |= bit << (31 - i);
+                }
+                res
+            },
+            $e
+        );
+    };
+}
+
 #[allow(unused_imports)]
-pub(crate) use bin;
+pub(crate) use bin_u32;
+pub(crate) use bin_u64;
 pub(crate) use block;
 pub(crate) use debug;
 

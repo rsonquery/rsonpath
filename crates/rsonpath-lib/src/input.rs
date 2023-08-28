@@ -149,7 +149,20 @@ pub trait InputBlockIterator<'i, const N: usize>: FallibleIterator<Item = Self::
 /// A block of bytes of size `N` returned from [`InputBlockIterator`].
 pub trait InputBlock<'i, const N: usize>: Deref<Target = [u8]> {
     /// Split the block in half, giving two slices of size `N`/2.
+    #[must_use]
     fn halves(&self) -> (&[u8], &[u8]);
+
+    /// Split the block in four, giving four slices of size `N`/4.
+    #[inline]
+    #[must_use]
+    fn quarters(&self) -> (&[u8], &[u8], &[u8], &[u8]) {
+        assert_eq!(N % 4, 0);
+        let (half1, half2) = self.halves();
+        let (q1, q2) = (&half1[..N / 4], &half1[N / 4..]);
+        let (q3, q4) = (&half2[..N / 4], &half2[N / 4..]);
+
+        (q1, q2, q3, q4)
+    }
 }
 
 impl<'i, const N: usize> InputBlock<'i, N> for &'i [u8] {

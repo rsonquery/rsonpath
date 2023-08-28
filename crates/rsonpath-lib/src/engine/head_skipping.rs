@@ -3,6 +3,7 @@
 //! This happens in queries starting with a descendant selector.
 use crate::{
     classification::{
+        mask::Mask,
         memmem::Memmem,
         quotes::{resume_quote_classification, InnerIter, QuoteClassifiedIterator},
         structural::{resume_structural_classification, BracketType, Structural, StructuralIterator},
@@ -17,7 +18,7 @@ use crate::{
         JsonString,
     },
     result::Recorder,
-    FallibleIterator, BLOCK_SIZE,
+    FallibleIterator, MaskType, BLOCK_SIZE,
 };
 
 /// Trait that needs to be implemented by an [`Engine`](`super::Engine`) to use this submodule.
@@ -44,11 +45,11 @@ where
         next_event: Structural,
         state: State,
         structural_classifier: S,
-    ) -> Result<ResumeClassifierState<'b, I::BlockIterator<'b, 'r, N, R>, Q, N>, EngineError>
+    ) -> Result<ResumeClassifierState<'b, I::BlockIterator<'b, 'r, N, R>, Q, MaskType, N>, EngineError>
     where
         I: Input,
-        Q: QuoteClassifiedIterator<'b, I::BlockIterator<'b, 'r, N, R>, N>,
-        S: StructuralIterator<'b, I::BlockIterator<'b, 'r, N, R>, Q, N>;
+        Q: QuoteClassifiedIterator<'b, I::BlockIterator<'b, 'r, N, R>, MaskType, N>,
+        S: StructuralIterator<'b, I::BlockIterator<'b, 'r, N, R>, Q, MaskType, N>;
 
     fn recorder(&mut self) -> &'r R;
 }
@@ -147,7 +148,7 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
                         debug_assert!(start_of_second_block >= BLOCK_SIZE);
                         let start_of_first_block = start_of_second_block - BLOCK_SIZE;
                         let distance_to_colon = colon_idx - start_of_first_block;
-                        let distance_to_value = next_idx - start_of_first_block - distance_to_colon + 1;
+                        let distance_to_value = next_idx - start_of_first_block - distance_to_colon;
 
                         let (quote_classifier, quote_classified_first_block) =
                             resume_quote_classification(input_iter, first_block);
@@ -170,7 +171,7 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
                         // If yes, that is an error of state propagation through skipped blocks.
                         // Flip the quote mask.
                         if let Some(block) = classifier_state.block.as_mut() {
-                            if (block.block.within_quotes_mask & (1_u64 << block.idx)) != 0 {
+                            if block.block.within_quotes_mask.is_lit(block.idx) {
                                 debug!("Mask needs flipping!");
                                 block.block.within_quotes_mask = !block.block.within_quotes_mask;
                                 classifier_state.iter.flip_quotes_bit();
@@ -181,6 +182,7 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
 
                         classifier_state = match next_c {
                             b'{' | b'[' => {
+                                classifier_state.offset_bytes(1)?;
                                 debug!("resuming");
                                 if self.is_accepting {
                                     engine.recorder().record_match(

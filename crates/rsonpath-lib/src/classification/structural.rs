@@ -57,7 +57,7 @@
 use crate::{
     classification::{quotes::QuoteClassifiedIterator, ResumeClassifierState},
     input::{error::InputError, InputBlockIterator},
-    FallibleIterator, BLOCK_SIZE,
+    FallibleIterator, MaskType, BLOCK_SIZE,
 };
 use cfg_if::cfg_if;
 
@@ -164,17 +164,17 @@ impl Structural {
 
 /// Trait for classifier iterators, i.e. finite iterators of [`Structural`] characters
 /// that hold a reference to the JSON document valid for `'a`.
-pub trait StructuralIterator<'i, I, Q, const N: usize>:
+pub trait StructuralIterator<'i, I, Q, M, const N: usize>:
     FallibleIterator<Item = Structural, Error = InputError>
 where
     I: InputBlockIterator<'i, N>,
 {
     /// Stop classification and return a state object that can be used to resume
     /// a classifier from the place in which the current one was stopped.
-    fn stop(self) -> ResumeClassifierState<'i, I, Q, N>;
+    fn stop(self) -> ResumeClassifierState<'i, I, Q, M, N>;
 
     /// Resume classification from a state retrieved by stopping a classifier.
-    fn resume(state: ResumeClassifierState<'i, I, Q, N>) -> Self;
+    fn resume(state: ResumeClassifierState<'i, I, Q, M, N>) -> Self;
 
     /// Turn classification of [`Structural::Colon`] characters off.
     fn turn_colons_off(&mut self);
@@ -213,14 +213,28 @@ where
     fn turn_colons_and_commas_off(&mut self);
 }
 
+mod avx2_32;
+mod avx2_64;
+mod nosimd;
+mod shared;
+mod ssse3_32;
+mod ssse3_64;
+
 cfg_if! {
     if #[cfg(any(doc, not(feature = "simd")))] {
-        mod nosimd;
         type ClassifierImpl<'a, I, Q, const N: usize> = nosimd::SequentialClassifier<'a, I, Q, N>;
     }
-    else if #[cfg(simd = "avx2")] {
-        mod avx2;
-        type ClassifierImpl<'a, I, Q> = avx2::Avx2Classifier<'a, I, Q>;
+    else if #[cfg(simd = "avx2_64")] {
+        type ClassifierImpl<'a, I, Q> = avx2_64::Avx2Classifier64<'a, I, Q>;
+    }
+    else if #[cfg(simd = "avx2_32")] {
+        type ClassifierImpl<'a, I, Q> = avx2_32::Avx2Classifier32<'a, I, Q>;
+    }
+    else if #[cfg(simd = "ssse3_64")] {
+        type ClassifierImpl<'a, I, Q> = ssse3_64::Ssse3Classifier64<'a, I, Q>;
+    }
+    else if #[cfg(simd = "ssse3_32")] {
+        type ClassifierImpl<'a, I, Q> = ssse3_32::Ssse3Classifier32<'a, I, Q>;
     }
     else {
         compile_error!("Target architecture is not supported by SIMD features of this crate. Disable the default `simd` feature.");
@@ -230,10 +244,10 @@ cfg_if! {
 /// Walk through the JSON document represented by `bytes` and iterate over all
 /// occurrences of structural characters in it.
 #[inline(always)]
-pub fn classify_structural_characters<'i, I, Q>(iter: Q) -> impl StructuralIterator<'i, I, Q, BLOCK_SIZE>
+pub fn classify_structural_characters<'i, I, Q>(iter: Q) -> impl StructuralIterator<'i, I, Q, MaskType, BLOCK_SIZE>
 where
     I: InputBlockIterator<'i, BLOCK_SIZE>,
-    Q: QuoteClassifiedIterator<'i, I, BLOCK_SIZE>,
+    Q: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE>,
 {
     ClassifierImpl::new(iter)
 }
@@ -242,11 +256,11 @@ where
 /// used classifier via the `stop` function.
 #[inline(always)]
 pub fn resume_structural_classification<'i, I, Q>(
-    state: ResumeClassifierState<'i, I, Q, BLOCK_SIZE>,
-) -> impl StructuralIterator<'i, I, Q, BLOCK_SIZE>
+    state: ResumeClassifierState<'i, I, Q, MaskType, BLOCK_SIZE>,
+) -> impl StructuralIterator<'i, I, Q, MaskType, BLOCK_SIZE>
 where
     I: InputBlockIterator<'i, BLOCK_SIZE>,
-    Q: QuoteClassifiedIterator<'i, I, BLOCK_SIZE>,
+    Q: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE>,
 {
     ClassifierImpl::resume(state)
 }

@@ -12,6 +12,7 @@ pub(crate) struct VectorIterator<'i, I, Q, const N: usize> {
 }
 
 impl<'i, I, Q, const N: usize> VectorIterator<'i, I, Q, N> {
+    #[allow(dead_code)]
     pub(crate) fn new(iter: Q, opening: BracketType) -> Self {
         Self {
             iter,
@@ -26,7 +27,7 @@ impl<'i, I, Q, const N: usize> VectorIterator<'i, I, Q, N> {
 impl<'i, I, Q, const N: usize> FallibleIterator for VectorIterator<'i, I, Q, N>
 where
     I: InputBlockIterator<'i, N>,
-    Q: QuoteClassifiedIterator<'i, I, N>,
+    Q: QuoteClassifiedIterator<'i, I, usize, N>,
 {
     type Item = Vector<'i, I, N>;
     type Error = InputError;
@@ -37,14 +38,14 @@ where
     }
 }
 
-impl<'i, I, Q, const N: usize> DepthIterator<'i, I, Q, N> for VectorIterator<'i, I, Q, N>
+impl<'i, I, Q, const N: usize> DepthIterator<'i, I, Q, usize, N> for VectorIterator<'i, I, Q, N>
 where
     I: InputBlockIterator<'i, N>,
-    Q: QuoteClassifiedIterator<'i, I, N>,
+    Q: QuoteClassifiedIterator<'i, I, usize, N>,
 {
     type Block = Vector<'i, I, N>;
 
-    fn stop(self, block: Option<Self::Block>) -> ResumeClassifierState<'i, I, Q, N> {
+    fn stop(self, block: Option<Self::Block>) -> ResumeClassifierState<'i, I, Q, usize, N> {
         let block_state = block.and_then(|b| {
             debug!("Depth iterator stopping at index {}", b.idx);
             if b.idx >= b.quote_classified.len() {
@@ -65,7 +66,7 @@ where
         }
     }
 
-    fn resume(state: ResumeClassifierState<'i, I, Q, N>, opening: BracketType) -> (Option<Self::Block>, Self) {
+    fn resume(state: ResumeClassifierState<'i, I, Q, usize, N>, opening: BracketType) -> (Option<Self::Block>, Self) {
         let first_block = state.block.map(|b| Vector::new_from(b.block, opening, b.idx));
 
         (
@@ -85,7 +86,7 @@ pub(crate) struct Vector<'i, I, const N: usize>
 where
     I: InputBlockIterator<'i, N>,
 {
-    quote_classified: QuoteClassifiedBlock<I::Block, N>,
+    quote_classified: QuoteClassifiedBlock<I::Block, usize, N>,
     depth: isize,
     idx: usize,
     bracket_type: BracketType,
@@ -96,12 +97,12 @@ where
     I: InputBlockIterator<'i, N>,
 {
     #[inline]
-    pub(crate) fn new(bytes: QuoteClassifiedBlock<I::Block, N>, opening: BracketType) -> Self {
+    pub(crate) fn new(bytes: QuoteClassifiedBlock<I::Block, usize, N>, opening: BracketType) -> Self {
         Self::new_from(bytes, opening, 0)
     }
 
     #[inline]
-    fn new_from(bytes: QuoteClassifiedBlock<I::Block, N>, opening: BracketType, idx: usize) -> Self {
+    fn new_from(bytes: QuoteClassifiedBlock<I::Block, usize, N>, opening: BracketType, idx: usize) -> Self {
         Self {
             quote_classified: bytes,
             depth: 0,
@@ -132,7 +133,7 @@ where
 
     #[inline(always)]
     fn get_char(&self, idx: usize) -> Option<u8> {
-        let idx_mask = 1_u64 << idx;
+        let idx_mask = 1_usize << idx;
         let is_quoted = (self.quote_classified.within_quotes_mask & idx_mask) == idx_mask;
 
         if is_quoted {

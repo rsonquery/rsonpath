@@ -4,7 +4,6 @@ use crate::input::{Input, InputBlockIterator};
 use crate::query::JsonString;
 use crate::result::InputRecorder;
 use crate::FallibleIterator;
-use crate::{block, debug};
 
 pub(crate) struct SequentialMemmemClassifier<'i, 'b, 'r, I, R, const N: usize>
 where
@@ -21,6 +20,7 @@ where
     R: InputRecorder<I::Block<'i, N>> + 'r,
 {
     #[inline]
+    #[allow(dead_code)]
     pub(crate) fn new(input: &'i I, iter: &'b mut I::BlockIterator<'i, 'r, N, R>) -> Self {
         Self { input, iter }
     }
@@ -63,20 +63,12 @@ where
         start_idx: usize,
         label: &JsonString,
     ) -> Result<Option<(usize, I::Block<'i, N>)>, InputError> {
-        let next_block_offset = self.iter.get_offset();
         if let Some(b) = first_block {
-            let block_idx = start_idx % N;
-            let label_size = label.bytes_with_quotes().len();
-            debug!("half block fetches for {:?} starting at {:?}", label, block_idx);
-            block!(b[block_idx..]);
-            let m = b[block_idx..].iter().copied().enumerate().find(|&(i, c)| {
-                let j = start_idx + i;
-                c == b'"' && self.input.is_member_match(j, j + label_size - 1, label)
-            });
-            if let Some((res, _)) = m {
-                return Ok(Some((res + start_idx, b)));
+            if let Some(res) = shared::find_label_in_first_block(self.input, b, start_idx, label)? {
+                return Ok(Some(res));
             }
         }
+        let next_block_offset = self.iter.get_offset();
 
         self.find_label_sequential(label, next_block_offset)
     }

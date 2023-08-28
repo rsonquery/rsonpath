@@ -32,9 +32,10 @@
 //! assert_eq!(expd, block.within_quotes_mask);
 //! ```
 
-use crate::input::error::InputError;
-use crate::input::{InputBlock, InputBlockIterator};
-use crate::{FallibleIterator, BLOCK_SIZE};
+use crate::{
+    input::{error::InputError, InputBlock, InputBlockIterator},
+    FallibleIterator, MaskType, BLOCK_SIZE,
+};
 use cfg_if::cfg_if;
 
 /// Input block with a bitmask signifying which characters are within quotes.
@@ -45,18 +46,18 @@ use cfg_if::cfg_if;
 ///
 /// There is no guarantee on how the boundary quote characters are classified,
 /// their bits might be lit or not lit depending on the implementation.
-pub struct QuoteClassifiedBlock<B, const N: usize> {
+pub struct QuoteClassifiedBlock<B, M, const N: usize> {
     /// The block that was classified.
     pub block: B,
     /// Mask marking characters within a quoted sequence.
-    pub within_quotes_mask: u64,
+    pub within_quotes_mask: M,
 }
 
 /// Trait for quote classifier iterators, i.e. finite iterators
 /// enriching blocks of input with quote bitmasks.
 /// Iterator is allowed to hold a reference to the JSON document valid for `'a`.
-pub trait QuoteClassifiedIterator<'i, I: InputBlockIterator<'i, N>, const N: usize>:
-    FallibleIterator<Item = QuoteClassifiedBlock<I::Block, N>, Error = InputError>
+pub trait QuoteClassifiedIterator<'i, I: InputBlockIterator<'i, N>, M, const N: usize>:
+    FallibleIterator<Item = QuoteClassifiedBlock<I::Block, M, N>, Error = InputError>
 {
     /// Get the total offset in bytes from the beginning of input.
     fn get_offset(&self) -> usize;
@@ -79,7 +80,7 @@ pub trait InnerIter<I> {
     fn into_inner(self) -> I;
 }
 
-impl<'i, B, const N: usize> QuoteClassifiedBlock<B, N>
+impl<'i, B, M, const N: usize> QuoteClassifiedBlock<B, M, N>
 where
     B: InputBlock<'i, N>,
 {
@@ -98,14 +99,28 @@ where
     }
 }
 
+mod avx2_32;
+mod avx2_64;
+mod nosimd;
+mod shared;
+mod ssse3_32;
+mod ssse3_64;
+
 cfg_if! {
     if #[cfg(any(doc, not(feature = "simd")))] {
-        mod nosimd;
         type ClassifierImpl<'i, I, const N: usize> = nosimd::SequentialQuoteClassifier<'i, I, N>;
     }
-    else if #[cfg(simd = "avx2")] {
-        mod avx2;
-        type ClassifierImpl<'i, I> = avx2::Avx2QuoteClassifier<'i, I>;
+    else if #[cfg(simd = "avx2_64")] {
+        type ClassifierImpl<'i, I> = avx2_64::Avx2QuoteClassifier64<'i, I>;
+    }
+    else if #[cfg(simd = "avx2_32")] {
+        type ClassifierImpl<'i, I> = avx2_32::Avx2QuoteClassifier32<'i, I>;
+    }
+    else if #[cfg(simd = "ssse3_64")] {
+        type ClassifierImpl<'i, I> = ssse3_64::Ssse3QuoteClassifier64<'i, I>;
+    }
+    else if #[cfg(simd = "ssse3_32")] {
+        type ClassifierImpl<'i, I> = ssse3_32::Ssse3QuoteClassifier32<'i, I>;
     }
     else {
         compile_error!("Target architecture is not supported by SIMD features of this crate. Disable the default `simd` feature.");
@@ -116,7 +131,9 @@ cfg_if! {
 /// and classify quoted sequences.
 #[must_use]
 #[inline(always)]
-pub fn classify_quoted_sequences<'i, I>(iter: I) -> impl QuoteClassifiedIterator<'i, I, BLOCK_SIZE> + InnerIter<I>
+pub fn classify_quoted_sequences<'i, I>(
+    iter: I,
+) -> impl QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE> + InnerIter<I>
 where
     I: InputBlockIterator<'i, BLOCK_SIZE>,
 {
@@ -127,8 +144,8 @@ pub(crate) fn resume_quote_classification<'i, I>(
     iter: I,
     first_block: Option<I::Block>,
 ) -> (
-    impl QuoteClassifiedIterator<'i, I, BLOCK_SIZE> + InnerIter<I>,
-    Option<QuoteClassifiedBlock<I::Block, BLOCK_SIZE>>,
+    impl QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE> + InnerIter<I>,
+    Option<QuoteClassifiedBlock<I::Block, MaskType, BLOCK_SIZE>>,
 )
 where
     I: InputBlockIterator<'i, BLOCK_SIZE>,
