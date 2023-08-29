@@ -38,38 +38,78 @@ jobs:
         include:
           - os: ubuntu-latest
             triple: aarch64-unknown-linux-gnu
+            simd-overload: ''
             target-features: ''
             prologue-script: sudo apt update && sudo apt install gcc-aarch64-linux-gnu
             can-run: false
           - os: ubuntu-latest
             triple: i686-unknown-linux-gnu
-            target-features: ''
+            simd-overload: 'avx2_32'
+            target-features: +avx2,+pclmulqdq
+            prologue-script: sudo apt update && sudo apt install gcc-multilib
+            can-run: true
+          - os: ubuntu-latest
+            triple: i686-unknown-linux-gnu
+            simd-overload: 'ssse3_32'
+            target-features: +ssse3,+pclmulqdq
             prologue-script: sudo apt update && sudo apt install gcc-multilib
             can-run: true
           - os: ubuntu-latest
             triple: x86_64-unknown-linux-gnu
+            simd-overload: 'avx2_64'
             target-features: +avx2,+pclmulqdq
+            can-run: true
+          - os: ubuntu-latest
+            triple: x86_64-unknown-linux-gnu
+            simd-overload: 'ssse3_64'
+            target-features: +ssse3,+pclmulqdq
             can-run: true
           - os: macos-latest
             triple: x86_64-apple-darwin
+            simd-overload: ''
             target-features: ''
             can-run: true
           - os: windows-latest
             triple: i686-pc-windows-gnu
-            target-features: ''
+            simd-overload: 'avx2_32'
+            target-features: +avx2,+pclmulqdq
+            needs-mingw: x86
+            can-run: true
+          - os: windows-latest
+            triple: i686-pc-windows-gnu
+            simd-overload: 'ssse3_32'
+            target-features: +ssse3,+pclmulqdq
             needs-mingw: x86
             can-run: true
           - os: windows-latest
             triple: i686-pc-windows-msvc
-            target-features: ''
+            simd-overload: 'avx2_32'
+            target-features: +avx2,+pclmulqdq
+            can-run: true
+          - os: windows-latest
+            triple: i686-pc-windows-msvc
+            simd-overload: 'ssse3_32'
+            target-features: +ssse3,+pclmulqdq
             can-run: true
           - os: windows-latest
             triple: x86_64-pc-windows-gnu
+            simd-overload: 'avx2_64'
+            target-features: +avx2,+pclmulqdq
+            can-run: true
+          - os: windows-latest
+            triple: x86_64-pc-windows-gnu
+            simd-overload: 'ssse3_64'
+            target-features: +ssse3,+pclmulqdq
+            can-run: true
+          - os: windows-latest
+            triple: x86_64-pc-windows-msvc
+            simd-overload: 'avx2_64'
             target-features: +avx2,+pclmulqdq
             can-run: true
           - os: windows-latest
             triple: x86_64-pc-windows-msvc
-            target-features: +avx2,+pclmulqdq
+            simd-overload: 'ssse3_64'
+            target-features: +ssse3,+pclmulqdq
             can-run: true
     steps:
       - name: Cache restore (MinGW)
@@ -123,6 +163,7 @@ jobs:
         run: cargo hack build --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --target ${{ matrix.triple }}
         env:
           RUSTFLAGS: "-C target-feature=${{ matrix.target-features }} --deny warnings"
+          RSONPATH_UNSAFE_OVERRIDE_SIMD: ${{ matrix.simd-overload }}
       - name: Build without simd
         if: matrix.target-features == ''
         run: cargo hack build --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --exclude-features simd --target ${{ matrix.triple }}
@@ -138,6 +179,7 @@ jobs:
         run: cargo hack test --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --target ${{ matrix.triple }}
         env:
           RUSTFLAGS: "-C target-feature=${{ matrix.target-features }} --deny warnings"
+          RSONPATH_UNSAFE_OVERRIDE_SIMD: ${{ matrix.simd-overload }}
       - name: Test without simd
         if: matrix.can-run && matrix.target-features == ''
         run: cargo hack test --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --exclude-features simd --target ${{ matrix.triple }}
