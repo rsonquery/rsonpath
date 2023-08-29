@@ -26,81 +26,154 @@ jobs:
         toolchain:
           - stable
           - nightly
+        config-slug:
+          - aarch64-unknown-linux-gnu-nosimd
+          - i686-unknown-linux-gnu-avx2
+          - i686-unknown-linux-gnu-ssse3
+          - i686-unknown-linux-gnu-nosimd
+          - x86_64-unknown-linux-gnu-avx2
+          - x86_64-unknown-linux-gnu-ssse3
+          - x86_64-unknown-linux-gnu-nosimd
+          - x86_64-apple-darwin-nosimd
+          - i686-pc-windows-gnu-avx2
+          - i686-pc-windows-gnu-ssse3
+          - i686-pc-windows-gnu-nosimd
+          - i686-pc-windows-msvc-avx2
+          - i686-pc-windows-msvc-ssse3
+          - i686-pc-windows-msvc-nosimd
+          - x86_64-pc-windows-gnu-avx2
+          - x86_64-pc-windows-gnu-ssse3
+          - x86_64-pc-windows-gnu-nosimd
+          - x86_64-pc-windows-msvc-avx2
+          - x86_64-pc-windows-msvc-ssse3
+          - x86_64-pc-windows-msvc-nosimd
         include:
           - os: ubuntu-latest
+            config-slug: aarch64-unknown-linux-gnu-nosimd
             triple: aarch64-unknown-linux-gnu
             simd-overload: ''
             target-features: ''
             prologue-script: sudo apt update && sudo apt install gcc-aarch64-linux-gnu
             can-run: false
           - os: ubuntu-latest
+            config-slug: i686-unknown-linux-gnu-avx2
             triple: i686-unknown-linux-gnu
             simd-overload: 'avx2_32'
             target-features: +avx2,+pclmulqdq
             prologue-script: sudo apt update && sudo apt install gcc-multilib
             can-run: true
           - os: ubuntu-latest
+            config-slug: i686-unknown-linux-gnu-ssse3
             triple: i686-unknown-linux-gnu
             simd-overload: 'ssse3_32'
             target-features: +ssse3,+pclmulqdq
             prologue-script: sudo apt update && sudo apt install gcc-multilib
             can-run: true
           - os: ubuntu-latest
+            config-slug: i686-unknown-linux-gnu-nosimd
+            triple: i686-unknown-linux-gnu
+            simd-overload: ''
+            target-features: ''
+            prologue-script: sudo apt update && sudo apt install gcc-multilib
+            can-run: true
+          - os: ubuntu-latest
+            config-slug: x86_64-unknown-linux-gnu-avx2
             triple: x86_64-unknown-linux-gnu
             simd-overload: 'avx2_64'
             target-features: +avx2,+pclmulqdq
             can-run: true
           - os: ubuntu-latest
+            config-slug: x86_64-unknown-linux-gnu-ssse3
             triple: x86_64-unknown-linux-gnu
             simd-overload: 'ssse3_64'
             target-features: +ssse3,+pclmulqdq
             can-run: true
+          - os: ubuntu-latest
+            config-slug: x86_64-unknown-linux-gnu-nosimd
+            triple: x86_64-unknown-linux-gnu
+            simd-overload: ''
+            target-features: ''
+            can-run: true
           - os: macos-latest
+            config-slug: x86_64-apple-darwin-nosimd
             triple: x86_64-apple-darwin
             simd-overload: ''
             target-features: ''
             can-run: true
           - os: windows-latest
+            config-slug: i686-pc-windows-gnu-avx2
             triple: i686-pc-windows-gnu
             simd-overload: 'avx2_32'
             target-features: +avx2,+pclmulqdq
             needs-mingw: x86
             can-run: true
           - os: windows-latest
+            config-slug: i686-pc-windows-gnu-ssse3
             triple: i686-pc-windows-gnu
             simd-overload: 'ssse3_32'
             target-features: +ssse3,+pclmulqdq
             needs-mingw: x86
             can-run: true
           - os: windows-latest
+            config-slug: i686-pc-windows-gnu-nosimd
+            triple: i686-pc-windows-gnu
+            simd-overload: ''
+            target-features: ''
+            needs-mingw: x86
+            can-run: true
+          - os: windows-latest
+            config-slug: i686-pc-windows-msvc-avx2
             triple: i686-pc-windows-msvc
             simd-overload: 'avx2_32'
             target-features: +avx2,+pclmulqdq
             can-run: true
           - os: windows-latest
+            config-slug: i686-pc-windows-msvc-ssse3
             triple: i686-pc-windows-msvc
             simd-overload: 'ssse3_32'
             target-features: +ssse3,+pclmulqdq
             can-run: true
           - os: windows-latest
+            config-slug: i686-pc-windows-msvc-nosimd
+            triple: i686-pc-windows-msvc
+            simd-overload: ''
+            target-features: ''
+            can-run: true
+          - os: windows-latest
+            config-slug: x86_64-pc-windows-gnu-avx2
             triple: x86_64-pc-windows-gnu
             simd-overload: 'avx2_64'
             target-features: +avx2,+pclmulqdq
             can-run: true
           - os: windows-latest
+            config-slug: x86_64-pc-windows-gnu-ssse3
             triple: x86_64-pc-windows-gnu
             simd-overload: 'ssse3_64'
             target-features: +ssse3,+pclmulqdq
             can-run: true
           - os: windows-latest
+            config-slug: x86_64-pc-windows-gnu-nosimd
+            triple: x86_64-pc-windows-gnu
+            simd-overload: ''
+            target-features: ''
+            can-run: true
+          - os: windows-latest
+            config-slug: x86_64-pc-windows-msvc-avx2
             triple: x86_64-pc-windows-msvc
             simd-overload: 'avx2_64'
             target-features: +avx2,+pclmulqdq
             can-run: true
           - os: windows-latest
+            config-slug: x86_64-pc-windows-msvc-ssse3
             triple: x86_64-pc-windows-msvc
             simd-overload: 'ssse3_64'
             target-features: +ssse3,+pclmulqdq
+            can-run: true
+          - os: windows-latest
+            config-slug: x86_64-pc-windows-msvc-nosimd
+            triple: x86_64-pc-windows-msvc
+            simd-overload: ''
+            target-features: ''
             can-run: true
     steps:
       - name: Cache restore (MinGW)
