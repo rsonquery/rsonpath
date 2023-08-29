@@ -228,16 +228,16 @@ cfg_if! {
     if #[cfg(any(doc, not(feature = "simd")))] {
         type ClassifierImpl<'a, I, Q, const N: usize> = nosimd::SequentialClassifier<'a, I, Q, N>;
     }
-    else if #[cfg(simd = "avx2_64")] {
+    else if #[cfg(all(simd = "avx2_64", target_arch = "x86_64"))] {
         type ClassifierImpl<'a, I, Q> = avx2_64::Avx2Classifier64<'a, I, Q>;
     }
-    else if #[cfg(simd = "avx2_32")] {
+    else if #[cfg(all(simd = "avx2_32", any(target_arch = "x86_64", target_arch = "x86")))] {
         type ClassifierImpl<'a, I, Q> = avx2_32::Avx2Classifier32<'a, I, Q>;
     }
-    else if #[cfg(simd = "ssse3_64")] {
+    else if #[cfg(all(simd = "ssse3_64", target_arch = "x86_64"))] {
         type ClassifierImpl<'a, I, Q> = ssse3_64::Ssse3Classifier64<'a, I, Q>;
     }
-    else if #[cfg(simd = "ssse3_32")] {
+    else if #[cfg(all(simd = "ssse3_32", any(target_arch = "x86_64", target_arch = "x86")))] {
         type ClassifierImpl<'a, I, Q> = ssse3_32::Ssse3Classifier32<'a, I, Q>;
     }
     else {

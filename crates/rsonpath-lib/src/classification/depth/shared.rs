@@ -107,4 +107,5 @@ macro_rules! depth_classifier {
     };
 }
 
+#[allow(unused_imports)]
 pub(crate) use depth_classifier;

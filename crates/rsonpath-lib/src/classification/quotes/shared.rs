@@ -116,4 +116,5 @@ macro_rules! quote_classifier {
     };
 }
 
+#[allow(unused_imports)]
 pub(crate) use quote_classifier;

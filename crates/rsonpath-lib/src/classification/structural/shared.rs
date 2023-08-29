@@ -220,4 +220,5 @@ macro_rules! structural_classifier {
     };
 }
 
+#[allow(unused_imports)]
 pub(crate) use structural_classifier;

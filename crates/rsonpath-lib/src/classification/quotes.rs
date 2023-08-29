@@ -114,16 +114,16 @@ cfg_if! {
     if #[cfg(any(doc, not(feature = "simd")))] {
         type ClassifierImpl<'i, I, const N: usize> = nosimd::SequentialQuoteClassifier<'i, I, N>;
     }
-    else if #[cfg(simd = "avx2_64")] {
+    else if #[cfg(all(simd = "avx2_64", target_arch = "x86_64"))] {
         type ClassifierImpl<'i, I> = avx2_64::Avx2QuoteClassifier64<'i, I>;
     }
-    else if #[cfg(simd = "avx2_32")] {
+    else if #[cfg(all(simd = "avx2_32", any(target_arch = "x86_64", target_arch = "x86")))] {
         type ClassifierImpl<'i, I> = avx2_32::Avx2QuoteClassifier32<'i, I>;
     }
-    else if #[cfg(simd = "ssse3_64")] {
+    else if #[cfg(all(simd = "ssse3_64", target_arch = "x86_64"))] {
         type ClassifierImpl<'i, I> = ssse3_64::Ssse3QuoteClassifier64<'i, I>;
     }
-    else if #[cfg(simd = "ssse3_32")] {
+    else if #[cfg(all(simd = "ssse3_32", any(target_arch = "x86_64", target_arch = "x86")))] {
         type ClassifierImpl<'i, I> = ssse3_32::Ssse3QuoteClassifier32<'i, I>;
     }
     else {

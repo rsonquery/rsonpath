@@ -227,11 +227,13 @@ cfg_if::cfg_if! {
 /// Use this instead of plain [`log::debug`], since this is automatically removed in
 /// release mode and incurs no performance penalties.
 #[cfg(debug_assertions)]
+#[allow(unused_macros)]
 macro_rules! debug {
     (target: $target:expr, $($arg:tt)+) => (log::debug!(target: $target, $($arg)+));
     ($($arg:tt)+) => (log::debug!($($arg)+))
 }
 
+#[allow(unused_macros)]
 macro_rules! block {
     ($b:expr) => {
         crate::debug!(
@@ -253,6 +255,7 @@ macro_rules! block {
 /// Use this instead of plain [`log::debug`], since this is automatically removed in
 /// release mode and incurs no performance penalties.
 #[cfg(not(debug_assertions))]
+#[allow(unused_macros)]
 macro_rules! debug {
     (target: $target:expr, $($arg:tt)+) => {};
     ($($arg:tt)+) => {};

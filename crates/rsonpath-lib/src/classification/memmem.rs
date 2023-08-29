@@ -42,16 +42,16 @@ cfg_if! {
     if #[cfg(any(doc, not(feature = "simd")))] {
         type MemmemImpl<'a, 'b, 'r, I, R> = nosimd::SequentialMemmemClassifier<'a, 'b, 'r, I, R, BLOCK_SIZE>;
     }
-    else if #[cfg(simd = "avx2_64")] {
+    else if #[cfg(all(simd = "avx2_64", target_arch = "x86_64"))] {
         type MemmemImpl<'a, 'b, 'r, I, R> = avx2_64::Avx2MemmemClassifier64<'a, 'b, 'r, I, R>;
     }
-    else if #[cfg(simd = "avx2_32")] {
+    else if #[cfg(all(simd = "avx2_32", any(target_arch = "x86_64", target_arch = "x86")))] {
         type MemmemImpl<'a, 'b, 'r, I, R> = avx2_32::Avx2MemmemClassifier32<'a, 'b, 'r, I, R>;
     }
-    else if #[cfg(simd = "ssse3_64")] {
+    else if #[cfg(all(simd = "ssse3_64", target_arch = "x86_64"))] {
         type MemmemImpl<'a, 'b, 'r, I, R> = ssse3_64::Ssse3MemmemClassifier64<'a, 'b, 'r, I, R>;
     }
-    else if #[cfg(simd = "ssse3_32")] {
+    else if #[cfg(all(simd = "ssse3_32", any(target_arch = "x86_64", target_arch = "x86")))] {
         type MemmemImpl<'a, 'b, 'r, I, R> = ssse3_32::Ssse3MemmemClassifier32<'a, 'b, 'r, I, R>;
     }
     else {
