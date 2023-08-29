@@ -202,7 +202,7 @@ jobs:
       run: cargo build --package rsonpath --release --target ${{ matrix.triple }}
       env:
         RUSTFLAGS: "-C target-feature=${{ matrix.target-features }} --deny warnings"
-        RSONPATH_UNSAFE_OVERRIDE_SIMD: ${{ matrix.simd-overload }}
+        RSONPATH_UNSAFE_FORCE_SIMD: ${{ matrix.simd-overload }}
     - name: Rename binary (Unix)
       if: matrix.os != 'windows-latest'
       run: mv "target/${{ matrix.triple }}/release/rq" target/release/rq-${{ matrix.triple }}-${{ matrix.artifact-suffix }}

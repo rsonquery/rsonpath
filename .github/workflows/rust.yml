@@ -227,7 +227,7 @@ jobs:
         run: cargo hack build --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --target ${{ matrix.triple }}
         env:
           RUSTFLAGS: "-C target-feature=${{ matrix.target-features }} --deny warnings"
-          RSONPATH_UNSAFE_OVERRIDE_SIMD: ${{ matrix.simd-overload }}
+          RSONPATH_UNSAFE_FORCE_SIMD: ${{ matrix.simd-overload }}
       - name: Build without simd
         if: matrix.target-features == ''
         run: cargo hack build --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --exclude-features simd --target ${{ matrix.triple }}
@@ -243,7 +243,7 @@ jobs:
         run: cargo hack test --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --target ${{ matrix.triple }}
         env:
           RUSTFLAGS: "-C target-feature=${{ matrix.target-features }} --deny warnings"
-          RSONPATH_UNSAFE_OVERRIDE_SIMD: ${{ matrix.simd-overload }}
+          RSONPATH_UNSAFE_FORCE_SIMD: ${{ matrix.simd-overload }}
       - name: Test without simd
         if: matrix.can-run && matrix.target-features == ''
         run: cargo hack test --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --exclude-features simd --target ${{ matrix.triple }}
