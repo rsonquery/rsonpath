@@ -26,20 +26,6 @@ jobs:
         toolchain:
           - stable
           - nightly
-        triple:
-          - aarch64-unknown-linux-gnu
-          - i686-unknown-linux-gnu
-          - x86_64-unknown-linux-gnu
-          - x86_64-apple-darwin
-          - i686-pc-windows-gnu
-          - i686-pc-windows-msvc
-          - x86_64-pc-windows-gnu
-          - x86_64-pc-windows-msvc
-        simd-overload:
-          - 'ssse3_32'
-          - 'ssse3_64'
-          - 'avx2_32'
-          - 'avx2_64'
         include:
           - os: ubuntu-latest
             triple: aarch64-unknown-linux-gnu
