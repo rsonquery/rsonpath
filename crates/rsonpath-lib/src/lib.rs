@@ -300,8 +300,11 @@ macro_rules! bin_u32 {
 
 #[allow(unused_imports)]
 pub(crate) use bin_u32;
+#[allow(unused_imports)]
 pub(crate) use bin_u64;
+#[allow(unused_imports)]
 pub(crate) use block;
+#[allow(unused_imports)]
 pub(crate) use debug;
 
 /// Variation of the [`Iterator`] trait where each read can fail.

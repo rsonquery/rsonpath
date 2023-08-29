@@ -9,6 +9,11 @@ pub(crate) const ODD: u32 = 0b0101_0101_0101_0101_0101_0101_0101_0101_u32;
 /// Bitmask selecting bits on odd positions when indexing from zero.
 pub(crate) const EVEN: u32 = 0b1010_1010_1010_1010_1010_1010_1010_1010_u32;
 
+#[target_feature(enable = "sse2")]
+unsafe fn all_ones128() -> __m128i {
+    _mm_set1_epi8(0xFF_u8 as i8)
+}
+
 pub(crate) struct BlockClassifier32Bit {
     /// Compressed information about the state from the previous block.
     /// The first bit is lit iff the previous block ended with an unescaped escape character.
@@ -70,7 +75,7 @@ impl BlockClassifier32Bit {
         let nonescaped_quotes = (quotes & !escaped) ^ self.get_prev_quote_mask();
 
         let nonescaped_quotes_vector = _mm_set_epi64x(0, i64::from(nonescaped_quotes));
-        let cumulative_xor = _mm_clmulepi64_si128::<0>(nonescaped_quotes_vector, super::all_ones128());
+        let cumulative_xor = _mm_clmulepi64_si128::<0>(nonescaped_quotes_vector, all_ones128());
 
         let within_quotes = _mm_cvtsi128_si32(cumulative_xor) as u32;
         self.update_prev_block_mask(set_prev_slash_mask, within_quotes);

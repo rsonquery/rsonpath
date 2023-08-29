@@ -1,8 +1,3 @@
-#[cfg(target_arch = "x86")]
-use ::core::arch::x86::*;
-#[cfg(target_arch = "x86_64")]
-use ::core::arch::x86_64::*;
-
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub(super) mod mask_32;
 #[cfg(target_arch = "x86_64")]
@@ -12,11 +7,7 @@ pub(super) mod vector_128;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub(super) mod vector_256;
 
-#[target_feature(enable = "sse2")]
-pub(super) unsafe fn all_ones128() -> __m128i {
-    _mm_set1_epi8(0xFF_u8 as i8)
-}
-
+#[allow(unused_macros)]
 macro_rules! quote_classifier {
     ($name:ident, $core:ident, $size:literal, $mask_ty:ty) => {
         pub(crate) struct $name<'i, I>
