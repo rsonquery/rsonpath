@@ -153,27 +153,31 @@ where
     I: InputBlockIterator<'i, N>,
     D: DepthIterator<'i, I, Q, M, N>;
 
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 mod avx2_32;
+#[cfg(target_arch = "x86_64")]
 mod avx2_64;
 mod nosimd;
 mod shared;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 mod ssse3_32;
+#[cfg(target_arch = "x86_64")]
 mod ssse3_64;
 
 cfg_if! {
     if #[cfg(any(doc, not(feature = "simd")))] {
         type IteratorImpl<'a, I, Q, const N: usize> = nosimd::VectorIterator<'a, I, Q, N>;
     }
-    else if #[cfg(all(simd = "avx2_64", target_arch = "x86_64"))] {
+    else if #[cfg(simd = "avx2_64")] {
         type IteratorImpl<'a, I, Q> = avx2_64::Avx2VectorIterator64<'a, I, Q>;
     }
-    else if #[cfg(all(simd = "avx2_32", any(target_arch = "x86_64", target_arch = "x86")))] {
+    else if #[cfg(simd = "avx2_32")] {
         type IteratorImpl<'a, I, Q> = avx2_32::Avx2VectorIterator32<'a, I, Q>;
     }
-    else if #[cfg(all(simd = "ssse3_64", target_arch = "x86_64"))] {
+    else if #[cfg(simd = "ssse3_64")] {
         type IteratorImpl<'a, I, Q> = ssse3_64::Ssse3VectorIterator64<'a, I, Q>;
     }
-    else if #[cfg(all(simd = "ssse3_32", any(target_arch = "x86_64", target_arch = "x86")))] {
+    else if #[cfg(simd = "ssse3_32")] {
         type IteratorImpl<'a, I, Q> = ssse3_32::Ssse3VectorIterator32<'a, I, Q>;
     }
     else {

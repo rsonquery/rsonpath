@@ -99,27 +99,31 @@ where
     }
 }
 
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 mod avx2_32;
+#[cfg(target_arch = "x86_64")]
 mod avx2_64;
 mod nosimd;
 mod shared;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 mod ssse3_32;
+#[cfg(target_arch = "x86_64")]
 mod ssse3_64;
 
 cfg_if! {
     if #[cfg(any(doc, not(feature = "simd")))] {
         type ClassifierImpl<'i, I, const N: usize> = nosimd::SequentialQuoteClassifier<'i, I, N>;
     }
-    else if #[cfg(all(simd = "avx2_64", target_arch = "x86_64"))] {
+    else if #[cfg(simd = "avx2_64")] {
         type ClassifierImpl<'i, I> = avx2_64::Avx2QuoteClassifier64<'i, I>;
     }
-    else if #[cfg(all(simd = "avx2_32", any(target_arch = "x86_64", target_arch = "x86")))] {
+    else if #[cfg(simd = "avx2_32")] {
         type ClassifierImpl<'i, I> = avx2_32::Avx2QuoteClassifier32<'i, I>;
     }
-    else if #[cfg(all(simd = "ssse3_64", target_arch = "x86_64"))] {
+    else if #[cfg(simd = "ssse3_64")] {
         type ClassifierImpl<'i, I> = ssse3_64::Ssse3QuoteClassifier64<'i, I>;
     }
-    else if #[cfg(all(simd = "ssse3_32", any(target_arch = "x86_64", target_arch = "x86")))] {
+    else if #[cfg(simd = "ssse3_32")] {
         type ClassifierImpl<'i, I> = ssse3_32::Ssse3QuoteClassifier32<'i, I>;
     }
     else {

@@ -2,9 +2,13 @@ use crate::input::error::InputError;
 use crate::input::Input;
 use crate::query::JsonString;
 
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub(super) mod mask_32;
+#[cfg(target_arch = "x86_64")]
 pub(super) mod mask_64;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub(super) mod vector_128;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub(super) mod vector_256;
 
 pub(crate) fn find_label_in_first_block<'i, 'r, I, const N: usize>(
