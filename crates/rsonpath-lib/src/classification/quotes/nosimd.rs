@@ -104,7 +104,7 @@ where
     I: InputBlockIterator<'i, N>,
 {
     fn get_offset(&self) -> usize {
-        self.iter.get_offset() - 64
+        self.iter.get_offset() - N
     }
 
     fn offset(&mut self, count: isize) {
