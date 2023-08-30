@@ -39,7 +39,7 @@ impl BlockSsse3Classifier {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, cfg = "ssse3_32"))]
 mod tests {
     use super::Ssse3QuoteClassifier32;
     use crate::{
