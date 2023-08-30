@@ -116,6 +116,12 @@ test-full: (gen-tests)
     cargo rsontest
     just test-book
 
+test-x86-simd:
+    RSONPATH_UNSAFE_FORCE_SIMD=avx2_64 cargo test --test end_to_end -q
+    RSONPATH_UNSAFE_FORCE_SIMD=avx2_32 cargo test --test end_to_end -q
+    RSONPATH_UNSAFE_FORCE_SIMD=ssse3_64 cargo test --test end_to_end -q
+    RSONPATH_UNSAFE_FORCE_SIMD=ssse3_32 cargo test --test end_to_end -q
+
 # Run doctests on the library.
 test-doc:
     -cargo install cargo-hack

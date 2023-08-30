@@ -27,14 +27,32 @@ pub trait Memmem<'i, 'b, 'r, I: Input, const N: usize> {
     ) -> Result<Option<(usize, I::Block<'i, N>)>, InputError>;
 }
 
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+mod avx2_32;
+#[cfg(target_arch = "x86_64")]
+mod avx2_64;
+mod nosimd;
+mod shared;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+mod ssse3_32;
+#[cfg(target_arch = "x86_64")]
+mod ssse3_64;
+
 cfg_if! {
     if #[cfg(any(doc, not(feature = "simd")))] {
-        mod nosimd;
         type MemmemImpl<'a, 'b, 'r, I, R> = nosimd::SequentialMemmemClassifier<'a, 'b, 'r, I, R, BLOCK_SIZE>;
     }
-    else if #[cfg(simd = "avx2")] {
-        mod avx2;
-        type MemmemImpl<'a, 'b, 'r, I, R> = avx2::Avx2MemmemClassifier<'a, 'b, 'r, I, R>;
+    else if #[cfg(all(simd = "avx2_64", target_arch = "x86_64"))] {
+        type MemmemImpl<'a, 'b, 'r, I, R> = avx2_64::Avx2MemmemClassifier64<'a, 'b, 'r, I, R>;
+    }
+    else if #[cfg(all(simd = "avx2_32", any(target_arch = "x86_64", target_arch = "x86")))] {
+        type MemmemImpl<'a, 'b, 'r, I, R> = avx2_32::Avx2MemmemClassifier32<'a, 'b, 'r, I, R>;
+    }
+    else if #[cfg(all(simd = "ssse3_64", target_arch = "x86_64"))] {
+        type MemmemImpl<'a, 'b, 'r, I, R> = ssse3_64::Ssse3MemmemClassifier64<'a, 'b, 'r, I, R>;
+    }
+    else if #[cfg(all(simd = "ssse3_32", any(target_arch = "x86_64", target_arch = "x86")))] {
+        type MemmemImpl<'a, 'b, 'r, I, R> = ssse3_32::Ssse3MemmemClassifier32<'a, 'b, 'r, I, R>;
     }
     else {
         compile_error!("Target architecture is not supported by SIMD features of this crate. Disable the default `simd` feature.");

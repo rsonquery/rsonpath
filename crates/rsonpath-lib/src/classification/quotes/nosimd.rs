@@ -17,6 +17,7 @@ where
     I: InputBlockIterator<'i, N>,
 {
     #[inline(always)]
+    #[allow(dead_code)]
     pub(crate) fn new(iter: I) -> Self {
         Self {
             iter,
@@ -27,7 +28,11 @@ where
     }
 
     #[inline]
-    pub(crate) fn resume(iter: I, first_block: Option<I::Block>) -> (Self, Option<QuoteClassifiedBlock<I::Block, N>>) {
+    #[allow(dead_code)]
+    pub(crate) fn resume(
+        iter: I,
+        first_block: Option<I::Block>,
+    ) -> (Self, Option<QuoteClassifiedBlock<I::Block, usize, N>>) {
         let mut s = Self {
             iter,
             escaped: false,
@@ -40,8 +45,8 @@ where
         (s, block)
     }
 
-    fn classify_block(&mut self, block: I::Block) -> QuoteClassifiedBlock<I::Block, N> {
-        let mut mask = 0_u64;
+    fn classify_block(&mut self, block: I::Block) -> QuoteClassifiedBlock<I::Block, usize, N> {
+        let mut mask = 0_usize;
         let mut idx_mask = 1;
 
         for character in block.iter().copied() {
@@ -73,7 +78,7 @@ impl<'i, I, const N: usize> FallibleIterator for SequentialQuoteClassifier<'i, I
 where
     I: InputBlockIterator<'i, N>,
 {
-    type Item = QuoteClassifiedBlock<I::Block, N>;
+    type Item = QuoteClassifiedBlock<I::Block, usize, N>;
     type Error = InputError;
 
     #[inline(always)]
@@ -94,12 +99,12 @@ where
     }
 }
 
-impl<'i, I, const N: usize> QuoteClassifiedIterator<'i, I, N> for SequentialQuoteClassifier<'i, I, N>
+impl<'i, I, const N: usize> QuoteClassifiedIterator<'i, I, usize, N> for SequentialQuoteClassifier<'i, I, N>
 where
     I: InputBlockIterator<'i, N>,
 {
     fn get_offset(&self) -> usize {
-        self.iter.get_offset() - 64
+        self.iter.get_offset() - N
     }
 
     fn offset(&mut self, count: isize) {

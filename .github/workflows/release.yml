@@ -45,49 +45,109 @@ jobs:
         include:
           - os: ubuntu-latest
             triple: aarch64-unknown-linux-gnu
+            simd-overload: ''
             target-features: ''
             artifact-suffix: nosimd
             prologue-script: sudo apt update && sudo apt install gcc-aarch64-linux-gnu
           - os: ubuntu-latest
             triple: i686-unknown-linux-gnu
+            simd-overload: ''
             target-features: ''
             artifact-suffix: nosimd
             prologue-script: sudo apt update && sudo apt install gcc-multilib
           - os: ubuntu-latest
+            triple: i686-unknown-linux-gnu
+            simd-overload: 'avx2_32'
+            target-features: +avx2,+pclmulqdq
+            artifact-suffix: avx2-pclmulqdq
+            prologue-script: sudo apt update && sudo apt install gcc-multilib
+          - os: ubuntu-latest
+            triple: i686-unknown-linux-gnu
+            simd-overload: 'ssse3_32'
+            target-features: +ssse3,+pclmulqdq
+            artifact-suffix: ssse3-pclmulqdq
+            prologue-script: sudo apt update && sudo apt install gcc-multilib
+          - os: ubuntu-latest
             triple: x86_64-unknown-linux-gnu
+            simd-overload: 'avx2_64'
             target-features: +avx2,+pclmulqdq
             artifact-suffix: avx2-pclmulqdq
           - os: ubuntu-latest
             triple: x86_64-unknown-linux-gnu
+            simd-overload: 'ssse3_64'
+            target-features: +ssse3,+pclmulqdq
+            artifact-suffix: ssse3-pclmulqdq
+          - os: ubuntu-latest
+            triple: x86_64-unknown-linux-gnu
+            simd-overload: ''
             target-features: ''
             artifact-suffix: nosimd
           - os: macos-latest
             triple: x86_64-apple-darwin
+            simd-overload: ''
             target-features: ''
             artifact-suffix: nosimd
           - os: windows-latest
             triple: i686-pc-windows-gnu
+            simd-overload: 'avx2_32'
+            target-features: +avx2,+pclmulqdq
+            artifact-suffix: avx2-pclmulqdq
+            needs-mingw: x86
+          - os: windows-latest
+            triple: i686-pc-windows-gnu
+            simd-overload: 'ssse3_32'
+            target-features: +ssse3,+pclmulqdq
+            artifact-suffix: ssse3-pclmulqdq
+            needs-mingw: x86
+          - os: windows-latest
+            triple: i686-pc-windows-gnu
+            simd-overload: ''
             target-features: ''
             artifact-suffix: nosimd
             needs-mingw: x86
           - os: windows-latest
             triple: i686-pc-windows-msvc
+            simd-overload: 'avx2_32'
+            target-features: +avx2,+pclmulqdq
+            artifact-suffix: avx2-pclmulqdq
+          - os: windows-latest
+            triple: i686-pc-windows-msvc
+            simd-overload: 'ssse3_32'
+            target-features: +ssse3,+pclmulqdq
+            artifact-suffix: ssse3-pclmulqdq
+          - os: windows-latest
+            triple: i686-pc-windows-msvc
+            simd-overload: ''
             target-features: ''
             artifact-suffix: nosimd
           - os: windows-latest
             triple: x86_64-pc-windows-gnu
+            simd-overload: 'ssse3_64'
+            target-features: +ssse3,+pclmulqdq
+            artifact-suffix: ssse3-pclmulqdq
+          - os: windows-latest
+            triple: x86_64-pc-windows-gnu
+            simd-overload: 'avx2_64'
             target-features: +avx2,+pclmulqdq
             artifact-suffix: avx2-pclmulqdq
           - os: windows-latest
             triple: x86_64-pc-windows-gnu
+            simd-overload: ''
             target-features: ''
             artifact-suffix: nosimd
           - os: windows-latest
             triple: x86_64-pc-windows-msvc
+            simd-overload: 'avx2_64'
             target-features: +avx2,+pclmulqdq
             artifact-suffix: avx2-pclmulqdq
           - os: windows-latest
             triple: x86_64-pc-windows-msvc
+            simd-overload: 'ssse3_64'
+            target-features: +ssse3,+pclmulqdq
+            artifact-suffix: ssse3-pclmulqdq
+          - os: windows-latest
+            triple: x86_64-pc-windows-msvc
+            simd-overload: ''
             target-features: ''
             artifact-suffix: nosimd
     steps:
@@ -145,6 +205,7 @@ jobs:
       run: cargo build --package rsonpath --release --target ${{ matrix.triple }}
       env:
         RUSTFLAGS: "-C target-feature=${{ matrix.target-features }} --deny warnings"
+        RSONPATH_UNSAFE_FORCE_SIMD: ${{ matrix.simd-overload }}
     - name: Rename binary (Unix)
       if: matrix.os != 'windows-latest'
       run: mv "target/${{ matrix.triple }}/release/rq" target/release/rq-${{ matrix.triple }}-${{ matrix.artifact-suffix }}

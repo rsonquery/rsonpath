@@ -27,7 +27,7 @@ use crate::{
         count::CountRecorder, index::IndexRecorder, nodes::NodesRecorder, Match, MatchCount, MatchIndex,
         MatchedNodeType, Recorder, Sink,
     },
-    FallibleIterator, BLOCK_SIZE,
+    FallibleIterator, MaskType, BLOCK_SIZE,
 };
 use smallvec::{smallvec, SmallVec};
 
@@ -221,8 +221,8 @@ where
 
     fn run_on_subtree<Q, S>(&mut self, classifier: &mut Classifier!()) -> Result<(), EngineError>
     where
-        Q: QuoteClassifiedIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, BLOCK_SIZE>,
-        S: StructuralIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, Q, BLOCK_SIZE>,
+        Q: QuoteClassifiedIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, MaskType, BLOCK_SIZE>,
+        S: StructuralIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, Q, MaskType, BLOCK_SIZE>,
     {
         loop {
             if self.next_event.is_none() {
@@ -282,8 +282,8 @@ where
         idx: usize,
     ) -> Result<(), EngineError>
     where
-        Q: QuoteClassifiedIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, BLOCK_SIZE>,
-        S: StructuralIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, Q, BLOCK_SIZE>,
+        Q: QuoteClassifiedIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, MaskType, BLOCK_SIZE>,
+        S: StructuralIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, Q, MaskType, BLOCK_SIZE>,
     {
         debug!("Colon");
 
@@ -339,8 +339,8 @@ where
 
     fn handle_comma<Q, S>(&mut self, _classifier: &mut Classifier!(), idx: usize) -> Result<(), EngineError>
     where
-        Q: QuoteClassifiedIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, BLOCK_SIZE>,
-        S: StructuralIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, Q, BLOCK_SIZE>,
+        Q: QuoteClassifiedIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, MaskType, BLOCK_SIZE>,
+        S: StructuralIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, Q, MaskType, BLOCK_SIZE>,
     {
         self.recorder.record_value_terminator(idx, self.depth)?;
         let is_next_opening = if let Some((_, c)) = self.input.seek_non_whitespace_forward(idx + 1)? {
@@ -382,8 +382,8 @@ where
         idx: usize,
     ) -> Result<(), EngineError>
     where
-        Q: QuoteClassifiedIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, BLOCK_SIZE>,
-        S: StructuralIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, Q, BLOCK_SIZE>,
+        Q: QuoteClassifiedIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, MaskType, BLOCK_SIZE>,
+        S: StructuralIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, Q, MaskType, BLOCK_SIZE>,
     {
         debug!("Opening {bracket_type:?}, increasing depth and pushing stack.",);
         let mut any_matched = false;
@@ -490,8 +490,8 @@ where
 
     fn handle_closing<Q, S>(&mut self, classifier: &mut Classifier!(), idx: usize) -> Result<(), EngineError>
     where
-        Q: QuoteClassifiedIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, BLOCK_SIZE>,
-        S: StructuralIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, Q, BLOCK_SIZE>,
+        Q: QuoteClassifiedIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, MaskType, BLOCK_SIZE>,
+        S: StructuralIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, Q, MaskType, BLOCK_SIZE>,
     {
         debug!("Closing, decreasing depth and popping stack.");
 
@@ -656,10 +656,10 @@ where
         next_event: Structural,
         state: State,
         structural_classifier: S,
-    ) -> Result<ResumeClassifierState<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, Q, BLOCK_SIZE>, EngineError>
+    ) -> Result<ResumeClassifierState<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, Q, MaskType, BLOCK_SIZE>, EngineError>
     where
-        Q: QuoteClassifiedIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, BLOCK_SIZE>,
-        S: StructuralIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, Q, BLOCK_SIZE>,
+        Q: QuoteClassifiedIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, MaskType, BLOCK_SIZE>,
+        S: StructuralIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, Q, MaskType, BLOCK_SIZE>,
     {
         let mut classifier = TailSkip::new(structural_classifier);
 

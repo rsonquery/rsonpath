@@ -122,13 +122,13 @@ The crate is continuously built for all Tier 1 Rust targets, and tests are conti
 | Target triple             | nosimd build | SIMD support        | Continuous testing | Tracking issues |
 |:--------------------------|:-------------|:--------------------|:-------------------|----------------:|
 | aarch64-unknown-linux-gnu | ✔️          | ❌                  | ❌                | [#21](https://github.com/V0ldek/rsonpath/issues/21), [#115](https://github.com/V0ldek/rsonpath/issues/115) |
-| i686-unknown-linux-gnu    | ✔️          | ❌                  | ✔️                | [#14](https://github.com/V0ldek/rsonpath/issues/14) |
-| x86_64-unknown-linux-gnu  | ✔️          | ✔️ avx2+pclmulqdq   | ✔️                | |
+| i686-unknown-linux-gnu    | ✔️          | ✔️ avx2, ssse3       | ✔️                | |
+| x86_64-unknown-linux-gnu  | ✔️          | ✔️ avx2, ssse3       | ✔️                | |
 | x86_64-apple-darwin       | ✔️          | ❌                  | ✔️                | |
-| i686-pc-windows-gnu       | ✔️          | ❌                  | ✔️                | [#14](https://github.com/V0ldek/rsonpath/issues/14) |
-| i686-pc-windows-msvc      | ✔️          | ❌                  | ✔️                | [#14](https://github.com/V0ldek/rsonpath/issues/14) |
-| x86_64-pc-windows-gnu     | ✔️          | ✔️ avx2+pclmulqdq   | ✔️                | |
-| x86_64-pc-windows-msvc    | ✔️          | ✔️ avx2+pclmulqdq   | ✔️                | |
+| i686-pc-windows-gnu       | ✔️          | ✔️ avx2, ssse3       | ✔️                | |
+| i686-pc-windows-msvc      | ✔️          | ✔️ avx2, ssse3       | ✔️                | |
+| x86_64-pc-windows-gnu     | ✔️          | ✔️ avx2, ssse3       | ✔️                | |
+| x86_64-pc-windows-msvc    | ✔️          | ✔️ avx2, ssse3       | ✔️                | |
 
 ## Caveats and limitations
 

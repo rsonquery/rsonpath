@@ -6,7 +6,7 @@ struct Block<'i, I, const N: usize>
 where
     I: InputBlockIterator<'i, N>,
 {
-    quote_classified: QuoteClassifiedBlock<I::Block, N>,
+    quote_classified: QuoteClassifiedBlock<I::Block, usize, N>,
     idx: usize,
     are_colons_on: bool,
     are_commas_on: bool,
@@ -17,7 +17,7 @@ where
     I: InputBlockIterator<'i, N>,
 {
     fn new(
-        quote_classified_block: QuoteClassifiedBlock<I::Block, N>,
+        quote_classified_block: QuoteClassifiedBlock<I::Block, usize, N>,
         are_colons_on: bool,
         are_commas_on: bool,
     ) -> Self {
@@ -30,7 +30,7 @@ where
     }
 
     fn from_idx(
-        quote_classified_block: QuoteClassifiedBlock<I::Block, N>,
+        quote_classified_block: QuoteClassifiedBlock<I::Block, usize, N>,
         idx: usize,
         are_colons_on: bool,
         are_commas_on: bool,
@@ -53,7 +53,7 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         while self.idx < self.quote_classified.block.len() {
             let character = self.quote_classified.block[self.idx];
-            let idx_mask = 1_u64 << self.idx;
+            let idx_mask = 1_usize << self.idx;
             let is_quoted = (self.quote_classified.within_quotes_mask & idx_mask) == idx_mask;
 
             let structural = match character {
@@ -91,9 +91,10 @@ where
 impl<'i, I, Q, const N: usize> SequentialClassifier<'i, I, Q, N>
 where
     I: InputBlockIterator<'i, N>,
-    Q: QuoteClassifiedIterator<'i, I, N>,
+    Q: QuoteClassifiedIterator<'i, I, usize, N>,
 {
     #[inline(always)]
+    #[allow(dead_code)]
     pub(crate) fn new(iter: Q) -> Self {
         Self {
             iter,
@@ -127,7 +128,7 @@ where
 impl<'i, I, Q, const N: usize> FallibleIterator for SequentialClassifier<'i, I, Q, N>
 where
     I: InputBlockIterator<'i, N>,
-    Q: QuoteClassifiedIterator<'i, I, N>,
+    Q: QuoteClassifiedIterator<'i, I, usize, N>,
 {
     type Item = Structural;
     type Error = InputError;
@@ -151,10 +152,10 @@ where
     }
 }
 
-impl<'i, I, Q, const N: usize> StructuralIterator<'i, I, Q, N> for SequentialClassifier<'i, I, Q, N>
+impl<'i, I, Q, const N: usize> StructuralIterator<'i, I, Q, usize, N> for SequentialClassifier<'i, I, Q, N>
 where
     I: InputBlockIterator<'i, N>,
-    Q: QuoteClassifiedIterator<'i, I, N>,
+    Q: QuoteClassifiedIterator<'i, I, usize, N>,
 {
     fn turn_colons_and_commas_on(&mut self, idx: usize) {
         if !self.are_commas_on && !self.are_colons_on {
@@ -210,7 +211,7 @@ where
         debug!("Turning colons off.");
     }
 
-    fn stop(self) -> ResumeClassifierState<'i, I, Q, N> {
+    fn stop(self) -> ResumeClassifierState<'i, I, Q, usize, N> {
         let block = self.block.map(|b| ResumeClassifierBlockState {
             block: b.quote_classified,
             idx: b.idx,
@@ -223,7 +224,7 @@ where
         }
     }
 
-    fn resume(state: ResumeClassifierState<'i, I, Q, N>) -> Self {
+    fn resume(state: ResumeClassifierState<'i, I, Q, usize, N>) -> Self {
         Self {
             iter: state.iter,
             block: state.block.map(|b| Block {

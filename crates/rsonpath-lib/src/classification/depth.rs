@@ -94,7 +94,7 @@ use super::structural::BracketType;
 use crate::{
     classification::{quotes::QuoteClassifiedIterator, ResumeClassifierState},
     input::{error::InputError, InputBlockIterator},
-    FallibleIterator, BLOCK_SIZE,
+    FallibleIterator, MaskType, BLOCK_SIZE,
 };
 use cfg_if::cfg_if;
 
@@ -131,7 +131,7 @@ pub trait DepthBlock<'a>: Sized {
 
 /// Trait for depth iterators, i.e. finite iterators returning depth information
 /// about JSON documents.
-pub trait DepthIterator<'i, I, Q, const N: usize>: FallibleIterator<Item = Self::Block, Error = InputError>
+pub trait DepthIterator<'i, I, Q, M, const N: usize>: FallibleIterator<Item = Self::Block, Error = InputError>
 where
     I: InputBlockIterator<'i, N>,
 {
@@ -140,27 +140,45 @@ where
 
     /// Resume classification from a state retrieved by a previous
     /// [`DepthIterator::stop`] or [`StructuralIterator::stop`](`crate::classification::structural::StructuralIterator::stop`) invocation.
-    fn resume(state: ResumeClassifierState<'i, I, Q, N>, opening: BracketType) -> (Option<Self::Block>, Self);
+    fn resume(state: ResumeClassifierState<'i, I, Q, M, N>, opening: BracketType) -> (Option<Self::Block>, Self);
 
     /// Stop classification and return a state object that can be used to resume
     /// a classifier from the place in which the current one was stopped.
-    fn stop(self, block: Option<Self::Block>) -> ResumeClassifierState<'i, I, Q, N>;
+    fn stop(self, block: Option<Self::Block>) -> ResumeClassifierState<'i, I, Q, M, N>;
 }
 
 /// The result of resuming a [`DepthIterator`] &ndash; the first block and the rest of the iterator.
-pub struct DepthIteratorResumeOutcome<'i, I, Q, D, const N: usize>(pub Option<D::Block>, pub D)
+pub struct DepthIteratorResumeOutcome<'i, I, Q, D, M, const N: usize>(pub Option<D::Block>, pub D)
 where
     I: InputBlockIterator<'i, N>,
-    D: DepthIterator<'i, I, Q, N>;
+    D: DepthIterator<'i, I, Q, M, N>;
+
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+mod avx2_32;
+#[cfg(target_arch = "x86_64")]
+mod avx2_64;
+mod nosimd;
+mod shared;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+mod ssse3_32;
+#[cfg(target_arch = "x86_64")]
+mod ssse3_64;
 
 cfg_if! {
     if #[cfg(any(doc, not(feature = "simd")))] {
-        mod nosimd;
         type IteratorImpl<'a, I, Q, const N: usize> = nosimd::VectorIterator<'a, I, Q, N>;
     }
-    else if #[cfg(simd = "avx2")] {
-        mod avx2;
-        type IteratorImpl<'a, I, Q> = avx2::VectorIterator<'a, I, Q>;
+    else if #[cfg(all(simd = "avx2_64", target_arch = "x86_64"))] {
+        type IteratorImpl<'a, I, Q> = avx2_64::Avx2VectorIterator64<'a, I, Q>;
+    }
+    else if #[cfg(all(simd = "avx2_32", any(target_arch = "x86_64", target_arch = "x86")))] {
+        type IteratorImpl<'a, I, Q> = avx2_32::Avx2VectorIterator32<'a, I, Q>;
+    }
+    else if #[cfg(all(simd = "ssse3_64", target_arch = "x86_64"))] {
+        type IteratorImpl<'a, I, Q> = ssse3_64::Ssse3VectorIterator64<'a, I, Q>;
+    }
+    else if #[cfg(all(simd = "ssse3_32", any(target_arch = "x86_64", target_arch = "x86")))] {
+        type IteratorImpl<'a, I, Q> = ssse3_32::Ssse3VectorIterator32<'a, I, Q>;
     }
     else {
         compile_error!("Target architecture is not supported by SIMD features of this crate. Disable the default `simd` feature.");
@@ -169,10 +187,10 @@ cfg_if! {
 
 /// Enrich quote classified blocks with depth information.
 #[inline(always)]
-pub fn classify_depth<'i, I, Q>(iter: Q, opening: BracketType) -> impl DepthIterator<'i, I, Q, BLOCK_SIZE>
+pub fn classify_depth<'i, I, Q>(iter: Q, opening: BracketType) -> impl DepthIterator<'i, I, Q, MaskType, BLOCK_SIZE>
 where
     I: InputBlockIterator<'i, BLOCK_SIZE>,
-    Q: QuoteClassifiedIterator<'i, I, BLOCK_SIZE>,
+    Q: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE>,
 {
     IteratorImpl::new(iter, opening)
 }
@@ -181,12 +199,12 @@ where
 /// used classifier via the `stop` function.
 #[inline(always)]
 pub fn resume_depth_classification<'i, I, Q>(
-    state: ResumeClassifierState<'i, I, Q, BLOCK_SIZE>,
+    state: ResumeClassifierState<'i, I, Q, MaskType, BLOCK_SIZE>,
     opening: BracketType,
-) -> DepthIteratorResumeOutcome<'i, I, Q, impl DepthIterator<'i, I, Q, BLOCK_SIZE>, BLOCK_SIZE>
+) -> DepthIteratorResumeOutcome<'i, I, Q, impl DepthIterator<'i, I, Q, MaskType, BLOCK_SIZE>, MaskType, BLOCK_SIZE>
 where
     I: InputBlockIterator<'i, BLOCK_SIZE>,
-    Q: QuoteClassifiedIterator<'i, I, BLOCK_SIZE>,
+    Q: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE>,
 {
     let (first_block, iter) = IteratorImpl::resume(state, opening);
     DepthIteratorResumeOutcome(first_block, iter)
