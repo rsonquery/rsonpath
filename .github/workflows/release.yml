@@ -213,7 +213,7 @@ jobs:
     - name: Upload the binary as artifact
       uses: actions/upload-artifact@v3.1.2
       with:
-        name: rq-${{ matrix.triple }}-${{ matrix.artifact-suffix }}-${{ github.ref }}
+        name: rq-${{ matrix.triple }}-${{ matrix.artifact-suffix }}
         path: target/release/rq-${{ matrix.triple }}-${{ matrix.artifact-suffix }}*
         if-no-files-found: error
 
@@ -239,6 +239,7 @@ jobs:
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
       with:
+        name: ${{ github.ref }}
         files: release/**/*
         fail_on_unmatched_files: true
         prerelease: ${{ endsWith(github.ref, 'rc') || endsWith(github.ref, 'alpha') || endsWith(github.ref, 'beta') }}
