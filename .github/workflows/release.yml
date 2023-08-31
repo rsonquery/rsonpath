@@ -239,7 +239,7 @@ jobs:
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
       with:
-        name: ${{ github.ref }}
+        name: v0.7.0
         files: release/**/*
         fail_on_unmatched_files: true
         prerelease: ${{ endsWith(github.ref, 'rc') || endsWith(github.ref, 'alpha') || endsWith(github.ref, 'beta') }}
@@ -255,4 +255,4 @@ jobs:
     with:
       base64-subjects: ${{ needs.github-release.outputs.hashes }}
       upload-assets: true
-      upload-tag-name: ${{ github.ref }}
+      upload-tag-name: v0.7.0 #${{ github.ref }}
