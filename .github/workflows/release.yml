@@ -1,7 +1,6 @@
 name: Release
 
 on:
-  workflow_dispatch:
   push:
     tags:
       - v**
@@ -239,7 +238,7 @@ jobs:
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
       with:
-        name: rsonpath-v0.5.0
+        name: ${{ github.ref }}
         files: release/**/*
         fail_on_unmatched_files: true
         prerelease: ${{ endsWith(github.ref, 'rc') || endsWith(github.ref, 'alpha') || endsWith(github.ref, 'beta') }}
@@ -255,4 +254,4 @@ jobs:
     with:
       base64-subjects: ${{ needs.github-release.outputs.hashes }}
       upload-assets: true
-      upload-tag-name: rsonpath-v0.5.0 #${{ github.ref }}
+      upload-tag-name: ${{ github.ref }}
