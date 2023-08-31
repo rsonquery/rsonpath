@@ -254,6 +254,6 @@ jobs:
       id-token: write
       contents: write
     with:
-      base64-subjects: "${{ needs.build.outputs.hashes }}"
+      base64-subjects: "${{ needs.github-release.outputs.hashes }}"
       upload-assets: true
       upload-tag-name: "${{ needs.build.outputs.version }}"
