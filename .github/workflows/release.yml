@@ -40,6 +40,9 @@ jobs:
   build:
     name: Build matrix
     runs-on: ${{ matrix.os }}
+    outputs:
+      hashes: ${{ steps.hash.outputs.hashes }}
+      version: ${{ steps.metadata.outputs.version }}
     strategy:
       fail-fast: true
       matrix:
@@ -213,31 +216,21 @@ jobs:
     - name: Rename binary (Windows)
       if: matrix.os == 'windows-latest'
       run: mv -Force "target/${{ matrix.triple }}/release/rq.exe" target/release/rq-${{ matrix.triple }}-${{ matrix.artifact-suffix }}.exe
-    - name: Upload the binary as artifact
-      uses: actions/upload-artifact@v3.1.2
-      with:
-        name: rq-${{ matrix.triple }}-${{ matrix.artifact-suffix }}-${{ steps.metadata.outputs.version }}
-        path: target/release/rq-${{ matrix.triple }}-${{ matrix.artifact-suffix }}*
-        if-no-files-found: error
-    
-  github-release:
-    name: Release on GitHub
-    runs-on: ubuntu-latest
-    needs: [build, check-install]
+    - name: Generate provenance subjects
+      id: hash
+      run: |
+        set -euo pipefail
+        echo "hashes = $(sha256sum target/release/rq-${{ matrix.triple }}-${{ matrix.artifact-suffix }}* | base64 -w0)" >> $GITHUB_OUTPUT
+
+  provenance:
+    needs: [build]
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.9.0
     permissions:
+      actions: read
+      id-token: write
       contents: write
-    steps:
-    - name: Get version from git tag
-      id: metadata
-      run: echo "version=$(git describe --tags --always --abbrev=0)\n" > $GITHUB_OUTPUT
-    - name: Download artifacts from build
-      uses: actions/download-artifact@v3.0.2
-      with:
-        path: release/
-    - name: Create GitHub Release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: release/**/*
-        fail_on_unmatched_files: true
-        prerelease: ${{ endsWith(steps.metadata.outputs.version, 'rc') || endsWith(steps.metadata.outputs.version, 'alpha') || endsWith(steps.metadata.outputs.version, 'beta') }}
-        draft: true
+    with:
+      base64-subjects: "${{ needs.build.outputs.hashes }}"
+      draft-release: true
+      upload-assets: true
+      upload-tag-name: "${{ needs.build.outputs.version }}"
