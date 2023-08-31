@@ -237,7 +237,10 @@ jobs:
         path: release/
     - name: Generate provenance subjects
       id: hash
-      run: echo "hashes = $(sha256sum release/**/* | base64 -w0)" >> $GITHUB_OUTPUT
+      run: echo "hashes=$(sha256sum release/**/* | base64 -w0)" > $GITHUB_OUTPUT
+    - name: Generate provenance subjects sanity check
+      id: hash-sanity
+      run: echo "$(sha256sum release/**/* | base64 -w0)"
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
       with:
@@ -247,7 +250,7 @@ jobs:
         draft: true
 
   provenance:
-    needs: [github-release]
+    needs: [build, github-release]
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.9.0
     permissions:
       actions: read
