@@ -241,7 +241,7 @@ jobs:
       with:
         files: release/**/*
         fail_on_unmatched_files: true
-        prerelease: ${{ endsWith(${{ github.ref }}, 'rc') || endsWith(${{ github.ref }}, 'alpha') || endsWith(${{ github.ref }}, 'beta') }}
+        prerelease: ${{ endsWith(github.ref, 'rc') || endsWith(github.ref, 'alpha') || endsWith(github.ref, 'beta') }}
         draft: true
 
   provenance:
