@@ -12,13 +12,13 @@ jobs:
     permissions:
       issues: write
     steps:
-    - uses: V0ldek/modify-label@v1.0.0
+    - uses: V0ldek/modify-label@65905feb4c09417e7caed08928595a0b4f9b3d42 # v1.0.0
       with:
         action: remove
         issue-number: ${{ github.event.issue.number }}
         label-id: 'LA_kwDOHodxeM8AAAABA8dlvA'
         token: ${{ secrets.GITHUB_TOKEN }}
-    - uses: V0ldek/modify-label@v1.0.0
+    - uses: V0ldek/modify-label@65905feb4c09417e7caed08928595a0b4f9b3d42 # v1.0.0
       with:
         action: remove
         issue-number: ${{ github.event.issue.number }}
