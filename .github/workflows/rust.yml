@@ -356,3 +356,10 @@ jobs:
         run: rustup override set stable
       - name: Format
         run: cargo fmt --package rsonpath rsonpath-lib -- --check
+
+  cargo-deny:
+    name: Dependency scan (cargo-deny)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+      - uses: EmbarkStudios/cargo-deny-action@a50c7d5f86370e02fae8472c398f15a36e517bb8 # v1.5.4

@@ -1,6 +1,6 @@
 [package]
 name = "rsonpath-test"
-version = "0.5.1"
+version = "0.6.1"
 authors = ["Mateusz Gienieczko <mat@gienieczko.com>"]
 edition = "2021"
 description = "Blazing fast JSONPath query engine powered by SIMD. Just a build script for the auto test generation."
@@ -12,8 +12,9 @@ categories = [
 ]
 repository = "https://github.com/V0ldek/rsonpath"
 rust-version = "1.70.0"
+publish = false
 
 [build-dependencies]
 eyre = "0.6.8"
 md5 = "0.7.0"
-rsonpath-test-codegen = { path = "../rsonpath-test-codegen" }
+rsonpath-test-codegen = { path = "../rsonpath-test-codegen", version = "0.6.1" }
