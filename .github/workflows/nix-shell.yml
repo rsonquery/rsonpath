@@ -12,13 +12,13 @@ jobs:
   nix-build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
         with:
           submodules: true
-      - uses: cachix/install-nix-action@v22
+      - uses: cachix/install-nix-action@6ed004b9ccb68dbc28e7c85bee15fa93dbd214ac # v22
         with:
           nix_path: nixpkgs=channel:nixos-unstable
-      - uses: rrbutani/use-nix-shell-action@v1
+      - uses: rrbutani/use-nix-shell-action@59a52b2b9bbfe3cc0e7deb8f9059abe37a439edf # v1.1.0
         with:
           file: shell.nix
       - name: Build

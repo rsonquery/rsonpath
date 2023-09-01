@@ -28,11 +28,11 @@ jobs:
       - name: Install lld
         run: sudo apt install lld
       - name: Checkout sources
-        uses: actions/checkout@v3
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
         with:
           submodules: true
       - name: Install Rust toolchain (stable)
-        uses: dtolnay/rust-toolchain@master
+        uses: dtolnay/rust-toolchain@f361669954a8ecfc00a3443f35f9ac8e610ffc06 # master
         with:
           toolchain: stable
           target: x86_64-unknown-linux-gnu
@@ -40,7 +40,7 @@ jobs:
         run: rustup override set stable
       - name: Cache restore (Cargo)
         id: cache-restore-cargo
-        uses: actions/cache@v3
+        uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # v3.3.1
         with:
           path: |
             ~/.cargo/bin/
@@ -53,7 +53,7 @@ jobs:
         id: build-test-codegen
         run: cargo build -p rsonpath-test -vv
       - name: Upload generated tests as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
           name: rsonpath-test-documents
           path: crates/rsonpath-lib/tests/documents

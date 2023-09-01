@@ -182,14 +182,14 @@ jobs:
       - name: Cache restore (MinGW)
         id: cache-restore-mingw
         if: matrix.needs-mingw != ''
-        uses: actions/cache@v3
+        uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # v3.3.1
         with:
           path: |
             C:\ProgramData\chocolatey\lib\mingw
           key: ${{ matrix.os }}-mingw-${{ matrix.needs-mingw }}-11-2
       - name: Set up MinGW ${{ matrix.needs-mingw }}
         if: matrix.needs-mingw != '' && steps.cache-restore-mingw.outputs.cache-hit != 'true'
-        uses: egor-tensin/setup-mingw@v2
+        uses: egor-tensin/setup-mingw@84c781b557efd538dec66bde06988d81cd3138cf # v2.2.0
         with:
           platform: ${{ matrix.needs-mingw }}
       - name: Add MinGW to PATH
@@ -199,11 +199,11 @@ jobs:
         if: matrix.prologue-script != ''
         run: ${{ matrix.prologue-script }}
       - name: Checkout sources
-        uses: actions/checkout@v3
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
         with:
           submodules: true
       - name: Install Rust toolchain (${{ matrix.toolchain }})
-        uses: dtolnay/rust-toolchain@master
+        uses: dtolnay/rust-toolchain@f361669954a8ecfc00a3443f35f9ac8e610ffc06 # master
         with:
           toolchain: ${{ matrix.toolchain }}
           target: ${{ matrix.triple }}
@@ -211,7 +211,7 @@ jobs:
         run: rustup override set ${{ matrix.toolchain }}
       - name: Cache restore (Cargo)
         id: cache-restore-cargo
-        uses: actions/cache@v3
+        uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # v3.3.1
         with:
           path: |
             ~/.cargo/bin/
@@ -237,7 +237,7 @@ jobs:
         env:
           RUSTFLAGS: "--deny warnings"
       - name: Download rsonpath-test artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: ${{ needs.test-gen.outputs.artifact-name }}
           path: ${{ needs.test-gen.outputs.artifact-path }}
@@ -265,13 +265,13 @@ jobs:
     name: Clippy (${{ matrix.toolchain }})
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
       with:
         submodules: true
     - name: Install lld
       run: sudo apt install lld
     - name: Install Rust toolchain (${{ matrix.toolchain }})
-      uses: dtolnay/rust-toolchain@master
+      uses: dtolnay/rust-toolchain@f361669954a8ecfc00a3443f35f9ac8e610ffc06 # master
       with:
         toolchain: ${{ matrix.toolchain }}
         components: clippy, rustfmt
@@ -279,7 +279,7 @@ jobs:
       run: rustup override set ${{ matrix.toolchain }}
     - name: Cache restore
       id: cache-restore
-      uses: actions/cache@v3
+      uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # v3.3.1
       with:
         path: |
           ~/.cargo/bin/
@@ -293,7 +293,7 @@ jobs:
       env:
         RUSTFLAGS: "-C target-feature=+avx2 --deny warnings"
     - name: Clippy all features
-      uses: actions-rs/clippy-check@v1
+      uses: actions-rs/clippy-check@b5b5f21f4797c02da247df37026fcd0a5024aa4d # v1.0.7
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         args: --workspace --exclude rsonpath-benchmarks --all-features --release -- --deny warnings
@@ -304,7 +304,7 @@ jobs:
       env:
         RUSTFLAGS: "--deny warnings"
     - name: Clippy without simd
-      uses: actions-rs/clippy-check@v1
+      uses: actions-rs/clippy-check@b5b5f21f4797c02da247df37026fcd0a5024aa4d # v1.0.7
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         args: --workspace --exclude rsonpath-benchmarks --no-default-features --release -- --deny warnings
@@ -313,11 +313,11 @@ jobs:
     name: Documentation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
         with:
           submodules: true
       - name: Install Rust toolchain (nightly)
-        uses: dtolnay/rust-toolchain@master
+        uses: dtolnay/rust-toolchain@f361669954a8ecfc00a3443f35f9ac8e610ffc06 # master
         with:
           toolchain: nightly
           components: clippy, rustfmt
@@ -325,7 +325,7 @@ jobs:
         run: rustup override set nightly
       - name: Cache restore
         id: cache-restore
-        uses: actions/cache@v3
+        uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # v3.3.1
         with:
           path: |
             ~/.cargo/bin/
@@ -344,11 +344,11 @@ jobs:
     name: Format
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
         with:
           submodules: true
       - name: Install Rust toolchain (stable)
-        uses: dtolnay/rust-toolchain@master
+        uses: dtolnay/rust-toolchain@f361669954a8ecfc00a3443f35f9ac8e610ffc06 # master
         with:
           toolchain: stable
           components: clippy, rustfmt    
