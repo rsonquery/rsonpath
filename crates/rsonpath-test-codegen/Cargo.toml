@@ -13,6 +13,7 @@ categories = [
 ]
 repository = "https://github.com/V0ldek/rsonpath"
 rust-version = "1.70.0"
+publish = false
 
 [dependencies]
 serde = { version = "1.0.188", features = ["derive"] }
