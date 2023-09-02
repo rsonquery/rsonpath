@@ -101,21 +101,6 @@ pub trait Input: Sized {
     #[must_use]
     fn seek_non_whitespace_backward(&self, from: usize) -> Option<(usize, u8)>;
 
-    /// Search the input for the first occurrence of member name `member`
-    /// (comparing bitwise, including double quotes delimiters)
-    /// starting from `from`. Returns the index of the first occurrence,
-    /// or `None` if no occurrence was found.
-    ///
-    /// This will also check if the leading double quote is not
-    /// escaped by a backslash character, but will ignore any other
-    /// structural properties of the input. In particular, the member
-    /// might be found at an arbitrary depth.
-    ///
-    /// # Errors
-    /// This function can read more data from the input if no relevant characters are found
-    /// in the current buffer, which can fail.
-    fn find_member(&self, from: usize, member: &JsonString) -> Result<Option<usize>, InputError>;
-
     /// Decide whether the slice of input between `from` (inclusive)
     /// and `to` (exclusive) matches the `member` (comparing bitwise,
     /// including double quotes delimiters).
@@ -270,32 +255,6 @@ pub(super) mod in_slice {
                 return None;
             }
             idx -= 1;
-        }
-    }
-
-    #[inline]
-    pub(super) fn find_member(bytes: &[u8], from: usize, member: &JsonString) -> Option<usize> {
-        use memchr::memmem;
-
-        let finder = memmem::Finder::new(member.bytes_with_quotes());
-        let mut idx = from;
-
-        if bytes.len() <= idx {
-            return None;
-        }
-
-        loop {
-            match finder.find(&bytes[idx..bytes.len()]) {
-                Some(offset) => {
-                    let starting_quote_idx = offset + idx;
-                    if bytes[starting_quote_idx - 1] != b'\\' {
-                        return Some(starting_quote_idx);
-                    } else {
-                        idx = starting_quote_idx + member.bytes_with_quotes().len() + 1;
-                    }
-                }
-                None => return None,
-            }
         }
     }
 
@@ -569,66 +528,6 @@ mod tests {
             let result = in_slice::seek_non_whitespace_backward(bytes, 7);
 
             assert_eq!(result, Some((4, b':')));
-        }
-    }
-
-    mod find_member {
-        use super::*;
-        use crate::query::JsonString;
-        use pretty_assertions::assert_eq;
-
-        #[test]
-        fn in_empty_slice_returns_none() {
-            let bytes = [];
-
-            let result = in_slice::find_member(&bytes, 0, &JsonString::new("abc"));
-
-            assert_eq!(result, None);
-        }
-
-        #[test]
-        fn starting_from_before_first_occurrence_returns_that() {
-            let bytes = r#"{"needle":42,"other":37}"#.as_bytes();
-
-            let result = in_slice::find_member(bytes, 0, &JsonString::new("needle"));
-
-            assert_eq!(result, Some(1));
-        }
-
-        #[test]
-        fn starting_from_exactly_first_occurrence_returns_that() {
-            let bytes = r#"{"needle":42,"other":37}"#.as_bytes();
-
-            let result = in_slice::find_member(bytes, 1, &JsonString::new("needle"));
-
-            assert_eq!(result, Some(1));
-        }
-
-        #[test]
-        fn starting_from_after_last_occurrence_returns_none() {
-            let bytes = r#"{"needle":42,"other":37}"#.as_bytes();
-
-            let result = in_slice::find_member(bytes, 2, &JsonString::new("needle"));
-
-            assert_eq!(result, None);
-        }
-
-        #[test]
-        fn when_match_is_partial_due_to_escaped_double_quote_returns_none() {
-            let bytes = r#"{"fake\"needle":42,"other":37}"#.as_bytes();
-
-            let result = in_slice::find_member(bytes, 0, &JsonString::new("needle"));
-
-            assert_eq!(result, None);
-        }
-
-        #[test]
-        fn when_looking_for_string_with_escaped_double_quote_returns_that() {
-            let bytes = r#"{"fake\"needle":42,"other":37}"#.as_bytes();
-
-            let result = in_slice::find_member(bytes, 0, &JsonString::new(r#"fake\"needle"#));
-
-            assert_eq!(result, Some(1));
         }
     }
 

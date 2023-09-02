@@ -53,16 +53,14 @@ cargo tree --package rsonpath-lib --edges normal --depth 1
 
 <!-- rsonpath-lib dependencies start -->
 ```ini
-rsonpath-lib v0.6.1 (/home/mat/rsonpath/crates/rsonpath-lib)
+rsonpath-lib v0.7.0 (/home/mat/rsonpath/crates/rsonpath-lib)
 ├── cfg-if v1.0.0
-├── log v0.4.19
-├── memchr v2.5.0
+├── log v0.4.20
 ├── memmap2 v0.7.1
 ├── nom v7.1.3
-├── replace_with v0.1.7
 ├── smallvec v1.11.0
 ├── static_assertions v1.1.0
-├── thiserror v1.0.44
+├── thiserror v1.0.47
 └── vector-map v1.0.1
 ```
 <!-- rsonpath-lib dependencies end -->

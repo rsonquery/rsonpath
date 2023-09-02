@@ -49,10 +49,10 @@ field.
 
 ```console,ignore
 $ rq --version
-rq 0.6.0
+rq 0.7.0
 
-Commit SHA:      0e17cbc941c638da85c07ecc3bd752eb08b51a3e
-Features:        default,default_optimizations,simd,unique_members
+Commit SHA:      663f6b5d90b36d2dc1bd8f1247a70d022ed8fa9b
+Features:        default,simd
 Opt level:       3
 Target triple:   x86_64-unknown-linux-gnu
 Codegen flags:   target-cpu=native,link-arg=-fuse-ld=lld

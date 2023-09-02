@@ -127,6 +127,10 @@ test-doc:
     -cargo install cargo-hack
     cargo rsontest -p rsonpath-lib --doc
 
+# Run cmd tests
+test-cmd:
+    cargo test --test cli_tests
+
 # Run doctests on the book.
 test-book:
     rm -f ./target/debug/deps/librsonpath-*
@@ -274,7 +278,7 @@ release-execute ver:
 release-patch ver:
     #!/usr/bin/env nu
     let ver = "{{ver}}";
-    let crates = ["rsonpath", "rsonpath-lib", "rsonpath-benchmarks", "rsonpath-test-codegen"];
+    let crates = ["rsonpath", "rsonpath-lib", "rsonpath-benchmarks", "rsonpath-test", "rsonpath-test-codegen"];
     $crates | each { |cr|
         let path = $"./crates/($cr)/Cargo.toml";
         sed -i $'s/^version = "[^"]*"/version = "($ver)"/;s/^rsonpath-lib = { version = "[^"]*"/rsonpath-lib = { version = "($ver)"/' $path;
@@ -283,9 +287,9 @@ release-patch ver:
 [private]
 release-readme:
     #!/usr/bin/env nu
-    let rsonpath_deps = (cargo tree --package rsonpath --edges normal --edges build --depth 1);
-    let rsonpath_lib_deps = (cargo tree --package rsonpath-lib --edges normal --edges build --depth 1);
-    let rsonpath_full_deps = (cargo tree --package rsonpath --edges normal --edges build);
+    let rsonpath_deps = (cargo tree --package rsonpath --edges normal --edges build --depth 1 --all-targets);
+    let rsonpath_lib_deps = (cargo tree --package rsonpath-lib --edges normal --edges build --depth 1 --all-targets);
+    let rsonpath_full_deps = (cargo tree --package rsonpath --edges normal --edges build --all-targets);
     let params = [
         [$rsonpath_deps, "rsonpath", "./README.md"],
         [$rsonpath_lib_deps, "rsonpath-lib", "./README.md"],

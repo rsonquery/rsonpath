@@ -842,14 +842,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f162c6dd7b008981e4d40210aca20b4bd0f9b60ca9271061b07f78537722f2e1"
 
 [[package]]
-name = "replace_with"
-version = "0.1.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e3a8614ee435691de62bcffcf4a66d91b3594bf1428a5722e79103249a095690"
-
-[[package]]
 name = "rsonpath"
-version = "0.6.1"
+version = "0.7.0"
 dependencies = [
  "clap",
  "color-eyre",
@@ -864,17 +858,15 @@ dependencies = [
 
 [[package]]
 name = "rsonpath-lib"
-version = "0.6.1"
+version = "0.7.0"
 dependencies = [
  "cfg-if",
  "itertools",
  "log",
- "memchr",
  "memmap2",
  "nom",
  "pretty_assertions",
  "proptest",
- "replace_with",
  "smallvec",
  "static_assertions",
  "test-case",
@@ -884,7 +876,7 @@ dependencies = [
 
 [[package]]
 name = "rsonpath-test"
-version = "0.6.1"
+version = "0.7.0"
 dependencies = [
  "eyre",
  "md5",
@@ -893,10 +885,9 @@ dependencies = [
 
 [[package]]
 name = "rsonpath-test-codegen"
-version = "0.6.1"
+version = "0.7.0"
 dependencies = [
  "heck",
- "pretty_assertions",
  "proc-macro2",
  "quote",
  "serde",

@@ -84,11 +84,6 @@ impl Input for MmapInput {
     }
 
     #[inline]
-    fn find_member(&self, from: usize, label: &JsonString) -> Result<Option<usize>, InputError> {
-        Ok(in_slice::find_member(&self.mmap, from, label))
-    }
-
-    #[inline]
     fn is_member_match(&self, from: usize, to: usize, label: &JsonString) -> bool {
         in_slice::is_member_match(&self.mmap, from, to, label)
     }

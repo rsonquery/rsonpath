@@ -238,7 +238,7 @@ jobs:
     - name: Create GitHub Release
       uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v1
       with:
-        name: ${{ github.ref }}
+        name: ${{ github.ref_name }}
         files: release/**/*
         fail_on_unmatched_files: true
         prerelease: ${{ endsWith(github.ref, 'rc') || endsWith(github.ref, 'alpha') || endsWith(github.ref, 'beta') }}
@@ -254,4 +254,21 @@ jobs:
     with:
       base64-subjects: ${{ needs.github-release.outputs.hashes }}
       upload-assets: true
-      upload-tag-name: ${{ github.ref }}
+      upload-tag-name: ${{ github.ref_name }}
+      draft-release: true
+
+  crates-io-release:
+    name: Release on crates.io
+    needs: [check-install, github-release, provenance]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+      - name: Install Rust toolchain (stable)
+        uses: dtolnay/rust-toolchain@f361669954a8ecfc00a3443f35f9ac8e610ffc06 # stable
+        with:
+          toolchain: stable
+      - name: Publish rsonpath-lib
+        run: cargo publish --token ${{ secrets.CRATES_TOKEN }} -p rsonpath-lib --no-verify
+      - name: Publish rsonpath
+        run: cargo publish --token ${{ secrets.CRATES_TOKEN }} -p rsonpath --no-verify

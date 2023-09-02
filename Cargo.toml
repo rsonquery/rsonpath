@@ -3,12 +3,12 @@
 members = [
     "crates/rsonpath",
     "crates/rsonpath-lib",
-    "crates/rsonpath-test",
-    "crates/rsonpath-test-codegen"
+    "crates/rsonpath-test"
 ]
 
 exclude = [
-    "crates/rsonpath-benchmarks"
+    "crates/rsonpath-benchmarks",
+    "crates/rsonpath-test-codegen"
 ]
 
 resolver = "2"
