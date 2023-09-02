@@ -2,6 +2,55 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.7.0] - 2023-09-02
+
+### Features
+
+- Added 32-bit and SSSE3 SIMD support.
+  - Refactored all SIMD code to enable modularity and more target feature types.
+  - Building for x86 now chooses one of four SIMD implementations:
+    - AVX2 64-bit
+    - AVX2 32-bit
+    - SSSE3 64-bit
+    - SSSE3 32-bit
+  - These are also now distributed as separate binaries.
+
+### Reliability
+
+- Fine-grained action permissions.
+  - Actions now use explicit, lowest possible permissions for all jobs.
+- Add SLSA3 provenance to the release pipeline.
+  - Future releases will include cryptographically signed provenance for all binaries.
+    See: https://slsa.dev/spec/v1.0/about
+
+- [StepSecurity](https://www.stepsecurity.io/) Apply security best practices.
+  - All CI uses hash-pinned dependencies now.
+  - Run the [OSSF Scorecard check](https://github.com/ossf/scorecard) on each PR.
+  - Add Dependency review.
+- Removed test-codegen deps from `Cargo.lock`
+  - By removing the codegen crate from the workspace their deps
+    are now separated and don't pollute the lock of the actual end product.
+- `cargo-deny` now runs with the CI to keep tabs on our deps.
+  - Configured to reject Medium+ CVEs and non-compatible licenses.
+
+### Dependencies
+
+- Bump clap from 4.3.19 to 4.4.2.
+- Bump log from 0.4.19 to 0.4.20.
+- Bump thiserror from 1.0.44 to 1.0.47.
+- Bump trycmd from 0.14.16 to 0.14.17.
+- Removed `memchr` as a dependency.
+  - It was no longer needed after the custom `memmem` classifier
+    introduced in v0.6.0.
+- Removed `replace_with` as a dependency.
+  - That code path was refactored earlier, dep was now unused.
+
+### Documentation
+
+- Added the OpenSSF badge.
+  - We will be trying to achieve the Passing level before v1.0.0.
+- Added the scorecard badge.
+
 ## [0.6.1] - 2023-08-07
 
 ### Features

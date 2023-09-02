@@ -131,11 +131,6 @@ impl<'a> Input for BorrowedBytes<'a> {
     }
 
     #[inline]
-    fn find_member(&self, from: usize, member: &JsonString) -> Result<Option<usize>, InputError> {
-        Ok(in_slice::find_member(self.bytes, from, member))
-    }
-
-    #[inline]
     fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> bool {
         in_slice::is_member_match(self.bytes, from, to, member)
     }

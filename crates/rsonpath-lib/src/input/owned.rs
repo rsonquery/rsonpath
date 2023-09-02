@@ -254,11 +254,6 @@ impl Input for OwnedBytes {
     }
 
     #[inline]
-    fn find_member(&self, from: usize, label: &JsonString) -> Result<Option<usize>, InputError> {
-        Ok(in_slice::find_member(self.as_slice(), from, label))
-    }
-
-    #[inline]
     fn is_member_match(&self, from: usize, to: usize, label: &JsonString) -> bool {
         in_slice::is_member_match(self.as_slice(), from, to, label)
     }

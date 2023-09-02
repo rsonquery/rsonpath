@@ -20,7 +20,6 @@ use super::{
     error::InputError, in_slice, repr_align_block_size, Input, InputBlock, InputBlockIterator, MAX_BLOCK_SIZE,
 };
 use crate::{error::InternalRsonpathError, query::JsonString, result::InputRecorder, FallibleIterator};
-use std::cmp;
 use std::{cell::RefCell, io::Read, ops::Deref, slice};
 
 const BUF_SIZE: usize = 64 * 1024;
@@ -195,27 +194,6 @@ impl<R: Read> Input for BufferedInput<R> {
         let buf = self.0.borrow();
         let slice = buf.as_slice();
         in_slice::seek_non_whitespace_backward(slice, from)
-    }
-
-    #[inline]
-    fn find_member(&self, from: usize, member: &JsonString) -> Result<Option<usize>, InputError> {
-        let mut buf = self.0.borrow_mut();
-        let mut moving_from = from;
-
-        loop {
-            let res = {
-                let slice = buf.as_slice();
-                in_slice::find_member(slice, moving_from, member)
-            };
-
-            moving_from = cmp::min(from, buf.len().saturating_sub(member.bytes_with_quotes().len() - 1));
-
-            if res.is_some() {
-                return Ok(res);
-            } else if !buf.read_more()? {
-                return Ok(None);
-            }
-        }
     }
 
     #[inline(always)]

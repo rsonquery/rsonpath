@@ -1,6 +1,6 @@
 [package]
 name = "rsonpath"
-version = "0.6.1"
+version = "0.7.0"
 authors = ["Mateusz Gienieczko <mat@gienieczko.com>"]
 edition = "2021"
 description = "Blazing fast JSONPath CLI tool powered by SIMD"
@@ -29,7 +29,7 @@ clap = { version = "4.4.2", features = ["derive", "wrap_help"] }
 color-eyre = { version = "0.6.2", default-features = false }
 eyre = "0.6.8"
 log = "0.4.20"
-rsonpath-lib = { package = "rsonpath-lib", version = "0.6.0", default-features = false }
+rsonpath-lib = { version = "0.7.0", package = "rsonpath-lib", default-features = false }
 simple_logger = "4.2.0"
 
 [build-dependencies]

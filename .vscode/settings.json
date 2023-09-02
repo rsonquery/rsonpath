@@ -1,6 +1,7 @@
 {
     "cSpell.words": [
         "anychar",
+        "ASPLOS",
         "automagically",
         "benchset",
         "benchsets",
@@ -86,11 +87,11 @@
     "lldb.showDisassembly": "never",
     "lldb.dereferencePointers": true,
     "lldb.consoleMode": "commands",
-    "rust-analyzer.cargo.features": [
-        "simd"
+    "rust-analyzer.cargo.features": "all",
+    "rust-analyzer.linkedProjects": [
+        "./crates/rsonpath-test/Cargo.toml",
+        "./crates/rsonpath-test-codegen/Cargo.toml"
     ],
-    "rust-analyzer.cargo.noDefaultFeatures": true,
-    "rust-analyzer.cargo.allFeatures": false,
     "files.associations": {
         "iostream": "cpp"
     }

@@ -1,9 +1,9 @@
 [package]
 name = "rsonpath-test"
-version = "0.6.1"
+version = "0.7.0"
 authors = ["Mateusz Gienieczko <mat@gienieczko.com>"]
 edition = "2021"
-description = "Blazing fast JSONPath query engine powered by SIMD. Just a build script for the auto test generation."
+description = "Just a build script for the auto test generation."
 readme = "README.md"
 license = "MIT"
 keywords = ["json", "jsonpath", "query", "simd", "parser"]
@@ -17,4 +17,4 @@ publish = false
 [build-dependencies]
 eyre = "0.6.8"
 md5 = "0.7.0"
-rsonpath-test-codegen = { path = "../rsonpath-test-codegen", version = "0.6.1" }
+rsonpath-test-codegen = { version = "0.7.0", path = "../rsonpath-test-codegen" }

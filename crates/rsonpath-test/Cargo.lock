@@ -87,7 +87,7 @@ dependencies = [
 
 [[package]]
 name = "rsonpath-test"
-version = "0.5.1"
+version = "0.7.0"
 dependencies = [
  "eyre",
  "md5",
@@ -96,7 +96,7 @@ dependencies = [
 
 [[package]]
 name = "rsonpath-test-codegen"
-version = "0.6.1"
+version = "0.7.0"
 dependencies = [
  "heck",
  "proc-macro2",
