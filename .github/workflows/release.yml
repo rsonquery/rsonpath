@@ -25,7 +25,7 @@ jobs:
     - name: Remove config
       run: rm -rf ./.cargo
     - name: Install Rust toolchain (stable)
-      uses: dtolnay/rust-toolchain@00b49be78f40fba4e87296b2ead62868750bdd83 # stable
+      uses: dtolnay/rust-toolchain@f361669954a8ecfc00a3443f35f9ac8e610ffc06 # stable
       with:
         toolchain: stable
         target: ${{ matrix.triple }}
@@ -175,7 +175,7 @@ jobs:
       with:
         submodules: true
     - name: Install Rust toolchain (stable)
-      uses: dtolnay/rust-toolchain@00b49be78f40fba4e87296b2ead62868750bdd83 # stable
+      uses: dtolnay/rust-toolchain@f361669954a8ecfc00a3443f35f9ac8e610ffc06 # stable
       with:
         toolchain: stable
         target: ${{ matrix.triple }}
