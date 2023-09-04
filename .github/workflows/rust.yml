@@ -199,7 +199,7 @@ jobs:
         if: matrix.prologue-script != ''
         run: ${{ matrix.prologue-script }}
       - name: Checkout sources
-        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
         with:
           submodules: true
       - name: Install Rust toolchain (${{ matrix.toolchain }})
@@ -265,7 +265,7 @@ jobs:
     name: Clippy (${{ matrix.toolchain }})
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+    - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
       with:
         submodules: true
     - name: Install lld
@@ -313,7 +313,7 @@ jobs:
     name: Documentation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
         with:
           submodules: true
       - name: Install Rust toolchain (nightly)
@@ -344,7 +344,7 @@ jobs:
     name: Format
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
         with:
           submodules: true
       - name: Install Rust toolchain (stable)
@@ -361,5 +361,5 @@ jobs:
     name: Dependency scan (cargo-deny)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
       - uses: EmbarkStudios/cargo-deny-action@a50c7d5f86370e02fae8472c398f15a36e517bb8 # v1.5.4
