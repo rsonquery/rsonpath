@@ -355,20 +355,20 @@ mod tests {
 
     #[test]
     fn single_quoted_member_should_not_unescape_backslashes() {
-        let input = r#"\\x"#;
+        let input = r"\\x";
 
         let result = super::single_quoted_member()(input);
 
-        assert_eq!(result, Ok(("", r#"\\x"#.to_owned())));
+        assert_eq!(result, Ok(("", r"\\x".to_owned())));
     }
 
     #[test]
     fn double_quoted_member_should_not_unescape_backslashes() {
-        let input = r#"\\x"#;
+        let input = r"\\x";
 
         let result = super::double_quoted_member()(input);
 
-        assert_eq!(result, Ok(("", r#"\\x"#.to_owned())));
+        assert_eq!(result, Ok(("", r"\\x".to_owned())));
     }
 
     #[test]
