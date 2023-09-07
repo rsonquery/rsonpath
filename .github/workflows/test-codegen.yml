@@ -32,7 +32,7 @@ jobs:
         with:
           submodules: true
       - name: Install Rust toolchain (stable)
-        uses: dtolnay/rust-toolchain@7a26acb92768ab3675ddfe846a5b2f438c85f215 # master
+        uses: dtolnay/rust-toolchain@5cb429dd810e16ff67df78472fa81cf760f4d1c0 # master
         with:
           toolchain: stable
           target: x86_64-unknown-linux-gnu
