@@ -12,7 +12,7 @@ use crate::{
     debug,
     depth::Depth,
     engine::EngineError,
-    input::{Input, InputBlockIterator},
+    input::Input,
     query::{
         automaton::{Automaton, State},
         JsonString,
@@ -139,19 +139,10 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
                             .seek_non_whitespace_forward(colon_idx + 1)?
                             .ok_or(EngineError::MissingItem())?;
 
-                        // The goal is initializing the quote classifier correctly.
-                        // We can do it as follows:
-                        // - Initialize it to point to the start of the first block.
-                        // - Now we need to move it to the next_idx. Calculate the offset from that point.
-                        // - Offset by that much plus one.
-                        let start_of_second_block = input_iter.get_offset();
-                        debug_assert!(start_of_second_block >= BLOCK_SIZE);
-                        let start_of_first_block = start_of_second_block - BLOCK_SIZE;
-                        let distance_to_colon = colon_idx - start_of_first_block;
-                        let distance_to_value = next_idx - start_of_first_block - distance_to_colon;
-
                         let (quote_classifier, quote_classified_first_block) =
                             resume_quote_classification(input_iter, first_block);
+                        // Temporarily set the index within the current block to zero.
+                        // This makes sense for the move below.
                         let mut classifier_state = ResumeClassifierState {
                             iter: quote_classifier,
                             block: quote_classified_first_block
@@ -163,26 +154,37 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
                         debug!("Actual match with colon at {colon_idx}");
                         debug!("Next significant character at {next_idx}");
                         debug!("Classifier is at {}", classifier_state.get_idx());
-                        debug!("We want to offset by {distance_to_colon} first, then by {distance_to_value}",);
+                        debug!("We will forward to {colon_idx} first, then to {next_idx}",);
 
-                        classifier_state.offset_bytes(distance_to_colon as isize)?;
+                        // Now we want to move the entire iterator state so that the current block is quote-classified,
+                        // and correctly points to the place the engine would expect had it found the matching key
+                        // in the regular loop. If the value is atomic, we handle it ourselves. If the value is complex,
+                        // the engine wants to start one byte *after* the opening character.
+                        let resume_idx = if next_c == b'{' || next_c == b'[' {
+                            next_idx + 1
+                        } else {
+                            next_idx
+                        };
+                        classifier_state.forward_to(resume_idx)?;
 
-                        // Check if the colon is marked as within quotes.
-                        // If yes, that is an error of state propagation through skipped blocks.
-                        // Flip the quote mask.
+                        // We now have the block where we want and we ran quote classification, but during the `forward_to`
+                        // call we lose all the flow-through quote information that usually is passed from one block to the next.
+                        // We need to manually verify the soundness of the classification. Fortunately:
+                        // 1. we know that resume_idx is either the start of a value, or one byte after an opening -
+                        //    in a valid JSON this character can be within quotes if and only if it is itself a quote;
+                        // 2. the only way the mask can be wrong is if it is flipped - marks chars within quotes
+                        //    as outside and vice versa - so it suffices to flip it if it is wrong.
                         if let Some(block) = classifier_state.block.as_mut() {
-                            if block.block.within_quotes_mask.is_lit(block.idx) {
+                            let should_be_quoted = block.block.block[block.idx] == b'"';
+                            if block.block.within_quotes_mask.is_lit(block.idx) != should_be_quoted {
                                 debug!("Mask needs flipping!");
                                 block.block.within_quotes_mask = !block.block.within_quotes_mask;
                                 classifier_state.iter.flip_quotes_bit();
                             }
                         }
 
-                        classifier_state.offset_bytes(distance_to_value as isize)?;
-
                         classifier_state = match next_c {
                             b'{' | b'[' => {
-                                classifier_state.offset_bytes(1)?;
                                 debug!("resuming");
                                 if self.is_accepting {
                                     engine.recorder().record_match(

@@ -1,4 +1,4 @@
-// fc8d21b99a7454b201b4bff92524ec24
+// 5dc22515f57ed020ebfab849db867ac9
 use pretty_assertions::assert_eq;
 use rsonpath::engine::{main::MainEngine, Compiler, Engine};
 use rsonpath::input::*;
@@ -10960,6 +10960,507 @@ fn list_with_nested_sublists_to_stress_output_ordering_with_query_select_all_sub
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["1", "2", "[\n    {},\n    4\n  ]", "{}", "4", "[\n    5\n  ]", "5"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_compressed_with_query_select_the_extremely_long_label_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_long.toml running the query $..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249'] (select the extremely long label) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery :: parse ("$..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249']") ? ;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/head_skip_long.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_compressed_with_query_select_the_extremely_long_label_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_long.toml running the query $..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249'] (select the extremely long label) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery :: parse ("$..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249']") ? ;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/head_skip_long.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![355usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_compressed_with_query_select_the_extremely_long_label_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_long.toml running the query $..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249'] (select the extremely long label) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery :: parse ("$..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249']") ? ;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/head_skip_long.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["44"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_compressed_with_query_select_the_extremely_long_label_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_long.toml running the query $..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249'] (select the extremely long label) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery :: parse ("$..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249']") ? ;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/head_skip_long.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_compressed_with_query_select_the_extremely_long_label_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_long.toml running the query $..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249'] (select the extremely long label) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery :: parse ("$..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249']") ? ;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/head_skip_long.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![355usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_compressed_with_query_select_the_extremely_long_label_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_long.toml running the query $..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249'] (select the extremely long label) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery :: parse ("$..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249']") ? ;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/head_skip_long.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["44"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_compressed_with_query_select_the_extremely_long_label_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_long.toml running the query $..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249'] (select the extremely long label) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery :: parse ("$..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249']") ? ;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/head_skip_long.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_compressed_with_query_select_the_extremely_long_label_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_long.toml running the query $..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249'] (select the extremely long label) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery :: parse ("$..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249']") ? ;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/head_skip_long.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![355usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_compressed_with_query_select_the_extremely_long_label_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_long.toml running the query $..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249'] (select the extremely long label) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery :: parse ("$..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249']") ? ;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/head_skip_long.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["44"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_compressed_with_query_select_the_label_starting_exactly_at_block_boundary_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_long.toml running the query $..target (select the label starting exactly at block boundary) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..target")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/head_skip_long.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 2u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_compressed_with_query_select_the_label_starting_exactly_at_block_boundary_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_long.toml running the query $..target (select the label starting exactly at block boundary) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..target")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/head_skip_long.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![10usize, 125usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_compressed_with_query_select_the_label_starting_exactly_at_block_boundary_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_long.toml running the query $..target (select the label starting exactly at block boundary) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..target")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/head_skip_long.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
+        "{\"please note the important whitespaces after the upcoming comma (pretend indentation is really big)\":42}",
+        "43",
+    ];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_compressed_with_query_select_the_label_starting_exactly_at_block_boundary_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_long.toml running the query $..target (select the label starting exactly at block boundary) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..target")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/head_skip_long.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 2u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_compressed_with_query_select_the_label_starting_exactly_at_block_boundary_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_long.toml running the query $..target (select the label starting exactly at block boundary) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..target")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/head_skip_long.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![10usize, 125usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_compressed_with_query_select_the_label_starting_exactly_at_block_boundary_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_long.toml running the query $..target (select the label starting exactly at block boundary) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..target")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/head_skip_long.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
+        "{\"please note the important whitespaces after the upcoming comma (pretend indentation is really big)\":42}",
+        "43",
+    ];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_compressed_with_query_select_the_label_starting_exactly_at_block_boundary_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_long.toml running the query $..target (select the label starting exactly at block boundary) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..target")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/head_skip_long.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 2u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_compressed_with_query_select_the_label_starting_exactly_at_block_boundary_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_long.toml running the query $..target (select the label starting exactly at block boundary) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..target")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/head_skip_long.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![10usize, 125usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_compressed_with_query_select_the_label_starting_exactly_at_block_boundary_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_long.toml running the query $..target (select the label starting exactly at block boundary) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..target")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/head_skip_long.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![
+        "{\"please note the important whitespaces after the upcoming comma (pretend indentation is really big)\":42}",
+        "43",
+    ];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_with_query_select_the_extremely_long_label_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_long.toml running the query $..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249'] (select the extremely long label) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery :: parse ("$..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249']") ? ;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/head_skip_long.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_with_query_select_the_extremely_long_label_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_long.toml running the query $..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249'] (select the extremely long label) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery :: parse ("$..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249']") ? ;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/head_skip_long.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![428usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_with_query_select_the_extremely_long_label_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_long.toml running the query $..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249'] (select the extremely long label) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery :: parse ("$..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249']") ? ;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/head_skip_long.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["44"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_with_query_select_the_extremely_long_label_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_long.toml running the query $..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249'] (select the extremely long label) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery :: parse ("$..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249']") ? ;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/head_skip_long.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_with_query_select_the_extremely_long_label_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_long.toml running the query $..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249'] (select the extremely long label) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery :: parse ("$..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249']") ? ;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/head_skip_long.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![428usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_with_query_select_the_extremely_long_label_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_long.toml running the query $..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249'] (select the extremely long label) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery :: parse ("$..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249']") ? ;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/head_skip_long.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["44"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_with_query_select_the_extremely_long_label_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_long.toml running the query $..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249'] (select the extremely long label) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery :: parse ("$..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249']") ? ;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/head_skip_long.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_with_query_select_the_extremely_long_label_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_long.toml running the query $..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249'] (select the extremely long label) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery :: parse ("$..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249']") ? ;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/head_skip_long.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![428usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_with_query_select_the_extremely_long_label_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_long.toml running the query $..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249'] (select the extremely long label) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery :: parse ("$..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249']") ? ;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/head_skip_long.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["44"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_with_query_select_the_label_starting_exactly_at_block_boundary_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_long.toml running the query $..target (select the label starting exactly at block boundary) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..target")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/head_skip_long.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 2u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_with_query_select_the_label_starting_exactly_at_block_boundary_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_long.toml running the query $..target (select the label starting exactly at block boundary) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..target")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/head_skip_long.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![14usize, 194usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_with_query_select_the_label_starting_exactly_at_block_boundary_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_long.toml running the query $..target (select the label starting exactly at block boundary) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..target")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/head_skip_long.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected : Vec < & str > = vec ! ["{\n    \"please note the important whitespaces after the upcoming comma (pretend indentation is really big)\": 42\n  }" , "43" ,] ;
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_with_query_select_the_label_starting_exactly_at_block_boundary_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_long.toml running the query $..target (select the label starting exactly at block boundary) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..target")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/head_skip_long.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 2u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_with_query_select_the_label_starting_exactly_at_block_boundary_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_long.toml running the query $..target (select the label starting exactly at block boundary) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..target")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/head_skip_long.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![14usize, 194usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_with_query_select_the_label_starting_exactly_at_block_boundary_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_long.toml running the query $..target (select the label starting exactly at block boundary) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..target")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/head_skip_long.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected : Vec < & str > = vec ! ["{\n    \"please note the important whitespaces after the upcoming comma (pretend indentation is really big)\": 42\n  }" , "43" ,] ;
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_with_query_select_the_label_starting_exactly_at_block_boundary_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_long.toml running the query $..target (select the label starting exactly at block boundary) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..target")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/head_skip_long.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 2u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_with_query_select_the_label_starting_exactly_at_block_boundary_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_long.toml running the query $..target (select the label starting exactly at block boundary) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..target")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/head_skip_long.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![14usize, 194usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn long_labels_to_search_with_head_skipping_with_query_select_the_label_starting_exactly_at_block_boundary_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_long.toml running the query $..target (select the label starting exactly at block boundary) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..target")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/head_skip_long.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected : Vec < & str > = vec ! ["{\n    \"please note the important whitespaces after the upcoming comma (pretend indentation is really big)\": 42\n  }" , "43" ,] ;
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }

@@ -63,8 +63,11 @@ pub trait QuoteClassifiedIterator<'i, I: InputBlockIterator<'i, N>, M, const N: 
     fn get_offset(&self) -> usize;
 
     /// Move the iterator `count` blocks forward.
-    /// Effectively skips `count * Twice<BlockAlignment>::size()` bytes.
-    fn offset(&mut self, count: isize);
+    ///
+    /// # Errors
+    /// At least one new block is read from the underlying
+    /// [`InputBlockIterator`] implementation, which can fail.
+    fn offset(&mut self, count: isize) -> Result<Option<QuoteClassifiedBlock<I::Block, M, N>>, InputError>;
 
     /// Flip the bit representing whether the last block ended with a nonescaped quote.
     ///

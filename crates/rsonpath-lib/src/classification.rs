@@ -46,8 +46,8 @@
 //! let mut resume_state = structural_classifier.stop();
 //! assert_eq!(resume_state.get_idx(), 5);
 //!
-//! // Skip 6 bytes.
-//! resume_state.offset_bytes(6);
+//! // Skip to index 11.
+//! resume_state.forward_to(11);
 //! assert_eq!(resume_state.get_idx(), 11);
 //!
 //! // Resume.
@@ -113,42 +113,62 @@ where
         self.iter.get_offset() + self.block.as_ref().map_or(0, |b| b.idx)
     }
 
-    /// Move the state forward by `count` bytes.
+    /// Move the state forward to `index`.
     ///
     /// # Errors
     /// If the offset crosses block boundaries, then a new block is read from the underlying
     /// [`Input`](crate::input::Input) implementation, which can fail.
     ///
     /// # Panics
-    /// If the `count` is not positive.
+    /// If the `index` is not ahead of the current position of the state ([`get_idx`](ResumeClassifierState::get_idx)).
     #[inline]
     #[allow(clippy::panic_in_result_fn)]
-    pub fn offset_bytes(&mut self, count: isize) -> Result<(), InputError> {
-        assert!(count > 0);
-        let count = count as usize;
+    pub fn forward_to(&mut self, index: usize) -> Result<(), InputError> {
+        let current_block_start = self.iter.get_offset();
+        let current_block_idx = self.block.as_ref().map_or(0, |b| b.idx);
+        let current_idx = current_block_start + current_block_idx;
 
-        let remaining_in_block = self.block.as_ref().map_or(0, |b| b.block.len() - b.idx);
+        debug!(
+            "Calling forward_to({index}) when the inner iter offset is {} and block idx is {:?}",
+            current_block_start, current_block_idx
+        );
+
+        // We want to move by this much forward, and delta > 0.
+        assert!(index > current_idx);
+        let delta = index - current_idx;
+
+        // First we virtually pretend to move *backward*, setting the index of the current block to zero,
+        // and adjust the delta to cover that distance. This makes calculations simpler.
+        // Then we need to skip zero or more blocks and set our self.block to the last one we visit.
+        let remaining = delta + current_block_idx;
+        let blocks_to_skip = remaining / N;
+        let remainder = remaining % N;
 
         match self.block.as_mut() {
-            Some(b) if b.block.len() - b.idx > count => {
-                b.idx += count;
+            Some(b) if blocks_to_skip == 0 => {
+                b.idx = remaining;
             }
-            _ => {
-                let blocks_to_advance = (count - remaining_in_block) / N;
-
-                let remainder = (self.block.as_ref().map_or(0, |b| b.idx) + count - blocks_to_advance * N) % N;
-
-                self.iter.offset(blocks_to_advance as isize);
-                let next_block = self.iter.next()?;
-
-                self.block = next_block.map(|b| ResumeClassifierBlockState {
-                    block: b,
-                    idx: remainder,
-                });
+            Some(_) => {
+                self.block = self
+                    .iter
+                    .offset(blocks_to_skip as isize)?
+                    .map(|b| ResumeClassifierBlockState {
+                        block: b,
+                        idx: remainder,
+                    });
+            }
+            None => {
+                self.block = self
+                    .iter
+                    .offset((blocks_to_skip + 1) as isize)?
+                    .map(|b| ResumeClassifierBlockState {
+                        block: b,
+                        idx: remainder,
+                    });
             }
         }
 
-        debug!("offset_bytes({count}) results in idx moved to {}", self.get_idx());
+        debug!("forward_to({index}) results in idx moved to {}", self.get_idx());
 
         Ok(())
     }

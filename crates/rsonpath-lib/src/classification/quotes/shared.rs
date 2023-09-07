@@ -89,15 +89,18 @@ macro_rules! quote_classifier {
                 self.iter.get_offset() - $size
             }
 
-            fn offset(&mut self, count: isize) {
-                debug_assert!(count >= 0);
+            fn offset(
+                &mut self,
+                count: isize,
+            ) -> Result<Option<QuoteClassifiedBlock<I::Block, $mask_ty, $size>>, InputError> {
+                debug_assert!(count > 0);
                 debug!("Offsetting by {count}");
 
-                if count == 0 {
-                    return;
+                for _ in 0..count - 1 {
+                    self.iter.next()?;
                 }
 
-                self.iter.offset(count);
+                self.next()
             }
 
             fn flip_quotes_bit(&mut self) {
