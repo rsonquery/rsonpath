@@ -3,14 +3,8 @@ let
   stable = import (nixpkgs.fetchFromGitHub {
     owner = "NixOS";
     repo = "nixpkgs";
-    rev = "4ecab3273592f27479a583fb6d975d4aba3486fe";
-    sha256 = "btHN1czJ6rzteeCuE/PNrdssqYD2nIA4w48miQAFloM=";
-  }) {};
-  unstable = import (nixpkgs.fetchFromGitHub {
-    owner = "NixOS";
-    repo = "nixpkgs";
-    rev = "7403dd3fe24c2133089bdeaef593ed02c34fcdae";
-    sha256 = "vfHkC88PjYIpI1rsAOa7Cr6fXvPXxKM3tDvMPlgv0NM=";
+    rev = "57a0c58e728a28bc21eed85055eac9724a08f69a";
+    sha256 = "jZM9mIChS+tdrLt3/R6WnFNJCGcD8M/TpUgxrBgAN3M=";
   }) {};
 in stable.mkShell rec {
   buildInputs =
@@ -31,9 +25,8 @@ in stable.mkShell rec {
       rust-analyzer
       cargo-hack
       cargo-watch
-      rustfmt
-    ]) ++ (with unstable; [
       just
+      rustfmt
     ]);
 
   RUST_SRC_PATH = "${nixpkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
