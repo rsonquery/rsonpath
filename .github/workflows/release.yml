@@ -25,7 +25,7 @@ jobs:
     - name: Remove config
       run: rm -rf ./.cargo
     - name: Install Rust toolchain (stable)
-      uses: dtolnay/rust-toolchain@7a26acb92768ab3675ddfe846a5b2f438c85f215 # stable
+      uses: dtolnay/rust-toolchain@5cb429dd810e16ff67df78472fa81cf760f4d1c0 # stable
       with:
         toolchain: stable
         target: ${{ matrix.triple }}
@@ -175,7 +175,7 @@ jobs:
       with:
         submodules: true
     - name: Install Rust toolchain (stable)
-      uses: dtolnay/rust-toolchain@7a26acb92768ab3675ddfe846a5b2f438c85f215 # stable
+      uses: dtolnay/rust-toolchain@5cb429dd810e16ff67df78472fa81cf760f4d1c0 # stable
       with:
         toolchain: stable
         target: ${{ matrix.triple }}
@@ -265,7 +265,7 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
       - name: Install Rust toolchain (stable)
-        uses: dtolnay/rust-toolchain@7a26acb92768ab3675ddfe846a5b2f438c85f215 # stable
+        uses: dtolnay/rust-toolchain@5cb429dd810e16ff67df78472fa81cf760f4d1c0 # stable
         with:
           toolchain: stable
       - name: Publish rsonpath-lib
