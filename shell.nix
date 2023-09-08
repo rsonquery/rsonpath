@@ -31,6 +31,7 @@ in stable.mkShell rec {
       rust-analyzer
       cargo-hack
       cargo-watch
+      rustfmt
     ]) ++ (with unstable; [
       just
     ]);
