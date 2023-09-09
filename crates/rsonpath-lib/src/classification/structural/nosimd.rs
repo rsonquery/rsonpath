@@ -2,11 +2,35 @@ use super::*;
 use crate::classification::{quotes::QuoteClassifiedBlock, ResumeClassifierBlockState, ResumeClassifierState};
 use crate::debug;
 
+pub(crate) struct Constructor;
+
+impl StructuralImpl for Constructor {
+    type Classifier<'i, I, Q> = SequentialClassifier<'i, I, Q, BLOCK_SIZE>
+    where
+        I: InputBlockIterator<'i, BLOCK_SIZE>,
+        Q: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE>;
+
+    #[inline(always)]
+    #[allow(dead_code)]
+    fn new<'i, I, Q>(iter: Q) -> Self::Classifier<'i, I, Q>
+    where
+        I: InputBlockIterator<'i, BLOCK_SIZE>,
+        Q: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE>,
+    {
+        Self::Classifier {
+            iter,
+            block: None,
+            are_colons_on: false,
+            are_commas_on: false,
+        }
+    }
+}
+
 struct Block<'i, I, const N: usize>
 where
     I: InputBlockIterator<'i, N>,
 {
-    quote_classified: QuoteClassifiedBlock<I::Block, usize, N>,
+    quote_classified: QuoteClassifiedBlock<I::Block, MaskType, N>,
     idx: usize,
     are_colons_on: bool,
     are_commas_on: bool,
@@ -17,7 +41,7 @@ where
     I: InputBlockIterator<'i, N>,
 {
     fn new(
-        quote_classified_block: QuoteClassifiedBlock<I::Block, usize, N>,
+        quote_classified_block: QuoteClassifiedBlock<I::Block, MaskType, N>,
         are_colons_on: bool,
         are_commas_on: bool,
     ) -> Self {
@@ -30,7 +54,7 @@ where
     }
 
     fn from_idx(
-        quote_classified_block: QuoteClassifiedBlock<I::Block, usize, N>,
+        quote_classified_block: QuoteClassifiedBlock<I::Block, MaskType, N>,
         idx: usize,
         are_colons_on: bool,
         are_commas_on: bool,
@@ -53,7 +77,7 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         while self.idx < self.quote_classified.block.len() {
             let character = self.quote_classified.block[self.idx];
-            let idx_mask = 1_usize << self.idx;
+            let idx_mask = 1 << self.idx;
             let is_quoted = (self.quote_classified.within_quotes_mask & idx_mask) == idx_mask;
 
             let structural = match character {
@@ -91,19 +115,8 @@ where
 impl<'i, I, Q, const N: usize> SequentialClassifier<'i, I, Q, N>
 where
     I: InputBlockIterator<'i, N>,
-    Q: QuoteClassifiedIterator<'i, I, usize, N>,
+    Q: QuoteClassifiedIterator<'i, I, MaskType, N>,
 {
-    #[inline(always)]
-    #[allow(dead_code)]
-    pub(crate) fn new(iter: Q) -> Self {
-        Self {
-            iter,
-            block: None,
-            are_colons_on: false,
-            are_commas_on: false,
-        }
-    }
-
     #[inline]
     fn reclassify(&mut self, idx: usize) {
         if let Some(block) = self.block.take() {
@@ -128,7 +141,7 @@ where
 impl<'i, I, Q, const N: usize> FallibleIterator for SequentialClassifier<'i, I, Q, N>
 where
     I: InputBlockIterator<'i, N>,
-    Q: QuoteClassifiedIterator<'i, I, usize, N>,
+    Q: QuoteClassifiedIterator<'i, I, MaskType, N>,
 {
     type Item = Structural;
     type Error = InputError;
@@ -152,10 +165,10 @@ where
     }
 }
 
-impl<'i, I, Q, const N: usize> StructuralIterator<'i, I, Q, usize, N> for SequentialClassifier<'i, I, Q, N>
+impl<'i, I, Q, const N: usize> StructuralIterator<'i, I, Q, MaskType, N> for SequentialClassifier<'i, I, Q, N>
 where
     I: InputBlockIterator<'i, N>,
-    Q: QuoteClassifiedIterator<'i, I, usize, N>,
+    Q: QuoteClassifiedIterator<'i, I, MaskType, N>,
 {
     fn turn_colons_and_commas_on(&mut self, idx: usize) {
         if !self.are_commas_on && !self.are_colons_on {
@@ -211,7 +224,7 @@ where
         debug!("Turning colons off.");
     }
 
-    fn stop(self) -> ResumeClassifierState<'i, I, Q, usize, N> {
+    fn stop(self) -> ResumeClassifierState<'i, I, Q, MaskType, N> {
         let block = self.block.map(|b| ResumeClassifierBlockState {
             block: b.quote_classified,
             idx: b.idx,
@@ -224,7 +237,7 @@ where
         }
     }
 
-    fn resume(state: ResumeClassifierState<'i, I, Q, usize, N>) -> Self {
+    fn resume(state: ResumeClassifierState<'i, I, Q, MaskType, N>) -> Self {
         Self {
             iter: state.iter,
             block: state.block.map(|b| Block {

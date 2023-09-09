@@ -117,10 +117,16 @@ test-full: (gen-tests)
     just test-book
 
 test-x86-simd:
-    RSONPATH_UNSAFE_FORCE_SIMD=avx2_64 cargo test --test end_to_end -q
-    RSONPATH_UNSAFE_FORCE_SIMD=avx2_32 cargo test --test end_to_end -q
-    RSONPATH_UNSAFE_FORCE_SIMD=ssse3_64 cargo test --test end_to_end -q
-    RSONPATH_UNSAFE_FORCE_SIMD=ssse3_32 cargo test --test end_to_end -q
+    RSONPATH_UNSAFE_FORCE_SIMD="avx2+;fast_quotes;fast_popcnt" cargo test --test end_to_end -q
+    RSONPATH_UNSAFE_FORCE_SIMD="ssse3+;fast_quotes;fast_popcnt" cargo test --test end_to_end -q
+    RSONPATH_UNSAFE_FORCE_SIMD="ssse3+;fast_quotes;slow_popcnt" cargo test --test end_to_end -q
+    RSONPATH_UNSAFE_FORCE_SIMD="ssse3+;slow_quotes;fast_popcnt" cargo test --test end_to_end -q
+    RSONPATH_UNSAFE_FORCE_SIMD="ssse3+;slow_quotes;slow_popcnt" cargo test --test end_to_end -q
+    RSONPATH_UNSAFE_FORCE_SIMD="sse2+;fast_quotes;fast_popcnt" cargo test --test end_to_end -q
+    RSONPATH_UNSAFE_FORCE_SIMD="sse2+;fast_quotes;slow_popcnt" cargo test --test end_to_end -q
+    RSONPATH_UNSAFE_FORCE_SIMD="sse2+;slow_quotes;fast_popcnt" cargo test --test end_to_end -q
+    RSONPATH_UNSAFE_FORCE_SIMD="sse2+;slow_quotes;slow_popcnt" cargo test --test end_to_end -q
+    RSONPATH_UNSAFE_FORCE_SIMD="nosimd;slow_quotes;slow_popcnt" cargo test --test end_to_end -q
 
 # Run doctests on the library.
 test-doc:

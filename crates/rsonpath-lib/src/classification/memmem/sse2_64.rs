@@ -9,6 +9,29 @@ use crate::{
 
 const SIZE: usize = 64;
 
+pub(crate) struct Constructor;
+
+impl MemmemImpl for Constructor {
+    type Classifier<'i, 'b, 'r, I, R> = Ssse3MemmemClassifier64<'i, 'b, 'r, I, R>
+    where
+        I: Input + 'i,
+        I::BlockIterator<'i, 'r, BLOCK_SIZE, R>: 'b,
+        R: InputRecorder<I::Block<'i, BLOCK_SIZE>> + 'r,
+        'i: 'r;
+
+    fn memmem<'i, 'b, 'r, I, R>(
+        input: &'i I,
+        iter: &'b mut I::BlockIterator<'i, 'r, BLOCK_SIZE, R>,
+    ) -> Self::Classifier<'i, 'b, 'r, I, R>
+    where
+        I: Input,
+        R: InputRecorder<I::Block<'i, BLOCK_SIZE>>,
+        'i: 'r,
+    {
+        Self::Classifier { input, iter }
+    }
+}
+
 pub(crate) struct Ssse3MemmemClassifier64<'i, 'b, 'r, I, R>
 where
     I: Input,
@@ -33,7 +56,7 @@ where
     // Here we want to detect the pattern `"c"`
     // For interblock communication we need to bit of information that requires extra work to get obtained.
     // one for the block cut being `"` and `c"` and one for `"c` and `"`. We only deal with one of them.
-    #[target_feature(enable = "ssse3")]
+    #[target_feature(enable = "sse2")]
     unsafe fn find_letter(
         &mut self,
         label: &JsonString,
@@ -79,9 +102,9 @@ where
         Ok(None)
     }
 
-    #[target_feature(enable = "ssse3")]
+    #[target_feature(enable = "sse2")]
     #[inline]
-    unsafe fn find_label_ssse3(
+    unsafe fn find_label_sse2(
         &mut self,
         label: &JsonString,
         mut offset: usize,
@@ -147,6 +170,6 @@ where
         }
         let next_block_offset = self.iter.get_offset();
         // SAFETY: target feature invariant
-        unsafe { self.find_label_ssse3(label, next_block_offset) }
+        unsafe { self.find_label_sse2(label, next_block_offset) }
     }
 }

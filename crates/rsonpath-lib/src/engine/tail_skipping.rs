@@ -1,8 +1,9 @@
 #![allow(clippy::expect_used)] // Enforcing the classifier invariant is clunky without this.
 use crate::{
     classification::{
-        depth::{resume_depth_classification, DepthBlock, DepthIterator, DepthIteratorResumeOutcome},
+        depth::{DepthBlock, DepthIterator, DepthIteratorResumeOutcome},
         quotes::QuoteClassifiedIterator,
+        simd::Simd,
         structural::{BracketType, StructuralIterator},
         ResumeClassifierState,
     },
@@ -13,20 +14,21 @@ use crate::{
 };
 use std::marker::PhantomData;
 
-pub(crate) struct TailSkip<'i, I, Q, S, const N: usize> {
+pub(crate) struct TailSkip<'i, I, Q, S, V, const N: usize> {
     classifier: Option<S>,
+    simd: V,
     _phantom: (PhantomData<&'i ()>, PhantomData<(I, Q)>),
 }
 
-impl<'i, I, Q, S> TailSkip<'i, I, Q, S, BLOCK_SIZE>
+impl<'i, I, V> TailSkip<'i, I, V::QuotesClassifier<'i, I>, V::StructuralClassifier<'i, I>, V, BLOCK_SIZE>
 where
     I: InputBlockIterator<'i, BLOCK_SIZE>,
-    Q: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE>,
-    S: StructuralIterator<'i, I, Q, MaskType, BLOCK_SIZE>,
+    V: Simd,
 {
-    pub(crate) fn new(classifier: S) -> Self {
+    pub(crate) fn new(classifier: V::StructuralClassifier<'i, I>, simd: V) -> Self {
         Self {
             classifier: Some(classifier),
+            simd,
             _phantom: (PhantomData, PhantomData),
         }
     }
@@ -41,7 +43,7 @@ where
         self.classifier = Some('a: {
             let resume_state = classifier.stop();
             let DepthIteratorResumeOutcome(first_vector, mut depth_classifier) =
-                resume_depth_classification(resume_state, opening);
+                self.simd.resume_depth_classification(resume_state, opening);
 
             let mut current_vector = match first_vector {
                 Some(v) => Some(v),
@@ -50,7 +52,7 @@ where
                     Err(e) => {
                         err = Some(e);
                         let resume_state = depth_classifier.stop(None);
-                        break 'a S::resume(resume_state);
+                        break 'a self.simd.resume_structural_classification(resume_state);
                     }
                 },
             };
@@ -77,7 +79,7 @@ where
                     Err(e) => {
                         err = Some(e);
                         let resume_state = depth_classifier.stop(None);
-                        break 'a S::resume(resume_state);
+                        break 'a self.simd.resume_structural_classification(resume_state);
                     }
                 };
             }
@@ -86,7 +88,7 @@ where
             let resume_state = depth_classifier.stop(current_vector);
             debug!("Finished at {}", resume_state.get_idx());
             idx = resume_state.get_idx();
-            S::resume(resume_state)
+            self.simd.resume_structural_classification(resume_state)
         });
 
         if let Some(err) = err {
@@ -96,16 +98,17 @@ where
         }
     }
 
-    pub(crate) fn stop(self) -> ResumeClassifierState<'i, I, Q, MaskType, BLOCK_SIZE> {
+    pub(crate) fn stop(self) -> ResumeClassifierState<'i, I, V::QuotesClassifier<'i, I>, MaskType, BLOCK_SIZE> {
         self.classifier.expect("tail skip must always hold a classifier").stop()
     }
 }
 
-impl<'i, I, Q, S, const N: usize> std::ops::Deref for TailSkip<'i, I, Q, S, N>
+impl<'i, I, Q, S, V, const N: usize> std::ops::Deref for TailSkip<'i, I, Q, S, V, N>
 where
     I: InputBlockIterator<'i, N>,
     Q: QuoteClassifiedIterator<'i, I, MaskType, N>,
     S: StructuralIterator<'i, I, Q, MaskType, N>,
+    V: Simd,
 {
     type Target = S;
 
@@ -116,11 +119,12 @@ where
     }
 }
 
-impl<'i, I, Q, S, const N: usize> std::ops::DerefMut for TailSkip<'i, I, Q, S, N>
+impl<'i, I, Q, S, V, const N: usize> std::ops::DerefMut for TailSkip<'i, I, Q, S, V, N>
 where
     I: InputBlockIterator<'i, N>,
     Q: QuoteClassifiedIterator<'i, I, MaskType, N>,
     S: StructuralIterator<'i, I, Q, MaskType, N>,
+    V: Simd,
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
         self.classifier

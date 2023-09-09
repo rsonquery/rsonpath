@@ -50,6 +50,7 @@
         "owo_colors",
         "pclmulqdq",
         "Peekable",
+        "popcnt",
         "preconfigured",
         "proptest",
         "proptests",
@@ -89,10 +90,10 @@
     "lldb.consoleMode": "commands",
     "rust-analyzer.cargo.features": "all",
     "rust-analyzer.linkedProjects": [
+        "./crates/rsonpath/Cargo.toml",
+        "./crates/rsonpath-lib/Cargo.toml",
+        "./crates/rsonpath-benchmarks/Cargo.toml",
         "./crates/rsonpath-test/Cargo.toml",
         "./crates/rsonpath-test-codegen/Cargo.toml"
-    ],
-    "files.associations": {
-        "iostream": "cpp"
-    }
+    ]
 }

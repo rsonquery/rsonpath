@@ -59,7 +59,6 @@ use crate::{
     input::{error::InputError, InputBlockIterator},
     FallibleIterator, MaskType, BLOCK_SIZE,
 };
-use cfg_if::cfg_if;
 
 /// Defines the kinds of brackets that can be identified as structural.
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
@@ -213,67 +212,43 @@ where
     fn turn_colons_and_commas_off(&mut self);
 }
 
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-mod avx2_32;
+pub(crate) mod nosimd;
+pub(crate) mod shared;
+
+#[cfg(target_arch = "x86")]
+pub(crate) mod avx2_32;
 #[cfg(target_arch = "x86_64")]
-mod avx2_64;
-mod nosimd;
-mod shared;
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-mod ssse3_32;
+pub(crate) mod avx2_64;
+#[cfg(target_arch = "x86")]
+pub(crate) mod ssse3_32;
 #[cfg(target_arch = "x86_64")]
-mod ssse3_64;
+pub(crate) mod ssse3_64;
 
-cfg_if! {
-    if #[cfg(any(doc, not(feature = "simd")))] {
-        type ClassifierImpl<'a, I, Q, const N: usize> = nosimd::SequentialClassifier<'a, I, Q, N>;
-    }
-    else if #[cfg(all(simd = "avx2_64", target_arch = "x86_64"))] {
-        type ClassifierImpl<'a, I, Q> = avx2_64::Avx2Classifier64<'a, I, Q>;
-    }
-    else if #[cfg(all(simd = "avx2_32", any(target_arch = "x86_64", target_arch = "x86")))] {
-        type ClassifierImpl<'a, I, Q> = avx2_32::Avx2Classifier32<'a, I, Q>;
-    }
-    else if #[cfg(all(simd = "ssse3_64", target_arch = "x86_64"))] {
-        type ClassifierImpl<'a, I, Q> = ssse3_64::Ssse3Classifier64<'a, I, Q>;
-    }
-    else if #[cfg(all(simd = "ssse3_32", any(target_arch = "x86_64", target_arch = "x86")))] {
-        type ClassifierImpl<'a, I, Q> = ssse3_32::Ssse3Classifier32<'a, I, Q>;
-    }
-    else {
-        compile_error!("Target architecture is not supported by SIMD features of this crate. Disable the default `simd` feature.");
-    }
-}
+pub(crate) trait StructuralImpl {
+    type Classifier<'i, I, Q>: StructuralIterator<'i, I, Q, MaskType, BLOCK_SIZE>
+    where
+        I: InputBlockIterator<'i, BLOCK_SIZE>,
+        Q: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE>;
 
-/// Walk through the JSON document represented by `bytes` and iterate over all
-/// occurrences of structural characters in it.
-#[inline(always)]
-pub fn classify_structural_characters<'i, I, Q>(iter: Q) -> impl StructuralIterator<'i, I, Q, MaskType, BLOCK_SIZE>
-where
-    I: InputBlockIterator<'i, BLOCK_SIZE>,
-    Q: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE>,
-{
-    ClassifierImpl::new(iter)
-}
+    fn new<'i, I, Q>(iter: Q) -> Self::Classifier<'i, I, Q>
+    where
+        I: InputBlockIterator<'i, BLOCK_SIZE>,
+        Q: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE>;
 
-/// Resume classification using a state retrieved from a previously
-/// used classifier via the `stop` function.
-#[inline(always)]
-pub fn resume_structural_classification<'i, I, Q>(
-    state: ResumeClassifierState<'i, I, Q, MaskType, BLOCK_SIZE>,
-) -> impl StructuralIterator<'i, I, Q, MaskType, BLOCK_SIZE>
-where
-    I: InputBlockIterator<'i, BLOCK_SIZE>,
-    Q: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE>,
-{
-    ClassifierImpl::resume(state)
+    fn resume<'i, I, Q>(state: ResumeClassifierState<'i, I, Q, MaskType, BLOCK_SIZE>) -> Self::Classifier<'i, I, Q>
+    where
+        I: InputBlockIterator<'i, BLOCK_SIZE>,
+        Q: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE>,
+    {
+        <Self::Classifier<'i, I, Q> as StructuralIterator<'i, I, Q, MaskType, BLOCK_SIZE>>::resume(state)
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::{
-        classification::quotes::classify_quoted_sequences,
+        classification::simd::{self, simd_dispatch, Simd},
         input::{Input, OwnedBytes},
         result::empty::EmptyRecorder,
     };
@@ -283,23 +258,26 @@ mod tests {
         use BracketType::*;
         use Structural::*;
 
-        let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
-        let json_string = json.to_owned();
-        let input = OwnedBytes::new(&json_string).unwrap();
-        let iter = input.iter_blocks(&EmptyRecorder);
-        let quotes = classify_quoted_sequences(iter);
+        let simd = simd::configure();
+        simd_dispatch!(simd => |simd| {
+            let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
+            let json_string = json.to_owned();
+            let input = OwnedBytes::new(&json_string).unwrap();
+            let iter = input.iter_blocks(&EmptyRecorder);
+            let quotes = simd.classify_quoted_sequences(iter);
 
-        let mut classifier = classify_structural_characters(quotes);
+            let mut classifier = simd.classify_structural_characters(quotes);
 
-        assert_eq!(Some(Opening(Curly, 0)), classifier.next().unwrap());
-        assert_eq!(Some(Opening(Square, 6)), classifier.next().unwrap());
+            assert_eq!(Some(Opening(Curly, 0)), classifier.next().unwrap());
+            assert_eq!(Some(Opening(Square, 6)), classifier.next().unwrap());
 
-        let resume_state = classifier.stop();
+            let resume_state = classifier.stop();
 
-        let mut resumed_classifier = resume_structural_classification(resume_state);
+            let mut resumed_classifier = simd.resume_structural_classification(resume_state);
 
-        assert_eq!(Some(Opening(Curly, 15)), resumed_classifier.next().unwrap());
-        assert_eq!(Some(Opening(Curly, 22)), resumed_classifier.next().unwrap());
+            assert_eq!(Some(Opening(Curly, 15)), resumed_classifier.next().unwrap());
+            assert_eq!(Some(Opening(Curly, 22)), resumed_classifier.next().unwrap());
+        });
     }
 
     #[test]
@@ -307,27 +285,30 @@ mod tests {
         use BracketType::*;
         use Structural::*;
 
-        let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
-        let json_string = json.to_owned();
-        let input = OwnedBytes::new(&json_string).unwrap();
-        let iter = input.iter_blocks(&EmptyRecorder);
-        let quotes = classify_quoted_sequences(iter);
+        let simd = simd::configure();
+        simd_dispatch!(simd => |simd| {
+            let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
+            let json_string = json.to_owned();
+            let input = OwnedBytes::new(&json_string).unwrap();
+            let iter = input.iter_blocks(&EmptyRecorder);
+            let quotes = simd.classify_quoted_sequences(iter);
 
-        let mut classifier = classify_structural_characters(quotes);
-        classifier.turn_commas_on(0);
+            let mut classifier = simd.classify_structural_characters(quotes);
+            classifier.turn_commas_on(0);
 
-        assert_eq!(Some(Opening(Curly, 0)), classifier.next().unwrap());
-        assert_eq!(Some(Opening(Square, 6)), classifier.next().unwrap());
-        assert_eq!(Some(Comma(9)), classifier.next().unwrap());
-        assert_eq!(Some(Comma(13)), classifier.next().unwrap());
+            assert_eq!(Some(Opening(Curly, 0)), classifier.next().unwrap());
+            assert_eq!(Some(Opening(Square, 6)), classifier.next().unwrap());
+            assert_eq!(Some(Comma(9)), classifier.next().unwrap());
+            assert_eq!(Some(Comma(13)), classifier.next().unwrap());
 
-        let resume_state = classifier.stop();
+            let resume_state = classifier.stop();
 
-        let mut resumed_classifier = resume_structural_classification(resume_state);
+            let mut resumed_classifier = simd.resume_structural_classification(resume_state);
 
-        assert_eq!(Some(Opening(Curly, 15)), resumed_classifier.next().unwrap());
-        assert_eq!(Some(Opening(Curly, 22)), resumed_classifier.next().unwrap());
-        assert_eq!(Some(Comma(30)), resumed_classifier.next().unwrap());
+            assert_eq!(Some(Opening(Curly, 15)), resumed_classifier.next().unwrap());
+            assert_eq!(Some(Opening(Curly, 22)), resumed_classifier.next().unwrap());
+            assert_eq!(Some(Comma(30)), resumed_classifier.next().unwrap());
+        });
     }
 
     #[test]
@@ -335,27 +316,30 @@ mod tests {
         use BracketType::*;
         use Structural::*;
 
-        let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
-        let json_string = json.to_owned();
-        let input = OwnedBytes::new(&json_string).unwrap();
-        let iter = input.iter_blocks(&EmptyRecorder);
-        let quotes = classify_quoted_sequences(iter);
+        let simd = simd::configure();
+        simd_dispatch!(simd => |simd| {
+            let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
+            let json_string = json.to_owned();
+            let input = OwnedBytes::new(&json_string).unwrap();
+            let iter = input.iter_blocks(&EmptyRecorder);
+            let quotes = simd.classify_quoted_sequences(iter);
 
-        let mut classifier = classify_structural_characters(quotes);
-        classifier.turn_colons_on(0);
+            let mut classifier = simd.classify_structural_characters(quotes);
+            classifier.turn_colons_on(0);
 
-        assert_eq!(Some(Opening(Curly, 0)), classifier.next().unwrap());
-        assert_eq!(Some(Colon(4)), classifier.next().unwrap());
-        assert_eq!(Some(Opening(Square, 6)), classifier.next().unwrap());
+            assert_eq!(Some(Opening(Curly, 0)), classifier.next().unwrap());
+            assert_eq!(Some(Colon(4)), classifier.next().unwrap());
+            assert_eq!(Some(Opening(Square, 6)), classifier.next().unwrap());
 
-        let resume_state = classifier.stop();
+            let resume_state = classifier.stop();
 
-        let mut resumed_classifier = resume_structural_classification(resume_state);
+            let mut resumed_classifier = simd.resume_structural_classification(resume_state);
 
-        assert_eq!(Some(Opening(Curly, 15)), resumed_classifier.next().unwrap());
-        assert_eq!(Some(Colon(20)), resumed_classifier.next().unwrap());
-        assert_eq!(Some(Opening(Curly, 22)), resumed_classifier.next().unwrap());
-        assert_eq!(Some(Colon(27)), resumed_classifier.next().unwrap());
+            assert_eq!(Some(Opening(Curly, 15)), resumed_classifier.next().unwrap());
+            assert_eq!(Some(Colon(20)), resumed_classifier.next().unwrap());
+            assert_eq!(Some(Opening(Curly, 22)), resumed_classifier.next().unwrap());
+            assert_eq!(Some(Colon(27)), resumed_classifier.next().unwrap());
+        });
     }
 
     #[test]
@@ -363,30 +347,33 @@ mod tests {
         use BracketType::*;
         use Structural::*;
 
-        let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
-        let json_string = json.to_owned();
-        let input = OwnedBytes::new(&json_string).unwrap();
-        let iter = input.iter_blocks(&EmptyRecorder);
-        let quotes = classify_quoted_sequences(iter);
+        let simd = simd::configure();
+        simd_dispatch!(simd => |simd| {
+            let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
+            let json_string = json.to_owned();
+            let input = OwnedBytes::new(&json_string).unwrap();
+            let iter = input.iter_blocks(&EmptyRecorder);
+            let quotes = simd.classify_quoted_sequences(iter);
 
-        let mut classifier = classify_structural_characters(quotes);
-        classifier.turn_commas_on(0);
-        classifier.turn_colons_on(0);
+            let mut classifier = simd.classify_structural_characters(quotes);
+            classifier.turn_commas_on(0);
+            classifier.turn_colons_on(0);
 
-        assert_eq!(Some(Opening(Curly, 0)), classifier.next().unwrap());
-        assert_eq!(Some(Colon(4)), classifier.next().unwrap());
-        assert_eq!(Some(Opening(Square, 6)), classifier.next().unwrap());
-        assert_eq!(Some(Comma(9)), classifier.next().unwrap());
-        assert_eq!(Some(Comma(13)), classifier.next().unwrap());
+            assert_eq!(Some(Opening(Curly, 0)), classifier.next().unwrap());
+            assert_eq!(Some(Colon(4)), classifier.next().unwrap());
+            assert_eq!(Some(Opening(Square, 6)), classifier.next().unwrap());
+            assert_eq!(Some(Comma(9)), classifier.next().unwrap());
+            assert_eq!(Some(Comma(13)), classifier.next().unwrap());
 
-        let resume_state = classifier.stop();
+            let resume_state = classifier.stop();
 
-        let mut resumed_classifier = resume_structural_classification(resume_state);
+            let mut resumed_classifier = simd.resume_structural_classification(resume_state);
 
-        assert_eq!(Some(Opening(Curly, 15)), resumed_classifier.next().unwrap());
-        assert_eq!(Some(Colon(20)), resumed_classifier.next().unwrap());
-        assert_eq!(Some(Opening(Curly, 22)), resumed_classifier.next().unwrap());
-        assert_eq!(Some(Colon(27)), resumed_classifier.next().unwrap());
-        assert_eq!(Some(Comma(30)), resumed_classifier.next().unwrap());
+            assert_eq!(Some(Opening(Curly, 15)), resumed_classifier.next().unwrap());
+            assert_eq!(Some(Colon(20)), resumed_classifier.next().unwrap());
+            assert_eq!(Some(Opening(Curly, 22)), resumed_classifier.next().unwrap());
+            assert_eq!(Some(Colon(27)), resumed_classifier.next().unwrap());
+            assert_eq!(Some(Comma(30)), resumed_classifier.next().unwrap());
+        });
     }
 }

@@ -6,7 +6,6 @@ use crate::{
     result::InputRecorder,
     BLOCK_SIZE,
 };
-use cfg_if::cfg_if;
 
 /// Classifier that can quickly find a member name in a byte stream.
 pub trait Memmem<'i, 'b, 'r, I: Input, const N: usize> {
@@ -27,50 +26,32 @@ pub trait Memmem<'i, 'b, 'r, I: Input, const N: usize> {
     ) -> Result<Option<(usize, I::Block<'i, N>)>, InputError>;
 }
 
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-mod avx2_32;
-#[cfg(target_arch = "x86_64")]
-mod avx2_64;
-mod nosimd;
-mod shared;
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-mod ssse3_32;
-#[cfg(target_arch = "x86_64")]
-mod ssse3_64;
+pub(crate) mod nosimd;
+pub(crate) mod shared;
 
-cfg_if! {
-    if #[cfg(any(doc, not(feature = "simd")))] {
-        type MemmemImpl<'a, 'b, 'r, I, R> = nosimd::SequentialMemmemClassifier<'a, 'b, 'r, I, R, BLOCK_SIZE>;
-    }
-    else if #[cfg(all(simd = "avx2_64", target_arch = "x86_64"))] {
-        type MemmemImpl<'a, 'b, 'r, I, R> = avx2_64::Avx2MemmemClassifier64<'a, 'b, 'r, I, R>;
-    }
-    else if #[cfg(all(simd = "avx2_32", any(target_arch = "x86_64", target_arch = "x86")))] {
-        type MemmemImpl<'a, 'b, 'r, I, R> = avx2_32::Avx2MemmemClassifier32<'a, 'b, 'r, I, R>;
-    }
-    else if #[cfg(all(simd = "ssse3_64", target_arch = "x86_64"))] {
-        type MemmemImpl<'a, 'b, 'r, I, R> = ssse3_64::Ssse3MemmemClassifier64<'a, 'b, 'r, I, R>;
-    }
-    else if #[cfg(all(simd = "ssse3_32", any(target_arch = "x86_64", target_arch = "x86")))] {
-        type MemmemImpl<'a, 'b, 'r, I, R> = ssse3_32::Ssse3MemmemClassifier32<'a, 'b, 'r, I, R>;
-    }
-    else {
-        compile_error!("Target architecture is not supported by SIMD features of this crate. Disable the default `simd` feature.");
-    }
-}
+#[cfg(target_arch = "x86")]
+pub(crate) mod avx2_32;
+#[cfg(target_arch = "x86_64")]
+pub(crate) mod avx2_64;
+#[cfg(target_arch = "x86")]
+pub(crate) mod sse2_32;
+#[cfg(target_arch = "x86_64")]
+pub(crate) mod sse2_64;
 
-/// Walk through the JSON document represented by `bytes`
-/// and classify quoted sequences.
-#[must_use]
-#[inline(always)]
-pub fn memmem<'i, 'b, 'r, I, R>(
-    input: &'i I,
-    iter: &'b mut I::BlockIterator<'i, 'r, BLOCK_SIZE, R>,
-) -> impl Memmem<'i, 'b, 'r, I, BLOCK_SIZE>
-where
-    I: Input,
-    R: InputRecorder<I::Block<'i, BLOCK_SIZE>>,
-    'i: 'r,
-{
-    MemmemImpl::new(input, iter)
+pub(crate) trait MemmemImpl {
+    type Classifier<'i, 'b, 'r, I, R>: Memmem<'i, 'b, 'r, I, BLOCK_SIZE>
+    where
+        I: Input + 'i,
+        I::BlockIterator<'i, 'r, BLOCK_SIZE, R>: 'b,
+        R: InputRecorder<I::Block<'i, BLOCK_SIZE>> + 'r,
+        'i: 'r;
+
+    fn memmem<'i, 'b, 'r, I, R>(
+        input: &'i I,
+        iter: &'b mut I::BlockIterator<'i, 'r, BLOCK_SIZE, R>,
+    ) -> Self::Classifier<'i, 'b, 'r, I, R>
+    where
+        I: Input,
+        R: InputRecorder<I::Block<'i, BLOCK_SIZE>>,
+        'i: 'r;
 }

@@ -1,4 +1,4 @@
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+#[cfg(target_arch = "x86")]
 pub(super) mod mask_32;
 #[cfg(target_arch = "x86_64")]
 pub(super) mod mask_64;
@@ -10,22 +10,22 @@ pub(super) mod vector_256;
 #[allow(unused_macros)]
 macro_rules! depth_classifier {
     ($name:ident, $core:ident, $vector:ident, $size:literal, $mask_ty:ty) => {
-        pub(crate) struct $name<'i, I, Q> {
-            iter: Q,
-            classifier: $core,
-            were_commas_on: bool,
-            were_colons_on: bool,
-            phantom: PhantomData<(&'i (), I)>,
-        }
+        pub(crate) struct Constructor;
 
-        impl<'a, I, Q> $name<'a, I, Q>
-        where
-            I: InputBlockIterator<'a, $size>,
-            Q: QuoteClassifiedIterator<'a, I, $mask_ty, $size>,
-        {
+        impl DepthImpl for Constructor {
+            type Classifier<'i, I, Q> = $name<'i, I, Q>
+                    where
+                        I: InputBlockIterator<'i, BLOCK_SIZE>,
+                        Q: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE>;
+
+            #[inline]
             #[allow(dead_code)]
-            pub(crate) fn new(iter: Q, opening: BracketType) -> Self {
-                Self {
+            fn new<'i, I, Q>(iter: Q, opening: BracketType) -> Self::Classifier<'i, I, Q>
+            where
+                I: InputBlockIterator<'i, BLOCK_SIZE>,
+                Q: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE>,
+            {
+                Self::Classifier {
                     iter,
                     classifier: $core::new(opening),
                     were_commas_on: false,
@@ -33,6 +33,14 @@ macro_rules! depth_classifier {
                     phantom: PhantomData,
                 }
             }
+        }
+
+        pub(crate) struct $name<'i, I, Q> {
+            iter: Q,
+            classifier: $core,
+            were_commas_on: bool,
+            were_colons_on: bool,
+            phantom: PhantomData<(&'i (), I)>,
         }
 
         impl<'a, I, Q> FallibleIterator for $name<'a, I, Q>

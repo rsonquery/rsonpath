@@ -4,17 +4,17 @@
 //! [Stackless Processing of Streamed Trees](https://hal.archives-ouvertes.fr/hal-03021960) paper.
 //! Entire query execution is done without recursion or an explicit stack, linearly through
 //! the JSON structure, which allows efficient SIMD operations and optimized register usage.
+#![allow(clippy::type_complexity)] // The private Classifier type is very complex, but we specifically macro it out.
 use crate::{
     classification::{
-        quotes::{classify_quoted_sequences, QuoteClassifiedIterator},
-        structural::{classify_structural_characters, BracketType, Structural, StructuralIterator},
-        ResumeClassifierState,
+        simd::{self, simd_dispatch, Simd, SimdConfiguration},
+        structural::{BracketType, Structural, StructuralIterator},
     },
     debug,
     depth::Depth,
     engine::{
         error::EngineError,
-        head_skipping::{CanHeadSkip, HeadSkip},
+        head_skipping::{CanHeadSkip, HeadSkip, ResumeState},
         tail_skipping::TailSkip,
         Compiler, Engine, Input,
     },
@@ -37,6 +37,7 @@ use smallvec::{smallvec, SmallVec};
 /// on any number of separate inputs, even on separate threads.
 pub struct MainEngine<'q> {
     automaton: Automaton<'q>,
+    simd: SimdConfiguration,
 }
 
 impl Compiler for MainEngine<'_> {
@@ -47,12 +48,16 @@ impl Compiler for MainEngine<'_> {
     fn compile_query(query: &JsonPathQuery) -> Result<MainEngine, CompilerError> {
         let automaton = Automaton::new(query)?;
         debug!("DFA:\n {}", automaton);
-        Ok(MainEngine { automaton })
+        let simd = simd::configure();
+        log::info!("SIMD configuration:\n {}", simd);
+        Ok(MainEngine { automaton, simd })
     }
 
     #[inline(always)]
     fn from_compiled_query(automaton: Automaton<'_>) -> Self::E<'_> {
-        MainEngine { automaton }
+        let simd = simd::configure();
+        log::info!("SIMD configuration:\n {}", simd);
+        MainEngine { automaton, simd }
     }
 }
 
@@ -65,12 +70,14 @@ impl Engine for MainEngine<'_> {
         let recorder = CountRecorder::new();
 
         if self.automaton.is_empty_query() {
-            empty_query(input, &recorder)?;
+            empty_query(input, &recorder, self.simd)?;
             return Ok(recorder.into());
         }
 
-        let executor = query_executor(&self.automaton, input, &recorder);
-        executor.run()?;
+        simd_dispatch!(self.simd => |simd| {
+            let executor = query_executor(&self.automaton, input, &recorder, simd);
+            executor.run()?;
+        });
 
         Ok(recorder.into())
     }
@@ -84,12 +91,13 @@ impl Engine for MainEngine<'_> {
         let recorder = IndexRecorder::new(sink);
 
         if self.automaton.is_empty_query() {
-            empty_query(input, &recorder)?;
-            return Ok(());
+            return empty_query(input, &recorder, self.simd);
         }
 
-        let executor = query_executor(&self.automaton, input, &recorder);
-        executor.run()?;
+        simd_dispatch!(self.simd => |simd| {
+            let executor = query_executor(&self.automaton, input, &recorder, simd);
+            executor.run()?;
+        });
 
         Ok(())
     }
@@ -103,25 +111,28 @@ impl Engine for MainEngine<'_> {
         let recorder = NodesRecorder::build_recorder(sink);
 
         if self.automaton.is_empty_query() {
-            return empty_query(input, &recorder);
+            return empty_query(input, &recorder, self.simd);
         }
 
-        let executor = query_executor(&self.automaton, input, &recorder);
-        executor.run()?;
+        simd_dispatch!(self.simd => |simd| {
+            let executor = query_executor(&self.automaton, input, &recorder, simd);
+            executor.run()?;
+        });
 
         Ok(())
     }
 }
 
-fn empty_query<'i, I, R>(input: &'i I, recorder: &R) -> Result<(), EngineError>
+fn empty_query<'i, I, R>(input: &'i I, recorder: &R, simd: SimdConfiguration) -> Result<(), EngineError>
 where
     I: Input + 'i,
     R: Recorder<I::Block<'i, BLOCK_SIZE>>,
 {
+    simd_dispatch!(simd => |simd|
     {
         let iter = input.iter_blocks(recorder);
-        let quote_classifier = classify_quoted_sequences(iter);
-        let mut block_event_source = classify_structural_characters(quote_classifier);
+        let quote_classifier = simd.classify_quoted_sequences(iter);
+        let mut block_event_source = simd.classify_structural_characters(quote_classifier);
 
         let last_event = block_event_source.next()?;
         if let Some(Structural::Opening(_, idx)) = last_event {
@@ -144,24 +155,31 @@ where
                 }
             }
         }
-    }
+    });
 
     Ok(())
 }
 
 macro_rules! Classifier {
     () => {
-        TailSkip<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, Q, S, BLOCK_SIZE>
+        TailSkip<
+            'i,
+            I::BlockIterator<'i, 'r, BLOCK_SIZE, R>,
+            V::QuotesClassifier<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>>,
+            V::StructuralClassifier<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>>,
+            V,
+            BLOCK_SIZE>
     };
 }
 
-struct Executor<'i, 'q, 'r, I, R> {
+struct Executor<'i, 'q, 'r, I, R, V> {
     depth: Depth,
     state: State,
     stack: SmallStack,
     automaton: &'i Automaton<'q>,
     input: &'i I,
     recorder: &'r R,
+    simd: V,
     next_event: Option<Structural>,
     is_list: bool,
     array_count: NonNegativeArrayIndex,
@@ -169,11 +187,12 @@ struct Executor<'i, 'q, 'r, I, R> {
     has_any_array_item_transition_to_accepting: bool,
 }
 
-fn query_executor<'i, 'q, 'r, I, R>(
+fn query_executor<'i, 'q, 'r, I, R, V: Simd>(
     automaton: &'i Automaton<'q>,
     input: &'i I,
     recorder: &'r R,
-) -> Executor<'i, 'q, 'r, I, R>
+    simd: V,
+) -> Executor<'i, 'q, 'r, I, R, V>
 where
     I: Input,
     R: Recorder<I::Block<'i, BLOCK_SIZE>>,
@@ -185,6 +204,7 @@ where
         automaton,
         input,
         recorder,
+        simd,
         next_event: None,
         is_list: false,
         array_count: NonNegativeArrayIndex::ZERO,
@@ -193,14 +213,15 @@ where
     }
 }
 
-impl<'i, 'q, 'r, I, R> Executor<'i, 'q, 'r, I, R>
+impl<'i, 'q, 'r, I, R, V> Executor<'i, 'q, 'r, I, R, V>
 where
     'i: 'r,
     I: Input,
     R: Recorder<I::Block<'i, BLOCK_SIZE>>,
+    V: Simd,
 {
     fn run(mut self) -> Result<(), EngineError> {
-        let mb_head_skip = HeadSkip::new(self.input, self.automaton);
+        let mb_head_skip = HeadSkip::new(self.input, self.automaton, self.simd);
 
         match mb_head_skip {
             Some(head_skip) => head_skip.run_head_skipping(&mut self),
@@ -210,20 +231,16 @@ where
 
     fn run_and_exit(mut self) -> Result<(), EngineError> {
         let iter = self.input.iter_blocks(self.recorder);
-        let quote_classifier = classify_quoted_sequences(iter);
-        let structural_classifier = classify_structural_characters(quote_classifier);
-        let mut classifier = TailSkip::new(structural_classifier);
+        let quote_classifier = self.simd.classify_quoted_sequences(iter);
+        let structural_classifier = self.simd.classify_structural_characters(quote_classifier);
+        let mut classifier = TailSkip::new(structural_classifier, self.simd);
 
         self.run_on_subtree(&mut classifier)?;
 
         self.verify_subtree_closed()
     }
 
-    fn run_on_subtree<Q, S>(&mut self, classifier: &mut Classifier!()) -> Result<(), EngineError>
-    where
-        Q: QuoteClassifiedIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, MaskType, BLOCK_SIZE>,
-        S: StructuralIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, Q, MaskType, BLOCK_SIZE>,
-    {
+    fn run_on_subtree(&mut self, classifier: &mut Classifier!()) -> Result<(), EngineError> {
         loop {
             if self.next_event.is_none() {
                 self.next_event = match classifier.next() {
@@ -276,15 +293,11 @@ where
         }
     }
 
-    fn handle_colon<Q, S>(
+    fn handle_colon(
         &mut self,
         #[allow(unused_variables)] classifier: &mut Classifier!(),
         idx: usize,
-    ) -> Result<(), EngineError>
-    where
-        Q: QuoteClassifiedIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, MaskType, BLOCK_SIZE>,
-        S: StructuralIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, Q, MaskType, BLOCK_SIZE>,
-    {
+    ) -> Result<(), EngineError> {
         debug!("Colon");
 
         let is_next_opening = if let Some((_, c)) = self.input.seek_non_whitespace_forward(idx + 1)? {
@@ -337,11 +350,7 @@ where
         Ok(())
     }
 
-    fn handle_comma<Q, S>(&mut self, _classifier: &mut Classifier!(), idx: usize) -> Result<(), EngineError>
-    where
-        Q: QuoteClassifiedIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, MaskType, BLOCK_SIZE>,
-        S: StructuralIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, Q, MaskType, BLOCK_SIZE>,
-    {
+    fn handle_comma(&mut self, _classifier: &mut Classifier!(), idx: usize) -> Result<(), EngineError> {
         self.recorder.record_value_terminator(idx, self.depth)?;
         let is_next_opening = if let Some((_, c)) = self.input.seek_non_whitespace_forward(idx + 1)? {
             c == b'{' || c == b'['
@@ -375,16 +384,12 @@ where
         Ok(())
     }
 
-    fn handle_opening<Q, S>(
+    fn handle_opening(
         &mut self,
         classifier: &mut Classifier!(),
         bracket_type: BracketType,
         idx: usize,
-    ) -> Result<(), EngineError>
-    where
-        Q: QuoteClassifiedIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, MaskType, BLOCK_SIZE>,
-        S: StructuralIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, Q, MaskType, BLOCK_SIZE>,
-    {
+    ) -> Result<(), EngineError> {
         debug!("Opening {bracket_type:?}, increasing depth and pushing stack.",);
         let mut any_matched = false;
 
@@ -488,11 +493,7 @@ where
         Ok(())
     }
 
-    fn handle_closing<Q, S>(&mut self, classifier: &mut Classifier!(), idx: usize) -> Result<(), EngineError>
-    where
-        Q: QuoteClassifiedIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, MaskType, BLOCK_SIZE>,
-        S: StructuralIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, Q, MaskType, BLOCK_SIZE>,
-    {
+    fn handle_closing(&mut self, classifier: &mut Classifier!(), idx: usize) -> Result<(), EngineError> {
         debug!("Closing, decreasing depth and popping stack.");
 
         self.depth
@@ -645,23 +646,20 @@ impl SmallStack {
     }
 }
 
-impl<'i, 'q, 'r, I, R> CanHeadSkip<'i, 'r, I, R, BLOCK_SIZE> for Executor<'i, 'q, 'r, I, R>
+impl<'i, 'q, 'r, I, R, V> CanHeadSkip<'i, 'r, I, R, V> for Executor<'i, 'q, 'r, I, R, V>
 where
     I: Input,
     R: Recorder<I::Block<'i, BLOCK_SIZE>>,
+    V: Simd,
     'i: 'r,
 {
-    fn run_on_subtree<Q, S>(
+    fn run_on_subtree(
         &mut self,
         next_event: Structural,
         state: State,
-        structural_classifier: S,
-    ) -> Result<ResumeClassifierState<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, Q, MaskType, BLOCK_SIZE>, EngineError>
-    where
-        Q: QuoteClassifiedIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, MaskType, BLOCK_SIZE>,
-        S: StructuralIterator<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, Q, MaskType, BLOCK_SIZE>,
-    {
-        let mut classifier = TailSkip::new(structural_classifier);
+        structural_classifier: V::StructuralClassifier<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>>,
+    ) -> Result<ResumeState<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, V, MaskType>, EngineError> {
+        let mut classifier = TailSkip::new(structural_classifier, self.simd);
 
         self.state = state;
         self.next_event = Some(next_event);
@@ -669,7 +667,7 @@ where
         self.run_on_subtree(&mut classifier)?;
         self.verify_subtree_closed()?;
 
-        Ok(classifier.stop())
+        Ok(ResumeState(classifier.stop()))
     }
 
     fn recorder(&mut self) -> &'r R {

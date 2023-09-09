@@ -8,6 +8,29 @@ use crate::{
 
 const SIZE: usize = 32;
 
+pub(crate) struct Constructor;
+
+impl MemmemImpl for Constructor {
+    type Classifier<'i, 'b, 'r, I, R> = Avx2MemmemClassifier32<'i, 'b, 'r, I, R>
+    where
+        I: Input + 'i,
+        I::BlockIterator<'i, 'r, BLOCK_SIZE, R>: 'b,
+        R: InputRecorder<I::Block<'i, BLOCK_SIZE>> + 'r,
+        'i: 'r;
+
+    fn memmem<'i, 'b, 'r, I, R>(
+        input: &'i I,
+        iter: &'b mut I::BlockIterator<'i, 'r, BLOCK_SIZE, R>,
+    ) -> Self::Classifier<'i, 'b, 'r, I, R>
+    where
+        I: Input,
+        R: InputRecorder<I::Block<'i, BLOCK_SIZE>>,
+        'i: 'r,
+    {
+        Self::Classifier { input, iter }
+    }
+}
+
 pub(crate) struct Avx2MemmemClassifier32<'i, 'b, 'r, I, R>
 where
     I: Input,

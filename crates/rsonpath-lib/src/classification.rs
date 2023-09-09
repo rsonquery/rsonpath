@@ -57,10 +57,13 @@
 //!     Some(Structural::Closing(BracketType::Curly, 11))
 //! );
 //! ```
+#[cfg(test)]
+mod classifier_correctness_tests;
 pub mod depth;
 pub(crate) mod mask;
 pub mod memmem;
 pub mod quotes;
+pub mod simd;
 pub mod structural;
 
 use crate::{

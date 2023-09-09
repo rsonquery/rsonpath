@@ -1,6 +1,50 @@
 use super::*;
-use crate::{debug, input::InputBlockIterator, FallibleIterator};
+use crate::{debug, input::InputBlockIterator, FallibleIterator, MaskType};
 use std::marker::PhantomData;
+
+pub(crate) struct Constructor;
+
+impl QuotesImpl for Constructor {
+    type Classifier<'i, I> = SequentialQuoteClassifier<'i, I, BLOCK_SIZE>
+    where
+        I: InputBlockIterator<'i, BLOCK_SIZE>;
+
+    #[inline(always)]
+    #[allow(dead_code)]
+    fn new<'i, I>(iter: I) -> Self::Classifier<'i, I>
+    where
+        I: InputBlockIterator<'i, BLOCK_SIZE>,
+    {
+        SequentialQuoteClassifier {
+            iter,
+            escaped: false,
+            in_quotes: false,
+            phantom: PhantomData,
+        }
+    }
+
+    fn resume<'i, I>(
+        iter: I,
+        first_block: Option<I::Block>,
+    ) -> ResumedQuoteClassifier<Self::Classifier<'i, I>, I::Block, MaskType, BLOCK_SIZE>
+    where
+        I: InputBlockIterator<'i, BLOCK_SIZE>,
+    {
+        let mut s = SequentialQuoteClassifier {
+            iter,
+            escaped: false,
+            in_quotes: false,
+            phantom: PhantomData,
+        };
+
+        let block = first_block.map(|b| s.classify_block(b));
+
+        ResumedQuoteClassifier {
+            classifier: s,
+            first_block: block,
+        }
+    }
+}
 
 pub(crate) struct SequentialQuoteClassifier<'i, I, const N: usize>
 where
@@ -16,37 +60,8 @@ impl<'i, I, const N: usize> SequentialQuoteClassifier<'i, I, N>
 where
     I: InputBlockIterator<'i, N>,
 {
-    #[inline(always)]
-    #[allow(dead_code)]
-    pub(crate) fn new(iter: I) -> Self {
-        Self {
-            iter,
-            escaped: false,
-            in_quotes: false,
-            phantom: PhantomData,
-        }
-    }
-
-    #[inline]
-    #[allow(dead_code)]
-    pub(crate) fn resume(
-        iter: I,
-        first_block: Option<I::Block>,
-    ) -> (Self, Option<QuoteClassifiedBlock<I::Block, usize, N>>) {
-        let mut s = Self {
-            iter,
-            escaped: false,
-            in_quotes: false,
-            phantom: PhantomData,
-        };
-
-        let block = first_block.map(|b| s.classify_block(b));
-
-        (s, block)
-    }
-
-    fn classify_block(&mut self, block: I::Block) -> QuoteClassifiedBlock<I::Block, usize, N> {
-        let mut mask = 0_usize;
+    fn classify_block(&mut self, block: I::Block) -> QuoteClassifiedBlock<I::Block, MaskType, N> {
+        let mut mask: MaskType = 0;
         let mut idx_mask = 1;
 
         for character in block.iter().copied() {
@@ -78,7 +93,7 @@ impl<'i, I, const N: usize> FallibleIterator for SequentialQuoteClassifier<'i, I
 where
     I: InputBlockIterator<'i, N>,
 {
-    type Item = QuoteClassifiedBlock<I::Block, usize, N>;
+    type Item = QuoteClassifiedBlock<I::Block, MaskType, N>;
     type Error = InputError;
 
     #[inline(always)]
@@ -99,7 +114,7 @@ where
     }
 }
 
-impl<'i, I, const N: usize> QuoteClassifiedIterator<'i, I, usize, N> for SequentialQuoteClassifier<'i, I, N>
+impl<'i, I, const N: usize> QuoteClassifiedIterator<'i, I, MaskType, N> for SequentialQuoteClassifier<'i, I, N>
 where
     I: InputBlockIterator<'i, N>,
 {
@@ -107,7 +122,7 @@ where
         self.iter.get_offset() - N
     }
 
-    fn offset(&mut self, count: isize) -> QuoteIterResult<I::Block, usize, N> {
+    fn offset(&mut self, count: isize) -> QuoteIterResult<I::Block, MaskType, N> {
         debug_assert!(count > 0);
         debug!("Offsetting by {count}");
 
