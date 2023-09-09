@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.7.1] - 2023-09-09
+
+### Bug Fixes
+
+- Panic when head-skipping block boundary. ([#249](https://github.com/V0ldek/rsonpath/issues/249))
+  - Fixed an issue when head-skipping acceleration in nodes result mode would
+  panic in very specific input circumstances, or if the input had really long JSON keys.
+
+### Dependencies
+
+- Bump thiserror from 1.0.47 to 1.0.48.
+
 ## [v0.7.0] - 2023-09-02
 
 ### Features

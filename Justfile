@@ -256,23 +256,12 @@ assert-benchmarks-committed:
 
 # === RELEASE ===
 
-# Perform release dry run for the given version.
-release-dry ver:
+# Execute prerequisits for a release for the given version.
+release ver:
     cargo update
     just release-patch {{ver}}
     just release-readme
     just release-bug-template {{ver}}
-    just commit 'release v{{ver}}'
-    cargo release --sign-tag --sign-commit
-
-# Actually execute a release for the given version.
-release-execute ver:
-    cargo update
-    just release-patch {{ver}}
-    just release-readme
-    just release-bug-template {{ver}}
-    just commit 'release v{{ver}}'
-    cargo release --sign-tag --sign-commit --execute --tag-prefix "" --tag-name "v{{ver}}"
 
 [private]
 release-patch ver:
@@ -287,9 +276,9 @@ release-patch ver:
 [private]
 release-readme:
     #!/usr/bin/env nu
-    let rsonpath_deps = (cargo tree --package rsonpath --edges normal --edges build --depth 1 --all-targets);
-    let rsonpath_lib_deps = (cargo tree --package rsonpath-lib --edges normal --edges build --depth 1 --all-targets);
-    let rsonpath_full_deps = (cargo tree --package rsonpath --edges normal --edges build --all-targets);
+    let rsonpath_deps = (cargo tree --package rsonpath --edges normal --edges build --depth 1 --target=all);
+    let rsonpath_lib_deps = (cargo tree --package rsonpath-lib --edges normal --edges build --depth 1 --target=all);
+    let rsonpath_full_deps = (cargo tree --package rsonpath --edges normal --edges build --target=all);
     let params = [
         [$rsonpath_deps, "rsonpath", "./README.md"],
         [$rsonpath_lib_deps, "rsonpath-lib", "./README.md"],
