@@ -149,7 +149,7 @@ fn indexed_wildcard_descendant_selector_nested() {
 
 #[test]
 fn escaped_single_quote_in_single_quote_member() {
-    let input = r#"['\'']"#;
+    let input = r"['\'']";
     let expected_query = JsonPathQueryBuilder::new().child(JsonString::new("'")).into();
 
     let result = JsonPathQuery::parse(input).expect("expected Ok");
@@ -227,15 +227,15 @@ mod transform_json_escape_sequences_tests {
 
     #[test_case("" => ""; "empty is unchanged")]
     #[test_case("abc" => "abc")]
-    #[test_case(r#"['\n']"# => r#"['\n']"#; "endline is unchanged")]
-    #[test_case(r#"['\t']"# => r#"['\t']"#; "tab is unchanged")]
-    #[test_case(r#"['\\']"# => r#"['\\']"#; "backslash is unchanged")]
-    #[test_case(r#"['\'']"# => r#"[''']"#; "single quote is unescaped")]
+    #[test_case(r"['\n']" => r"['\n']"; "endline is unchanged")]
+    #[test_case(r"['\t']" => r"['\t']"; "tab is unchanged")]
+    #[test_case(r"['\\']" => r"['\\']"; "backslash is unchanged")]
+    #[test_case(r"['\'']" => r#"[''']"#; "single quote is unescaped")]
     #[test_case(r#"['"']"# => r#"['\"']"#; "unescaped double quote is escaped")]
     #[test_case(r#"['\"']"# => r#"['\"']"#; "escaped double quote is unchanged")]
-    #[test_case(r#"['\/']"# => r#"['/']"#; "slash is unescaped")]
+    #[test_case(r"['\/']" => r#"['/']"#; "slash is unescaped")]
     #[test_case(r#"['\\"']"# => r#"['\\\"']"#; "escapes don't flow")]
-    #[test_case(r#"['\\'']"# => r#"['\\'']"#; "escapes don't flow2")]
+    #[test_case(r"['\\'']" => r"['\\'']"; "escapes don't flow2")]
     fn cases(input: &str) -> String {
         super::transform_json_escape_sequences(input.to_owned())
     }
@@ -282,7 +282,7 @@ mod proptests {
 
     // .* or [*]
     fn any_wildcard_child() -> impl Strategy<Value = Selector> {
-        r#"(\.\*|\[\*\])"#.prop_map(|x| Selector {
+        r"(\.\*|\[\*\])".prop_map(|x| Selector {
             string: x,
             tag: SelectorTag::WildcardChild,
         })
@@ -290,7 +290,7 @@ mod proptests {
 
     // ..* or ..[*]
     fn any_wildcard_descendant() -> impl Strategy<Value = Selector> {
-        r#"(\*|\[\*\])"#.prop_map(|x| Selector {
+        r"(\*|\[\*\])".prop_map(|x| Selector {
             string: format!("..{x}"),
             tag: SelectorTag::WildcardDescendant,
         })
@@ -327,7 +327,7 @@ mod proptests {
     }
 
     fn any_member() -> impl Strategy<Value = String> {
-        r#"([A-Za-z]|_|[^\u0000-\u007F])([A-Za-z0-9]|_|[^\u0000-\u007F])*"#
+        r"([A-Za-z]|_|[^\u0000-\u007F])([A-Za-z0-9]|_|[^\u0000-\u007F])*"
     }
 
     fn any_name() -> impl Strategy<Value = (String, String)> {

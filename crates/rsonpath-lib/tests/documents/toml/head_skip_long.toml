@@ -1,0 +1,54 @@
+# Define the JSON input for all query test cases.
+[input]
+# Short description of the input structure.
+description = "Long labels to search with head skipping (issue #249)"
+# Set to true only if your specific test input is fully compressed (no extraneous whitespace).
+is_compressed = false
+
+# Inline JSON document.
+[input.source]
+json_string = '''
+{
+  "target": {
+    "please note the important whitespaces after the upcoming comma (pretend indentation is really big)": 42
+  },                                                   
+  "target" : 43,
+  "very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249": 44
+}
+'''
+
+# Define queries to test on the input.
+[[queries]]
+# First scenario causing the #249 panic - label that is so long that it spans multiple blocks of input.
+query = "$..['very long label to search for, like, extremely long, so that the colon occurs really far away from the start of the needle match, which triggers some interesting behavior and might break the head skipping module like in #249']"
+# Short descritpion of the query semantics.
+description = "select the extremely long label"
+
+[queries.results]
+# Number of expected matches.
+count = 1
+# Byte locations of starts of all matches, in order.
+bytes = [428]
+# Stringified values of all matches, verbatim as in the input,
+# in the same order as above.
+nodes = ['44']
+
+[[queries]]
+# Second scenario causing the #249 panic - extremely specific location of tokens, where
+# the end of a subtree (the closing character) is exactly at the end of a block,
+# the key being looked for is found in the next block,
+# but whitespace cause the colon to occur in the next-next block.
+# Trust me, it makes sense.
+query = "$..target"
+description = "select the label starting exactly at block boundary"
+
+[queries.results]
+# Number of expected matches.
+count = 2
+# Byte locations of starts of all matches, in order.
+bytes = [14, 194]
+# Stringified values of all matches, verbatim as in the input,
+# in the same order as above.
+nodes = ['''{
+    "please note the important whitespaces after the upcoming comma (pretend indentation is really big)": 42
+  }''', '43']

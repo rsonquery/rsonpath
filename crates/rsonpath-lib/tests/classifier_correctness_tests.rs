@@ -144,7 +144,7 @@ mod prop_test {
             let escaped_string: String = value
                 .chars()
                 .map(|c| match c {
-                    '\\' => String::from(r#"\\"#),
+                    '\\' => String::from(r"\\"),
                     '"' => String::from(r#"\""#),
                     x => x.to_string(),
                 })
@@ -187,7 +187,7 @@ mod prop_test {
             Just(Token::OpeningBracket),
             Just(Token::ClosingBrace),
             Just(Token::ClosingBracket),
-            r#"[ -!#-+\--9;-Z^-z|~]+"#.prop_map(Token::Garbage), // ascii characters except structural
+            r"[ -!#-+\--9;-Z^-z|~]+".prop_map(Token::Garbage), // ascii characters except structural
             "[ -~]".prop_map(|x| Token::Quoted(QuotedString::from(&x)))  // all ascii characters
         ]
     }

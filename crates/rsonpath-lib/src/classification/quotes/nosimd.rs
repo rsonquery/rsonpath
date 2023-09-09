@@ -107,15 +107,15 @@ where
         self.iter.get_offset() - N
     }
 
-    fn offset(&mut self, count: isize) {
-        debug_assert!(count >= 0);
+    fn offset(&mut self, count: isize) -> QuoteIterResult<I::Block, usize, N> {
+        debug_assert!(count > 0);
         debug!("Offsetting by {count}");
 
-        if count == 0 {
-            return;
+        for _ in 0..count - 1 {
+            self.iter.next()?;
         }
 
-        self.iter.offset(count);
+        self.next()
     }
 
     fn flip_quotes_bit(&mut self) {

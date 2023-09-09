@@ -244,7 +244,7 @@ macro_rules! block {
                     .map(|x| if x.is_ascii_whitespace() { b' ' } else { *x })
                     .collect::<Vec<_>>()
             )
-            .unwrap()
+            .unwrap_or("[INVALID UTF8]")
         );
     };
 }
