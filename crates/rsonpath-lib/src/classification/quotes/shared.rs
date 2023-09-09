@@ -89,10 +89,7 @@ macro_rules! quote_classifier {
                 self.iter.get_offset() - $size
             }
 
-            fn offset(
-                &mut self,
-                count: isize,
-            ) -> Result<Option<QuoteClassifiedBlock<I::Block, $mask_ty, $size>>, InputError> {
+            fn offset(&mut self, count: isize) -> QuoteIterResult<I::Block, $mask_ty, $size> {
                 debug_assert!(count > 0);
                 debug!("Offsetting by {count}");
 

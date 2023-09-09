@@ -38,6 +38,10 @@ use crate::{
 };
 use cfg_if::cfg_if;
 
+/// Result of the [`FallibleIterator`] for quote classification,
+/// and of the [`offset`](`QuoteClassifiedIterator::offset`) function.
+pub type QuoteIterResult<I, M, const N: usize> = Result<Option<QuoteClassifiedBlock<I, M, N>>, InputError>;
+
 /// Input block with a bitmask signifying which characters are within quotes.
 ///
 /// Characters within quotes in the input are guaranteed to have their corresponding
@@ -67,7 +71,7 @@ pub trait QuoteClassifiedIterator<'i, I: InputBlockIterator<'i, N>, M, const N: 
     /// # Errors
     /// At least one new block is read from the underlying
     /// [`InputBlockIterator`] implementation, which can fail.
-    fn offset(&mut self, count: isize) -> Result<Option<QuoteClassifiedBlock<I::Block, M, N>>, InputError>;
+    fn offset(&mut self, count: isize) -> QuoteIterResult<I::Block, M, N>;
 
     /// Flip the bit representing whether the last block ended with a nonescaped quote.
     ///

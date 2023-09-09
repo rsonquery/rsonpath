@@ -107,7 +107,7 @@ where
         self.iter.get_offset() - N
     }
 
-    fn offset(&mut self, count: isize) -> Result<Option<QuoteClassifiedBlock<I::Block, usize, N>>, InputError> {
+    fn offset(&mut self, count: isize) -> QuoteIterResult<I::Block, usize, N> {
         debug_assert!(count > 0);
         debug!("Offsetting by {count}");
 

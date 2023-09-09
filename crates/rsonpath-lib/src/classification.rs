@@ -129,8 +129,7 @@ where
         let current_idx = current_block_start + current_block_idx;
 
         debug!(
-            "Calling forward_to({index}) when the inner iter offset is {} and block idx is {:?}",
-            current_block_start, current_block_idx
+            "Calling forward_to({index}) when the inner iter offset is {current_block_start} and block idx is {current_block_idx:?}"
         );
 
         // We want to move by this much forward, and delta > 0.
