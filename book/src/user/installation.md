@@ -33,6 +33,6 @@ To verify installation, check if `rq` is available from your command line:
 
 ```console
 $ rq -V
-rq 0.7.0
+rq 0.7.1
 
 ```

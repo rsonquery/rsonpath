@@ -199,12 +199,12 @@ cargo tree --package rsonpath --edges normal --depth 1
 
 <!-- rsonpath dependencies start -->
 ```ini
-rsonpath v0.7.0 (/home/mat/rsonpath/crates/rsonpath)
+rsonpath v0.7.1 (/home/mat/rsonpath/crates/rsonpath)
 ├── clap v4.4.2
 ├── color-eyre v0.6.2
 ├── eyre v0.6.8
 ├── log v0.4.20
-├── rsonpath-lib v0.7.0 (/home/mat/rsonpath/crates/rsonpath-lib)
+├── rsonpath-lib v0.7.1 (/home/mat/rsonpath/crates/rsonpath-lib)
 └── simple_logger v4.2.0
 [build-dependencies]
 ├── rustflags v0.1.4
@@ -219,14 +219,14 @@ cargo tree --package rsonpath-lib --edges normal --depth 1
 
 <!-- rsonpath-lib dependencies start -->
 ```ini
-rsonpath-lib v0.7.0 (/home/mat/rsonpath/crates/rsonpath-lib)
+rsonpath-lib v0.7.1 (/home/mat/rsonpath/crates/rsonpath-lib)
 ├── cfg-if v1.0.0
 ├── log v0.4.20
 ├── memmap2 v0.7.1
 ├── nom v7.1.3
 ├── smallvec v1.11.0
 ├── static_assertions v1.1.0
-├── thiserror v1.0.47
+├── thiserror v1.0.48
 └── vector-map v1.0.1
 ```
 <!-- rsonpath-lib dependencies end -->
@@ -252,7 +252,7 @@ cargo tree --package rsonpath --edges normal
 
 <!-- rsonpath-full dependencies start -->
 ```ini
-rsonpath v0.7.0 (/home/mat/rsonpath/crates/rsonpath)
+rsonpath v0.7.1 (/home/mat/rsonpath/crates/rsonpath)
 ├── clap v4.4.2
 │   ├── clap_builder v4.4.2
 │   │   ├── anstream v0.5.0
@@ -261,14 +261,14 @@ rsonpath v0.7.0 (/home/mat/rsonpath/crates/rsonpath)
 │   │   │   │   └── utf8parse v0.2.1
 │   │   │   ├── anstyle-query v1.0.0
 │   │   │   │   └── windows-sys v0.48.0
-│   │   │   │       └── windows-targets v0.48.1
-│   │   │   │           ├── windows_aarch64_gnullvm v0.48.0
-│   │   │   │           ├── windows_aarch64_msvc v0.48.0
-│   │   │   │           ├── windows_i686_gnu v0.48.0
-│   │   │   │           ├── windows_i686_msvc v0.48.0
-│   │   │   │           ├── windows_x86_64_gnu v0.48.0
-│   │   │   │           ├── windows_x86_64_gnullvm v0.48.0
-│   │   │   │           └── windows_x86_64_msvc v0.48.0
+│   │   │   │       └── windows-targets v0.48.5
+│   │   │   │           ├── windows_aarch64_gnullvm v0.48.5
+│   │   │   │           ├── windows_aarch64_msvc v0.48.5
+│   │   │   │           ├── windows_i686_gnu v0.48.5
+│   │   │   │           ├── windows_i686_msvc v0.48.5
+│   │   │   │           ├── windows_x86_64_gnu v0.48.5
+│   │   │   │           ├── windows_x86_64_gnullvm v0.48.5
+│   │   │   │           └── windows_x86_64_msvc v0.48.5
 │   │   │   ├── anstyle-wincon v2.1.0
 │   │   │   │   ├── anstyle v1.0.2
 │   │   │   │   └── windows-sys v0.48.0 (*)
@@ -302,7 +302,7 @@ rsonpath v0.7.0 (/home/mat/rsonpath/crates/rsonpath)
 │       │   └── unicode-ident v1.0.11
 │       ├── quote v1.0.33
 │       │   └── proc-macro2 v1.0.66 (*)
-│       └── syn v2.0.29
+│       └── syn v2.0.31
 │           ├── proc-macro2 v1.0.66 (*)
 │           ├── quote v1.0.33 (*)
 │           └── unicode-ident v1.0.11
@@ -314,8 +314,8 @@ rsonpath v0.7.0 (/home/mat/rsonpath/crates/rsonpath)
 │   │   ├── libc v0.2.147
 │   │   ├── miniz_oxide v0.7.1
 │   │   │   └── adler v1.0.2
-│   │   ├── object v0.32.0
-│   │   │   └── memchr v2.6.2
+│   │   ├── object v0.32.1
+│   │   │   └── memchr v2.6.3
 │   │   └── rustc-demangle v0.1.23
 │   │   [build-dependencies]
 │   │   └── cc v1.0.83 (*)
@@ -327,21 +327,21 @@ rsonpath v0.7.0 (/home/mat/rsonpath/crates/rsonpath)
 │   └── owo-colors v3.5.0
 ├── eyre v0.6.8 (*)
 ├── log v0.4.20
-├── rsonpath-lib v0.7.0 (/home/mat/rsonpath/crates/rsonpath-lib)
+├── rsonpath-lib v0.7.1 (/home/mat/rsonpath/crates/rsonpath-lib)
 │   ├── cfg-if v1.0.0
 │   ├── log v0.4.20
 │   ├── memmap2 v0.7.1
 │   │   └── libc v0.2.147
 │   ├── nom v7.1.3
-│   │   ├── memchr v2.6.2
+│   │   ├── memchr v2.6.3
 │   │   └── minimal-lexical v0.2.1
 │   ├── smallvec v1.11.0
 │   ├── static_assertions v1.1.0
-│   ├── thiserror v1.0.47
-│   │   └── thiserror-impl v1.0.47 (proc-macro)
+│   ├── thiserror v1.0.48
+│   │   └── thiserror-impl v1.0.48 (proc-macro)
 │   │       ├── proc-macro2 v1.0.66 (*)
 │   │       ├── quote v1.0.33 (*)
-│   │       └── syn v2.0.29 (*)
+│   │       └── syn v2.0.31 (*)
 │   └── vector-map v1.0.1
 │       ├── contracts v0.4.0 (proc-macro)
 │       │   ├── proc-macro2 v1.0.66 (*)
@@ -367,7 +367,7 @@ rsonpath v0.7.0 (/home/mat/rsonpath/crates/rsonpath)
     ├── colored v2.0.4
     │   ├── is-terminal v0.4.9
     │   │   ├── hermit-abi v0.3.2
-    │   │   ├── rustix v0.38.11
+    │   │   ├── rustix v0.38.12
     │   │   │   ├── bitflags v2.4.0
     │   │   │   ├── errno v0.3.3 (*)
     │   │   │   ├── libc v0.2.147

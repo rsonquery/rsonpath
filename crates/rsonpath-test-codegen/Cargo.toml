@@ -1,6 +1,6 @@
 [package]
 name = "rsonpath-test-codegen"
-version = "0.7.0"
+version = "0.7.1"
 authors = ["Mateusz Gienieczko <mat@gienieczko.com>"]
 edition = "2021"
 description = "TOML-based test codegen for rsonpath-lib."
