@@ -1,5 +1,3 @@
-use log::debug;
-
 use super::{shared::mask_64, shared::vector_256, *};
 use crate::{
     classification::mask::m64,
@@ -119,7 +117,6 @@ where
         label: &JsonString,
     ) -> Result<Option<(usize, I::Block<'i, SIZE>)>, InputError> {
         if let Some(b) = first_block {
-            debug!("Looking at the first_block first...");
             if let Some(res) = shared::find_label_in_first_block(self.input, b, start_idx, label)? {
                 return Ok(Some(res));
             }

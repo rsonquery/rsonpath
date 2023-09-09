@@ -9,10 +9,8 @@
 //! This type of input is the fastest to process for the engine,
 //! since there is no additional overhead from loading anything to memory.
 
-use log::debug;
-
 use super::*;
-use crate::{query::JsonString, result::InputRecorder};
+use crate::{debug, query::JsonString, result::InputRecorder};
 
 /// Input wrapping a borrowed [`[u8]`] buffer.
 pub struct BorrowedBytes<'a> {
