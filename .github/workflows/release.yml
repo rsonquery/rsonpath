@@ -108,6 +108,7 @@ jobs:
           export PATH=/usr/local/opt/llvm/bin:$PATH
           export LD_LIBRARY_PATH=$(llvm-config --libdir):$LD_LIBRARY_PATH
       - name: Download lld (Windows)
+        if: matrix.os == 'windows-latest'
         shell: powershell
         run: |
           $ProgressPreference = 'SilentlyContinue'
