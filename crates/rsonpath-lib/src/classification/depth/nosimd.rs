@@ -3,18 +3,22 @@ use crate::classification::{quotes::QuoteClassifiedBlock, ResumeClassifierBlockS
 use crate::debug;
 use std::marker::PhantomData;
 
-pub(crate) struct VectorIterator<'i, I, Q, const N: usize> {
-    iter: Q,
-    opening: BracketType,
-    were_commas_on: bool,
-    were_colons_on: bool,
-    phantom: PhantomData<(&'i (), I)>,
-}
+pub(crate) struct Constructor;
 
-impl<'i, I, Q, const N: usize> VectorIterator<'i, I, Q, N> {
+impl DepthImpl for Constructor {
+    type Classifier<'i, I, Q> = VectorIterator<'i, I, Q, BLOCK_SIZE>
+    where
+        I: InputBlockIterator<'i, BLOCK_SIZE>,
+        Q: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE>;
+
+    #[inline]
     #[allow(dead_code)]
-    pub(crate) fn new(iter: Q, opening: BracketType) -> Self {
-        Self {
+    fn new<'i, I, Q>(iter: Q, opening: BracketType) -> Self::Classifier<'i, I, Q>
+    where
+        I: InputBlockIterator<'i, BLOCK_SIZE>,
+        Q: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE>,
+    {
+        Self::Classifier {
             iter,
             opening,
             were_commas_on: false,
@@ -24,10 +28,18 @@ impl<'i, I, Q, const N: usize> VectorIterator<'i, I, Q, N> {
     }
 }
 
+pub(crate) struct VectorIterator<'i, I, Q, const N: usize> {
+    iter: Q,
+    opening: BracketType,
+    were_commas_on: bool,
+    were_colons_on: bool,
+    phantom: PhantomData<(&'i (), I)>,
+}
+
 impl<'i, I, Q, const N: usize> FallibleIterator for VectorIterator<'i, I, Q, N>
 where
     I: InputBlockIterator<'i, N>,
-    Q: QuoteClassifiedIterator<'i, I, usize, N>,
+    Q: QuoteClassifiedIterator<'i, I, MaskType, N>,
 {
     type Item = Vector<'i, I, N>;
     type Error = InputError;
@@ -38,14 +50,14 @@ where
     }
 }
 
-impl<'i, I, Q, const N: usize> DepthIterator<'i, I, Q, usize, N> for VectorIterator<'i, I, Q, N>
+impl<'i, I, Q, const N: usize> DepthIterator<'i, I, Q, MaskType, N> for VectorIterator<'i, I, Q, N>
 where
     I: InputBlockIterator<'i, N>,
-    Q: QuoteClassifiedIterator<'i, I, usize, N>,
+    Q: QuoteClassifiedIterator<'i, I, MaskType, N>,
 {
     type Block = Vector<'i, I, N>;
 
-    fn stop(self, block: Option<Self::Block>) -> ResumeClassifierState<'i, I, Q, usize, N> {
+    fn stop(self, block: Option<Self::Block>) -> ResumeClassifierState<'i, I, Q, MaskType, N> {
         let block_state = block.and_then(|b| {
             debug!("Depth iterator stopping at index {}", b.idx);
             if b.idx >= b.quote_classified.len() {
@@ -66,7 +78,10 @@ where
         }
     }
 
-    fn resume(state: ResumeClassifierState<'i, I, Q, usize, N>, opening: BracketType) -> (Option<Self::Block>, Self) {
+    fn resume(
+        state: ResumeClassifierState<'i, I, Q, MaskType, N>,
+        opening: BracketType,
+    ) -> (Option<Self::Block>, Self) {
         let first_block = state.block.map(|b| Vector::new_from(b.block, opening, b.idx));
 
         (
@@ -86,7 +101,7 @@ pub(crate) struct Vector<'i, I, const N: usize>
 where
     I: InputBlockIterator<'i, N>,
 {
-    quote_classified: QuoteClassifiedBlock<I::Block, usize, N>,
+    quote_classified: QuoteClassifiedBlock<I::Block, MaskType, N>,
     depth: isize,
     idx: usize,
     bracket_type: BracketType,
@@ -97,12 +112,12 @@ where
     I: InputBlockIterator<'i, N>,
 {
     #[inline]
-    pub(crate) fn new(bytes: QuoteClassifiedBlock<I::Block, usize, N>, opening: BracketType) -> Self {
+    pub(crate) fn new(bytes: QuoteClassifiedBlock<I::Block, MaskType, N>, opening: BracketType) -> Self {
         Self::new_from(bytes, opening, 0)
     }
 
     #[inline]
-    fn new_from(bytes: QuoteClassifiedBlock<I::Block, usize, N>, opening: BracketType, idx: usize) -> Self {
+    fn new_from(bytes: QuoteClassifiedBlock<I::Block, MaskType, N>, opening: BracketType, idx: usize) -> Self {
         Self {
             quote_classified: bytes,
             depth: 0,
@@ -133,7 +148,7 @@ where
 
     #[inline(always)]
     fn get_char(&self, idx: usize) -> Option<u8> {
-        let idx_mask = 1_usize << idx;
+        let idx_mask = 1 << idx;
         let is_quoted = (self.quote_classified.within_quotes_mask & idx_mask) == idx_mask;
 
         if is_quoted {

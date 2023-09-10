@@ -5,14 +5,15 @@ use crate::{
     classification::{
         mask::Mask,
         memmem::Memmem,
-        quotes::{resume_quote_classification, InnerIter, QuoteClassifiedIterator},
-        structural::{resume_structural_classification, BracketType, Structural, StructuralIterator},
+        quotes::{InnerIter, QuoteClassifiedIterator, ResumedQuoteClassifier},
+        simd::Simd,
+        structural::{BracketType, Structural, StructuralIterator},
         ResumeClassifierBlockState, ResumeClassifierState,
     },
     debug,
     depth::Depth,
     engine::EngineError,
-    input::Input,
+    input::{Input, InputBlockIterator},
     query::{
         automaton::{Automaton, State},
         JsonString,
@@ -22,10 +23,11 @@ use crate::{
 };
 
 /// Trait that needs to be implemented by an [`Engine`](`super::Engine`) to use this submodule.
-pub(super) trait CanHeadSkip<'b, 'r, I, R, const N: usize>
+pub(super) trait CanHeadSkip<'i, 'r, I, R, V>
 where
-    I: Input + 'b,
-    R: Recorder<I::Block<'b, N>>,
+    I: Input + 'i,
+    R: Recorder<I::Block<'i, BLOCK_SIZE>>,
+    V: Simd,
 {
     /// Function called when head-skipping finds a member name at which normal query execution
     /// should resume.
@@ -40,29 +42,33 @@ where
     /// and execute the query until a matching [`Structural::Closing`] character is encountered,
     /// using `classifier` for classification and `result` for reporting query results. The `classifier`
     /// must *not* be used to classify anything past the matching [`Structural::Closing`] character.
-    fn run_on_subtree<Q, S>(
+    fn run_on_subtree(
         &mut self,
         next_event: Structural,
         state: State,
-        structural_classifier: S,
-    ) -> Result<ResumeClassifierState<'b, I::BlockIterator<'b, 'r, N, R>, Q, MaskType, N>, EngineError>
-    where
-        I: Input,
-        Q: QuoteClassifiedIterator<'b, I::BlockIterator<'b, 'r, N, R>, MaskType, N>,
-        S: StructuralIterator<'b, I::BlockIterator<'b, 'r, N, R>, Q, MaskType, N>;
+        structural_classifier: V::StructuralClassifier<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>>,
+    ) -> Result<ResumeState<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, V, MaskType>, EngineError>;
 
     fn recorder(&mut self) -> &'r R;
 }
 
+pub(super) struct ResumeState<'i, I, V, M>(
+    pub(super) ResumeClassifierState<'i, I, V::QuotesClassifier<'i, I>, M, BLOCK_SIZE>,
+)
+where
+    I: InputBlockIterator<'i, BLOCK_SIZE>,
+    V: Simd;
+
 /// Configuration of the head-skipping decorator.
-pub(super) struct HeadSkip<'b, 'q, I: Input, const N: usize> {
+pub(super) struct HeadSkip<'b, 'q, I, V, const N: usize> {
     bytes: &'b I,
     state: State,
     is_accepting: bool,
     member_name: &'q JsonString,
+    simd: V,
 }
 
-impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
+impl<'b, 'q, I: Input, V: Simd> HeadSkip<'b, 'q, I, V, BLOCK_SIZE> {
     /// Create a new instance of the head-skipping decorator over a given input
     /// and for a compiled query [`Automaton`].
     ///
@@ -82,10 +88,10 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
     /// This means that we can search for the label of the forward transition in the entire document,
     /// disregarding any additional structure &ndash; during execution we would always loop
     /// around in the initial state until encountering the desired member name. This search can be done
-    /// extremely quickly with [`memchr::memmem`].
+    /// extremely quickly with [`classification::memmem`](crate::classification::memmem).
     ///
     /// In all other cases, head-skipping is not supported.
-    pub(super) fn new(bytes: &'b I, automaton: &'b Automaton<'q>) -> Option<Self> {
+    pub(super) fn new(bytes: &'b I, automaton: &'b Automaton<'q>, simd: V) -> Option<Self> {
         let initial_state = automaton.initial_state();
         let fallback_state = automaton[initial_state].fallback_state();
         let transitions = automaton[initial_state].transitions();
@@ -101,6 +107,7 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
                     state: target_state,
                     is_accepting: automaton.is_accepting(target_state),
                     member_name,
+                    simd,
                 });
             }
         }
@@ -113,7 +120,7 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
     pub(super) fn run_head_skipping<'r, E, R>(&self, engine: &mut E) -> Result<(), EngineError>
     where
         'b: 'r,
-        E: CanHeadSkip<'b, 'r, I, R, BLOCK_SIZE>,
+        E: CanHeadSkip<'b, 'r, I, R, V>,
         R: Recorder<I::Block<'b, BLOCK_SIZE>> + 'r,
     {
         let mut input_iter = self.bytes.iter_blocks(engine.recorder());
@@ -121,7 +128,7 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
         let mut first_block = None;
 
         loop {
-            let mut memmem = crate::classification::memmem::memmem(self.bytes, &mut input_iter);
+            let mut memmem = self.simd.memmem(self.bytes, &mut input_iter);
             debug!("Starting memmem search from {idx}");
 
             if let Some((starting_quote_idx, last_block)) = memmem.find_label(first_block, idx, self.member_name)? {
@@ -139,8 +146,11 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
                             .seek_non_whitespace_forward(colon_idx + 1)?
                             .ok_or(EngineError::MissingItem())?;
 
-                        let (quote_classifier, quote_classified_first_block) =
-                            resume_quote_classification(input_iter, first_block);
+                        let ResumedQuoteClassifier {
+                            classifier: quote_classifier,
+                            first_block: quote_classified_first_block,
+                        } = self.simd.resume_quote_classification(input_iter, first_block);
+
                         // Temporarily set the index within the current block to zero.
                         // This makes sense for the move below.
                         let mut classifier_state = ResumeClassifierState {
@@ -193,19 +203,21 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
                                         crate::result::MatchedNodeType::Complex,
                                     )?;
                                 }
-                                let classifier = resume_structural_classification(classifier_state);
-                                engine.run_on_subtree(
-                                    Structural::Opening(
-                                        if next_c == b'{' {
-                                            BracketType::Curly
-                                        } else {
-                                            BracketType::Square
-                                        },
-                                        next_idx,
-                                    ),
-                                    self.state,
-                                    classifier,
-                                )?
+                                let classifier = self.simd.resume_structural_classification(classifier_state);
+                                engine
+                                    .run_on_subtree(
+                                        Structural::Opening(
+                                            if next_c == b'{' {
+                                                BracketType::Curly
+                                            } else {
+                                                BracketType::Square
+                                            },
+                                            next_idx,
+                                        ),
+                                        self.state,
+                                        classifier,
+                                    )?
+                                    .0
                             }
                             _ if self.is_accepting => {
                                 engine.recorder().record_match(
@@ -213,7 +225,7 @@ impl<'b, 'q, I: Input> HeadSkip<'b, 'q, I, BLOCK_SIZE> {
                                     Depth::ZERO,
                                     crate::result::MatchedNodeType::Atomic,
                                 )?;
-                                let mut classifier = resume_structural_classification(classifier_state);
+                                let mut classifier = self.simd.resume_structural_classification(classifier_state);
                                 let next_structural = classifier.next()?;
 
                                 match next_structural {

@@ -16,9 +16,21 @@ resolver = "2"
 [profile.dev]
 lto = false
 
+# Release should be used for benching, but not actually distributed.
 [profile.release]
 lto = "thin"
-debug = 1
+debug = 2
+
+# This is the profile used for final binaries distributed via package managers.
+# It prioritizes performance, and then binary size. We generally don't care about
+# compile times for these, as they are built once on release in the CI and then distributed.
+# The time impact of build is not large (~33% time increase).
+[profile.distribution]
+inherits = "release"
+lto = "fat"         # Better codegen, much slower compile time.
+codegen-units = 1   # Better codegen, much slower compile time.
+debug = 0           # Smaller binary size.
+strip = "debuginfo" # Smaller binary size.
 
 [patch.crates-io]
 rsonpath-lib = { path = "./crates/rsonpath-lib" }

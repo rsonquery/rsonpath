@@ -15,7 +15,7 @@ env:
   RUST_BACKTRACE: 1
   RSONPATH_ENABLE_TEST_CODEGEN: 1
   CARGO_PROFILE_DEV_BUILD_OVERRIDE_DEBUG: "true"
-  
+
 permissions:
   contents: read
 

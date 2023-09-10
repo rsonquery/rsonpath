@@ -13,30 +13,30 @@ jobs:
       issues: write
       repository-projects: write
     steps:
-    - uses: V0ldek/modify-label@65905feb4c09417e7caed08928595a0b4f9b3d42 # v1.0.0
-      id: add-label
-      with:
-        action: add
-        issue-number: ${{ github.event.issue.number }}
-        label-id: 'LA_kwDOHodxeM8AAAABA8dlvA'
-        token: ${{ secrets.GITHUB_TOKEN }}
-    - name: Issue comment tag
-      uses: devops-actions/issue-comment-tag@ec5e2b8d5f031330ff19bf4ee5b5252b1176995a # v0.1.8
-      with:
-        # The tag of the team to mention in the issue comment
-        team: V0ldek
-        # The issue number to create a new comment in
-        issue: ${{ github.event.issue.number }}
-        # The owner for the repo to create a new comment in
-        owner: ${{ github.event.repository.owner.login }}
-        # The repo to create a new comment in
-        repo: ${{ github.event.repository.name }}
-        # The GitHub token to use to create a new comment with. Use `secrets.GITHUB_TOKEN` to inject it
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Add To GitHub projects
-      uses: actions/add-to-project@31b3f3ccdc584546fc445612dec3f38ff5edb41c # v0.5.0
-      with:
-        # URL of the project to add issues to
-        project-url: https://github.com/users/V0ldek/projects/1
-        # A GitHub personal access token with write access to the project
-        github-token: ${{ secrets.RSONPATH_PROJECT_TOKEN }}
+      - uses: V0ldek/modify-label@65905feb4c09417e7caed08928595a0b4f9b3d42 # v1.0.0
+        id: add-label
+        with:
+          action: add
+          issue-number: ${{ github.event.issue.number }}
+          label-id: "LA_kwDOHodxeM8AAAABA8dlvA"
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Issue comment tag
+        uses: devops-actions/issue-comment-tag@ec5e2b8d5f031330ff19bf4ee5b5252b1176995a # v0.1.8
+        with:
+          # The tag of the team to mention in the issue comment
+          team: V0ldek
+          # The issue number to create a new comment in
+          issue: ${{ github.event.issue.number }}
+          # The owner for the repo to create a new comment in
+          owner: ${{ github.event.repository.owner.login }}
+          # The repo to create a new comment in
+          repo: ${{ github.event.repository.name }}
+          # The GitHub token to use to create a new comment with. Use `secrets.GITHUB_TOKEN` to inject it
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Add To GitHub projects
+        uses: actions/add-to-project@31b3f3ccdc584546fc445612dec3f38ff5edb41c # v0.5.0
+        with:
+          # URL of the project to add issues to
+          project-url: https://github.com/users/V0ldek/projects/1
+          # A GitHub personal access token with write access to the project
+          github-token: ${{ secrets.RSONPATH_PROJECT_TOKEN }}

@@ -1,4 +1,4 @@
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+#[cfg(target_arch = "x86")]
 pub(super) mod mask_32;
 #[cfg(target_arch = "x86_64")]
 pub(super) mod mask_64;
@@ -10,23 +10,18 @@ pub(super) mod vector_256;
 #[allow(unused_macros)]
 macro_rules! quote_classifier {
     ($name:ident, $core:ident, $size:literal, $mask_ty:ty) => {
-        pub(crate) struct $name<'i, I>
-        where
-            I: InputBlockIterator<'i, $size>,
-        {
-            iter: I,
-            classifier: $core,
-            phantom: PhantomData<&'i ()>,
-        }
+        pub(crate) struct Constructor;
 
-        impl<'i, I> $name<'i, I>
-        where
-            I: InputBlockIterator<'i, $size>,
-        {
+        impl QuotesImpl for Constructor {
+            type Classifier<'i, I> = $name<'i, I> where I: InputBlockIterator<'i, BLOCK_SIZE>;
+
             #[inline]
             #[allow(dead_code)]
-            pub(crate) fn new(iter: I) -> Self {
-                Self {
+            fn new<'i, I>(iter: I) -> Self::Classifier<'i, I>
+            where
+                I: InputBlockIterator<'i, $size>,
+            {
+                Self::Classifier {
                     iter,
                     classifier: $core::new(),
                     phantom: PhantomData,
@@ -35,11 +30,14 @@ macro_rules! quote_classifier {
 
             #[inline]
             #[allow(dead_code)]
-            pub(crate) fn resume(
+            fn resume<'i, I>(
                 iter: I,
                 first_block: Option<I::Block>,
-            ) -> (Self, Option<QuoteClassifiedBlock<I::Block, $mask_ty, $size>>) {
-                let mut s = Self {
+            ) -> ResumedQuoteClassifier<Self::Classifier<'i, I>, I::Block, MaskType, BLOCK_SIZE>
+            where
+                I: InputBlockIterator<'i, $size>,
+            {
+                let mut s = Self::Classifier {
                     iter,
                     classifier: $core::new(),
                     phantom: PhantomData,
@@ -54,8 +52,20 @@ macro_rules! quote_classifier {
                     }
                 });
 
-                (s, block)
+                ResumedQuoteClassifier {
+                    classifier: s,
+                    first_block: block,
+                }
             }
+        }
+
+        pub(crate) struct $name<'i, I>
+        where
+            I: InputBlockIterator<'i, $size>,
+        {
+            iter: I,
+            classifier: $core,
+            phantom: PhantomData<&'i ()>,
         }
 
         impl<'i, I> FallibleIterator for $name<'i, I>

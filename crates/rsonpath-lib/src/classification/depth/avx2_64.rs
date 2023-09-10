@@ -31,6 +31,7 @@ fn new_vector_from<'a, B: InputBlock<'a, SIZE>>(
 }
 
 #[target_feature(enable = "avx2")]
+#[target_feature(enable = "popcnt")]
 #[inline]
 unsafe fn new_avx2<'a, B: InputBlock<'a, SIZE>>(
     bytes: QuoteClassifiedBlock<B, u64, SIZE>,

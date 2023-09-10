@@ -9,6 +9,7 @@ env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
   CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: "aarch64-linux-gnu-gcc"
+  CARGO_PROFILE_DEV_BUILD_OVERRIDE_DEBUG: "true"
 
 permissions:
   contents: read
@@ -18,231 +19,172 @@ jobs:
     name: Check cargo install succeeds
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout source
-      uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
-      with:
-        submodules: true
-    - name: Remove config
-      run: rm -rf ./.cargo
-    - name: Install Rust toolchain (stable)
-      uses: dtolnay/rust-toolchain@5cb429dd810e16ff67df78472fa81cf760f4d1c0 # stable
-      with:
-        toolchain: stable
-        target: ${{ matrix.triple }}
-    - name: Override toolchain
-      run: rustup override set stable
-    - name: Install
-      run: cargo install --bin rq --path ./crates/rsonpath
-      env:
-        RUSTFLAGS: "--deny warnings"
-  
+      - name: Checkout source
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+        with:
+          submodules: true
+      - name: Remove config
+        run: rm -rf ./.cargo
+      - name: Install Rust toolchain (stable)
+        uses: dtolnay/rust-toolchain@5cb429dd810e16ff67df78472fa81cf760f4d1c0 # stable
+        with:
+          toolchain: stable
+      - name: Override toolchain
+        run: rustup override set stable
+      - name: Install
+        run: cargo install --bin rq --path ./crates/rsonpath
+        env:
+          RUSTFLAGS: "--deny warnings"
+
   build:
     name: Build matrix
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: true
       matrix:
+        target_triple:
+          - aarch64-unknown-linux-gnu
+          - i686-pc-windows-gnu
+          - i686-pc-windows-msvc
+          - i686-unknown-linux-gnu
+          - x86_64-apple-darwin
+          - x86_64-pc-windows-gnu
+          - x86_64-pc-windows-msvc
+          - x86_64-unknown-linux-gnu
         include:
           - os: ubuntu-latest
-            triple: aarch64-unknown-linux-gnu
-            simd-overload: ''
-            target-features: ''
-            artifact-suffix: nosimd
+            target_triple: aarch64-unknown-linux-gnu
+            # This target needs special setup.
             prologue-script: sudo apt update && sudo apt install gcc-aarch64-linux-gnu
+            rustflags: --deny warnings
           - os: ubuntu-latest
-            triple: i686-unknown-linux-gnu
-            simd-overload: ''
-            target-features: ''
-            artifact-suffix: nosimd
+            target_triple: i686-unknown-linux-gnu
+            # This target needs special setup.
             prologue-script: sudo apt update && sudo apt install gcc-multilib
+            rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
           - os: ubuntu-latest
-            triple: i686-unknown-linux-gnu
-            simd-overload: 'avx2_32'
-            target-features: +avx2,+pclmulqdq
-            artifact-suffix: avx2-pclmulqdq
-            prologue-script: sudo apt update && sudo apt install gcc-multilib
-          - os: ubuntu-latest
-            triple: i686-unknown-linux-gnu
-            simd-overload: 'ssse3_32'
-            target-features: +ssse3,+pclmulqdq
-            artifact-suffix: ssse3-pclmulqdq
-            prologue-script: sudo apt update && sudo apt install gcc-multilib
-          - os: ubuntu-latest
-            triple: x86_64-unknown-linux-gnu
-            simd-overload: 'avx2_64'
-            target-features: +avx2,+pclmulqdq
-            artifact-suffix: avx2-pclmulqdq
-          - os: ubuntu-latest
-            triple: x86_64-unknown-linux-gnu
-            simd-overload: 'ssse3_64'
-            target-features: +ssse3,+pclmulqdq
-            artifact-suffix: ssse3-pclmulqdq
-          - os: ubuntu-latest
-            triple: x86_64-unknown-linux-gnu
-            simd-overload: ''
-            target-features: ''
-            artifact-suffix: nosimd
+            target_triple: x86_64-unknown-linux-gnu
+            rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
           - os: macos-latest
-            triple: x86_64-apple-darwin
-            simd-overload: ''
-            target-features: ''
-            artifact-suffix: nosimd
+            target_triple: x86_64-apple-darwin
+            rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
           - os: windows-latest
-            triple: i686-pc-windows-gnu
-            simd-overload: 'avx2_32'
-            target-features: +avx2,+pclmulqdq
-            artifact-suffix: avx2-pclmulqdq
+            target_triple: i686-pc-windows-gnu
+            # This target needs special setup with MinGW.
             needs-mingw: x86
+            rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
           - os: windows-latest
-            triple: i686-pc-windows-gnu
-            simd-overload: 'ssse3_32'
-            target-features: +ssse3,+pclmulqdq
-            artifact-suffix: ssse3-pclmulqdq
-            needs-mingw: x86
+            target_triple: i686-pc-windows-msvc
+            rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
           - os: windows-latest
-            triple: i686-pc-windows-gnu
-            simd-overload: ''
-            target-features: ''
-            artifact-suffix: nosimd
-            needs-mingw: x86
+            target_triple: x86_64-pc-windows-gnu
+            rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
           - os: windows-latest
-            triple: i686-pc-windows-msvc
-            simd-overload: 'avx2_32'
-            target-features: +avx2,+pclmulqdq
-            artifact-suffix: avx2-pclmulqdq
-          - os: windows-latest
-            triple: i686-pc-windows-msvc
-            simd-overload: 'ssse3_32'
-            target-features: +ssse3,+pclmulqdq
-            artifact-suffix: ssse3-pclmulqdq
-          - os: windows-latest
-            triple: i686-pc-windows-msvc
-            simd-overload: ''
-            target-features: ''
-            artifact-suffix: nosimd
-          - os: windows-latest
-            triple: x86_64-pc-windows-gnu
-            simd-overload: 'ssse3_64'
-            target-features: +ssse3,+pclmulqdq
-            artifact-suffix: ssse3-pclmulqdq
-          - os: windows-latest
-            triple: x86_64-pc-windows-gnu
-            simd-overload: 'avx2_64'
-            target-features: +avx2,+pclmulqdq
-            artifact-suffix: avx2-pclmulqdq
-          - os: windows-latest
-            triple: x86_64-pc-windows-gnu
-            simd-overload: ''
-            target-features: ''
-            artifact-suffix: nosimd
-          - os: windows-latest
-            triple: x86_64-pc-windows-msvc
-            simd-overload: 'avx2_64'
-            target-features: +avx2,+pclmulqdq
-            artifact-suffix: avx2-pclmulqdq
-          - os: windows-latest
-            triple: x86_64-pc-windows-msvc
-            simd-overload: 'ssse3_64'
-            target-features: +ssse3,+pclmulqdq
-            artifact-suffix: ssse3-pclmulqdq
-          - os: windows-latest
-            triple: x86_64-pc-windows-msvc
-            simd-overload: ''
-            target-features: ''
-            artifact-suffix: nosimd
+            target_triple: x86_64-pc-windows-msvc
+            rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
     steps:
-    - name: Run prologue script
-      if: matrix.prologue-script != ''
-      run: ${{ matrix.prologue-script }}
-    - name: Cache restore (MinGW)
-      id: cache-restore-mingw
-      if: matrix.needs-mingw != ''
-      uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3.3.2
-      with:
-        path: |
-          C:\ProgramData\chocolatey\lib\mingw
-        key: ${{ matrix.os }}-mingw-${{ matrix.needs-mingw }}-11-2
-    - name: Set up MinGW ${{ matrix.needs-mingw }}
-      if: matrix.needs-mingw != '' && steps.cache-restore-mingw.outputs.cache-hit != 'true'
-      uses: egor-tensin/setup-mingw@84c781b557efd538dec66bde06988d81cd3138cf # v2.2.0
-      with:
-        platform: ${{ matrix.needs-mingw }}
-    - name: Add MinGW to PATH
-      if: matrix.needs-mingw != ''
-      run: echo "C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw32\bin" >> $env:GITHUB_PATH
-    - name: Checkout source
-      uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
-      with:
-        submodules: true
-    - name: Install Rust toolchain (stable)
-      uses: dtolnay/rust-toolchain@5cb429dd810e16ff67df78472fa81cf760f4d1c0 # stable
-      with:
-        toolchain: stable
-        target: ${{ matrix.triple }}
-    - name: Override toolchain
-      run: rustup override set stable
-    - name: Cache restore
-      id: cache-restore-cargo
-      uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3.3.2
-      with:
-        path: |
-          ~/.cargo/bin/
-          ~/.cargo/registry/index/
-          ~/.cargo/registry/cache/
-          ~/.cargo/git/db/
-          target/
-        key: ${{ matrix.os }}-${{ matrix.triple }}-${{ matrix.artifact-suffix }}-cargo-${{ hashFiles('**/Cargo.toml') }}-release
-    - name: Build release without simd
-      if: matrix.target-features == ''
-      run: cargo build --package rsonpath --release --no-default-features --target ${{ matrix.triple }}
-      env:
-        RUSTFLAGS: "--deny warnings"
-    - name: Build release with target-feature=${{ matrix.target-features }}
-      if: matrix.target-features != ''
-      run: cargo build --package rsonpath --release --target ${{ matrix.triple }}
-      env:
-        RUSTFLAGS: "-C target-feature=${{ matrix.target-features }} --deny warnings"
-        RSONPATH_UNSAFE_FORCE_SIMD: ${{ matrix.simd-overload }}
-    - name: Rename binary (Unix)
-      if: matrix.os != 'windows-latest'
-      run: mv "target/${{ matrix.triple }}/release/rq" target/release/rq-${{ matrix.triple }}-${{ matrix.artifact-suffix }}
-    - name: Rename binary (Windows)
-      if: matrix.os == 'windows-latest'
-      run: mv -Force "target/${{ matrix.triple }}/release/rq.exe" target/release/rq-${{ matrix.triple }}-${{ matrix.artifact-suffix }}.exe
-    - name: Upload the binary as artifact
-      uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
-      with:
-        name: rq-${{ matrix.triple }}-${{ matrix.artifact-suffix }}
-        path: target/release/rq-${{ matrix.triple }}-${{ matrix.artifact-suffix }}*
-        if-no-files-found: error
+      - name: Run prologue script
+        if: matrix.prologue-script != ''
+        run: ${{ matrix.prologue-script }}
+      - name: Cache restore (MinGW)
+        id: cache-restore-mingw
+        if: matrix.needs-mingw != ''
+        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3.3.2
+        with:
+          path: |
+            C:\ProgramData\chocolatey\lib\mingw
+          key: ${{ matrix.os }}-mingw-${{ matrix.needs-mingw }}-11-2
+      - name: Set up MinGW ${{ matrix.needs-mingw }}
+        if: matrix.needs-mingw != '' && steps.cache-restore-mingw.outputs.cache-hit != 'true'
+        uses: egor-tensin/setup-mingw@84c781b557efd538dec66bde06988d81cd3138cf # v2.2.0
+        with:
+          platform: ${{ matrix.needs-mingw }}
+      - name: Add MinGW to PATH
+        if: matrix.needs-mingw != ''
+        run: echo "C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw32\bin" >> $env:GITHUB_PATH
+      - name: Checkout source
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+        with:
+          submodules: true
+      - name: Install lld (Unix)
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt install lld
+      - name: Install lld (MacOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install llvm
+          export PATH=/usr/local/opt/llvm/bin:$PATH
+          export LD_LIBRARY_PATH=$(llvm-config --libdir):$LD_LIBRARY_PATH
+      - name: Download lld (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: |
+          $ProgressPreference = 'SilentlyContinue'
+          Invoke-WebRequest -Uri https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx -OutFile Microsoft.VCLibs.x64.14.00.Desktop.appx
+          Add-AppxPackage Microsoft.VCLibs.x64.14.00.Desktop.appx
+      - name: Install Rust toolchain (stable)
+        uses: dtolnay/rust-toolchain@5cb429dd810e16ff67df78472fa81cf760f4d1c0 # stable
+        with:
+          toolchain: stable
+          target: ${{ matrix.target_triple }}
+      - name: Override toolchain
+        run: rustup override set stable
+      - name: Cache restore
+        id: cache-restore-cargo
+        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3.3.2
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ matrix.os }}-${{ matrix.target_triple }}-cargo-${{ hashFiles('**/Cargo.toml') }}-release
+      - name: Build release (profile=distribution) for ${{ matrix.target-triple }}
+        run: cargo build --package rsonpath --profile=distribution --target ${{ matrix.target_triple }}
+        env:
+          RUSTFLAGS: ${{ matrix.rustflags }}
+      - name: Rename binary (Unix)
+        if: matrix.os != 'windows-latest'
+        run: mv "target/${{ matrix.target_triple }}/distribution/rq" target/distribution/rq-${{ matrix.target_triple }}
+      - name: Rename binary (Windows)
+        if: matrix.os == 'windows-latest'
+        run: mv -Force "target/${{ matrix.target_triple }}/distribution/rq.exe" target/distribution/rq-${{ matrix.target_triple }}.exe
+      - name: Upload the binary as artifact
+        uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
+        with:
+          name: rq-${{ matrix.target_triple }}
+          # The * matches .exe if on windows and nothing otherwise.
+          path: target/distribution/rq-${{ matrix.target_triple }}*
+          if-no-files-found: error
 
   github-release:
     name: Release on GitHub
     runs-on: ubuntu-latest
     needs: [build, check-install]
-    outputs: 
+    outputs:
       hashes: ${{ steps.hash.outputs.hashes }}
     permissions:
       contents: write
     steps:
-    - name: Download artifacts from build
-      uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
-      with:
-        path: release/
-    - name: Generate provenance subjects
-      id: hash
-      run: echo "hashes=$(sha256sum release/**/* | base64 -w0)" > $GITHUB_OUTPUT
-    - name: Generate provenance subjects sanity check
-      id: hash-sanity
-      run: echo "$(sha256sum release/**/* | base64 -w0)"
-    - name: Create GitHub Release
-      uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v1
-      with:
-        name: ${{ github.ref_name }}
-        files: release/**/*
-        fail_on_unmatched_files: true
-        prerelease: ${{ endsWith(github.ref, 'rc') || endsWith(github.ref, 'alpha') || endsWith(github.ref, 'beta') }}
-        draft: true
+      - name: Download artifacts from build
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        with:
+          path: release/
+      - name: Generate provenance subjects
+        id: hash
+        run: echo "hashes=$(sha256sum release/**/* | base64 -w0)" > $GITHUB_OUTPUT
+      - name: Generate provenance subjects sanity check
+        id: hash-sanity
+        run: echo "$(sha256sum release/**/* | base64 -w0)"
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v1
+        with:
+          name: ${{ github.ref_name }}
+          files: release/**/*
+          fail_on_unmatched_files: true
+          prerelease: ${{ endsWith(github.ref, 'rc') || endsWith(github.ref, 'alpha') || endsWith(github.ref, 'beta') }}
+          draft: true
 
   provenance:
     needs: [github-release]

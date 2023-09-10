@@ -39,7 +39,7 @@ jobs:
           toolchain: stable
           target: x86_64-unknown-linux-gnu
       - name: Override toolchain
-        run: rustup override set stable      
+        run: rustup override set stable
       - name: Cache restore (Cargo)
         id: cache-restore-cargo
         uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3.3.2
@@ -63,7 +63,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@a753861a5debcf57bf8b404356158c8e1e33150c # v2.0.0
         with:
-          path: './book/wwwroot'
+          path: "./book/wwwroot"
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@9dbe3824824f8a1377b8e298bafde1a50ede43e5 # v2.0.4

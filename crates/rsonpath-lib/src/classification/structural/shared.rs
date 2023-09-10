@@ -1,4 +1,4 @@
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+#[cfg(target_arch = "x86")]
 pub(super) mod mask_32;
 #[cfg(target_arch = "x86_64")]
 pub(super) mod mask_64;
@@ -10,6 +10,29 @@ pub(super) mod vector_256;
 #[allow(unused_macros)]
 macro_rules! structural_classifier {
     ($name:ident, $core:ident, $mask_mod:ident, $size:literal, $mask_ty:ty) => {
+        pub(crate) struct Constructor;
+
+        impl StructuralImpl for Constructor {
+            type Classifier<'i, I, Q> = $name<'i, I, Q>
+            where I: InputBlockIterator<'i, BLOCK_SIZE>, Q: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE>;
+
+            #[inline]
+            #[allow(dead_code)]
+            fn new<'i, I, Q>(iter: Q) -> Self::Classifier<'i, I, Q>
+            where
+                I: InputBlockIterator<'i, BLOCK_SIZE>,
+                Q: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE>,
+            {
+                Self::Classifier {
+                    iter,
+                    classifier: $core::new(),
+                    block: None,
+                    are_commas_on: false,
+                    are_colons_on: false,
+                }
+            }
+        }
+
         pub(crate) struct $name<'a, I, Q>
         where
             I: InputBlockIterator<'a, $size>,
@@ -22,18 +45,6 @@ macro_rules! structural_classifier {
         }
 
         impl<'a, I: InputBlockIterator<'a, $size>, Q: QuoteClassifiedIterator<'a, I, $mask_ty, $size>> $name<'a, I, Q> {
-            #[inline]
-            #[allow(dead_code)]
-            pub(crate) fn new(iter: Q) -> Self {
-                Self {
-                    iter,
-                    classifier: $core::new(),
-                    block: None,
-                    are_commas_on: false,
-                    are_colons_on: false,
-                }
-            }
-
             #[inline(always)]
             fn current_block_is_spent(&self) -> bool {
                 self.block

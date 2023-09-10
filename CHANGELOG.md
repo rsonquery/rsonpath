@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [v0.7.1] - 2023-09-09
+## [0.7.1] - 2023-09-09
 
 ### Bug Fixes
 
@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file.
 
 - Bump thiserror from 1.0.47 to 1.0.48.
 
-## [v0.7.0] - 2023-09-02
+## [0.7.0] - 2023-09-02
 
 ### Features
 

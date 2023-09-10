@@ -1,21 +1,30 @@
-use rsonpath::classification::structural::{
-    classify_structural_characters, BracketType, Structural, StructuralIterator,
+use crate::{
+    classification::{
+        simd::{self, Simd},
+        structural::{BracketType, Structural, StructuralIterator},
+    },
+    input::Input,
+    input::OwnedBytes,
+    result::empty::EmptyRecorder,
+    FallibleIterator,
 };
-use rsonpath::input::OwnedBytes;
-use rsonpath::result::empty::EmptyRecorder;
-use rsonpath::FallibleIterator;
-use rsonpath::{classification::quotes::classify_quoted_sequences, input::Input};
+
+use super::simd::simd_dispatch;
 
 fn classify_string(json: &str) -> Vec<Structural> {
-    let json_string = json.to_owned();
-    let bytes = OwnedBytes::try_from(json_string).unwrap();
-    let iter = bytes.iter_blocks(&EmptyRecorder);
-    let quotes_classifier = classify_quoted_sequences(iter);
-    let mut structural_classifier = classify_structural_characters(quotes_classifier);
-    structural_classifier.turn_commas_on(0);
-    structural_classifier.turn_colons_on(0);
+    let simd = simd::configure();
 
-    structural_classifier.collect().unwrap()
+    simd_dispatch!(simd => |simd| {
+        let json_string = json.to_owned();
+        let bytes = OwnedBytes::try_from(json_string).unwrap();
+        let iter = bytes.iter_blocks(&EmptyRecorder);
+        let quotes_classifier = simd.classify_quoted_sequences(iter);
+        let mut structural_classifier = simd.classify_structural_characters(quotes_classifier);
+        structural_classifier.turn_commas_on(0);
+        structural_classifier.turn_colons_on(0);
+
+        structural_classifier.collect().unwrap()
+    })
 }
 
 #[test]
@@ -149,7 +158,7 @@ mod prop_test {
                     x => x.to_string(),
                 })
                 .collect();
-            QuotedString(format!(r#""{}""#, escaped_string))
+            Self(format!(r#""{}""#, escaped_string))
         }
     }
 
@@ -228,8 +237,7 @@ mod prop_test {
                 Token::OpeningBracket => "[",
                 Token::ClosingBrace => "}",
                 Token::ClosingBracket => "]",
-                Token::Garbage(string) => string,
-                Token::Quoted(QuotedString(string)) => string,
+                Token::Garbage(string) | Token::Quoted(QuotedString(string)) => string,
             })
             .collect::<String>()
     }
@@ -237,7 +245,7 @@ mod prop_test {
     fn tokens_into_structurals(tokens: &[Token]) -> Vec<Structural> {
         tokens
             .iter()
-            .scan(0usize, |idx, x| {
+            .scan(0_usize, |idx, x| {
                 let expected = match x {
                     Token::Comma => Some(Structural::Comma(*idx)),
                     Token::Colon => Some(Structural::Colon(*idx)),
@@ -248,8 +256,7 @@ mod prop_test {
                     _ => None,
                 };
                 match x {
-                    Token::Garbage(string) => *idx += string.len(),
-                    Token::Quoted(QuotedString(string)) => *idx += string.len(),
+                    Token::Quoted(QuotedString(string)) | Token::Garbage(string) => *idx += string.len(),
                     _ => *idx += 1,
                 }
                 Some(expected)

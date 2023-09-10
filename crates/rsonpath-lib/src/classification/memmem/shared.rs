@@ -2,7 +2,7 @@ use crate::input::error::InputError;
 use crate::input::Input;
 use crate::query::JsonString;
 
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+#[cfg(target_arch = "x86")]
 pub(super) mod mask_32;
 #[cfg(target_arch = "x86_64")]
 pub(super) mod mask_64;

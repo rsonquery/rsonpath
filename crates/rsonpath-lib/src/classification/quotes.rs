@@ -12,31 +12,10 @@
 //! marks _opening_ quotes with lit bits, but _closing_ quotes are always unmarked.
 //! This behavior should not be presumed to be stable, though, and can change
 //! without a major semver bump.
-//!
-//! # Examples
-//! ```
-//! use rsonpath::classification::quotes::{classify_quoted_sequences, QuoteClassifiedIterator};
-//! use rsonpath::input::{Input, OwnedBytes};
-//! use rsonpath::result::empty::EmptyRecorder;
-//! use rsonpath::FallibleIterator;
-//!
-//! let json = r#"{"x": "string", "y": {"z": "\"escaped\""}}"#.to_owned();
-//! //            011000111111100011000011000111111111111000
-//! // The mask below appears reversed due to endianness.
-//! let expd = 0b000111111111111000110000110001111111000110;
-//! let input = OwnedBytes::try_from(json).unwrap();
-//! let iter = input.iter_blocks::<_, 64>(&EmptyRecorder);
-//! let mut quote_classifier = classify_quoted_sequences(iter);
-//!
-//! let block = quote_classifier.next().unwrap().unwrap();
-//! assert_eq!(expd, block.within_quotes_mask);
-//! ```
-
 use crate::{
     input::{error::InputError, InputBlock, InputBlockIterator},
     FallibleIterator, MaskType, BLOCK_SIZE,
 };
-use cfg_if::cfg_if;
 
 /// Result of the [`FallibleIterator`] for quote classification,
 /// and of the [`offset`](`QuoteClassifiedIterator::offset`) function.
@@ -55,6 +34,15 @@ pub struct QuoteClassifiedBlock<B, M, const N: usize> {
     pub block: B,
     /// Mask marking characters within a quoted sequence.
     pub within_quotes_mask: M,
+}
+
+/// Result of resuming quote classification, the resulting iterator
+/// and optionally the first block (already quote classified).
+pub struct ResumedQuoteClassifier<Q, B, M, const N: usize> {
+    /// Resumed iterator.
+    pub classifier: Q,
+    /// Optional first quote classified block.
+    pub first_block: Option<QuoteClassifiedBlock<B, M, N>>,
 }
 
 /// Trait for quote classifier iterators, i.e. finite iterators
@@ -106,60 +94,31 @@ where
     }
 }
 
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-mod avx2_32;
+pub(crate) mod nosimd;
+pub(crate) mod shared;
+
+#[cfg(target_arch = "x86")]
+pub(crate) mod avx2_32;
 #[cfg(target_arch = "x86_64")]
-mod avx2_64;
-mod nosimd;
-mod shared;
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-mod ssse3_32;
+pub(crate) mod avx2_64;
+#[cfg(target_arch = "x86")]
+pub(crate) mod sse2_32;
 #[cfg(target_arch = "x86_64")]
-mod ssse3_64;
+pub(crate) mod sse2_64;
 
-cfg_if! {
-    if #[cfg(any(doc, not(feature = "simd")))] {
-        type ClassifierImpl<'i, I, const N: usize> = nosimd::SequentialQuoteClassifier<'i, I, N>;
-    }
-    else if #[cfg(all(simd = "avx2_64", target_arch = "x86_64"))] {
-        type ClassifierImpl<'i, I> = avx2_64::Avx2QuoteClassifier64<'i, I>;
-    }
-    else if #[cfg(all(simd = "avx2_32", any(target_arch = "x86_64", target_arch = "x86")))] {
-        type ClassifierImpl<'i, I> = avx2_32::Avx2QuoteClassifier32<'i, I>;
-    }
-    else if #[cfg(all(simd = "ssse3_64", target_arch = "x86_64"))] {
-        type ClassifierImpl<'i, I> = ssse3_64::Ssse3QuoteClassifier64<'i, I>;
-    }
-    else if #[cfg(all(simd = "ssse3_32", any(target_arch = "x86_64", target_arch = "x86")))] {
-        type ClassifierImpl<'i, I> = ssse3_32::Ssse3QuoteClassifier32<'i, I>;
-    }
-    else {
-        compile_error!("Target architecture is not supported by SIMD features of this crate. Disable the default `simd` feature.");
-    }
-}
+pub(crate) trait QuotesImpl {
+    type Classifier<'i, I>: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE> + InnerIter<I>
+    where
+        I: InputBlockIterator<'i, BLOCK_SIZE>;
 
-/// Walk through the JSON document represented by `bytes`
-/// and classify quoted sequences.
-#[must_use]
-#[inline(always)]
-pub fn classify_quoted_sequences<'i, I>(
-    iter: I,
-) -> impl QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE> + InnerIter<I>
-where
-    I: InputBlockIterator<'i, BLOCK_SIZE>,
-{
-    ClassifierImpl::new(iter)
-}
+    fn new<'i, I>(iter: I) -> Self::Classifier<'i, I>
+    where
+        I: InputBlockIterator<'i, BLOCK_SIZE>;
 
-pub(crate) fn resume_quote_classification<'i, I>(
-    iter: I,
-    first_block: Option<I::Block>,
-) -> (
-    impl QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE> + InnerIter<I>,
-    Option<QuoteClassifiedBlock<I::Block, MaskType, BLOCK_SIZE>>,
-)
-where
-    I: InputBlockIterator<'i, BLOCK_SIZE>,
-{
-    ClassifierImpl::resume(iter, first_block)
+    fn resume<'i, I>(
+        iter: I,
+        first_block: Option<I::Block>,
+    ) -> ResumedQuoteClassifier<Self::Classifier<'i, I>, I::Block, MaskType, BLOCK_SIZE>
+    where
+        I: InputBlockIterator<'i, BLOCK_SIZE>;
 }

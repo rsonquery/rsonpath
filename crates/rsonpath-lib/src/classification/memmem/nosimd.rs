@@ -5,6 +5,29 @@ use crate::query::JsonString;
 use crate::result::InputRecorder;
 use crate::FallibleIterator;
 
+pub(crate) struct Constructor;
+
+impl MemmemImpl for Constructor {
+    type Classifier<'i, 'b, 'r, I, R> = SequentialMemmemClassifier<'i, 'b, 'r, I, R, BLOCK_SIZE>
+    where
+        I: Input + 'i,
+        I::BlockIterator<'i, 'r, BLOCK_SIZE, R>: 'b,
+        R: InputRecorder<I::Block<'i, BLOCK_SIZE>> + 'r,
+        'i: 'r;
+
+    fn memmem<'i, 'b, 'r, I, R>(
+        input: &'i I,
+        iter: &'b mut I::BlockIterator<'i, 'r, BLOCK_SIZE, R>,
+    ) -> Self::Classifier<'i, 'b, 'r, I, R>
+    where
+        I: Input,
+        R: InputRecorder<I::Block<'i, BLOCK_SIZE>>,
+        'i: 'r,
+    {
+        Self::Classifier { input, iter }
+    }
+}
+
 pub(crate) struct SequentialMemmemClassifier<'i, 'b, 'r, I, R, const N: usize>
 where
     I: Input,
@@ -19,12 +42,6 @@ where
     I: Input,
     R: InputRecorder<I::Block<'i, N>> + 'r,
 {
-    #[inline]
-    #[allow(dead_code)]
-    pub(crate) fn new(input: &'i I, iter: &'b mut I::BlockIterator<'i, 'r, N, R>) -> Self {
-        Self { input, iter }
-    }
-
     #[inline]
     fn find_label_sequential(
         &mut self,

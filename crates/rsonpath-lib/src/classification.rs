@@ -12,55 +12,13 @@
 //! It allows saving the state of a classifier and can be later used to resume classification
 //! from a, possibly different, high-level classifier. This state's index can be pushed
 //! forward.
-//!
-//! # Examples
-//! ```rust
-//! use rsonpath::classification::quotes::classify_quoted_sequences;
-//! use rsonpath::classification::structural::{
-//!     classify_structural_characters, resume_structural_classification,
-//!     BracketType, Structural, StructuralIterator,
-//! };
-//! use rsonpath::input::{Input, OwnedBytes};
-//! use rsonpath::result::empty::EmptyRecorder;
-//! use rsonpath::FallibleIterator;
-//!
-//! let json = r#"{"a":[42, {}, 44]}"#.to_owned();
-//! let input = OwnedBytes::try_from(json).unwrap();
-//! let iter = input.iter_blocks::<_, 64>(&EmptyRecorder);
-//! let quote_classifier = classify_quoted_sequences(iter);
-//! let mut structural_classifier = classify_structural_characters(quote_classifier);
-//! structural_classifier.turn_colons_on(0);
-//! structural_classifier.turn_commas_on(0);
-//!
-//! // Classify first two structural characters.
-//! assert_eq!(
-//!     structural_classifier.next().unwrap(),
-//!     Some(Structural::Opening(BracketType::Curly, 0))
-//! );
-//! assert_eq!(
-//!     structural_classifier.next().unwrap(),
-//!     Some(Structural::Colon(4))
-//! );
-//!
-//! // We stop at the first non-classified character, Opening(5).
-//! let mut resume_state = structural_classifier.stop();
-//! assert_eq!(resume_state.get_idx(), 5);
-//!
-//! // Skip to index 11.
-//! resume_state.forward_to(11);
-//! assert_eq!(resume_state.get_idx(), 11);
-//!
-//! // Resume.
-//! let mut structural_classifier_2 = resume_structural_classification(resume_state);
-//! assert_eq!(
-//!     structural_classifier_2.next().unwrap(),
-//!     Some(Structural::Closing(BracketType::Curly, 11))
-//! );
-//! ```
+#[cfg(test)]
+mod classifier_correctness_tests;
 pub mod depth;
 pub(crate) mod mask;
 pub mod memmem;
 pub mod quotes;
+pub mod simd;
 pub mod structural;
 
 use crate::{

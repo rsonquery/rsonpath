@@ -207,17 +207,13 @@ pub mod query;
 pub mod result;
 
 cfg_if::cfg_if! {
-    if #[cfg(any(simd = "avx2_64", simd = "ssse3_64"))] {
-        pub(crate) const BLOCK_SIZE: usize = 64;
-        pub(crate) type MaskType = u64;
-    }
-    else if #[cfg(any(simd = "avx2_32", simd = "ssse3_32"))] {
+    if #[cfg(target_pointer_width = "32")] {
         pub(crate) const BLOCK_SIZE: usize = 32;
         pub(crate) type MaskType = u32;
     }
-    else if #[cfg(any(doc, not(feature = "simd")))] {
-        pub(crate) const BLOCK_SIZE: usize = 8 * std::mem::size_of::<usize>();
-        pub(crate) type MaskType = usize;
+    else if #[cfg(target_pointer_width = "64")] {
+        pub(crate) const BLOCK_SIZE: usize = 64;
+        pub(crate) type MaskType = u64;
     }
 }
 

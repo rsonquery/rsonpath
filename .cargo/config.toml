@@ -1,8 +1,8 @@
 [build]
-rustflags = ["-C", "target-cpu=native", "-C", "link-arg=-fuse-ld=lld"]
+rustflags = ["-C", "link-arg=-fuse-ld=lld"]
 
 [alias]
-rsontest = "hack test -q --feature-powerset --skip default --skip default-optimizations"
+rsontest = "hack test -q --feature-powerset --skip default"
 
 [env]
 RUST_BACKTRACE = "1"
