@@ -56,24 +56,32 @@ jobs:
             target_triple: aarch64-unknown-linux-gnu
             # This target needs special setup.
             prologue-script: sudo apt update && sudo apt install gcc-aarch64-linux-gnu
+            rustflags: --deny warnings
           - os: ubuntu-latest
             target_triple: i686-unknown-linux-gnu
             # This target needs special setup.
             prologue-script: sudo apt update && sudo apt install gcc-multilib
+            rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
           - os: ubuntu-latest
             target_triple: x86_64-unknown-linux-gnu
+            rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
           - os: macos-latest
             target_triple: x86_64-apple-darwin
+            rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
           - os: windows-latest
             target_triple: i686-pc-windows-gnu
             # This target needs special setup with MinGW.
             needs-mingw: x86
+            rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
           - os: windows-latest
             target_triple: i686-pc-windows-msvc
+            rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
           - os: windows-latest
             target_triple: x86_64-pc-windows-gnu
+            rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
           - os: windows-latest
             target_triple: x86_64-pc-windows-msvc
+            rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
     steps:
       - name: Run prologue script
         if: matrix.prologue-script != ''
@@ -135,7 +143,7 @@ jobs:
       - name: Build release (profile=distribution) for ${{ matrix.target-triple }}
         run: cargo build --package rsonpath --profile=distribution --target ${{ matrix.target_triple }}
         env:
-          RUSTFLAGS: "-C link-arg=-fuse-ld=lld --deny warnings"
+          RUSTFLAGS: ${{ matrix.rustflags }}
       - name: Rename binary (Unix)
         if: matrix.os != 'windows-latest'
         run: mv "target/${{ matrix.target_triple }}/distribution/rq" target/distribution/rq-${{ matrix.target_triple }}

@@ -48,33 +48,41 @@ jobs:
               sudo apt update && sudo apt install gcc-aarch64-linux-gnu
             # There is no standard GitHub os image that can execute ARM, we just build it.
             can-run: false
+            rustflags: "--deny warnings"
           - os: windows-latest
             target_triple:
               i686-pc-windows-gnu
             # This target needs special setup with MinGW.
             needs-mingw: x86
             can-run: true
+            rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
           - os: windows-latest
             target_triple: i686-pc-windows-msvc
             can-run: true
+            rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
           - os: ubuntu-latest
             target_triple:
               i686-unknown-linux-gnu
             # This target needs special setup.
             prologue-script: sudo apt update && sudo apt install gcc-multilib
             can-run: true
+            rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
           - os: macos-latest
             target_triple: x86_64-apple-darwin
             can-run: true
+            rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
           - os: windows-latest
             target_triple: x86_64-pc-windows-gnu
             can-run: true
+            rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
           - os: windows-latest
             target_triple: x86_64-pc-windows-msvc
             can-run: true
+            rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
           - os: ubuntu-latest
             target_triple: x86_64-unknown-linux-gnu
             can-run: true
+            rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
     steps:
       - name: Cache restore (MinGW)
         id: cache-restore-mingw
@@ -102,7 +110,9 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: |
           brew install llvm
-          export PATH="$(brew --prefix)/opt/llvm/bin:$PATH"
+          export PATH="/usr/local/opt/llvm/bin:$PATH"
+          export LDFLAGS="-L/usr/local/opt/llvm/lib"
+          export CPPFLAGS="-I/usr/local/opt/llvm/include"
           export LD_LIBRARY_PATH=$(llvm-config --libdir):$LD_LIBRARY_PATH
       - name: Download lld (Windows)
         if: matrix.os == 'windows-latest'
@@ -141,7 +151,7 @@ jobs:
       - name: Build all feature sets
         run: cargo hack build --workspace --feature-powerset --skip default --target ${{ matrix.target_triple }}
         env:
-          RUSTFLAGS: "-C link-arg=-fuse-ld=lld --deny warnings"
+          RUSTFLAGS: ${{ matrix.rustflags }}
       - name: Download rsonpath-test artifact
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
@@ -151,7 +161,7 @@ jobs:
         if: matrix.can-run
         run: cargo hack test --workspace --feature-powerset --skip default --target ${{ matrix.target_triple }}
         env:
-          RUSTFLAGS: "-C link-arg=-fuse-ld=lld --deny warnings"
+          RUSTFLAGS: ${{ matrix.rustflags }}
 
   test-x86-simd:
     name: Test all x86 SIMD configurations

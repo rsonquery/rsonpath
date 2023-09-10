@@ -338,10 +338,6 @@ impl SimdConfiguration {
 #[must_use]
 pub fn configure() -> SimdConfiguration {
     if let Ok(simd) = std::env::var(SIMD_OVERRIDE_ENV_VARIABLE) {
-        eprintln!(
-            r#"cargo:warning=OVERRIDING SIMD SUPPORT TO "{}". THIS IS UNSAFE."#,
-            simd
-        );
         #[allow(clippy::expect_used)] // This is already an unsafe override, not expected to be used by users.
         return SimdConfiguration::try_parse(&simd).expect("invalid simd configuration override");
     }
