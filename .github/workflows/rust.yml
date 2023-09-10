@@ -191,7 +191,7 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: stable-${{ matrix.target_triple }}-cargo-${{ hashFiles('**/Cargo.toml') }}
+          key: stable-${{ matrix.target_triple }}-cargo-${{ hashFiles('**/Cargo.toml') }}-x86-simd
       - name: Build
         run: cargo build --workspace --target ${{ matrix.target_triple }}
         env:
