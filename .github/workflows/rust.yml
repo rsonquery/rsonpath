@@ -247,10 +247,11 @@ jobs:
         env:
           RUSTFLAGS: "-C link-arg=-fuse-ld=lld --deny warnings"
       - name: Clippy all features
-        uses: actions-rs/clippy-check@b5b5f21f4797c02da247df37026fcd0a5024aa4d # v1.0.7
+        uses: auguwu/clippy-action@aca33ee853cd0f46f2b24a89f3d6f425f8dd0c7e # v1.2.2
         with:
+          deny: warnings
+          all-features: true
           token: ${{ secrets.GITHUB_TOKEN }}
-          args: --workspace --all-features --release -- --deny warnings
         env:
           RUSTFLAGS: "-C link-arg=-fuse-ld=lld"
 
@@ -265,7 +266,6 @@ jobs:
         uses: dtolnay/rust-toolchain@5cb429dd810e16ff67df78472fa81cf760f4d1c0 # master
         with:
           toolchain: nightly
-          components: clippy, rustfmt
       - name: Override toolchain
         run: rustup override set nightly
       - name: Install lld
@@ -297,7 +297,7 @@ jobs:
         uses: dtolnay/rust-toolchain@5cb429dd810e16ff67df78472fa81cf760f4d1c0 # master
         with:
           toolchain: stable
-          components: clippy, rustfmt
+          components: rustfmt
       - name: Override toolchain
         run: rustup override set stable
       - name: Format

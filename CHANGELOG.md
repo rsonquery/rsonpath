@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.0] - 2023-09-10
+
+### Features
+
+- Portable binaries. ([#231](https://github.com/V0ldek/rsonpath/issues/231))
+  - SIMD capabilities are now discovered at runtime,
+  allowing us to distribute one binary per target.
+  - Requirements for SIMD are now more granular,
+  allowing weaker CPUs to still get some of the acceleration:
+    - Base SIMD is either SSE2, SSSE3, or AVX2.
+    - Structural classification works on SSSE3 and above.
+    - Quote classification works if `pclmulqdq` is available.
+    - Depth classification works if `popcnt` is available.
+  - To counteract the increased binary size debug info is no longer
+  included in distributed binaries.
+  - Codegen for distributed binaries is improved with fat LTO and setting
+  codegen units to 1.
+  - SIMD capabilities are listed with `rq --version`.
+
+### Reliability
+
+- Change clippy to auguwu/clippy-action
+  - The "official" action was not maintained for 3 years now.
+    This one is actively maintained (thanks Noel!).
+
 ## [0.7.1] - 2023-09-09
 
 ### Bug Fixes
