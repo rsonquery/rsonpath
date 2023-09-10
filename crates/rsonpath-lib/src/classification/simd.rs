@@ -347,7 +347,7 @@ pub fn configure() -> SimdConfiguration {
         return SimdConfiguration::try_parse(&simd).expect("invalid simd configuration override");
     }
 
-    cfg_if!{
+    cfg_if! {
         if #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         {
             let highest_simd = if is_x86_feature_detected!("avx2") {
@@ -359,7 +359,7 @@ pub fn configure() -> SimdConfiguration {
             } else {
                 SimdTag::Nosimd
             };
-        
+
             let fast_quotes = is_x86_feature_detected!("pclmulqdq");
             let fast_popcnt = is_x86_feature_detected!("popcnt");
         }
