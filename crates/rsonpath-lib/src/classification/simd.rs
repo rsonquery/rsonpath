@@ -251,7 +251,7 @@ where
 }
 
 /// SIMD extension recognized by rsonpath.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum SimdTag {
     /// No SIMD capabilities detected.
     Nosimd,

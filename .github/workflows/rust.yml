@@ -20,6 +20,64 @@ jobs:
   test-gen:
     uses: ./.github/workflows/test-codegen.yml
 
+  test-x86-simd:
+    name: Test all x86 SIMD configurations
+    runs-on: ubuntu-latest
+    needs: test-gen
+    strategy:
+      fail-fast: false
+      matrix:
+        target_triple:
+          - x86_64-unknown-linux-gnu
+          - i686-unknown-linux-gnu
+        simd_override:
+          - avx2;fast_quotes;fast_popcnt
+          - ssse3;fast_quotes;fast_popcnt
+          - ssse3;fast_quotes;slow_popcnt
+          - ssse3;slow_quotes;fast_popcnt
+          - ssse3;slow_quotes;slow_popcnt
+          - sse2;fast_quotes;fast_popcnt
+          - sse2;fast_quotes;slow_popcnt
+          - sse2;slow_quotes;fast_popcnt
+          - sse2;slow_quotes;slow_popcnt
+          - nosimd;slow_quotes;slow_popcnt
+    steps:
+      - name: Install lld (Unix)
+        run: sudo apt install lld
+      - name: Checkout sources
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+        with:
+          submodules: true      
+      - name: Install Rust toolchain (stable)
+        uses: dtolnay/rust-toolchain@5cb429dd810e16ff67df78472fa81cf760f4d1c0 # master
+        with:
+          toolchain: stable
+          target: ${{ matrix.target_triple }}
+      - name: Cache restore (Cargo)
+        id: cache-restore-cargo
+        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3.3.2
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: stable-${{ matrix.target_triple }}-cargo-${{ hashFiles('**/Cargo.toml') }}
+      - name: Build
+        run: cargo build --workspace --target ${{ matrix.target_triple }}
+        env:
+          RUSTFLAGS: "-C link-arg=-fuse-ld=lld --deny warnings"
+      - name: Download rsonpath-test artifact
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        with:
+          name: ${{ needs.test-gen.outputs.artifact-name }}
+          path: ${{ needs.test-gen.outputs.artifact-path }}
+      - name: Test
+        run: cargo test --workspace --target ${{ matrix.target_triple }}
+        env:
+          RUSTFLAGS: "-C link-arg=-fuse-ld=lld --deny warnings"
+
   test:
     name: Test matrix
     runs-on: ${{ matrix.os }}
