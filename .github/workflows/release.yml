@@ -107,14 +107,12 @@ jobs:
           brew install llvm
           export PATH=/usr/local/opt/llvm/bin:$PATH
           export LD_LIBRARY_PATH=$(llvm-config --libdir):$LD_LIBRARY_PATH
-      - name: Install winget (Windows)
-        if: matrix.os == 'windows-latest'
-        uses: Cyberboss/install-winget@3301de662a82d09e8aded238e995a8e1259159c8
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #- name: Install lld (Windows)
-      #  if: matrix.os == 'windows-latest'
-      #  run: winget install LLVM.LLVM --accept-source-agreements --accept-package-agreements
+      - name: Download lld (Windows)
+        shell: powershell
+        run: |
+          $ProgressPreference = 'SilentlyContinue'
+          Invoke-WebRequest -Uri https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx -OutFile Microsoft.VCLibs.x64.14.00.Desktop.appx
+          Add-AppxPackage Microsoft.VCLibs.x64.14.00.Desktop.appx
       - name: Install Rust toolchain (stable)
         uses: dtolnay/rust-toolchain@5cb429dd810e16ff67df78472fa81cf760f4d1c0 # stable
         with:
