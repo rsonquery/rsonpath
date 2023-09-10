@@ -347,18 +347,29 @@ pub fn configure() -> SimdConfiguration {
         return SimdConfiguration::try_parse(&simd).expect("invalid simd configuration override");
     }
 
-    let highest_simd = if is_x86_feature_detected!("avx2") {
-        SimdTag::Avx2
-    } else if is_x86_feature_detected!("ssse3") {
-        SimdTag::Ssse3
-    } else if is_x86_feature_detected!("sse2") {
-        SimdTag::Sse2
-    } else {
-        SimdTag::Nosimd
-    };
-
-    let fast_quotes = is_x86_feature_detected!("pclmulqdq");
-    let fast_popcnt = is_x86_feature_detected!("popcnt");
+    cfg_if!{
+        if #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        {
+            let highest_simd = if is_x86_feature_detected!("avx2") {
+                SimdTag::Avx2
+            } else if is_x86_feature_detected!("ssse3") {
+                SimdTag::Ssse3
+            } else if is_x86_feature_detected!("sse2") {
+                SimdTag::Sse2
+            } else {
+                SimdTag::Nosimd
+            };
+        
+            let fast_quotes = is_x86_feature_detected!("pclmulqdq");
+            let fast_popcnt = is_x86_feature_detected!("popcnt");
+        }
+        else
+        {
+            let highest_simd = SimdTag::Nosimd;
+            let fast_quotes = false;
+            let fast_popcnt = false;
+        }
+    }
 
     SimdConfiguration {
         highest_simd,
