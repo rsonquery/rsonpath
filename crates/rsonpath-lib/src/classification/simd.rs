@@ -12,7 +12,6 @@ use crate::{
     MaskType, BLOCK_SIZE,
 };
 use cfg_if::cfg_if;
-use log::warn;
 use std::{fmt::Display, marker::PhantomData};
 
 /// All SIMD capabilities of the engine and classifier types.
@@ -339,7 +338,7 @@ impl SimdConfiguration {
 #[must_use]
 pub fn configure() -> SimdConfiguration {
     if let Ok(simd) = std::env::var(SIMD_OVERRIDE_ENV_VARIABLE) {
-        warn!(
+        eprintln!(
             r#"cargo:warning=OVERRIDING SIMD SUPPORT TO "{}". THIS IS UNSAFE."#,
             simd
         );
