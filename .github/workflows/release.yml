@@ -99,15 +99,19 @@ jobs:
         with:
           submodules: true
       - name: Install lld (Unix)
-        if: matrix.os != 'windows-latest'
-        run: sudo apt install lld     
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt install lld
+      - name: Install lld (MacOS)
+        if: matrix.os == 'macos-latest'
+        run: brew install --with-lld --HEAD llvm
       - name: Install winget (Windows)
+        if: matrix.os == 'windows-latest'
         uses: Cyberboss/install-winget@3301de662a82d09e8aded238e995a8e1259159c8
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Install lld (Windows)
         if: matrix.os == 'windows-latest'
-        run: winget install LLVM.LLVM
+        run: winget install LLVM.LLVM --accept-source-agreements --accept-package-agreements
       - name: Install Rust toolchain (stable)
         uses: dtolnay/rust-toolchain@5cb429dd810e16ff67df78472fa81cf760f4d1c0 # stable
         with:
