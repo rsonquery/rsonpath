@@ -109,19 +109,6 @@ jobs:
       - name: Install lld (Unix)
         if: matrix.os == 'ubuntu-latest'
         run: sudo apt install lld
-      - name: Install lld (MacOS)
-        if: matrix.os == 'macos-latest'
-        run: |
-          brew install llvm
-          export PATH=/usr/local/opt/llvm/bin:$PATH
-          export LD_LIBRARY_PATH=$(llvm-config --libdir):$LD_LIBRARY_PATH
-      - name: Download lld (Windows)
-        if: matrix.os == 'windows-latest'
-        shell: powershell
-        run: |
-          $ProgressPreference = 'SilentlyContinue'
-          Invoke-WebRequest -Uri https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx -OutFile Microsoft.VCLibs.x64.14.00.Desktop.appx
-          Add-AppxPackage Microsoft.VCLibs.x64.14.00.Desktop.appx
       - name: Install Rust toolchain (stable)
         uses: dtolnay/rust-toolchain@5cb429dd810e16ff67df78472fa81cf760f4d1c0 # stable
         with:

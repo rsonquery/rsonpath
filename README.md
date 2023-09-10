@@ -119,11 +119,34 @@ SIMD is supported only on x86/x86_64 platforms.
 | aarch64-unknown-linux-gnu | ✔️          | ❌                  | ❌                | [#21](https://github.com/V0ldek/rsonpath/issues/21), [#115](https://github.com/V0ldek/rsonpath/issues/115) |
 | i686-unknown-linux-gnu    | ✔️          | ✔️                  | ✔️                | |
 | x86_64-unknown-linux-gnu  | ✔️          | ✔️                  | ✔️                | |
-| x86_64-apple-darwin       | ✔️          | ❌                  | ✔️                | |
+| x86_64-apple-darwin       | ✔️          | ✔️                  | ✔️                | |
 | i686-pc-windows-gnu       | ✔️          | ✔️                  | ✔️                | |
 | i686-pc-windows-msvc      | ✔️          | ✔️                  | ✔️                | |
 | x86_64-pc-windows-gnu     | ✔️          | ✔️                  | ✔️                | |
 | x86_64-pc-windows-msvc    | ✔️          | ✔️                  | ✔️                | |
+
+### SIMD support
+
+SIMD support is enabled on a module-by-module basis. Generally, any CPU released in the past
+decade supports AVX2, which enables all available optimizations.
+
+Older CPUs with SSE2 or higher get partial support. You can check what exactly is enabled
+with `rq --version` &ndash; check the `SIMD support` field:
+
+```console,ignore
+$ rq --version
+rq 0.8.0
+
+Commit SHA:      be6abb7fc8a3a9342876d01cad2388c10f5751e3
+Features:        default,simd
+Opt level:       3
+Target triple:   x86_64-unknown-linux-gnu
+Codegen flags:   link-arg=-fuse-ld=lld
+SIMD support:    avx2;fast_quotes;fast_popcnt
+```
+
+The `fast_quotes` capability depends on the `pclmulqdq` instruction,
+and `fast_popcnt` on the `popcnt` instruction.
 
 ## Caveats and limitations
 
@@ -192,12 +215,12 @@ cargo tree --package rsonpath --edges normal --depth 1
 
 <!-- rsonpath dependencies start -->
 ```ini
-rsonpath v0.7.1 (/home/mat/rsonpath/crates/rsonpath)
+rsonpath v0.8.0 (/home/mat/rsonpath/crates/rsonpath)
 ├── clap v4.4.2
 ├── color-eyre v0.6.2
 ├── eyre v0.6.8
 ├── log v0.4.20
-├── rsonpath-lib v0.7.1 (/home/mat/rsonpath/crates/rsonpath-lib)
+├── rsonpath-lib v0.8.0 (/home/mat/rsonpath/crates/rsonpath-lib)
 └── simple_logger v4.2.0
 [build-dependencies]
 ├── rustflags v0.1.4
@@ -212,7 +235,7 @@ cargo tree --package rsonpath-lib --edges normal --depth 1
 
 <!-- rsonpath-lib dependencies start -->
 ```ini
-rsonpath-lib v0.7.1 (/home/mat/rsonpath/crates/rsonpath-lib)
+rsonpath-lib v0.8.0 (/home/mat/rsonpath/crates/rsonpath-lib)
 ├── cfg-if v1.0.0
 ├── log v0.4.20
 ├── memmap2 v0.7.1
@@ -245,7 +268,7 @@ cargo tree --package rsonpath --edges normal
 
 <!-- rsonpath-full dependencies start -->
 ```ini
-rsonpath v0.7.1 (/home/mat/rsonpath/crates/rsonpath)
+rsonpath v0.8.0 (/home/mat/rsonpath/crates/rsonpath)
 ├── clap v4.4.2
 │   ├── clap_builder v4.4.2
 │   │   ├── anstream v0.5.0
@@ -320,7 +343,7 @@ rsonpath v0.7.1 (/home/mat/rsonpath/crates/rsonpath)
 │   └── owo-colors v3.5.0
 ├── eyre v0.6.8 (*)
 ├── log v0.4.20
-├── rsonpath-lib v0.7.1 (/home/mat/rsonpath/crates/rsonpath-lib)
+├── rsonpath-lib v0.8.0 (/home/mat/rsonpath/crates/rsonpath-lib)
 │   ├── cfg-if v1.0.0
 │   ├── log v0.4.20
 │   ├── memmap2 v0.7.1
@@ -360,11 +383,11 @@ rsonpath v0.7.1 (/home/mat/rsonpath/crates/rsonpath)
     ├── colored v2.0.4
     │   ├── is-terminal v0.4.9
     │   │   ├── hermit-abi v0.3.2
-    │   │   ├── rustix v0.38.12
+    │   │   ├── rustix v0.38.13
     │   │   │   ├── bitflags v2.4.0
     │   │   │   ├── errno v0.3.3 (*)
     │   │   │   ├── libc v0.2.147
-    │   │   │   ├── linux-raw-sys v0.4.5
+    │   │   │   ├── linux-raw-sys v0.4.7
     │   │   │   └── windows-sys v0.48.0 (*)
     │   │   └── windows-sys v0.48.0 (*)
     │   ├── lazy_static v1.4.0
