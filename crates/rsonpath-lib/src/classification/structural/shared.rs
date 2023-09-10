@@ -14,9 +14,7 @@ macro_rules! structural_classifier {
 
         impl StructuralImpl for Constructor {
             type Classifier<'i, I, Q> = $name<'i, I, Q>
-                    where
-                        I: InputBlockIterator<'i, BLOCK_SIZE>,
-                        Q: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE>;
+            where I: InputBlockIterator<'i, BLOCK_SIZE>, Q: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE>;
 
             #[inline]
             #[allow(dead_code)]

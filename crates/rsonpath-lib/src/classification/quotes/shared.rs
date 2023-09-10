@@ -13,9 +13,7 @@ macro_rules! quote_classifier {
         pub(crate) struct Constructor;
 
         impl QuotesImpl for Constructor {
-            type Classifier<'i, I> = $name<'i, I>
-                    where
-                        I: InputBlockIterator<'i, BLOCK_SIZE>;
+            type Classifier<'i, I> = $name<'i, I> where I: InputBlockIterator<'i, BLOCK_SIZE>;
 
             #[inline]
             #[allow(dead_code)]

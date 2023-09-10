@@ -12,26 +12,6 @@
 //! marks _opening_ quotes with lit bits, but _closing_ quotes are always unmarked.
 //! This behavior should not be presumed to be stable, though, and can change
 //! without a major semver bump.
-//!
-//! # Examples
-//! ```
-//! use rsonpath::classification::quotes::{classify_quoted_sequences, QuoteClassifiedIterator};
-//! use rsonpath::input::{Input, OwnedBytes};
-//! use rsonpath::result::empty::EmptyRecorder;
-//! use rsonpath::FallibleIterator;
-//!
-//! let json = r#"{"x": "string", "y": {"z": "\"escaped\""}}"#.to_owned();
-//! //            011000111111100011000011000111111111111000
-//! // The mask below appears reversed due to endianness.
-//! let expd = 0b000111111111111000110000110001111111000110;
-//! let input = OwnedBytes::try_from(json).unwrap();
-//! let iter = input.iter_blocks::<_, 64>(&EmptyRecorder);
-//! let mut quote_classifier = classify_quoted_sequences(iter);
-//!
-//! let block = quote_classifier.next().unwrap().unwrap();
-//! assert_eq!(expd, block.within_quotes_mask);
-//! ```
-
 use crate::{
     input::{error::InputError, InputBlock, InputBlockIterator},
     FallibleIterator, MaskType, BLOCK_SIZE,
@@ -56,8 +36,12 @@ pub struct QuoteClassifiedBlock<B, M, const N: usize> {
     pub within_quotes_mask: M,
 }
 
+/// Result of resuming quote classification, the resulting iterator
+/// and optionally the first block (already quote classified).
 pub struct ResumedQuoteClassifier<Q, B, M, const N: usize> {
+    /// Resumed iterator.
     pub classifier: Q,
+    /// Optional first quote classified block.
     pub first_block: Option<QuoteClassifiedBlock<B, M, N>>,
 }
 

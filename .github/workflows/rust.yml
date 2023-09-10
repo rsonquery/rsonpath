@@ -3,9 +3,9 @@ name: Rust
 on:
   workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 permissions:
   contents: read
@@ -30,154 +30,46 @@ jobs:
         toolchain:
           - stable
           - nightly
-        config-slug:
-          - aarch64-unknown-linux-gnu-nosimd
-          - i686-unknown-linux-gnu-avx2
-          - i686-unknown-linux-gnu-ssse3
-          - i686-unknown-linux-gnu-nosimd
-          - x86_64-unknown-linux-gnu-avx2
-          - x86_64-unknown-linux-gnu-ssse3
-          - x86_64-unknown-linux-gnu-nosimd
-          - x86_64-apple-darwin-nosimd
-          - i686-pc-windows-gnu-avx2
-          - i686-pc-windows-gnu-ssse3
-          - i686-pc-windows-gnu-nosimd
-          - i686-pc-windows-msvc-avx2
-          - i686-pc-windows-msvc-ssse3
-          - i686-pc-windows-msvc-nosimd
-          - x86_64-pc-windows-gnu-avx2
-          - x86_64-pc-windows-gnu-ssse3
-          - x86_64-pc-windows-gnu-nosimd
-          - x86_64-pc-windows-msvc-avx2
-          - x86_64-pc-windows-msvc-ssse3
-          - x86_64-pc-windows-msvc-nosimd
+        target_triple:
+          - aarch64-unknown-linux-gnu
+          - i686-pc-windows-gnu
+          - i686-pc-windows-msvc
+          - i686-unknown-linux-gnu
+          - x86_64-apple-darwin
+          - x86_64-pc-windows-gnu
+          - x86_64-pc-windows-msvc
+          - x86_64-unknown-linux-gnu
         include:
           - os: ubuntu-latest
-            config-slug: aarch64-unknown-linux-gnu-nosimd
-            triple: aarch64-unknown-linux-gnu
-            simd-overload: ''
-            target-features: ''
+            target_triple: aarch64-unknown-linux-gnu
+             # This target needs special setup.
             prologue-script: sudo apt update && sudo apt install gcc-aarch64-linux-gnu
+             # There is no standard GitHub os image that can execute ARM, we just build it.
             can-run: false
+          - os: windows-latest
+            target_triple: i686-pc-windows-gnu
+             # This target needs special setup with MinGW.
+            needs-mingw: x86
+            can-run: true
+          - os: windows-latest
+            target_triple: i686-pc-windows-msvc
+            can-run: true
           - os: ubuntu-latest
-            config-slug: i686-unknown-linux-gnu-avx2
-            triple: i686-unknown-linux-gnu
-            simd-overload: 'avx2_32'
-            target-features: +avx2,+pclmulqdq
+            target_triple: i686-unknown-linux-gnu
+             # This target needs special setup.
             prologue-script: sudo apt update && sudo apt install gcc-multilib
-            can-run: true
-          - os: ubuntu-latest
-            config-slug: i686-unknown-linux-gnu-ssse3
-            triple: i686-unknown-linux-gnu
-            simd-overload: 'ssse3_32'
-            target-features: +ssse3,+pclmulqdq
-            prologue-script: sudo apt update && sudo apt install gcc-multilib
-            can-run: true
-          - os: ubuntu-latest
-            config-slug: i686-unknown-linux-gnu-nosimd
-            triple: i686-unknown-linux-gnu
-            simd-overload: ''
-            target-features: ''
-            prologue-script: sudo apt update && sudo apt install gcc-multilib
-            can-run: true
-          - os: ubuntu-latest
-            config-slug: x86_64-unknown-linux-gnu-avx2
-            triple: x86_64-unknown-linux-gnu
-            simd-overload: 'avx2_64'
-            target-features: +avx2,+pclmulqdq
-            can-run: true
-          - os: ubuntu-latest
-            config-slug: x86_64-unknown-linux-gnu-ssse3
-            triple: x86_64-unknown-linux-gnu
-            simd-overload: 'ssse3_64'
-            target-features: +ssse3,+pclmulqdq
-            can-run: true
-          - os: ubuntu-latest
-            config-slug: x86_64-unknown-linux-gnu-nosimd
-            triple: x86_64-unknown-linux-gnu
-            simd-overload: ''
-            target-features: ''
             can-run: true
           - os: macos-latest
-            config-slug: x86_64-apple-darwin-nosimd
-            triple: x86_64-apple-darwin
-            simd-overload: ''
-            target-features: ''
+            target_triple: x86_64-apple-darwin
             can-run: true
           - os: windows-latest
-            config-slug: i686-pc-windows-gnu-avx2
-            triple: i686-pc-windows-gnu
-            simd-overload: 'avx2_32'
-            target-features: +avx2,+pclmulqdq
-            needs-mingw: x86
+            target_triple: x86_64-pc-windows-gnu
             can-run: true
           - os: windows-latest
-            config-slug: i686-pc-windows-gnu-ssse3
-            triple: i686-pc-windows-gnu
-            simd-overload: 'ssse3_32'
-            target-features: +ssse3,+pclmulqdq
-            needs-mingw: x86
+            target_triple: x86_64-pc-windows-msvc
             can-run: true
-          - os: windows-latest
-            config-slug: i686-pc-windows-gnu-nosimd
-            triple: i686-pc-windows-gnu
-            simd-overload: ''
-            target-features: ''
-            needs-mingw: x86
-            can-run: true
-          - os: windows-latest
-            config-slug: i686-pc-windows-msvc-avx2
-            triple: i686-pc-windows-msvc
-            simd-overload: 'avx2_32'
-            target-features: +avx2,+pclmulqdq
-            can-run: true
-          - os: windows-latest
-            config-slug: i686-pc-windows-msvc-ssse3
-            triple: i686-pc-windows-msvc
-            simd-overload: 'ssse3_32'
-            target-features: +ssse3,+pclmulqdq
-            can-run: true
-          - os: windows-latest
-            config-slug: i686-pc-windows-msvc-nosimd
-            triple: i686-pc-windows-msvc
-            simd-overload: ''
-            target-features: ''
-            can-run: true
-          - os: windows-latest
-            config-slug: x86_64-pc-windows-gnu-avx2
-            triple: x86_64-pc-windows-gnu
-            simd-overload: 'avx2_64'
-            target-features: +avx2,+pclmulqdq
-            can-run: true
-          - os: windows-latest
-            config-slug: x86_64-pc-windows-gnu-ssse3
-            triple: x86_64-pc-windows-gnu
-            simd-overload: 'ssse3_64'
-            target-features: +ssse3,+pclmulqdq
-            can-run: true
-          - os: windows-latest
-            config-slug: x86_64-pc-windows-gnu-nosimd
-            triple: x86_64-pc-windows-gnu
-            simd-overload: ''
-            target-features: ''
-            can-run: true
-          - os: windows-latest
-            config-slug: x86_64-pc-windows-msvc-avx2
-            triple: x86_64-pc-windows-msvc
-            simd-overload: 'avx2_64'
-            target-features: +avx2,+pclmulqdq
-            can-run: true
-          - os: windows-latest
-            config-slug: x86_64-pc-windows-msvc-ssse3
-            triple: x86_64-pc-windows-msvc
-            simd-overload: 'ssse3_64'
-            target-features: +ssse3,+pclmulqdq
-            can-run: true
-          - os: windows-latest
-            config-slug: x86_64-pc-windows-msvc-nosimd
-            triple: x86_64-pc-windows-msvc
-            simd-overload: ''
-            target-features: ''
+          - os: ubuntu-latest
+            target_triple: x86_64-unknown-linux-gnu
             can-run: true
     steps:
       - name: Cache restore (MinGW)
@@ -207,7 +99,7 @@ jobs:
         uses: dtolnay/rust-toolchain@5cb429dd810e16ff67df78472fa81cf760f4d1c0 # master
         with:
           toolchain: ${{ matrix.toolchain }}
-          target: ${{ matrix.triple }}
+          target: ${{ matrix.target_triple }}
       - name: Override toolchain
         run: rustup override set ${{ matrix.toolchain }}
       - name: Cache restore (Cargo)
@@ -220,39 +112,26 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ matrix.toolchain }}-${{ matrix.triple }}-${{ matrix.target_features }}-cargo-${{ hashFiles('**/Cargo.toml') }}
+          key: ${{ matrix.toolchain }}-${{ matrix.target_triple }}-cargo-${{ hashFiles('**/Cargo.toml') }}
       - name: Install cargo-hack
         if: steps.cache-restore-cargo.outputs.cache-hit != 'true'
         run: cargo install cargo-hack
         env:
           CARGO_TARGET_DIR: target/
-      - name: Build all feature sets with target-feature=${{ matrix.target-features }}
-        if: matrix.target-features != ''
-        run: cargo hack build --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --target ${{ matrix.triple }} --features simd --ignore-unknown-features
+      - name: Build all feature sets
+        run: cargo hack build --workspace --feature-powerset --skip default --target ${{ matrix.target_triple }}
         env:
-          RUSTFLAGS: "-C target-feature=${{ matrix.target-features }} --deny warnings"
-          RSONPATH_UNSAFE_FORCE_SIMD: ${{ matrix.simd-overload }}
-      - name: Build without simd
-        if: matrix.target-features == ''
-        run: cargo hack build --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --exclude-features simd --target ${{ matrix.triple }}
-        env:
-          RUSTFLAGS: "--deny warnings"
+          RUSTFLAGS: "-C link-arg=-fuse-ld=lld --deny warnings"
       - name: Download rsonpath-test artifact
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: ${{ needs.test-gen.outputs.artifact-name }}
           path: ${{ needs.test-gen.outputs.artifact-path }}
-      - name: Test all feature sets with target-feature=${{ matrix.target-features }}
-        if: matrix.can-run && matrix.target-features != ''
-        run: cargo hack test --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --target ${{ matrix.triple }} --features simd --ignore-unknown-features
+      - name: Test all feature sets
+        if: matrix.can-run
+        run: cargo hack test --workspace --feature-powerset --skip default --target ${{ matrix.target_triple }}
         env:
-          RUSTFLAGS: "-C target-feature=${{ matrix.target-features }} --deny warnings"
-          RSONPATH_UNSAFE_FORCE_SIMD: ${{ matrix.simd-overload }}
-      - name: Test without simd
-        if: matrix.can-run && matrix.target-features == ''
-        run: cargo hack test --workspace --exclude rsonpath-benchmarks --feature-powerset --skip default --exclude-features simd --target ${{ matrix.triple }}
-        env:
-          RUSTFLAGS: "--deny warnings"
+          RUSTFLAGS: "-C link-arg=-fuse-ld=lld --deny warnings"
 
   clippy:
     strategy:
@@ -266,49 +145,40 @@ jobs:
     name: Clippy (${{ matrix.toolchain }})
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
-      with:
-        submodules: true
-    - name: Install lld
-      run: sudo apt install lld
-    - name: Install Rust toolchain (${{ matrix.toolchain }})
-      uses: dtolnay/rust-toolchain@5cb429dd810e16ff67df78472fa81cf760f4d1c0 # master
-      with:
-        toolchain: ${{ matrix.toolchain }}
-        components: clippy, rustfmt
-    - name: Override toolchain
-      run: rustup override set ${{ matrix.toolchain }}
-    - name: Cache restore
-      id: cache-restore
-      uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3.3.2
-      with:
-        path: |
-          ~/.cargo/bin/
-          ~/.cargo/registry/index/
-          ~/.cargo/registry/cache/
-          ~/.cargo/git/db/
-          target/
-        key: ubuntu-latest-${{ matrix.toolchain }}-cargo-${{ hashFiles('**/Cargo.toml') }}-clippy
-    - name: Build all features
-      run: cargo build --workspace --exclude rsonpath-benchmarks --all-features --release
-      env:
-        RUSTFLAGS: "-C target-feature=+avx2 --deny warnings"
-    - name: Clippy all features
-      uses: actions-rs/clippy-check@b5b5f21f4797c02da247df37026fcd0a5024aa4d # v1.0.7
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        args: --workspace --exclude rsonpath-benchmarks --all-features --release -- --deny warnings
-      env:
-        RUSTFLAGS: "-C target-feature=+avx2"    
-    - name: Build without simd
-      run: cargo build --workspace --exclude rsonpath-benchmarks --no-default-features --release
-      env:
-        RUSTFLAGS: "--deny warnings"
-    - name: Clippy without simd
-      uses: actions-rs/clippy-check@b5b5f21f4797c02da247df37026fcd0a5024aa4d # v1.0.7
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        args: --workspace --exclude rsonpath-benchmarks --no-default-features --release -- --deny warnings
+      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+        with:
+          submodules: true
+      - name: Install lld
+        run: sudo apt install lld
+      - name: Install Rust toolchain (${{ matrix.toolchain }})
+        uses: dtolnay/rust-toolchain@5cb429dd810e16ff67df78472fa81cf760f4d1c0 # master
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          components: clippy, rustfmt
+      - name: Override toolchain
+        run: rustup override set ${{ matrix.toolchain }}
+      - name: Cache restore
+        id: cache-restore
+        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3.3.2
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ubuntu-latest-${{ matrix.toolchain }}-cargo-${{ hashFiles('**/Cargo.toml') }}-clippy
+      - name: Build all features
+        run: cargo build --workspace --all-features --release
+        env:
+          RUSTFLAGS: "-C link-arg=-fuse-ld=lld --deny warnings"
+      - name: Clippy all features
+        uses: actions-rs/clippy-check@b5b5f21f4797c02da247df37026fcd0a5024aa4d # v1.0.7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --workspace --all-features --release -- --deny warnings
+        env:
+          RUSTFLAGS: "-C link-arg=-fuse-ld=lld"
 
   docs:
     name: Documentation
@@ -338,7 +208,6 @@ jobs:
       - name: cargo doc
         run: cargo doc --package rsonpath-lib --all-features --no-deps --release
         env:
-          RUSTFLAGS: "-C target-feature=+avx2"
           RUSTDOCFLAGS: "-Dwarnings --cfg docsrs"
 
   format:
@@ -352,7 +221,7 @@ jobs:
         uses: dtolnay/rust-toolchain@5cb429dd810e16ff67df78472fa81cf760f4d1c0 # master
         with:
           toolchain: stable
-          components: clippy, rustfmt    
+          components: clippy, rustfmt
       - name: Override toolchain
         run: rustup override set stable
       - name: Format

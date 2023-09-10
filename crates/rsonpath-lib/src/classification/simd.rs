@@ -1,3 +1,4 @@
+//! SIMD configuration and runtime dispatch.
 use super::{
     depth::{DepthImpl, DepthIterator, DepthIteratorResumeOutcome},
     memmem::{Memmem, MemmemImpl},
@@ -14,19 +15,24 @@ use cfg_if::cfg_if;
 use log::warn;
 use std::{fmt::Display, marker::PhantomData};
 
+/// All SIMD capabilities of the engine and classifier types.
 pub trait Simd: Copy {
+    /// The implementation of [`QuoteClassifiedIterator`] of this SIMD configuration.
     type QuotesClassifier<'i, I>: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE> + InnerIter<I>
     where
         I: InputBlockIterator<'i, BLOCK_SIZE>;
 
+    /// The implementation of [`StructuralIterator`] of this SIMD configuration.
     type StructuralClassifier<'i, I>: StructuralIterator<'i, I, Self::QuotesClassifier<'i, I>, MaskType, BLOCK_SIZE>
     where
         I: InputBlockIterator<'i, BLOCK_SIZE>;
 
+    /// The implementation of [`DepthIterator`] of this SIMD configuration.
     type DepthClassifier<'i, I>: DepthIterator<'i, I, Self::QuotesClassifier<'i, I>, MaskType, BLOCK_SIZE>
     where
         I: InputBlockIterator<'i, BLOCK_SIZE>;
 
+    /// The implementation of [`Memmem`] of this SIMD configuration.
     type MemmemClassifier<'i, 'b, 'r, I, R>: Memmem<'i, 'b, 'r, I, BLOCK_SIZE>
     where
         I: Input + 'i,
@@ -34,11 +40,14 @@ pub trait Simd: Copy {
         R: InputRecorder<I::Block<'i, BLOCK_SIZE>> + 'r,
         'i: 'r;
 
+    /// Walk through the JSON document given by the `iter` and classify quoted sequences.
     #[must_use]
     fn classify_quoted_sequences<'i, I>(self, iter: I) -> Self::QuotesClassifier<'i, I>
     where
         I: InputBlockIterator<'i, BLOCK_SIZE>;
 
+    /// Resume quote classification from an `iter` and, optionally, an already read
+    /// block that will be used as the first block to classify.
     #[must_use]
     fn resume_quote_classification<'i, I>(
         self,
@@ -48,6 +57,9 @@ pub trait Simd: Copy {
     where
         I: InputBlockIterator<'i, BLOCK_SIZE>;
 
+    /// Walk through the JSON document quote-classified by `iter` and iterate over all
+    /// occurrences of structural characters in it.
+    #[must_use]
     fn classify_structural_characters<'i, I>(
         self,
         iter: Self::QuotesClassifier<'i, I>,
@@ -55,6 +67,9 @@ pub trait Simd: Copy {
     where
         I: InputBlockIterator<'i, BLOCK_SIZE>;
 
+    /// Resume classification using a state retrieved from a previously
+    /// used classifier via the [`stop`](StructuralIterator::stop) function.
+    #[must_use]
     fn resume_structural_classification<'i, I>(
         self,
         state: ResumeClassifierState<'i, I, Self::QuotesClassifier<'i, I>, MaskType, BLOCK_SIZE>,
@@ -62,6 +77,8 @@ pub trait Simd: Copy {
     where
         I: InputBlockIterator<'i, BLOCK_SIZE>;
 
+    /// Enrich quote classified blocks with depth information.
+    #[must_use]
     fn classify_depth<'i, I>(
         self,
         iter: Self::QuotesClassifier<'i, I>,
@@ -70,6 +87,9 @@ pub trait Simd: Copy {
     where
         I: InputBlockIterator<'i, BLOCK_SIZE>;
 
+    /// Resume classification using a state retrieved from a previously
+    /// used classifier via the [`stop`](DepthIterator::stop) function.
+    #[must_use]
     fn resume_depth_classification<'i, I>(
         self,
         state: ResumeClassifierState<'i, I, Self::QuotesClassifier<'i, I>, MaskType, BLOCK_SIZE>,
@@ -85,6 +105,8 @@ pub trait Simd: Copy {
     where
         I: InputBlockIterator<'i, BLOCK_SIZE>;
 
+    /// Create a classifier that can look for occurrences of a key in the `iter`.
+    #[must_use]
     fn memmem<'i, 'b, 'r, I, R>(
         self,
         input: &'i I,
@@ -140,6 +162,7 @@ where
         R: InputRecorder<I::Block<'i, BLOCK_SIZE>> + 'r,
         'i: 'r;
 
+    #[inline(always)]
     fn classify_quoted_sequences<'i, I>(self, iter: I) -> Self::QuotesClassifier<'i, I>
     where
         I: InputBlockIterator<'i, BLOCK_SIZE>,
@@ -147,6 +170,7 @@ where
         Q::new(iter)
     }
 
+    #[inline(always)]
     fn resume_quote_classification<'i, I>(
         self,
         iter: I,
@@ -158,6 +182,7 @@ where
         Q::resume(iter, first_block)
     }
 
+    #[inline(always)]
     fn classify_structural_characters<'i, I>(
         self,
         iter: Self::QuotesClassifier<'i, I>,
@@ -168,6 +193,7 @@ where
         S::new(iter)
     }
 
+    #[inline(always)]
     fn resume_structural_classification<'i, I>(
         self,
         state: ResumeClassifierState<'i, I, Self::QuotesClassifier<'i, I>, MaskType, BLOCK_SIZE>,
@@ -178,6 +204,7 @@ where
         S::resume(state)
     }
 
+    #[inline(always)]
     fn classify_depth<'i, I>(
         self,
         iter: Self::QuotesClassifier<'i, I>,
@@ -189,6 +216,7 @@ where
         D::new(iter, opening)
     }
 
+    #[inline(always)]
     fn resume_depth_classification<'i, I>(
         self,
         state: ResumeClassifierState<'i, I, Self::QuotesClassifier<'i, I>, MaskType, BLOCK_SIZE>,
@@ -207,6 +235,7 @@ where
         D::resume(state, opening)
     }
 
+    #[inline(always)]
     fn memmem<'i, 'b, 'r, I, R>(
         self,
         input: &'i I,
@@ -221,20 +250,29 @@ where
     }
 }
 
+/// SIMD extension recognized by rsonpath.
 #[derive(Clone, Copy)]
 pub enum SimdTag {
+    /// No SIMD capabilities detected.
     Nosimd,
+    /// SSE2 detected.
     Sse2,
+    /// SSSE3 detected.
     Ssse3,
+    /// AVX2 detected.
     Avx2,
 }
 
+/// Runtime-detected SIMD configuration guiding how to construct a [`Simd`] implementation for the engine.
 #[derive(Clone, Copy)]
 pub struct SimdConfiguration {
     highest_simd: SimdTag,
     fast_quotes: bool,
     fast_popcnt: bool,
 }
+
+/// Name of the env variable that can be used to force a given [`SimdConfiguration`] to be used.
+pub const SIMD_OVERRIDE_ENV_VARIABLE: &str = "RSONPATH_UNSAFE_FORCE_SIMD";
 
 impl SimdConfiguration {
     pub(crate) fn highest_simd(&self) -> SimdTag {
@@ -248,11 +286,7 @@ impl SimdConfiguration {
     pub(crate) fn fast_popcnt(&self) -> bool {
         self.fast_popcnt
     }
-}
 
-pub const SIMD_OVERRIDE_ENV_VARIABLE: &str = "RSONPATH_UNSAFE_FORCE_SIMD";
-
-impl SimdConfiguration {
     fn try_parse(str: &str) -> Option<Self> {
         let parts = str.split(';').collect::<Vec<_>>();
 
@@ -266,9 +300,9 @@ impl SimdConfiguration {
 
         let simd = match simd_slug.to_ascii_lowercase().as_ref() {
             "nosimd" => Some(SimdTag::Nosimd),
-            "sse2+" => Some(SimdTag::Sse2),
-            "ssse3+" => Some(SimdTag::Ssse3),
-            "avx2+" => Some(SimdTag::Avx2),
+            "sse2" => Some(SimdTag::Sse2),
+            "ssse3" => Some(SimdTag::Ssse3),
+            "avx2" => Some(SimdTag::Avx2),
             _ => None,
         };
         let quotes = match quotes_str.to_ascii_lowercase().as_ref() {
@@ -290,6 +324,17 @@ impl SimdConfiguration {
     }
 }
 
+/// Detect available SIMD features and return the best possible [`SimdConfiguration`]
+/// for the current system.
+///
+/// # Safety
+/// If the [`SIMD_OVERRIDE_ENV_VARIABLE`] env variable is defined, it MUST be a valid SIMD
+/// configuration for the current system. Otherwise, undefined behavior will follow.
+/// For example, setting the value to enable AVX2 on a platform without AVX2 is unsound.
+///
+/// # Panics
+/// If the [`SIMD_OVERRIDE_ENV_VARIABLE`] env variable is defined and does not contain a valid
+/// SIMD configuration, an immediate panic is raised.
 #[inline]
 #[must_use]
 pub fn configure() -> SimdConfiguration {
@@ -327,9 +372,9 @@ impl Display for SimdConfiguration {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let simd_slug = match self.highest_simd {
             SimdTag::Nosimd => "nosimd",
-            SimdTag::Sse2 => "sse2+",
-            SimdTag::Ssse3 => "ssse3+",
-            SimdTag::Avx2 => "avx2+",
+            SimdTag::Sse2 => "sse2",
+            SimdTag::Ssse3 => "ssse3",
+            SimdTag::Avx2 => "avx2",
         };
         let quote_desc = if self.fast_quotes { "fast_quotes" } else { "slow_quotes" };
         let popcnt_desc = if self.fast_popcnt { "fast_popcnt" } else { "slow_popcnt" };
