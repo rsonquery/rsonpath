@@ -633,7 +633,7 @@ cfg_if! {
         macro_rules! simd_dispatch {
             ($conf:expr => |$simd:ident| $b:block) => {
                 let conf = $conf;
-                assert_eq!(conf.highest_simd(), SimdTag::Nosimd);
+                assert_eq!(conf.highest_simd(), $crate::classification::simd::SimdTag::Nosimd);
                 assert!(!conf.fast_quotes());
                 assert!(!conf.fast_popcnt());
                 let $simd = $crate::classification::simd::ResolvedSimd::<

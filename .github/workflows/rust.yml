@@ -100,7 +100,10 @@ jobs:
         run: sudo apt install lld
       - name: Install lld (MacOS)
         if: matrix.os == 'macos-latest'
-        run: brew install --with-lld --HEAD llvm
+        run: |
+          brew install llvm
+          export PATH=/usr/local/opt/llvm/bin:$PATH
+          export LD_LIBRARY_PATH=$(llvm-config --libdir):$LD_LIBRARY_PATH
       - name: Install winget (Windows)
         if: matrix.os == 'windows-latest'
         uses: Cyberboss/install-winget@3301de662a82d09e8aded238e995a8e1259159c8
