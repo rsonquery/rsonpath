@@ -56,7 +56,7 @@ jobs:
             target_triple: aarch64-unknown-linux-gnu
             # This target needs special setup.
             prologue-script: sudo apt update && sudo apt install gcc-aarch64-linux-gnu
-            rustflags: --deny warnings
+            rustflags: "--deny warnings"
           - os: ubuntu-latest
             target_triple: i686-unknown-linux-gnu
             # This target needs special setup.
@@ -67,7 +67,7 @@ jobs:
             rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
           - os: macos-latest
             target_triple: x86_64-apple-darwin
-            rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
+            rustflags: "--deny warnings"
           - os: windows-latest
             target_triple: i686-pc-windows-gnu
             # This target needs special setup with MinGW.
