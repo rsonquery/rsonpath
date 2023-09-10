@@ -107,11 +107,11 @@ jobs:
           brew install llvm
           export PATH=/usr/local/opt/llvm/bin:$PATH
           export LD_LIBRARY_PATH=$(llvm-config --libdir):$LD_LIBRARY_PATH
-      #- name: Install winget (Windows)
-      #  if: matrix.os == 'windows-latest'
-      #  uses: Cyberboss/install-winget@3301de662a82d09e8aded238e995a8e1259159c8
-      #  with:
-      #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install winget (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: Cyberboss/install-winget@3301de662a82d09e8aded238e995a8e1259159c8
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       #- name: Install lld (Windows)
       #  if: matrix.os == 'windows-latest'
       #  run: winget install LLVM.LLVM --accept-source-agreements --accept-package-agreements

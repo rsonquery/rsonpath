@@ -106,9 +106,9 @@ jobs:
         uses: Cyberboss/install-winget@3301de662a82d09e8aded238e995a8e1259159c8
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Install lld (Windows)
-        if: matrix.os == 'windows-latest'
-        run: winget install LLVM.LLVM --accept-source-agreements --accept-package-agreements
+      #- name: Install lld (Windows)
+      #  if: matrix.os == 'windows-latest'
+      #  run: winget install LLVM.LLVM --accept-source-agreements --accept-package-agreements
       - name: Checkout sources
         uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
         with:
