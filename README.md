@@ -28,7 +28,7 @@ Benchmarks of `rsonpath` against a reference no-SIMD engine on the
 To run a JSONPath query on a file execute:
 
 ```console,ignore
-$ rq '$..a.b' ./file.json
+rq '$..a.b' ./file.json
 ```
 
 If the file is omitted, the engine reads standard input. JSON can also be passed inline:
@@ -52,24 +52,14 @@ For other result modes consult the `--help` usage page.
 See [Releases](https://github.com/V0ldek/rsonpath/releases/latest) for precompiled binaries for
 all first-class support targets.
 
+### `cargo`
+
 Easiest way to install is via [`cargo`](https://doc.rust-lang.org/cargo/getting-started/installation.html).
 
 ```console,ignore
 $ cargo install rsonpath
 ...
 ```
-
-This might fail with the following error:
-
-```console,ignore
-Target architecture is not supported by SIMD features of this crate. Disable the default `simd` feature.
-```
-
-This means the SIMD features of the engine are not implemented for the machine's CPU.
-You can still use `rsonpath`, but the speed will be limited (see the reference engine in the chart above). To install without simd, run `cargo install --no-default-features -F default-optimizations`.
-
-Alternatively, you can download the source code and manually run `just install` (requires [`just`](https://github.com/casey/just))
-or `cargo install --path ./crates/rsonpath`.
 
 ### Native CPU optimizations
 
@@ -83,6 +73,8 @@ To do this, run the following `cargo install` variant:
 $ RUSTFLAGS="-C target-cpu=native" cargo install rsonpath
 ...
 ```
+
+Check out [the relevant chapter in the rsonbook](https://v0ldek.github.io/rsonpath/user/installation/manual.html).
 
 ## Query language
 
@@ -119,18 +111,19 @@ A query is a sequence of segments, each containing one or more selectors.
 
 ## Supported platforms
 
-The crate is continuously built for all Tier 1 Rust targets, and tests are continuously ran for targets that can be ran with GitHub action images. SIMD is supported only on x86-64 platforms for AVX2, while nosimd builds are always available for all targets.
+The crate is continuously built for all Tier 1 Rust targets, and tests are continuously ran for targets that can be ran with GitHub action images.
+SIMD is supported only on x86/x86_64 platforms.
 
 | Target triple             | nosimd build | SIMD support        | Continuous testing | Tracking issues |
 |:--------------------------|:-------------|:--------------------|:-------------------|----------------:|
 | aarch64-unknown-linux-gnu | ✔️          | ❌                  | ❌                | [#21](https://github.com/V0ldek/rsonpath/issues/21), [#115](https://github.com/V0ldek/rsonpath/issues/115) |
-| i686-unknown-linux-gnu    | ✔️          | ✔️ avx2, ssse3       | ✔️                | |
-| x86_64-unknown-linux-gnu  | ✔️          | ✔️ avx2, ssse3       | ✔️                | |
+| i686-unknown-linux-gnu    | ✔️          | ✔️                  | ✔️                | |
+| x86_64-unknown-linux-gnu  | ✔️          | ✔️                  | ✔️                | |
 | x86_64-apple-darwin       | ✔️          | ❌                  | ✔️                | |
-| i686-pc-windows-gnu       | ✔️          | ✔️ avx2, ssse3       | ✔️                | |
-| i686-pc-windows-msvc      | ✔️          | ✔️ avx2, ssse3       | ✔️                | |
-| x86_64-pc-windows-gnu     | ✔️          | ✔️ avx2, ssse3       | ✔️                | |
-| x86_64-pc-windows-msvc    | ✔️          | ✔️ avx2, ssse3       | ✔️                | |
+| i686-pc-windows-gnu       | ✔️          | ✔️                  | ✔️                | |
+| i686-pc-windows-msvc      | ✔️          | ✔️                  | ✔️                | |
+| x86_64-pc-windows-gnu     | ✔️          | ✔️                  | ✔️                | |
+| x86_64-pc-windows-msvc    | ✔️          | ✔️                  | ✔️                | |
 
 ## Caveats and limitations
 
