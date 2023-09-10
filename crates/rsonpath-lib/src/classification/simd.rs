@@ -512,7 +512,7 @@ cfg_if! {
             };
         }
     }
-    else if #[cfg(arch = "x86")] {
+    else if #[cfg(target_arch = "x86")] {
         macro_rules! simd_dispatch {
             ($conf:expr => |$simd:ident| $b:block) => {
                 {
@@ -632,6 +632,10 @@ cfg_if! {
     else {
         macro_rules! simd_dispatch {
             ($conf:expr => |$simd:ident| $b:block) => {
+                let conf = $conf;
+                assert_eq!(conf.highest_simd(), SimdTag::Nosimd);
+                assert!(!conf.fast_quotes());
+                assert!(!conf.fast_popcnt());
                 let $simd = $crate::classification::simd::ResolvedSimd::<
                     $crate::classification::quotes::nosimd::Constructor,
                     $crate::classification::structural::nosimd::Constructor,
