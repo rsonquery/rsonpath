@@ -23,13 +23,13 @@ git clone https://github.com/V0ldek/rsonpath.git
 Building and installing is done most easily with `just`:
 
 ```bash
-just install
+just install-native
 ```
 
 Without `just` one can use:
 
 ```bash
-cargo install --path ./crates/rsonpath
+RUSTFLAGS="-C target-cpu=native" cargo install --path ./crates/rsonpath
 ```
 
 ## Building from `crates.io`
@@ -49,11 +49,12 @@ field.
 
 ```console,ignore
 $ rq --version
-rq 0.7.0
+rq 0.8.0
 
-Commit SHA:      663f6b5d90b36d2dc1bd8f1247a70d022ed8fa9b
+Commit SHA:      be6abb7fc8a3a9342876d01cad2388c10f5751e3
 Features:        default,simd
 Opt level:       3
 Target triple:   x86_64-unknown-linux-gnu
 Codegen flags:   target-cpu=native,link-arg=-fuse-ld=lld
+SIMD support:    avx2;fast_quotes;fast_popcnt
 ```
