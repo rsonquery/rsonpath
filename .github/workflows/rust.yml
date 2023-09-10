@@ -93,7 +93,11 @@ jobs:
         run: ${{ matrix.prologue-script }}
       - name: Install lld (Unix)
         if: matrix.os != 'windows-latest'
-        run: sudo apt install lld
+        run: sudo apt install lld    
+      - name: Install winget (Windows)
+        uses: Cyberboss/install-winget@3301de662a82d09e8aded238e995a8e1259159c8
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Install lld (Windows)
         if: matrix.os == 'windows-latest'
         run: winget install LLVM.LLVM
