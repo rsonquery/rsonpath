@@ -187,7 +187,7 @@
 // Panic-free lints (disabled for tests).
 #![cfg_attr(
     not(test),
-    warn(clippy::expect_used, clippy::panic, clippy::panic_in_result_fn, clippy::unwrap_used)
+    warn(clippy::panic, clippy::panic_in_result_fn, clippy::unwrap_used)
 )]
 // IO hygiene, only on --release.
 #![cfg_attr(
