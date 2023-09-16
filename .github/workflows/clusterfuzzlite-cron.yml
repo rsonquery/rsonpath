@@ -28,7 +28,6 @@ jobs:
         storage-repo-branch: main
         storage-repo-branch-coverage: gh-pages
 
-jobs:
   Coverage:
     runs-on: ubuntu-latest
     steps:
