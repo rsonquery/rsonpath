@@ -21,8 +21,8 @@ jobs:
       matrix:
         sanitizer:
         - address
-        - undefined
-        - memory
+        # - undefined # requires coverage apriori, enable after first PR is merged
+        # - memory # doesn't seem to work, fails build
     steps:
     - name: Build Fuzzers (${{ matrix.sanitizer }})
       id: build

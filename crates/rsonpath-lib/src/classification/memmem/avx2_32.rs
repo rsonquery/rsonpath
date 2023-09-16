@@ -93,7 +93,7 @@ where
         let mut previous_block: u32 = 0;
 
         while let Some(block) = self.iter.next()? {
-            let mut classified = classifier.classify_block(&block);
+            let classified = classifier.classify_block(&block);
 
             if let Some(res) = mask_32::find_in_mask(
                 self.input,

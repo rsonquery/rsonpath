@@ -16,7 +16,7 @@ jobs:
         sanitizer:
         - address
         - undefined
-        - memory
+        # - memory # doesn't seem to work, fails build
     steps:
     - name: Build Fuzzers (${{ matrix.sanitizer }})
       id: build
