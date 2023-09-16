@@ -51,6 +51,35 @@ where
     pub(crate) fn new(input: &'i I, iter: &'b mut I::BlockIterator<'i, 'r, SIZE, R>) -> Self {
         Self { input, iter }
     }
+
+    #[target_feature(enable = "avx2")]
+    unsafe fn find_empty(
+        &mut self,
+        label: &JsonString,
+        mut offset: usize,
+    ) -> Result<Option<(usize, I::Block<'i, SIZE>)>, InputError> {
+        let classifier = vector_256::BlockClassifier256::new(b'"', b'"');
+        let mut previous_block: u32 = 0;
+
+        while let Some(block) = self.iter.next()? {
+            let classified = classifier.classify_block(block);
+
+            let mut result = (previous_block | (classified.first << 1)) & classified.second;
+            while result != 0 {
+                let idx = result.trailing_zeros() as usize;
+                if self.input.is_member_match(offset + idx - 1, offset + idx, label) {
+                    return Ok(Some((offset + idx - 1, block)));
+                }
+                result &= !(1 << idx);
+            }
+
+            offset += SIZE;
+            previous_block = first_bitmask >> (SIZE - 1);
+        }
+
+        Ok(None)
+    }
+
     // Here we want to detect the pattern `"c"`
     // For interblock communication we need to bit of information that requires extra work to get obtained.
     // one for the block cut being `"` and `c"` and one for `"c` and `"`. We only deal with one of them.
@@ -65,10 +94,6 @@ where
 
         while let Some(block) = self.iter.next()? {
             let mut classified = classifier.classify_block(&block);
-
-            classified.first &= classified.second << 1 | 1; // we AND `"` bitmask with `c` bitmask to filter c's position in the stream following a `"`
-                                                            // We should need the last bit of previous block. Instead of memoizing, we simply assume it is one.
-                                                            // It could gives only add more potential match.
 
             if let Some(res) = mask_32::find_in_mask(
                 self.input,
@@ -95,7 +120,9 @@ where
         label: &JsonString,
         mut offset: usize,
     ) -> Result<Option<(usize, I::Block<'i, SIZE>)>, InputError> {
-        if label.bytes().len() == 1 {
+        if label.bytes().is_empty() {
+            return self.find_empty(label, offset);
+        } else if label.bytes().len() == 1 {
             return self.find_letter(label, offset);
         }
 

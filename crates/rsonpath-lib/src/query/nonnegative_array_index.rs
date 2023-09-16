@@ -18,14 +18,14 @@ use std::fmt::{self, Display, Formatter};
 pub struct NonNegativeArrayIndex(u64);
 
 /// The upper inclusive bound on index values.
-const ARRAY_INDEX_ULIMIT: u64 = (1 << 53) - 1;
+const JSON_NUMBER_ULIMIT: u64 = (1 << 53) - 1;
 
 impl TryFrom<u64> for NonNegativeArrayIndex {
     type Error = ArrayIndexError;
 
     #[inline]
     fn try_from(value: u64) -> Result<Self, ArrayIndexError> {
-        if value > ARRAY_INDEX_ULIMIT {
+        if value > JSON_NUMBER_ULIMIT {
             Err(ArrayIndexError::ExceedsUpperLimitError(value.to_string()))
         } else {
             Ok(Self(value))
@@ -37,7 +37,7 @@ impl NonNegativeArrayIndex {
     /// A constant index for the common and starting case of the first item.
     pub const ZERO: Self = Self::new(0);
     /// A constant index for the largest addressable index.
-    pub const MAX: Self = Self::new(ARRAY_INDEX_ULIMIT);
+    pub const MAX: Self = Self::new(JSON_NUMBER_ULIMIT);
 
     /// Create a new search index from a u64.
     #[must_use]
@@ -52,7 +52,7 @@ impl NonNegativeArrayIndex {
     #[inline]
     pub fn try_increment(&mut self) -> Result<(), ArrayIndexError> {
         let new_index = self.0 + 1;
-        if new_index <= ARRAY_INDEX_ULIMIT {
+        if new_index <= JSON_NUMBER_ULIMIT {
             self.0 = new_index;
             Ok(())
         } else {
@@ -82,20 +82,30 @@ impl Display for NonNegativeArrayIndex {
     }
 }
 
+#[cfg(feature = "arbitrary")]
+impl<'a> arbitrary::Arbitrary<'a> for NonNegativeArrayIndex {
+    #[inline]
+    fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
+        let val = u.int_in_range(0..=JSON_NUMBER_ULIMIT)?;
+
+        Ok(Self(val))
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{NonNegativeArrayIndex, ARRAY_INDEX_ULIMIT};
+    use super::{NonNegativeArrayIndex, JSON_NUMBER_ULIMIT};
 
     #[test]
     fn index_ulimit_sanity_check() {
-        assert_eq!(9_007_199_254_740_991, ARRAY_INDEX_ULIMIT);
+        assert_eq!(9_007_199_254_740_991, JSON_NUMBER_ULIMIT);
     }
 
     #[test]
     fn index_ulimit_parse_check() {
-        NonNegativeArrayIndex::try_from(ARRAY_INDEX_ULIMIT).expect("Array index ulimit should be convertible.");
+        NonNegativeArrayIndex::try_from(JSON_NUMBER_ULIMIT).expect("Array index ulimit should be convertible.");
 
-        NonNegativeArrayIndex::try_from(ARRAY_INDEX_ULIMIT + 1)
+        NonNegativeArrayIndex::try_from(JSON_NUMBER_ULIMIT + 1)
             .expect_err("Values in excess of array index ulimit should not be convertible.");
     }
 }

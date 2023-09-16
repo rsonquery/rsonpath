@@ -87,7 +87,8 @@
 			"./crates/rsonpath-lib/Cargo.toml",
 			"./crates/rsonpath-benchmarks/Cargo.toml",
 			"./crates/rsonpath-test/Cargo.toml",
-			"./crates/rsonpath-test-codegen/Cargo.toml"
+			"./crates/rsonpath-test-codegen/Cargo.toml",
+			"./fuzz/Cargo.toml"
 		]
 	}
 }

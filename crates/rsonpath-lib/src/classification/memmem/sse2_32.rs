@@ -53,6 +53,39 @@ where
         Self { input, iter }
     }
 
+    #[target_feature(enable = "sse2")]
+    unsafe fn find_empty(
+        &mut self,
+        label: &JsonString,
+        mut offset: usize,
+    ) -> Result<Option<(usize, I::Block<'i, SIZE>)>, InputError> {
+        let classifier = vector_128::BlockClassifier256::new(b'"', b'"');
+        let mut previous_block: u32 = 0;
+
+        while let Some(block) = self.iter.next()? {
+            let (block1, block2) = block.halves();
+            let classified1 = classifier.classify_block(block1);
+            let classified2 = classifier.classify_block(block2);
+
+            let first_bitmask = m32::combine_16(classified1.first, classified2.first);
+            let second_bitmask = m32::combine_16(classified1.second, classified2.second);
+
+            let mut result = (previous_block | (first_bitmask << 1)) & second_bitmask;
+            while result != 0 {
+                let idx = result.trailing_zeros() as usize;
+                if self.input.is_member_match(offset + idx - 1, offset + idx, label) {
+                    return Ok(Some((offset + idx - 1, block)));
+                }
+                result &= !(1 << idx);
+            }
+
+            offset += SIZE;
+            previous_block = first_bitmask >> (SIZE - 1);
+        }
+
+        Ok(None)
+    }
+
     // Here we want to detect the pattern `"c"`
     // For interblock communication we need to bit of information that requires extra work to get obtained.
     // one for the block cut being `"` and `c"` and one for `"c` and `"`. We only deal with one of them.
@@ -70,12 +103,8 @@ where
             let classified1 = classifier.classify_block(block1);
             let classified2 = classifier.classify_block(block2);
 
-            let mut first_bitmask = m32::combine_16(classified1.first, classified2.first);
+            let first_bitmask = m32::combine_16(classified1.first, classified2.first);
             let second_bitmask = m32::combine_16(classified1.second, classified2.second);
-
-            first_bitmask &= second_bitmask << 1 | 1; // we AND `"` bitmask with `c` bitmask to filter c's position in the stream following a `"`
-                                                      // We should need the last bit of previous block. Instead of memoizing, we simply assume it is one.
-                                                      // It could gives only add more potential match.
 
             if let Some(res) =
                 mask_32::find_in_mask(self.input, label, previous_block, first_bitmask, second_bitmask, offset)
@@ -97,7 +126,9 @@ where
         label: &JsonString,
         mut offset: usize,
     ) -> Result<Option<(usize, I::Block<'i, SIZE>)>, InputError> {
-        if label.bytes().len() == 1 {
+        if label.bytes().is_empty() {
+            return self.find_empty(label, offset);
+        } else if label.bytes().len() == 1 {
             return self.find_letter(label, offset);
         }
 

@@ -45,7 +45,7 @@ use std::fmt::{self, Display};
 /// Linked list structure of a JSONPath query.
 #[derive(Debug, PartialEq, Eq)]
 pub enum JsonPathQueryNode {
-    /// The first link in the list representing the root '`$`' character.
+    /// The first link in the list representing the root '`$`' character.d
     Root(Option<Box<JsonPathQueryNode>>),
     /// Represents direct descendant with a given property name ('`.`' token).
     Child(JsonString, Option<Box<JsonPathQueryNode>>),
@@ -295,5 +295,42 @@ impl<T: std::ops::Deref<Target = JsonPathQueryNode>> JsonPathQueryNodeType for O
     #[inline(always)]
     fn array_index(&self) -> Option<&NonNegativeArrayIndex> {
         self.as_ref().and_then(|x| x.array_index())
+    }
+}
+
+// We don't implement Arbitrary for JsonPathQueryNode as it is pretty much meaningless.
+// In particular, constructing a query as just a sequence of arbitrary nodes is invalid,
+// because the Root note must be always be the first node in the query and can never occur later.
+#[cfg(feature = "arbitrary")]
+impl<'a> arbitrary::Arbitrary<'a> for JsonPathQuery {
+    #[inline]
+    fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
+        #[derive(arbitrary::Arbitrary)]
+        enum RawNode {
+            Child(JsonString),
+            AnyChild,
+            Descendant(JsonString),
+            AnyDescendant,
+            ArrayIndexChild(NonNegativeArrayIndex),
+            ArrayIndexDescendant(NonNegativeArrayIndex),
+        }
+
+        let sequence = u.arbitrary_iter()?;
+        let mut node = None;
+
+        for raw in sequence {
+            node = Some(Box::new(match raw? {
+                RawNode::Child(s) => JsonPathQueryNode::Child(s, node),
+                RawNode::AnyChild => JsonPathQueryNode::AnyChild(node),
+                RawNode::Descendant(s) => JsonPathQueryNode::Descendant(s, node),
+                RawNode::AnyDescendant => JsonPathQueryNode::AnyDescendant(node),
+                RawNode::ArrayIndexChild(i) => JsonPathQueryNode::ArrayIndexChild(i, node),
+                RawNode::ArrayIndexDescendant(i) => JsonPathQueryNode::ArrayIndexDescendant(i, node),
+            }));
+        }
+
+        Ok(Self {
+            root: Box::new(JsonPathQueryNode::Root(node)),
+        })
     }
 }

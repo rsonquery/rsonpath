@@ -49,7 +49,11 @@ where
         mut offset: usize,
     ) -> Result<Option<(usize, I::Block<'i, N>)>, InputError> {
         let label_size = label.bytes_with_quotes().len();
-        let first_c = label.bytes()[0];
+        let first_c = if label.bytes().is_empty() {
+            b'"'
+        } else {
+            label.bytes()[0]
+        };
 
         while let Some(block) = self.iter.next()? {
             let res = block.iter().copied().enumerate().find(|&(i, c)| {

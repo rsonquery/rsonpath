@@ -1,4 +1,4 @@
-use crate::{input::Input, query::JsonString};
+use crate::{debug, input::Input, query::JsonString};
 
 pub(crate) fn find_in_mask<I: Input>(
     input: &I,
@@ -12,7 +12,8 @@ pub(crate) fn find_in_mask<I: Input>(
     let mut result = (previous_block | (first << 1)) & second;
     while result != 0 {
         let idx = result.trailing_zeros() as usize;
-        if input.is_member_match(offset + idx - 2, offset + idx - 3 + label_size, label) {
+        debug!("{offset} + {idx} - 2 to {offset} + {idx} + {label_size} - 3");
+        if input.is_member_match(offset + idx - 2, offset + idx + label_size - 3, label) {
             return Some(offset + idx - 2);
         }
         result &= !(1 << idx);
