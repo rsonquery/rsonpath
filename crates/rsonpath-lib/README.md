@@ -2,8 +2,7 @@
 
 [![Rust](https://github.com/V0ldek/rsonpath/actions/workflows/rust.yml/badge.svg)](https://github.com/V0ldek/rsonpath/actions/workflows/rust.yml)
 [![docs.rs](https://img.shields.io/docsrs/rsonpath-lib?logo=docs.rs)](https://docs.rs/crate/rsonpath-lib/latest)
-[![Book](https://img.shields.io/badge/book-available-4DC720?logo=mdbook
-)](https://v0ldek.github.io/rsonpath/)
+[![Book](https://img.shields.io/badge/book-available-4DC720?logo=mdbook)](https://v0ldek.github.io/rsonpath/)
 
 [![Crates.io](https://img.shields.io/crates/v/rsonpath?logo=docs.rs)](https://crates.io/crates/rsonpath)
 [![GitHub Release Date](https://img.shields.io/github/release-date/v0ldek/rsonpath?logo=github)](https://github.com/V0ldek/rsonpath/releases)
@@ -42,6 +41,14 @@ Below is a simplified overview of the module interactions and interfaces,
 and how data flows from the user's input (query, document) through the pipeline to produce results.
 
 ![Architecture diagram](/img/rsonpath-architecture.svg)
+
+## Optional features
+
+The `simd` feature is enabled by default and is recommended to make use of the performance benefits of the project.
+
+The `arbitrary` feature is optional and enables the [`arbitrary` dependency](https://lib.rs/crates/arbitrary),
+which provides an implementation of [`Arbitrary`](https://docs.rs/arbitrary/latest/arbitrary/trait.Arbitrary.html)
+for the query struct.
 
 ## Dependencies
 
