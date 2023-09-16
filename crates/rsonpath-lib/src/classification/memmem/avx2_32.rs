@@ -62,7 +62,7 @@ where
         let mut previous_block: u32 = 0;
 
         while let Some(block) = self.iter.next()? {
-            let classified = classifier.classify_block(block);
+            let classified = classifier.classify_block(&block);
 
             let mut result = (previous_block | (classified.first << 1)) & classified.second;
             while result != 0 {
@@ -74,7 +74,7 @@ where
             }
 
             offset += SIZE;
-            previous_block = first_bitmask >> (SIZE - 1);
+            previous_block = classified.first >> (SIZE - 1);
         }
 
         Ok(None)

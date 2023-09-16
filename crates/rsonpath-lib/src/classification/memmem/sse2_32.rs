@@ -59,7 +59,7 @@ where
         label: &JsonString,
         mut offset: usize,
     ) -> Result<Option<(usize, I::Block<'i, SIZE>)>, InputError> {
-        let classifier = vector_128::BlockClassifier256::new(b'"', b'"');
+        let classifier = vector_128::BlockClassifier128::new(b'"', b'"');
         let mut previous_block: u32 = 0;
 
         while let Some(block) = self.iter.next()? {
