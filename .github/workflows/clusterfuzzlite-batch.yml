@@ -1,6 +1,12 @@
 name: ClusterFuzzLite batch fuzzing
 on:
   workflow_dispatch:
+    inputs:
+      fuzz-seconds:
+        description: 'Total time to fuzz, in seconds'
+        required: true
+        default: 3600
+        type: number
   schedule:
     - cron: '0 3 * * *'
 
@@ -15,8 +21,7 @@ jobs:
       matrix:
         sanitizer:
         - address
-        - undefined
-        # - memory # doesn't seem to work, fails build
+        - memory
     steps:
     - name: Build Fuzzers (${{ matrix.sanitizer }})
       id: build
@@ -29,10 +34,10 @@ jobs:
       uses: google/clusterfuzzlite/actions/run_fuzzers@v1
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
-        fuzz-seconds: 3600
+        fuzz-seconds: ${{ inputs.fuzz-seconds }}
         mode: 'batch'
         sanitizer: ${{ matrix.sanitizer }}
         output-sarif: true
         storage-repo: https://${{ secrets.CLUSTERFUZZLITE_STORAGE_TOKEN }}@github.com/rsonpath/rsonpath-fuzz-storage.git
-        storage-repo-branch: main   # Optional. Defaults to "main"
-        storage-repo-branch-coverage: gh-pages  # Optional. Defaults to "gh-pages".
+        storage-repo-branch: main
+        storage-repo-branch-coverage: gh-pages
