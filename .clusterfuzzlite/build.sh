@@ -1,7 +1,7 @@
 #!/bin/bash -eu
 
 cd $SRC/rsonpath/fuzz
-cargo +nightly fuzz build -O --debug-assertions
+cargo +nightly fuzz build -O --debug-assertions -s $SANITIZER
 
 FUZZ_TARGET_OUTPUT_DIR=target/x86_64-unknown-linux-gnu/release
 

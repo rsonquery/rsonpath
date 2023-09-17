@@ -21,12 +21,11 @@ jobs:
       matrix:
         sanitizer:
         - address
-        # - undefined # requires coverage apriori, enable after first PR is merged
-        # - memory # doesn't seem to work, fails build
+        - memory
     steps:
     - name: Build Fuzzers (${{ matrix.sanitizer }})
       id: build
-      uses: google/clusterfuzzlite/actions/build_fuzzers@v1
+      uses: google/clusterfuzzlite/actions/build_fuzzers@884713a6c30a92e5e8544c39945cd7cb630abcd1 # v1
       with:
         language: rust
         github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -36,7 +35,7 @@ jobs:
         storage-repo-branch-coverage: gh-pages
     - name: Run Fuzzers (${{ matrix.sanitizer }})
       id: run
-      uses: google/clusterfuzzlite/actions/run_fuzzers@v1
+      uses: google/clusterfuzzlite/actions/run_fuzzers@884713a6c30a92e5e8544c39945cd7cb630abcd1 # v1
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         fuzz-seconds: 600

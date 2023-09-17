@@ -2,6 +2,41 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### Features
+
+- Library exposes a new optional feature, `arbitrary`.
+  - When enabled, includes [`arbitrary`](https://lib.rs/crates/arbitrary)
+    as a dependency and provides an `Arbitrary` impl for `JsonPathQuery`,
+    `JsonString`, and `NonNegativeArrayIndex`.
+
+### Bug fixes
+
+- Fixed a bug when memmem acceleration would fail for empty keys.
+  - This was detected by fuzzing! The query `$..[""]` would panic
+    on certain inputs due to invalid indexing.
+- Fixed a panic when parsing invalid queries with wide UTF8 characters.
+  - This was detected by fuzzing! Parsing a query with invalid syntax
+    caused by a longer-than-byte UTF-8 character would panic when
+    the error handler tried to resume parsing from the next _byte_
+    instead of respecting char boundaries.
+- Fixed a panic caused by node results in invalid JSON documents.
+  - This was detected by fuzzing! Invalid JSON documents could
+    cause the NodeRecorder to panic if the apparent match span
+    was of length 1.
+
+### Reliability
+
+- Fuzzing integration with libfuzzer and ClusterFuzzLite.
+  - [`cargo-fuzz`](https://lib.rs/crates/cargo-fuzz) can be used
+    to fuzz the project with libfuzzer. Currently we have three fuzzing targets,
+    one for stressing the query parser, one for stressing the engine with arbitrary
+    bytes, and one stressing the engine with structure-aware queries and JSONs.
+  - Fuzzing is now enabled on every PR. Using ClusterFuzzLite
+    we will fuzz the project every day on a cron schedule
+    to establish a corpus.
+
 ## [0.8.0] - 2023-09-10
 
 ### Features
