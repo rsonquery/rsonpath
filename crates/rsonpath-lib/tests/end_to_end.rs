@@ -1,4 +1,4 @@
-// 031ac21ad8baf84d2d626e0fc1d0f14d
+// 0e54e4cd97c46edcc1f3d6d3308053a9
 use pretty_assertions::assert_eq;
 use rsonpath::engine::{main::MainEngine, Compiler, Engine};
 use rsonpath::input::*;
@@ -5541,6 +5541,498 @@ fn empty_document_with_query_select_the_root_with_owned_bytes_and_nodes_result_u
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_compressed_with_query_select_the_empty_key_by_descendant_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/empty_key.toml running the query $..[''] (select the empty key by descendant) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..['']")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_key.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_compressed_with_query_select_the_empty_key_by_descendant_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/empty_key.toml running the query $..[''] (select the empty key by descendant) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..['']")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_key.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![4usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_compressed_with_query_select_the_empty_key_by_descendant_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/empty_key.toml running the query $..[''] (select the empty key by descendant) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..['']")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_key.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"value1\""];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_compressed_with_query_select_the_empty_key_by_descendant_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/empty_key.toml running the query $..[''] (select the empty key by descendant) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..['']")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_key.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_compressed_with_query_select_the_empty_key_by_descendant_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/empty_key.toml running the query $..[''] (select the empty key by descendant) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..['']")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_key.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![4usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_compressed_with_query_select_the_empty_key_by_descendant_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/empty_key.toml running the query $..[''] (select the empty key by descendant) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..['']")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_key.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"value1\""];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_compressed_with_query_select_the_empty_key_by_descendant_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/empty_key.toml running the query $..[''] (select the empty key by descendant) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..['']")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_key.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_compressed_with_query_select_the_empty_key_by_descendant_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/empty_key.toml running the query $..[''] (select the empty key by descendant) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..['']")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_key.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![4usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_compressed_with_query_select_the_empty_key_by_descendant_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/empty_key.toml running the query $..[''] (select the empty key by descendant) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..['']")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_key.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"value1\""];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_compressed_with_query_select_the_empty_key_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/empty_key.toml running the query $[''] (select the empty key) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$['']")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_key.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_compressed_with_query_select_the_empty_key_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/empty_key.toml running the query $[''] (select the empty key) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$['']")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_key.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![4usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_compressed_with_query_select_the_empty_key_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/empty_key.toml running the query $[''] (select the empty key) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$['']")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_key.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"value1\""];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_compressed_with_query_select_the_empty_key_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/empty_key.toml running the query $[''] (select the empty key) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$['']")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_key.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_compressed_with_query_select_the_empty_key_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/empty_key.toml running the query $[''] (select the empty key) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$['']")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_key.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![4usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_compressed_with_query_select_the_empty_key_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/empty_key.toml running the query $[''] (select the empty key) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$['']")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/empty_key.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"value1\""];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_compressed_with_query_select_the_empty_key_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/empty_key.toml running the query $[''] (select the empty key) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$['']")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_key.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_compressed_with_query_select_the_empty_key_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/empty_key.toml running the query $[''] (select the empty key) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$['']")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_key.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![4usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_compressed_with_query_select_the_empty_key_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/empty_key.toml running the query $[''] (select the empty key) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$['']")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/empty_key.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"value1\""];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_with_query_select_the_empty_key_by_descendant_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document empty_key.toml running the query $..[''] (select the empty key by descendant) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..['']")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_key.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_with_query_select_the_empty_key_by_descendant_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document empty_key.toml running the query $..[''] (select the empty key by descendant) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..['']")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_key.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![8usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_with_query_select_the_empty_key_by_descendant_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document empty_key.toml running the query $..[''] (select the empty key by descendant) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..['']")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_key.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"value1\""];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_with_query_select_the_empty_key_by_descendant_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document empty_key.toml running the query $..[''] (select the empty key by descendant) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..['']")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_key.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_with_query_select_the_empty_key_by_descendant_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document empty_key.toml running the query $..[''] (select the empty key by descendant) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..['']")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_key.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![8usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_with_query_select_the_empty_key_by_descendant_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document empty_key.toml running the query $..[''] (select the empty key by descendant) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..['']")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_key.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"value1\""];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_with_query_select_the_empty_key_by_descendant_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document empty_key.toml running the query $..[''] (select the empty key by descendant) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..['']")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_key.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_with_query_select_the_empty_key_by_descendant_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document empty_key.toml running the query $..[''] (select the empty key by descendant) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..['']")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_key.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![8usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_with_query_select_the_empty_key_by_descendant_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document empty_key.toml running the query $..[''] (select the empty key by descendant) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..['']")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_key.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"value1\""];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_with_query_select_the_empty_key_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document empty_key.toml running the query $[''] (select the empty key) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$['']")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_key.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_with_query_select_the_empty_key_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document empty_key.toml running the query $[''] (select the empty key) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$['']")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_key.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![8usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_with_query_select_the_empty_key_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document empty_key.toml running the query $[''] (select the empty key) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$['']")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_key.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"value1\""];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_with_query_select_the_empty_key_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document empty_key.toml running the query $[''] (select the empty key) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$['']")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_key.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_with_query_select_the_empty_key_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document empty_key.toml running the query $[''] (select the empty key) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$['']")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_key.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![8usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_with_query_select_the_empty_key_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document empty_key.toml running the query $[''] (select the empty key) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$['']")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/empty_key.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"value1\""];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_with_query_select_the_empty_key_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document empty_key.toml running the query $[''] (select the empty key) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$['']")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_key.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_with_query_select_the_empty_key_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document empty_key.toml running the query $[''] (select the empty key) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$['']")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_key.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![8usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn empty_json_keys_with_query_select_the_empty_key_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document empty_key.toml running the query $[''] (select the empty key) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$['']")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/empty_key.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"value1\""];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }

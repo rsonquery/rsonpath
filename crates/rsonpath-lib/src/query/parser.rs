@@ -95,7 +95,10 @@ pub(crate) fn parse_json_path_query(query_string: &str) -> Result<JsonPathQuery,
                     Ok(remaining) => {
                         let error_character_index = query_string.len() - remaining.len();
                         parse_errors.record_at(error_character_index);
-                        continuation = non_root()(&remaining[1..]).finish().map(|x| x.0);
+                        let next_char_boundary = (1..=4)
+                            .find(|x| remaining.is_char_boundary(*x))
+                            .expect("longest UTF8 char is 4 bytes");
+                        continuation = non_root()(&remaining[next_char_boundary..]).finish().map(|x| x.0);
                     }
                     Err(e) => return Err(nom::error::Error::new(query_string.to_owned(), e.code).into()),
                 }
@@ -471,5 +474,18 @@ mod tests {
         let result = parse_json_path_query(input).expect("expected Ok");
 
         assert_eq!(result, expected_query);
+    }
+
+    // This is a regression test. There was a bug where the error handling loop would try to resume
+    // parsing at the next byte after an invalid character, which is invalid and causes a panic
+    // if the character takes more than one byte - strings can be indexed only at char boundaries.
+    #[test]
+    fn error_handling_across_unicode_values() {
+        // Ferris has 4 bytes of encoding.
+        let input = "🦀.";
+
+        let result = parse_json_path_query(input);
+
+        assert!(result.is_err());
     }
 }

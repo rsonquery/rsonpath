@@ -134,7 +134,7 @@ jobs:
         env:
           CARGO_TARGET_DIR: target/
       - name: Build all feature sets
-        run: cargo hack build --workspace --feature-powerset --skip default --target ${{ matrix.target_triple }}
+        run: cargo hack build --workspace --feature-powerset --skip default --target ${{ matrix.target_triple }} --features arbitrary --ignore-unknown-features
         env:
           RUSTFLAGS: ${{ matrix.rustflags }}
       - name: Download rsonpath-test artifact
@@ -144,7 +144,7 @@ jobs:
           path: ${{ needs.test-gen.outputs.artifact-path }}
       - name: Test all feature sets
         if: matrix.can-run
-        run: cargo hack test --workspace --feature-powerset --skip default --target ${{ matrix.target_triple }}
+        run: cargo hack test --workspace --feature-powerset --skip default --target ${{ matrix.target_triple }} --features arbitrary --ignore-unknown-features
         env:
           RUSTFLAGS: ${{ matrix.rustflags }}
 
@@ -171,7 +171,7 @@ jobs:
           - nosimd;slow_quotes;slow_popcnt
     steps:
       - name: Install lld
-        run: sudo apt install lld gcc-multilib
+        run: sudo apt update && sudo apt install lld gcc-multilib
       - name: Checkout sources
         uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
         with:
@@ -223,7 +223,7 @@ jobs:
         with:
           submodules: true
       - name: Install lld
-        run: sudo apt install lld
+        run: sudo apt update && sudo apt install lld
       - name: Install Rust toolchain (${{ matrix.toolchain }})
         uses: dtolnay/rust-toolchain@5cb429dd810e16ff67df78472fa81cf760f4d1c0 # master
         with:

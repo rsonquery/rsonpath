@@ -2,7 +2,7 @@
 rustflags = ["-C", "link-arg=-fuse-ld=lld"]
 
 [alias]
-rsontest = "hack test -q --feature-powerset --skip default"
+rsontest = "hack test -q --feature-powerset --skip default --features arbitrary --ignore-unknown-features"
 
 [env]
 RUST_BACKTRACE = "1"

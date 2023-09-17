@@ -1,0 +1,48 @@
+name: ClusterFuzzLite PR fuzzing
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  PR:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ matrix.sanitizer }}-${{ github.ref }}
+      cancel-in-progress: true
+    strategy:
+      fail-fast: false
+      matrix:
+        sanitizer:
+        - address
+        # - undefined # requires coverage apriori, enable after first PR is merged
+        # - memory # doesn't seem to work, fails build
+    steps:
+    - name: Build Fuzzers (${{ matrix.sanitizer }})
+      id: build
+      uses: google/clusterfuzzlite/actions/build_fuzzers@v1
+      with:
+        language: rust
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        sanitizer: ${{ matrix.sanitizer }}
+        storage-repo: https://${{ secrets.CLUSTERFUZZLITE_STORAGE_TOKEN }}@github.com/rsonpath/rsonpath-fuzz-storage.git
+        storage-repo-branch: main
+        storage-repo-branch-coverage: gh-pages
+    - name: Run Fuzzers (${{ matrix.sanitizer }})
+      id: run
+      uses: google/clusterfuzzlite/actions/run_fuzzers@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        fuzz-seconds: 600
+        mode: 'code-change'
+        sanitizer: ${{ matrix.sanitizer }}
+        output-sarif: true
+        storage-repo: https://${{ secrets.CLUSTERFUZZLITE_STORAGE_TOKEN }}@github.com/rsonpath/rsonpath-fuzz-storage.git
+        storage-repo-branch: main
+        storage-repo-branch-coverage: gh-pages

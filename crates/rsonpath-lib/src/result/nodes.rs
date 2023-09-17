@@ -529,12 +529,17 @@ fn finalize_node(buf: &mut Vec<u8>, ty: MatchedNodeType) {
         // Atomic nodes are finished when the next structural character is matched.
         // The buffer includes that character and all preceding whitespace.
         // We need to remove it before saving the result.
-        let mut i = buf.len() - 2;
-        while buf[i] == b' ' || buf[i] == b'\t' || buf[i] == b'\n' || buf[i] == b'\r' {
-            i -= 1;
-        }
+        if buf.len() <= 1 {
+            // This should never happen in a valid JSON, but we also don't want to panic if the file is invalid.
+            buf.truncate(0)
+        } else {
+            let mut i = buf.len() - 2;
+            while buf[i] == b' ' || buf[i] == b'\t' || buf[i] == b'\n' || buf[i] == b'\r' {
+                i -= 1;
+            }
 
-        buf.truncate(i + 1);
+            buf.truncate(i + 1);
+        }
     }
 }
 
