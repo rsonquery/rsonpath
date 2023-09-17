@@ -22,7 +22,7 @@ description = "select all nodes at depth exactly 1"
 
 [queries.results]
 count = 4
-bytes = [11, 40, 69, 82]
+spans = [[11, 29], [40, 58], [69, 71], [82, 84]]
 nodes = ['''[
         {}
     ]''', '''[
@@ -35,7 +35,7 @@ description = "select all nodes at depth exactly 2"
 
 [queries.results]
 count = 2
-bytes = [21, 50]
+spans = [[21, 23], [50, 52]]
 nodes = ["{}", "[]"]
 
 [[queries]]
@@ -44,7 +44,7 @@ description = "select all nodes at depth at least 2"
 
 [queries.results]
 count = 2
-bytes = [21, 50]
+spans = [[21, 23], [50, 52]]
 nodes = ["{}", "[]"]
 
 [[queries]]
@@ -53,7 +53,7 @@ description = "select all nodes"
 
 [queries.results]
 count = 6
-bytes = [11, 21, 40, 50, 69, 82]
+spans = [[11, 29], [21, 23], [40, 58], [50, 52], [69, 71], [82, 84]]
 nodes = ['''[
         {}
     ]''', "{}", '''[

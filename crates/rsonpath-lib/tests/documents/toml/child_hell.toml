@@ -76,7 +76,32 @@ description = "select the path ababc with repeating members"
 
 [queries.results]
 count = 6
-bytes = [200, 758, 1229, 1905, 2042, 2209]
+spans = [
+    [
+        200,
+        208,
+    ],
+    [
+        758,
+        1507,
+    ],
+    [
+        1229,
+        1237,
+    ],
+    [
+        1905,
+        1913,
+    ],
+    [
+        2042,
+        2050,
+    ],
+    [
+        2209,
+        2217,
+    ],
+]
 nodes = [
     '"value1"',
     '''{

@@ -21,7 +21,7 @@ description = "select all elements on the list"
 
 [queries.results]
 count = 3
-bytes = [15, 23, 50]
+spans = [[15, 17], [23, 44], [50, 52]]
 nodes = ["42", '''{
       "b": 43
     }''', "44"]

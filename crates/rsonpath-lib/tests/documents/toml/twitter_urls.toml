@@ -57,7 +57,40 @@ description = "descendant search for url"
 
 [queries.results]
 count = 8
-bytes = [45, 170, 323, 473, 672, 883, 1013, 1100]
+spans = [
+    [
+        45,
+        83,
+    ],
+    [
+        170,
+        202,
+    ],
+    [
+        323,
+        351,
+    ],
+    [
+        473,
+        501,
+    ],
+    [
+        672,
+        700,
+    ],
+    [
+        883,
+        911,
+    ],
+    [
+        1013,
+        1041,
+    ],
+    [
+        1100,
+        1128,
+    ],
+]
 nodes = [
     '''"http:\/\/www.roadshowrigoletto.com\/"''',
     '''"http:\/\/www.thinkprogress.org"''',
@@ -75,7 +108,7 @@ description = "descendant entities then url"
 
 [queries.results]
 count = 4
-bytes = [323, 473, 883, 1013]
+spans = [[323, 351], [473, 501], [883, 911], [1013, 1041]]
 nodes = [
     '''"https:\/\/t.co\/B6T1jj2hST"''',
     '''"https:\/\/t.co\/blQy8JxViF"''',
@@ -89,11 +122,8 @@ description = "descendant for url limited to urls arrays"
 
 [queries.results]
 count = 2
-bytes = [323, 883]
-nodes = [
-    '''"https:\/\/t.co\/B6T1jj2hST"''',
-    '''"https:\/\/t.co\/B6T1jj2hST"''',
-]
+spans = [[323, 351], [883, 911]]
+nodes = ['''"https:\/\/t.co\/B6T1jj2hST"''', '''"https:\/\/t.co\/B6T1jj2hST"''']
 
 [[queries]]
 query = "$..entities.urls..url"
@@ -101,11 +131,8 @@ description = "descendant for url limited to direct urls arrays"
 
 [queries.results]
 count = 2
-bytes = [323, 883]
-nodes = [
-    '''"https:\/\/t.co\/B6T1jj2hST"''',
-    '''"https:\/\/t.co\/B6T1jj2hST"''',
-]
+spans = [[323, 351], [883, 911]]
+nodes = ['''"https:\/\/t.co\/B6T1jj2hST"''', '''"https:\/\/t.co\/B6T1jj2hST"''']
 
 [[queries]]
 query = "$[0].url"
@@ -113,7 +140,5 @@ description = "direct path to the top-level url"
 
 [queries.results]
 count = 1
-bytes = [1100]
-nodes = [
-    '''"https:\/\/t.co\/blQy8JxViF"''',
-]
+spans = [[1100, 1128]]
+nodes = ['''"https:\/\/t.co\/blQy8JxViF"''']

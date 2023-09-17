@@ -302,11 +302,8 @@ where
                 debug!("Committing and outputting node");
                 self.sink
                     .add_match(Match {
+                        span_start: node.start_idx,
                         bytes: node.buf,
-                        span: MatchSpan {
-                            start_idx: node.start_idx,
-                            end_idx: idx + 1,
-                        },
                     })
                     .map_err(|err| EngineError::SinkError(Box::new(err)))?;
             }
@@ -469,11 +466,8 @@ where
                 self.output_queue.insert(
                     node.id,
                     Match {
+                        span_start: node.start_idx,
                         bytes: node.buf,
-                        span: MatchSpan {
-                            start_idx: node.start_idx,
-                            end_idx: idx + 1,
-                        },
                     },
                 );
             } else {

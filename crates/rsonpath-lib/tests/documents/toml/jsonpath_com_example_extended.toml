@@ -56,7 +56,7 @@ description = "descendant search for person phoneNumber number"
 
 [queries.results]
 count = 4
-bytes = [334, 438, 936, 1072]
+spans = [[334, 350], [438, 454], [936, 952], [1072, 1088]]
 nodes = [
     '"0123-4567-8888"',
     '"0123-4567-8910"',
@@ -70,10 +70,5 @@ description = "descendant search for person, then any node, then type"
 
 [queries.results]
 count = 4
-bytes = [298, 404, 892, 1030]
-nodes = [
-    '"iPhone"',
-    '"home"',
-    '"iPhone"',
-    '"home"',
-]
+spans = [[298, 306], [404, 410], [892, 900], [1030, 1036]]
+nodes = ['"iPhone"', '"home"', '"iPhone"', '"home"']

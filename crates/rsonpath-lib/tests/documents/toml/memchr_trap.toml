@@ -18,7 +18,7 @@ description = "descendant search for 'b'"
 
 [queries.results]
 count = 1
-bytes = [45]
+spans = [[45, 47]]
 nodes = ["43"]
 
 [[queries]]
@@ -27,5 +27,5 @@ description = "descendant search for 'b' with a leading quote"
 
 [queries.results]
 count = 1
-bytes = [28]
+spans = [[28, 30]]
 nodes = ["42"]

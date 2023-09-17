@@ -11,7 +11,7 @@ description = "select the root (empty query)"
 
 [queries.results]
 count = 0
-bytes = []
+spans = []
 nodes = []
 
 [[queries]]
@@ -20,5 +20,5 @@ description = "select the root"
 
 [queries.results]
 count = 0
-bytes = []
+spans = []
 nodes = []

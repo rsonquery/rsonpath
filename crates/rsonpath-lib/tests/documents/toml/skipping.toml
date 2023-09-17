@@ -42,7 +42,7 @@ description = "look for the atomic value, forcing a tail-skip of the large objec
 
 [queries.results]
 count = 1
-bytes = [810]
+spans = [[810, 812]]
 nodes = ["42"]
 
 [[queries]]
@@ -51,5 +51,5 @@ description = "look for the atomic value with descendant, forcing memchr"
 
 [queries.results]
 count = 1
-bytes = [810]
+spans = [[810, 812]]
 nodes = ["42"]

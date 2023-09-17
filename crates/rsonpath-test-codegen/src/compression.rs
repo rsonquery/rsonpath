@@ -3,7 +3,11 @@
 //! We first compress by mapping each byte with information on whether it is significant
 //! or should be removed. Using that annotation we can figure out the expected byte offsets
 //! of results in the compressed version with respect to the original.
-use crate::{files::Files, model, DiscoveredDocument};
+use crate::{
+    files::Files,
+    model::{self, ResultSpan},
+    DiscoveredDocument,
+};
 use std::{io, string::FromUtf8Error};
 
 /// Read all existing TOML documents and generate the compressed variants.
@@ -106,13 +110,13 @@ impl CompressedInput {
 
     fn transform_results(&self, original_results: &model::Results) -> model::Results {
         let count = original_results.count; // Count is obviously unchanged.
-        let bytes = original_results.bytes.as_ref().map(|r| self.transform_byte_results(r));
+        let spans = original_results.spans.as_ref().map(|r| self.transform_span_results(r));
         let nodes = original_results.nodes.as_ref().map(|n| Self::transform_node_results(n));
 
-        model::Results { count, bytes, nodes }
+        model::Results { count, spans, nodes }
     }
 
-    fn transform_byte_results(&self, bytes: &[usize]) -> Vec<usize> {
+    fn transform_span_results(&self, bytes: &[ResultSpan]) -> Vec<ResultSpan> {
         // To get byte results we annotate the significant bytes in the JSON string
         // with the indices at which they will end up after compression.
         let mut st = 0_usize;
@@ -131,7 +135,18 @@ impl CompressedInput {
             .collect();
 
         // Now we can use the map to convert expected offsets to compressed offsets.
-        bytes.iter().copied().map(|b| new_indices[b]).collect()
+        bytes
+            .iter()
+            .copied()
+            .map(|b| ResultSpan {
+                start: *new_indices
+                    .get(b.start)
+                    .expect("could not map span result, this is a bug in compression::transform_span_results"),
+                end: *new_indices
+                    .get(b.end)
+                    .expect("could not map span result, this is a bug in compression::transform_span_results"),
+            })
+            .collect()
     }
 
     fn transform_node_results(nodes: &[String]) -> Vec<String> {

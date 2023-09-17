@@ -24,8 +24,8 @@ count = 1000000
 # If the query you're testing is very selective (a few dozen matches at most), it might make sense
 # to include them, though.
 
-# Byte locations of starts of all matches, in order.
-# bytes = [] 
+# Byte locations of spans of all matches, in order.
+# spans = [] 
 # Stringified values of all matches, verbatim as in the input,
 # in the same order as above.
 # nodes = []

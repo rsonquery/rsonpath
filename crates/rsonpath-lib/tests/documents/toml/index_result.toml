@@ -13,7 +13,7 @@ query = "$"
 
 [queries.results]
 count = 1
-bytes = [0]
+spans = [[0, 25]]
 nodes = ['{"a"  :  [0  ,  1  ,  2]}']
 
 [[queries]]
@@ -22,7 +22,7 @@ query = "$.a"
 
 [queries.results]
 count = 1
-bytes = [9]
+spans = [[9, 24]]
 nodes = ["[0  ,  1  ,  2]"]
 
 [[queries]]
@@ -31,7 +31,7 @@ query = "$..a"
 
 [queries.results]
 count = 1
-bytes = [9]
+spans = [[9, 24]]
 nodes = ["[0  ,  1  ,  2]"]
 
 [[queries]]
@@ -40,5 +40,5 @@ query = "$.a[*]"
 
 [queries.results]
 count = 3
-bytes = [10, 16, 22]
+spans = [[10, 11], [16, 17], [22, 23]]
 nodes = ["0", "1", "2"]

@@ -30,7 +30,7 @@ description = "descendant search for 'a' and then take all children"
 
 [queries.results]
 count = 7
-bytes = [68, 93, 118, 143, 213, 240, 269]
+spans = [[68, 70], [93, 95], [118, 120], [143, 190], [213, 289], [240, 242], [269, 271]]
 nodes = ["42", "43", "44", '''{
                     "x": 45
                 }''', '''{
@@ -44,7 +44,7 @@ description = "descendant search for 'a' and then all subdocuments"
 
 [queries.results]
 count = 8
-bytes = [68, 93, 118, 143, 170, 213, 240, 269]
+spans = [[68, 70], [93, 95], [118, 120], [143, 190], [170, 172], [213, 289], [240, 242], [269, 271]]
 nodes = ["42", "43", "44", '''{
                     "x": 45
                 }''', "45", '''{

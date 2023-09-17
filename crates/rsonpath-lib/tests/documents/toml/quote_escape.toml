@@ -16,7 +16,7 @@ description = "select 'x' directly"
 
 [queries.results]
 count = 1
-bytes = [26]
+spans = [[26, 28]]
 nodes = ["17"]
 
 [[queries]]
@@ -25,5 +25,5 @@ description = "select 'x' with quote directly"
 
 [queries.results]
 count = 1
-bytes = [13]
+spans = [[13, 15]]
 nodes = ["42"]

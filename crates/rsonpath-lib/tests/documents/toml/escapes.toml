@@ -23,7 +23,7 @@ description = "select label with one actual backslash, which is two backslashes 
 
 [queries.results]
 count = 1
-bytes = [611]
+spans = [[611, 613]]
 nodes = ["42"]
 
 [[queries]]
@@ -32,5 +32,5 @@ description = "select label with two actual backslashes (four backslashes in the
 
 [queries.results]
 count = 0
-bytes = []
+spans = []
 nodes = []

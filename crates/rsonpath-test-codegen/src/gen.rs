@@ -145,17 +145,35 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> impl IntoIterator<Item = T
                     assert_eq!(result, #count, "result != expected");
                 }
             }
-            ResultTypeToTest::Bytes => {
-                let bytes = query
+            ResultTypeToTest::Indices => {
+                let indices = query
                     .results
-                    .bytes
+                    .spans
                     .as_ref()
-                    .expect("result without data in toml should be filtered out in get_available_results");
+                    .expect("result without data in toml should be filtered out in get_available_results")
+                    .iter()
+                    .map(|x| x.start);
                 quote! {
                     let mut result = vec![];
                     #engine_ident.indices(&#input_ident, &mut result)?;
 
-                    assert_eq!(result, vec![#(#bytes,)*], "result != expected");
+                    assert_eq!(result, vec![#(#indices,)*], "result != expected");
+                }
+            }
+            ResultTypeToTest::Spans => {
+                let spans = query
+                    .results
+                    .spans
+                    .as_ref()
+                    .expect("result without data in toml should be filtered out in get_available_results");
+                quote! {
+                    let mut result = vec![];
+                    #engine_ident.matches(&#input_ident, &mut result)?;
+
+                    let utf8: Vec<(usize, usize)> = result.iter().map(|x| (x.span().start_idx(), x.span().end_idx())).collect();
+                    let expected: Vec<(usize, usize)> = vec![#(#spans,)*];
+
+                    assert_eq!(utf8, expected, "result != expected");
                 }
             }
             ResultTypeToTest::Nodes => {
@@ -168,7 +186,7 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> impl IntoIterator<Item = T
                     let mut result = vec![];
                     #engine_ident.matches(&#input_ident, &mut result)?;
 
-                    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(&x.bytes)).collect();
+                    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
                     let utf8 = utf8.expect("valid utf8");
                     let expected: Vec<&str> = vec![#(#node_strings,)*];
 
@@ -182,12 +200,13 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> impl IntoIterator<Item = T
 fn get_available_results(query: &model::Query) -> Vec<ResultTypeToTest> {
     let mut res = vec![ResultTypeToTest::Count];
 
-    if query.results.bytes.is_some() {
-        res.push(ResultTypeToTest::Bytes)
+    if query.results.spans.is_some() {
+        res.push(ResultTypeToTest::Indices);
+        res.push(ResultTypeToTest::Spans);
     }
 
     if query.results.nodes.is_some() {
-        res.push(ResultTypeToTest::Nodes)
+        res.push(ResultTypeToTest::Nodes);
     }
 
     res
@@ -214,7 +233,8 @@ enum InputTypeToTest {
 
 #[derive(Clone, Copy)]
 enum ResultTypeToTest {
-    Bytes,
+    Indices,
+    Spans,
     Count,
     Nodes,
 }
@@ -245,7 +265,8 @@ impl Display for ResultTypeToTest {
             "{}",
             match self {
                 Self::Count => "CountResult",
-                Self::Bytes => "IndexResult",
+                Self::Indices => "IndexResult",
+                Self::Spans => "NodesResult(Span)",
                 Self::Nodes => "NodesResult",
             }
         )

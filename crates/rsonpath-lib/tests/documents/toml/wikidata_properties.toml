@@ -46,7 +46,8 @@ description = "path to P7103 claims P31 references snaks P4656 hash with descend
 
 [queries.results]
 count = 1
-bytes = [22639035]
+spans = [[22639035, 22639077]]
+nodes = ['"8841ebd7f526f7e3be79708694452b2260d5a33d"']
 
 [[queries]]
 query = "$..*"

@@ -35,7 +35,72 @@ description = "select all non-root nodes"
 
 [queries.results]
 count = 16
-bytes = [6, 16, 17, 31, 39, 49, 61, 75, 93, 113, 142, 160, 180, 209, 227, 247]
+spans = [
+    [
+        6,
+        25,
+    ],
+    [
+        16,
+        19,
+    ],
+    [
+        17,
+        18,
+    ],
+    [
+        31,
+        33,
+    ],
+    [
+        39,
+        278,
+    ],
+    [
+        49,
+        51,
+    ],
+    [
+        61,
+        272,
+    ],
+    [
+        75,
+        128,
+    ],
+    [
+        93,
+        95,
+    ],
+    [
+        113,
+        114,
+    ],
+    [
+        142,
+        195,
+    ],
+    [
+        160,
+        162,
+    ],
+    [
+        180,
+        181,
+    ],
+    [
+        209,
+        262,
+    ],
+    [
+        227,
+        229,
+    ],
+    [
+        247,
+        248,
+    ],
+]
 nodes = ['''[
         [0]
     ]''', "[0]", "0", "[]", '''[
@@ -85,7 +150,7 @@ description = "select the first element"
 
 [queries.results]
 count = 1
-bytes = [6]
+spans = [[6, 25]]
 nodes = ['''[
         [0]
     ]''']
@@ -96,7 +161,7 @@ description = "select the first element and then all its children"
 
 [queries.results]
 count = 1
-bytes = [16]
+spans = [[16, 19]]
 nodes = ["[0]"]
 
 [[queries]]
@@ -105,7 +170,7 @@ description = "select all nodes at depth one and then their first list element"
 
 [queries.results]
 count = 2
-bytes = [16, 49]
+spans = [[16, 19], [49, 51]]
 nodes = ["[0]", "[]"]
 
 [[queries]]
@@ -114,7 +179,7 @@ description = "direct path 2-1-0-1"
 
 [queries.results]
 count = 1
-bytes = [113]
+spans = [[113, 114]]
 nodes = ["0"]
 
 [[queries]]
@@ -123,7 +188,7 @@ description = "direct path 2-1 and then any child"
 
 [queries.results]
 count = 3
-bytes = [75, 142, 209]
+spans = [[75, 128], [142, 195], [209, 262]]
 nodes = ['''[
                 [],
                 0
@@ -141,7 +206,7 @@ description = "select the long list, then in each sublist select the second elem
 
 [queries.results]
 count = 1
-bytes = [142]
+spans = [[142, 195]]
 nodes = ['''[
                 [],
                 0
@@ -153,7 +218,7 @@ description = "select the long list, then go two levels down and select the seco
 
 [queries.results]
 count = 3
-bytes = [113, 180, 247]
+spans = [[113, 114], [180, 181], [247, 248]]
 nodes = ["0", "0", "0"]
 
 [[queries]]
@@ -162,7 +227,7 @@ description = "select the path 2-1, then in any subtree select the second list e
 
 [queries.results]
 count = 3
-bytes = [113, 180, 247]
+spans = [[113, 114], [180, 181], [247, 248]]
 nodes = ["0", "0", "0"]
 
 [[queries]]
@@ -171,7 +236,52 @@ description = "select the long list and then its every subdocument"
 
 [queries.results]
 count = 11
-bytes = [49, 61, 75, 93, 113, 142, 160, 180, 209, 227, 247]
+spans = [
+    [
+        49,
+        51,
+    ],
+    [
+        61,
+        272,
+    ],
+    [
+        75,
+        128,
+    ],
+    [
+        93,
+        95,
+    ],
+    [
+        113,
+        114,
+    ],
+    [
+        142,
+        195,
+    ],
+    [
+        160,
+        162,
+    ],
+    [
+        180,
+        181,
+    ],
+    [
+        209,
+        262,
+    ],
+    [
+        227,
+        229,
+    ],
+    [
+        247,
+        248,
+    ],
+]
 nodes = ["[]", '''[
             [
                 [],
@@ -202,19 +312,40 @@ description = "select the first element of every nested list"
 
 [queries.results]
 count = 7
-bytes = [16, 17, 49, 75, 93, 160, 227]
-nodes = [
-    "[0]",
-    "0",
-    "[]",
-    '''[
+spans = [
+    [
+        16,
+        19,
+    ],
+    [
+        17,
+        18,
+    ],
+    [
+        49,
+        51,
+    ],
+    [
+        75,
+        128,
+    ],
+    [
+        93,
+        95,
+    ],
+    [
+        160,
+        162,
+    ],
+    [
+        227,
+        229,
+    ],
+]
+nodes = ["[0]", "0", "[]", '''[
                 [],
                 0
-            ]''',
-    "[]",
-    "[]",
-    "[]",
-]
+            ]''', "[]", "[]", "[]"]
 
 [[queries]]
 query = "$[2][0]"
@@ -222,7 +353,7 @@ description = "select the first element of the long list"
 
 [queries.results]
 count = 1
-bytes = [49]
+spans = [[49, 51]]
 nodes = ["[]"]
 
 [[queries]]
@@ -231,9 +362,8 @@ description = "select the second element of the long list"
 
 [queries.results]
 count = 1
-bytes = [61]
-nodes = [
-    '''[
+spans = [[61, 272]]
+nodes = ['''[
             [
                 [],
                 0
@@ -246,5 +376,4 @@ nodes = [
                 [],
                 0
             ]
-        ]'''
-]
+        ]''']
