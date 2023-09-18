@@ -13,7 +13,7 @@ description = "select the root (empty query)"
 
 [queries.results]
 count = 1
-bytes = [0]
+spans = [[0, 2]]
 nodes = ["[]"]
 
 [[queries]]
@@ -22,7 +22,7 @@ description = "select the root"
 
 [queries.results]
 count = 1
-bytes = [0]
+spans = [[0, 2]]
 nodes = ["[]"]
 
 [[queries]]
@@ -31,7 +31,7 @@ description = "select the first item (which does not exist)"
 
 [queries.results]
 count = 0
-bytes = []
+spans = []
 nodes = []
 
 [[queries]]
@@ -40,7 +40,7 @@ description = "select any item (there are none)"
 
 [queries.results]
 count = 0
-bytes = []
+spans = []
 nodes = []
 
 [[queries]]
@@ -49,5 +49,5 @@ description = "select any descendant (there are none)"
 
 [queries.results]
 count = 0
-bytes = []
+spans = []
 nodes = []

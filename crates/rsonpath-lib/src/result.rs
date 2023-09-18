@@ -15,24 +15,78 @@ pub type MatchIndex = usize;
 
 /// Span of a match &ndash; its start and end index.
 ///
-/// The end index is **inclusive**. For example, the value
+/// The end index is **exclusive**. For example, the value
 /// `true` may have the span of (17, 21), meaning that
 /// the first character, 't', occurs at index 17, and the last
-/// character, `e` occurs at index 21.
+/// character, `e` occurs at index 20.
+///
+/// This is in line with what a [17..21] slice in Rust represents.
+#[derive(Clone, Copy)]
 pub struct MatchSpan {
     /// Starting index of the match.
-    pub start_idx: MatchIndex,
-    /// Last index of the match.
-    pub end_idx: MatchIndex,
+    start_idx: MatchIndex,
+    /// Length of the match
+    len: usize,
 }
 
 /// Full information of a query match &ndash; its span and the input bytes
 /// in that span.
 pub struct Match {
     /// JSON contents of the match.
-    pub bytes: Vec<u8>,
-    /// Span of the match.
-    pub span: MatchSpan,
+    bytes: Vec<u8>,
+    /// Starting index of the match.
+    span_start: usize,
+}
+
+impl MatchSpan {
+    /// Returns the starting index of the match.
+    #[inline(always)]
+    #[must_use]
+    pub fn start_idx(&self) -> usize {
+        self.start_idx
+    }
+
+    /// Returns the end index of the match.
+    #[inline(always)]
+    #[must_use]
+    pub fn end_idx(&self) -> usize {
+        self.start_idx + self.len
+    }
+
+    /// Returns the length of the match.
+    #[inline(always)]
+    #[must_use]
+    #[allow(clippy::len_without_is_empty)] // is_empty makes no sense for a match (matches are non-empty)
+    pub fn len(&self) -> usize {
+        self.len
+    }
+}
+
+impl Match {
+    /// Returns the JSON contents of the match.
+    #[inline(always)]
+    #[must_use]
+    pub fn bytes(&self) -> &[u8] {
+        &self.bytes
+    }
+
+    /// Consumes the [`Match`] to take ownership of the underlying JSON bytes.
+    #[inline(always)]
+    #[must_use]
+    pub fn into_bytes(self) -> Vec<u8> {
+        self.bytes
+    }
+
+    /// Returns the span of this match in the JSON document:
+    /// its starting and ending byte indices.
+    #[inline(always)]
+    #[must_use]
+    pub fn span(&self) -> MatchSpan {
+        MatchSpan {
+            start_idx: self.span_start,
+            len: self.bytes.len(),
+        }
+    }
 }
 
 impl Display for Match {

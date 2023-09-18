@@ -32,7 +32,7 @@ description = "select all nodes in the top-level list"
 
 [queries.results]
 count = 6
-bytes = [63, 82, 101, 121, 141, 305]
+spans = [[63, 64], [82, 83], [101, 103], [121, 123], [141, 287], [305, 306]]
 nodes = ["1", "2", "{}", "[]", '''[
                     [
                         [
@@ -47,7 +47,44 @@ description = "select all nodes in the top-level list and below"
 
 [queries.results]
 count = 9
-bytes = [63, 82, 101, 121, 141, 163, 189, 219, 305]
+spans = [
+    [
+        63,
+        64,
+    ],
+    [
+        82,
+        83,
+    ],
+    [
+        101,
+        103,
+    ],
+    [
+        121,
+        123,
+    ],
+    [
+        141,
+        287,
+    ],
+    [
+        163,
+        269,
+    ],
+    [
+        189,
+        247,
+    ],
+    [
+        219,
+        221,
+    ],
+    [
+        305,
+        306,
+    ],
+]
 nodes = ["1", "2", "{}", "[]", '''[
                     [
                         [

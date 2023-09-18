@@ -24,8 +24,8 @@ description = "select the empty key"
 [queries.results]
 # Number of expected matches.
 count = 1
-# Byte locations of starts of all matches, in order.
-bytes = [8] 
+# Byte locations of spans of all matches, in order.
+spans = [[8, 16]] 
 # Stringified values of all matches, verbatim as in the input,
 # in the same order as above.
 nodes = [
@@ -38,7 +38,7 @@ description = "select the empty key by descendant"
 
 [queries.results]
 count = 1
-bytes = [8]
+spans = [[8, 16]]
 nodes = [
     '"value1"'
 ]

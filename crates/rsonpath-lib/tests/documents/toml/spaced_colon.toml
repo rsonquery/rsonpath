@@ -31,7 +31,7 @@ description = "select leaves"
 
 [queries.results]
 count = 2
-bytes = [150, 257]
+spans = [[150, 152], [257, 259]]
 nodes = ["42", "42"]
 
 [[queries]]
@@ -40,7 +40,7 @@ description = "select leaves by memchr"
 
 [queries.results]
 count = 2
-bytes = [150, 257]
+spans = [[150, 152], [257, 259]]
 nodes = ["42", "42"]
 
 [[queries]]
@@ -49,5 +49,5 @@ description = "select leaves tail-skipping the first element"
 
 [queries.results]
 count = 2
-bytes = [150, 257]
+spans = [[150, 152], [257, 259]]
 nodes = ["42", "42"]

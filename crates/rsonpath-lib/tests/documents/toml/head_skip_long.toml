@@ -27,8 +27,8 @@ description = "select the extremely long label"
 [queries.results]
 # Number of expected matches.
 count = 1
-# Byte locations of starts of all matches, in order.
-bytes = [428]
+# Byte locations of spans of all matches, in order.
+spans = [[428, 430]]
 # Stringified values of all matches, verbatim as in the input,
 # in the same order as above.
 nodes = ['44']
@@ -45,8 +45,8 @@ description = "select the label starting exactly at block boundary"
 [queries.results]
 # Number of expected matches.
 count = 2
-# Byte locations of starts of all matches, in order.
-bytes = [14, 194]
+# Byte locations of spans of all matches, in order.
+spans = [[14, 128], [194, 196]]
 # Stringified values of all matches, verbatim as in the input,
 # in the same order as above.
 nodes = ['''{

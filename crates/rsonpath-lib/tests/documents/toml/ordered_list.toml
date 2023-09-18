@@ -31,8 +31,8 @@ description = "select all subdocuments"
 [queries.results]
 # Number of expected matches.
 count = 7
-# Byte locations of starts of all matches, in order.
-bytes = [4, 9, 14, 20, 28, 37, 43] 
+# Byte locations of spans of all matches, in order.
+spans = [[4, 5], [9, 10], [14, 33], [20, 22], [28, 29], [37, 48], [43, 44]] 
 # Stringified values of all matches, verbatim as in the input,
 # in the same order as above.
 nodes = [

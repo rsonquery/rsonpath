@@ -32,7 +32,7 @@ query = "$.phoneNumbers[0].type"
 
 [queries.results]
 count = 1
-bytes = [239]
+spans = [[239, 247]]
 nodes = ['"iPhone"']
 
 [[queries]]
@@ -41,7 +41,7 @@ query = "$..number"
 
 [queries.results]
 count = 2
-bytes = [271, 359]
+spans = [[271, 287], [359, 375]]
 nodes = ['"0123-4567-8888"', '"0123-4567-8910"']
 
 [[queries]]
@@ -50,7 +50,7 @@ query = "$.phoneNumbers[0]"
 
 [queries.results]
 count = 1
-bytes = [217]
+spans = [[217, 297]]
 nodes = ['''{
             "type": "iPhone",
             "number": "0123-4567-8888"

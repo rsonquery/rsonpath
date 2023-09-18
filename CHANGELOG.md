@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 ### Features
 
+- [**breaking**] Refactored the [`Match`]/[`MatchSpan`] types.
+  - [`Match`] now takes 32 bytes, down from 40.
+  - All fields are now private, accessible via associated functions.
+  - Added the `len` function to [`MatchSpan`].
 - Library exposes a new optional feature, `arbitrary`.
   - When enabled, includes [`arbitrary`](https://lib.rs/crates/arbitrary)
     as a dependency and provides an `Arbitrary` impl for `JsonPathQuery`,
@@ -25,6 +29,9 @@ All notable changes to this project will be documented in this file.
   - This was detected by fuzzing! Invalid JSON documents could
     cause the NodeRecorder to panic if the apparent match span
     was of length 1.
+- Fixed erroneous match span end reporting. ([#247](https://github.com/V0ldek/rsonpath/issues/247))
+  - Fixed a bug where `MatchSpan` values given by the engine were
+    almost always invalid.
 
 ### Reliability
 
@@ -36,6 +43,7 @@ All notable changes to this project will be documented in this file.
   - Fuzzing is now enabled on every PR. Using ClusterFuzzLite
     we will fuzz the project every day on a cron schedule
     to establish a corpus.
+- Added correctness tests for match spans reporting ([#247](https://github.com/V0ldek/rsonpath/issues/247))
 
 ## [0.8.0] - 2023-09-10
 

@@ -48,11 +48,12 @@
 )]
 
 use crate::files::Files;
+use files::CombinedError;
 use proc_macro2::TokenStream;
 use quote::quote;
 use std::{
+    error::Error,
     fmt::Display,
-    io,
     path::{Path, PathBuf},
     time::{Duration, Instant},
 };
@@ -63,7 +64,7 @@ mod gen;
 mod model;
 
 /// Parsed TOML document declaration annotated with its name and path.
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub(crate) struct DiscoveredDocument {
     /// Name of the file.
     pub(crate) name: String,
@@ -76,7 +77,10 @@ pub(crate) struct DiscoveredDocument {
 /// Generate the source of end-to-end tests based on the TOML configuration in `toml_directory_path`.
 /// As a side-effect, JSON files are written to `output_json_directory_path`, and additional variants
 /// with compressed inputs of TOML configs are generated.
-pub fn generate_tests<P1, P2>(toml_directory_path: P1, output_json_directory_path: P2) -> Result<TokenStream, io::Error>
+pub fn generate_tests<P1, P2>(
+    toml_directory_path: P1,
+    output_json_directory_path: P2,
+) -> Result<TokenStream, TestGenError>
 where
     P1: AsRef<Path>,
     P2: AsRef<Path>,
@@ -121,5 +125,34 @@ struct FormatDuration(Duration);
 impl Display for FormatDuration {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:.2}s", self.0.as_secs_f32())
+    }
+}
+
+#[derive(Debug)]
+pub enum TestGenError {
+    ConfigurationError(CombinedError),
+    IoError(std::io::Error),
+}
+
+impl Display for TestGenError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::ConfigurationError(err) => write!(f, "{err}"),
+            Self::IoError(err) => write!(f, "{err}"),
+        }
+    }
+}
+
+impl Error for TestGenError {}
+
+impl From<CombinedError> for TestGenError {
+    fn from(value: CombinedError) -> Self {
+        Self::ConfigurationError(value)
+    }
+}
+
+impl From<std::io::Error> for TestGenError {
+    fn from(value: std::io::Error) -> Self {
+        Self::IoError(value)
     }
 }

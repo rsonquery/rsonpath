@@ -26,7 +26,7 @@ description = "select the atomic integer by descendant"
 
 [queries.results]
 count = 1
-bytes = [176]
+spans = [[176, 178]]
 nodes = ["45"]
 
 [[queries]]
@@ -35,7 +35,7 @@ description = "select the 'a' object and then the atomic integer by descendant"
 
 [queries.results]
 count = 1
-bytes = [176]
+spans = [[176, 178]]
 nodes = ["45"]
 
 [[queries]]
@@ -44,7 +44,7 @@ description = "select the first and only element of the 'a' list"
 
 [queries.results]
 count = 1
-bytes = [21]
+spans = [[21, 202]]
 nodes = ['''{
             "c": {
                 "d": [
@@ -62,7 +62,7 @@ description = "select the third and last element of the deeply nested list"
 
 [queries.results]
 count = 1
-bytes = [133]
+spans = [[133, 135]]
 nodes = ["44"]
 
 [[queries]]
@@ -71,7 +71,7 @@ description = "select the third element of each list (only the deeply nested one
 
 [queries.results]
 count = 1
-bytes = [133]
+spans = [[133, 135]]
 nodes = ["44"]
 
 [[queries]]
@@ -80,5 +80,5 @@ description = "select the fourth element of the deeply nested list (which does n
 
 [queries.results]
 count = 0
-bytes = []
+spans = []
 nodes = []

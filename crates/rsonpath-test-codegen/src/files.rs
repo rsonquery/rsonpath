@@ -3,9 +3,13 @@
 //! The decision to create a new file can be taken in many different places during codegen,
 //! so we pass around a [`Files`] context that can register those requests. Then the file writing
 //! is performed all at once at the end of the generation.
-use crate::{model, DiscoveredDocument};
+use crate::{
+    model::{self, ConfigurationError},
+    DiscoveredDocument,
+};
 use std::{
     collections::HashMap,
+    error::Error,
     fmt::Display,
     fs, io,
     path::{Path, PathBuf},
@@ -42,20 +46,36 @@ impl Stats {
 
 impl Files {
     /// Create a new context that can read and write files to the TOML and JSON dirs.
-    pub(crate) fn new<P1: AsRef<Path>, P2: AsRef<Path>>(json_dir: P1, toml_dir: P2) -> Result<Self, io::Error> {
+    pub(crate) fn new<P1: AsRef<Path>, P2: AsRef<Path>>(json_dir: P1, toml_dir: P2) -> Result<Self, CombinedError> {
         let all_document_files = get_document_files(toml_dir.as_ref());
         let discovery = all_document_files
             .into_iter()
-            .map(|doc| read_document(toml_dir.as_ref(), doc))
-            .map(|d| (d.name.clone(), d))
-            .collect();
+            .map(|doc| (read_document(toml_dir.as_ref(), &doc), doc));
 
-        Ok(Self {
-            json_dir: json_dir.as_ref().to_path_buf(),
-            toml_dir: toml_dir.as_ref().to_path_buf(),
-            toml_documents: discovery,
-            file_buf: vec![],
-        })
+        let mut oks = HashMap::new();
+        let mut errs = CombinedError::new();
+
+        for (res, path) in discovery {
+            match res {
+                Ok(ok) => {
+                    oks.insert(ok.name.clone(), ok);
+                }
+                Err(err) => {
+                    errs.add(path, err);
+                }
+            };
+        }
+
+        if !errs.is_empty() {
+            Err(errs)
+        } else {
+            Ok(Self {
+                json_dir: json_dir.as_ref().to_path_buf(),
+                toml_dir: toml_dir.as_ref().to_path_buf(),
+                toml_documents: oks,
+                file_buf: vec![],
+            })
+        }
     }
 
     /// Returns a list of all available TOML configurations parsed into [`DiscoveredDocument`].
@@ -189,12 +209,14 @@ fn get_document_files(dir_path: &Path) -> impl IntoIterator<Item = PathBuf> {
         .map(|x| x.path().to_path_buf())
 }
 
-fn read_document<P1: AsRef<Path>, P2: AsRef<Path>>(base_dir: P1, f: P2) -> DiscoveredDocument {
+fn read_document<P1: AsRef<Path>, P2: AsRef<Path>>(
+    base_dir: P1,
+    f: P2,
+) -> Result<DiscoveredDocument, ConfigurationError> {
     let file_name = f.as_ref().file_name().unwrap().to_string_lossy();
     let contents = fs::read_to_string(f.as_ref()).unwrap();
 
-    let document: model::Document =
-        model::deserialize(contents).unwrap_or_else(|err| panic!("invalid document {file_name}: {err}"));
+    let document: model::Document = model::deserialize(contents)?;
 
     let relative_path = f
         .as_ref()
@@ -208,11 +230,11 @@ fn read_document<P1: AsRef<Path>, P2: AsRef<Path>>(base_dir: P1, f: P2) -> Disco
         file_name.to_string()
     };
 
-    DiscoveredDocument {
+    Ok(DiscoveredDocument {
         name,
         relative_path,
         document,
-    }
+    })
 }
 
 fn write_file<P: AsRef<Path>, D: Display>(path: P, contents: D) -> Result<(), io::Error> {
@@ -226,3 +248,34 @@ fn create_parent_dirs<P: AsRef<Path>>(path: P) -> Result<(), io::Error> {
     let dir = path.as_ref().parent().expect("generated files must have a parent");
     fs::create_dir_all(dir)
 }
+
+#[derive(Debug)]
+pub struct CombinedError {
+    errs: Vec<(PathBuf, ConfigurationError)>,
+}
+
+impl CombinedError {
+    fn new() -> Self {
+        Self { errs: vec![] }
+    }
+
+    fn add(&mut self, path: PathBuf, err: ConfigurationError) {
+        self.errs.push((path, err));
+    }
+
+    fn is_empty(&self) -> bool {
+        self.errs.is_empty()
+    }
+}
+
+impl Display for CombinedError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for err in &self.errs {
+            writeln!(f, "error in test configuration {}:\n    {}", err.0.display(), err.1)?;
+        }
+
+        Ok(())
+    }
+}
+
+impl Error for CombinedError {}

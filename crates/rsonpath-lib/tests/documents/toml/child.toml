@@ -62,9 +62,5 @@ description = "mix descendant and child names"
 
 [queries.results]
 count = 3
-bytes = [986, 1299, 1547]
-nodes = [
-    '"hit1"',
-    '"hit2"',
-    '"hit3"'
-]
+spans = [[986, 992], [1299, 1305], [1547, 1553]]
+nodes = ['"hit1"', '"hit2"', '"hit3"']
