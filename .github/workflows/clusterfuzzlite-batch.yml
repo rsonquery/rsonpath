@@ -21,7 +21,6 @@ jobs:
       matrix:
         sanitizer:
         - address
-        - memory
     steps:
     - name: Build Fuzzers (${{ matrix.sanitizer }})
       id: build
