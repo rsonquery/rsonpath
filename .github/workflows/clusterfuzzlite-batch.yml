@@ -37,6 +37,6 @@ jobs:
         mode: 'batch'
         sanitizer: ${{ matrix.sanitizer }}
         output-sarif: true
-        storage-repo: https://${{ secrets.CLUSTERFUZZLITE_STORAGE_TOKEN }}@github.com/rsonpath/rsonpath-fuzz-storage.git
+        storage-repo: https://${{ secrets.CLUSTERFUZZLITE_STORAGE_TOKEN }}@github.com/rsonquery/rsonpath-fuzz-storage.git
         storage-repo-branch: main
         storage-repo-branch-coverage: gh-pages
