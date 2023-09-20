@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.8.1] - 2023-09-20
 
 ### Features
 
@@ -51,6 +51,11 @@ All notable changes to this project will be documented in this file.
     we will fuzz the project every day on a cron schedule
     to establish a corpus.
 - Added correctness tests for match spans reporting ([#247](https://github.com/V0ldek/rsonpath/issues/247))
+
+### Dependencies
+
+- Bump clap from 4.4.2 to 4.4.4.
+- Bump vergen from 8.2.4 to 8.2.5.
 
 ## [0.8.0] - 2023-09-10
 

@@ -49,9 +49,9 @@ field.
 
 ```console,ignore
 $ rq --version
-rq 0.8.0
+rq 0.8.1
 
-Commit SHA:      be6abb7fc8a3a9342876d01cad2388c10f5751e3
+Commit SHA:      05ced6146b2dcc4e474f2dbc17c2e6d0986a7181
 Features:        default,simd
 Opt level:       3
 Target triple:   x86_64-unknown-linux-gnu
