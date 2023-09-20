@@ -8,9 +8,8 @@ use std::fmt::Display;
 ///
 /// # Examples
 ///
-/// ```
+/// ```rust
 /// # use rsonpath::query::JsonString;
-///
 /// let needle = JsonString::new("needle");
 ///
 /// assert_eq!(needle.bytes(), "needle".as_bytes());
@@ -123,6 +122,7 @@ impl std::hash::Hash for JsonString {
 }
 
 #[cfg(feature = "arbitrary")]
+#[cfg_attr(docsrs, doc(cfg(feature = "arbitrary")))]
 impl<'a> arbitrary::Arbitrary<'a> for JsonString {
     #[inline]
     fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
