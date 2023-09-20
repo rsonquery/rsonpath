@@ -14,7 +14,7 @@ To verify provenance you should investigate the `multiple.intoto.jsonl` file ava
 in the [GitHub release](https://github.com/V0ldek/rsonpath/releases) (in the standard
 [in-toto format](https://in-toto.io/)), using the [`slsa-verifier` tool](https://github.com/slsa-framework/slsa-verifier).
 
-For example, to verify the `rq-x86_64-unknown-linux-gnu` binary for version v0.7.0, run:
+For example, to verify the `rq-x86_64-unknown-linux-gnu` binary for version v0.8.0, run:
 
 ```console,ignore
 $ slsa-verifier verify-artifact \
@@ -35,7 +35,7 @@ To verify it works, check if `rq` is available from your command line:
 
 ```console
 $ rq -V
-rq 0.8.0
+rq 0.8.1
 
 ```
 

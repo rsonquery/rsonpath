@@ -1,6 +1,6 @@
 [package]
 name = "rsonpath-test"
-version = "0.8.0"
+version = "0.8.1"
 authors = ["Mateusz Gienieczko <mat@gienieczko.com>"]
 edition = "2021"
 description = "Just a build script for the auto test generation."
