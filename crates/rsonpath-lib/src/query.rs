@@ -302,6 +302,7 @@ impl<T: std::ops::Deref<Target = JsonPathQueryNode>> JsonPathQueryNodeType for O
 // In particular, constructing a query as just a sequence of arbitrary nodes is invalid,
 // because the Root note must be always be the first node in the query and can never occur later.
 #[cfg(feature = "arbitrary")]
+#[cfg_attr(docsrs, doc(cfg(feature = "arbitrary")))]
 impl<'a> arbitrary::Arbitrary<'a> for JsonPathQuery {
     #[inline]
     fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {

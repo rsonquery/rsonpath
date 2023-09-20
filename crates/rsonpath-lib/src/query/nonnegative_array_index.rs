@@ -83,6 +83,7 @@ impl Display for NonNegativeArrayIndex {
 }
 
 #[cfg(feature = "arbitrary")]
+#[cfg_attr(docsrs, doc(cfg(feature = "arbitrary")))]
 impl<'a> arbitrary::Arbitrary<'a> for NonNegativeArrayIndex {
     #[inline]
     fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
