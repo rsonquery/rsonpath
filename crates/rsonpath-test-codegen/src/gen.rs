@@ -2,10 +2,10 @@
 use crate::{files::Files, model};
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
-use std::{fmt::Display, path::Path};
+use std::{fmt::Display, io, path::Path};
 
 /// Generate the source file and register all required files.
-pub(crate) fn generate_test_fns(files: &mut Files) -> impl IntoIterator<Item = TokenStream> {
+pub(crate) fn generate_test_fns(files: &mut Files) -> Result<impl IntoIterator<Item = TokenStream>, io::Error> {
     let mut fns = vec![];
     // Clone the collection, since we need to mutate the files.
     let docs = files.documents().into_iter().cloned().collect::<Vec<_>>();
@@ -18,7 +18,7 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> impl IntoIterator<Item = T
         // For each query generate cases using each combination of input mode, result type, and engine type.
         for query in &discovered_doc.document.queries {
             for input_type in [InputTypeToTest::Owned, InputTypeToTest::Buffered, InputTypeToTest::Mmap] {
-                for result_type in get_available_results(query) {
+                for result_type in get_available_results(&discovered_doc.document.input.source, query)? {
                     let fn_name = format_ident!(
                         "{}",
                         heck::AsSnakeCase(format!(
@@ -59,7 +59,7 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> impl IntoIterator<Item = T
 
     fns.sort_by(|x, y| x.0.cmp(&y.0));
 
-    return fns.into_iter().map(|x| x.1);
+    return Ok(fns.into_iter().map(|x| x.1));
 
     fn generate_body<P: AsRef<Path>>(
         full_description: &str,
@@ -160,6 +160,26 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> impl IntoIterator<Item = T
                     assert_eq!(result, vec![#(#indices,)*], "result != expected");
                 }
             }
+            ResultTypeToTest::ApproximateSpans(spans) => {
+                quote! {
+                    let mut result = vec![];
+                    #engine_ident.approximate_spans(&#input_ident, &mut result)?;
+
+                    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+                    let expected: Vec<(usize, usize, usize)> = vec![#(#spans,)*];
+
+                    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+
+                    for i in 0..tups.len() {
+                        let upper_bound = expected[i];
+                        let actual = tups[i];
+
+                        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+                        assert!(actual.1 >= upper_bound.1, "result end_idx() < expected end_lower_bound ({} < {})", actual.1, upper_bound.1);
+                        assert!(actual.1 <= upper_bound.2, "result end_idx() > expected end_upper_bound ({} > {}", actual.1, upper_bound.2);
+                    }
+                }
+            }
             ResultTypeToTest::Spans => {
                 let spans = query
                     .results
@@ -170,10 +190,10 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> impl IntoIterator<Item = T
                     let mut result = vec![];
                     #engine_ident.matches(&#input_ident, &mut result)?;
 
-                    let utf8: Vec<(usize, usize)> = result.iter().map(|x| (x.span().start_idx(), x.span().end_idx())).collect();
+                    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.span().start_idx(), x.span().end_idx())).collect();
                     let expected: Vec<(usize, usize)> = vec![#(#spans,)*];
 
-                    assert_eq!(utf8, expected, "result != expected");
+                    assert_eq!(tups, expected, "result != expected");
                 }
             }
             ResultTypeToTest::Nodes => {
@@ -197,19 +217,49 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> impl IntoIterator<Item = T
     }
 }
 
-fn get_available_results(query: &model::Query) -> Vec<ResultTypeToTest> {
+fn get_available_results(input: &model::InputSource, query: &model::Query) -> Result<Vec<ResultTypeToTest>, io::Error> {
     let mut res = vec![ResultTypeToTest::Count];
 
-    if query.results.spans.is_some() {
+    if let Some(spans) = &query.results.spans {
         res.push(ResultTypeToTest::Indices);
         res.push(ResultTypeToTest::Spans);
+        match input {
+            model::InputSource::LargeFile(_) => (),
+            model::InputSource::JsonString(s) => res.push(generate_approximate_spans_result(s, spans)?),
+        }
     }
 
     if query.results.nodes.is_some() {
         res.push(ResultTypeToTest::Nodes);
     }
 
-    res
+    return Ok(res);
+
+    fn generate_approximate_spans_result(
+        contents: &str,
+        spans: &[model::ResultSpan],
+    ) -> Result<ResultTypeToTest, io::Error> {
+        let b = contents.as_bytes();
+
+        let approx_spans = spans
+            .iter()
+            .map(|span| {
+                let mut end = span.end;
+
+                while end < b.len() && (b[end] == b' ' || b[end] == b'\t' || b[end] == b'\n' || b[end] == b'\r') {
+                    end += 1
+                }
+
+                model::ResultApproximateSpan {
+                    start: span.start,
+                    end_lower_bound: span.end,
+                    end_upper_bound: end,
+                }
+            })
+            .collect();
+
+        Ok(ResultTypeToTest::ApproximateSpans(approx_spans))
+    }
 }
 
 pub(crate) fn generate_imports() -> TokenStream {
@@ -231,10 +281,11 @@ enum InputTypeToTest {
     Mmap,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 enum ResultTypeToTest {
     Indices,
     Spans,
+    ApproximateSpans(Vec<model::ResultApproximateSpan>),
     Count,
     Nodes,
 }
@@ -266,6 +317,7 @@ impl Display for ResultTypeToTest {
             match self {
                 Self::Count => "CountResult",
                 Self::Indices => "IndexResult",
+                Self::ApproximateSpans(_) => "ApproxSpanResult",
                 Self::Spans => "NodesResult(Span)",
                 Self::Nodes => "NodesResult",
             }

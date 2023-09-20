@@ -10,6 +10,13 @@ All notable changes to this project will be documented in this file.
   - [`Match`] now takes 32 bytes, down from 40.
   - All fields are now private, accessible via associated functions.
   - Added the `len` function to [`MatchSpan`].
+- Added `approximate_spans` result mode. ([#242](https://github.com/V0ldek/rsonpath/issues/242))
+  - Engine can return an approximate span of the match,
+    where "approximate" means the start index is correct,
+    but the end index might include trailing whitespace after the match.
+  - This mode is much faster that full `matches`, close to the performance
+    of `count`, especially for large result sets.
+  - This is a library-only feature.
 - Library exposes a new optional feature, `arbitrary`.
   - When enabled, includes [`arbitrary`](https://lib.rs/crates/arbitrary)
     as a dependency and provides an `Arbitrary` impl for `JsonPathQuery`,

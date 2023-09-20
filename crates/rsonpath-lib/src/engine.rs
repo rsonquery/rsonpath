@@ -13,7 +13,7 @@ use self::error::EngineError;
 use crate::{
     input::Input,
     query::{automaton::Automaton, error::CompilerError, JsonPathQuery},
-    result::{Match, MatchCount, MatchIndex, Sink},
+    result::{Match, MatchCount, MatchIndex, MatchSpan, Sink},
 };
 
 /// An engine that can run its query on a given input.
@@ -53,6 +53,28 @@ pub trait Engine {
     where
         I: Input,
         S: Sink<MatchIndex>;
+
+    /// Find the approximate spans of matches on the given [`Input`] and write them to the [`Sink`].
+    ///
+    /// "Approximate" means that the ends of spans are not guaranteed to be located exactly at the end of a match,
+    /// but may include trailing whitespace. It is guaranteed that:
+    /// 1. the span start is exact;
+    /// 2. the span encompasses the entire matched value;
+    /// 3. the only characters included after the value are JSON whitespace characters:
+    ///    space (0x20), horizontal tab (0x09), new line (0x0A), carriage return (0x0D).
+    ///
+    /// # Errors
+    /// An appropriate [`EngineError`] is returned if the JSON input is malformed
+    /// and the syntax error is detected.
+    ///
+    /// **Please note** that detecting malformed JSONs is not guaranteed.
+    /// Some glaring errors like mismatched braces or double quotes are raised,
+    /// but in general **the result of an engine run on an invalid JSON is undefined**.
+    /// It _is_ guaranteed that the computation terminates and does not panic.
+    fn approximate_spans<I, S>(&self, input: &I, sink: &mut S) -> Result<(), EngineError>
+    where
+        I: Input,
+        S: Sink<MatchSpan>;
 
     /// Find all matches on the given [`Input`] and write them to the [`Sink`].
     ///

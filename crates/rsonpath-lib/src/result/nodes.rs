@@ -7,64 +7,15 @@
 // Using `expect` here is idiomatic.
 #![allow(clippy::expect_used)]
 
-use super::*;
+use super::{output_queue::OutputQueue, *};
 use crate::{debug, depth::Depth};
 use std::{
     cell::RefCell,
-    fmt::{self, Debug, Display},
-    str::{self, Utf8Error},
+    fmt::{self, Debug},
+    str,
 };
 
-/// Recorder that collects all byte spans of matched values
-/// and feeds [`Match`es](`super::Match`) to the [`Sink`].
-#[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct NodesResult {
-    spans: Vec<Vec<u8>>,
-}
-
-impl NodesResult {
-    /// Get slices of raw bytes of all matched nodes.
-    #[must_use]
-    #[inline(always)]
-    pub fn get(&self) -> &[impl AsRef<[u8]>] {
-        &self.spans
-    }
-
-    /// Iterate over all slices interpreted as valid UTF8.
-    #[must_use]
-    #[inline(always)]
-    pub fn iter_as_utf8(&self) -> impl IntoIterator<Item = Result<&str, Utf8Error>> {
-        self.spans.iter().map(|x| str::from_utf8(x))
-    }
-
-    /// Return the inner buffers consuming the result.
-    #[must_use]
-    #[inline(always)]
-    pub fn into_inner(self) -> Vec<Vec<u8>> {
-        self.spans
-    }
-}
-
-impl From<NodesResult> for Vec<Vec<u8>> {
-    #[inline(always)]
-    fn from(result: NodesResult) -> Self {
-        result.spans
-    }
-}
-
-impl Display for NodesResult {
-    #[inline]
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for span in &self.spans {
-            let display = String::from_utf8_lossy(span);
-            writeln!(f, "{display}")?;
-        }
-
-        Ok(())
-    }
-}
-
-/// Recorder for [`NodesResult`].
+/// Recorder that saves full info about a [`Match`].
 pub struct NodesRecorder<'s, B, S> {
     internal: RefCell<InternalRecorder<'s, B, S>>,
 }
@@ -362,7 +313,7 @@ struct StackRecorder<'s, B, S> {
     match_count: usize,
     current_block: Option<B>,
     stack: Vec<PartialNode>,
-    output_queue: OutputQueue,
+    output_queue: OutputQueue<Match>,
     sink: &'s mut S,
 }
 
@@ -372,43 +323,6 @@ struct PartialNode {
     start_depth: Depth,
     buf: Vec<u8>,
     ty: MatchedNodeType,
-}
-
-struct OutputQueue {
-    offset: usize,
-    nodes: Vec<Option<Match>>,
-}
-
-impl OutputQueue {
-    fn new() -> Self {
-        Self {
-            offset: 0,
-            nodes: vec![],
-        }
-    }
-
-    fn insert(&mut self, id: usize, node: Match) {
-        let actual_idx = id - self.offset;
-
-        while self.nodes.len() <= actual_idx {
-            self.nodes.push(None);
-        }
-
-        self.nodes[actual_idx] = Some(node);
-    }
-
-    fn output_to<S>(&mut self, sink: &mut S) -> Result<(), S::Error>
-    where
-        S: Sink<Match>,
-    {
-        self.offset += self.nodes.len();
-
-        for node in self.nodes.drain(..) {
-            sink.add_match(node.expect("output_to called only after all matches are complete"))?;
-        }
-
-        Ok(())
-    }
 }
 
 impl<'s, B, S> StackRecorder<'s, B, S>

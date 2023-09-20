@@ -24,8 +24,8 @@ use crate::{
         JsonPathQuery, JsonString, NonNegativeArrayIndex,
     },
     result::{
-        count::CountRecorder, index::IndexRecorder, nodes::NodesRecorder, Match, MatchCount, MatchIndex,
-        MatchedNodeType, Recorder, Sink,
+        approx_span::ApproxSpanRecorder, count::CountRecorder, index::IndexRecorder, nodes::NodesRecorder, Match,
+        MatchCount, MatchIndex, MatchSpan, MatchedNodeType, Recorder, Sink,
     },
     FallibleIterator, MaskType, BLOCK_SIZE,
 };
@@ -89,6 +89,26 @@ impl Engine for MainEngine<'_> {
         S: Sink<MatchIndex>,
     {
         let recorder = IndexRecorder::new(sink);
+
+        if self.automaton.is_empty_query() {
+            return empty_query(input, &recorder, self.simd);
+        }
+
+        simd_dispatch!(self.simd => |simd| {
+            let executor = query_executor(&self.automaton, input, &recorder, simd);
+            executor.run()?;
+        });
+
+        Ok(())
+    }
+
+    #[inline]
+    fn approximate_spans<I, S>(&self, input: &I, sink: &mut S) -> Result<(), EngineError>
+    where
+        I: Input,
+        S: Sink<MatchSpan>,
+    {
+        let recorder = ApproxSpanRecorder::new(sink);
 
         if self.automaton.is_empty_query() {
             return empty_query(input, &recorder, self.simd);
