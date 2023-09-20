@@ -107,7 +107,7 @@ where
     println!("generating tests...");
 
     let imports = gen::generate_imports();
-    let sources = gen::generate_test_fns(&mut files).into_iter();
+    let sources = gen::generate_test_fns(&mut files)?.into_iter();
 
     println!("writing files...");
     files.flush()?;

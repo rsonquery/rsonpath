@@ -6,6 +6,7 @@
 
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/7790/badge)](https://www.bestpractices.dev/projects/7790)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/V0ldek/rsonpath/badge)](https://securityscorecards.dev/viewer/?uri=github.com/V0ldek/rsonpath)
+[![fuzzing](https://github.com/V0ldek/rsonpath/actions/workflows/clusterfuzzlite-batch.yml/badge.svg)](https://github.com/V0ldek/rsonpath/actions/workflows/clusterfuzzlite-batch.yml)
 
 [![Crates.io](https://img.shields.io/crates/v/rsonpath?logo=docs.rs)](https://crates.io/crates/rsonpath)
 [![GitHub Release Date](https://img.shields.io/github/release-date/v0ldek/rsonpath?logo=github)](https://github.com/V0ldek/rsonpath/releases)
@@ -200,7 +201,7 @@ Easiest way to run all the benchmarks is `just bench`. For details, look at the 
 ## Background
 
 We have a paper on `rsonpath` to be published at [ASPLOS '24](https://www.asplos-conference.org/asplos2024/)! You can read it
-[here]([my thesis](/pdf/fast-execution-of-jsonpath-queries.pdf)).
+[here](/pdf/supporting-descendants-in-simd-accelerated-jsonpath.pdf).
 
 This project was conceived as [my thesis](/pdf/fast-execution-of-jsonpath-queries.pdf). You can read it for details on the theoretical
 background on the engine and details of its implementation.

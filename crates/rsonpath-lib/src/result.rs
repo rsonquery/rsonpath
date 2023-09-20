@@ -2,10 +2,12 @@
 use crate::{depth::Depth, engine::error::EngineError};
 use std::{convert::Infallible, fmt::Display, io, ops::Deref};
 
+pub mod approx_span;
 pub mod count;
 pub mod empty;
 pub mod index;
 pub mod nodes;
+mod output_queue;
 
 /// Result of counting query matches.
 pub type MatchCount = u64;
@@ -16,11 +18,11 @@ pub type MatchIndex = usize;
 /// Span of a match &ndash; its start and end index.
 ///
 /// The end index is **exclusive**. For example, the value
-/// `true` may have the span of (17, 21), meaning that
+/// `true` may have the span of `(17, 21)`, meaning that
 /// the first character, 't', occurs at index 17, and the last
 /// character, `e` occurs at index 20.
 ///
-/// This is in line with what a [17..21] slice in Rust represents.
+/// This is in line with what a `[17..21]` slice in Rust represents.
 #[derive(Clone, Copy)]
 pub struct MatchSpan {
     /// Starting index of the match.
@@ -86,6 +88,13 @@ impl Match {
             start_idx: self.span_start,
             len: self.bytes.len(),
         }
+    }
+}
+
+impl Display for MatchSpan {
+    #[inline]
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[{}..{}]", self.start_idx, self.end_idx())
     }
 }
 

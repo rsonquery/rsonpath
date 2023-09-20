@@ -62,8 +62,19 @@ pub(crate) struct Results {
 pub(crate) struct ResultSpan {
     /// Index of the first byte of the match.
     pub(crate) start: usize,
-    /// Index of the last byte of the match.
+    /// Index of the one-past-last byte of the match.
     pub(crate) end: usize,
+}
+
+/// Allowed bounds of an approximate span of a single result.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct ResultApproximateSpan {
+    /// Index of the first byte of the match.
+    pub(crate) start: usize,
+    /// Index of the last byte of the match.
+    pub(crate) end_lower_bound: usize,
+    /// Index of the first non-whitespace after the match.
+    pub(crate) end_upper_bound: usize,
 }
 
 /// Serialize a [`Document`] to [`String`].
@@ -101,6 +112,19 @@ impl<'de> Deserialize<'de> for ResultSpan {
             start: raw.0,
             end: raw.1,
         })
+    }
+}
+
+impl quote::ToTokens for ResultApproximateSpan {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        use proc_macro2::{Punct, Spacing};
+        tokens.append(Punct::new('(', Spacing::Alone));
+        self.start.to_tokens(tokens);
+        tokens.append(Punct::new(',', Spacing::Alone));
+        self.end_lower_bound.to_tokens(tokens);
+        tokens.append(Punct::new(',', Spacing::Alone));
+        self.end_upper_bound.to_tokens(tokens);
+        tokens.append(Punct::new(')', Spacing::Alone));
     }
 }
 
