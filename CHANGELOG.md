@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### Bug fixes
+
+- Fixed a bug when head-skipping to a single-byte key would panic.
+  - This was detected by fuzzing!
+  - The queries `$..["{"]` and `$..["["]` would panic
+    on inputs starting with the bytes `{"` or `["`, respectively.
+- Fixed a bug where disabling the `simd` feature would not actually
+  disable SIMD acceleration.
+
+### Reliability
+
+- Made the ClusterFuzzLite batch workflow automatically create an issue
+  on failure to make sure the maintainers are notified.
+
 ## [0.8.1] - 2023-09-20
 
 ### Features

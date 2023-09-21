@@ -33,7 +33,11 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> Result<impl IntoIterator<I
                     );
                     let full_description = format!(
                         r#"on document {} running the query {} ({}) with Input impl {} and result mode {}"#,
-                        discovered_doc.name, query.query, query.description, input_type, result_type
+                        escape_format(&discovered_doc.name),
+                        escape_format(&query.query),
+                        escape_format(&query.description),
+                        escape_format(&input_type),
+                        escape_format(&result_type)
                     );
                     let body = generate_body(
                         &full_description,
@@ -335,4 +339,12 @@ impl Display for EngineTypeToTest {
             }
         )
     }
+}
+
+fn escape_format<D>(val: &D) -> impl Display
+where
+    D: Display,
+{
+    let s = val.to_string();
+    s.replace('{', "{{").replace('}', "}}")
 }

@@ -58,7 +58,7 @@ where
         while let Some(block) = self.iter.next()? {
             let res = block.iter().copied().enumerate().find(|&(i, c)| {
                 let j = offset + i;
-                c == first_c && self.input.is_member_match(j - 1, j + label_size - 2, label)
+                c == first_c && j > 0 && self.input.is_member_match(j - 1, j + label_size - 2, label)
             });
 
             if let Some((res, _)) = res {

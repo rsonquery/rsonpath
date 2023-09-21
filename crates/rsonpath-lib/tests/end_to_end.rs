@@ -1,4 +1,4 @@
-// a408cf20bda680a9005e3d0ce325e327
+// 9d6b9a42dabad16a52cf829a2df81b06
 use pretty_assertions::assert_eq;
 use rsonpath::engine::{main::MainEngine, Compiler, Engine};
 use rsonpath::input::*;
@@ -22762,6 +22762,552 @@ fn large_wikidata_dump_properties_with_query_path_to_p7103_claims_p31_references
     Ok(())
 }
 #[test]
+fn list_with_an_empty_string_compressed_with_query_descendant_search_for_a_key_equal_to_the_square_brace_with_buffered_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_for_square.toml running the query $..[\"[\"] (descendant search for a key equal to the square brace) with Input impl BufferedInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"[\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/head_skip_for_square.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn list_with_an_empty_string_compressed_with_query_descendant_search_for_a_key_equal_to_the_square_brace_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_for_square.toml running the query $..[\"[\"] (descendant search for a key equal to the square brace) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"[\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/head_skip_for_square.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_an_empty_string_compressed_with_query_descendant_search_for_a_key_equal_to_the_square_brace_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_for_square.toml running the query $..[\"[\"] (descendant search for a key equal to the square brace) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"[\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/head_skip_for_square.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_an_empty_string_compressed_with_query_descendant_search_for_a_key_equal_to_the_square_brace_with_buffered_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_for_square.toml running the query $..[\"[\"] (descendant search for a key equal to the square brace) with Input impl BufferedInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"[\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/head_skip_for_square.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_an_empty_string_compressed_with_query_descendant_search_for_a_key_equal_to_the_square_brace_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_for_square.toml running the query $..[\"[\"] (descendant search for a key equal to the square brace) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"[\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/head_skip_for_square.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_an_empty_string_compressed_with_query_descendant_search_for_a_key_equal_to_the_square_brace_with_mmap_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_for_square.toml running the query $..[\"[\"] (descendant search for a key equal to the square brace) with Input impl MmapInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"[\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/head_skip_for_square.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn list_with_an_empty_string_compressed_with_query_descendant_search_for_a_key_equal_to_the_square_brace_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_for_square.toml running the query $..[\"[\"] (descendant search for a key equal to the square brace) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"[\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/head_skip_for_square.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_an_empty_string_compressed_with_query_descendant_search_for_a_key_equal_to_the_square_brace_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_for_square.toml running the query $..[\"[\"] (descendant search for a key equal to the square brace) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"[\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/head_skip_for_square.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_an_empty_string_compressed_with_query_descendant_search_for_a_key_equal_to_the_square_brace_with_mmap_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_for_square.toml running the query $..[\"[\"] (descendant search for a key equal to the square brace) with Input impl MmapInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"[\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/head_skip_for_square.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_an_empty_string_compressed_with_query_descendant_search_for_a_key_equal_to_the_square_brace_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_for_square.toml running the query $..[\"[\"] (descendant search for a key equal to the square brace) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"[\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/head_skip_for_square.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_an_empty_string_compressed_with_query_descendant_search_for_a_key_equal_to_the_square_brace_with_owned_bytes_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_for_square.toml running the query $..[\"[\"] (descendant search for a key equal to the square brace) with Input impl OwnedBytes and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"[\"]")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/head_skip_for_square.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn list_with_an_empty_string_compressed_with_query_descendant_search_for_a_key_equal_to_the_square_brace_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_for_square.toml running the query $..[\"[\"] (descendant search for a key equal to the square brace) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"[\"]")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/head_skip_for_square.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_an_empty_string_compressed_with_query_descendant_search_for_a_key_equal_to_the_square_brace_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_for_square.toml running the query $..[\"[\"] (descendant search for a key equal to the square brace) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"[\"]")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/head_skip_for_square.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_an_empty_string_compressed_with_query_descendant_search_for_a_key_equal_to_the_square_brace_with_owned_bytes_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_for_square.toml running the query $..[\"[\"] (descendant search for a key equal to the square brace) with Input impl OwnedBytes and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"[\"]")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/head_skip_for_square.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_an_empty_string_compressed_with_query_descendant_search_for_a_key_equal_to_the_square_brace_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_for_square.toml running the query $..[\"[\"] (descendant search for a key equal to the square brace) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"[\"]")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/head_skip_for_square.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_an_empty_string_with_query_descendant_search_for_a_key_equal_to_the_square_brace_with_buffered_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_for_square.toml running the query $..[\"[\"] (descendant search for a key equal to the square brace) with Input impl BufferedInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"[\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/head_skip_for_square.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn list_with_an_empty_string_with_query_descendant_search_for_a_key_equal_to_the_square_brace_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_for_square.toml running the query $..[\"[\"] (descendant search for a key equal to the square brace) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"[\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/head_skip_for_square.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_an_empty_string_with_query_descendant_search_for_a_key_equal_to_the_square_brace_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_for_square.toml running the query $..[\"[\"] (descendant search for a key equal to the square brace) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"[\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/head_skip_for_square.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_an_empty_string_with_query_descendant_search_for_a_key_equal_to_the_square_brace_with_buffered_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_for_square.toml running the query $..[\"[\"] (descendant search for a key equal to the square brace) with Input impl BufferedInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"[\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/head_skip_for_square.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_an_empty_string_with_query_descendant_search_for_a_key_equal_to_the_square_brace_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_for_square.toml running the query $..[\"[\"] (descendant search for a key equal to the square brace) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"[\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/head_skip_for_square.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_an_empty_string_with_query_descendant_search_for_a_key_equal_to_the_square_brace_with_mmap_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_for_square.toml running the query $..[\"[\"] (descendant search for a key equal to the square brace) with Input impl MmapInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"[\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/head_skip_for_square.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn list_with_an_empty_string_with_query_descendant_search_for_a_key_equal_to_the_square_brace_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_for_square.toml running the query $..[\"[\"] (descendant search for a key equal to the square brace) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"[\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/head_skip_for_square.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_an_empty_string_with_query_descendant_search_for_a_key_equal_to_the_square_brace_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_for_square.toml running the query $..[\"[\"] (descendant search for a key equal to the square brace) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"[\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/head_skip_for_square.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_an_empty_string_with_query_descendant_search_for_a_key_equal_to_the_square_brace_with_mmap_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_for_square.toml running the query $..[\"[\"] (descendant search for a key equal to the square brace) with Input impl MmapInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"[\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/head_skip_for_square.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_an_empty_string_with_query_descendant_search_for_a_key_equal_to_the_square_brace_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_for_square.toml running the query $..[\"[\"] (descendant search for a key equal to the square brace) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"[\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/head_skip_for_square.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_an_empty_string_with_query_descendant_search_for_a_key_equal_to_the_square_brace_with_owned_bytes_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_for_square.toml running the query $..[\"[\"] (descendant search for a key equal to the square brace) with Input impl OwnedBytes and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"[\"]")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/head_skip_for_square.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn list_with_an_empty_string_with_query_descendant_search_for_a_key_equal_to_the_square_brace_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_for_square.toml running the query $..[\"[\"] (descendant search for a key equal to the square brace) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"[\"]")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/head_skip_for_square.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_an_empty_string_with_query_descendant_search_for_a_key_equal_to_the_square_brace_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_for_square.toml running the query $..[\"[\"] (descendant search for a key equal to the square brace) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"[\"]")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/head_skip_for_square.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_an_empty_string_with_query_descendant_search_for_a_key_equal_to_the_square_brace_with_owned_bytes_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_for_square.toml running the query $..[\"[\"] (descendant search for a key equal to the square brace) with Input impl OwnedBytes and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"[\"]")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/head_skip_for_square.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn list_with_an_empty_string_with_query_descendant_search_for_a_key_equal_to_the_square_brace_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_for_square.toml running the query $..[\"[\"] (descendant search for a key equal to the square brace) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"[\"]")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/head_skip_for_square.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
 fn list_with_mixed_atomic_integers_and_objects_compressed_with_query_select_all_elements_on_the_list_with_buffered_input_and_approx_span_result_using_main_engine(
 ) -> Result<(), Box<dyn Error>> {
     println ! ("on document compressed/heterogenous_list.toml running the query $.a.* (select all elements on the list) with Input impl BufferedInput and result mode ApproxSpanResult");
@@ -34452,6 +34998,552 @@ fn object_with_a_list_of_integers_followed_by_an_atomic_integer_member_with_quer
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["44"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn object_with_an_empty_key_compressed_with_query_descendant_search_for_a_key_equal_to_the_curly_brace_with_buffered_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_for_curly.toml running the query $..[\"{{\"] (descendant search for a key equal to the curly brace) with Input impl BufferedInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"{\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/head_skip_for_curly.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn object_with_an_empty_key_compressed_with_query_descendant_search_for_a_key_equal_to_the_curly_brace_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_for_curly.toml running the query $..[\"{{\"] (descendant search for a key equal to the curly brace) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"{\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/head_skip_for_curly.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn object_with_an_empty_key_compressed_with_query_descendant_search_for_a_key_equal_to_the_curly_brace_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_for_curly.toml running the query $..[\"{{\"] (descendant search for a key equal to the curly brace) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"{\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/head_skip_for_curly.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn object_with_an_empty_key_compressed_with_query_descendant_search_for_a_key_equal_to_the_curly_brace_with_buffered_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_for_curly.toml running the query $..[\"{{\"] (descendant search for a key equal to the curly brace) with Input impl BufferedInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"{\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/head_skip_for_curly.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn object_with_an_empty_key_compressed_with_query_descendant_search_for_a_key_equal_to_the_curly_brace_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_for_curly.toml running the query $..[\"{{\"] (descendant search for a key equal to the curly brace) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"{\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/head_skip_for_curly.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn object_with_an_empty_key_compressed_with_query_descendant_search_for_a_key_equal_to_the_curly_brace_with_mmap_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_for_curly.toml running the query $..[\"{{\"] (descendant search for a key equal to the curly brace) with Input impl MmapInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"{\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/head_skip_for_curly.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn object_with_an_empty_key_compressed_with_query_descendant_search_for_a_key_equal_to_the_curly_brace_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_for_curly.toml running the query $..[\"{{\"] (descendant search for a key equal to the curly brace) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"{\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/head_skip_for_curly.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn object_with_an_empty_key_compressed_with_query_descendant_search_for_a_key_equal_to_the_curly_brace_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_for_curly.toml running the query $..[\"{{\"] (descendant search for a key equal to the curly brace) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"{\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/head_skip_for_curly.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn object_with_an_empty_key_compressed_with_query_descendant_search_for_a_key_equal_to_the_curly_brace_with_mmap_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_for_curly.toml running the query $..[\"{{\"] (descendant search for a key equal to the curly brace) with Input impl MmapInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"{\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/head_skip_for_curly.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn object_with_an_empty_key_compressed_with_query_descendant_search_for_a_key_equal_to_the_curly_brace_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_for_curly.toml running the query $..[\"{{\"] (descendant search for a key equal to the curly brace) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"{\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/head_skip_for_curly.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn object_with_an_empty_key_compressed_with_query_descendant_search_for_a_key_equal_to_the_curly_brace_with_owned_bytes_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_for_curly.toml running the query $..[\"{{\"] (descendant search for a key equal to the curly brace) with Input impl OwnedBytes and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"{\"]")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/head_skip_for_curly.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn object_with_an_empty_key_compressed_with_query_descendant_search_for_a_key_equal_to_the_curly_brace_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_for_curly.toml running the query $..[\"{{\"] (descendant search for a key equal to the curly brace) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"{\"]")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/head_skip_for_curly.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn object_with_an_empty_key_compressed_with_query_descendant_search_for_a_key_equal_to_the_curly_brace_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_for_curly.toml running the query $..[\"{{\"] (descendant search for a key equal to the curly brace) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"{\"]")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/head_skip_for_curly.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn object_with_an_empty_key_compressed_with_query_descendant_search_for_a_key_equal_to_the_curly_brace_with_owned_bytes_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_for_curly.toml running the query $..[\"{{\"] (descendant search for a key equal to the curly brace) with Input impl OwnedBytes and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"{\"]")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/head_skip_for_curly.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn object_with_an_empty_key_compressed_with_query_descendant_search_for_a_key_equal_to_the_curly_brace_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/head_skip_for_curly.toml running the query $..[\"{{\"] (descendant search for a key equal to the curly brace) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"{\"]")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/head_skip_for_curly.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn object_with_an_empty_key_with_query_descendant_search_for_a_key_equal_to_the_curly_brace_with_buffered_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_for_curly.toml running the query $..[\"{{\"] (descendant search for a key equal to the curly brace) with Input impl BufferedInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"{\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/head_skip_for_curly.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn object_with_an_empty_key_with_query_descendant_search_for_a_key_equal_to_the_curly_brace_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_for_curly.toml running the query $..[\"{{\"] (descendant search for a key equal to the curly brace) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"{\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/head_skip_for_curly.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn object_with_an_empty_key_with_query_descendant_search_for_a_key_equal_to_the_curly_brace_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_for_curly.toml running the query $..[\"{{\"] (descendant search for a key equal to the curly brace) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"{\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/head_skip_for_curly.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn object_with_an_empty_key_with_query_descendant_search_for_a_key_equal_to_the_curly_brace_with_buffered_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_for_curly.toml running the query $..[\"{{\"] (descendant search for a key equal to the curly brace) with Input impl BufferedInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"{\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/head_skip_for_curly.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn object_with_an_empty_key_with_query_descendant_search_for_a_key_equal_to_the_curly_brace_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_for_curly.toml running the query $..[\"{{\"] (descendant search for a key equal to the curly brace) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"{\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/head_skip_for_curly.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn object_with_an_empty_key_with_query_descendant_search_for_a_key_equal_to_the_curly_brace_with_mmap_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_for_curly.toml running the query $..[\"{{\"] (descendant search for a key equal to the curly brace) with Input impl MmapInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"{\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/head_skip_for_curly.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn object_with_an_empty_key_with_query_descendant_search_for_a_key_equal_to_the_curly_brace_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_for_curly.toml running the query $..[\"{{\"] (descendant search for a key equal to the curly brace) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"{\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/head_skip_for_curly.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn object_with_an_empty_key_with_query_descendant_search_for_a_key_equal_to_the_curly_brace_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_for_curly.toml running the query $..[\"{{\"] (descendant search for a key equal to the curly brace) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"{\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/head_skip_for_curly.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn object_with_an_empty_key_with_query_descendant_search_for_a_key_equal_to_the_curly_brace_with_mmap_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_for_curly.toml running the query $..[\"{{\"] (descendant search for a key equal to the curly brace) with Input impl MmapInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"{\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/head_skip_for_curly.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn object_with_an_empty_key_with_query_descendant_search_for_a_key_equal_to_the_curly_brace_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_for_curly.toml running the query $..[\"{{\"] (descendant search for a key equal to the curly brace) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"{\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/head_skip_for_curly.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn object_with_an_empty_key_with_query_descendant_search_for_a_key_equal_to_the_curly_brace_with_owned_bytes_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_for_curly.toml running the query $..[\"{{\"] (descendant search for a key equal to the curly brace) with Input impl OwnedBytes and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"{\"]")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/head_skip_for_curly.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn object_with_an_empty_key_with_query_descendant_search_for_a_key_equal_to_the_curly_brace_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_for_curly.toml running the query $..[\"{{\"] (descendant search for a key equal to the curly brace) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"{\"]")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/head_skip_for_curly.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn object_with_an_empty_key_with_query_descendant_search_for_a_key_equal_to_the_curly_brace_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_for_curly.toml running the query $..[\"{{\"] (descendant search for a key equal to the curly brace) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"{\"]")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/head_skip_for_curly.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn object_with_an_empty_key_with_query_descendant_search_for_a_key_equal_to_the_curly_brace_with_owned_bytes_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_for_curly.toml running the query $..[\"{{\"] (descendant search for a key equal to the curly brace) with Input impl OwnedBytes and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"{\"]")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/head_skip_for_curly.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn object_with_an_empty_key_with_query_descendant_search_for_a_key_equal_to_the_curly_brace_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document head_skip_for_curly.toml running the query $..[\"{{\"] (descendant search for a key equal to the curly brace) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..[\"{\"]")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/head_skip_for_curly.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }

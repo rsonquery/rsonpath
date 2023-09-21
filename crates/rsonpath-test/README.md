@@ -1,8 +1,9 @@
 # Just codegen
 
-This crate is almost useless.
+This crate should be used only for the declarative TOML tests.
 
-It has no code in it except for the build script. The build script generates test cases for `rsonpath-lib`
+It has no code in it except for the build script and the generated script.
+The build script generates test cases for `rsonpath-lib` based on TOML files in `tests/documents`
 using `rsonpath-test-codegen`. This is needed for the following reasons:
 
 1. `rsonpath-test-codegen` cannot also have a `build.rs` script to generate the tests, since it would need to build-depend on itself;

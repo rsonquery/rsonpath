@@ -343,7 +343,13 @@ pub fn configure() -> SimdConfiguration {
     }
 
     cfg_if! {
-        if #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        if #[cfg(not(feature = "simd"))]
+        {
+            let highest_simd = SimdTag::Nosimd;
+            let fast_quotes = false;
+            let fast_popcnt = false;
+        }
+        else if #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         {
             let highest_simd = if is_x86_feature_detected!("avx2") {
                 SimdTag::Avx2
