@@ -13,6 +13,11 @@ All notable changes to this project will be documented in this file.
 - Fixed a bug where disabling the `simd` feature would not actually
   disable SIMD acceleration.
 
+### Reliability
+
+- Made the ClusterFuzzLite batch workflow automatically create an issue
+  on failure to make sure the maintainers are notified.
+
 ## [0.8.1] - 2023-09-20
 
 ### Features
