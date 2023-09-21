@@ -233,19 +233,15 @@ commit msg:
 
 # === HOOKS ===
 
-tmpdiff := if os() == "windows" {
-    `New-TemporaryFile`
-} else {
-    `mktemp -t pre-commit-hook-diff-XXXXXXXX.$$`
-}
-
 [private]
-hook-pre-commit: 
+hook-pre-commit:
+    #!/bin/sh
+    tmpdiff=$(mktemp -t pre-commit-hook-diff-XXXXXXXX.$$)
     just assert-benchmarks-committed
-    git diff --full-index --binary > {{tmpdiff}}
+    git diff --full-index --binary > $tmpdiff
     git stash -q --keep-index
     (just verify-fmt && just verify-check); \
-    git apply --whitespace=nowarn < {{tmpdiff}} && git stash drop -q; rm {{tmpdiff}}
+    git apply --whitespace=nowarn < $tmpdiff}} && git stash drop -q; rm $tmpdiff
 
 [private]
 @hook-post-checkout: checkout-benchmarks

@@ -12,7 +12,7 @@ pub(crate) fn find_in_mask<I: Input>(
     let mut result = (previous_block | (first << 1)) & second;
     while result != 0 {
         let idx = result.trailing_zeros() as usize;
-        if input.is_member_match(offset + idx - 2, offset + idx + label_size - 3, label) {
+        if offset + idx > 1 && input.is_member_match(offset + idx - 2, offset + idx + label_size - 3, label) {
             return Some(offset + idx - 2);
         }
         result &= !(1 << idx);
