@@ -1,0 +1,44 @@
+# Define the JSON input for all query test cases.
+[input]
+# Short description of the input structure.
+description = "The root is a non-empty string."
+ # Set to true only if your specific test input is fully compressed (no extraneous whitespace).
+is_compressed = true
+
+# Inline JSON document.
+[input.source]
+json_string = '"some string"'
+
+# Define queries to test on the input.
+[[queries]]
+ # Valid JSONPath query string.
+query = "$"
+# Short descritpion of the query semantics.
+description = "select the root"
+
+[queries.results]
+# Number of expected matches.
+count = 1
+# Byte locations of spans of all matches, in order.
+spans = [[0, 13]]
+# Stringified values of all matches, verbatim as in the input,
+# in the same order as above.
+nodes = ['"some string"']
+
+[[queries]]
+query = "$..*"
+description = "select all subdocuments of which there are none"
+
+[queries.results]
+count = 0
+spans = []
+nodes = []
+
+[[queries]]
+query = '$["some string"]'
+description = "look for the key equal to the root value, which should not match"
+
+[queries.results]
+count = 0
+spans = []
+nodes = []

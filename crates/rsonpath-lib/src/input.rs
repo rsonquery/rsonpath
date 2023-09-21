@@ -169,7 +169,7 @@ pub(super) mod in_slice {
 
     #[inline]
     pub(super) fn pad_last_block(bytes: &[u8]) -> LastBlock {
-        let mut last_block_buf = [0; MAX_BLOCK_SIZE];
+        let mut last_block_buf = [b' '; MAX_BLOCK_SIZE];
         let last_block_start = (bytes.len() / MAX_BLOCK_SIZE) * MAX_BLOCK_SIZE;
         let last_block_slice = &bytes[last_block_start..];
 

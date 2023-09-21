@@ -148,34 +148,31 @@ where
     I: Input + 'i,
     R: Recorder<I::Block<'i, BLOCK_SIZE>>,
 {
-    simd_dispatch!(simd => |simd|
-    {
-        let iter = input.iter_blocks(recorder);
-        let quote_classifier = simd.classify_quoted_sequences(iter);
-        let mut block_event_source = simd.classify_structural_characters(quote_classifier);
+    let mut iter = input.iter_blocks(recorder);
+    let mut idx = 0;
 
-        let last_event = block_event_source.next()?;
-        if let Some(Structural::Opening(_, idx)) = last_event {
-            let mut depth = Depth::ONE;
-            recorder.record_match(idx, depth, MatchedNodeType::Complex)?;
-
-            while let Some(ev) = block_event_source.next()? {
-                match ev {
-                    Structural::Closing(_, idx) => {
-                        recorder.record_value_terminator(idx, depth)?;
-                        depth.decrement().map_err(|err| EngineError::DepthBelowZero(idx, err))?;
-                    }
-                    Structural::Colon(_) => (),
-                    Structural::Opening(_, idx) => {
-                        depth
-                            .increment()
-                            .map_err(|err| EngineError::DepthAboveLimit(idx, err))?;
-                    }
-                    Structural::Comma(idx) => recorder.record_value_terminator(idx, depth)?,
+    loop {
+        match iter.next()? {
+            Some(block) => {
+                let pos = block.iter().position(|&x| x != b' ' && x != b'\n' && x != b'\t' && x != b'\r');
+                match pos {
+                    Some(in_block_idx) => {
+                        recorder.record_match(idx + in_block_idx, Depth::ONE, MatchedNodeType::Atomic)?;
+                        idx += BLOCK_SIZE;
+                        break;
+                    },
+                    None => idx += BLOCK_SIZE,
                 }
-            }
+            },
+            None => return Ok(()),
         }
-    });
+    }
+
+    while (iter.next()?).is_some() {
+        idx += BLOCK_SIZE;
+    }
+
+    recorder.record_value_terminator(idx - 1, Depth::ONE)?;
 
     Ok(())
 }

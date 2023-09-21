@@ -1,4 +1,4 @@
-// 9d6b9a42dabad16a52cf829a2df81b06
+// 47bc13aeee0aa37cf8f6478ddf2fb213
 use pretty_assertions::assert_eq;
 use rsonpath::engine::{main::MainEngine, Compiler, Engine};
 use rsonpath::input::*;
@@ -50395,6 +50395,4985 @@ fn the_example_on_jsonpath_com_extended_with_another_nested_person_object_with_q
     let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
     let utf8 = utf8.expect("valid utf8");
     let expected: Vec<&str> = vec!["\"iPhone\"", "\"home\"", "\"iPhone\"", "\"home\""];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_look_for_the_key_equal_to_the_root_value_which_should_not_match_with_buffered_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $[\"some string\"] (look for the key equal to the root value, which should not match) with Input impl BufferedInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$[\"some string\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_look_for_the_key_equal_to_the_root_value_which_should_not_match_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $[\"some string\"] (look for the key equal to the root value, which should not match) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$[\"some string\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_look_for_the_key_equal_to_the_root_value_which_should_not_match_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $[\"some string\"] (look for the key equal to the root value, which should not match) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$[\"some string\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_look_for_the_key_equal_to_the_root_value_which_should_not_match_with_buffered_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $[\"some string\"] (look for the key equal to the root value, which should not match) with Input impl BufferedInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$[\"some string\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_look_for_the_key_equal_to_the_root_value_which_should_not_match_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $[\"some string\"] (look for the key equal to the root value, which should not match) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$[\"some string\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_look_for_the_key_equal_to_the_root_value_which_should_not_match_with_mmap_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $[\"some string\"] (look for the key equal to the root value, which should not match) with Input impl MmapInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$[\"some string\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_look_for_the_key_equal_to_the_root_value_which_should_not_match_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $[\"some string\"] (look for the key equal to the root value, which should not match) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$[\"some string\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_look_for_the_key_equal_to_the_root_value_which_should_not_match_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $[\"some string\"] (look for the key equal to the root value, which should not match) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$[\"some string\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_look_for_the_key_equal_to_the_root_value_which_should_not_match_with_mmap_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $[\"some string\"] (look for the key equal to the root value, which should not match) with Input impl MmapInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$[\"some string\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_look_for_the_key_equal_to_the_root_value_which_should_not_match_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $[\"some string\"] (look for the key equal to the root value, which should not match) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$[\"some string\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_look_for_the_key_equal_to_the_root_value_which_should_not_match_with_owned_bytes_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $[\"some string\"] (look for the key equal to the root value, which should not match) with Input impl OwnedBytes and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$[\"some string\"]")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_look_for_the_key_equal_to_the_root_value_which_should_not_match_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $[\"some string\"] (look for the key equal to the root value, which should not match) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$[\"some string\"]")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_look_for_the_key_equal_to_the_root_value_which_should_not_match_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $[\"some string\"] (look for the key equal to the root value, which should not match) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$[\"some string\"]")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_look_for_the_key_equal_to_the_root_value_which_should_not_match_with_owned_bytes_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $[\"some string\"] (look for the key equal to the root value, which should not match) with Input impl OwnedBytes and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$[\"some string\"]")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_look_for_the_key_equal_to_the_root_value_which_should_not_match_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $[\"some string\"] (look for the key equal to the root value, which should not match) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$[\"some string\"]")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_select_the_root_with_buffered_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $ (select the root) with Input impl BufferedInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 13usize, 13usize)];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_select_the_root_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $ (select the root) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_select_the_root_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $ (select the root) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![0usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_select_the_root_with_buffered_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $ (select the root) with Input impl BufferedInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![(0usize, 13usize)];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_select_the_root_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $ (select the root) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"some string\""];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_select_the_root_with_mmap_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $ (select the root) with Input impl MmapInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 13usize, 13usize)];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_select_the_root_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $ (select the root) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_select_the_root_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $ (select the root) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![0usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_select_the_root_with_mmap_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $ (select the root) with Input impl MmapInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![(0usize, 13usize)];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_select_the_root_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $ (select the root) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"some string\""];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_select_the_root_with_owned_bytes_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $ (select the root) with Input impl OwnedBytes and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 13usize, 13usize)];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_select_the_root_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $ (select the root) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_select_the_root_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $ (select the root) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![0usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_select_the_root_with_owned_bytes_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $ (select the root) with Input impl OwnedBytes and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![(0usize, 13usize)];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_a_non_empty_string_with_query_select_the_root_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_nonempty_string.toml running the query $ (select the root) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_nonempty_string.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"some string\""];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_in_scientific_notation_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_scientific_notation.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_scientific_notation.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_in_scientific_notation_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_scientific_notation.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_scientific_notation.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_in_scientific_notation_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_scientific_notation.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_scientific_notation.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_in_scientific_notation_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_scientific_notation.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_scientific_notation.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_in_scientific_notation_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_scientific_notation.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_scientific_notation.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_in_scientific_notation_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_scientific_notation.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_scientific_notation.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_in_scientific_notation_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_scientific_notation.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_scientific_notation.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_in_scientific_notation_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_scientific_notation.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_scientific_notation.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_in_scientific_notation_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_scientific_notation.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_scientific_notation.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_in_scientific_notation_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_scientific_notation.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_scientific_notation.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_in_scientific_notation_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_scientific_notation.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string(
+        "../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_scientific_notation.json",
+    )?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_in_scientific_notation_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_scientific_notation.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string(
+        "../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_scientific_notation.json",
+    )?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_in_scientific_notation_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_scientific_notation.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string(
+        "../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_scientific_notation.json",
+    )?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_in_scientific_notation_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_scientific_notation.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string(
+        "../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_scientific_notation.json",
+    )?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_in_scientific_notation_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_scientific_notation.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string(
+        "../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_scientific_notation.json",
+    )?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_in_scientific_notation_with_query_select_the_root_with_buffered_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_scientific_notation.toml running the query $ (select the root) with Input impl BufferedInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_scientific_notation.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 18usize, 18usize)];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_in_scientific_notation_with_query_select_the_root_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_scientific_notation.toml running the query $ (select the root) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_scientific_notation.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_in_scientific_notation_with_query_select_the_root_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_scientific_notation.toml running the query $ (select the root) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_scientific_notation.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![0usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_in_scientific_notation_with_query_select_the_root_with_buffered_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_scientific_notation.toml running the query $ (select the root) with Input impl BufferedInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_scientific_notation.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![(0usize, 18usize)];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_in_scientific_notation_with_query_select_the_root_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_scientific_notation.toml running the query $ (select the root) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_scientific_notation.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["123456789.1337e-25"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_in_scientific_notation_with_query_select_the_root_with_mmap_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_scientific_notation.toml running the query $ (select the root) with Input impl MmapInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_scientific_notation.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 18usize, 18usize)];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_in_scientific_notation_with_query_select_the_root_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_scientific_notation.toml running the query $ (select the root) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_scientific_notation.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_in_scientific_notation_with_query_select_the_root_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_scientific_notation.toml running the query $ (select the root) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_scientific_notation.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![0usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_in_scientific_notation_with_query_select_the_root_with_mmap_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_scientific_notation.toml running the query $ (select the root) with Input impl MmapInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_scientific_notation.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![(0usize, 18usize)];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_in_scientific_notation_with_query_select_the_root_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_scientific_notation.toml running the query $ (select the root) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file =
+        fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_scientific_notation.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["123456789.1337e-25"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_in_scientific_notation_with_query_select_the_root_with_owned_bytes_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_scientific_notation.toml running the query $ (select the root) with Input impl OwnedBytes and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json = fs::read_to_string(
+        "../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_scientific_notation.json",
+    )?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 18usize, 18usize)];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_in_scientific_notation_with_query_select_the_root_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_scientific_notation.toml running the query $ (select the root) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json = fs::read_to_string(
+        "../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_scientific_notation.json",
+    )?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_in_scientific_notation_with_query_select_the_root_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_scientific_notation.toml running the query $ (select the root) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json = fs::read_to_string(
+        "../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_scientific_notation.json",
+    )?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![0usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_in_scientific_notation_with_query_select_the_root_with_owned_bytes_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_scientific_notation.toml running the query $ (select the root) with Input impl OwnedBytes and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json = fs::read_to_string(
+        "../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_scientific_notation.json",
+    )?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![(0usize, 18usize)];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_in_scientific_notation_with_query_select_the_root_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_scientific_notation.toml running the query $ (select the root) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json = fs::read_to_string(
+        "../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_scientific_notation.json",
+    )?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["123456789.1337e-25"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_float.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_float.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_float.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_float.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_float.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_float.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_float.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_float.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_float.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_float.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_float.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_float.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_float.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_float.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_float.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_float.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_float.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_float.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_float.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_float.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_float.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_float.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_float.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_float.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_float.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_float.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_float.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_float.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_float.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_float.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_with_query_select_the_root_with_buffered_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_float.toml running the query $ (select the root) with Input impl BufferedInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_float.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 14usize, 14usize)];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_with_query_select_the_root_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_float.toml running the query $ (select the root) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_float.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_with_query_select_the_root_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_float.toml running the query $ (select the root) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_float.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![0usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_with_query_select_the_root_with_buffered_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_float.toml running the query $ (select the root) with Input impl BufferedInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_float.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![(0usize, 14usize)];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_with_query_select_the_root_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_float.toml running the query $ (select the root) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_float.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["123456789.1337"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_with_query_select_the_root_with_mmap_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_float.toml running the query $ (select the root) with Input impl MmapInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_float.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 14usize, 14usize)];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_with_query_select_the_root_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_float.toml running the query $ (select the root) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_float.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_with_query_select_the_root_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_float.toml running the query $ (select the root) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_float.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![0usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_with_query_select_the_root_with_mmap_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_float.toml running the query $ (select the root) with Input impl MmapInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_float.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![(0usize, 14usize)];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_with_query_select_the_root_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_float.toml running the query $ (select the root) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_float.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["123456789.1337"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_with_query_select_the_root_with_owned_bytes_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_float.toml running the query $ (select the root) with Input impl OwnedBytes and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_float.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 14usize, 14usize)];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_with_query_select_the_root_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_float.toml running the query $ (select the root) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_float.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_with_query_select_the_root_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_float.toml running the query $ (select the root) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_float.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![0usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_with_query_select_the_root_with_owned_bytes_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_float.toml running the query $ (select the root) with Input impl OwnedBytes and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_float.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![(0usize, 14usize)];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_floating_point_number_with_query_select_the_root_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_float.toml running the query $ (select the root) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_float.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["123456789.1337"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_integral_number_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_integer.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_integer.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_integral_number_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_integer.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_integer.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_integral_number_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_integer.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_integer.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_integral_number_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_integer.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_integer.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_integral_number_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_integer.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_integer.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_integral_number_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_integer.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_integer.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_integral_number_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_integer.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_integer.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_integral_number_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_integer.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_integer.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_integral_number_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_integer.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_integer.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_integral_number_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_integer.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_integer.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_integral_number_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_integer.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_integer.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_integral_number_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_integer.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_integer.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_integral_number_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_integer.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_integer.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_integral_number_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_integer.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_integer.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_integral_number_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_integer.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_integer.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_integral_number_with_query_select_the_root_with_buffered_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_integer.toml running the query $ (select the root) with Input impl BufferedInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_integer.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 9usize, 9usize)];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_integral_number_with_query_select_the_root_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_integer.toml running the query $ (select the root) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_integer.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_integral_number_with_query_select_the_root_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_integer.toml running the query $ (select the root) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_integer.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![0usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_integral_number_with_query_select_the_root_with_buffered_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_integer.toml running the query $ (select the root) with Input impl BufferedInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_integer.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![(0usize, 9usize)];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_integral_number_with_query_select_the_root_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_integer.toml running the query $ (select the root) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_integer.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["123456789"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_integral_number_with_query_select_the_root_with_mmap_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_integer.toml running the query $ (select the root) with Input impl MmapInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_integer.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 9usize, 9usize)];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_integral_number_with_query_select_the_root_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_integer.toml running the query $ (select the root) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_integer.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_integral_number_with_query_select_the_root_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_integer.toml running the query $ (select the root) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_integer.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![0usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_integral_number_with_query_select_the_root_with_mmap_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_integer.toml running the query $ (select the root) with Input impl MmapInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_integer.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![(0usize, 9usize)];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_integral_number_with_query_select_the_root_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_integer.toml running the query $ (select the root) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_integer.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["123456789"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_integral_number_with_query_select_the_root_with_owned_bytes_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_integer.toml running the query $ (select the root) with Input impl OwnedBytes and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_integer.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 9usize, 9usize)];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_integral_number_with_query_select_the_root_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_integer.toml running the query $ (select the root) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_integer.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_integral_number_with_query_select_the_root_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_integer.toml running the query $ (select the root) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_integer.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![0usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_integral_number_with_query_select_the_root_with_owned_bytes_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_integer.toml running the query $ (select the root) with Input impl OwnedBytes and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_integer.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![(0usize, 9usize)];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_atomic_integral_number_with_query_select_the_root_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_number_integer.toml running the query $ (select the root) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json =
+        fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_number_integer.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["123456789"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_look_for_an_empty_key_which_should_not_match_the_root_with_buffered_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $[\"\"] (look for an empty key which should not match the root) with Input impl BufferedInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$[\"\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_look_for_an_empty_key_which_should_not_match_the_root_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $[\"\"] (look for an empty key which should not match the root) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$[\"\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_look_for_an_empty_key_which_should_not_match_the_root_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $[\"\"] (look for an empty key which should not match the root) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$[\"\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_look_for_an_empty_key_which_should_not_match_the_root_with_buffered_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $[\"\"] (look for an empty key which should not match the root) with Input impl BufferedInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$[\"\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_look_for_an_empty_key_which_should_not_match_the_root_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $[\"\"] (look for an empty key which should not match the root) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$[\"\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_look_for_an_empty_key_which_should_not_match_the_root_with_mmap_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $[\"\"] (look for an empty key which should not match the root) with Input impl MmapInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$[\"\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_look_for_an_empty_key_which_should_not_match_the_root_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $[\"\"] (look for an empty key which should not match the root) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$[\"\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_look_for_an_empty_key_which_should_not_match_the_root_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $[\"\"] (look for an empty key which should not match the root) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$[\"\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_look_for_an_empty_key_which_should_not_match_the_root_with_mmap_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $[\"\"] (look for an empty key which should not match the root) with Input impl MmapInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$[\"\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_look_for_an_empty_key_which_should_not_match_the_root_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $[\"\"] (look for an empty key which should not match the root) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$[\"\"]")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_look_for_an_empty_key_which_should_not_match_the_root_with_owned_bytes_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $[\"\"] (look for an empty key which should not match the root) with Input impl OwnedBytes and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$[\"\"]")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_look_for_an_empty_key_which_should_not_match_the_root_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $[\"\"] (look for an empty key which should not match the root) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$[\"\"]")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_look_for_an_empty_key_which_should_not_match_the_root_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $[\"\"] (look for an empty key which should not match the root) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$[\"\"]")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_look_for_an_empty_key_which_should_not_match_the_root_with_owned_bytes_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $[\"\"] (look for an empty key which should not match the root) with Input impl OwnedBytes and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$[\"\"]")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_look_for_an_empty_key_which_should_not_match_the_root_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $[\"\"] (look for an empty key which should not match the root) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$[\"\"]")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_select_the_root_with_buffered_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $ (select the root) with Input impl BufferedInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 2usize)];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_select_the_root_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $ (select the root) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_select_the_root_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $ (select the root) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![0usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_select_the_root_with_buffered_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $ (select the root) with Input impl BufferedInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![(0usize, 2usize)];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_select_the_root_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $ (select the root) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"\""];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_select_the_root_with_mmap_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $ (select the root) with Input impl MmapInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 2usize)];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_select_the_root_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $ (select the root) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_select_the_root_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $ (select the root) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![0usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_select_the_root_with_mmap_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $ (select the root) with Input impl MmapInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![(0usize, 2usize)];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_select_the_root_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $ (select the root) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"\""];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_select_the_root_with_owned_bytes_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $ (select the root) with Input impl OwnedBytes and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 2usize)];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_select_the_root_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $ (select the root) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_select_the_root_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $ (select the root) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![0usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_select_the_root_with_owned_bytes_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $ (select the root) with Input impl OwnedBytes and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![(0usize, 2usize)];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_an_empty_string_with_query_select_the_root_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_empty_string.toml running the query $ (select the root) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_empty_string.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["\"\""];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_false_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_false.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_false.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_false_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_false.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_false.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_false_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_false.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_false.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_false_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_false.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_false.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_false_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_false.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_false.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_false_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_false.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_false.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_false_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_false.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_false.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_false_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_false.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_false.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_false_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_false.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_false.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_false_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_false.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_false.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_false_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_false.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_false.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_false_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_false.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_false.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_false_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_false.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_false.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_false_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_false.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_false.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_false_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_false.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_false.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_false_with_query_select_the_root_with_buffered_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_false.toml running the query $ (select the root) with Input impl BufferedInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_false.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 5usize, 5usize)];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_false_with_query_select_the_root_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_false.toml running the query $ (select the root) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_false.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_false_with_query_select_the_root_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_false.toml running the query $ (select the root) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_false.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![0usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_false_with_query_select_the_root_with_buffered_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_false.toml running the query $ (select the root) with Input impl BufferedInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_false.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![(0usize, 5usize)];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_false_with_query_select_the_root_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_false.toml running the query $ (select the root) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_false.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["false"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_false_with_query_select_the_root_with_mmap_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_false.toml running the query $ (select the root) with Input impl MmapInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_false.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 5usize, 5usize)];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_false_with_query_select_the_root_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_false.toml running the query $ (select the root) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_false.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_false_with_query_select_the_root_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_false.toml running the query $ (select the root) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_false.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![0usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_false_with_query_select_the_root_with_mmap_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_false.toml running the query $ (select the root) with Input impl MmapInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_false.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![(0usize, 5usize)];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_false_with_query_select_the_root_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_false.toml running the query $ (select the root) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_false.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["false"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_false_with_query_select_the_root_with_owned_bytes_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_false.toml running the query $ (select the root) with Input impl OwnedBytes and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_false.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 5usize, 5usize)];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_false_with_query_select_the_root_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_false.toml running the query $ (select the root) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_false.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_false_with_query_select_the_root_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_false.toml running the query $ (select the root) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_false.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![0usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_false_with_query_select_the_root_with_owned_bytes_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_false.toml running the query $ (select the root) with Input impl OwnedBytes and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_false.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![(0usize, 5usize)];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_false_with_query_select_the_root_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_false.toml running the query $ (select the root) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_false.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["false"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_null_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_null.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_null.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_null_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_null.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_null.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_null_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_null.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_null.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_null_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_null.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_null.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_null_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_null.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_null.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_null_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_null.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_null.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_null_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_null.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_null.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_null_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_null.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_null.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_null_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_null.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_null.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_null_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_null.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_null.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_null_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_null.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_null.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_null_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_null.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_null.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_null_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_null.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_null.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_null_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_null.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_null.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_null_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_null.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_null.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_null_with_query_select_the_root_with_buffered_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_null.toml running the query $ (select the root) with Input impl BufferedInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_null.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 4usize, 4usize)];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_null_with_query_select_the_root_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_null.toml running the query $ (select the root) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_null.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_null_with_query_select_the_root_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_null.toml running the query $ (select the root) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_null.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![0usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_null_with_query_select_the_root_with_buffered_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_null.toml running the query $ (select the root) with Input impl BufferedInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_null.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![(0usize, 4usize)];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_null_with_query_select_the_root_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_null.toml running the query $ (select the root) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_null.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["null"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_null_with_query_select_the_root_with_mmap_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_null.toml running the query $ (select the root) with Input impl MmapInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_null.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 4usize, 4usize)];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_null_with_query_select_the_root_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_null.toml running the query $ (select the root) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_null.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_null_with_query_select_the_root_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_null.toml running the query $ (select the root) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_null.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![0usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_null_with_query_select_the_root_with_mmap_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_null.toml running the query $ (select the root) with Input impl MmapInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_null.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![(0usize, 4usize)];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_null_with_query_select_the_root_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_null.toml running the query $ (select the root) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_null.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["null"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_null_with_query_select_the_root_with_owned_bytes_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_null.toml running the query $ (select the root) with Input impl OwnedBytes and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_null.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 4usize, 4usize)];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_null_with_query_select_the_root_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_null.toml running the query $ (select the root) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_null.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_null_with_query_select_the_root_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_null.toml running the query $ (select the root) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_null.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![0usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_null_with_query_select_the_root_with_owned_bytes_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_null.toml running the query $ (select the root) with Input impl OwnedBytes and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_null.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![(0usize, 4usize)];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_null_with_query_select_the_root_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_null.toml running the query $ (select the root) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_null.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["null"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_true_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_true.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_true.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_true_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_true.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_true.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_true_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_true.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_true.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_true_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_true.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_true.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_true_with_query_select_all_subdocuments_of_which_there_are_none_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_true.toml running the query $..* (select all subdocuments of which there are none) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_true.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_true_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_true.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_true.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_true_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_true.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_true.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_true_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_true.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_true.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_true_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_true.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_true.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_true_with_query_select_all_subdocuments_of_which_there_are_none_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_true.toml running the query $..* (select all subdocuments of which there are none) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_true.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_true_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_true.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_true.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_true_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_true.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_true.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 0u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_true_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_true.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_true.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_true_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_true.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_true.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_true_with_query_select_all_subdocuments_of_which_there_are_none_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_true.toml running the query $..* (select all subdocuments of which there are none) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$..*")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_true.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec![];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_true_with_query_select_the_root_with_buffered_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_true.toml running the query $ (select the root) with Input impl BufferedInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_true.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 4usize, 4usize)];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_true_with_query_select_the_root_with_buffered_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_true.toml running the query $ (select the root) with Input impl BufferedInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_true.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_true_with_query_select_the_root_with_buffered_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_true.toml running the query $ (select the root) with Input impl BufferedInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_true.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![0usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_true_with_query_select_the_root_with_buffered_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_true.toml running the query $ (select the root) with Input impl BufferedInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_true.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![(0usize, 4usize)];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_true_with_query_select_the_root_with_buffered_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_true.toml running the query $ (select the root) with Input impl BufferedInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_true.json")?;
+    let input = BufferedInput::new(json_file);
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["true"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_true_with_query_select_the_root_with_mmap_input_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_true.toml running the query $ (select the root) with Input impl MmapInput and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_true.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 4usize, 4usize)];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_true_with_query_select_the_root_with_mmap_input_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_true.toml running the query $ (select the root) with Input impl MmapInput and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_true.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_true_with_query_select_the_root_with_mmap_input_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_true.toml running the query $ (select the root) with Input impl MmapInput and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_true.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![0usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_true_with_query_select_the_root_with_mmap_input_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_true.toml running the query $ (select the root) with Input impl MmapInput and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_true.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![(0usize, 4usize)];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_true_with_query_select_the_root_with_mmap_input_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_true.toml running the query $ (select the root) with Input impl MmapInput and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let json_file = fs::File::open("../rsonpath-lib/tests/documents/json/compressed/atomic_root_true.json")?;
+    let input = unsafe { MmapInput::map_file(&json_file)? };
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["true"];
+    assert_eq!(utf8, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_true_with_query_select_the_root_with_owned_bytes_and_approx_span_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_true.toml running the query $ (select the root) with Input impl OwnedBytes and result mode ApproxSpanResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_true.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.approximate_spans(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 4usize, 4usize)];
+    assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
+    for i in 0..tups.len() {
+        let upper_bound = expected[i];
+        let actual = tups[i];
+        assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
+        assert!(
+            actual.1 >= upper_bound.1,
+            "result end_idx() < expected end_lower_bound ({} < {})",
+            actual.1,
+            upper_bound.1
+        );
+        assert!(
+            actual.1 <= upper_bound.2,
+            "result end_idx() > expected end_upper_bound ({} > {}",
+            actual.1,
+            upper_bound.2
+        );
+    }
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_true_with_query_select_the_root_with_owned_bytes_and_count_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_true.toml running the query $ (select the root) with Input impl OwnedBytes and result mode CountResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_true.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let result = engine.count(&input)?;
+    assert_eq!(result, 1u64, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_true_with_query_select_the_root_with_owned_bytes_and_index_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_true.toml running the query $ (select the root) with Input impl OwnedBytes and result mode IndexResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_true.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.indices(&input, &mut result)?;
+    assert_eq!(result, vec![0usize,], "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_true_with_query_select_the_root_with_owned_bytes_and_nodes_result_span_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_true.toml running the query $ (select the root) with Input impl OwnedBytes and result mode NodesResult(Span)");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_true.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let tups: Vec<(usize, usize)> = result
+        .iter()
+        .map(|x| (x.span().start_idx(), x.span().end_idx()))
+        .collect();
+    let expected: Vec<(usize, usize)> = vec![(0usize, 4usize)];
+    assert_eq!(tups, expected, "result != expected");
+    Ok(())
+}
+#[test]
+fn the_root_is_the_atomic_value_true_with_query_select_the_root_with_owned_bytes_and_nodes_result_using_main_engine(
+) -> Result<(), Box<dyn Error>> {
+    println ! ("on document compressed/atomic_root_true.toml running the query $ (select the root) with Input impl OwnedBytes and result mode NodesResult");
+    let jsonpath_query = JsonPathQuery::parse("$")?;
+    let raw_json = fs::read_to_string("../rsonpath-lib/tests/documents/json/compressed/atomic_root_true.json")?;
+    let input = OwnedBytes::new(&raw_json.as_bytes())?;
+    let engine = MainEngine::compile_query(&jsonpath_query)?;
+    let mut result = vec![];
+    engine.matches(&input, &mut result)?;
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+    let expected: Vec<&str> = vec!["true"];
     assert_eq!(utf8, expected, "result != expected");
     Ok(())
 }
