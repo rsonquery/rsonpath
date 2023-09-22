@@ -38,5 +38,22 @@ jobs:
         sanitizer: ${{ matrix.sanitizer }}
         output-sarif: true
         storage-repo: https://${{ secrets.CLUSTERFUZZLITE_STORAGE_TOKEN }}@github.com/rsonquery/rsonpath-fuzz-storage.git
+
+  ReportCrash:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    needs: BatchFuzzing
+    if: ${{ always() && needs.BatchFuzzing.result == 'failure' }}
+    steps:
+    - name: Report crash
+      id: report
+      uses: JasonEtco/create-an-issue@v2
+      with:
+        filename: .github/internal_templates/fuzz_failure.md
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        RUN_ID: ${{ github.run_id }}
         storage-repo-branch: main
         storage-repo-branch-coverage: gh-pages
