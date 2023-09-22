@@ -142,7 +142,7 @@ fn assert_padding_is_correct(result: &[u8], original_length: usize) {
     );
 
     let padding_length = result.len() - original_length;
-    let expected_padding: Vec<u8> = iter::repeat(0).take(padding_length).collect();
+    let expected_padding: Vec<u8> = iter::repeat(b' ').take(padding_length).collect();
 
     assert_eq!(&result[original_length..], expected_padding);
 }

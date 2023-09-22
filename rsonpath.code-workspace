@@ -35,6 +35,7 @@
 			"memchr",
 			"memmap",
 			"Mmap",
+			"mmaps",
 			"movemask",
 			"nondescendant",
 			"nonescaped",

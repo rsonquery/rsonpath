@@ -254,6 +254,10 @@ fn get_available_results(input: &model::InputSource, query: &model::Query) -> Re
                     end += 1
                 }
 
+                if end == b.len() {
+                    end = usize::MAX;
+                }
+
                 model::ResultApproximateSpan {
                     start: span.start,
                     end_lower_bound: span.end,

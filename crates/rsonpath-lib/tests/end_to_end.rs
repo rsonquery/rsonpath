@@ -1,4 +1,4 @@
-// 47bc13aeee0aa37cf8f6478ddf2fb213
+// bf9bed65f899df486beb41882a8da840
 use pretty_assertions::assert_eq;
 use rsonpath::engine::{main::MainEngine, Compiler, Engine};
 use rsonpath::input::*;
@@ -9800,7 +9800,7 @@ fn empty_array_root_compressed_with_query_select_the_root_empty_query_with_buffe
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 2usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -9891,7 +9891,7 @@ fn empty_array_root_compressed_with_query_select_the_root_empty_query_with_mmap_
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 2usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -9982,7 +9982,7 @@ fn empty_array_root_compressed_with_query_select_the_root_empty_query_with_owned
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 2usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -10073,7 +10073,7 @@ fn empty_array_root_compressed_with_query_select_the_root_with_buffered_input_an
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 2usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -10164,7 +10164,7 @@ fn empty_array_root_compressed_with_query_select_the_root_with_mmap_input_and_ap
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 2usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -10255,7 +10255,7 @@ fn empty_array_root_compressed_with_query_select_the_root_with_owned_bytes_and_a
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 2usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -11165,7 +11165,7 @@ fn empty_array_root_with_query_select_the_root_empty_query_with_buffered_input_a
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 3usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -11256,7 +11256,7 @@ fn empty_array_root_with_query_select_the_root_empty_query_with_mmap_input_and_a
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 3usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -11347,7 +11347,7 @@ fn empty_array_root_with_query_select_the_root_empty_query_with_owned_bytes_and_
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 3usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -11438,7 +11438,7 @@ fn empty_array_root_with_query_select_the_root_with_buffered_input_and_approx_sp
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 3usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -11529,7 +11529,7 @@ fn empty_array_root_with_query_select_the_root_with_mmap_input_and_approx_span_r
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 3usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -11620,7 +11620,7 @@ fn empty_array_root_with_query_select_the_root_with_owned_bytes_and_approx_span_
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 3usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -14714,7 +14714,7 @@ fn empty_object_root_compressed_with_query_select_the_root_empty_query_with_buff
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 2usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -14805,7 +14805,7 @@ fn empty_object_root_compressed_with_query_select_the_root_empty_query_with_mmap
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 2usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -14896,7 +14896,7 @@ fn empty_object_root_compressed_with_query_select_the_root_empty_query_with_owne
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 2usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -14987,7 +14987,7 @@ fn empty_object_root_compressed_with_query_select_the_root_with_buffered_input_a
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 2usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -15078,7 +15078,7 @@ fn empty_object_root_compressed_with_query_select_the_root_with_mmap_input_and_a
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 2usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -15169,7 +15169,7 @@ fn empty_object_root_compressed_with_query_select_the_root_with_owned_bytes_and_
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 2usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -16079,7 +16079,7 @@ fn empty_object_root_with_query_select_the_root_empty_query_with_buffered_input_
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 3usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -16170,7 +16170,7 @@ fn empty_object_root_with_query_select_the_root_empty_query_with_mmap_input_and_
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 3usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -16261,7 +16261,7 @@ fn empty_object_root_with_query_select_the_root_empty_query_with_owned_bytes_and
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 3usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -16352,7 +16352,7 @@ fn empty_object_root_with_query_select_the_root_with_buffered_input_and_approx_s
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 3usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -16443,7 +16443,7 @@ fn empty_object_root_with_query_select_the_root_with_mmap_input_and_approx_span_
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 3usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -16534,7 +16534,7 @@ fn empty_object_root_with_query_select_the_root_with_owned_bytes_and_approx_span
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 3usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -50965,7 +50965,7 @@ fn the_root_is_a_non_empty_string_with_query_select_the_root_with_buffered_input
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 13usize, 13usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 13usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -51056,7 +51056,7 @@ fn the_root_is_a_non_empty_string_with_query_select_the_root_with_mmap_input_and
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 13usize, 13usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 13usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -51148,7 +51148,7 @@ fn the_root_is_a_non_empty_string_with_query_select_the_root_with_owned_bytes_an
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 13usize, 13usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 13usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -51537,7 +51537,7 @@ fn the_root_is_an_atomic_floating_point_number_in_scientific_notation_with_query
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 18usize, 18usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 18usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -51633,7 +51633,7 @@ fn the_root_is_an_atomic_floating_point_number_in_scientific_notation_with_query
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 18usize, 18usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 18usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -51730,7 +51730,7 @@ fn the_root_is_an_atomic_floating_point_number_in_scientific_notation_with_query
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 18usize, 18usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 18usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -52102,7 +52102,7 @@ fn the_root_is_an_atomic_floating_point_number_with_query_select_the_root_with_b
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 14usize, 14usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 14usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -52193,7 +52193,7 @@ fn the_root_is_an_atomic_floating_point_number_with_query_select_the_root_with_m
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 14usize, 14usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 14usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -52284,7 +52284,7 @@ fn the_root_is_an_atomic_floating_point_number_with_query_select_the_root_with_o
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 14usize, 14usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 14usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -52653,7 +52653,7 @@ fn the_root_is_an_atomic_integral_number_with_query_select_the_root_with_buffere
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 9usize, 9usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 9usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -52744,7 +52744,7 @@ fn the_root_is_an_atomic_integral_number_with_query_select_the_root_with_mmap_in
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 9usize, 9usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 9usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -52836,7 +52836,7 @@ fn the_root_is_an_atomic_integral_number_with_query_select_the_root_with_owned_b
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 9usize, 9usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 9usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -53477,7 +53477,7 @@ fn the_root_is_an_empty_string_with_query_select_the_root_with_buffered_input_an
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 2usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -53568,7 +53568,7 @@ fn the_root_is_an_empty_string_with_query_select_the_root_with_mmap_input_and_ap
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 2usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -53659,7 +53659,7 @@ fn the_root_is_an_empty_string_with_query_select_the_root_with_owned_bytes_and_a
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 2usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 2usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -54023,7 +54023,7 @@ fn the_root_is_the_atomic_value_false_with_query_select_the_root_with_buffered_i
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 5usize, 5usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 5usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -54114,7 +54114,7 @@ fn the_root_is_the_atomic_value_false_with_query_select_the_root_with_mmap_input
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 5usize, 5usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 5usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -54205,7 +54205,7 @@ fn the_root_is_the_atomic_value_false_with_query_select_the_root_with_owned_byte
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 5usize, 5usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 5usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -54569,7 +54569,7 @@ fn the_root_is_the_atomic_value_null_with_query_select_the_root_with_buffered_in
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 4usize, 4usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 4usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -54660,7 +54660,7 @@ fn the_root_is_the_atomic_value_null_with_query_select_the_root_with_mmap_input_
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 4usize, 4usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 4usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -54751,7 +54751,7 @@ fn the_root_is_the_atomic_value_null_with_query_select_the_root_with_owned_bytes
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 4usize, 4usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 4usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -55115,7 +55115,7 @@ fn the_root_is_the_atomic_value_true_with_query_select_the_root_with_buffered_in
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 4usize, 4usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 4usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -55206,7 +55206,7 @@ fn the_root_is_the_atomic_value_true_with_query_select_the_root_with_mmap_input_
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 4usize, 4usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 4usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -55297,7 +55297,7 @@ fn the_root_is_the_atomic_value_true_with_query_select_the_root_with_owned_bytes
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 4usize, 4usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 4usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -59321,7 +59321,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 13usize, 13usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 13usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -59412,7 +59412,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 13usize, 13usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 13usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -59503,7 +59503,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 13usize, 13usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 13usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -60425,7 +60425,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 25usize, 26usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 25usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -60516,7 +60516,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 25usize, 26usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 25usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];
@@ -60607,7 +60607,7 @@ fn whitespace_separators_between_structurals_to_test_correctness_of_index_result
     let mut result = vec![];
     engine.approximate_spans(&input, &mut result)?;
     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 25usize, 26usize)];
+    let expected: Vec<(usize, usize, usize)> = vec![(0usize, 25usize, 18446744073709551615usize)];
     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
     for i in 0..tups.len() {
         let upper_bound = expected[i];

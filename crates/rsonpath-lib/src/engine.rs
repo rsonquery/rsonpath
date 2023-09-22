@@ -8,6 +8,7 @@ mod head_skipping;
 pub mod main;
 mod tail_skipping;
 pub use main::MainEngine as RsonpathEngine;
+mod empty_query;
 
 use self::error::EngineError;
 use crate::{
@@ -57,7 +58,10 @@ pub trait Engine {
     /// Find the approximate spans of matches on the given [`Input`] and write them to the [`Sink`].
     ///
     /// "Approximate" means that the ends of spans are not guaranteed to be located exactly at the end of a match,
-    /// but may include trailing whitespace. It is guaranteed that:
+    /// but may include trailing whitespace. **Importantly**, it may be beyond the rigidly-defined length of the
+    /// input, as the engine is allowed to pad the input with whitespace to help with processing. For the purposes
+    /// of this API, it is assumed that every character after the logical end of the input is a whitespace character.
+    /// With that in mind, it is guaranteed that:
     /// 1. the span start is exact;
     /// 2. the span encompasses the entire matched value;
     /// 3. the only characters included after the value are JSON whitespace characters:

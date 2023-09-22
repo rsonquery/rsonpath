@@ -13,6 +13,7 @@ use crate::{
     debug,
     depth::Depth,
     engine::{
+        empty_query,
         error::EngineError,
         head_skipping::{CanHeadSkip, HeadSkip, ResumeState},
         tail_skipping::TailSkip,
@@ -70,8 +71,7 @@ impl Engine for MainEngine<'_> {
         let recorder = CountRecorder::new();
 
         if self.automaton.is_empty_query() {
-            empty_query(input, &recorder, self.simd)?;
-            return Ok(recorder.into());
+            return empty_query::count(input);
         }
 
         simd_dispatch!(self.simd => |simd| {
@@ -91,7 +91,7 @@ impl Engine for MainEngine<'_> {
         let recorder = IndexRecorder::new(sink);
 
         if self.automaton.is_empty_query() {
-            return empty_query(input, &recorder, self.simd);
+            return empty_query::index(input, sink);
         }
 
         simd_dispatch!(self.simd => |simd| {
@@ -111,7 +111,7 @@ impl Engine for MainEngine<'_> {
         let recorder = ApproxSpanRecorder::new(sink);
 
         if self.automaton.is_empty_query() {
-            return empty_query(input, &recorder, self.simd);
+            return empty_query::approx_span(input, sink);
         }
 
         simd_dispatch!(self.simd => |simd| {
@@ -131,7 +131,7 @@ impl Engine for MainEngine<'_> {
         let recorder = NodesRecorder::build_recorder(sink);
 
         if self.automaton.is_empty_query() {
-            return empty_query(input, &recorder, self.simd);
+            return empty_query::match_(input, sink);
         }
 
         simd_dispatch!(self.simd => |simd| {
@@ -141,40 +141,6 @@ impl Engine for MainEngine<'_> {
 
         Ok(())
     }
-}
-
-fn empty_query<'i, I, R>(input: &'i I, recorder: &R, simd: SimdConfiguration) -> Result<(), EngineError>
-where
-    I: Input + 'i,
-    R: Recorder<I::Block<'i, BLOCK_SIZE>>,
-{
-    let mut iter = input.iter_blocks(recorder);
-    let mut idx = 0;
-
-    loop {
-        match iter.next()? {
-            Some(block) => {
-                let pos = block.iter().position(|&x| x != b' ' && x != b'\n' && x != b'\t' && x != b'\r');
-                match pos {
-                    Some(in_block_idx) => {
-                        recorder.record_match(idx + in_block_idx, Depth::ONE, MatchedNodeType::Atomic)?;
-                        idx += BLOCK_SIZE;
-                        break;
-                    },
-                    None => idx += BLOCK_SIZE,
-                }
-            },
-            None => return Ok(()),
-        }
-    }
-
-    while (iter.next()?).is_some() {
-        idx += BLOCK_SIZE;
-    }
-
-    recorder.record_value_terminator(idx - 1, Depth::ONE)?;
-
-    Ok(())
 }
 
 macro_rules! Classifier {

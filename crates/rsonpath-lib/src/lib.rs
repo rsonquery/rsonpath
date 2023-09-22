@@ -346,3 +346,9 @@ impl<F: FallibleIterator> Iterator for FallibleIntoIter<F> {
         }
     }
 }
+
+#[inline(always)]
+#[must_use]
+pub(crate) fn is_json_whitespace(x: u8) -> bool {
+    x == b' ' || x == b'\t' || x == b'\n' || x == b'\r'
+}

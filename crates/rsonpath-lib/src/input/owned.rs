@@ -226,6 +226,11 @@ impl Input for OwnedBytes {
     type Block<'a, const N: usize> = &'a [u8];
 
     #[inline(always)]
+    fn len_hint(&self) -> Option<usize> {
+        Some((self.len / MAX_BLOCK_SIZE + 1) * MAX_BLOCK_SIZE)
+    }
+
+    #[inline(always)]
     fn iter_blocks<'a, 'r, R, const N: usize>(&'a self, recorder: &'r R) -> Self::BlockIterator<'a, 'r, N, R>
     where
         R: InputRecorder<&'a [u8]>,
