@@ -4,9 +4,25 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Performance
+
+- Improved handling of the root-only query `$`. ([#160](https://github.com/V0ldek/rsonpath/issues/160))
+  - Full nodes result when asking for root: 2 times throughput increase.
+  - Indices/count result when asking for root: basically unboundedly faster,
+    no longer looks at the entire document.
+
+### Documentation
+
+- Clarified that the `approximate_spans` guarantees.
+  - Now documentation mentions that the returned `MatchSpan`s can potentially
+    have their end indices farther than one would expect the input to logically end,
+    due to internal padding.
+
 ### Bug fixes
 
-- Fixed a bug when head-skipping to a single-byte key would panic.
+- Fixed handling of the root-only query `$` on atomic documents. ([#160](https://github.com/V0ldek/rsonpath/issues/160))
+  - Previously only object and array roots were supported.
+- Fixed a bug when head-skipping to a single-byte key would panic. ([#281](https://github.com/V0ldek/rsonpath/issues/281))
   - This was detected by fuzzing!
   - The queries `$..["{"]` and `$..["["]` would panic
     on inputs starting with the bytes `{"` or `["`, respectively.

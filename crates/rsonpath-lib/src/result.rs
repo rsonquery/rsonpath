@@ -41,6 +41,19 @@ pub struct Match {
 }
 
 impl MatchSpan {
+    pub(crate) fn from_indices(start_idx: usize, end_idx: usize) -> Self {
+        assert!(
+            start_idx <= end_idx,
+            "start of span {} is greater than end {}",
+            start_idx,
+            end_idx
+        );
+        Self {
+            start_idx,
+            len: end_idx - start_idx,
+        }
+    }
+
     /// Returns the starting index of the match.
     #[inline(always)]
     #[must_use]
@@ -65,6 +78,10 @@ impl MatchSpan {
 }
 
 impl Match {
+    pub(crate) fn from_start_and_bytes(span_start: usize, bytes: Vec<u8>) -> Self {
+        Self { bytes, span_start }
+    }
+
     /// Returns the JSON contents of the match.
     #[inline(always)]
     #[must_use]

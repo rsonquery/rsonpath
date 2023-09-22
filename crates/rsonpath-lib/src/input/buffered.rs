@@ -74,7 +74,7 @@ impl<R: Read> InternalBuffer<R> {
         }
 
         if self.chunk_idx == self.bytes.len() {
-            self.bytes.push(BufferedChunk([0; BUF_SIZE]));
+            self.bytes.push(BufferedChunk([b' '; BUF_SIZE]));
         }
 
         let buf = &mut self.bytes[self.chunk_idx].0;

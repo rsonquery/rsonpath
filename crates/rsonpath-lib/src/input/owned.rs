@@ -116,7 +116,7 @@ impl OwnedBytes {
         // SAFETY:
         unsafe {
             ptr::copy_nonoverlapping(slice.as_ptr(), ptr.as_ptr(), slice.len());
-            ptr::write_bytes(ptr.as_ptr().add(slice.len()), 0, pad);
+            ptr::write_bytes(ptr.as_ptr().add(slice.len()), b' ', pad);
         };
 
         // SAFETY: At this point we allocated and initialized exactly `size` bytes.
@@ -224,6 +224,11 @@ impl Input for OwnedBytes {
         where R: InputRecorder<&'a [u8]> + 'r;
 
     type Block<'a, const N: usize> = &'a [u8];
+
+    #[inline(always)]
+    fn len_hint(&self) -> Option<usize> {
+        Some((self.len / MAX_BLOCK_SIZE + 1) * MAX_BLOCK_SIZE)
+    }
 
     #[inline(always)]
     fn iter_blocks<'a, 'r, R, const N: usize>(&'a self, recorder: &'r R) -> Self::BlockIterator<'a, 'r, N, R>

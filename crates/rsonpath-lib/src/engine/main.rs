@@ -13,6 +13,7 @@ use crate::{
     debug,
     depth::Depth,
     engine::{
+        empty_query,
         error::EngineError,
         head_skipping::{CanHeadSkip, HeadSkip, ResumeState},
         tail_skipping::TailSkip,
@@ -70,8 +71,7 @@ impl Engine for MainEngine<'_> {
         let recorder = CountRecorder::new();
 
         if self.automaton.is_empty_query() {
-            empty_query(input, &recorder, self.simd)?;
-            return Ok(recorder.into());
+            return empty_query::count(input);
         }
 
         simd_dispatch!(self.simd => |simd| {
@@ -91,7 +91,7 @@ impl Engine for MainEngine<'_> {
         let recorder = IndexRecorder::new(sink);
 
         if self.automaton.is_empty_query() {
-            return empty_query(input, &recorder, self.simd);
+            return empty_query::index(input, sink);
         }
 
         simd_dispatch!(self.simd => |simd| {
@@ -111,7 +111,7 @@ impl Engine for MainEngine<'_> {
         let recorder = ApproxSpanRecorder::new(sink);
 
         if self.automaton.is_empty_query() {
-            return empty_query(input, &recorder, self.simd);
+            return empty_query::approx_span(input, sink);
         }
 
         simd_dispatch!(self.simd => |simd| {
@@ -131,7 +131,7 @@ impl Engine for MainEngine<'_> {
         let recorder = NodesRecorder::build_recorder(sink);
 
         if self.automaton.is_empty_query() {
-            return empty_query(input, &recorder, self.simd);
+            return empty_query::match_(input, sink);
         }
 
         simd_dispatch!(self.simd => |simd| {
@@ -141,43 +141,6 @@ impl Engine for MainEngine<'_> {
 
         Ok(())
     }
-}
-
-fn empty_query<'i, I, R>(input: &'i I, recorder: &R, simd: SimdConfiguration) -> Result<(), EngineError>
-where
-    I: Input + 'i,
-    R: Recorder<I::Block<'i, BLOCK_SIZE>>,
-{
-    simd_dispatch!(simd => |simd|
-    {
-        let iter = input.iter_blocks(recorder);
-        let quote_classifier = simd.classify_quoted_sequences(iter);
-        let mut block_event_source = simd.classify_structural_characters(quote_classifier);
-
-        let last_event = block_event_source.next()?;
-        if let Some(Structural::Opening(_, idx)) = last_event {
-            let mut depth = Depth::ONE;
-            recorder.record_match(idx, depth, MatchedNodeType::Complex)?;
-
-            while let Some(ev) = block_event_source.next()? {
-                match ev {
-                    Structural::Closing(_, idx) => {
-                        recorder.record_value_terminator(idx, depth)?;
-                        depth.decrement().map_err(|err| EngineError::DepthBelowZero(idx, err))?;
-                    }
-                    Structural::Colon(_) => (),
-                    Structural::Opening(_, idx) => {
-                        depth
-                            .increment()
-                            .map_err(|err| EngineError::DepthAboveLimit(idx, err))?;
-                    }
-                    Structural::Comma(idx) => recorder.record_value_terminator(idx, depth)?,
-                }
-            }
-        }
-    });
-
-    Ok(())
 }
 
 macro_rules! Classifier {

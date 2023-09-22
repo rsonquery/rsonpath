@@ -96,6 +96,11 @@ impl<'a> Input for BorrowedBytes<'a> {
     type Block<'b, const N: usize> = &'b [u8] where Self: 'b;
 
     #[inline(always)]
+    fn len_hint(&self) -> Option<usize> {
+        Some((self.bytes.len() / MAX_BLOCK_SIZE + 1) * MAX_BLOCK_SIZE)
+    }
+
+    #[inline(always)]
     fn iter_blocks<'b, 'r, R, const N: usize>(&'b self, recorder: &'r R) -> Self::BlockIterator<'b, 'r, N, R>
     where
         R: InputRecorder<&'b [u8]>,

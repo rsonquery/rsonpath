@@ -15,7 +15,7 @@
 //! by an order of magnitude to execute the query on a memory map than it is to simply read the
 //! file into main memory.
 
-use super::{borrowed::BorrowedBytesBlockIterator, error::InputError, in_slice, Input, LastBlock};
+use super::{borrowed::BorrowedBytesBlockIterator, error::InputError, in_slice, Input, LastBlock, MAX_BLOCK_SIZE};
 use crate::{query::JsonString, result::InputRecorder};
 use memmap2::{Mmap, MmapAsRawDesc};
 
@@ -54,6 +54,11 @@ impl Input for MmapInput {
         R: InputRecorder<&'a [u8]> + 'r;
 
     type Block<'a, const N: usize> = &'a [u8];
+
+    #[inline(always)]
+    fn len_hint(&self) -> Option<usize> {
+        Some((self.mmap.len() / MAX_BLOCK_SIZE + 1) * MAX_BLOCK_SIZE)
+    }
 
     #[inline(always)]
     fn iter_blocks<'a, 'r, R, const N: usize>(&'a self, recorder: &'r R) -> Self::BlockIterator<'a, 'r, N, R>

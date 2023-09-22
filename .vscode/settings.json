@@ -38,6 +38,7 @@
         "memmap",
         "memmem",
         "Mmap",
+        "mmaps",
         "movemask",
         "ndash",
         "nondescendant",

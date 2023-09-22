@@ -62,6 +62,17 @@ pub trait Input: Sized {
     where
         Self: 'i;
 
+    /// Return the length of the entire input, if known.
+    ///
+    /// This is meant to be used merely as a hint.
+    /// There are [`Input`] implementations that may not be able to know the entire
+    /// length a priori, and they should return [`None`].
+    #[inline(always)]
+    #[must_use]
+    fn len_hint(&self) -> Option<usize> {
+        None
+    }
+
     /// Iterate over blocks of size `N` of the input.
     /// `N` has to be a power of two larger than 1.
     #[must_use]
@@ -169,7 +180,7 @@ pub(super) mod in_slice {
 
     #[inline]
     pub(super) fn pad_last_block(bytes: &[u8]) -> LastBlock {
-        let mut last_block_buf = [0; MAX_BLOCK_SIZE];
+        let mut last_block_buf = [b' '; MAX_BLOCK_SIZE];
         let last_block_start = (bytes.len() / MAX_BLOCK_SIZE) * MAX_BLOCK_SIZE;
         let last_block_slice = &bytes[last_block_start..];
 
@@ -293,11 +304,11 @@ mod tests {
         use pretty_assertions::assert_eq;
 
         #[test]
-        fn on_empty_bytes_is_all_zero() {
+        fn on_empty_bytes_is_all_whitespace() {
             let result = in_slice::pad_last_block(&[]);
 
             assert_eq!(result.absolute_start, 0);
-            assert_eq!(result.bytes, [0; MAX_BLOCK_SIZE]);
+            assert_eq!(result.bytes, [b' '; MAX_BLOCK_SIZE]);
         }
 
         #[test]
@@ -308,17 +319,17 @@ mod tests {
 
             assert_eq!(result.absolute_start, 0);
             assert_eq!(&result.bytes[0..11], bytes);
-            assert_eq!(&result.bytes[11..], [0; MAX_BLOCK_SIZE - 11]);
+            assert_eq!(&result.bytes[11..], [b' '; MAX_BLOCK_SIZE - 11]);
         }
 
         #[test]
-        fn on_bytes_equal_to_full_block_gives_all_zero() {
+        fn on_bytes_equal_to_full_block_gives_all_whitespace() {
             let bytes = [42; MAX_BLOCK_SIZE];
 
             let result = in_slice::pad_last_block(&bytes);
 
             assert_eq!(result.absolute_start, MAX_BLOCK_SIZE);
-            assert_eq!(result.bytes, [0; MAX_BLOCK_SIZE]);
+            assert_eq!(result.bytes, [b' '; MAX_BLOCK_SIZE]);
         }
 
         #[test]
@@ -330,7 +341,7 @@ mod tests {
 
             assert_eq!(result.absolute_start, 2 * MAX_BLOCK_SIZE);
             assert_eq!(result.bytes[0..77], [69; 77]);
-            assert_eq!(result.bytes[77..], [0; MAX_BLOCK_SIZE - 77]);
+            assert_eq!(result.bytes[77..], [b' '; MAX_BLOCK_SIZE - 77]);
         }
     }
 
