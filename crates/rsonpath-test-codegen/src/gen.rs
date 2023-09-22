@@ -170,7 +170,7 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> Result<impl IntoIterator<I
                     #engine_ident.approximate_spans(&#input_ident, &mut result)?;
 
                     let tups: Vec<(usize, usize)> = result.iter().map(|x| (x.start_idx(), x.end_idx())).collect();
-                    let expected: Vec<(usize, usize, usize)> = vec![#(#spans,)*];
+                    let expected: Vec<(usize, usize, Option<usize>)> = vec![#(#spans,)*];
 
                     assert_eq!(tups.len(), expected.len(), "result.len() != expected.len()");
 
@@ -180,7 +180,10 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> Result<impl IntoIterator<I
 
                         assert_eq!(actual.0, upper_bound.0, "result start_idx() != expected start_idx()");
                         assert!(actual.1 >= upper_bound.1, "result end_idx() < expected end_lower_bound ({} < {})", actual.1, upper_bound.1);
-                        assert!(actual.1 <= upper_bound.2, "result end_idx() > expected end_upper_bound ({} > {}", actual.1, upper_bound.2);
+
+                        if let Some(end_upper_bound) = upper_bound.2 {
+                            assert!(actual.1 <= end_upper_bound, "result end_idx() > expected end_upper_bound ({} > {}", actual.1, end_upper_bound);
+                        }
                     }
                 }
             }
@@ -254,14 +257,16 @@ fn get_available_results(input: &model::InputSource, query: &model::Query) -> Re
                     end += 1
                 }
 
-                if end == b.len() {
-                    end = usize::MAX;
-                }
+                let upper_bound = if end == b.len() {
+                    None
+                } else {
+                    Some(end)
+                };
 
                 model::ResultApproximateSpan {
                     start: span.start,
                     end_lower_bound: span.end,
-                    end_upper_bound: end,
+                    end_upper_bound: upper_bound,
                 }
             })
             .collect();
