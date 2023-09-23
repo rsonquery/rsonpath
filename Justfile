@@ -172,14 +172,18 @@ alias v := verify-quick
 alias verify := verify-full
 
 # Run all lints and checks required.
-verify-full: build-all verify-clippy verify-doc verify-fmt test-full
+verify-full: build-all verify-deny verify-clippy verify-doc verify-fmt test-full
 
 # Run a quick formatting and compilation check.
-verify-quick: verify-fmt verify-check verify-bench
+verify-quick: verify-fmt verify-check verify-deny verify-bench
 
 # Run cargo check on non-benchmark packages.
 verify-check:
     cargo check --workspace --all-features
+
+# Run cargo deny check.
+verify-deny:
+    cargo deny check
 
 # Run cargo check on the benchmark package
 verify-bench:

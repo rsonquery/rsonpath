@@ -176,11 +176,11 @@ struct LastBlock {
 
 pub(super) mod in_slice {
     use super::{LastBlock, MAX_BLOCK_SIZE};
-    use crate::query::JsonString;
+    use crate::{query::JsonString, JSON_SPACE_BYTE};
 
     #[inline]
     pub(super) fn pad_last_block(bytes: &[u8]) -> LastBlock {
-        let mut last_block_buf = [b' '; MAX_BLOCK_SIZE];
+        let mut last_block_buf = [JSON_SPACE_BYTE; MAX_BLOCK_SIZE];
         let last_block_start = (bytes.len() / MAX_BLOCK_SIZE) * MAX_BLOCK_SIZE;
         let last_block_slice = &bytes[last_block_start..];
 
@@ -300,6 +300,8 @@ mod tests {
     }
 
     mod pad_last_block {
+        use crate::JSON_SPACE_BYTE;
+
         use super::*;
         use pretty_assertions::assert_eq;
 
@@ -308,7 +310,7 @@ mod tests {
             let result = in_slice::pad_last_block(&[]);
 
             assert_eq!(result.absolute_start, 0);
-            assert_eq!(result.bytes, [b' '; MAX_BLOCK_SIZE]);
+            assert_eq!(result.bytes, [JSON_SPACE_BYTE; MAX_BLOCK_SIZE]);
         }
 
         #[test]
@@ -319,7 +321,7 @@ mod tests {
 
             assert_eq!(result.absolute_start, 0);
             assert_eq!(&result.bytes[0..11], bytes);
-            assert_eq!(&result.bytes[11..], [b' '; MAX_BLOCK_SIZE - 11]);
+            assert_eq!(&result.bytes[11..], [JSON_SPACE_BYTE; MAX_BLOCK_SIZE - 11]);
         }
 
         #[test]
@@ -329,7 +331,7 @@ mod tests {
             let result = in_slice::pad_last_block(&bytes);
 
             assert_eq!(result.absolute_start, MAX_BLOCK_SIZE);
-            assert_eq!(result.bytes, [b' '; MAX_BLOCK_SIZE]);
+            assert_eq!(result.bytes, [JSON_SPACE_BYTE; MAX_BLOCK_SIZE]);
         }
 
         #[test]
@@ -341,7 +343,7 @@ mod tests {
 
             assert_eq!(result.absolute_start, 2 * MAX_BLOCK_SIZE);
             assert_eq!(result.bytes[0..77], [69; 77]);
-            assert_eq!(result.bytes[77..], [b' '; MAX_BLOCK_SIZE - 77]);
+            assert_eq!(result.bytes[77..], [JSON_SPACE_BYTE; MAX_BLOCK_SIZE - 77]);
         }
     }
 

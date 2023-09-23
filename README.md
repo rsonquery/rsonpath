@@ -216,12 +216,12 @@ cargo tree --package rsonpath --edges normal --depth 1
 
 <!-- rsonpath dependencies start -->
 ```ini
-rsonpath v0.8.1 (/home/mat/rsonpath/crates/rsonpath)
+rsonpath v0.8.2 (/home/mat/rsonpath/crates/rsonpath)
 ├── clap v4.4.4
 ├── color-eyre v0.6.2
 ├── eyre v0.6.8
 ├── log v0.4.20
-├── rsonpath-lib v0.8.1 (/home/mat/rsonpath/crates/rsonpath-lib)
+├── rsonpath-lib v0.8.2 (/home/mat/rsonpath/crates/rsonpath-lib)
 └── simple_logger v4.2.0
 [build-dependencies]
 ├── rustflags v0.1.4
@@ -236,12 +236,12 @@ cargo tree --package rsonpath-lib --edges normal --depth 1
 
 <!-- rsonpath-lib dependencies start -->
 ```ini
-rsonpath-lib v0.8.1 (/home/mat/rsonpath/crates/rsonpath-lib)
+rsonpath-lib v0.8.2 (/home/mat/rsonpath/crates/rsonpath-lib)
 ├── cfg-if v1.0.0
 ├── log v0.4.20
 ├── memmap2 v0.7.1
 ├── nom v7.1.3
-├── smallvec v1.11.0
+├── smallvec v1.11.1
 ├── static_assertions v1.1.0
 ├── thiserror v1.0.48
 └── vector-map v1.0.1
@@ -269,7 +269,7 @@ cargo tree --package rsonpath --edges normal
 
 <!-- rsonpath-full dependencies start -->
 ```ini
-rsonpath v0.8.1 (/home/mat/rsonpath/crates/rsonpath)
+rsonpath v0.8.2 (/home/mat/rsonpath/crates/rsonpath)
 ├── clap v4.4.4
 │   ├── clap_builder v4.4.4
 │   │   ├── anstream v0.5.0
@@ -295,7 +295,7 @@ rsonpath v0.8.1 (/home/mat/rsonpath/crates/rsonpath)
 │   │   ├── clap_lex v0.5.1
 │   │   ├── strsim v0.10.0
 │   │   └── terminal_size v0.3.0
-│   │       ├── rustix v0.38.13
+│   │       ├── rustix v0.38.14
 │   │       │   ├── bitflags v2.4.0
 │   │       │   ├── errno v0.3.3
 │   │       │   │   ├── errno-dragonfly v0.1.2
@@ -340,7 +340,7 @@ rsonpath v0.8.1 (/home/mat/rsonpath/crates/rsonpath)
 │   └── owo-colors v3.5.0
 ├── eyre v0.6.8 (*)
 ├── log v0.4.20
-├── rsonpath-lib v0.8.1 (/home/mat/rsonpath/crates/rsonpath-lib)
+├── rsonpath-lib v0.8.2 (/home/mat/rsonpath/crates/rsonpath-lib)
 │   ├── cfg-if v1.0.0
 │   ├── log v0.4.20
 │   ├── memmap2 v0.7.1
@@ -348,7 +348,7 @@ rsonpath v0.8.1 (/home/mat/rsonpath/crates/rsonpath)
 │   ├── nom v7.1.3
 │   │   ├── memchr v2.6.3
 │   │   └── minimal-lexical v0.2.1
-│   ├── smallvec v1.11.0
+│   ├── smallvec v1.11.1
 │   ├── static_assertions v1.1.0
 │   ├── thiserror v1.0.48
 │   │   └── thiserror-impl v1.0.48 (proc-macro)
@@ -380,7 +380,7 @@ rsonpath v0.8.1 (/home/mat/rsonpath/crates/rsonpath)
     ├── colored v2.0.4
     │   ├── is-terminal v0.4.9
     │   │   ├── hermit-abi v0.3.3
-    │   │   ├── rustix v0.38.13 (*)
+    │   │   ├── rustix v0.38.14 (*)
     │   │   └── windows-sys v0.48.0 (*)
     │   ├── lazy_static v1.4.0
     │   └── windows-sys v0.48.0 (*)
@@ -407,7 +407,7 @@ rsonpath v0.8.1 (/home/mat/rsonpath/crates/rsonpath)
 └── vergen v8.2.5
     ├── anyhow v1.0.75
     ├── rustc_version v0.4.0
-    │   └── semver v1.0.18
+    │   └── semver v1.0.19
     └── time v0.3.28
         ├── deranged v0.3.8
         ├── itoa v1.0.9
