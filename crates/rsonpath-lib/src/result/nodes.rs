@@ -8,7 +8,7 @@
 #![allow(clippy::expect_used)]
 
 use super::{output_queue::OutputQueue, *};
-use crate::{debug, depth::Depth};
+use crate::{debug, depth::Depth, is_json_whitespace};
 use std::{
     cell::RefCell,
     fmt::{self, Debug},
@@ -442,7 +442,7 @@ fn finalize_node(buf: &mut Vec<u8>, ty: MatchedNodeType) {
             buf.truncate(0)
         } else {
             let mut i = buf.len() - 2;
-            while buf[i] == b' ' || buf[i] == b'\t' || buf[i] == b'\n' || buf[i] == b'\r' {
+            while is_json_whitespace(buf[i]) {
                 i -= 1;
             }
 

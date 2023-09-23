@@ -19,7 +19,9 @@
 use super::{
     error::InputError, in_slice, repr_align_block_size, Input, InputBlock, InputBlockIterator, MAX_BLOCK_SIZE,
 };
-use crate::{error::InternalRsonpathError, query::JsonString, result::InputRecorder, FallibleIterator};
+use crate::{
+    error::InternalRsonpathError, query::JsonString, result::InputRecorder, FallibleIterator, JSON_SPACE_BYTE,
+};
 use std::{cell::RefCell, io::Read, ops::Deref, slice};
 
 const BUF_SIZE: usize = 64 * 1024;
@@ -74,7 +76,7 @@ impl<R: Read> InternalBuffer<R> {
         }
 
         if self.chunk_idx == self.bytes.len() {
-            self.bytes.push(BufferedChunk([b' '; BUF_SIZE]));
+            self.bytes.push(BufferedChunk([JSON_SPACE_BYTE; BUF_SIZE]));
         }
 
         let buf = &mut self.bytes[self.chunk_idx].0;

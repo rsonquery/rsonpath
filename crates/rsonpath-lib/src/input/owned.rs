@@ -15,7 +15,7 @@
 //! than using a buffered input stream.
 
 use super::{borrowed::BorrowedBytesBlockIterator, error::InputError, *};
-use crate::query::JsonString;
+use crate::{query::JsonString, JSON_SPACE_BYTE};
 use std::{alloc, ptr, slice};
 
 /// Input into a query engine.
@@ -116,7 +116,7 @@ impl OwnedBytes {
         // SAFETY:
         unsafe {
             ptr::copy_nonoverlapping(slice.as_ptr(), ptr.as_ptr(), slice.len());
-            ptr::write_bytes(ptr.as_ptr().add(slice.len()), b' ', pad);
+            ptr::write_bytes(ptr.as_ptr().add(slice.len()), JSON_SPACE_BYTE, pad);
         };
 
         // SAFETY: At this point we allocated and initialized exactly `size` bytes.
