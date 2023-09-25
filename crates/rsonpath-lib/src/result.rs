@@ -159,6 +159,36 @@ impl<D> Sink<D> for NullSink {
     }
 }
 
+impl<D> Sink<D> for std::sync::mpsc::Sender<D> where D: Sync + Send {
+    type Error = Infallible;
+
+    #[inline]
+    fn add_match(&mut self, data: D) -> Result<(), Self::Error> {
+        self.send(data).unwrap();
+        Ok(())
+    }
+}
+
+impl<D> Sink<D> for std::sync::mpsc::SyncSender<D> where D: Sync + Send {
+    type Error = Infallible;
+
+    #[inline]
+    fn add_match(&mut self, data: D) -> Result<(), Self::Error> {
+        self.send(data).unwrap();
+        Ok(())
+    }
+}
+
+#[cfg(feature = "crossbeam")]
+impl<D> Sink<D> for crossbeam_channel::Sender<D> {
+    type Error = Infallible;
+
+    fn add_match(&mut self, data: D) -> Result<(), Self::Error> {
+        self.send(data).unwrap();
+        Ok(())
+    }
+}
+
 /// Thin wrapper over an [`io::Write`] to provide a [`Sink`] impl.
 pub struct MatchWriter<W>(W);
 

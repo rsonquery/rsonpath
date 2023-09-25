@@ -5,16 +5,17 @@ use crate::{
 };
 use eyre::{Result, WrapErr};
 use log::warn;
+use object_pool::Pool;
 use rsonpath_lib::{
     engine::{error::EngineError, main::MainEngine, Compiler, Engine},
     input::{BufferedInput, Input, MmapInput, OwnedBytes},
     query::automaton::Automaton,
-    result::MatchWriter,
+    result::{Match, MatchWriter, Sink},
 };
 use std::{
     fs,
     io::{self, Read},
-    path::Path,
+    path::Path, sync::Arc, convert::Infallible,
 };
 
 pub struct Runner<'q, S> {
@@ -156,8 +157,29 @@ impl ResolvedOutput {
                     engine.indices(&input, &mut sink)?;
                 }
                 ResolvedOutput::Nodes => {
-                    let mut sink = MatchWriter::from(io::stdout().lock());
+                    let (mut s, r) = crossbeam_channel::bounded(4);
+                    let pool = Arc::new(Pool::new(5, || Vec::<Match>::with_capacity(BUF_SIZE)));
+                    let mut sink = SenderSink::new(s, pool.clone());
+
+                    let writer = std::thread::spawn(move || -> Result<(), io::Error> {
+                        use std::io::Write;
+
+                        let mut stdout = io::stdout().lock();
+
+                        while let Ok(mut ms) = r.recv() {
+                            for m in ms.drain(..) {
+                                writeln!(stdout, "{m}")?;
+                            }
+                            pool.attach(ms);
+                        }
+
+                        Ok(())
+                    });
+
                     engine.matches(&input, &mut sink)?;
+                    drop(sink);
+
+                    writer.join().unwrap();
                 }
             }
 
@@ -174,4 +196,48 @@ fn get_contents<R: Read>(mut stream: R) -> Result<String> {
         .read_to_string(&mut result)
         .wrap_err("Reading from file failed.")?;
     Ok(result)
+}
+
+const BUF_SIZE: usize = 8 * 1024;
+
+struct SenderSink<D> {
+    s: crossbeam_channel::Sender<Vec<D>>,
+    buf: Vec<D>,
+    pool: Arc<Pool<Vec<D>>>,
+}
+
+impl<D> SenderSink<D> {
+    fn new(s: crossbeam_channel::Sender<Vec<D>>, pool: Arc<Pool<Vec<D>>>) -> Self {
+        let vec = pool.pull(|| Vec::with_capacity(BUF_SIZE));
+        Self {
+            s,
+            buf: vec.detach().1,
+            pool
+        }
+    }
+}
+
+impl<D> Sink<D> for SenderSink<D> where D: Send {
+    type Error = Infallible;
+
+    fn add_match(&mut self, data: D) -> std::result::Result<(), Self::Error> {
+        self.buf.push(data);
+
+        if self.buf.len() == BUF_SIZE {
+            let mut here_buf = self.pool.pull(|| Vec::with_capacity(BUF_SIZE)).detach().1;
+            std::mem::swap(&mut here_buf, &mut self.buf);
+
+            self.s.send(here_buf).expect("sender send");
+        }
+
+        Ok(())
+    }
+}
+
+impl<D> Drop for SenderSink<D> {
+    fn drop(&mut self) {
+        let mut here_buf = vec![];
+        std::mem::swap(&mut self.buf, &mut here_buf);
+        self.s.send(here_buf).expect("sender send")
+    }
 }

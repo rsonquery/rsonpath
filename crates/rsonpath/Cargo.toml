@@ -26,11 +26,13 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
 clap = { version = "4.4.4", features = ["derive", "wrap_help"] }
+crossbeam-channel = { version = "0.5.8" }
 color-eyre = { version = "0.6.2", default-features = false }
 eyre = "0.6.8"
 log = "0.4.20"
 rsonpath-lib = { version = "0.8.2", package = "rsonpath-lib", default-features = false }
 simple_logger = "4.2.0"
+object-pool = { version = "0.5.4" }
 
 [build-dependencies]
 rustflags = { version = "0.1.4" }
@@ -40,5 +42,5 @@ vergen = { version = "8.2.5", features = ["cargo", "git", "gitcl", "rustc"] }
 trycmd = "0.14.17"
 
 [features]
-default = ["simd"]
+default = ["simd", "rsonpath-lib/crossbeam"]
 simd = ["rsonpath-lib/simd"]
