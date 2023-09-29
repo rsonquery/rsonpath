@@ -37,7 +37,7 @@ rustflags = { version = "0.1.4" }
 vergen = { version = "8.2.5", features = ["cargo", "git", "gitcl", "rustc"] }
 
 [dev-dependencies]
-trycmd = "0.14.17"
+trycmd = "0.14.18"
 
 [features]
 default = ["simd"]
