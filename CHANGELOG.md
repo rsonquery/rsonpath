@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.3] - 2023-10-04
+
+### Bug Fixes
+
+- Missing openings from node results. ([#297](https://github.com/V0ldek/rsonpath/issues/297))
+  - Fixed an issue where the opening
+  characters of matched nodes would not be
+  included in the result when head-skipping
+  and the opening happened on a block boundary.
+
+- Lib MSRV.
+  - In v0.8.0 we inadvertently broke the MSRV,
+  and the project only built with 1.71.1
+  It was restored to 1.70.0 for the binary
+  and 1.67.1 for the lib.
+
+### Dependencies
+
+- Bump clap from 4.4.4 to 4.4.6.
+- Bump memmap2 from 0.7.1 to 0.9.0.
+- Bump thiserror from 1.0.48 to 1.0.49.
+
 ## [0.8.2] - 2023-09-23
 
 ### Performance

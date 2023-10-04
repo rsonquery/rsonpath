@@ -126,6 +126,7 @@
 //! Only the aforementioned selectors are supported at this moment.
 //! This library is under active development.
 
+#![doc(html_logo_url = "https://raw.githubusercontent.com/V0ldek/rsonpath/main/img/rsonquery-logo.svg")]
 // Documentation lints, enabled only on --release.
 #![cfg_attr(
     not(debug_assertions),

@@ -1,6 +1,6 @@
 [package]
 name = "rsonpath-test"
-version = "0.8.2"
+version = "0.8.3"
 authors = ["Mateusz Gienieczko <mat@gienieczko.com>"]
 edition = "2021"
 description = "Just a build script for the auto test generation."
@@ -17,4 +17,4 @@ publish = false
 [build-dependencies]
 eyre = "0.6.8"
 md5 = "0.7.0"
-rsonpath-test-codegen = { version = "0.8.2", path = "../rsonpath-test-codegen" }
+rsonpath-test-codegen = { version = "0.8.3", path = "../rsonpath-test-codegen" }

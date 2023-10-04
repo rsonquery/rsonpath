@@ -1,4 +1,4 @@
-# `rsonpath` &ndash; SIMD-powered JSONPath 🚀
+# <div style="display: flex; align-items: center;"><img style="margin-right: 1rem" src="img/rsonquery-logo.svg" width="50" /> rsonpath &ndash; SIMD-powered JSONPath 🚀</div>
 
 [![Rust](https://github.com/V0ldek/rsonpath/actions/workflows/rust.yml/badge.svg)](https://github.com/V0ldek/rsonpath/actions/workflows/rust.yml)
 [![docs.rs](https://img.shields.io/docsrs/rsonpath-lib?logo=docs.rs)](https://docs.rs/crate/rsonpath-lib/latest)
@@ -136,7 +136,7 @@ with `rq --version` &ndash; check the `SIMD support` field:
 
 ```console,ignore
 $ rq --version
-rq 0.8.1
+rq 0.8.3
 
 Commit SHA:      be6abb7fc8a3a9342876d01cad2388c10f5751e3
 Features:        default,simd
@@ -216,12 +216,12 @@ cargo tree --package rsonpath --edges normal --depth 1
 
 <!-- rsonpath dependencies start -->
 ```ini
-rsonpath v0.8.2 (/home/mat/rsonpath/crates/rsonpath)
-├── clap v4.4.4
+rsonpath v0.8.3 (/home/mat/rsonpath/crates/rsonpath)
+├── clap v4.4.6
 ├── color-eyre v0.6.2
 ├── eyre v0.6.8
 ├── log v0.4.20
-├── rsonpath-lib v0.8.2 (/home/mat/rsonpath/crates/rsonpath-lib)
+├── rsonpath-lib v0.8.3 (/home/mat/rsonpath/crates/rsonpath-lib)
 └── simple_logger v4.2.0
 [build-dependencies]
 ├── rustflags v0.1.4
@@ -236,14 +236,14 @@ cargo tree --package rsonpath-lib --edges normal --depth 1
 
 <!-- rsonpath-lib dependencies start -->
 ```ini
-rsonpath-lib v0.8.2 (/home/mat/rsonpath/crates/rsonpath-lib)
+rsonpath-lib v0.8.3 (/home/mat/rsonpath/crates/rsonpath-lib)
 ├── cfg-if v1.0.0
 ├── log v0.4.20
-├── memmap2 v0.7.1
+├── memmap2 v0.9.0
 ├── nom v7.1.3
 ├── smallvec v1.11.1
 ├── static_assertions v1.1.0
-├── thiserror v1.0.48
+├── thiserror v1.0.49
 └── vector-map v1.0.1
 ```
 <!-- rsonpath-lib dependencies end -->
@@ -269,12 +269,12 @@ cargo tree --package rsonpath --edges normal
 
 <!-- rsonpath-full dependencies start -->
 ```ini
-rsonpath v0.8.2 (/home/mat/rsonpath/crates/rsonpath)
-├── clap v4.4.4
-│   ├── clap_builder v4.4.4
-│   │   ├── anstream v0.5.0
-│   │   │   ├── anstyle v1.0.3
-│   │   │   ├── anstyle-parse v0.2.1
+rsonpath v0.8.3 (/home/mat/rsonpath/crates/rsonpath)
+├── clap v4.4.6
+│   ├── clap_builder v4.4.6
+│   │   ├── anstream v0.6.4
+│   │   │   ├── anstyle v1.0.4
+│   │   │   ├── anstyle-parse v0.2.2
 │   │   │   │   └── utf8parse v0.2.1
 │   │   │   ├── anstyle-query v1.0.0
 │   │   │   │   └── windows-sys v0.48.0
@@ -286,18 +286,18 @@ rsonpath v0.8.2 (/home/mat/rsonpath/crates/rsonpath)
 │   │   │   │           ├── windows_x86_64_gnu v0.48.0
 │   │   │   │           ├── windows_x86_64_gnullvm v0.48.0
 │   │   │   │           └── windows_x86_64_msvc v0.48.0
-│   │   │   ├── anstyle-wincon v2.1.0
-│   │   │   │   ├── anstyle v1.0.3
+│   │   │   ├── anstyle-wincon v3.0.1
+│   │   │   │   ├── anstyle v1.0.4
 │   │   │   │   └── windows-sys v0.48.0 (*)
 │   │   │   ├── colorchoice v1.0.0
 │   │   │   └── utf8parse v0.2.1
-│   │   ├── anstyle v1.0.3
+│   │   ├── anstyle v1.0.4
 │   │   ├── clap_lex v0.5.1
 │   │   ├── strsim v0.10.0
 │   │   └── terminal_size v0.3.0
-│   │       ├── rustix v0.38.14
+│   │       ├── rustix v0.38.15
 │   │       │   ├── bitflags v2.4.0
-│   │       │   ├── errno v0.3.3
+│   │       │   ├── errno v0.3.4
 │   │       │   │   ├── errno-dragonfly v0.1.2
 │   │       │   │   │   └── libc v0.2.148
 │   │       │   │   │   [build-dependencies]
@@ -306,7 +306,7 @@ rsonpath v0.8.2 (/home/mat/rsonpath/crates/rsonpath)
 │   │       │   │   ├── libc v0.2.148
 │   │       │   │   └── windows-sys v0.48.0 (*)
 │   │       │   ├── libc v0.2.148
-│   │       │   ├── linux-raw-sys v0.4.7
+│   │       │   ├── linux-raw-sys v0.4.8
 │   │       │   └── windows-sys v0.48.0 (*)
 │   │       └── windows-sys v0.48.0 (*)
 │   └── clap_derive v4.4.2 (proc-macro)
@@ -328,7 +328,7 @@ rsonpath v0.8.2 (/home/mat/rsonpath/crates/rsonpath)
 │   │   ├── miniz_oxide v0.7.1
 │   │   │   └── adler v1.0.2
 │   │   ├── object v0.32.1
-│   │   │   └── memchr v2.6.3
+│   │   │   └── memchr v2.6.4
 │   │   └── rustc-demangle v0.1.23
 │   │   [build-dependencies]
 │   │   └── cc v1.0.83 (*)
@@ -340,18 +340,18 @@ rsonpath v0.8.2 (/home/mat/rsonpath/crates/rsonpath)
 │   └── owo-colors v3.5.0
 ├── eyre v0.6.8 (*)
 ├── log v0.4.20
-├── rsonpath-lib v0.8.2 (/home/mat/rsonpath/crates/rsonpath-lib)
+├── rsonpath-lib v0.8.3 (/home/mat/rsonpath/crates/rsonpath-lib)
 │   ├── cfg-if v1.0.0
 │   ├── log v0.4.20
-│   ├── memmap2 v0.7.1
+│   ├── memmap2 v0.9.0
 │   │   └── libc v0.2.148
 │   ├── nom v7.1.3
-│   │   ├── memchr v2.6.3
+│   │   ├── memchr v2.6.4
 │   │   └── minimal-lexical v0.2.1
 │   ├── smallvec v1.11.1
 │   ├── static_assertions v1.1.0
-│   ├── thiserror v1.0.48
-│   │   └── thiserror-impl v1.0.48 (proc-macro)
+│   ├── thiserror v1.0.49
+│   │   └── thiserror-impl v1.0.49 (proc-macro)
 │   │       ├── proc-macro2 v1.0.67 (*)
 │   │       ├── quote v1.0.33 (*)
 │   │       └── syn v2.0.37 (*)
@@ -380,20 +380,20 @@ rsonpath v0.8.2 (/home/mat/rsonpath/crates/rsonpath)
     ├── colored v2.0.4
     │   ├── is-terminal v0.4.9
     │   │   ├── hermit-abi v0.3.3
-    │   │   ├── rustix v0.38.14 (*)
+    │   │   ├── rustix v0.38.15 (*)
     │   │   └── windows-sys v0.48.0 (*)
     │   ├── lazy_static v1.4.0
     │   └── windows-sys v0.48.0 (*)
     ├── log v0.4.20
-    ├── time v0.3.28
+    ├── time v0.3.29
     │   ├── deranged v0.3.8
     │   ├── itoa v1.0.9
     │   ├── libc v0.2.148
     │   ├── num_threads v0.1.6
     │   │   └── libc v0.2.148
-    │   ├── time-core v0.1.1
-    │   └── time-macros v0.2.14 (proc-macro)
-    │       └── time-core v0.1.1
+    │   ├── time-core v0.1.2
+    │   └── time-macros v0.2.15 (proc-macro)
+    │       └── time-core v0.1.2
     └── windows-sys v0.42.0
         ├── windows_aarch64_gnullvm v0.42.2
         ├── windows_aarch64_msvc v0.42.2
@@ -408,12 +408,12 @@ rsonpath v0.8.2 (/home/mat/rsonpath/crates/rsonpath)
     ├── anyhow v1.0.75
     ├── rustc_version v0.4.0
     │   └── semver v1.0.19
-    └── time v0.3.28
+    └── time v0.3.29
         ├── deranged v0.3.8
         ├── itoa v1.0.9
         ├── libc v0.2.148
         ├── num_threads v0.1.6 (*)
-        └── time-core v0.1.1
+        └── time-core v0.1.2
     [build-dependencies]
     └── rustversion v1.0.14 (proc-macro)
 ```
