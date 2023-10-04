@@ -97,6 +97,7 @@ jobs:
         uses: egor-tensin/setup-mingw@84c781b557efd538dec66bde06988d81cd3138cf # v2.2.0
         with:
           platform: ${{ matrix.needs-mingw }}
+          version: 12.2.0 # https://github.com/egor-tensin/setup-mingw/issues/14
       - name: Add MinGW to PATH
         if: matrix.needs-mingw != '' && steps.cache-restore-mingw.outputs.cache-hit == 'true'
         run: echo "C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw32\bin" >> $env:GITHUB_PATH
