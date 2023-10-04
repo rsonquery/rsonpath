@@ -35,8 +35,8 @@ pub trait Simd: Copy {
     type MemmemClassifier<'i, 'b, 'r, I, R>: Memmem<'i, 'b, 'r, I, BLOCK_SIZE>
     where
         I: Input + 'i,
-        I::BlockIterator<'i, 'r, BLOCK_SIZE, R>: 'b,
-        R: InputRecorder<I::Block<'i, BLOCK_SIZE>> + 'r,
+        <I as Input>::BlockIterator<'i, 'r, BLOCK_SIZE, R>: 'b,
+        R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>> + 'r,
         'i: 'r;
 
     /// Walk through the JSON document given by the `iter` and classify quoted sequences.
@@ -109,11 +109,11 @@ pub trait Simd: Copy {
     fn memmem<'i, 'b, 'r, I, R>(
         self,
         input: &'i I,
-        iter: &'b mut I::BlockIterator<'i, 'r, BLOCK_SIZE, R>,
+        iter: &'b mut <I as Input>::BlockIterator<'i, 'r, BLOCK_SIZE, R>,
     ) -> Self::MemmemClassifier<'i, 'b, 'r, I, R>
     where
         I: Input,
-        R: InputRecorder<I::Block<'i, BLOCK_SIZE>>,
+        R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>>,
         'i: 'r;
 }
 
@@ -157,8 +157,8 @@ where
     type MemmemClassifier<'i, 'b, 'r, I, R> = M::Classifier<'i, 'b, 'r, I, R>
     where
         I: Input + 'i,
-        I::BlockIterator<'i, 'r, BLOCK_SIZE, R>: 'b,
-        R: InputRecorder<I::Block<'i, BLOCK_SIZE>> + 'r,
+        <I as Input>::BlockIterator<'i, 'r, BLOCK_SIZE, R>: 'b,
+        R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>> + 'r,
         'i: 'r;
 
     #[inline(always)]
@@ -238,11 +238,11 @@ where
     fn memmem<'i, 'b, 'r, I, R>(
         self,
         input: &'i I,
-        iter: &'b mut I::BlockIterator<'i, 'r, BLOCK_SIZE, R>,
+        iter: &'b mut <I as Input>::BlockIterator<'i, 'r, BLOCK_SIZE, R>,
     ) -> Self::MemmemClassifier<'i, 'b, 'r, I, R>
     where
         I: Input,
-        R: InputRecorder<I::Block<'i, BLOCK_SIZE>>,
+        R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>>,
         'i: 'r,
     {
         M::memmem(input, iter)
