@@ -169,13 +169,22 @@ impl<'b, 'q, I: Input, V: Simd> HeadSkip<'b, 'q, I, V, BLOCK_SIZE> {
                         // Now we want to move the entire iterator state so that the current block is quote-classified,
                         // and correctly points to the place the engine would expect had it found the matching key
                         // in the regular loop. If the value is atomic, we handle it ourselves. If the value is complex,
-                        // the engine wants to start one byte *after* the opening character.
-                        let resume_idx = if next_c == b'{' || next_c == b'[' {
-                            next_idx + 1
+                        // the engine wants to start one byte *after* the opening character. However, the match report
+                        // has to happen before we advance one more byte, or else the opening character might be lost
+                        // in the output (if it happens at a block boundary).
+                        if next_c == b'{' || next_c == b'[' {
+                            classifier_state.forward_to(next_idx)?;
+                            if self.is_accepting {
+                                engine.recorder().record_match(
+                                    next_idx,
+                                    Depth::ZERO,
+                                    crate::result::MatchedNodeType::Complex,
+                                )?;
+                            }
+                            classifier_state.forward_to(next_idx + 1)?;
                         } else {
-                            next_idx
+                            classifier_state.forward_to(next_idx)?;
                         };
-                        classifier_state.forward_to(resume_idx)?;
 
                         // We now have the block where we want and we ran quote classification, but during the `forward_to`
                         // call we lose all the flow-through quote information that usually is passed from one block to the next.
@@ -196,13 +205,6 @@ impl<'b, 'q, I: Input, V: Simd> HeadSkip<'b, 'q, I, V, BLOCK_SIZE> {
                         classifier_state = match next_c {
                             b'{' | b'[' => {
                                 debug!("resuming");
-                                if self.is_accepting {
-                                    engine.recorder().record_match(
-                                        next_idx,
-                                        Depth::ZERO,
-                                        crate::result::MatchedNodeType::Complex,
-                                    )?;
-                                }
                                 let classifier = self.simd.resume_structural_classification(classifier_state);
                                 engine
                                     .run_on_subtree(
