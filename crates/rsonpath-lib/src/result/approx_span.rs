@@ -12,6 +12,7 @@ pub struct ApproxSpanRecorder<'s, S> {
 
 struct InternalRecorder<'s, S> {
     sink: &'s mut S,
+    leading_padding_len: usize,
     match_count: usize,
     stack: Vec<PartialNode>,
     output_queue: OutputQueue<MatchSpan>,
@@ -26,9 +27,9 @@ struct PartialNode {
 
 impl<'s, S> ApproxSpanRecorder<'s, S> {
     #[inline]
-    pub(crate) fn new(sink: &'s mut S) -> Self {
+    pub(crate) fn new(sink: &'s mut S, leading_padding_len: usize) -> Self {
         Self {
-            internal: RefCell::new(InternalRecorder::new(sink)),
+            internal: RefCell::new(InternalRecorder::new(sink, leading_padding_len)),
         }
     }
 }
@@ -60,9 +61,10 @@ where
 }
 
 impl<'s, S> InternalRecorder<'s, S> {
-    fn new(sink: &'s mut S) -> Self {
+    fn new(sink: &'s mut S, leading_padding_len: usize) -> Self {
         Self {
             sink,
+            leading_padding_len,
             stack: vec![],
             match_count: 0,
             output_queue: OutputQueue::new(),
@@ -94,7 +96,7 @@ where
                     idx
                 };
                 let span = MatchSpan {
-                    start_idx: node.start_idx,
+                    start_idx: node.start_idx - self.leading_padding_len,
                     len: end_idx - node.start_idx,
                 };
                 self.output_queue.insert(node.id, span);

@@ -25,9 +25,9 @@ where
     B: Deref<Target = [u8]>,
     S: Sink<Match>,
 {
-    pub(crate) fn build_recorder(sink: &'s mut S) -> Self {
+    pub(crate) fn build_recorder(sink: &'s mut S, leading_padding_len: usize) -> Self {
         Self {
-            internal: RefCell::new(InternalRecorder::new(sink)),
+            internal: RefCell::new(InternalRecorder::new(sink, leading_padding_len)),
         }
     }
 }
@@ -148,8 +148,8 @@ where
     B: Deref<Target = [u8]>,
     S: Sink<Match>,
 {
-    fn new(sink: &'s mut S) -> Self {
-        Self::Simple(SimpleRecorder::new(sink))
+    fn new(sink: &'s mut S, leading_padding_len: usize) -> Self {
+        Self::Simple(SimpleRecorder::new(sink, leading_padding_len))
     }
 
     #[inline(always)]
@@ -196,6 +196,7 @@ struct SimpleRecorder<'s, B, S> {
     current_block: Option<B>,
     node: Option<SimplePartialNode>,
     sink: &'s mut S,
+    leading_padding_len: usize,
 }
 
 struct SimplePartialNode {
@@ -210,12 +211,13 @@ where
     B: Deref<Target = [u8]>,
     S: Sink<Match>,
 {
-    fn new(sink: &'s mut S) -> Self {
+    fn new(sink: &'s mut S, leading_padding_len: usize) -> Self {
         Self {
             idx: 0,
             current_block: None,
             node: None,
             sink,
+            leading_padding_len,
         }
     }
 
@@ -253,7 +255,7 @@ where
                 debug!("Committing and outputting node");
                 self.sink
                     .add_match(Match {
-                        span_start: node.start_idx,
+                        span_start: node.start_idx - self.leading_padding_len,
                         bytes: node.buf,
                     })
                     .map_err(|err| EngineError::SinkError(Box::new(err)))?;
@@ -295,6 +297,7 @@ where
                 }],
                 output_queue: OutputQueue::new(),
                 sink: self.sink,
+                leading_padding_len: self.leading_padding_len,
             },
             None => StackRecorder {
                 idx: self.idx,
@@ -303,6 +306,7 @@ where
                 stack: vec![],
                 output_queue: OutputQueue::new(),
                 sink: self.sink,
+                leading_padding_len: self.leading_padding_len,
             },
         }
     }
@@ -315,6 +319,7 @@ struct StackRecorder<'s, B, S> {
     stack: Vec<PartialNode>,
     output_queue: OutputQueue<Match>,
     sink: &'s mut S,
+    leading_padding_len: usize,
 }
 
 struct PartialNode {
@@ -380,7 +385,7 @@ where
                 self.output_queue.insert(
                     node.id,
                     Match {
-                        span_start: node.start_idx,
+                        span_start: node.start_idx - self.leading_padding_len,
                         bytes: node.buf,
                     },
                 );
@@ -418,6 +423,7 @@ fn append_block(dest: &mut Vec<u8>, src: &[u8], src_start: usize, read_start: us
 
 #[inline(always)]
 fn append_final_block(dest: &mut Vec<u8>, src: &[u8], src_start: usize, read_start: usize, read_end: usize) {
+    debug!("src_start: {src_start}, read_start: {read_start}, read_end: {read_end}");
     debug_assert!(read_end >= src_start);
     let in_block_start = if read_start > src_start {
         read_start - src_start

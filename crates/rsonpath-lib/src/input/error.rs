@@ -22,3 +22,12 @@ pub enum InputError {
         InternalRsonpathError,
     ),
 }
+
+#[derive(Debug, Error)]
+pub enum Infallible {}
+
+impl From<Infallible> for InputError {
+    fn from(value: Infallible) -> Self {
+        unreachable!()
+    }
+}

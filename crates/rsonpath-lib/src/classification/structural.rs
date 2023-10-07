@@ -206,7 +206,7 @@ mod tests {
     use super::*;
     use crate::{
         classification::simd::{self, config_simd, Simd},
-        input::{Input, OwnedBytes},
+        input::{Input, BorrowedBytes},
         result::empty::EmptyRecorder,
     };
 
@@ -219,7 +219,7 @@ mod tests {
         config_simd!(simd => |simd| {
             let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
             let json_string = json.to_owned();
-            let input = OwnedBytes::new(&json_string).unwrap();
+            let input = BorrowedBytes::new(json_string.as_bytes());
             let iter = input.iter_blocks(&EmptyRecorder);
             let quotes = simd.classify_quoted_sequences(iter);
 
@@ -246,7 +246,7 @@ mod tests {
         config_simd!(simd => |simd| {
             let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
             let json_string = json.to_owned();
-            let input = OwnedBytes::new(&json_string).unwrap();
+            let input = BorrowedBytes::new(json_string.as_bytes());
             let iter = input.iter_blocks(&EmptyRecorder);
             let quotes = simd.classify_quoted_sequences(iter);
 
@@ -277,7 +277,7 @@ mod tests {
         config_simd!(simd => |simd| {
             let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
             let json_string = json.to_owned();
-            let input = OwnedBytes::new(&json_string).unwrap();
+            let input = BorrowedBytes::new(json_string.as_bytes());
             let iter = input.iter_blocks(&EmptyRecorder);
             let quotes = simd.classify_quoted_sequences(iter);
 
@@ -308,7 +308,7 @@ mod tests {
         config_simd!(simd => |simd| {
             let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
             let json_string = json.to_owned();
-            let input = OwnedBytes::new(&json_string).unwrap();
+            let input = BorrowedBytes::new(json_string.as_bytes());
             let iter = input.iter_blocks(&EmptyRecorder);
             let quotes = simd.classify_quoted_sequences(iter);
 

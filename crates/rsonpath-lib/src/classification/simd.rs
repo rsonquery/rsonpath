@@ -238,7 +238,7 @@ pub(crate) trait Simd: Copy {
     type MemmemClassifier<'i, 'b, 'r, I, R>: Memmem<'i, 'b, 'r, I, BLOCK_SIZE>
     where
         I: Input + 'i,
-        <I as Input>::BlockIterator<'i, 'r, BLOCK_SIZE, R>: 'b,
+        <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>: 'b,
         R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>> + 'r,
         'i: 'r;
 
@@ -319,7 +319,7 @@ pub(crate) trait Simd: Copy {
     fn memmem<'i, 'b, 'r, I, R>(
         self,
         input: &'i I,
-        iter: &'b mut <I as Input>::BlockIterator<'i, 'r, BLOCK_SIZE, R>,
+        iter: &'b mut <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>,
     ) -> Self::MemmemClassifier<'i, 'b, 'r, I, R>
     where
         I: Input,
@@ -367,7 +367,7 @@ where
     type MemmemClassifier<'i, 'b, 'r, I, R> = M::Classifier<'i, 'b, 'r, I, R>
     where
         I: Input + 'i,
-        <I as Input>::BlockIterator<'i, 'r, BLOCK_SIZE, R>: 'b,
+        <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>: 'b,
         R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>> + 'r,
         'i: 'r;
 
@@ -453,7 +453,7 @@ where
     fn memmem<'i, 'b, 'r, I, R>(
         self,
         input: &'i I,
-        iter: &'b mut <I as Input>::BlockIterator<'i, 'r, BLOCK_SIZE, R>,
+        iter: &'b mut <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>,
     ) -> Self::MemmemClassifier<'i, 'b, 'r, I, R>
     where
         I: Input,

@@ -14,13 +14,13 @@ impl MemmemImpl for Constructor {
     type Classifier<'i, 'b, 'r, I, R> = Avx2MemmemClassifier32<'i, 'b, 'r, I, R>
     where
         I: Input + 'i,
-        <I as Input>::BlockIterator<'i, 'r, BLOCK_SIZE, R>: 'b,
+        <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>: 'b,
         R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>> + 'r,
         'i: 'r;
 
     fn memmem<'i, 'b, 'r, I, R>(
         input: &'i I,
-        iter: &'b mut <I as Input>::BlockIterator<'i, 'r, BLOCK_SIZE, R>,
+        iter: &'b mut <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>,
     ) -> Self::Classifier<'i, 'b, 'r, I, R>
     where
         I: Input,
@@ -37,7 +37,7 @@ where
     R: InputRecorder<I::Block<'i, SIZE>> + 'r,
 {
     input: &'i I,
-    iter: &'b mut I::BlockIterator<'i, 'r, SIZE, R>,
+    iter: &'b mut I::BlockIterator<'i, 'r, R, SIZE>,
 }
 
 impl<'i, 'b, 'r, I, R> Avx2MemmemClassifier32<'i, 'b, 'r, I, R>
@@ -48,7 +48,7 @@ where
 {
     #[inline]
     #[allow(dead_code)]
-    pub(crate) fn new(input: &'i I, iter: &'b mut I::BlockIterator<'i, 'r, SIZE, R>) -> Self {
+    pub(crate) fn new(input: &'i I, iter: &'b mut I::BlockIterator<'i, 'r, R, SIZE>) -> Self {
         Self { input, iter }
     }
 

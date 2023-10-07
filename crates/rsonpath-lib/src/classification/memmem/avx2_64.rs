@@ -4,7 +4,6 @@ use crate::{
     input::{error::InputError, Input, InputBlock, InputBlockIterator},
     query::JsonString,
     result::InputRecorder,
-    FallibleIterator,
 };
 
 const SIZE: usize = 64;
@@ -15,13 +14,13 @@ impl MemmemImpl for Constructor {
     type Classifier<'i, 'b, 'r, I, R> = Avx2MemmemClassifier64<'i, 'b, 'r, I, R>
     where
         I: Input + 'i,
-        <I as Input>::BlockIterator<'i, 'r, BLOCK_SIZE, R>: 'b,
+        <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>: 'b,
         R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>> + 'r,
         'i: 'r;
 
     fn memmem<'i, 'b, 'r, I, R>(
         input: &'i I,
-        iter: &'b mut <I as Input>::BlockIterator<'i, 'r, BLOCK_SIZE, R>,
+        iter: &'b mut <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>,
     ) -> Self::Classifier<'i, 'b, 'r, I, R>
     where
         I: Input,
@@ -38,7 +37,7 @@ where
     R: InputRecorder<I::Block<'i, SIZE>> + 'r,
 {
     input: &'i I,
-    iter: &'b mut I::BlockIterator<'i, 'r, SIZE, R>,
+    iter: &'b mut I::BlockIterator<'i, 'r, R, SIZE>,
 }
 
 impl<'i, 'b, 'r, I, R> Avx2MemmemClassifier64<'i, 'b, 'r, I, R>
@@ -49,7 +48,7 @@ where
 {
     #[inline]
     #[allow(dead_code)]
-    pub(crate) fn new(input: &'i I, iter: &'b mut I::BlockIterator<'i, 'r, SIZE, R>) -> Self {
+    pub(crate) fn new(input: &'i I, iter: &'b mut I::BlockIterator<'i, 'r, R, SIZE>) -> Self {
         Self { input, iter }
     }
 
@@ -62,7 +61,7 @@ where
         let classifier = vector_256::BlockClassifier256::new(b'"', b'"');
         let mut previous_block: u64 = 0;
 
-        while let Some(block) = self.iter.next()? {
+        while let Some(block) = self.iter.next().map_err(|x| x.into())? {
             let (block1, block2) = block.halves();
             let classified1 = classifier.classify_block(block1);
             let classified2 = classifier.classify_block(block2);
@@ -98,7 +97,7 @@ where
         let classifier = vector_256::BlockClassifier256::new(label.bytes()[0], b'"');
         let mut previous_block: u64 = 0;
 
-        while let Some(block) = self.iter.next()? {
+        while let Some(block) = self.iter.next().map_err(|x| x.into())? {
             let (block1, block2) = block.halves();
             let classified1 = classifier.classify_block(block1);
             let classified2 = classifier.classify_block(block2);
@@ -134,7 +133,7 @@ where
         let classifier = vector_256::BlockClassifier256::new(label.bytes()[0], label.bytes()[1]);
         let mut previous_block: u64 = 0;
 
-        while let Some(block) = self.iter.next()? {
+        while let Some(block) = self.iter.next().map_err(|x| x.into())? {
             let (block1, block2) = block.halves();
             let classified1 = classifier.classify_block(block1);
             let classified2 = classifier.classify_block(block2);

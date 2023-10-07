@@ -26,19 +26,19 @@ macro_rules! file_test_cases {
 
 file_test_cases!(buffered_input, FileTestInput::Buffered);
 file_test_cases!(mmap_input, FileTestInput::Mmap);
-file_test_cases!(owned_bytes, FileTestInput::Owned);
+file_test_cases!(borrowed_bytes, FileTestInput::Borrowed);
 
 #[derive(Debug)]
 enum FileTestInput {
     Buffered,
     Mmap,
-    Owned,
+    Borrowed,
 }
 
 #[derive(Debug)]
 enum InMemoryTestInput {
     Buffered,
-    Owned,
+    Borrowed,
 }
 
 impl FileTestInput {
@@ -52,7 +52,7 @@ impl FileTestInput {
         match self {
             FileTestInput::Buffered => Self::test_buffered(path),
             FileTestInput::Mmap => Self::test_mmap(path),
-            FileTestInput::Owned => Self::test_owned(path),
+            FileTestInput::Borrowed => Self::test_borrowed(path),
         }
     }
 
@@ -80,11 +80,11 @@ impl FileTestInput {
         test_equivalence(&buf, input);
     }
 
-    fn test_owned(path: &str) {
+    fn test_borrowed(path: &str) {
         let mut buf = vec![];
         let mut file = Self::get_file(path);
         file.read_to_end(&mut buf).unwrap();
-        let input = OwnedBytes::new(&buf).unwrap();
+        let input = BorrowedBytes::new(&buf);
 
         test_equivalence(&buf, input);
     }
@@ -94,7 +94,7 @@ impl InMemoryTestInput {
     fn test_on_bytes(&self, bytes: &[u8]) {
         match self {
             InMemoryTestInput::Buffered => Self::test_buffered(bytes),
-            InMemoryTestInput::Owned => Self::test_owned(bytes),
+            InMemoryTestInput::Borrowed => Self::test_borrowed(bytes),
         }
     }
 
@@ -105,8 +105,8 @@ impl InMemoryTestInput {
         test_equivalence(bytes, input);
     }
 
-    fn test_owned(bytes: &[u8]) {
-        let input = OwnedBytes::new(&bytes).unwrap();
+    fn test_borrowed(bytes: &[u8]) {
+        let input = BorrowedBytes::new(&bytes);
 
         test_equivalence(bytes, input);
     }
@@ -118,39 +118,50 @@ fn test_equivalence<I: Input>(original_contents: &[u8], input: I) {
 
     assert_padding_is_correct(&input_contents, original_length);
     remove_padding(&mut input_contents, original_length);
-    buffered_assert_eq(&input_contents, original_contents);
+    buffered_assert_eq(&input_contents.data, original_contents);
 }
 
-fn read_input_to_end<I: Input>(input: I) -> Result<Vec<u8>, InputError> {
+fn read_input_to_end<I: Input>(input: I) -> Result<ResultInput, InputError> {
     let mut result: Vec<u8> = vec![];
     let mut iter = input.iter_blocks::<_, BLOCK_SIZE>(&EmptyRecorder);
 
-    while let Some(block) = iter.next()? {
+    while let Some(block) = iter.next().map_err(|x| x.into())? {
         result.extend_from_slice(&block)
     }
 
-    Ok(result)
+    Ok(ResultInput {
+        data: result,
+        leading_padding_len: input.leading_padding_len(),
+        trailing_padding_len: input.trailing_padding_len(),
+    })
 }
 
-fn assert_padding_is_correct(result: &[u8], original_length: usize) {
-    assert_eq!(result.len() % BLOCK_SIZE, 0);
+fn assert_padding_is_correct(result: &ResultInput, original_length: usize) {
+    assert_eq!(result.data.len() % BLOCK_SIZE, 0);
     assert!(
-        result.len() >= original_length,
+        result.data.len() >= original_length,
         "result len ({}) should be at least the original length ({})",
-        result.len(),
+        result.data.len(),
         original_length
     );
 
-    let padding_length = result.len() - original_length;
-    let expected_padding: Vec<u8> = iter::repeat(b' ').take(padding_length).collect();
+    let expected_leading_padding: Vec<u8> = iter::repeat(b' ').take(result.leading_padding_len).collect();
+    let expected_trailing_padding: Vec<u8> = iter::repeat(b' ').take(result.trailing_padding_len).collect();
 
-    assert_eq!(&result[original_length..], expected_padding);
+    assert_eq!(&result.data[..result.leading_padding_len], expected_leading_padding);
+    assert_eq!(
+        &result.data[original_length + result.leading_padding_len..],
+        expected_trailing_padding
+    );
 }
 
-fn remove_padding(result: &mut Vec<u8>, original_length: usize) {
-    while result.len() > original_length {
-        result.pop();
-    }
+fn remove_padding(result: &mut ResultInput, original_length: usize) {
+    // Remove the leading padding by draining leading_padding_len elems...
+    result.data.drain(..result.leading_padding_len);
+    // Now remove the trailing padding by truncating to the original length.
+    // This works since we removed leading padding first, so the entire difference
+    // between data.len() and original_length is the trailing padding.
+    result.data.truncate(original_length);
 }
 
 /// Assert eq on the entire contents results in way too long outputs on failure.
@@ -170,6 +181,12 @@ fn buffered_assert_eq(left: &[u8], right: &[u8]) {
 
         i += BLOCK_SIZE;
     }
+}
+
+struct ResultInput {
+    data: Vec<u8>,
+    leading_padding_len: usize,
+    trailing_padding_len: usize,
 }
 
 struct ReadBytes<'a>(&'a [u8], usize);
@@ -200,8 +217,8 @@ mod in_memory_proptests {
         }
 
         #[test]
-        fn owned_bytes_represents_the_same_bytes_padded(input in collection::vec(num::u8::ANY, collection::SizeRange::default())) {
-            InMemoryTestInput::Owned.test_on_bytes(&input)
+        fn borrowed_bytes_represents_the_same_bytes_padded(input in collection::vec(num::u8::ANY, collection::SizeRange::default())) {
+            InMemoryTestInput::Borrowed.test_on_bytes(&input)
         }
     }
 }

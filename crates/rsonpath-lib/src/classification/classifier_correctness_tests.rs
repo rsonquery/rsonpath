@@ -3,8 +3,8 @@ use crate::{
         simd::{self, Simd},
         structural::{BracketType, Structural, StructuralIterator},
     },
+    input::BorrowedBytes,
     input::Input,
-    input::OwnedBytes,
     result::empty::EmptyRecorder,
     FallibleIterator,
 };
@@ -16,7 +16,7 @@ fn classify_string(json: &str) -> Vec<Structural> {
 
     config_simd!(simd => |simd| {
         let json_string = json.to_owned();
-        let bytes = OwnedBytes::try_from(json_string).unwrap();
+        let bytes = BorrowedBytes::new(json_string.as_bytes());
         let iter = bytes.iter_blocks(&EmptyRecorder);
         let quotes_classifier = simd.classify_quoted_sequences(iter);
         let mut structural_classifier = simd.classify_structural_characters(quotes_classifier);

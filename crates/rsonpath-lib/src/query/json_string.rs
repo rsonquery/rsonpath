@@ -32,6 +32,13 @@ impl std::fmt::Debug for JsonString {
     }
 }
 
+impl std::fmt::Display for JsonString {
+    #[inline]
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, r#"{}"#, String::from_utf8_lossy(&self.string_with_quotes))
+    }
+}
+
 impl JsonString {
     /// Create a new label from UTF8 input.
     #[must_use]

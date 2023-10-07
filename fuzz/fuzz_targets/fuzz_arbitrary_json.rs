@@ -1,7 +1,7 @@
 #![no_main]
 
 use libfuzzer_sys::{arbitrary::Arbitrary, fuzz_target, Corpus};
-use rsonpath::input::OwnedBytes;
+use rsonpath::input::BorrowedBytes;
 use rsonpath::query::JsonPathQuery;
 use rsonpath::{
     engine::{Compiler, Engine, RsonpathEngine},
@@ -20,7 +20,7 @@ struct FuzzData {
 
 fuzz_target!(|data: FuzzData| -> Corpus {
     let json_string = data.json.to_string();
-    let bytes = OwnedBytes::new(&json_string).expect("error creating input");
+    let bytes = BorrowedBytes::new(json_string.as_bytes());
     let engine = match RsonpathEngine::compile_query(&data.query) {
         Ok(x) => x,
         Err(CompilerError::QueryTooComplex(_)) => return Corpus::Reject,

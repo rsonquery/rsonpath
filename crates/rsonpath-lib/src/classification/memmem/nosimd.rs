@@ -3,7 +3,6 @@ use crate::input::error::InputError;
 use crate::input::{Input, InputBlockIterator};
 use crate::query::JsonString;
 use crate::result::InputRecorder;
-use crate::FallibleIterator;
 
 pub(crate) struct Constructor;
 
@@ -11,13 +10,13 @@ impl MemmemImpl for Constructor {
     type Classifier<'i, 'b, 'r, I, R> = SequentialMemmemClassifier<'i, 'b, 'r, I, R, BLOCK_SIZE>
     where
         I: Input + 'i,
-        <I as Input>::BlockIterator<'i, 'r, BLOCK_SIZE, R>: 'b,
+        <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>: 'b,
         R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>> + 'r,
         'i: 'r;
 
     fn memmem<'i, 'b, 'r, I, R>(
         input: &'i I,
-        iter: &'b mut <I as Input>::BlockIterator<'i, 'r, BLOCK_SIZE, R>,
+        iter: &'b mut <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>,
     ) -> Self::Classifier<'i, 'b, 'r, I, R>
     where
         I: Input,
@@ -34,7 +33,7 @@ where
     R: InputRecorder<I::Block<'i, N>> + 'r,
 {
     input: &'i I,
-    iter: &'b mut I::BlockIterator<'i, 'r, N, R>,
+    iter: &'b mut I::BlockIterator<'i, 'r, R, N>,
 }
 
 impl<'i, 'b, 'r, I, R, const N: usize> SequentialMemmemClassifier<'i, 'b, 'r, I, R, N>
@@ -55,7 +54,7 @@ where
             label.bytes()[0]
         };
 
-        while let Some(block) = self.iter.next()? {
+        while let Some(block) = self.iter.next().map_err(|x| x.into())? {
             let res = block.iter().copied().enumerate().find(|&(i, c)| {
                 let j = offset + i;
                 c == first_c && j > 0 && self.input.is_member_match(j - 1, j + label_size - 2, label)

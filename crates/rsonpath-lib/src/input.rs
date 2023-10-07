@@ -9,18 +9,17 @@
 //! | Input scenario | Type to use    |
 //! |:---------------|:---------------|
 //! | file based     | [`MmapInput`]  |
-//! | memory based   | [`OwnedBytes`] |
-//! | memory based, already aligned | [`BorrowedBytes`] |
+//! | memory based | [`BorrowedBytes`] |
 //! | [`Read`](std::io::Read) based | [`BufferedInput`] |
 //!
 pub mod borrowed;
 pub mod buffered;
 pub mod error;
-pub mod owned;
+pub mod mmap;
+mod padding;
+mod slice;
 pub use borrowed::BorrowedBytes;
 pub use buffered::BufferedInput;
-pub use owned::OwnedBytes;
-pub mod mmap;
 pub use mmap::MmapInput;
 
 use self::error::InputError;
@@ -52,10 +51,17 @@ pub const MAX_BLOCK_SIZE: usize = 128;
 pub trait Input: Sized {
     /// Type of the iterator used by [`iter_blocks`](Input::iter_blocks), parameterized
     /// by the lifetime of source input and the size of the block.
-    type BlockIterator<'i, 'r, const N: usize, R>: InputBlockIterator<'i, N, Block = Self::Block<'i, N>>
+    type BlockIterator<'i, 'r, R, const N: usize>: InputBlockIterator<
+        'i,
+        N,
+        Block = Self::Block<'i, N>,
+        Error = Self::Error,
+    >
     where
         Self: 'i,
         R: InputRecorder<Self::Block<'i, N>> + 'r;
+
+    type Error: Into<InputError>;
 
     /// Type of the blocks returned by the `BlockIterator`.
     type Block<'i, const N: usize>: InputBlock<'i, N>
@@ -73,10 +79,16 @@ pub trait Input: Sized {
         None
     }
 
+    #[must_use]
+    fn leading_padding_len(&self) -> usize;
+
+    #[must_use]
+    fn trailing_padding_len(&self) -> usize;
+
     /// Iterate over blocks of size `N` of the input.
     /// `N` has to be a power of two larger than 1.
     #[must_use]
-    fn iter_blocks<'i, 'r, R, const N: usize>(&'i self, recorder: &'r R) -> Self::BlockIterator<'i, 'r, N, R>
+    fn iter_blocks<'i, 'r, R, const N: usize>(&'i self, recorder: &'r R) -> Self::BlockIterator<'i, 'r, R, N>
     where
         R: InputRecorder<Self::Block<'i, N>>;
 
@@ -93,7 +105,7 @@ pub trait Input: Sized {
     /// # Errors
     /// This function can read more data from the input if no relevant characters are found
     /// in the current buffer, which can fail.
-    fn seek_forward<const N: usize>(&self, from: usize, needles: [u8; N]) -> Result<Option<(usize, u8)>, InputError>;
+    fn seek_forward<const N: usize>(&self, from: usize, needles: [u8; N]) -> Result<Option<(usize, u8)>, Self::Error>;
 
     /// Search for the first byte in the input that is not ASCII whitespace
     /// starting from `from`. Returns a pair: the index of first such byte,
@@ -103,7 +115,7 @@ pub trait Input: Sized {
     /// # Errors
     /// This function can read more data from the input if no relevant characters are found
     /// in the current buffer, which can fail.
-    fn seek_non_whitespace_forward(&self, from: usize) -> Result<Option<(usize, u8)>, InputError>;
+    fn seek_non_whitespace_forward(&self, from: usize) -> Result<Option<(usize, u8)>, Self::Error>;
 
     /// Search for the first byte in the input that is not ASCII whitespace
     /// starting from `from` and looking back. Returns a pair:
@@ -118,16 +130,19 @@ pub trait Input: Sized {
     ///
     /// This will also check if the leading double quote is not
     /// escaped by a backslash character.
-    #[must_use]
     fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> bool;
 }
 
 /// An iterator over blocks of input of size `N`.
 /// Implementations MUST guarantee that the blocks returned from `next`
 /// are *exactly* of size `N`.
-pub trait InputBlockIterator<'i, const N: usize>: FallibleIterator<Item = Self::Block, Error = InputError> {
+pub trait InputBlockIterator<'i, const N: usize> {
     /// The type of blocks returned.
     type Block: InputBlock<'i, N>;
+
+    type Error: Into<InputError>;
+
+    fn next(&mut self) -> Result<Option<Self::Block>, Self::Error>;
 
     /// Get the offset of the iterator in the input.
     ///
@@ -169,420 +184,14 @@ impl<'i, const N: usize> InputBlock<'i, N> for &'i [u8] {
     }
 }
 
-struct LastBlock {
-    bytes: [u8; MAX_BLOCK_SIZE],
-    absolute_start: usize,
-}
+pub(super) trait SliceSeekable {
+    fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> bool;
 
-pub(super) mod in_slice {
-    use super::{LastBlock, MAX_BLOCK_SIZE};
-    use crate::{query::JsonString, JSON_SPACE_BYTE};
+    fn seek_backward(&self, from: usize, needle: u8) -> Option<usize>;
 
-    #[inline]
-    pub(super) fn pad_last_block(bytes: &[u8]) -> LastBlock {
-        let mut last_block_buf = [JSON_SPACE_BYTE; MAX_BLOCK_SIZE];
-        let last_block_start = (bytes.len() / MAX_BLOCK_SIZE) * MAX_BLOCK_SIZE;
-        let last_block_slice = &bytes[last_block_start..];
+    fn seek_forward<const N: usize>(&self, from: usize, needles: [u8; N]) -> Option<(usize, u8)>;
 
-        last_block_buf[..last_block_slice.len()].copy_from_slice(last_block_slice);
+    fn seek_non_whitespace_forward(&self, from: usize) -> Option<(usize, u8)>;
 
-        LastBlock {
-            bytes: last_block_buf,
-            absolute_start: last_block_start,
-        }
-    }
-
-    #[inline]
-    pub(super) fn seek_backward(bytes: &[u8], from: usize, needle: u8) -> Option<usize> {
-        let mut idx = from;
-        assert!(idx < bytes.len());
-
-        loop {
-            if bytes[idx] == needle {
-                return Some(idx);
-            }
-            if idx == 0 {
-                return None;
-            }
-            idx -= 1;
-        }
-    }
-
-    #[inline]
-    pub(super) fn seek_forward<const N: usize>(bytes: &[u8], from: usize, needles: [u8; N]) -> Option<(usize, u8)> {
-        assert!(N > 0);
-        let mut idx = from;
-
-        if idx >= bytes.len() {
-            return None;
-        }
-
-        loop {
-            let b = bytes[idx];
-            if needles.contains(&b) {
-                return Some((idx, b));
-            }
-            idx += 1;
-            if idx == bytes.len() {
-                return None;
-            }
-        }
-    }
-
-    #[inline]
-    pub(super) fn seek_non_whitespace_forward(bytes: &[u8], from: usize) -> Option<(usize, u8)> {
-        let mut idx = from;
-
-        if idx >= bytes.len() {
-            return None;
-        }
-
-        loop {
-            let b = bytes[idx];
-            if !b.is_ascii_whitespace() {
-                return Some((idx, b));
-            }
-            idx += 1;
-            if idx == bytes.len() {
-                return None;
-            }
-        }
-    }
-
-    #[inline]
-    pub(super) fn seek_non_whitespace_backward(bytes: &[u8], from: usize) -> Option<(usize, u8)> {
-        let mut idx = from;
-
-        if idx >= bytes.len() {
-            return None;
-        }
-
-        loop {
-            let b = bytes[idx];
-            if !b.is_ascii_whitespace() {
-                return Some((idx, b));
-            }
-            if idx == 0 {
-                return None;
-            }
-            idx -= 1;
-        }
-    }
-
-    #[inline]
-    pub(super) fn is_member_match(bytes: &[u8], from: usize, to: usize, member: &JsonString) -> bool {
-        if to >= bytes.len() {
-            return false;
-        }
-        let slice = &bytes[from..to + 1];
-        member.bytes_with_quotes() == slice && (from == 0 || bytes[from - 1] != b'\\')
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{in_slice, MAX_BLOCK_SIZE};
-
-    mod input_block_impl_for_slice {
-        use pretty_assertions::assert_eq;
-
-        #[test]
-        fn halves_splits_in_half() {
-            use super::super::InputBlock;
-
-            let bytes = r#"0123456789abcdef"#.as_bytes();
-
-            let (half1, half2) = <&[u8] as InputBlock<16>>::halves(&bytes);
-
-            assert_eq!(half1, "01234567".as_bytes());
-            assert_eq!(half2, "89abcdef".as_bytes());
-        }
-    }
-
-    mod pad_last_block {
-        use crate::JSON_SPACE_BYTE;
-
-        use super::*;
-        use pretty_assertions::assert_eq;
-
-        #[test]
-        fn on_empty_bytes_is_all_whitespace() {
-            let result = in_slice::pad_last_block(&[]);
-
-            assert_eq!(result.absolute_start, 0);
-            assert_eq!(result.bytes, [JSON_SPACE_BYTE; MAX_BLOCK_SIZE]);
-        }
-
-        #[test]
-        fn on_bytes_smaller_than_full_block_gives_entire_block() {
-            let bytes = r#"{"test":42}"#.as_bytes();
-
-            let result = in_slice::pad_last_block(bytes);
-
-            assert_eq!(result.absolute_start, 0);
-            assert_eq!(&result.bytes[0..11], bytes);
-            assert_eq!(&result.bytes[11..], [JSON_SPACE_BYTE; MAX_BLOCK_SIZE - 11]);
-        }
-
-        #[test]
-        fn on_bytes_equal_to_full_block_gives_all_whitespace() {
-            let bytes = [42; MAX_BLOCK_SIZE];
-
-            let result = in_slice::pad_last_block(&bytes);
-
-            assert_eq!(result.absolute_start, MAX_BLOCK_SIZE);
-            assert_eq!(result.bytes, [JSON_SPACE_BYTE; MAX_BLOCK_SIZE]);
-        }
-
-        #[test]
-        fn on_bytes_longer_than_full_block_gives_last_fragment_padded() {
-            let mut bytes = [42; 2 * MAX_BLOCK_SIZE + 77];
-            bytes[2 * MAX_BLOCK_SIZE..].fill(69);
-
-            let result = in_slice::pad_last_block(&bytes);
-
-            assert_eq!(result.absolute_start, 2 * MAX_BLOCK_SIZE);
-            assert_eq!(result.bytes[0..77], [69; 77]);
-            assert_eq!(result.bytes[77..], [JSON_SPACE_BYTE; MAX_BLOCK_SIZE - 77]);
-        }
-    }
-
-    mod seek_backward {
-        use super::*;
-        use pretty_assertions::assert_eq;
-
-        #[test]
-        fn seeking_from_before_first_occurrence_returns_none() {
-            let bytes = r#"{"seek":42}"#.as_bytes();
-
-            let result = in_slice::seek_backward(bytes, 6, b':');
-
-            assert_eq!(result, None);
-        }
-
-        #[test]
-        fn seeking_from_after_two_occurrences_returns_the_second_one() {
-            let bytes = r#"{"seek":42,"find":37}"#.as_bytes();
-
-            let result = in_slice::seek_backward(bytes, bytes.len() - 1, b':');
-
-            assert_eq!(result, Some(17));
-        }
-    }
-
-    mod seek_forward_1 {
-        use super::*;
-        use pretty_assertions::assert_eq;
-
-        #[test]
-        fn in_empty_slice_returns_none() {
-            let bytes = [];
-
-            let result = in_slice::seek_forward(&bytes, 0, [0]);
-
-            assert_eq!(result, None);
-        }
-
-        #[test]
-        fn seeking_from_needle_returns_that() {
-            let bytes = r#"{"seek": 42}"#.as_bytes();
-
-            let result = in_slice::seek_forward(bytes, 7, [b':']);
-
-            assert_eq!(result, Some((7, b':')));
-        }
-
-        #[test]
-        fn seeking_from_not_needle_returns_next_needle() {
-            let bytes = "seek: \t\n42}".as_bytes();
-
-            let result = in_slice::seek_forward(bytes, 5, [b'2']);
-
-            assert_eq!(result, Some((9, b'2')));
-        }
-
-        #[test]
-        fn seeking_from_not_needle_when_there_is_no_needle_returns_none() {
-            let bytes = "seek: \t\n42}".as_bytes();
-
-            let result = in_slice::seek_forward(bytes, 5, [b'3']);
-
-            assert_eq!(result, None);
-        }
-    }
-
-    mod seek_forward_2 {
-
-        use super::*;
-        use pretty_assertions::assert_eq;
-
-        #[test]
-        fn in_empty_slice_returns_none() {
-            let bytes = [];
-
-            let result = in_slice::seek_forward(&bytes, 0, [0, 1]);
-
-            assert_eq!(result, None);
-        }
-
-        #[test]
-        fn seeking_from_needle_1_returns_that() {
-            let bytes = r#"{"seek": 42}"#.as_bytes();
-
-            let result = in_slice::seek_forward(bytes, 7, [b':', b'4']);
-
-            assert_eq!(result, Some((7, b':')));
-        }
-
-        #[test]
-        fn seeking_from_needle_2_returns_that() {
-            let bytes = r#"{"seek": 42}"#.as_bytes();
-
-            let result = in_slice::seek_forward(bytes, 7, [b'4', b':']);
-
-            assert_eq!(result, Some((7, b':')));
-        }
-
-        #[test]
-        fn seeking_from_not_needle_when_next_is_needle_1_returns_that() {
-            let bytes = "seek: \t\n42}".as_bytes();
-
-            let result = in_slice::seek_forward(bytes, 5, [b'4', b'2']);
-
-            assert_eq!(result, Some((8, b'4')));
-        }
-
-        #[test]
-        fn seeking_from_not_needle_when_next_is_needle_2_returns_that() {
-            let bytes = "seek: \t\n42}".as_bytes();
-
-            let result = in_slice::seek_forward(bytes, 5, [b'2', b'4']);
-
-            assert_eq!(result, Some((8, b'4')));
-        }
-
-        #[test]
-        fn seeking_from_not_needle_when_there_is_no_needle_returns_none() {
-            let bytes = "seek: \t\n42}".as_bytes();
-
-            let result = in_slice::seek_forward(bytes, 5, [b'3', b'0']);
-
-            assert_eq!(result, None);
-        }
-    }
-
-    mod seek_non_whitespace_forward {
-        use super::*;
-        use pretty_assertions::assert_eq;
-
-        #[test]
-        fn in_empty_slice_returns_none() {
-            let bytes = [];
-
-            let result = in_slice::seek_non_whitespace_forward(&bytes, 0);
-
-            assert_eq!(result, None);
-        }
-
-        #[test]
-        fn seeking_from_non_whitespace_returns_that() {
-            let bytes = r#"{"seek": 42}"#.as_bytes();
-
-            let result = in_slice::seek_non_whitespace_forward(bytes, 7);
-
-            assert_eq!(result, Some((7, b':')));
-        }
-
-        #[test]
-        fn seeking_from_whitespace_returns_next_non_whitespace() {
-            let bytes = "seek: \t\n42}".as_bytes();
-
-            let result = in_slice::seek_non_whitespace_forward(bytes, 5);
-
-            assert_eq!(result, Some((8, b'4')));
-        }
-
-        #[test]
-        fn seeking_from_whitespace_when_there_is_no_more_non_whitespace_returns_none() {
-            let bytes = "seek: \t\n ".as_bytes();
-
-            let result = in_slice::seek_non_whitespace_forward(bytes, 5);
-
-            assert_eq!(result, None);
-        }
-    }
-
-    mod seek_non_whitespace_backward {
-        use super::*;
-        use pretty_assertions::assert_eq;
-
-        #[test]
-        fn in_empty_slice_returns_none() {
-            let bytes = [];
-
-            let result = in_slice::seek_non_whitespace_backward(&bytes, 0);
-
-            assert_eq!(result, None);
-        }
-
-        #[test]
-        fn seeking_from_non_whitespace_returns_that() {
-            let bytes = r#"{"seek": 42}"#.as_bytes();
-
-            let result = in_slice::seek_non_whitespace_backward(bytes, 7);
-
-            assert_eq!(result, Some((7, b':')));
-        }
-
-        #[test]
-        fn seeking_from_whitespace_returns_previous_non_whitespace() {
-            let bytes = "seek: \t\n42}".as_bytes();
-
-            let result = in_slice::seek_non_whitespace_backward(bytes, 7);
-
-            assert_eq!(result, Some((4, b':')));
-        }
-    }
-
-    mod is_member_match {
-        use super::*;
-        use crate::query::JsonString;
-        use pretty_assertions::assert_eq;
-
-        #[test]
-        fn on_exact_match_returns_true() {
-            let bytes = r#"{"needle":42,"other":37}"#.as_bytes();
-
-            let result = in_slice::is_member_match(bytes, 1, 8, &JsonString::new("needle"));
-
-            assert_eq!(result, true);
-        }
-
-        #[test]
-        fn matching_without_double_quotes_returns_false() {
-            let bytes = r#"{"needle":42,"other":37}"#.as_bytes();
-
-            let result = in_slice::is_member_match(bytes, 2, 7, &JsonString::new("needle"));
-
-            assert_eq!(result, false);
-        }
-
-        #[test]
-        fn when_match_is_partial_due_to_escaped_double_quote_returns_false() {
-            let bytes = r#"{"fake\"needle":42,"other":37}"#.as_bytes();
-
-            let result = in_slice::is_member_match(bytes, 7, 14, &JsonString::new("needle"));
-
-            assert_eq!(result, false);
-        }
-
-        #[test]
-        fn when_looking_for_string_with_escaped_double_quote_returns_true() {
-            let bytes = r#"{"fake\"needle":42,"other":37}"#.as_bytes();
-
-            let result = in_slice::is_member_match(bytes, 1, 14, &JsonString::new(r#"fake\"needle"#));
-
-            assert_eq!(result, true);
-        }
-    }
+    fn seek_non_whitespace_backward(&self, from: usize) -> Option<(usize, u8)>;
 }

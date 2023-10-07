@@ -17,7 +17,7 @@
 //! reallocating the internal buffers.
 
 use super::{
-    error::InputError, in_slice, repr_align_block_size, Input, InputBlock, InputBlockIterator, MAX_BLOCK_SIZE,
+    error::InputError, repr_align_block_size, Input, InputBlock, InputBlockIterator, SliceSeekable, MAX_BLOCK_SIZE,
 };
 use crate::{
     error::InternalRsonpathError, query::JsonString, result::InputRecorder, FallibleIterator, JSON_SPACE_BYTE,
@@ -36,6 +36,7 @@ struct InternalBuffer<R> {
     source: R,
     bytes: Vec<BufferedChunk>,
     chunk_idx: usize,
+    source_read: usize,
     eof: bool,
 }
 
@@ -91,6 +92,7 @@ impl<R: Read> InternalBuffer<R> {
             }
 
             total += size;
+            self.source_read += size;
         }
 
         Ok(total > 0)
@@ -106,6 +108,7 @@ impl<R: Read> BufferedInput<R> {
             bytes: vec![],
             eof: false,
             chunk_idx: 0,
+            source_read: 0,
         }))
     }
 
@@ -119,19 +122,36 @@ impl<R: Read> BufferedInput<R> {
             bytes: Vec::with_capacity(blocks_needed),
             eof: false,
             chunk_idx: 0,
+            source_read: 0,
         }))
     }
 }
 
 impl<R: Read> Input for BufferedInput<R> {
-    type BlockIterator<'a, 'r, const N: usize, IR> = BufferedInputBlockIterator<'a, 'r, R, IR, N>
+    type BlockIterator<'a, 'r, IR, const N: usize> = BufferedInputBlockIterator<'a, 'r, R, IR, N>
         where Self: 'a,
               IR: InputRecorder<BufferedInputBlock<N>> + 'r;
 
+    type Error = InputError;
     type Block<'a, const N: usize> = BufferedInputBlock<N> where Self: 'a;
 
     #[inline(always)]
-    fn iter_blocks<'i, 'r, IR, const N: usize>(&'i self, recorder: &'r IR) -> Self::BlockIterator<'i, 'r, N, IR>
+    fn leading_padding_len(&self) -> usize {
+        0
+    }
+
+    #[inline(always)]
+    fn trailing_padding_len(&self) -> usize {
+        let rem = self.0.borrow().source_read % BUF_SIZE;
+        if rem == 0 {
+            0
+        } else {
+            BUF_SIZE - rem
+        }
+    }
+
+    #[inline(always)]
+    fn iter_blocks<'i, 'r, IR, const N: usize>(&'i self, recorder: &'r IR) -> Self::BlockIterator<'i, 'r, IR, N>
     where
         IR: InputRecorder<Self::Block<'i, N>>,
     {
@@ -145,8 +165,7 @@ impl<R: Read> Input for BufferedInput<R> {
     #[inline(always)]
     fn seek_backward(&self, from: usize, needle: u8) -> Option<usize> {
         let buf = self.0.borrow();
-        let slice = buf.as_slice();
-        in_slice::seek_backward(slice, from, needle)
+        buf.as_slice().seek_backward(from, needle)
     }
 
     #[inline]
@@ -155,10 +174,7 @@ impl<R: Read> Input for BufferedInput<R> {
         let mut moving_from = from;
 
         loop {
-            let res = {
-                let slice = buf.as_slice();
-                in_slice::seek_forward(slice, moving_from, needles)
-            };
+            let res = buf.as_slice().seek_forward(moving_from, needles);
 
             moving_from = buf.len();
 
@@ -176,10 +192,7 @@ impl<R: Read> Input for BufferedInput<R> {
         let mut moving_from = from;
 
         loop {
-            let res = {
-                let slice = buf.as_slice();
-                in_slice::seek_non_whitespace_forward(slice, moving_from)
-            };
+            let res = buf.as_slice().seek_non_whitespace_forward(moving_from);
 
             moving_from = buf.len();
 
@@ -194,30 +207,27 @@ impl<R: Read> Input for BufferedInput<R> {
     #[inline(always)]
     fn seek_non_whitespace_backward(&self, from: usize) -> Option<(usize, u8)> {
         let buf = self.0.borrow();
-        let slice = buf.as_slice();
-        in_slice::seek_non_whitespace_backward(slice, from)
+        buf.as_slice().seek_non_whitespace_backward(from)
     }
 
     #[inline(always)]
     fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> bool {
-        let buf = self.0.borrow();
-        let slice = buf.as_slice();
-        in_slice::is_member_match(slice, from, to, member)
+        todo!()
     }
 }
 
-impl<'a, 'r, R: Read, IR, const N: usize> FallibleIterator for BufferedInputBlockIterator<'a, 'r, R, IR, N>
+impl<'a, 'r, R: Read, IR, const N: usize> InputBlockIterator<'a, N> for BufferedInputBlockIterator<'a, 'r, R, IR, N>
 where
     IR: InputRecorder<BufferedInputBlock<N>>,
 {
-    type Item = BufferedInputBlock<N>;
+    type Block = BufferedInputBlock<N>;
     type Error = InputError;
 
     #[inline]
-    fn next(&mut self) -> Result<Option<Self::Item>, Self::Error> {
+    fn next(&mut self) -> Result<Option<Self::Block>, Self::Error> {
         let buf = self.input.0.borrow();
 
-        if self.idx + N < buf.len() {
+        if self.idx + N <= buf.len() {
             let slice = &buf.as_slice()[self.idx..self.idx + N];
             let block: [u8; N] = slice
                 .try_into()
@@ -239,13 +249,6 @@ where
             }
         }
     }
-}
-
-impl<'a, 'r, R: Read, IR, const N: usize> InputBlockIterator<'a, N> for BufferedInputBlockIterator<'a, 'r, R, IR, N>
-where
-    IR: InputRecorder<BufferedInputBlock<N>>,
-{
-    type Block = BufferedInputBlock<N>;
 
     #[inline(always)]
     fn offset(&mut self, count: isize) {
