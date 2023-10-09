@@ -61,7 +61,7 @@ where
 {
     /// Get the index in the original bytes input at which classification has stopped.
     #[inline(always)]
-    pub fn get_idx(&self) -> usize {
+    pub(crate) fn get_idx(&self) -> usize {
         debug!(
             "iter offset: {}, block idx: {:?}",
             self.iter.get_offset(),
@@ -79,9 +79,9 @@ where
     ///
     /// # Panics
     /// If the `index` is not ahead of the current position of the state ([`get_idx`](ResumeClassifierState::get_idx)).
-    #[inline]
+    #[inline(always)]
     #[allow(clippy::panic_in_result_fn)]
-    pub fn forward_to(&mut self, index: usize) -> Result<(), InputError> {
+    pub(crate) fn forward_to(&mut self, index: usize) -> Result<(), InputError> {
         let current_block_start = self.iter.get_offset();
         let current_block_idx = self.block.as_ref().map_or(0, |b| b.idx);
         let current_idx = current_block_start + current_block_idx;

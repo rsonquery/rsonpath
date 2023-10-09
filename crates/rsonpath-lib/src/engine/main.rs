@@ -7,7 +7,7 @@
 #![allow(clippy::type_complexity)] // The private Classifier type is very complex, but we specifically macro it out.
 use crate::{
     classification::{
-        simd::{self, simd_dispatch, Simd, SimdConfiguration},
+        simd::{self, dispatch, simd_dispatch, Simd, SimdConfiguration},
         structural::{BracketType, Structural, StructuralIterator},
     },
     debug,
@@ -30,7 +30,6 @@ use crate::{
     },
     FallibleIterator, MaskType, BLOCK_SIZE,
 };
-use multiversion::multiversion;
 use smallvec::{smallvec, SmallVec};
 
 /// Main engine for a fixed JSONPath query.
@@ -225,36 +224,7 @@ where
     }
 
     fn run_on_subtree(&mut self, classifier: &mut Classifier!()) -> Result<(), EngineError> {
-        #[multiversion(targets(
-            "x86_64+avx2+pclmulqdq+popcnt",
-            "x86_64+ssse3",
-            "x86_64+ssse3+pclmulqdq",
-            "x86_64+ssse3+popcnt",
-            "x86_64+ssse3+pclmulqdq+popcnt",
-            "x86_64+sse2",
-            "x86_64+sse2+pclmulqdq",
-            "x86_64+sse2+popcnt",
-            "x86_64+sse2+pclmulqdq+popcnt",
-            "x86+avx2+pclmulqdq+popcnt",
-            "x86+ssse3",
-            "x86+ssse3+pclmulqdq",
-            "x86+ssse3+popcnt",
-            "x86+ssse3+pclmulqdq+popcnt",
-            "x86+sse2",
-            "x86+sse2+pclmulqdq",
-            "x86+sse2+popcnt",
-            "x86+sse2+pclmulqdq+popcnt",
-        ))]
-        fn run_impl<'i, 'q, 'r, I, R, V>(
-            eng: &mut Executor<'i, 'q, 'r, I, R, V>,
-            classifier: &mut Classifier!(),
-        ) -> Result<(), EngineError>
-        where
-            'i: 'r,
-            I: Input,
-            R: Recorder<I::Block<'i, BLOCK_SIZE>>,
-            V: Simd,
-        {
+        dispatch!(self.simd => self, classifier => {
             loop {
                 if eng.next_event.is_none() {
                     eng.next_event = match classifier.next() {
@@ -289,9 +259,12 @@ where
             }
 
             Ok(())
-        }
-
-        run_impl(self, classifier)
+        } => fn<'i, 'q, 'r, I, R, V>(eng: &mut Executor<'i, 'q, 'r, I, R, V>, classifier: &mut Classifier!()) -> Result<(), EngineError>
+            where
+                'i: 'r,
+                I: Input,
+                R: Recorder<I::Block<'i, BLOCK_SIZE>>,
+                V: Simd,)
     }
 
     fn record_match_detected_at(&mut self, start_idx: usize, hint: NodeTypeHint) -> Result<(), EngineError> {

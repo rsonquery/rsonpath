@@ -6,7 +6,7 @@ use crate::{
         mask::Mask,
         memmem::Memmem,
         quotes::{InnerIter, QuoteClassifiedIterator, ResumedQuoteClassifier},
-        simd::Simd,
+        simd::{dispatch, Simd},
         structural::{BracketType, Structural, StructuralIterator},
         ResumeClassifierBlockState, ResumeClassifierState,
     },
@@ -123,136 +123,142 @@ impl<'b, 'q, I: Input, V: Simd> HeadSkip<'b, 'q, I, V, BLOCK_SIZE> {
         E: CanHeadSkip<'b, 'r, I, R, V>,
         R: Recorder<I::Block<'b, BLOCK_SIZE>> + 'r,
     {
-        let mut input_iter = self.bytes.iter_blocks(engine.recorder());
-        let mut idx = 0;
-        let mut first_block = None;
+        dispatch!(self.simd => self, engine => {
+            let mut input_iter = head_skip.bytes.iter_blocks(engine.recorder());
+            let mut idx = 0;
+            let mut first_block = None;
 
-        loop {
-            let mut memmem = self.simd.memmem(self.bytes, &mut input_iter);
-            debug!("Starting memmem search from {idx}");
+            loop {
+                let mut memmem = head_skip.simd.memmem(head_skip.bytes, &mut input_iter);
+                debug!("Starting memmem search from {idx}");
 
-            if let Some((starting_quote_idx, last_block)) = memmem.find_label(first_block, idx, self.member_name)? {
-                drop(memmem);
+                if let Some((starting_quote_idx, last_block)) = memmem.find_label(first_block, idx, head_skip.member_name)? {
+                    drop(memmem);
 
-                first_block = Some(last_block);
-                idx = starting_quote_idx;
-                debug!("Needle found at {idx}");
-                let seek_start_idx = idx + self.member_name.bytes_with_quotes().len();
+                    first_block = Some(last_block);
+                    idx = starting_quote_idx;
+                    debug!("Needle found at {idx}");
+                    let seek_start_idx = idx + head_skip.member_name.bytes_with_quotes().len();
 
-                match self.bytes.seek_non_whitespace_forward(seek_start_idx)? {
-                    Some((colon_idx, b':')) => {
-                        let (next_idx, next_c) = self
-                            .bytes
-                            .seek_non_whitespace_forward(colon_idx + 1)?
-                            .ok_or(EngineError::MissingItem())?;
+                    match head_skip.bytes.seek_non_whitespace_forward(seek_start_idx)? {
+                        Some((colon_idx, b':')) => {
+                            let (next_idx, next_c) = head_skip
+                                .bytes
+                                .seek_non_whitespace_forward(colon_idx + 1)?
+                                .ok_or(EngineError::MissingItem())?;
 
-                        let ResumedQuoteClassifier {
-                            classifier: quote_classifier,
-                            first_block: quote_classified_first_block,
-                        } = self.simd.resume_quote_classification(input_iter, first_block);
+                            let ResumedQuoteClassifier {
+                                classifier: quote_classifier,
+                                first_block: quote_classified_first_block,
+                            } = head_skip.simd.resume_quote_classification(input_iter, first_block);
 
-                        // Temporarily set the index within the current block to zero.
-                        // This makes sense for the move below.
-                        let mut classifier_state = ResumeClassifierState {
-                            iter: quote_classifier,
-                            block: quote_classified_first_block
-                                .map(|b| ResumeClassifierBlockState { block: b, idx: 0 }),
-                            are_colons_on: false,
-                            are_commas_on: self.is_accepting,
-                        };
+                            // Temporarily set the index within the current block to zero.
+                            // This makes sense for the move below.
+                            let mut classifier_state = ResumeClassifierState {
+                                iter: quote_classifier,
+                                block: quote_classified_first_block
+                                    .map(|b| ResumeClassifierBlockState { block: b, idx: 0 }),
+                                are_colons_on: false,
+                                are_commas_on: head_skip.is_accepting,
+                            };
 
-                        debug!("Actual match with colon at {colon_idx}");
-                        debug!("Next significant character at {next_idx}");
-                        debug!("Classifier is at {}", classifier_state.get_idx());
-                        debug!("We will forward to {colon_idx} first, then to {next_idx}",);
+                            debug!("Actual match with colon at {colon_idx}");
+                            debug!("Next significant character at {next_idx}");
+                            debug!("Classifier is at {}", classifier_state.get_idx());
+                            debug!("We will forward to {colon_idx} first, then to {next_idx}",);
 
-                        // Now we want to move the entire iterator state so that the current block is quote-classified,
-                        // and correctly points to the place the engine would expect had it found the matching key
-                        // in the regular loop. If the value is atomic, we handle it ourselves. If the value is complex,
-                        // the engine wants to start one byte *after* the opening character. However, the match report
-                        // has to happen before we advance one more byte, or else the opening character might be lost
-                        // in the output (if it happens at a block boundary).
-                        if next_c == b'{' || next_c == b'[' {
-                            classifier_state.forward_to(next_idx)?;
-                            if self.is_accepting {
-                                engine.recorder().record_match(
-                                    next_idx,
-                                    Depth::ZERO,
-                                    crate::result::MatchedNodeType::Complex,
-                                )?;
-                            }
-                            classifier_state.forward_to(next_idx + 1)?;
-                        } else {
-                            classifier_state.forward_to(next_idx)?;
-                        };
-
-                        // We now have the block where we want and we ran quote classification, but during the `forward_to`
-                        // call we lose all the flow-through quote information that usually is passed from one block to the next.
-                        // We need to manually verify the soundness of the classification. Fortunately:
-                        // 1. we know that resume_idx is either the start of a value, or one byte after an opening -
-                        //    in a valid JSON this character can be within quotes if and only if it is itself a quote;
-                        // 2. the only way the mask can be wrong is if it is flipped - marks chars within quotes
-                        //    as outside and vice versa - so it suffices to flip it if it is wrong.
-                        if let Some(block) = classifier_state.block.as_mut() {
-                            let should_be_quoted = block.block.block[block.idx] == b'"';
-                            if block.block.within_quotes_mask.is_lit(block.idx) != should_be_quoted {
-                                debug!("Mask needs flipping!");
-                                block.block.within_quotes_mask = !block.block.within_quotes_mask;
-                                classifier_state.iter.flip_quotes_bit();
-                            }
-                        }
-
-                        classifier_state = match next_c {
-                            b'{' | b'[' => {
-                                debug!("resuming");
-                                let classifier = self.simd.resume_structural_classification(classifier_state);
-                                engine
-                                    .run_on_subtree(
-                                        Structural::Opening(
-                                            if next_c == b'{' {
-                                                BracketType::Curly
-                                            } else {
-                                                BracketType::Square
-                                            },
-                                            next_idx,
-                                        ),
-                                        self.state,
-                                        classifier,
-                                    )?
-                                    .0
-                            }
-                            _ if self.is_accepting => {
-                                engine.recorder().record_match(
-                                    next_idx,
-                                    Depth::ZERO,
-                                    crate::result::MatchedNodeType::Atomic,
-                                )?;
-                                let mut classifier = self.simd.resume_structural_classification(classifier_state);
-                                let next_structural = classifier.next()?;
-
-                                match next_structural {
-                                    Some(s) => engine.recorder().record_value_terminator(s.idx(), Depth::ZERO)?,
-                                    None => return Err(EngineError::MissingClosingCharacter()),
+                            // Now we want to move the entire iterator state so that the current block is quote-classified,
+                            // and correctly points to the place the engine would expect had it found the matching key
+                            // in the regular loop. If the value is atomic, we handle it ourselves. If the value is complex,
+                            // the engine wants to start one byte *after* the opening character. However, the match report
+                            // has to happen before we advance one more byte, or else the opening character might be lost
+                            // in the output (if it happens at a block boundary).
+                            if next_c == b'{' || next_c == b'[' {
+                                classifier_state.forward_to(next_idx)?;
+                                if head_skip.is_accepting {
+                                    engine.recorder().record_match(
+                                        next_idx,
+                                        Depth::ZERO,
+                                        crate::result::MatchedNodeType::Complex,
+                                    )?;
                                 }
-                                classifier.stop()
+                                classifier_state.forward_to(next_idx + 1)?;
+                            } else {
+                                classifier_state.forward_to(next_idx)?;
+                            };
+
+                            // We now have the block where we want and we ran quote classification, but during the `forward_to`
+                            // call we lose all the flow-through quote information that usually is passed from one block to the next.
+                            // We need to manually verify the soundness of the classification. Fortunately:
+                            // 1. we know that resume_idx is either the start of a value, or one byte after an opening -
+                            //    in a valid JSON this character can be within quotes if and only if it is itself a quote;
+                            // 2. the only way the mask can be wrong is if it is flipped - marks chars within quotes
+                            //    as outside and vice versa - so it suffices to flip it if it is wrong.
+                            if let Some(block) = classifier_state.block.as_mut() {
+                                let should_be_quoted = block.block.block[block.idx] == b'"';
+                                if block.block.within_quotes_mask.is_lit(block.idx) != should_be_quoted {
+                                    debug!("Mask needs flipping!");
+                                    block.block.within_quotes_mask = !block.block.within_quotes_mask;
+                                    classifier_state.iter.flip_quotes_bit();
+                                }
                             }
-                            _ => classifier_state,
-                        };
 
-                        debug!("Quote classified up to {}", classifier_state.get_idx());
-                        idx = classifier_state.get_idx();
+                            classifier_state = match next_c {
+                                b'{' | b'[' => {
+                                    debug!("resuming");
+                                    let classifier = head_skip.simd.resume_structural_classification(classifier_state);
+                                    engine
+                                        .run_on_subtree(
+                                            Structural::Opening(
+                                                if next_c == b'{' {
+                                                    BracketType::Curly
+                                                } else {
+                                                    BracketType::Square
+                                                },
+                                                next_idx,
+                                            ),
+                                            head_skip.state,
+                                            classifier,
+                                        )?
+                                        .0
+                                }
+                                _ if head_skip.is_accepting => {
+                                    engine.recorder().record_match(
+                                        next_idx,
+                                        Depth::ZERO,
+                                        crate::result::MatchedNodeType::Atomic,
+                                    )?;
+                                    let mut classifier = head_skip.simd.resume_structural_classification(classifier_state);
+                                    let next_structural = classifier.next()?;
 
-                        first_block = classifier_state.block.map(|b| b.block.block);
-                        input_iter = classifier_state.iter.into_inner();
+                                    match next_structural {
+                                        Some(s) => engine.recorder().record_value_terminator(s.idx(), Depth::ZERO)?,
+                                        None => return Err(EngineError::MissingClosingCharacter()),
+                                    }
+                                    classifier.stop()
+                                }
+                                _ => classifier_state,
+                            };
+
+                            debug!("Quote classified up to {}", classifier_state.get_idx());
+                            idx = classifier_state.get_idx();
+
+                            first_block = classifier_state.block.map(|b| b.block.block);
+                            input_iter = classifier_state.iter.into_inner();
+                        }
+                        _ => idx += 1,
                     }
-                    _ => idx += 1,
+                } else {
+                    debug!("No memmem matches, exiting");
+                    break;
                 }
-            } else {
-                debug!("No memmem matches, exiting");
-                break;
             }
-        }
 
-        Ok(())
+            Ok(())
+        } => fn<'b, 'q, 'r, I: Input, V: Simd, E, R>(head_skip: &HeadSkip<'b, 'q, I, V, BLOCK_SIZE>, engine: &mut E) -> Result<(), EngineError>
+            where
+                'b: 'r,
+                E: CanHeadSkip<'b, 'r, I, R, V>,
+                R: Recorder<I::Block<'b, BLOCK_SIZE>> + 'r,)
     }
 }

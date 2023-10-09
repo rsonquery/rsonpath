@@ -39,6 +39,8 @@ pub trait Simd: Copy {
         R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>> + 'r,
         'i: 'r;
 
+    fn dispatch_tag(self) -> usize;
+
     /// Walk through the JSON document given by the `iter` and classify quoted sequences.
     #[must_use]
     fn classify_quoted_sequences<'i, I>(self, iter: I) -> Self::QuotesClassifier<'i, I>
@@ -117,25 +119,25 @@ pub trait Simd: Copy {
         'i: 'r;
 }
 
-pub(crate) struct ResolvedSimd<Q, S, D, M> {
+pub(crate) struct ResolvedSimd<Q, S, D, M, const TARGET: usize> {
     phantom: PhantomData<(Q, S, D, M)>,
 }
 
-impl<Q, S, D, M> Clone for ResolvedSimd<Q, S, D, M> {
+impl<Q, S, D, M, const TARGET: usize> Clone for ResolvedSimd<Q, S, D, M, TARGET> {
     fn clone(&self) -> Self {
         *self
     }
 }
 
-impl<Q, S, D, M> Copy for ResolvedSimd<Q, S, D, M> {}
+impl<Q, S, D, M, const TARGET: usize> Copy for ResolvedSimd<Q, S, D, M, TARGET> {}
 
-impl<Q, S, D, M> ResolvedSimd<Q, S, D, M> {
+impl<Q, S, D, M, const TARGET: usize> ResolvedSimd<Q, S, D, M, TARGET> {
     pub(crate) fn new() -> Self {
         Self { phantom: PhantomData }
     }
 }
 
-impl<Q, S, D, M> Simd for ResolvedSimd<Q, S, D, M>
+impl<Q, S, D, M, const TARGET: usize> Simd for ResolvedSimd<Q, S, D, M, TARGET>
 where
     Q: QuotesImpl,
     S: StructuralImpl,
@@ -160,6 +162,11 @@ where
         <I as Input>::BlockIterator<'i, 'r, BLOCK_SIZE, R>: 'b,
         R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>> + 'r,
         'i: 'r;
+
+    #[inline(always)]
+    fn dispatch_tag(self) -> usize {
+        TARGET
+    }
 
     #[inline(always)]
     fn classify_quoted_sequences<'i, I>(self, iter: I) -> Self::QuotesClassifier<'i, I>
@@ -395,6 +402,40 @@ impl Display for SimdConfiguration {
     }
 }
 
+pub(crate) const AVX2_PCLMULQDQ_POPCNT: usize = 1;
+pub(crate) const SSSE3_PCLMULQDQ_POPCNT: usize = 2;
+pub(crate) const SSSE3_PCLMULQDQ: usize = 3;
+pub(crate) const SSSE3_POPCNT: usize = 4;
+pub(crate) const SSSE3: usize = 5;
+pub(crate) const SSE2_PCLMULQDQ_POPCNT: usize = 6;
+pub(crate) const SSE2_PCLMULQDQ: usize = 7;
+pub(crate) const SSE2_POPCNT: usize = 8;
+pub(crate) const SSE2: usize = 9;
+pub(crate) const NOSIMD: usize = 0;
+
+macro_rules! dispatch {
+    ($simd:expr => $( $arg:expr ),* => $b:block => fn $( $rest:tt )*) => {{
+        #[target_feature(enable = "avx2")]
+        #[target_feature(enable = "pclmulqdq")]
+        #[target_feature(enable = "popcnt")]
+        unsafe fn avx2_pclmulqdq_popcnt $($rest)* {
+            $b
+        }
+        unsafe fn nosimd $($rest)* {
+            $b
+        }
+
+        let simd = $simd;
+
+        unsafe {
+            match simd.dispatch_tag() {
+                1 => avx2_pclmulqdq_popcnt($($arg),*),
+                _ => nosimd($($arg),*),
+            }
+        }
+    }};
+}
+
 cfg_if! {
     if #[cfg(target_arch = "x86_64")] {
         macro_rules! simd_dispatch {
@@ -412,6 +453,7 @@ cfg_if! {
                                 $crate::classification::structural::avx2_64::Constructor,
                                 $crate::classification::depth::avx2_64::Constructor,
                                 $crate::classification::memmem::avx2_64::Constructor,
+                                1,
                             >::new();
                             $b
                         }
@@ -424,6 +466,7 @@ cfg_if! {
                                         $crate::classification::structural::ssse3_64::Constructor,
                                         $crate::classification::depth::sse2_64::Constructor,
                                         $crate::classification::memmem::sse2_64::Constructor,
+                                        2,
                                     >::new();
                                     $b
                                 }
@@ -433,6 +476,7 @@ cfg_if! {
                                         $crate::classification::structural::ssse3_64::Constructor,
                                         $crate::classification::depth::nosimd::Constructor,
                                         $crate::classification::memmem::sse2_64::Constructor,
+                                        3,
                                     >::new();
                                     $b
                                 }
@@ -442,6 +486,7 @@ cfg_if! {
                                         $crate::classification::structural::ssse3_64::Constructor,
                                         $crate::classification::depth::sse2_64::Constructor,
                                         $crate::classification::memmem::sse2_64::Constructor,
+                                        4,
                                     >::new();
                                     $b
                                 }
@@ -451,6 +496,7 @@ cfg_if! {
                                         $crate::classification::structural::ssse3_64::Constructor,
                                         $crate::classification::depth::nosimd::Constructor,
                                         $crate::classification::memmem::sse2_64::Constructor,
+                                        5,
                                     >::new();
                                     $b
                                 }
@@ -466,6 +512,7 @@ cfg_if! {
                                         $crate::classification::structural::nosimd::Constructor,
                                         $crate::classification::depth::sse2_64::Constructor,
                                         $crate::classification::memmem::sse2_64::Constructor,
+                                        6,
                                     >::new();
                                     $b
                                 }
@@ -475,6 +522,7 @@ cfg_if! {
                                         $crate::classification::structural::nosimd::Constructor,
                                         $crate::classification::depth::nosimd::Constructor,
                                         $crate::classification::memmem::sse2_64::Constructor,
+                                        7,
                                     >::new();
                                     $b
                                 }
@@ -484,6 +532,7 @@ cfg_if! {
                                         $crate::classification::structural::nosimd::Constructor,
                                         $crate::classification::depth::sse2_64::Constructor,
                                         $crate::classification::memmem::sse2_64::Constructor,
+                                        8,
                                     >::new();
                                     $b
                                 }
@@ -493,6 +542,7 @@ cfg_if! {
                                         $crate::classification::structural::nosimd::Constructor,
                                         $crate::classification::depth::nosimd::Constructor,
                                         $crate::classification::memmem::sse2_64::Constructor,
+                                        9,
                                     >::new();
                                     $b
                                 }
@@ -505,6 +555,7 @@ cfg_if! {
                                 $crate::classification::structural::nosimd::Constructor,
                                 $crate::classification::depth::nosimd::Constructor,
                                 $crate::classification::memmem::nosimd::Constructor,
+                                0,
                             >::new();
                             $b
                         }
@@ -528,7 +579,7 @@ cfg_if! {
                                 $crate::classification::quotes::avx2_32::Constructor,
                                 $crate::classification::structural::avx2_32::Constructor,
                                 $crate::classification::depth::avx2_32::Constructor,
-                                $crate::classification::memmem::avx2_32::Constructor,
+                                $crate::classification::simd::AVX2_PCLMULQDQ_POPCNT,
                             >::new();
                             $b
                         }
@@ -541,6 +592,7 @@ cfg_if! {
                                         $crate::classification::structural::ssse3_32::Constructor,
                                         $crate::classification::depth::sse2_32::Constructor,
                                         $crate::classification::memmem::sse2_32::Constructor,
+                                        $crate::classification::simd::SSSE3_PCLMULQDQ_POPCNT,
                                     >::new();
                                     $b
                                 }
@@ -550,6 +602,7 @@ cfg_if! {
                                         $crate::classification::structural::ssse3_32::Constructor,
                                         $crate::classification::depth::nosimd::Constructor,
                                         $crate::classification::memmem::sse2_32::Constructor,
+                                        $crate::classification::simd::SSSE3_PCLMULQDQ,
                                     >::new();
                                     $b
                                 }
@@ -559,6 +612,7 @@ cfg_if! {
                                         $crate::classification::structural::ssse3_32::Constructor,
                                         $crate::classification::depth::sse2_32::Constructor,
                                         $crate::classification::memmem::sse2_32::Constructor,
+                                        $crate::classification::simd::SSSE3POPCNT,
                                     >::new();
                                     $b
                                 }
@@ -568,6 +622,7 @@ cfg_if! {
                                         $crate::classification::structural::ssse3_32::Constructor,
                                         $crate::classification::depth::nosimd::Constructor,
                                         $crate::classification::memmem::sse2_32::Constructor,
+                                        $crate::classification::simd::SSSE3,
                                     >::new();
                                     $b
                                 }
@@ -583,6 +638,7 @@ cfg_if! {
                                         $crate::classification::structural::nosimd::Constructor,
                                         $crate::classification::depth::sse2_32::Constructor,
                                         $crate::classification::memmem::sse2_32::Constructor,
+                                        $crate::classification::simd::SSE2_PCLMULQDQ_POPCNT,
                                     >::new();
                                     $b
                                 }
@@ -592,6 +648,7 @@ cfg_if! {
                                         $crate::classification::structural::nosimd::Constructor,
                                         $crate::classification::depth::nosimd::Constructor,
                                         $crate::classification::memmem::sse2_32::Constructor,
+                                        $crate::classification::simd::SSE2_PCLMULQDQ,
                                     >::new();
                                     $b
                                 }
@@ -601,6 +658,7 @@ cfg_if! {
                                         $crate::classification::structural::nosimd::Constructor,
                                         $crate::classification::depth::sse2_32::Constructor,
                                         $crate::classification::memmem::sse2_32::Constructor,
+                                        $crate::classification::simd::SSE2_POPCNT,
                                     >::new();
                                     $b
                                 }
@@ -610,6 +668,7 @@ cfg_if! {
                                         $crate::classification::structural::nosimd::Constructor,
                                         $crate::classification::depth::nosimd::Constructor,
                                         $crate::classification::memmem::sse2_32::Constructor,
+                                        $crate::classification::simd::SSE2,
                                     >::new();
                                     $b
                                 }
@@ -622,6 +681,7 @@ cfg_if! {
                                 $crate::classification::structural::nosimd::Constructor,
                                 $crate::classification::depth::nosimd::Constructor,
                                 $crate::classification::memmem::nosimd::Constructor,
+                                $crate::classification::simd::NOSIMD,
                             >::new();
                             $b
                         }
@@ -642,6 +702,7 @@ cfg_if! {
                     $crate::classification::structural::nosimd::Constructor,
                     $crate::classification::depth::nosimd::Constructor,
                     $crate::classification::memmem::nosimd::Constructor,
+                    $crate::classification::simd::NOSIMD,
                 >::new();
                 $b
             };
@@ -649,4 +710,5 @@ cfg_if! {
     }
 }
 
+pub(crate) use dispatch;
 pub(crate) use simd_dispatch;
