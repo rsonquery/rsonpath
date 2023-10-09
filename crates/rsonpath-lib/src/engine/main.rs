@@ -30,6 +30,7 @@ use crate::{
     },
     FallibleIterator, MaskType, BLOCK_SIZE,
 };
+use multiversion::multiversion;
 use smallvec::{smallvec, SmallVec};
 
 /// Main engine for a fixed JSONPath query.
@@ -224,40 +225,73 @@ where
     }
 
     fn run_on_subtree(&mut self, classifier: &mut Classifier!()) -> Result<(), EngineError> {
-        loop {
-            if self.next_event.is_none() {
-                self.next_event = match classifier.next() {
-                    Ok(e) => e,
-                    Err(err) => return Err(EngineError::InputError(err)),
-                };
-            }
-            if let Some(event) = self.next_event {
-                debug!("====================");
-                debug!("Event = {:?}", event);
-                debug!("Depth = {:?}", self.depth);
-                debug!("Stack = {:?}", self.stack);
-                debug!("State = {:?}", self.state);
-                debug!("====================");
+        #[multiversion(targets(
+            "x86_64+avx2+pclmulqdq+popcnt",
+            "x86_64+ssse3",
+            "x86_64+ssse3+pclmulqdq",
+            "x86_64+ssse3+popcnt",
+            "x86_64+ssse3+pclmulqdq+popcnt",
+            "x86_64+sse2",
+            "x86_64+sse2+pclmulqdq",
+            "x86_64+sse2+popcnt",
+            "x86_64+sse2+pclmulqdq+popcnt",
+            "x86+avx2+pclmulqdq+popcnt",
+            "x86+ssse3",
+            "x86+ssse3+pclmulqdq",
+            "x86+ssse3+popcnt",
+            "x86+ssse3+pclmulqdq+popcnt",
+            "x86+sse2",
+            "x86+sse2+pclmulqdq",
+            "x86+sse2+popcnt",
+            "x86+sse2+pclmulqdq+popcnt",
+        ))]
+        fn run_impl<'i, 'q, 'r, I, R, V>(
+            eng: &mut Executor<'i, 'q, 'r, I, R, V>,
+            classifier: &mut Classifier!(),
+        ) -> Result<(), EngineError>
+        where
+            'i: 'r,
+            I: Input,
+            R: Recorder<I::Block<'i, BLOCK_SIZE>>,
+            V: Simd,
+        {
+            loop {
+                if eng.next_event.is_none() {
+                    eng.next_event = match classifier.next() {
+                        Ok(e) => e,
+                        Err(err) => return Err(EngineError::InputError(err)),
+                    };
+                }
+                if let Some(event) = eng.next_event {
+                    debug!("====================");
+                    debug!("Event = {:?}", event);
+                    debug!("Depth = {:?}", eng.depth);
+                    debug!("Stack = {:?}", eng.stack);
+                    debug!("State = {:?}", eng.state);
+                    debug!("====================");
 
-                self.next_event = None;
-                match event {
-                    Structural::Colon(idx) => self.handle_colon(classifier, idx)?,
-                    Structural::Comma(idx) => self.handle_comma(classifier, idx)?,
-                    Structural::Opening(b, idx) => self.handle_opening(classifier, b, idx)?,
-                    Structural::Closing(_, idx) => {
-                        self.handle_closing(classifier, idx)?;
+                    eng.next_event = None;
+                    match event {
+                        Structural::Colon(idx) => eng.handle_colon(classifier, idx)?,
+                        Structural::Comma(idx) => eng.handle_comma(classifier, idx)?,
+                        Structural::Opening(b, idx) => eng.handle_opening(classifier, b, idx)?,
+                        Structural::Closing(_, idx) => {
+                            eng.handle_closing(classifier, idx)?;
 
-                        if self.depth == Depth::ZERO {
-                            break;
+                            if eng.depth == Depth::ZERO {
+                                break;
+                            }
                         }
                     }
+                } else {
+                    break;
                 }
-            } else {
-                break;
             }
+
+            Ok(())
         }
 
-        Ok(())
+        run_impl(self, classifier)
     }
 
     fn record_match_detected_at(&mut self, start_idx: usize, hint: NodeTypeHint) -> Result<(), EngineError> {
