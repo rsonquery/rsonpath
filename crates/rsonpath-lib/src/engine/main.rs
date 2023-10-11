@@ -7,7 +7,7 @@
 #![allow(clippy::type_complexity)] // The private Classifier type is very complex, but we specifically macro it out.
 use crate::{
     classification::{
-        simd::{self, dispatch_simd, config_simd, Simd, SimdConfiguration},
+        simd::{self, config_simd, dispatch_simd, Simd, SimdConfiguration},
         structural::{BracketType, Structural, StructuralIterator},
     },
     debug,
@@ -225,48 +225,48 @@ where
 
     fn run_on_subtree(&mut self, classifier: &mut Classifier!()) -> Result<(), EngineError> {
         dispatch_simd!(self.simd; self, classifier =>
-            fn<'i, 'q, 'r, I, R, V>(eng: &mut Executor<'i, 'q, 'r, I, R, V>, classifier: &mut Classifier!()) -> Result<(), EngineError>
-            where
-                'i: 'r,
-                I: Input,
-                R: Recorder<I::Block<'i, BLOCK_SIZE>>,
-                V: Simd
-            {
-                loop {
-                    if eng.next_event.is_none() {
-                        eng.next_event = match classifier.next() {
-                            Ok(e) => e,
-                            Err(err) => return Err(EngineError::InputError(err)),
-                        };
-                    }
-                    if let Some(event) = eng.next_event {
-                        debug!("====================");
-                        debug!("Event = {:?}", event);
-                        debug!("Depth = {:?}", eng.depth);
-                        debug!("Stack = {:?}", eng.stack);
-                        debug!("State = {:?}", eng.state);
-                        debug!("====================");
+        fn<'i, 'q, 'r, I, R, V>(eng: &mut Executor<'i, 'q, 'r, I, R, V>, classifier: &mut Classifier!()) -> Result<(), EngineError>
+        where
+            'i: 'r,
+            I: Input,
+            R: Recorder<I::Block<'i, BLOCK_SIZE>>,
+            V: Simd
+        {
+            loop {
+                if eng.next_event.is_none() {
+                    eng.next_event = match classifier.next() {
+                        Ok(e) => e,
+                        Err(err) => return Err(EngineError::InputError(err)),
+                    };
+                }
+                if let Some(event) = eng.next_event {
+                    debug!("====================");
+                    debug!("Event = {:?}", event);
+                    debug!("Depth = {:?}", eng.depth);
+                    debug!("Stack = {:?}", eng.stack);
+                    debug!("State = {:?}", eng.state);
+                    debug!("====================");
 
-                        eng.next_event = None;
-                        match event {
-                            Structural::Colon(idx) => eng.handle_colon(classifier, idx)?,
-                            Structural::Comma(idx) => eng.handle_comma(classifier, idx)?,
-                            Structural::Opening(b, idx) => eng.handle_opening(classifier, b, idx)?,
-                            Structural::Closing(_, idx) => {
-                                eng.handle_closing(classifier, idx)?;
+                    eng.next_event = None;
+                    match event {
+                        Structural::Colon(idx) => eng.handle_colon(classifier, idx)?,
+                        Structural::Comma(idx) => eng.handle_comma(classifier, idx)?,
+                        Structural::Opening(b, idx) => eng.handle_opening(classifier, b, idx)?,
+                        Structural::Closing(_, idx) => {
+                            eng.handle_closing(classifier, idx)?;
 
-                                if eng.depth == Depth::ZERO {
-                                    break;
-                                }
+                            if eng.depth == Depth::ZERO {
+                                break;
                             }
                         }
-                    } else {
-                        break;
                     }
+                } else {
+                    break;
                 }
+            }
 
-                Ok(())
-            })
+            Ok(())
+        })
     }
 
     fn record_match_detected_at(&mut self, start_idx: usize, hint: NodeTypeHint) -> Result<(), EngineError> {

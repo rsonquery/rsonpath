@@ -1,4 +1,207 @@
 //! SIMD configuration and runtime dispatch.
+//!
+//! The core of our approach is the two macros: [`config_simd`] and [`dispatch_simd`].
+//!
+//! ## What?
+//!
+//! We need to strike a delicate balance between portable code and compiler optimizations.
+//! All SIMD code should be maximally inlined. To that end we need `target_feature` annotated
+//! functions, so that SIMD intrinsics are actually emitted, but these are hard barriers for
+//! inlining if called from non-`target_feature` functions.
+//!
+//! The ideal would be to have a single `target_feature`-annotated entry point and then force
+//! the compiler to inline everything there. This isn't that easy, because you cannot *really*
+//! force the compiler to inline everything, and even if you could that can lead to inefficient compilation
+//! (large functions are harder to optimize, large code size negatively impacts caching, etc.).
+//!
+//! On the other end of portability there's runtime checking of CPU capabilities.
+//! That introduces an overhead and cannot be used everywhere, so in any case it'd have to be added
+//! in specific places that then call `target_feature`-annotated functions.
+//!
+//! The [`multiversion`](https://calebzulawski.github.io/rust-simd-book/3.3-multiversion.html) crate
+//! provides a near-ideal tradeoff, where one can annotate a function such that multiple definitions of it
+//! are expanded with different `target_feature` sets, and an efficient, cached runtime check is performed
+//! at entry to that function.
+//!
+//! For our crate we can do slightly better. The idea is to do the entire configuration of SIMD once and
+//! upfront ([`configure`] producing [`SimdConfiguration`]) and save it. Then we can use [`config_simd`]
+//! to create a [`Simd`] implementation that encapsulates all the relevant information in its type arguments.
+//! An entry point function can take a generic `V: Simd` parameter so that the compiler specializes it
+//! for all supported CPU capability configurations. Finally, to get the correct `target_feature` annotation
+//! we do a similar thing to `multiversion`, but using a constant value from the `V` type, which allows
+//! the compiler to optimize the check away when monomorphizing the function.
+//!
+//! An example idiomatic usage would be:
+//!
+//! ```rust,ignore
+//! fn entry() -> Result<(), EngineError> {
+//!   let configuration = simd::configure();
+//!   config_simd!(configuration => |simd| {
+//!       run(simd)
+//!   })
+//! }
+//!
+//! fn run<V: Simd>(simd: V) -> Result<(), EngineError> {
+//!   dispatch_simd!(simd; simd => {
+//!     fn<V: Simd>(simd: V) -> Result<(), EngineError>
+//!     {
+//!       // Actual implementation using SIMD capabilities from `simd`.
+//!     }
+//!   });
+//! }
+//! ```
+//!
+//! Assume for a second we only have 3 SIMD combinations:
+//! - `+avx2,+pclmulqdq,+popcnt`
+//! - `+sse2,+popcnt`
+//! - `nosimd`
+//!
+//! The above code gets expanded to (approximately):
+//!
+//! ```rust,ignore
+//! fn entry() -> Result<(), EngineError> {
+//!   let configuration = simd::configure();
+//!   {
+//!     match configuration.highest_simd() {
+//!       SimdTag::Avx2 => {
+//!         let simd = ResolvedSimd::<
+//!           quotes::avx2_64::Constructor,
+//!           structural::avx2_64::Constructor,
+//!           depth::avx2_64::Constructor,
+//!           memmem::avx2_64::Constructor,
+//!           simd::AVX2_PCLMULQDQ_POPCNT,
+//!         >::new();
+//!         run(simd)
+//!       },
+//!       SimdTag::Sse2 if conf.fast_popcnt() => {
+//!         let simd = ResolvedSimd::<
+//!           quotes::nosimd::Constructor,
+//!           structural::nosimd::Constructor,
+//!           depth::sse2_64::Constructor,
+//!           memmem::sse2_64::Constructor,
+//!           simd::SSE2_POPCNT,
+//!         >::new();
+//!         run(simd)
+//!       },
+//!       _ => {
+//!         let simd = ResolvedSimd::<
+//!           quotes::nosimd::Constructor,
+//!           structural::nosimd::Constructor,
+//!           depth::nosimd::Constructor,
+//!           memmem::nosimd::Constructor,
+//!           simd::NOSIMD,
+//!         >::new();
+//!         run(simd)
+//!       },
+//!     }
+//!   }
+//! }
+//!
+//! fn run<V: Simd>(simd: V) -> Result<(), EngineError> {
+//!   #[target_feature(enable = "avx2")]
+//!   #[target_feature(enable = "pclmulqdq")]
+//!   #[target_feature(enable = "popcnt")]
+//!   unsafe fn avx2_pclmulqdq_popcnt<V: Simd>(simd: V) -> Result<(), EngineError> {
+//!     // Actual implementation using SIMD capabilities from `simd`.
+//!   }
+//!   #[target_feature(enable = "sse2")]
+//!   #[target_feature(enable = "popcnt")]
+//!   unsafe fn sse2_popcnt<V: Simd>(simd: V) -> Result<(), EngineError> {
+//!     // Actual implementation using SIMD capabilities from `simd`.
+//!   }
+//!   unsafe fn nosimd<V: Simd>(simd: V) -> Result<(), EngineError> {
+//!     // Actual implementation using SIMD capabilities from `simd`.
+//!   }
+//!   
+//!   // SAFETY: depends on the provided SimdConfig, which cannot be incorrectly constructed.
+//!   unsafe {
+//!       match simd.dispatch_tag() {
+//!           simd::AVX2_PCLMULQDQ_POPCNT => avx2_pclmulqdq_popcnt(simd),
+//!           simd::SSE2_POPCNT => sse2_popcnt(simd),
+//!           _ => nosimd(simd),
+//!       }
+//!   }
+//! }
+//! ```
+//!
+//! Now because all of the logic in the `dispatch_simd` is done over the `V` type constants,
+//! the compiler will produce a `run` function for the three possible `ResolvedSimd` concrete
+//! types used and then constant-fold the body to produce code equivalent to this (not valid Rust code):
+//!
+//! ```rust,ignore
+//! fn run(simd: ResolvedSimd::<
+//!           quotes::avx2_64::Constructor,
+//!           structural::avx2_64::Constructor,
+//!           depth::avx2_64::Constructor,
+//!           memmem::avx2_64::Constructor,
+//!           simd::AVX2_PCLMULQDQ_POPCNT,
+//!         >) -> Result<(), EngineError> {
+//!   #[target_feature(enable = "avx2")]
+//!   #[target_feature(enable = "pclmulqdq")]
+//!   #[target_feature(enable = "popcnt")]
+//!   unsafe fn avx2_pclmulqdq_popcnt(simd: Avx2Simd = ResolvedSimd::<
+//!           quotes::avx2_64::Constructor,
+//!           structural::avx2_64::Constructor,
+//!           depth::avx2_64::Constructor,
+//!           memmem::avx2_64::Constructor,
+//!           simd::AVX2_PCLMULQDQ_POPCNT,
+//!         >) -> Result<(), EngineError> {
+//!     // Actual implementation using SIMD capabilities from `simd`.
+//!   }
+//!
+//!   unsafe { avx2_pclmulqdq_popcnt(simd) }
+//! }
+//!
+//! fn run(simd: ResolvedSimd::<
+//!           quotes::nosimd::Constructor,
+//!           structural::nosimd::Constructor,
+//!           depth::sse2_64::Constructor,
+//!           memmem::sse2_64::Constructor,
+//!           simd::SSE2_POPCNT,
+//!         >) -> Result<(), EngineError> {
+//!   #[target_feature(enable = "sse2")]
+//!   #[target_feature(enable = "popcnt")]
+//!   unsafe fn sse2_popcnt(simd: ResolvedSimd::<
+//!           quotes::nosimd::Constructor,
+//!           structural::nosimd::Constructor,
+//!           depth::sse2_64::Constructor,
+//!           memmem::sse2_64::Constructor,
+//!           simd::SSE2_POPCNT,
+//!         >) -> Result<(), EngineError> {
+//!     // Actual implementation using SIMD capabilities from `simd`.
+//!   }
+//!   
+//!   unsafe { sse2_popcnt(simd) }
+//! }
+//!
+//! fn run(simd: ResolvedSimd::<
+//!           quotes::nosimd::Constructor,
+//!           structural::nosimd::Constructor,
+//!           depth::nosimd::Constructor,
+//!           memmem::nosimd::Constructor,
+//!           simd::NOSIMD,
+//!         >) -> Result<(), EngineError> {
+//!   unsafe fn nosimd(simd: ResolvedSimd::<
+//!           quotes::nosimd::Constructor,
+//!           structural::nosimd::Constructor,
+//!           depth::nosimd::Constructor,
+//!           memmem::nosimd::Constructor,
+//!           simd::NOSIMD,
+//!         >) -> Result<(), EngineError> {
+//!     // Actual implementation using SIMD capabilities from `simd`.
+//!   }
+//!   
+//!   unsafe { nosimd(simd) }
+//! }
+//! ```
+//!
+//! The compiler is then free to optimize the inner functions fully, and the entire dispatch
+//! happens once when `entry` is called.
+//!
+//! The config dispatch is done at start of the engine in one of the functions that run the executor.
+//! The simd dispatch is put into the big entry points of the executor logic - `run_on_subtree`,
+//! `run_head_skipping`, and `run_tail_skipping`. These are generally big enough to not be inlined by the compiler,
+//! and long-running enough for that to not be an issue.
 use super::{
     depth::{DepthImpl, DepthIterator, DepthIteratorResumeOutcome},
     memmem::{Memmem, MemmemImpl},
@@ -39,6 +242,10 @@ pub trait Simd: Copy {
         R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>> + 'r,
         'i: 'r;
 
+    /// Get a unique descriptor of the enabled SIMD capabilities.
+    ///
+    /// The value should correspond to the `const`s defined in [`simd`](`self`),
+    /// like [`AVX2_PCLMULQDQ_POPCNT`] or [`NOSIMD`].
     #[must_use]
     fn dispatch_tag(self) -> usize;
 
@@ -740,5 +947,5 @@ cfg_if! {
     }
 }
 
-pub(crate) use dispatch_simd;
 pub(crate) use config_simd;
+pub(crate) use dispatch_simd;

@@ -22,8 +22,7 @@ impl BlockAvx2Classifier {
         }
     }
 
-    #[target_feature(enable = "avx2")]
-    #[target_feature(enable = "pclmulqdq")]
+    #[inline(always)]
     unsafe fn classify<'a, B: InputBlock<'a, 32>>(&mut self, block: &B) -> u32 {
         block!(block[..32]);
 

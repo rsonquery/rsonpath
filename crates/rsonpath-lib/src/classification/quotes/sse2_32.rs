@@ -24,8 +24,7 @@ impl BlockSse2Classifier {
         }
     }
 
-    #[target_feature(enable = "sse2")]
-    #[target_feature(enable = "pclmulqdq")]
+    #[inline(always)]
     unsafe fn classify<'a, B: InputBlock<'a, 32>>(&mut self, blocks: &B) -> u32 {
         block!(blocks[..32]);
 

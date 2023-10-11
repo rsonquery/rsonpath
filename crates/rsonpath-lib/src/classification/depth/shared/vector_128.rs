@@ -19,14 +19,12 @@ impl DelimiterClassifierImpl128 {
         Self { opening: opening as i8 }
     }
 
-    #[target_feature(enable = "sse2")]
-    #[inline]
+    #[inline(always)]
     unsafe fn opening_mask(&self) -> __m128i {
         _mm_set1_epi8(self.opening)
     }
 
-    #[target_feature(enable = "sse2")]
-    #[inline]
+    #[inline(always)]
     unsafe fn closing_mask(&self) -> __m128i {
         _mm_set1_epi8(self.opening + 2)
     }

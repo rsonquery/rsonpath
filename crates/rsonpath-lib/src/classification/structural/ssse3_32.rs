@@ -26,8 +26,7 @@ impl BlockSse2Classifier32 {
         }
     }
 
-    #[target_feature(enable = "ssse3")]
-    #[inline]
+    #[inline(always)]
     unsafe fn classify<'i, B: InputBlock<'i, 32>>(
         &mut self,
         quote_classified_block: QuoteClassifiedBlock<B, u32, 32>,

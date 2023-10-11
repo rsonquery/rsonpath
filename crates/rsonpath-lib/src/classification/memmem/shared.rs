@@ -1,4 +1,3 @@
-use crate::debug;
 use crate::input::error::InputError;
 use crate::input::Input;
 use crate::query::JsonString;
@@ -22,7 +21,6 @@ where
     I: Input,
     'i: 'r,
 {
-    debug!("yyy??");
     let block_idx = start_idx % N;
     let label_size = label.bytes_with_quotes().len();
 

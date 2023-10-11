@@ -3,12 +3,12 @@ use ::core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use ::core::arch::x86_64::*;
 
-#[target_feature(enable = "sse2")]
+#[inline(always)]
 pub(crate) unsafe fn quote_mask() -> __m128i {
     _mm_set1_epi8(b'"' as i8)
 }
 
-#[target_feature(enable = "sse2")]
+#[inline(always)]
 pub(crate) unsafe fn slash_mask() -> __m128i {
     _mm_set1_epi8(b'\\' as i8)
 }

@@ -21,26 +21,31 @@ const COLON_TOGGLE_MASK_ARRAY: [u8; 32] = [
 ];
 
 #[target_feature(enable = "sse2")]
+#[inline]
 pub(crate) unsafe fn upper_nibble_zeroing_mask() -> __m128i {
     _mm_set1_epi8(0x0F)
 }
 
 #[target_feature(enable = "sse2")]
+#[inline]
 pub(crate) unsafe fn lower_nibble_mask() -> __m128i {
     _mm_loadu_si128(LOWER_NIBBLE_MASK_ARRAY.as_ptr().cast::<__m128i>())
 }
 
 #[target_feature(enable = "sse2")]
+#[inline]
 pub(crate) unsafe fn commas_toggle_mask() -> __m128i {
     _mm_loadu_si128(COMMAS_TOGGLE_MASK_ARRAY.as_ptr().cast::<__m128i>())
 }
 
 #[target_feature(enable = "sse2")]
+#[inline]
 pub(crate) unsafe fn colons_toggle_mask() -> __m128i {
     _mm_loadu_si128(COLON_TOGGLE_MASK_ARRAY.as_ptr().cast::<__m128i>())
 }
 
 #[target_feature(enable = "sse2")]
+#[inline]
 pub(crate) unsafe fn colons_and_commas_toggle_mask() -> __m128i {
     _mm_or_si128(colons_toggle_mask(), commas_toggle_mask())
 }

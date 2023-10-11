@@ -19,14 +19,12 @@ impl DelimiterClassifierImpl256 {
         Self { opening: opening as i8 }
     }
 
-    #[target_feature(enable = "avx2")]
-    #[inline]
+    #[inline(always)]
     unsafe fn opening_mask(&self) -> __m256i {
         _mm256_set1_epi8(self.opening)
     }
 
-    #[target_feature(enable = "avx2")]
-    #[inline]
+    #[inline(always)]
     unsafe fn closing_mask(&self) -> __m256i {
         _mm256_set1_epi8(self.opening + 2)
     }
