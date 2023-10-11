@@ -5,21 +5,57 @@
 
 version: 2
 updates:
-  - package-ecosystem: "cargo"
+  - package-ecosystem: cargo
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: daily
       time: "20:00"
     assignees:
-      - "V0ldek"
+      - V0ldek
     commit-message:
       prefix: "dep:"
+  - package-ecosystem: cargo
+    directory: /crates/rsonpath-test-codegen
+    schedule:
+      interval: daily
+      time: "20:01"
+    assignees:
+      - V0ldek
+    commit-message:
+      prefix: "chore(dep):"
+  - package-ecosystem: cargo
+    directory: /crates/rsonpath-test
+    schedule:
+      interval: daily
+      time: "20:01"
+    assignees:
+      - V0ldek
+    commit-message:
+      prefix: "chore(dep):"
+  - package-ecosystem: cargo
+    directory: /fuzz
+    schedule:
+      interval: daily
+      time: "20:01"
+    assignees:
+      - V0ldek
+    commit-message:
+      prefix: "chore(dep):"
+  - package-ecosystem: docker
+    directory: /.clusterfuzzlite
+    schedule:
+      interval: daily
+      time: "20:02"
+    assignees:
+      - V0ldek
+    commit-message:
+      prefix: "chore(ci):"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: daily
       time: "20:02"
     assignees:
-      - "V0ldek"
+      - V0ldek
     commit-message:
       prefix: "chore(ci):"
