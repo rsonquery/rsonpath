@@ -610,67 +610,80 @@ impl Display for SimdConfiguration {
     }
 }
 
-pub(crate) const AVX2_PCLMULQDQ_POPCNT: usize = 1;
-pub(crate) const SSSE3_PCLMULQDQ_POPCNT: usize = 2;
-pub(crate) const SSSE3_PCLMULQDQ: usize = 3;
-pub(crate) const SSSE3_POPCNT: usize = 4;
-pub(crate) const SSSE3: usize = 5;
-pub(crate) const SSE2_PCLMULQDQ_POPCNT: usize = 6;
-pub(crate) const SSE2_PCLMULQDQ: usize = 7;
-pub(crate) const SSE2_POPCNT: usize = 8;
-pub(crate) const SSE2: usize = 9;
 pub(crate) const NOSIMD: usize = 0;
 
-macro_rules! dispatch_simd {
-    ($simd:expr; $( $arg:expr ),* => fn $( $fn:tt )*) => {{
-        #[target_feature(enable = "avx2")]
-        #[target_feature(enable = "pclmulqdq")]
-        #[target_feature(enable = "popcnt")]
-        unsafe fn avx2_pclmulqdq_popcnt $($fn)*
-        #[target_feature(enable = "ssse3")]
-        #[target_feature(enable = "pclmulqdq")]
-        #[target_feature(enable = "popcnt")]
-        unsafe fn ssse3_pclmulqdq_popcnt $($fn)*
-        #[target_feature(enable = "ssse3")]
-        #[target_feature(enable = "pclmulqdq")]
-        unsafe fn ssse3_pclmulqdq $($fn)*
-        #[target_feature(enable = "ssse3")]
-        #[target_feature(enable = "popcnt")]
-        unsafe fn ssse3_popcnt $($fn)*
-        #[target_feature(enable = "ssse3")]
-        unsafe fn ssse3 $($fn)*
-        #[target_feature(enable = "sse2")]
-        #[target_feature(enable = "pclmulqdq")]
-        #[target_feature(enable = "popcnt")]
-        unsafe fn sse2_pclmulqdq_popcnt $($fn)*
-        #[target_feature(enable = "sse2")]
-        #[target_feature(enable = "pclmulqdq")]
-        unsafe fn sse2_pclmulqdq $($fn)*
-        #[target_feature(enable = "sse2")]
-        #[target_feature(enable = "popcnt")]
-        unsafe fn sse2_popcnt $($fn)*
-        #[target_feature(enable = "sse2")]
-        unsafe fn sse2 $($fn)*
-        unsafe fn nosimd $($fn)*
+cfg_if! {
+    if #[cfg(any(target_arch = "x86_64", target_arch = "x86"))] {
+        pub(crate) const AVX2_PCLMULQDQ_POPCNT: usize = 1;
+        pub(crate) const SSSE3_PCLMULQDQ_POPCNT: usize = 2;
+        pub(crate) const SSSE3_PCLMULQDQ: usize = 3;
+        pub(crate) const SSSE3_POPCNT: usize = 4;
+        pub(crate) const SSSE3: usize = 5;
+        pub(crate) const SSE2_PCLMULQDQ_POPCNT: usize = 6;
+        pub(crate) const SSE2_PCLMULQDQ: usize = 7;
+        pub(crate) const SSE2_POPCNT: usize = 8;
+        pub(crate) const SSE2: usize = 9;
 
-        let simd = $simd;
+        macro_rules! dispatch_simd {
+            ($simd:expr; $( $arg:expr ),* => fn $( $fn:tt )*) => {{
+                #[target_feature(enable = "avx2")]
+                #[target_feature(enable = "pclmulqdq")]
+                #[target_feature(enable = "popcnt")]
+                unsafe fn avx2_pclmulqdq_popcnt $($fn)*
+                #[target_feature(enable = "ssse3")]
+                #[target_feature(enable = "pclmulqdq")]
+                #[target_feature(enable = "popcnt")]
+                unsafe fn ssse3_pclmulqdq_popcnt $($fn)*
+                #[target_feature(enable = "ssse3")]
+                #[target_feature(enable = "pclmulqdq")]
+                unsafe fn ssse3_pclmulqdq $($fn)*
+                #[target_feature(enable = "ssse3")]
+                #[target_feature(enable = "popcnt")]
+                unsafe fn ssse3_popcnt $($fn)*
+                #[target_feature(enable = "ssse3")]
+                unsafe fn ssse3 $($fn)*
+                #[target_feature(enable = "sse2")]
+                #[target_feature(enable = "pclmulqdq")]
+                #[target_feature(enable = "popcnt")]
+                unsafe fn sse2_pclmulqdq_popcnt $($fn)*
+                #[target_feature(enable = "sse2")]
+                #[target_feature(enable = "pclmulqdq")]
+                unsafe fn sse2_pclmulqdq $($fn)*
+                #[target_feature(enable = "sse2")]
+                #[target_feature(enable = "popcnt")]
+                unsafe fn sse2_popcnt $($fn)*
+                #[target_feature(enable = "sse2")]
+                unsafe fn sse2 $($fn)*
+                fn nosimd $($fn)*
 
-        // SAFETY: depends on the provided SimdConfig, which cannot be incorrectly constructed.
-        unsafe {
-            match simd.dispatch_tag() {
-                $crate::classification::simd::AVX2_PCLMULQDQ_POPCNT => avx2_pclmulqdq_popcnt($($arg),*),
-                $crate::classification::simd::SSSE3_PCLMULQDQ_POPCNT => ssse3_pclmulqdq_popcnt($($arg),*),
-                $crate::classification::simd::SSSE3_PCLMULQDQ => ssse3_pclmulqdq($($arg),*),
-                $crate::classification::simd::SSSE3_POPCNT => ssse3_popcnt($($arg),*),
-                $crate::classification::simd::SSSE3 => ssse3($($arg),*),
-                $crate::classification::simd::SSE2_PCLMULQDQ_POPCNT => sse2_pclmulqdq_popcnt($($arg),*),
-                $crate::classification::simd::SSE2_PCLMULQDQ => sse2_pclmulqdq($($arg),*),
-                $crate::classification::simd::SSE2_POPCNT => sse2_popcnt($($arg),*),
-                $crate::classification::simd::SSE2 => sse2($($arg),*),
-                _ => nosimd($($arg),*),
-            }
+                let simd = $simd;
+
+                // SAFETY: depends on the provided SimdConfig, which cannot be incorrectly constructed.
+                unsafe {
+                    match simd.dispatch_tag() {
+                        $crate::classification::simd::AVX2_PCLMULQDQ_POPCNT => avx2_pclmulqdq_popcnt($($arg),*),
+                        $crate::classification::simd::SSSE3_PCLMULQDQ_POPCNT => ssse3_pclmulqdq_popcnt($($arg),*),
+                        $crate::classification::simd::SSSE3_PCLMULQDQ => ssse3_pclmulqdq($($arg),*),
+                        $crate::classification::simd::SSSE3_POPCNT => ssse3_popcnt($($arg),*),
+                        $crate::classification::simd::SSSE3 => ssse3($($arg),*),
+                        $crate::classification::simd::SSE2_PCLMULQDQ_POPCNT => sse2_pclmulqdq_popcnt($($arg),*),
+                        $crate::classification::simd::SSE2_PCLMULQDQ => sse2_pclmulqdq($($arg),*),
+                        $crate::classification::simd::SSE2_POPCNT => sse2_popcnt($($arg),*),
+                        $crate::classification::simd::SSE2 => sse2($($arg),*),
+                        _ => nosimd($($arg),*),
+                    }
+                }
+            }};
         }
-    }};
+    }
+    else {
+        macro_rules! dispatch_simd {
+            ($simd:expr; $( $arg:expr ),* => fn $( $fn:tt )*) => {{
+                fn nosimd $($fn)*
+                nosimd($($arg),*)
+            }};
+        }
+    }
 }
 
 cfg_if! {
