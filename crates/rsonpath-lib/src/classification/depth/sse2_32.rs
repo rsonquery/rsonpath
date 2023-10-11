@@ -11,7 +11,7 @@ use std::marker::PhantomData;
 const SIZE: usize = 32;
 
 shared::depth_classifier!(
-    Ssse3VectorIterator32,
+    Sse2VectorIterator32,
     DelimiterClassifierImpl128,
     DepthVector32,
     32,

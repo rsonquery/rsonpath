@@ -13,7 +13,7 @@ pub(crate) unsafe fn slash_mask() -> __m128i {
     _mm_set1_epi8(b'\\' as i8)
 }
 
-#[target_feature(enable = "ssse3")]
+#[target_feature(enable = "sse2")]
 pub(crate) unsafe fn classify_block(block: &[u8]) -> BlockClassification128 {
     let byte_vector = _mm_loadu_si128(block.as_ptr().cast::<__m128i>());
 

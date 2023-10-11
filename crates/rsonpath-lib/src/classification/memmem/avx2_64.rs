@@ -53,7 +53,7 @@ where
         Self { input, iter }
     }
 
-    #[target_feature(enable = "avx2")]
+    #[inline(always)]
     unsafe fn find_empty(
         &mut self,
         label: &JsonString,
@@ -89,7 +89,7 @@ where
     // Here we want to detect the pattern `"c"`
     // For interblock communication we need to bit of information that requires extra work to get obtained.
     // one for the block cut being `"` and `c"` and one for `"c` and `"`. We only deal with one of them.
-    #[target_feature(enable = "avx2")]
+    #[inline(always)]
     unsafe fn find_letter(
         &mut self,
         label: &JsonString,
@@ -119,8 +119,7 @@ where
         Ok(None)
     }
 
-    #[target_feature(enable = "avx2")]
-    #[inline]
+    #[inline(always)]
     unsafe fn find_label_avx2(
         &mut self,
         label: &JsonString,
@@ -163,7 +162,7 @@ where
     R: InputRecorder<I::Block<'i, SIZE>>,
     'i: 'r,
 {
-    // Output the relative offsets
+    #[inline(always)]
     fn find_label(
         &mut self,
         first_block: Option<I::Block<'i, SIZE>>,

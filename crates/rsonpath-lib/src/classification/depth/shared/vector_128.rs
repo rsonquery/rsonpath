@@ -20,16 +20,19 @@ impl DelimiterClassifierImpl128 {
     }
 
     #[target_feature(enable = "sse2")]
+    #[inline]
     unsafe fn opening_mask(&self) -> __m128i {
         _mm_set1_epi8(self.opening)
     }
 
     #[target_feature(enable = "sse2")]
+    #[inline]
     unsafe fn closing_mask(&self) -> __m128i {
         _mm_set1_epi8(self.opening + 2)
     }
 
     #[target_feature(enable = "sse2")]
+    #[inline]
     pub(crate) unsafe fn get_opening_and_closing_masks(&self, bytes: &[u8]) -> (u16, u16) {
         assert_eq!(16, bytes.len());
         // SAFETY: target_feature invariant

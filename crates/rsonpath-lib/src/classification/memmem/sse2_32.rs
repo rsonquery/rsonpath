@@ -12,7 +12,7 @@ const SIZE: usize = 32;
 pub(crate) struct Constructor;
 
 impl MemmemImpl for Constructor {
-    type Classifier<'i, 'b, 'r, I, R> = Ssse3MemmemClassifier32<'i, 'b, 'r, I, R>
+    type Classifier<'i, 'b, 'r, I, R> = Sse2MemmemClassifier32<'i, 'b, 'r, I, R>
     where
         I: Input + 'i,
         <I as Input>::BlockIterator<'i, 'r, BLOCK_SIZE, R>: 'b,
@@ -32,7 +32,7 @@ impl MemmemImpl for Constructor {
     }
 }
 
-pub(crate) struct Ssse3MemmemClassifier32<'i, 'b, 'r, I, R>
+pub(crate) struct Sse2MemmemClassifier32<'i, 'b, 'r, I, R>
 where
     I: Input,
     R: InputRecorder<I::Block<'i, SIZE>> + 'r,
@@ -41,7 +41,7 @@ where
     iter: &'b mut I::BlockIterator<'i, 'r, SIZE, R>,
 }
 
-impl<'i, 'b, 'r, I, R> Ssse3MemmemClassifier32<'i, 'b, 'r, I, R>
+impl<'i, 'b, 'r, I, R> Sse2MemmemClassifier32<'i, 'b, 'r, I, R>
 where
     I: Input,
     R: InputRecorder<I::Block<'i, SIZE>>,
@@ -157,7 +157,7 @@ where
     }
 }
 
-impl<'i, 'b, 'r, I, R> Memmem<'i, 'b, 'r, I, SIZE> for Ssse3MemmemClassifier32<'i, 'b, 'r, I, R>
+impl<'i, 'b, 'r, I, R> Memmem<'i, 'b, 'r, I, SIZE> for Sse2MemmemClassifier32<'i, 'b, 'r, I, R>
 where
     I: Input,
     R: InputRecorder<I::Block<'i, SIZE>>,

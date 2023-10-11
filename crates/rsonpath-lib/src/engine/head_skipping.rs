@@ -6,14 +6,14 @@ use crate::{
         mask::Mask,
         memmem::Memmem,
         quotes::{InnerIter, QuoteClassifiedIterator, ResumedQuoteClassifier},
-        simd::{dispatch, Simd},
+        simd::{dispatch_simd, Simd},
         structural::{BracketType, Structural, StructuralIterator},
         ResumeClassifierBlockState, ResumeClassifierState,
     },
     debug,
     depth::Depth,
     engine::EngineError,
-    input::{Input, InputBlockIterator},
+    input::{error::InputError, Input, InputBlockIterator},
     query::{
         automaton::{Automaton, State},
         JsonString,
@@ -123,7 +123,15 @@ impl<'b, 'q, I: Input, V: Simd> HeadSkip<'b, 'q, I, V, BLOCK_SIZE> {
         E: CanHeadSkip<'b, 'r, I, R, V>,
         R: Recorder<I::Block<'b, BLOCK_SIZE>> + 'r,
     {
-        dispatch!(self.simd => self, engine => {
+        dispatch_simd!(self.simd; self, engine =>
+        fn<'b, 'q, 'r, I, V, E, R>(head_skip: &HeadSkip<'b, 'q, I, V, BLOCK_SIZE>, engine: &mut E) -> Result<(), EngineError>
+        where
+            'b: 'r,
+            E: CanHeadSkip<'b, 'r, I, R, V>,
+            R: Recorder<I::Block<'b, BLOCK_SIZE>> + 'r,
+            I: Input,
+            V: Simd
+        {
             let mut input_iter = head_skip.bytes.iter_blocks(engine.recorder());
             let mut idx = 0;
             let mut first_block = None;
@@ -174,7 +182,7 @@ impl<'b, 'q, I: Input, V: Simd> HeadSkip<'b, 'q, I, V, BLOCK_SIZE> {
                             // has to happen before we advance one more byte, or else the opening character might be lost
                             // in the output (if it happens at a block boundary).
                             if next_c == b'{' || next_c == b'[' {
-                                classifier_state.forward_to(next_idx)?;
+                                forward_to(&mut classifier_state, next_idx)?;
                                 if head_skip.is_accepting {
                                     engine.recorder().record_match(
                                         next_idx,
@@ -182,9 +190,9 @@ impl<'b, 'q, I: Input, V: Simd> HeadSkip<'b, 'q, I, V, BLOCK_SIZE> {
                                         crate::result::MatchedNodeType::Complex,
                                     )?;
                                 }
-                                classifier_state.forward_to(next_idx + 1)?;
+                                forward_to(&mut classifier_state, next_idx + 1)?;
                             } else {
-                                classifier_state.forward_to(next_idx)?;
+                                forward_to(&mut classifier_state, next_idx)?;
                             };
 
                             // We now have the block where we want and we ran quote classification, but during the `forward_to`
@@ -254,11 +262,70 @@ impl<'b, 'q, I: Input, V: Simd> HeadSkip<'b, 'q, I, V, BLOCK_SIZE> {
                 }
             }
 
-            Ok(())
-        } => fn<'b, 'q, 'r, I: Input, V: Simd, E, R>(head_skip: &HeadSkip<'b, 'q, I, V, BLOCK_SIZE>, engine: &mut E) -> Result<(), EngineError>
+            return Ok(());
+
+            /// Move the state forward to `index`.
+            ///
+            /// # Errors
+            /// If the offset crosses block boundaries, then a new block is read from the underlying
+            /// [`Input`](crate::input::Input) implementation, which can fail.
+            ///
+            /// # Panics
+            /// If the `index` is not ahead of the current position of the state ([`get_idx`](ResumeClassifierState::get_idx)).
+            #[inline(always)]
+            #[allow(clippy::panic_in_result_fn)]
+            fn forward_to<'i, I, Q, M, const N: usize>(state: &mut ResumeClassifierState<'i, I, Q, M, N>, index: usize) -> Result<(), InputError>
             where
-                'b: 'r,
-                E: CanHeadSkip<'b, 'r, I, R, V>,
-                R: Recorder<I::Block<'b, BLOCK_SIZE>> + 'r,)
+                I: InputBlockIterator<'i, N>,
+                Q: QuoteClassifiedIterator<'i, I, M, N>,
+            {
+                let current_block_start = state.iter.get_offset();
+                let current_block_idx = state.block.as_ref().map_or(0, |b| b.idx);
+                let current_idx = current_block_start + current_block_idx;
+
+                debug!(
+                    "Calling forward_to({index}) when the inner iter offset is {current_block_start} and block idx is {current_block_idx:?}"
+                );
+
+                // We want to move by this much forward, and delta > 0.
+                assert!(index > current_idx);
+                let delta = index - current_idx;
+
+                // First we virtually pretend to move *backward*, setting the index of the current block to zero,
+                // and adjust the delta to cover that distance. This makes calculations simpler.
+                // Then we need to skip zero or more blocks and set our self.block to the last one we visit.
+                let remaining = delta + current_block_idx;
+                let blocks_to_skip = remaining / N;
+                let remainder = remaining % N;
+
+                match state.block.as_mut() {
+                    Some(b) if blocks_to_skip == 0 => {
+                        b.idx = remaining;
+                    }
+                    Some(_) => {
+                        state.block = state
+                            .iter
+                            .offset(blocks_to_skip as isize)?
+                            .map(|b| ResumeClassifierBlockState {
+                                block: b,
+                                idx: remainder,
+                            });
+                    }
+                    None => {
+                        state.block = state
+                            .iter
+                            .offset((blocks_to_skip + 1) as isize)?
+                            .map(|b| ResumeClassifierBlockState {
+                                block: b,
+                                idx: remainder,
+                            });
+                    }
+                }
+
+                debug!("forward_to({index}) results in idx moved to {}", state.get_idx());
+
+                Ok(())
+            }
+        })
     }
 }

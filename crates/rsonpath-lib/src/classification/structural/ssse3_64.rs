@@ -11,13 +11,13 @@ use crate::{
     FallibleIterator,
 };
 
-super::shared::structural_classifier!(Ssse3Classifier64, BlockSsse3Classifier64, mask_64, 64, u64);
+super::shared::structural_classifier!(Ssse3Classifier64, BlockSse2Classifier64, mask_64, 64, u64);
 
-struct BlockSsse3Classifier64 {
+struct BlockSse2Classifier64 {
     internal_classifier: vector_128::BlockClassifier128,
 }
 
-impl BlockSsse3Classifier64 {
+impl BlockSse2Classifier64 {
     fn new() -> Self {
         Self {
             // SAFETY: target feature invariant

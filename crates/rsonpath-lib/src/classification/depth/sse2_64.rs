@@ -11,14 +11,14 @@ use std::marker::PhantomData;
 const SIZE: usize = 64;
 
 shared::depth_classifier!(
-    Ssse3VectorIterator64,
+    Sse2VectorIterator64,
     DelimiterClassifierImpl128,
     DepthVector64,
     64,
     u64
 );
 
-#[inline]
+#[inline(always)]
 fn new_vector<'a, B: InputBlock<'a, SIZE>>(
     bytes: QuoteClassifiedBlock<B, u64, SIZE>,
     classifier: &DelimiterClassifierImpl128,
@@ -26,7 +26,7 @@ fn new_vector<'a, B: InputBlock<'a, SIZE>>(
     new_vector_from(bytes, classifier, 0)
 }
 
-#[inline]
+#[inline(always)]
 fn new_vector_from<'a, B: InputBlock<'a, SIZE>>(
     bytes: QuoteClassifiedBlock<B, u64, SIZE>,
     classifier: &DelimiterClassifierImpl128,
@@ -36,9 +36,7 @@ fn new_vector_from<'a, B: InputBlock<'a, SIZE>>(
     unsafe { new_sse2(bytes, classifier, idx) }
 }
 
-#[target_feature(enable = "sse2")]
-#[target_feature(enable = "popcnt")]
-#[inline]
+#[inline(always)]
 unsafe fn new_sse2<'a, B: InputBlock<'a, SIZE>>(
     bytes: QuoteClassifiedBlock<B, u64, SIZE>,
     classifier: &DelimiterClassifierImpl128,

@@ -63,6 +63,7 @@ macro_rules! depth_classifier {
         {
             type Block = $vector<'a, I::Block>;
 
+            #[inline(always)]
             fn stop(self, block: Option<Self::Block>) -> ResumeClassifierState<'a, I, Q, $mask_ty, $size> {
                 let block_state = block.and_then(|b| {
                     let idx = b.idx;
@@ -85,6 +86,7 @@ macro_rules! depth_classifier {
                 }
             }
 
+            #[inline(always)]
             fn resume(
                 state: ResumeClassifierState<'a, I, Q, $mask_ty, $size>,
                 opening: BracketType,

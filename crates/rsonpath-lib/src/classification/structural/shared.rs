@@ -109,6 +109,7 @@ macro_rules! structural_classifier {
             I: InputBlockIterator<'a, $size>,
             Q: QuoteClassifiedIterator<'a, I, $mask_ty, $size>,
         {
+            #[inline(always)]
             fn turn_colons_and_commas_on(&mut self, idx: usize) {
                 if !self.are_commas_on && !self.are_colons_on {
                     self.are_commas_on = true;
@@ -125,6 +126,7 @@ macro_rules! structural_classifier {
                 }
             }
 
+            #[inline(always)]
             fn turn_colons_and_commas_off(&mut self) {
                 if self.are_commas_on && self.are_colons_on {
                     self.are_commas_on = false;
@@ -139,6 +141,7 @@ macro_rules! structural_classifier {
                 }
             }
 
+            #[inline(always)]
             fn turn_commas_on(&mut self, idx: usize) {
                 if !self.are_commas_on {
                     self.are_commas_on = true;
@@ -150,6 +153,7 @@ macro_rules! structural_classifier {
                 }
             }
 
+            #[inline(always)]
             fn turn_commas_off(&mut self) {
                 if self.are_commas_on {
                     self.are_commas_on = false;
@@ -159,6 +163,7 @@ macro_rules! structural_classifier {
                 }
             }
 
+            #[inline(always)]
             fn turn_colons_on(&mut self, idx: usize) {
                 if !self.are_colons_on {
                     self.are_colons_on = true;
@@ -170,6 +175,7 @@ macro_rules! structural_classifier {
                 }
             }
 
+            #[inline(always)]
             fn turn_colons_off(&mut self) {
                 if self.are_colons_on {
                     self.are_colons_on = false;
@@ -179,6 +185,7 @@ macro_rules! structural_classifier {
                 }
             }
 
+            #[inline(always)]
             fn stop(self) -> ResumeClassifierState<'a, I, Q, $mask_ty, $size> {
                 let block = self.block.map(|b| ResumeClassifierBlockState {
                     idx: b.get_idx() as usize,
@@ -193,6 +200,7 @@ macro_rules! structural_classifier {
                 }
             }
 
+            #[inline(always)]
             fn resume(state: ResumeClassifierState<'a, I, Q, $mask_ty, $size>) -> Self {
                 let mut classifier = $core::new();
 

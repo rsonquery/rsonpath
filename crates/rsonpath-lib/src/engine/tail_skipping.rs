@@ -3,7 +3,7 @@ use crate::{
     classification::{
         depth::{DepthBlock, DepthIterator, DepthIteratorResumeOutcome},
         quotes::QuoteClassifiedIterator,
-        simd::{dispatch, Simd},
+        simd::{dispatch_simd, Simd},
         structural::{BracketType, StructuralIterator},
         ResumeClassifierState,
     },
@@ -34,7 +34,14 @@ where
     }
 
     pub(crate) fn skip(&mut self, opening: BracketType) -> Result<usize, EngineError> {
-        dispatch!(self.simd => self, opening => {
+        dispatch_simd!(self.simd; self, opening =>
+        fn <'i, I, V>(
+            tail_skip: &mut TailSkip<'i, I, V::QuotesClassifier<'i, I>, V::StructuralClassifier<'i, I>, V, BLOCK_SIZE>,
+            opening: BracketType) -> Result<usize, EngineError>
+        where
+            I: InputBlockIterator<'i, BLOCK_SIZE>,
+            V: Simd
+        {
             debug!("Skipping");
             let mut idx = 0;
             let mut err = None;
@@ -97,12 +104,7 @@ where
             } else {
                 Ok(idx)
             }
-        } => fn <'i, I, V>(
-            tail_skip: &mut TailSkip<'i, I, V::QuotesClassifier<'i, I>, V::StructuralClassifier<'i, I>, V, BLOCK_SIZE>,
-            opening: BracketType) -> Result<usize, EngineError> 
-            where 
-                I: InputBlockIterator<'i, BLOCK_SIZE>,
-                V: Simd)
+        })
     }
 
     pub(crate) fn stop(self) -> ResumeClassifierState<'i, I, V::QuotesClassifier<'i, I>, MaskType, BLOCK_SIZE> {

@@ -12,7 +12,7 @@ const SIZE: usize = 64;
 pub(crate) struct Constructor;
 
 impl MemmemImpl for Constructor {
-    type Classifier<'i, 'b, 'r, I, R> = Ssse3MemmemClassifier64<'i, 'b, 'r, I, R>
+    type Classifier<'i, 'b, 'r, I, R> = Sse2MemmemClassifier64<'i, 'b, 'r, I, R>
     where
         I: Input + 'i,
         <I as Input>::BlockIterator<'i, 'r, BLOCK_SIZE, R>: 'b,
@@ -32,7 +32,7 @@ impl MemmemImpl for Constructor {
     }
 }
 
-pub(crate) struct Ssse3MemmemClassifier64<'i, 'b, 'r, I, R>
+pub(crate) struct Sse2MemmemClassifier64<'i, 'b, 'r, I, R>
 where
     I: Input,
     R: InputRecorder<I::Block<'i, SIZE>> + 'r,
@@ -41,7 +41,7 @@ where
     iter: &'b mut I::BlockIterator<'i, 'r, SIZE, R>,
 }
 
-impl<'i, 'b, 'r, I, R> Ssse3MemmemClassifier64<'i, 'b, 'r, I, R>
+impl<'i, 'b, 'r, I, R> Sse2MemmemClassifier64<'i, 'b, 'r, I, R>
 where
     I: Input,
     R: InputRecorder<I::Block<'i, SIZE>>,
@@ -53,7 +53,7 @@ where
         Self { input, iter }
     }
 
-    #[target_feature(enable = "sse2")]
+    #[inline(always)]
     unsafe fn find_empty(
         &mut self,
         label: &JsonString,
@@ -101,7 +101,7 @@ where
     // Here we want to detect the pattern `"c"`
     // For interblock communication we need to bit of information that requires extra work to get obtained.
     // one for the block cut being `"` and `c"` and one for `"c` and `"`. We only deal with one of them.
-    #[target_feature(enable = "sse2")]
+    #[inline(always)]
     unsafe fn find_letter(
         &mut self,
         label: &JsonString,
@@ -143,8 +143,7 @@ where
         Ok(None)
     }
 
-    #[target_feature(enable = "sse2")]
-    #[inline]
+    #[inline(always)]
     unsafe fn find_label_sse2(
         &mut self,
         label: &JsonString,
@@ -193,13 +192,13 @@ where
     }
 }
 
-impl<'i, 'b, 'r, I, R> Memmem<'i, 'b, 'r, I, SIZE> for Ssse3MemmemClassifier64<'i, 'b, 'r, I, R>
+impl<'i, 'b, 'r, I, R> Memmem<'i, 'b, 'r, I, SIZE> for Sse2MemmemClassifier64<'i, 'b, 'r, I, R>
 where
     I: Input,
     R: InputRecorder<I::Block<'i, SIZE>>,
     'i: 'r,
 {
-    // Output the relative offsets
+    #[inline(always)]
     fn find_label(
         &mut self,
         first_block: Option<I::Block<'i, SIZE>>,

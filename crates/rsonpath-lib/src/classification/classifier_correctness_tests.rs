@@ -9,12 +9,12 @@ use crate::{
     FallibleIterator,
 };
 
-use super::simd::simd_dispatch;
+use super::simd::config_simd;
 
 fn classify_string(json: &str) -> Vec<Structural> {
     let simd = simd::configure();
 
-    simd_dispatch!(simd => |simd| {
+    config_simd!(simd => |simd| {
         let json_string = json.to_owned();
         let bytes = OwnedBytes::try_from(json_string).unwrap();
         let iter = bytes.iter_blocks(&EmptyRecorder);

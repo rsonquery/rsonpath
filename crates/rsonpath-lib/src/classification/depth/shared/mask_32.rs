@@ -26,12 +26,6 @@ pub(crate) struct DepthVector32<'a, B: InputBlock<'a, SIZE>> {
     pub(crate) phantom: PhantomData<&'a ()>,
 }
 
-#[target_feature(enable = "popcnt")]
-#[inline]
-unsafe fn popcnt(mask: u32) -> i32 {
-    mask.count_ones() as i32
-}
-
 impl<'a, B: InputBlock<'a, SIZE>> DepthBlock<'a> for DepthVector32<'a, B> {
     #[inline(always)]
     fn advance_to_next_depth_decrease(&mut self) -> bool {
@@ -52,7 +46,7 @@ impl<'a, B: InputBlock<'a, SIZE>> DepthBlock<'a> for DepthVector32<'a, B> {
         bin_u32!("new opening_mask", self.opening_mask);
         bin_u32!("new closing_mask", self.closing_mask);
 
-        let new_opening_count = unsafe { popcnt(self.opening_mask) };
+        let new_opening_count = self.opening_mask.count_ones() as i32;
         let delta = (self.opening_count as i32) - new_opening_count - 1;
         self.opening_count = new_opening_count as u32;
 
@@ -73,7 +67,7 @@ impl<'a, B: InputBlock<'a, SIZE>> DepthBlock<'a> for DepthVector32<'a, B> {
 
     #[inline(always)]
     fn depth_at_end(&self) -> isize {
-        (((self.opening_count as i32) - unsafe { popcnt(self.closing_mask) }) + self.depth) as isize
+        (((self.opening_count as i32) - self.closing_mask.count_ones() as i32) + self.depth) as isize
     }
 
     #[inline(always)]
@@ -83,6 +77,6 @@ impl<'a, B: InputBlock<'a, SIZE>> DepthBlock<'a> for DepthVector32<'a, B> {
 
     #[inline(always)]
     fn estimate_lowest_possible_depth(&self) -> isize {
-        (self.depth - unsafe { popcnt(self.closing_mask) }) as isize
+        (self.depth - self.closing_mask.count_ones() as i32) as isize
     }
 }
