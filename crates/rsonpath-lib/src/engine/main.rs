@@ -529,6 +529,7 @@ where
         Ok(())
     }
 
+    #[inline(always)]
     fn transition_to(&mut self, target: State, opening: BracketType) {
         let target_is_list = opening == BracketType::Square;
 
