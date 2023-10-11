@@ -218,7 +218,7 @@ use cfg_if::cfg_if;
 use std::{fmt::Display, marker::PhantomData};
 
 /// All SIMD capabilities of the engine and classifier types.
-pub trait Simd: Copy {
+pub(crate) trait Simd: Copy {
     /// The implementation of [`QuoteClassifiedIterator`] of this SIMD configuration.
     type QuotesClassifier<'i, I>: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE> + InnerIter<I>
     where
@@ -466,7 +466,7 @@ where
 
 /// SIMD extension recognized by rsonpath.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub enum SimdTag {
+pub(crate) enum SimdTag {
     /// No SIMD capabilities detected.
     Nosimd,
     /// SSE2 detected.
@@ -479,14 +479,14 @@ pub enum SimdTag {
 
 /// Runtime-detected SIMD configuration guiding how to construct a [`Simd`] implementation for the engine.
 #[derive(Clone, Copy)]
-pub struct SimdConfiguration {
+pub(crate) struct SimdConfiguration {
     highest_simd: SimdTag,
     fast_quotes: bool,
     fast_popcnt: bool,
 }
 
 /// Name of the env variable that can be used to force a given [`SimdConfiguration`] to be used.
-pub const SIMD_OVERRIDE_ENV_VARIABLE: &str = "RSONPATH_UNSAFE_FORCE_SIMD";
+pub(crate) const SIMD_OVERRIDE_ENV_VARIABLE: &str = "RSONPATH_UNSAFE_FORCE_SIMD";
 
 impl SimdConfiguration {
     pub(crate) fn highest_simd(&self) -> SimdTag {
@@ -551,7 +551,7 @@ impl SimdConfiguration {
 /// SIMD configuration, an immediate panic is raised.
 #[inline]
 #[must_use]
-pub fn configure() -> SimdConfiguration {
+pub(crate) fn configure() -> SimdConfiguration {
     if let Ok(simd) = std::env::var(SIMD_OVERRIDE_ENV_VARIABLE) {
         #[allow(clippy::expect_used)] // This is already an unsafe override, not expected to be used by users.
         return SimdConfiguration::try_parse(&simd).expect("invalid simd configuration override");

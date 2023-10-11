@@ -18,8 +18,10 @@ pub mod depth;
 pub(crate) mod mask;
 pub mod memmem;
 pub mod quotes;
-pub mod simd;
+pub(crate) mod simd;
 pub mod structural;
+
+use std::fmt::Display;
 
 use crate::{debug, input::InputBlockIterator};
 use quotes::{QuoteClassifiedBlock, QuoteClassifiedIterator};
@@ -67,4 +69,13 @@ where
 
         self.iter.get_offset() + self.block.as_ref().map_or(0, |b| b.idx)
     }
+}
+
+/// Get a human-readable description of SIMD capabilities supported by rsonpath
+/// on the current machine.
+#[doc(hidden)]
+#[inline]
+#[must_use]
+pub fn describe_simd() -> impl Display {
+    simd::configure()
 }

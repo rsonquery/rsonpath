@@ -5,7 +5,7 @@ static LONG_VERSION: OnceLock<String> = OnceLock::new();
 pub fn get_long_version() -> &'static str {
     LONG_VERSION.get_or_init(|| {
         let mut res = env!("CARGO_PKG_VERSION").to_owned();
-        let simd = rsonpath_lib::classification::simd::configure();
+        let simd = rsonpath_lib::classification::describe_simd();
         let details = [
             ("Commit SHA:", env!("VERGEN_GIT_SHA")),
             ("Features:", env!("VERGEN_CARGO_FEATURES")),
