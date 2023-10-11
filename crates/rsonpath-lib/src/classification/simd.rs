@@ -816,6 +816,7 @@ cfg_if! {
                                 $crate::classification::quotes::avx2_32::Constructor,
                                 $crate::classification::structural::avx2_32::Constructor,
                                 $crate::classification::depth::avx2_32::Constructor,
+                                $crate::classification::memmem::avx2_32::Constructor,
                                 {$crate::classification::simd::AVX2_PCLMULQDQ_POPCNT},
                             >::new();
                             $b
@@ -939,7 +940,7 @@ cfg_if! {
                     $crate::classification::structural::nosimd::Constructor,
                     $crate::classification::depth::nosimd::Constructor,
                     $crate::classification::memmem::nosimd::Constructor,
-                    $crate::classification::simd::NOSIMD,
+                    {$crate::classification::simd::NOSIMD},
                 >::new();
                 $b
             };
