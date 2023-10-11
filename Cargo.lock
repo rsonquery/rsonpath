@@ -855,7 +855,10 @@ name = "rsonpath-test"
 version = "0.8.3"
 dependencies = [
  "eyre",
+ "glob",
  "md5",
+ "pretty_assertions",
+ "rsonpath-lib",
  "rsonpath-test-codegen",
 ]
 

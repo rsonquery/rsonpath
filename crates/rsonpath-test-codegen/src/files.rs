@@ -4,9 +4,11 @@
 //! so we pass around a [`Files`] context that can register those requests. Then the file writing
 //! is performed all at once at the end of the generation.
 use crate::{
+    gen,
     model::{self, ConfigurationError},
-    DiscoveredDocument,
+    DiscoveredDocument, DocumentName,
 };
+use proc_macro2::TokenStream;
 use std::{
     collections::HashMap,
     error::Error,
@@ -24,8 +26,9 @@ struct FileToWrite {
 /// Filesystem context.
 pub(crate) struct Files {
     json_dir: PathBuf,
+    test_dir: PathBuf,
     toml_dir: PathBuf,
-    toml_documents: HashMap<String, DiscoveredDocument>,
+    toml_documents: HashMap<DocumentName, DiscoveredDocument>,
     file_buf: Vec<FileToWrite>,
 }
 
@@ -46,7 +49,11 @@ impl Stats {
 
 impl Files {
     /// Create a new context that can read and write files to the TOML and JSON dirs.
-    pub(crate) fn new<P1: AsRef<Path>, P2: AsRef<Path>>(json_dir: P1, toml_dir: P2) -> Result<Self, CombinedError> {
+    pub(crate) fn new<P1: AsRef<Path>, P2: AsRef<Path>, P3: AsRef<Path>>(
+        json_dir: P1,
+        toml_dir: P2,
+        test_dir: P3,
+    ) -> Result<Self, CombinedError> {
         let all_document_files = get_document_files(toml_dir.as_ref());
         let discovery = all_document_files
             .into_iter()
@@ -71,6 +78,7 @@ impl Files {
         } else {
             Ok(Self {
                 json_dir: json_dir.as_ref().to_path_buf(),
+                test_dir: test_dir.as_ref().to_path_buf(),
                 toml_dir: toml_dir.as_ref().to_path_buf(),
                 toml_documents: oks,
                 file_buf: vec![],
@@ -155,11 +163,33 @@ impl Files {
         new_path
     }
 
+    /// Register a generated group of tests for a single document.
+    pub(crate) fn add_test_group(&mut self, test_group: &gen::DocumentTestGroup) {
+        let mut directory_name = test_group.name.file_path();
+        directory_name.set_extension("");
+
+        for query_group in &test_group.query_test_groups {
+            let file_name = query_group.name.clone() + ".rs";
+            let file_path = Path::join(&directory_name, file_name);
+            self.add_rust_file(file_path, &query_group.source);
+        }
+    }
+
+    pub(crate) fn add_rust_file<P: AsRef<Path>>(&mut self, relative_path: P, source: &TokenStream) {
+        let directory_path = Path::join(&self.test_dir, relative_path.as_ref());
+        let source = format!("{}", source).replace("\r\n", "\n");
+
+        self.file_buf.push(FileToWrite {
+            full_path: directory_path,
+            contents: source,
+        })
+    }
+
     /// Register a TOML file to write that is a version of an existing TOML file but with compressed input.
     pub(crate) fn add_compressed_document<P: AsRef<Path>>(
         &mut self,
         relative_path: P,
-        name: &str,
+        name: &DocumentName,
         compressed_doc: model::Document,
     ) -> PathBuf {
         let file_name = relative_path
@@ -168,6 +198,7 @@ impl Files {
             .expect("toml document must have a file name");
         let new_dir_path = self.compressed_toml_dir();
         let new_path = Path::join(&new_dir_path, file_name);
+        let new_name = name.as_compressed();
 
         self.file_buf.push(FileToWrite {
             full_path: new_path.clone(),
@@ -175,7 +206,7 @@ impl Files {
         });
         let new_doc = DiscoveredDocument {
             document: compressed_doc,
-            name: format!("compressed/{}", name),
+            name: new_name,
             relative_path: new_path.clone(),
         };
         self.toml_documents.insert(new_doc.name.clone(), new_doc);
@@ -213,7 +244,7 @@ fn read_document<P1: AsRef<Path>, P2: AsRef<Path>>(
     base_dir: P1,
     f: P2,
 ) -> Result<DiscoveredDocument, ConfigurationError> {
-    let file_name = f.as_ref().file_name().unwrap().to_string_lossy();
+    let file_name = f.as_ref().file_stem().unwrap().to_string_lossy();
     let contents = fs::read_to_string(f.as_ref()).unwrap();
 
     let document: model::Document = model::deserialize(contents)?;
@@ -225,9 +256,9 @@ fn read_document<P1: AsRef<Path>, P2: AsRef<Path>>(
         .to_owned();
 
     let name = if document.input.is_compressed {
-        format!("compressed/{}", file_name)
+        DocumentName::compressed(file_name)
     } else {
-        file_name.to_string()
+        DocumentName::uncompressed(file_name)
     };
 
     Ok(DiscoveredDocument {
