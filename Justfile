@@ -100,7 +100,7 @@ test-classifier:
 
 # Run the main engine end-to-end tests on default features.
 test-engine: (gen-tests)
-    cargo test --test end_to_end -q
+    cargo test -p rsonpath-test --tests -q
 
 # Run the input tests on default features.
 test-input:
@@ -118,16 +118,16 @@ test-full: (gen-tests)
 
 # Run E2E engine tests on all combinations of SIMD features for x86 platforms.
 test-x86-simd:
-    RSONPATH_UNSAFE_FORCE_SIMD="avx2;fast_quotes;fast_popcnt" cargo test --test end_to_end -q
-    RSONPATH_UNSAFE_FORCE_SIMD="ssse3;fast_quotes;fast_popcnt" cargo test --test end_to_end -q
-    RSONPATH_UNSAFE_FORCE_SIMD="ssse3;fast_quotes;slow_popcnt" cargo test --test end_to_end -q
-    RSONPATH_UNSAFE_FORCE_SIMD="ssse3;slow_quotes;fast_popcnt" cargo test --test end_to_end -q
-    RSONPATH_UNSAFE_FORCE_SIMD="ssse3;slow_quotes;slow_popcnt" cargo test --test end_to_end -q
-    RSONPATH_UNSAFE_FORCE_SIMD="sse2;fast_quotes;fast_popcnt" cargo test --test end_to_end -q
-    RSONPATH_UNSAFE_FORCE_SIMD="sse2;fast_quotes;slow_popcnt" cargo test --test end_to_end -q
-    RSONPATH_UNSAFE_FORCE_SIMD="sse2;slow_quotes;fast_popcnt" cargo test --test end_to_end -q
-    RSONPATH_UNSAFE_FORCE_SIMD="sse2;slow_quotes;slow_popcnt" cargo test --test end_to_end -q
-    RSONPATH_UNSAFE_FORCE_SIMD="nosimd;slow_quotes;slow_popcnt" cargo test --test end_to_end -q
+    RSONPATH_UNSAFE_FORCE_SIMD="avx2;fast_quotes;fast_popcnt" cargo test -p rsonpath-test --tests -q
+    RSONPATH_UNSAFE_FORCE_SIMD="ssse3;fast_quotes;fast_popcnt" cargo test -p rsonpath-test --tests -q
+    RSONPATH_UNSAFE_FORCE_SIMD="ssse3;fast_quotes;slow_popcnt" cargo test -p rsonpath-test --tests -q
+    RSONPATH_UNSAFE_FORCE_SIMD="ssse3;slow_quotes;fast_popcnt" cargo test -p rsonpath-test --tests -q
+    RSONPATH_UNSAFE_FORCE_SIMD="ssse3;slow_quotes;slow_popcnt" cargo test -p rsonpath-test --tests -q
+    RSONPATH_UNSAFE_FORCE_SIMD="sse2;fast_quotes;fast_popcnt" cargo test -p rsonpath-test --tests -q
+    RSONPATH_UNSAFE_FORCE_SIMD="sse2;fast_quotes;slow_popcnt" cargo test -p rsonpath-test --tests -q
+    RSONPATH_UNSAFE_FORCE_SIMD="sse2;slow_quotes;fast_popcnt" cargo test -p rsonpath-test --tests -q
+    RSONPATH_UNSAFE_FORCE_SIMD="sse2;slow_quotes;slow_popcnt" cargo test -p rsonpath-test --tests -q
+    RSONPATH_UNSAFE_FORCE_SIMD="nosimd;slow_quotes;slow_popcnt" cargo test -p rsonpath-test --tests -q
 
 # Run doctests on the library.
 test-doc:
