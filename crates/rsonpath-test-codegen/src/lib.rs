@@ -49,8 +49,6 @@
 
 use crate::files::Files;
 use files::CombinedError;
-use proc_macro2::TokenStream;
-use quote::quote;
 use std::{
     error::Error,
     fmt::Display,
@@ -67,28 +65,84 @@ mod model;
 #[derive(Debug, Clone)]
 pub(crate) struct DiscoveredDocument {
     /// Name of the file.
-    pub(crate) name: String,
+    pub(crate) name: DocumentName,
     /// Path relative to the source TOML directory.
     pub(crate) relative_path: PathBuf,
     /// Parsed TOML document.
     pub(crate) document: model::Document,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub(crate) struct DocumentName {
+    name: String,
+    is_compressed: bool,
+}
+
+impl DocumentName {
+    pub(crate) fn compressed<S: AsRef<str>>(name: S) -> Self {
+        Self {
+            name: name.as_ref().to_string(),
+            is_compressed: true,
+        }
+    }
+
+    pub(crate) fn uncompressed<S: AsRef<str>>(name: S) -> Self {
+        Self {
+            name: name.as_ref().to_string(),
+            is_compressed: false,
+        }
+    }
+
+    pub(crate) fn as_compressed(&self) -> Self {
+        assert!(!self.is_compressed);
+        Self {
+            name: self.name.clone(),
+            is_compressed: true,
+        }
+    }
+
+    pub(crate) fn simple_name(&self) -> String {
+        self.name.clone()
+    }
+
+    pub(crate) fn file_path(&self) -> PathBuf {
+        let mut s = PathBuf::from(&self.name);
+        s.set_extension("toml");
+
+        if self.is_compressed {
+            Path::join(&PathBuf::from("compressed"), s)
+        }
+        else {
+            s
+        }
+    }
+
+    pub(crate) fn is_compressed(&self) -> bool {
+        self.is_compressed
+    }
+}
+
 /// Generate the source of end-to-end tests based on the TOML configuration in `toml_directory_path`.
 /// As a side-effect, JSON files are written to `output_json_directory_path`, and additional variants
 /// with compressed inputs of TOML configs are generated.
-pub fn generate_tests<P1, P2>(
+pub fn generate_tests<P1, P2, P3>(
     toml_directory_path: P1,
     output_json_directory_path: P2,
-) -> Result<TokenStream, TestGenError>
+    output_test_directory_path: P3,
+) -> Result<(), TestGenError>
 where
     P1: AsRef<Path>,
     P2: AsRef<Path>,
+    P3: AsRef<Path>,
 {
     println!("discovery...");
 
     let discovery_start = Instant::now();
-    let mut files = Files::new(output_json_directory_path, toml_directory_path)?;
+    let mut files = Files::new(
+        output_json_directory_path,
+        toml_directory_path,
+        output_test_directory_path,
+    )?;
 
     println!("generating compressed variants...");
 
@@ -106,17 +160,12 @@ where
 
     println!("generating tests...");
 
-    let imports = gen::generate_imports();
-    let sources = gen::generate_test_fns(&mut files)?.into_iter();
+    gen::generate_test_fns(&mut files)?;
 
     println!("writing files...");
     files.flush()?;
 
-    Ok(quote! {
-        #imports
-
-        #(#sources)*
-    })
+    Ok(())
 }
 
 /// Wrapper implementing [`Display`] for [`Duration`] which shows the duration in seconds.

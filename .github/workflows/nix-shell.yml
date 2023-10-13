@@ -26,5 +26,9 @@ jobs:
       - uses: rrbutani/use-nix-shell-action@59a52b2b9bbfe3cc0e7deb8f9059abe37a439edf # v1.1.0
         with:
           file: shell.nix
+      - name: Add Nightly
+        run: rustup toolchain install nightly-x86_64-unknown-linux-gnu
+      - name: Add Rustup
+        run: rustup component add rustfmt --toolchain nightly-x86_64-unknown-linux-gnu
       - name: Build
         run: just build

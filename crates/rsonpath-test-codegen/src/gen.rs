@@ -1,14 +1,26 @@
 //! Main codegen logic, creating all test functions from TOML documents.
-use crate::{files::Files, model};
+use crate::{files::Files, model, DocumentName};
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
 use std::{fmt::Display, io, path::Path};
 
+pub(crate) struct DocumentTestGroup {
+    pub(crate) name: DocumentName,
+    pub(crate) query_test_groups: Vec<QueryTestGroup>,
+}
+
+pub(crate) struct QueryTestGroup {
+    pub(crate) name: String,
+    pub(crate) source: TokenStream,
+}
+
 /// Generate the source file and register all required files.
-pub(crate) fn generate_test_fns(files: &mut Files) -> Result<impl IntoIterator<Item = TokenStream>, io::Error> {
-    let mut fns = vec![];
+pub(crate) fn generate_test_fns(files: &mut Files) -> Result<(), io::Error> {
     // Clone the collection, since we need to mutate the files.
     let docs = files.documents().into_iter().cloned().collect::<Vec<_>>();
+    let imports = generate_imports();
+    let mut compressed_mod = vec![];
+    let mut tests_mod = vec![];
     for discovered_doc in docs {
         // The input JSON either already exists when large_file is used, or needs to be generated if it is inline.
         let input_json = match &discovered_doc.document.input.source {
@@ -16,7 +28,10 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> Result<impl IntoIterator<I
             model::InputSource::JsonString(contents) => files.add_json_source(&discovered_doc, contents.clone()),
         };
         // For each query generate cases using each combination of input mode, result type, and engine type.
+        let mut query_test_groups = vec![];
+        let mut group_mod = vec![];
         for query in &discovered_doc.document.queries {
+            let mut fns = vec![];
             for input_type in [InputTypeToTest::Owned, InputTypeToTest::Buffered, InputTypeToTest::Mmap] {
                 for result_type in get_available_results(&discovered_doc.document.input.source, query)? {
                     let fn_name = format_ident!(
@@ -33,7 +48,7 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> Result<impl IntoIterator<I
                     );
                     let full_description = format!(
                         r#"on document {} running the query {} ({}) with Input impl {} and result mode {}"#,
-                        escape_format(&discovered_doc.name),
+                        escape_format(&discovered_doc.name.simple_name()),
                         escape_format(&query.query),
                         escape_format(&query.description),
                         escape_format(&input_type),
@@ -58,12 +73,56 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> Result<impl IntoIterator<I
                     fns.push((fn_name, r#fn));
                 }
             }
+            fns.sort_by(|x, y| x.0.cmp(&y.0));
+            let sources = fns.into_iter().map(|x| x.1);
+            let src = quote! {
+                #imports
+
+                #(#sources)*
+            };
+            let name = format_ident!("{}", escape_test_name(&query.description).to_string());
+            group_mod.push(quote! {
+                mod #name;
+            });
+            query_test_groups.push(QueryTestGroup {
+                name: escape_test_name(&query.description).to_string(),
+                source: src,
+            });
         }
+
+        let doc_name = &discovered_doc.name;
+        let mod_name = format_ident!("{}", doc_name.simple_name());
+        let mod_tokens = quote! {
+            mod #mod_name {
+                #(#group_mod)*
+            }
+        };
+
+        if doc_name.is_compressed() {
+            compressed_mod.push(mod_tokens);
+        } else {
+            tests_mod.push(mod_tokens);
+        }
+
+        files.add_test_group(&DocumentTestGroup {
+            name: discovered_doc.name,
+            query_test_groups,
+        });
     }
 
-    fns.sort_by(|x, y| x.0.cmp(&y.0));
+    tests_mod.push(quote! {
+        mod compressed {
+            #(#compressed_mod)*
+        }
+    });
+    let tests_source = quote! {
+        #![allow(non_snake_case)]
+        #(#tests_mod)*
+    };
 
-    return Ok(fns.into_iter().map(|x| x.1));
+    files.add_rust_file("tests.rs", &tests_source);
+
+    return Ok(());
 
     fn generate_body<P: AsRef<Path>>(
         full_description: &str,
@@ -257,11 +316,7 @@ fn get_available_results(input: &model::InputSource, query: &model::Query) -> Re
                     end += 1
                 }
 
-                let upper_bound = if end == b.len() {
-                    None
-                } else {
-                    Some(end)
-                };
+                let upper_bound = if end == b.len() { None } else { Some(end) };
 
                 model::ResultApproximateSpan {
                     start: span.start,
@@ -283,6 +338,7 @@ pub(crate) fn generate_imports() -> TokenStream {
         use pretty_assertions::assert_eq;
         use std::error::Error;
         use std::fs;
+        #[allow(unused_imports)]
         use std::str;
     }
 }
@@ -356,4 +412,24 @@ where
 {
     let s = val.to_string();
     s.replace('{', "{{").replace('}', "}}")
+}
+
+fn escape_test_name<D>(val: &D) -> impl Display
+where
+    D: Display,
+{
+    let s = val.to_string();
+    let mut res = String::new();
+    let mut was_prev_underscore = false;
+
+    for c in s.chars() {
+        let c = if c == '_' || c.is_alphanumeric() { c } else { '_' };
+
+        if c != '_' || !was_prev_underscore {
+            res.push(c);
+        }
+        was_prev_underscore = c == '_';
+    }
+
+    res
 }

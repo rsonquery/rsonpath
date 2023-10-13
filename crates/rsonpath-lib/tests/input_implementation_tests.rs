@@ -8,7 +8,7 @@ use std::{cmp, fs, iter};
 use std::{fs::File, io::Read};
 use test_case::test_case;
 
-const ROOT_TEST_DIRECTORY: &str = "tests/documents/json/large";
+const ROOT_TEST_DIRECTORY: &str = "../rsonpath-test/documents/json/large";
 const BLOCK_SIZE: usize = 64;
 
 macro_rules! file_test_cases {
