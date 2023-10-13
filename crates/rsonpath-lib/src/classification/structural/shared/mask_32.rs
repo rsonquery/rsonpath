@@ -34,7 +34,7 @@ impl<B> StructuralsBlock<B> {
 impl<B: Deref<Target = [u8]>> Iterator for StructuralsBlock<B> {
     type Item = Structural;
 
-    #[inline]
+    #[inline(always)]
     fn next(&mut self) -> Option<Structural> {
         let idx = self.get_idx() as usize;
         (idx < SIZE).then(|| {

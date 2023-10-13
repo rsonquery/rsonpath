@@ -205,7 +205,7 @@ pub(crate) trait StructuralImpl {
 mod tests {
     use super::*;
     use crate::{
-        classification::simd::{self, simd_dispatch, Simd},
+        classification::simd::{self, config_simd, Simd},
         input::{Input, OwnedBytes},
         result::empty::EmptyRecorder,
     };
@@ -216,7 +216,7 @@ mod tests {
         use Structural::*;
 
         let simd = simd::configure();
-        simd_dispatch!(simd => |simd| {
+        config_simd!(simd => |simd| {
             let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
             let json_string = json.to_owned();
             let input = OwnedBytes::new(&json_string).unwrap();
@@ -243,7 +243,7 @@ mod tests {
         use Structural::*;
 
         let simd = simd::configure();
-        simd_dispatch!(simd => |simd| {
+        config_simd!(simd => |simd| {
             let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
             let json_string = json.to_owned();
             let input = OwnedBytes::new(&json_string).unwrap();
@@ -274,7 +274,7 @@ mod tests {
         use Structural::*;
 
         let simd = simd::configure();
-        simd_dispatch!(simd => |simd| {
+        config_simd!(simd => |simd| {
             let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
             let json_string = json.to_owned();
             let input = OwnedBytes::new(&json_string).unwrap();
@@ -305,7 +305,7 @@ mod tests {
         use Structural::*;
 
         let simd = simd::configure();
-        simd_dispatch!(simd => |simd| {
+        config_simd!(simd => |simd| {
             let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
             let json_string = json.to_owned();
             let input = OwnedBytes::new(&json_string).unwrap();

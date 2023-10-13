@@ -7,7 +7,7 @@
 #![allow(clippy::type_complexity)] // The private Classifier type is very complex, but we specifically macro it out.
 use crate::{
     classification::{
-        simd::{self, simd_dispatch, Simd, SimdConfiguration},
+        simd::{self, config_simd, dispatch_simd, Simd, SimdConfiguration},
         structural::{BracketType, Structural, StructuralIterator},
     },
     debug,
@@ -74,7 +74,7 @@ impl Engine for MainEngine<'_> {
             return empty_query::count(input);
         }
 
-        simd_dispatch!(self.simd => |simd| {
+        config_simd!(self.simd => |simd| {
             let executor = query_executor(&self.automaton, input, &recorder, simd);
             executor.run()?;
         });
@@ -94,7 +94,7 @@ impl Engine for MainEngine<'_> {
             return empty_query::index(input, sink);
         }
 
-        simd_dispatch!(self.simd => |simd| {
+        config_simd!(self.simd => |simd| {
             let executor = query_executor(&self.automaton, input, &recorder, simd);
             executor.run()?;
         });
@@ -114,7 +114,7 @@ impl Engine for MainEngine<'_> {
             return empty_query::approx_span(input, sink);
         }
 
-        simd_dispatch!(self.simd => |simd| {
+        config_simd!(self.simd => |simd| {
             let executor = query_executor(&self.automaton, input, &recorder, simd);
             executor.run()?;
         });
@@ -134,7 +134,7 @@ impl Engine for MainEngine<'_> {
             return empty_query::match_(input, sink);
         }
 
-        simd_dispatch!(self.simd => |simd| {
+        config_simd!(self.simd => |simd| {
             let executor = query_executor(&self.automaton, input, &recorder, simd);
             executor.run()?;
         });
@@ -224,40 +224,49 @@ where
     }
 
     fn run_on_subtree(&mut self, classifier: &mut Classifier!()) -> Result<(), EngineError> {
-        loop {
-            if self.next_event.is_none() {
-                self.next_event = match classifier.next() {
-                    Ok(e) => e,
-                    Err(err) => return Err(EngineError::InputError(err)),
-                };
-            }
-            if let Some(event) = self.next_event {
-                debug!("====================");
-                debug!("Event = {:?}", event);
-                debug!("Depth = {:?}", self.depth);
-                debug!("Stack = {:?}", self.stack);
-                debug!("State = {:?}", self.state);
-                debug!("====================");
+        dispatch_simd!(self.simd; self, classifier =>
+        fn<'i, 'q, 'r, I, R, V>(eng: &mut Executor<'i, 'q, 'r, I, R, V>, classifier: &mut Classifier!()) -> Result<(), EngineError>
+        where
+            'i: 'r,
+            I: Input,
+            R: Recorder<I::Block<'i, BLOCK_SIZE>>,
+            V: Simd
+        {
+            loop {
+                if eng.next_event.is_none() {
+                    eng.next_event = match classifier.next() {
+                        Ok(e) => e,
+                        Err(err) => return Err(EngineError::InputError(err)),
+                    };
+                }
+                if let Some(event) = eng.next_event {
+                    debug!("====================");
+                    debug!("Event = {:?}", event);
+                    debug!("Depth = {:?}", eng.depth);
+                    debug!("Stack = {:?}", eng.stack);
+                    debug!("State = {:?}", eng.state);
+                    debug!("====================");
 
-                self.next_event = None;
-                match event {
-                    Structural::Colon(idx) => self.handle_colon(classifier, idx)?,
-                    Structural::Comma(idx) => self.handle_comma(classifier, idx)?,
-                    Structural::Opening(b, idx) => self.handle_opening(classifier, b, idx)?,
-                    Structural::Closing(_, idx) => {
-                        self.handle_closing(classifier, idx)?;
+                    eng.next_event = None;
+                    match event {
+                        Structural::Colon(idx) => eng.handle_colon(classifier, idx)?,
+                        Structural::Comma(idx) => eng.handle_comma(classifier, idx)?,
+                        Structural::Opening(b, idx) => eng.handle_opening(classifier, b, idx)?,
+                        Structural::Closing(_, idx) => {
+                            eng.handle_closing(classifier, idx)?;
 
-                        if self.depth == Depth::ZERO {
-                            break;
+                            if eng.depth == Depth::ZERO {
+                                break;
+                            }
                         }
                     }
+                } else {
+                    break;
                 }
-            } else {
-                break;
             }
-        }
 
-        Ok(())
+            Ok(())
+        })
     }
 
     fn record_match_detected_at(&mut self, start_idx: usize, hint: NodeTypeHint) -> Result<(), EngineError> {
@@ -520,6 +529,7 @@ where
         Ok(())
     }
 
+    #[inline(always)]
     fn transition_to(&mut self, target: State, opening: BracketType) {
         let target_is_list = opening == BracketType::Square;
 

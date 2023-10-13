@@ -11,13 +11,13 @@ use crate::{
     FallibleIterator,
 };
 
-super::shared::structural_classifier!(Ssse3Classifier32, BlockSsse3Classifier32, mask_32, 32, u32);
+super::shared::structural_classifier!(Ssse3Classifier32, BlockSse2Classifier32, mask_32, 32, u32);
 
-struct BlockSsse3Classifier32 {
+struct BlockSse2Classifier32 {
     internal_classifier: vector_128::BlockClassifier128,
 }
 
-impl BlockSsse3Classifier32 {
+impl BlockSse2Classifier32 {
     #[inline]
     fn new() -> Self {
         Self {
@@ -26,8 +26,7 @@ impl BlockSsse3Classifier32 {
         }
     }
 
-    #[target_feature(enable = "ssse3")]
-    #[inline]
+    #[inline(always)]
     unsafe fn classify<'i, B: InputBlock<'i, 32>>(
         &mut self,
         quote_classified_block: QuoteClassifiedBlock<B, u32, 32>,

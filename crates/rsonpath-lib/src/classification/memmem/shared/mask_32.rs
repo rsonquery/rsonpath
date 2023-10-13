@@ -1,5 +1,6 @@
 use crate::{input::Input, query::JsonString};
 
+#[inline(always)]
 pub(crate) fn find_in_mask<I: Input>(
     input: &I,
     label: &JsonString,

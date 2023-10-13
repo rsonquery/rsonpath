@@ -3,7 +3,7 @@ use crate::{
     classification::{
         depth::{DepthBlock, DepthIterator, DepthIteratorResumeOutcome},
         quotes::QuoteClassifiedIterator,
-        simd::Simd,
+        simd::{dispatch_simd, Simd},
         structural::{BracketType, StructuralIterator},
         ResumeClassifierState,
     },
@@ -34,68 +34,77 @@ where
     }
 
     pub(crate) fn skip(&mut self, opening: BracketType) -> Result<usize, EngineError> {
-        debug!("Skipping");
-        let mut idx = 0;
-        let mut err = None;
+        dispatch_simd!(self.simd; self, opening =>
+        fn <'i, I, V>(
+            tail_skip: &mut TailSkip<'i, I, V::QuotesClassifier<'i, I>, V::StructuralClassifier<'i, I>, V, BLOCK_SIZE>,
+            opening: BracketType) -> Result<usize, EngineError>
+        where
+            I: InputBlockIterator<'i, BLOCK_SIZE>,
+            V: Simd
+        {
+            debug!("Skipping");
+            let mut idx = 0;
+            let mut err = None;
 
-        let classifier = self.classifier.take().expect("tail skip must always hold a classifier");
+            let classifier = tail_skip.classifier.take().expect("tail skip must always hold a classifier");
 
-        self.classifier = Some('a: {
-            let resume_state = classifier.stop();
-            let DepthIteratorResumeOutcome(first_vector, mut depth_classifier) =
-                self.simd.resume_depth_classification(resume_state, opening);
+            tail_skip.classifier = Some('a: {
+                let resume_state = classifier.stop();
+                let DepthIteratorResumeOutcome(first_vector, mut depth_classifier) =
+                tail_skip.simd.resume_depth_classification(resume_state, opening);
 
-            let mut current_vector = match first_vector {
-                Some(v) => Some(v),
-                None => match depth_classifier.next() {
-                    Ok(v) => v,
-                    Err(e) => {
-                        err = Some(e);
-                        let resume_state = depth_classifier.stop(None);
-                        break 'a self.simd.resume_structural_classification(resume_state);
-                    }
-                },
-            };
-            let mut current_depth = 1;
+                let mut current_vector = match first_vector {
+                    Some(v) => Some(v),
+                    None => match depth_classifier.next() {
+                        Ok(v) => v,
+                        Err(e) => {
+                            err = Some(e);
+                            let resume_state = depth_classifier.stop(None);
+                            break 'a tail_skip.simd.resume_structural_classification(resume_state);
+                        }
+                    },
+                };
+                let mut current_depth = 1;
 
-            'outer: while let Some(ref mut vector) = current_vector {
-                vector.add_depth(current_depth);
+                'outer: while let Some(ref mut vector) = current_vector {
+                    vector.add_depth(current_depth);
 
-                debug!("Fetched vector, current depth is {current_depth}");
-                debug!("Estimate: {}", vector.estimate_lowest_possible_depth());
+                    debug!("Fetched vector, current depth is {current_depth}");
+                    debug!("Estimate: {}", vector.estimate_lowest_possible_depth());
 
-                if vector.estimate_lowest_possible_depth() <= 0 {
-                    while vector.advance_to_next_depth_decrease() {
-                        if vector.get_depth() == 0 {
-                            debug!("Encountered depth 0, breaking.");
-                            break 'outer;
+                    if vector.estimate_lowest_possible_depth() <= 0 {
+                        while vector.advance_to_next_depth_decrease() {
+                            if vector.get_depth() == 0 {
+                                debug!("Encountered depth 0, breaking.");
+                                break 'outer;
+                            }
                         }
                     }
+
+                    current_depth = vector.depth_at_end();
+                    current_vector = match depth_classifier.next() {
+                        Ok(v) => v,
+                        Err(e) => {
+                            err = Some(e);
+                            let resume_state = depth_classifier.stop(None);
+                            break 'a tail_skip.simd.resume_structural_classification(resume_state);
+                        }
+                    };
                 }
 
-                current_depth = vector.depth_at_end();
-                current_vector = match depth_classifier.next() {
-                    Ok(v) => v,
-                    Err(e) => {
-                        err = Some(e);
-                        let resume_state = depth_classifier.stop(None);
-                        break 'a self.simd.resume_structural_classification(resume_state);
-                    }
-                };
+                debug!("Skipping complete, resuming structural classification.");
+                let resume_state = depth_classifier.stop(current_vector);
+                debug!("Finished at {}", resume_state.get_idx());
+                idx = resume_state.get_idx();
+                tail_skip.simd.resume_structural_classification(resume_state)
+            });
+
+            if let Some(err) = err {
+                Err(err.into())
+            } else {
+                Ok(idx)
             }
-
-            debug!("Skipping complete, resuming structural classification.");
-            let resume_state = depth_classifier.stop(current_vector);
-            debug!("Finished at {}", resume_state.get_idx());
-            idx = resume_state.get_idx();
-            self.simd.resume_structural_classification(resume_state)
-        });
-
-        if let Some(err) = err {
-            Err(err.into())
-        } else {
-            Ok(idx)
-        }
+        })
     }
 
     pub(crate) fn stop(self) -> ResumeClassifierState<'i, I, V::QuotesClassifier<'i, I>, MaskType, BLOCK_SIZE> {

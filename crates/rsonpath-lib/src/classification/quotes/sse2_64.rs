@@ -11,19 +11,20 @@ use crate::{
 };
 use std::marker::PhantomData;
 
-super::shared::quote_classifier!(Ssse3QuoteClassifier64, BlockSsse3Classifier, 64, u64);
+super::shared::quote_classifier!(Sse2QuoteClassifier64, BlockSse2Classifier, 64, u64);
 
-struct BlockSsse3Classifier {
+struct BlockSse2Classifier {
     internal_classifier: mask_64::BlockClassifier64Bit,
 }
 
-impl BlockSsse3Classifier {
+impl BlockSse2Classifier {
     fn new() -> Self {
         Self {
             internal_classifier: mask_64::BlockClassifier64Bit::new(),
         }
     }
 
+    #[inline(always)]
     unsafe fn classify<'a, B: InputBlock<'a, 64>>(&mut self, blocks: &B) -> u64 {
         block!(blocks[..64]);
 
@@ -53,7 +54,7 @@ impl BlockSsse3Classifier {
 
 #[cfg(all(test, cfg = "ssse3_64"))]
 mod tests {
-    use super::Ssse3QuoteClassifier64;
+    use super::Sse2QuoteClassifier64;
     use crate::{
         input::{Input, OwnedBytes},
         result::empty::EmptyRecorder,
@@ -72,7 +73,7 @@ mod tests {
         let owned_str = str.to_owned();
         let input = OwnedBytes::new(&owned_str).unwrap();
         let iter = input.iter_blocks::<_, 64>(&EmptyRecorder);
-        let mut classifier = Ssse3QuoteClassifier64::new(iter);
+        let mut classifier = Sse2QuoteClassifier64::new(iter);
         classifier.next().unwrap().map(|x| x.within_quotes_mask)
     }
 }

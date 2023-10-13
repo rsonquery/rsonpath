@@ -18,13 +18,12 @@ pub mod depth;
 pub(crate) mod mask;
 pub mod memmem;
 pub mod quotes;
-pub mod simd;
+pub(crate) mod simd;
 pub mod structural;
 
-use crate::{
-    debug,
-    input::{error::InputError, InputBlockIterator},
-};
+use std::fmt::Display;
+
+use crate::{debug, input::InputBlockIterator};
 use quotes::{QuoteClassifiedBlock, QuoteClassifiedIterator};
 
 /// State allowing resumption of a classifier from a particular place
@@ -61,7 +60,7 @@ where
 {
     /// Get the index in the original bytes input at which classification has stopped.
     #[inline(always)]
-    pub fn get_idx(&self) -> usize {
+    pub(crate) fn get_idx(&self) -> usize {
         debug!(
             "iter offset: {}, block idx: {:?}",
             self.iter.get_offset(),
@@ -70,63 +69,13 @@ where
 
         self.iter.get_offset() + self.block.as_ref().map_or(0, |b| b.idx)
     }
+}
 
-    /// Move the state forward to `index`.
-    ///
-    /// # Errors
-    /// If the offset crosses block boundaries, then a new block is read from the underlying
-    /// [`Input`](crate::input::Input) implementation, which can fail.
-    ///
-    /// # Panics
-    /// If the `index` is not ahead of the current position of the state ([`get_idx`](ResumeClassifierState::get_idx)).
-    #[inline]
-    #[allow(clippy::panic_in_result_fn)]
-    pub fn forward_to(&mut self, index: usize) -> Result<(), InputError> {
-        let current_block_start = self.iter.get_offset();
-        let current_block_idx = self.block.as_ref().map_or(0, |b| b.idx);
-        let current_idx = current_block_start + current_block_idx;
-
-        debug!(
-            "Calling forward_to({index}) when the inner iter offset is {current_block_start} and block idx is {current_block_idx:?}"
-        );
-
-        // We want to move by this much forward, and delta > 0.
-        assert!(index > current_idx);
-        let delta = index - current_idx;
-
-        // First we virtually pretend to move *backward*, setting the index of the current block to zero,
-        // and adjust the delta to cover that distance. This makes calculations simpler.
-        // Then we need to skip zero or more blocks and set our self.block to the last one we visit.
-        let remaining = delta + current_block_idx;
-        let blocks_to_skip = remaining / N;
-        let remainder = remaining % N;
-
-        match self.block.as_mut() {
-            Some(b) if blocks_to_skip == 0 => {
-                b.idx = remaining;
-            }
-            Some(_) => {
-                self.block = self
-                    .iter
-                    .offset(blocks_to_skip as isize)?
-                    .map(|b| ResumeClassifierBlockState {
-                        block: b,
-                        idx: remainder,
-                    });
-            }
-            None => {
-                self.block = self
-                    .iter
-                    .offset((blocks_to_skip + 1) as isize)?
-                    .map(|b| ResumeClassifierBlockState {
-                        block: b,
-                        idx: remainder,
-                    });
-            }
-        }
-
-        debug!("forward_to({index}) results in idx moved to {}", self.get_idx());
-
-        Ok(())
-    }
+/// Get a human-readable description of SIMD capabilities supported by rsonpath
+/// on the current machine.
+#[doc(hidden)]
+#[inline]
+#[must_use]
+pub fn describe_simd() -> impl Display {
+    simd::configure()
 }

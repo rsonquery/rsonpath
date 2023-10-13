@@ -12,7 +12,7 @@ const SIZE: usize = 64;
 
 shared::depth_classifier!(Avx2VectorIterator64, DelimiterClassifierImpl256, DepthVector64, 64, u64);
 
-#[inline]
+#[inline(always)]
 fn new_vector<'a, B: InputBlock<'a, SIZE>>(
     bytes: QuoteClassifiedBlock<B, u64, SIZE>,
     classifier: &DelimiterClassifierImpl256,
@@ -20,7 +20,7 @@ fn new_vector<'a, B: InputBlock<'a, SIZE>>(
     new_vector_from(bytes, classifier, 0)
 }
 
-#[inline]
+#[inline(always)]
 fn new_vector_from<'a, B: InputBlock<'a, SIZE>>(
     bytes: QuoteClassifiedBlock<B, u64, SIZE>,
     classifier: &DelimiterClassifierImpl256,
@@ -30,9 +30,7 @@ fn new_vector_from<'a, B: InputBlock<'a, SIZE>>(
     unsafe { new_avx2(bytes, classifier, idx) }
 }
 
-#[target_feature(enable = "avx2")]
-#[target_feature(enable = "popcnt")]
-#[inline]
+#[inline(always)]
 unsafe fn new_avx2<'a, B: InputBlock<'a, SIZE>>(
     bytes: QuoteClassifiedBlock<B, u64, SIZE>,
     classifier: &DelimiterClassifierImpl256,

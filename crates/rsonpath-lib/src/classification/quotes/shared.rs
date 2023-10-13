@@ -75,6 +75,7 @@ macro_rules! quote_classifier {
             type Item = QuoteClassifiedBlock<I::Block, $mask_ty, $size>;
             type Error = InputError;
 
+            #[inline(always)]
             fn next(&mut self) -> Result<Option<Self::Item>, Self::Error> {
                 match self.iter.next()? {
                     Some(block) => {
@@ -95,10 +96,12 @@ macro_rules! quote_classifier {
         where
             I: InputBlockIterator<'i, $size>,
         {
+            #[inline(always)]
             fn get_offset(&self) -> usize {
                 self.iter.get_offset() - $size
             }
 
+            #[inline(always)]
             fn offset(&mut self, count: isize) -> QuoteIterResult<I::Block, $mask_ty, $size> {
                 debug_assert!(count > 0);
                 debug!("Offsetting by {count}");
@@ -110,6 +113,7 @@ macro_rules! quote_classifier {
                 self.next()
             }
 
+            #[inline(always)]
             fn flip_quotes_bit(&mut self) {
                 self.classifier.internal_classifier.flip_prev_quote_mask();
             }
