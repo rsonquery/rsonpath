@@ -16,7 +16,7 @@ rust-version = "1.70.0"
 publish = false
 
 [dependencies]
-serde = { version = "1.0.188", features = ["derive"] }
+serde = { version = "1.0.189", features = ["derive"] }
 toml = "0.8.0"
 proc-macro2 = "1.0.66"
 quote = "1.0.33"
