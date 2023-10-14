@@ -21,7 +21,7 @@ toml = "0.8.0"
 proc-macro2 = "1.0.66"
 quote = "1.0.33"
 heck = { version = "0.4.1", features = ["unicode"] }
-walkdir = "2.3.3"
+walkdir = "2.4.0"
 
 [dev-dependencies]
 pretty_assertions = "1.4.0"
