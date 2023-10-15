@@ -1,4 +1,4 @@
-FROM gcr.io/oss-fuzz-base/base-builder-rust:v1@sha256:51593bf0c908e3d7912d4ea7cd89dc885882eaab0015a8a672f463957f1a9048
+FROM gcr.io/oss-fuzz-base/base-builder-rust:v1@sha256:c53b58ef6497d118c98cf920a63db950fcab182ea0c58ad6d7166dbcfdcacd31
 RUN apt-get update && apt-get install -y make autoconf automake libtool
 COPY . $SRC/rsonpath
 WORKDIR $SRC/rsonpath
