@@ -521,7 +521,7 @@ where
         }
 
         if !self.is_list && self.automaton.has_transition_to_accepting(self.state) {
-            classifier.turn_colons_on(idx);
+            classifier.turn_colons_and_commas_on(idx);
         } else {
             classifier.turn_colons_off();
         }

@@ -54,6 +54,7 @@ build-all profile="dev": (build-lib profile) (build-bin profile) (gen-tests)
 doc $RUSTDOCFLAGS="--cfg docsrs":
     cargo +nightly doc --open --package rsonpath-lib --all-features -Z rustdoc-scrape-examples
 
+# Run the codegen for rsonpath-test, generating the E2E tests and JSONs.
 gen-tests:
     RSONPATH_ENABLE_TEST_CODEGEN=1 cargo build --package rsonpath-test
 
@@ -96,7 +97,7 @@ test-unit:
 
 # Run the classifier tests on default features.
 test-classifier:
-    cargo test --test classifier_correctness_tests -q
+    cargo test -p rsonpath-lib classifier_correctness -q
 
 # Run the main engine end-to-end tests on default features.
 test-engine: (gen-tests)
@@ -104,11 +105,11 @@ test-engine: (gen-tests)
 
 # Run the input tests on default features.
 test-input:
-    cargo test --test input_implementation_tests -q
+    cargo test --test input_implementation -q
 
 # Run the query tests on default features.
 test-parser:
-    cargo test --test query_parser_tests -q
+    cargo test --test query_parser -q
 
 # Run all tests, including real dataset tests, on the feature powerset of the project.
 test-full: (gen-tests)
@@ -146,15 +147,15 @@ test-book:
 
 @add-test name:
     f=`echo {{name}} | sed s/-/_/g` && \
-        cp ./crates/rsonpath-lib/tests/documents/toml/test_template_inline.toml ./crates/rsonpath-lib/tests/documents/toml/$f.toml && \
-        echo "Test template initialised at crates/rsonpath-lib/tests/documents/toml/$f.toml"
+        cp ./crates/rsonpath-test/documents/toml/test_template_inline.toml ./crates/rsonpath-test/documents/toml/$f.toml && \
+        echo "Test template initialised at crates/rsonpath-test/documents/toml/$f.toml"
 
 @add-test-large name:
     f=`echo {{name}} | sed s/-/_/g` && \
-        cp ./crates/rsonpath-lib/tests/documents/toml/test_template_large.toml ./crates/rsonpath-lib/tests/documents/toml/$f.toml && \
-        echo "Test template initialised at crates/rsonpath-lib/tests/documents/toml/$f.toml" && \
-        echo "{}" > ./crates/rsonpath-lib/tests/documents/json/large/$f.json && \
-        echo "Put your large JSON document as contents of crates/rsonpath-lib/tests/documents/json/large/$f.json"
+        cp ./crates/rsonpath-test/documents/toml/test_template_large.toml ./crates/rsonpath-test/documents/toml/$f.toml && \
+        echo "Test template initialised at crates/rsonpath-test/documents/toml/$f.toml" && \
+        echo "{}" > ./crates/rsonpath-test/documents/json/large/$f.json && \
+        echo "Put your large JSON document as contents of crates/rsonpath-test/documents/json/large/$f.json"
 
 # === INSTALL ===
 
