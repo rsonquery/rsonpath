@@ -14,6 +14,15 @@ updates:
       - V0ldek
     commit-message:
       prefix: "dep:"
+    groups:
+      dev-deps:
+        dependency-type: development
+      deps:
+        dependency-type: production
+        update-types:
+          - patch
+          - minor
+
   - package-ecosystem: cargo
     directory: /crates/rsonpath-test-codegen
     schedule:
@@ -23,6 +32,9 @@ updates:
       - V0ldek
     commit-message:
       prefix: "chore(dep):"
+    groups:
+      test-deps:
+
   - package-ecosystem: cargo
     directory: /crates/rsonpath-test
     schedule:
@@ -32,6 +44,9 @@ updates:
       - V0ldek
     commit-message:
       prefix: "chore(dep):"
+    groups:
+      test-deps:
+
   - package-ecosystem: cargo
     directory: /fuzz
     schedule:
@@ -41,6 +56,9 @@ updates:
       - V0ldek
     commit-message:
       prefix: "chore(dep):"
+    groups:
+      test-deps:
+
   - package-ecosystem: docker
     directory: /.clusterfuzzlite
     schedule:
@@ -50,6 +68,9 @@ updates:
       - V0ldek
     commit-message:
       prefix: "chore(ci):"
+    groups:
+      clusterfuzzlite-deps:
+
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -59,3 +80,5 @@ updates:
       - V0ldek
     commit-message:
       prefix: "chore(ci):"
+    groups:
+      ci-deps:
