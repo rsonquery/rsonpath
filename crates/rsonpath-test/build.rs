@@ -1,5 +1,5 @@
 use eyre::WrapErr;
-use std::{fs, process::Command, io::ErrorKind};
+use std::{fs, io::ErrorKind, process::Command};
 
 const TOML_DIRECTORY_PATH: &str = "documents/toml";
 const JSON_DIRECTORY_PATH: &str = "documents/json";
@@ -27,7 +27,8 @@ pub(crate) fn generate() -> eyre::Result<()> {
         Ok(_) => Ok(()),
         Err(e) if e.kind() == ErrorKind::NotFound => Ok(()),
         Err(e) => Err(e),
-    }.wrap_err("error removing earlier generated test")?;
+    }
+    .wrap_err("error removing earlier generated test")?;
     rsonpath_test_codegen::generate_tests(TOML_DIRECTORY_PATH, JSON_DIRECTORY_PATH, TEST_OUTPUT_PATH)
         .wrap_err("error generating end-to-end tests")?;
 
