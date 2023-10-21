@@ -17,6 +17,9 @@ updates:
     groups:
       dev-deps:
         dependency-type: development
+        update-types:
+          - patch
+          - minor
       deps:
         dependency-type: production
         update-types:
@@ -34,6 +37,9 @@ updates:
       prefix: "chore(dep):"
     groups:
       test-deps:
+        update-types:
+          - patch
+          - minor
 
   - package-ecosystem: cargo
     directory: /crates/rsonpath-test
@@ -46,6 +52,9 @@ updates:
       prefix: "chore(dep):"
     groups:
       test-deps:
+        update-types:
+          - patch
+          - minor
 
   - package-ecosystem: cargo
     directory: /fuzz
@@ -58,6 +67,9 @@ updates:
       prefix: "chore(dep):"
     groups:
       test-deps:
+        update-types:
+          - patch
+          - minor
 
   - package-ecosystem: docker
     directory: /.clusterfuzzlite
@@ -70,6 +82,9 @@ updates:
       prefix: "chore(ci):"
     groups:
       clusterfuzzlite-deps:
+        update-types:
+          - patch
+          - minor
 
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -82,3 +97,6 @@ updates:
       prefix: "chore(ci):"
     groups:
       ci-deps:
+        update-types:
+          - patch
+          - minor
