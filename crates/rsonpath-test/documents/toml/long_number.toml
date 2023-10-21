@@ -1,0 +1,37 @@
+# Define the JSON input for all query test cases.
+[input]
+# Short description of the input structure.
+description = "Simple object with a long number value"
+# Set to true only if your specific test input is fully compressed (no extraneous whitespace).
+is_compressed = false
+
+# Inline JSON document.
+[input.source]
+json_string = '''
+{
+    "a": {
+        "b": null
+    },
+    "c": null,
+    "d": 4571735769194290270,
+    "e": "abcdefghijklmnopqrstuvwxyz"
+}
+'''
+
+# Define queries to test on the input.
+[[queries]]
+# Valid JSONPath query string.
+query = "$..*"
+# Short descritpion of the query semantics.
+description = "select all subdocuments"
+
+[queries.results]
+# Number of expected matches.
+count = 5
+# Byte locations of spans of all matches, in order.
+spans = [[11, 36], [26, 30], [47, 51], [62, 81], [92, 120]]
+# Stringified values of all matches, verbatim as in the input,
+# in the same order as above.
+nodes = ['''{
+        "b": null
+    }''', 'null', 'null', '4571735769194290270', '"abcdefghijklmnopqrstuvwxyz"']
