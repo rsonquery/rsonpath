@@ -8,9 +8,11 @@
 //!
 //! This type of input is the fastest to process for the engine,
 //! since there is no additional overhead from loading anything to memory.
+use std::marker::PhantomData;
+
 use super::{
     error::Infallible,
-    padding::{PaddedBlock, TwoSidesPaddedInput},
+    padding::{EndPaddedInput, PaddedBlock, TwoSidesPaddedInput},
     Input, InputBlockIterator, InputError, SliceSeekable, MAX_BLOCK_SIZE,
 };
 use crate::{debug, query::JsonString, result::InputRecorder, FallibleIterator};
@@ -23,10 +25,11 @@ pub struct BorrowedBytes<'a> {
 }
 
 /// Iterator over blocks of [`BorrowedBytes`] of size exactly `N`.
-pub struct BorrowedBytesBlockIterator<'a, 'r, R, const N: usize> {
-    input: TwoSidesPaddedInput<'a>,
+pub struct BorrowedBytesBlockIterator<'a, 'r, I, R, const N: usize> {
+    input: I,
     idx: usize,
     recorder: &'r R,
+    phantom: PhantomData<&'a I>,
 }
 
 impl<'a> BorrowedBytes<'a> {
@@ -64,23 +67,24 @@ impl<'a> BorrowedBytes<'a> {
     }
 }
 
-impl<'a, 'r, R, const N: usize> BorrowedBytesBlockIterator<'a, 'r, R, N>
+impl<'a, 'r, I, R, const N: usize> BorrowedBytesBlockIterator<'a, 'r, I, R, N>
 where
     R: InputRecorder<&'a [u8]>,
 {
     #[must_use]
     #[inline(always)]
-    pub(super) fn new(input: TwoSidesPaddedInput<'a>, recorder: &'r R) -> Self {
+    pub(super) fn new(input: I, recorder: &'r R) -> Self {
         Self {
             idx: 0,
             input,
             recorder,
+            phantom: PhantomData,
         }
     }
 }
 
 impl<'a> Input for BorrowedBytes<'a> {
-    type BlockIterator<'b, 'r, R, const N: usize> = BorrowedBytesBlockIterator<'b, 'r, R, N>
+    type BlockIterator<'b, 'r, R, const N: usize> = BorrowedBytesBlockIterator<'b, 'r, TwoSidesPaddedInput<'b>, R, N>
     where Self: 'b,
           R: InputRecorder<&'b [u8]> + 'r;
 
@@ -113,6 +117,7 @@ impl<'a> Input for BorrowedBytes<'a> {
             idx: 0,
             input: padded_input,
             recorder,
+            phantom: PhantomData,
         }
     }
 
@@ -226,7 +231,8 @@ impl<'a> Input for BorrowedBytes<'a> {
     }
 }
 
-impl<'a, 'r, R, const N: usize> InputBlockIterator<'a, N> for BorrowedBytesBlockIterator<'a, 'r, R, N>
+impl<'a, 'r, R, const N: usize> InputBlockIterator<'a, N>
+    for BorrowedBytesBlockIterator<'a, 'r, TwoSidesPaddedInput<'a>, R, N>
 where
     R: InputRecorder<&'a [u8]> + 'r,
 {
@@ -247,7 +253,62 @@ where
         };
 
         #[cold]
-        fn cold_path<'a, 'r, R, const N: usize>(iter: &mut BorrowedBytesBlockIterator<'a, 'r, R, N>) -> Option<&'a [u8]>
+        fn cold_path<'a, 'r, R, const N: usize>(
+            iter: &mut BorrowedBytesBlockIterator<'a, 'r, TwoSidesPaddedInput<'a>, R, N>,
+        ) -> Option<&'a [u8]>
+        where
+            R: InputRecorder<&'a [u8]>,
+        {
+            let block = iter.input.try_slice(iter.idx, N);
+
+            if let Some(b) = block {
+                iter.recorder.record_block_start(b);
+                iter.idx += N;
+            }
+
+            block
+        }
+    }
+
+    #[inline(always)]
+    fn offset(&mut self, count: isize) {
+        assert!(count >= 0);
+        debug!("offsetting input iter by {count}");
+        self.idx += count as usize * N;
+    }
+
+    #[inline(always)]
+    fn get_offset(&self) -> usize {
+        debug!("getting input iter {}", self.idx);
+        self.idx
+    }
+}
+
+impl<'a, 'r, R, const N: usize> InputBlockIterator<'a, N>
+    for BorrowedBytesBlockIterator<'a, 'r, EndPaddedInput<'a>, R, N>
+where
+    R: InputRecorder<&'a [u8]> + 'r,
+{
+    type Block = &'a [u8];
+    type Error = Infallible;
+
+    #[inline(always)]
+    fn next(&mut self) -> Result<Option<Self::Block>, Self::Error> {
+        debug!("next!");
+        return if self.idx < self.input.middle().len() {
+            let start = self.idx;
+            let block = unsafe { self.input.middle().get_unchecked(start..start + N) };
+            self.recorder.record_block_start(block);
+            self.idx += N;
+            Ok(Some(block))
+        } else {
+            Ok(cold_path(self))
+        };
+
+        #[cold]
+        fn cold_path<'a, 'r, R, const N: usize>(
+            iter: &mut BorrowedBytesBlockIterator<'a, 'r, EndPaddedInput<'a>, R, N>,
+        ) -> Option<&'a [u8]>
         where
             R: InputRecorder<&'a [u8]>,
         {

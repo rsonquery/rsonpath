@@ -17,11 +17,11 @@
 
 use super::{
     borrowed::BorrowedBytesBlockIterator,
-    error::{InputError, Infallible},
-    padding::{PaddedBlock, TwoSidesPaddedInput},
+    error::{Infallible, InputError},
+    padding::PaddedBlock,
     Input, SliceSeekable, MAX_BLOCK_SIZE,
 };
-use crate::{query::JsonString, result::InputRecorder};
+use crate::{input::padding::EndPaddedInput, query::JsonString, result::InputRecorder};
 use memmap2::{Mmap, MmapAsRawDesc};
 
 /// Input wrapping a memory mapped file.
@@ -58,15 +58,14 @@ impl MmapInput {
         }
     }
 
-    pub(super) fn as_padded_input(&self) -> TwoSidesPaddedInput {
+    pub(super) fn as_padded_input(&self) -> EndPaddedInput {
         let middle = &self.mmap.as_ref()[..self.last_block_start];
-        todo!()
-        //TwoSidesPaddedInput::new(None, middle, &self.last_block)
+        EndPaddedInput::new(middle, &self.last_block)
     }
 }
 
 impl Input for MmapInput {
-    type BlockIterator<'a, 'r, R, const N: usize> = BorrowedBytesBlockIterator<'a, 'r, R, N>
+    type BlockIterator<'a, 'r, R, const N: usize> = BorrowedBytesBlockIterator<'a, 'r, EndPaddedInput<'a>, R, N>
     where
         R: InputRecorder<&'a [u8]> + 'r;
 
@@ -93,10 +92,9 @@ impl Input for MmapInput {
     where
         R: InputRecorder<&'a [u8]>,
     {
-        todo!()
-        //let padded_input = TwoSidesPaddedInput::new(None, &self.mmap[..self.last_block_start], &self.last_block);
+        let padded_input = EndPaddedInput::new(&self.mmap[..self.last_block_start], &self.last_block);
 
-        //BorrowedBytesBlockIterator::new(padded_input, recorder)
+        BorrowedBytesBlockIterator::new(padded_input, recorder)
     }
 
     #[inline]

@@ -1,5 +1,3 @@
-use crate::debug;
-
 use super::{SliceSeekable, MAX_BLOCK_SIZE};
 use crate::{query::JsonString, JSON_SPACE_BYTE};
 
@@ -8,7 +6,12 @@ pub(super) struct PaddedBlock {
     padding_len: usize,
 }
 
-pub(super) struct TwoSidesPaddedInput<'a> {
+pub struct EndPaddedInput<'a> {
+    middle: &'a [u8],
+    last_block: &'a PaddedBlock,
+}
+
+pub struct TwoSidesPaddedInput<'a> {
     first_block: &'a PaddedBlock,
     middle: &'a [u8],
     last_block: &'a PaddedBlock,
@@ -54,6 +57,56 @@ impl PaddedBlock {
     }
 }
 
+impl<'a> SliceSeekable for EndPaddedInput<'a> {
+    #[cold]
+    #[inline(never)]
+    fn seek_backward(&self, from: usize, needle: u8) -> Option<usize> {
+        if from < self.middle.len() {
+            self.seek_backward_from_middle(from, needle)
+        } else {
+            self.seek_backward_from_last(from, needle)
+        }
+    }
+
+    #[cold]
+    #[inline(never)]
+    fn seek_forward<const N: usize>(&self, from: usize, needles: [u8; N]) -> Option<(usize, u8)> {
+        if from < self.middle.len() {
+            self.seek_forward_from_middle(from, needles)
+        } else {
+            self.seek_forward_from_last(from, needles)
+        }
+    }
+
+    #[cold]
+    #[inline(never)]
+    fn seek_non_whitespace_forward(&self, from: usize) -> Option<(usize, u8)> {
+        if from < self.middle.len() {
+            self.seek_non_whitespace_forward_from_middle(from)
+        } else {
+            self.seek_non_whitespace_forward_from_last(from)
+        }
+    }
+
+    #[cold]
+    #[inline(never)]
+    fn seek_non_whitespace_backward(&self, from: usize) -> Option<(usize, u8)> {
+        if from < self.middle.len() {
+            self.seek_non_whitespace_backward_from_middle(from)
+        } else {
+            self.seek_non_whitespace_backward_from_last(from)
+        }
+    }
+
+    #[cold]
+    #[inline(never)]
+    fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> bool {
+        debug_assert!(from <= to);
+        let other = member.bytes_with_quotes();
+        self.cold_member_match(other, from, to + 1)
+    }
+}
+
 impl<'a> SliceSeekable for TwoSidesPaddedInput<'a> {
     #[cold]
     #[inline(never)]
@@ -66,6 +119,7 @@ impl<'a> SliceSeekable for TwoSidesPaddedInput<'a> {
             self.seek_backward_from_last(from, needle)
         }
     }
+
     #[cold]
     #[inline(never)]
     fn seek_forward<const N: usize>(&self, from: usize, needles: [u8; N]) -> Option<(usize, u8)> {
@@ -103,10 +157,136 @@ impl<'a> SliceSeekable for TwoSidesPaddedInput<'a> {
     }
 
     #[cold]
+    #[inline(never)]
     fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> bool {
         debug_assert!(from <= to);
         let other = member.bytes_with_quotes();
         self.cold_member_match(other, from, to + 1)
+    }
+}
+
+impl<'a> EndPaddedInput<'a> {
+    pub(super) fn new(middle: &'a [u8], last: &'a PaddedBlock) -> Self {
+        Self {
+            middle,
+            last_block: last,
+        }
+    }
+
+    #[inline(always)]
+    pub(super) fn middle(&self) -> &'a [u8] {
+        self.middle
+    }
+
+    fn seek_backward_from_middle(&self, from: usize, needle: u8) -> Option<usize> {
+        debug_assert!(from < self.middle.len());
+        let bytes = self.middle;
+
+        seek_backward_impl(bytes, from, needle)
+    }
+
+    fn seek_backward_from_last(&self, from: usize, needle: u8) -> Option<usize> {
+        debug_assert!(from >= self.middle.len());
+        let bytes = &self.last_block.bytes;
+
+        seek_backward_impl(bytes, from - self.middle.len(), needle)
+            .map(|x| x + self.middle.len())
+            .or_else(|| self.seek_backward_from_middle(self.middle.len() - 1, needle))
+    }
+
+    fn seek_forward_from_middle<const N: usize>(&self, from: usize, needles: [u8; N]) -> Option<(usize, u8)> {
+        assert!(N > 0);
+        debug_assert!(from < self.middle.len());
+        let bytes = self.middle;
+
+        seek_forward_impl(bytes, from, needles).or_else(|| self.seek_forward_from_last(bytes.len(), needles))
+    }
+
+    fn seek_forward_from_last<const N: usize>(&self, from: usize, needles: [u8; N]) -> Option<(usize, u8)> {
+        assert!(N > 0);
+        debug_assert!(from >= self.middle.len());
+        let bytes = &self.last_block.bytes;
+
+        seek_forward_impl(bytes, from - self.middle.len(), needles).map(|(x, y)| (x + self.middle.len(), y))
+    }
+
+    fn seek_non_whitespace_forward_from_middle(&self, from: usize) -> Option<(usize, u8)> {
+        debug_assert!(from < self.middle.len());
+        let bytes = self.middle;
+
+        seek_non_whitespace_forward_impl(bytes, from)
+            .or_else(|| self.seek_non_whitespace_forward_from_last(bytes.len()))
+    }
+
+    fn seek_non_whitespace_forward_from_last(&self, from: usize) -> Option<(usize, u8)> {
+        debug_assert!(from >= self.middle.len());
+        let bytes = &self.last_block.bytes;
+
+        seek_non_whitespace_forward_impl(bytes, from - self.middle.len()).map(|(x, y)| (x + self.middle.len(), y))
+    }
+
+    fn seek_non_whitespace_backward_from_middle(&self, from: usize) -> Option<(usize, u8)> {
+        debug_assert!(from < self.middle.len());
+        let bytes = self.middle;
+
+        seek_non_whitespace_backward_impl(bytes, from)
+    }
+
+    fn seek_non_whitespace_backward_from_last(&self, from: usize) -> Option<(usize, u8)> {
+        debug_assert!(from >= self.middle.len());
+        let bytes = &self.last_block.bytes;
+
+        seek_non_whitespace_backward_impl(bytes, from - self.middle.len())
+            .map(|(x, y)| (x + self.middle.len(), y))
+            .or_else(|| self.seek_non_whitespace_backward_from_middle(self.middle.len() - 1))
+    }
+
+    pub(super) fn try_slice(&self, start: usize, len: usize) -> Option<&'a [u8]> {
+        debug_assert!(len < MAX_BLOCK_SIZE);
+
+        if start < self.middle.len() {
+            self.slice_middle(start, len)
+        } else {
+            self.slice_last(start, len)
+        }
+    }
+
+    fn slice_middle(&self, start: usize, len: usize) -> Option<&'a [u8]> {
+        Some(&self.middle[start..start + len])
+    }
+
+    fn slice_last(&self, start: usize, len: usize) -> Option<&'a [u8]> {
+        let start = start - self.middle.len();
+        (start < MAX_BLOCK_SIZE).then(|| &self.last_block.bytes[start..start + len])
+    }
+
+    fn cold_member_match(&self, other: &[u8], from: usize, to: usize) -> bool {
+        if from < self.middle.len() {
+            if to <= self.middle.len() {
+                let slice = &self.middle[from..to];
+                other == slice && (from > 0 && self.middle[from - 1] != b'\\')
+            } else {
+                let cnt_to = to - self.middle.len();
+                if cnt_to > self.last_block.bytes.len() {
+                    return false;
+                }
+                let middle_slice = &self.middle[from..];
+
+                &other[..middle_slice.len()] == middle_slice
+                    && other[middle_slice.len()..] == self.last_block.bytes[..cnt_to]
+                    && (from > 0 && self.middle[from - 1] != b'\\')
+            }
+        } else {
+            let cnt_from = from - self.middle.len();
+            let cnt_to = to - self.middle.len();
+            if cnt_to > self.last_block.bytes.len() {
+                return false;
+            }
+            other == &self.last_block.bytes[cnt_from..cnt_to]
+                && ((cnt_from > 0 && self.last_block.bytes[cnt_from - 1] != b'\\')
+                    || (cnt_from == 0 && self.middle.is_empty())
+                    || (cnt_from == 0 && !self.middle.is_empty() && self.middle[self.middle.len() - 1] != b'\\'))
+        }
     }
 }
 
@@ -124,7 +304,6 @@ impl<'a> TwoSidesPaddedInput<'a> {
         self.middle
     }
 
-    #[cold]
     fn seek_backward_from_first(&self, from: usize, needle: u8) -> Option<usize> {
         debug_assert!(from < MAX_BLOCK_SIZE);
         let bytes = &self.first_block.bytes;
@@ -132,7 +311,6 @@ impl<'a> TwoSidesPaddedInput<'a> {
         seek_backward_impl(bytes, from, needle)
     }
 
-    #[inline(always)]
     fn seek_backward_from_middle(&self, from: usize, needle: u8) -> Option<usize> {
         debug_assert!(from >= MAX_BLOCK_SIZE);
         let bytes = self.middle;
@@ -142,7 +320,6 @@ impl<'a> TwoSidesPaddedInput<'a> {
             .or_else(|| self.seek_backward_from_first(MAX_BLOCK_SIZE - 1, needle))
     }
 
-    #[cold]
     fn seek_backward_from_last(&self, from: usize, needle: u8) -> Option<usize> {
         debug_assert!(from >= self.middle.len() + MAX_BLOCK_SIZE);
         let bytes = &self.last_block.bytes;
@@ -158,7 +335,6 @@ impl<'a> TwoSidesPaddedInput<'a> {
             })
     }
 
-    #[cold]
     fn seek_forward_from_first<const N: usize>(&self, from: usize, needles: [u8; N]) -> Option<(usize, u8)> {
         assert!(N > 0);
         debug_assert!(from < MAX_BLOCK_SIZE);
@@ -173,7 +349,6 @@ impl<'a> TwoSidesPaddedInput<'a> {
         })
     }
 
-    #[inline(always)]
     fn seek_forward_from_middle<const N: usize>(&self, from: usize, needles: [u8; N]) -> Option<(usize, u8)> {
         assert!(N > 0);
         debug_assert!(from >= MAX_BLOCK_SIZE);
@@ -184,7 +359,6 @@ impl<'a> TwoSidesPaddedInput<'a> {
             .or_else(|| self.seek_forward_from_last(bytes.len() + MAX_BLOCK_SIZE, needles))
     }
 
-    #[cold]
     fn seek_forward_from_last<const N: usize>(&self, from: usize, needles: [u8; N]) -> Option<(usize, u8)> {
         assert!(N > 0);
         debug_assert!(from >= self.middle.len() + MAX_BLOCK_SIZE);
@@ -194,7 +368,6 @@ impl<'a> TwoSidesPaddedInput<'a> {
             .map(|(x, y)| (x + self.middle.len() + MAX_BLOCK_SIZE, y))
     }
 
-    #[cold]
     fn seek_non_whitespace_forward_from_first(&self, from: usize) -> Option<(usize, u8)> {
         debug_assert!(from < MAX_BLOCK_SIZE);
         let bytes = &self.first_block.bytes;
@@ -208,7 +381,6 @@ impl<'a> TwoSidesPaddedInput<'a> {
         })
     }
 
-    #[inline(always)]
     fn seek_non_whitespace_forward_from_middle(&self, from: usize) -> Option<(usize, u8)> {
         debug_assert!(from >= MAX_BLOCK_SIZE);
         let bytes = self.middle;
@@ -218,7 +390,6 @@ impl<'a> TwoSidesPaddedInput<'a> {
             .or_else(|| self.seek_non_whitespace_forward_from_last(bytes.len() + MAX_BLOCK_SIZE))
     }
 
-    #[cold]
     fn seek_non_whitespace_forward_from_last(&self, from: usize) -> Option<(usize, u8)> {
         debug_assert!(from >= self.middle.len() + MAX_BLOCK_SIZE);
         let bytes = &self.last_block.bytes;
@@ -227,7 +398,6 @@ impl<'a> TwoSidesPaddedInput<'a> {
             .map(|(x, y)| (x + self.middle.len() + MAX_BLOCK_SIZE, y))
     }
 
-    #[cold]
     fn seek_non_whitespace_backward_from_first(&self, from: usize) -> Option<(usize, u8)> {
         debug_assert!(from < MAX_BLOCK_SIZE);
         let bytes = &self.first_block.bytes;
@@ -235,7 +405,6 @@ impl<'a> TwoSidesPaddedInput<'a> {
         seek_non_whitespace_backward_impl(bytes, from)
     }
 
-    #[inline(always)]
     fn seek_non_whitespace_backward_from_middle(&self, from: usize) -> Option<(usize, u8)> {
         debug_assert!(from >= MAX_BLOCK_SIZE);
         let bytes = self.middle;
@@ -245,7 +414,6 @@ impl<'a> TwoSidesPaddedInput<'a> {
             .or_else(|| self.seek_non_whitespace_backward_from_first(MAX_BLOCK_SIZE - 1))
     }
 
-    #[cold]
     fn seek_non_whitespace_backward_from_last(&self, from: usize) -> Option<(usize, u8)> {
         debug_assert!(from >= self.middle.len() + MAX_BLOCK_SIZE);
         let bytes = &self.last_block.bytes;
@@ -261,7 +429,6 @@ impl<'a> TwoSidesPaddedInput<'a> {
             })
     }
 
-    #[inline(always)]
     pub(super) fn try_slice(&self, start: usize, len: usize) -> Option<&'a [u8]> {
         debug_assert!(len < MAX_BLOCK_SIZE);
 
@@ -274,24 +441,20 @@ impl<'a> TwoSidesPaddedInput<'a> {
         }
     }
 
-    #[cold]
     fn slice_first(&self, start: usize, len: usize) -> Option<&'a [u8]> {
         Some(&self.first_block.bytes[start..start + len])
     }
 
-    #[inline(always)]
     fn slice_middle(&self, start: usize, len: usize) -> Option<&'a [u8]> {
         let start = start - MAX_BLOCK_SIZE;
         Some(&self.middle[start..start + len])
     }
 
-    #[cold]
     fn slice_last(&self, start: usize, len: usize) -> Option<&'a [u8]> {
         let start = start - self.middle.len() - MAX_BLOCK_SIZE;
         (start < MAX_BLOCK_SIZE).then(|| &self.last_block.bytes[start..start + len])
     }
 
-    #[cold]
     fn cold_member_match(&self, other: &[u8], from: usize, to: usize) -> bool {
         let (cnt_from, cnt_to, cnt_other) = if from < MAX_BLOCK_SIZE {
             if to <= MAX_BLOCK_SIZE {
