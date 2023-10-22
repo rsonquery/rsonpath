@@ -1,5 +1,3 @@
-use std::fmt::Display;
-
 /// String to search for in a JSON document, conforming to the
 /// [RFC7159, section 7](https://www.rfc-editor.org/rfc/rfc7159#section-7)
 ///
@@ -15,20 +13,16 @@ use std::fmt::Display;
 /// assert_eq!(needle.bytes(), "needle".as_bytes());
 /// assert_eq!(needle.bytes_with_quotes(), "\"needle\"".as_bytes());
 /// ```
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct JsonString {
-    string: Vec<u8>,
-    string_with_quotes: Vec<u8>,
+    string: String,
+    string_with_quotes: String,
 }
 
-impl std::fmt::Debug for JsonString {
+impl std::fmt::Display for JsonString {
     #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
-        write!(
-            f,
-            r#"{}"#,
-            std::str::from_utf8(&self.string_with_quotes).unwrap_or("[invalid utf8]")
-        )
+        write!(f, "{}", self.string)
     }
 }
 
@@ -37,13 +31,12 @@ impl JsonString {
     #[must_use]
     #[inline]
     pub fn new(string: &str) -> Self {
-        let bytes = string.as_bytes();
-        let without_quotes = Vec::from(bytes);
+        let without_quotes = string.to_owned();
 
-        let mut with_quotes = Vec::with_capacity(bytes.len() + 2);
-        with_quotes.push(b'"');
-        with_quotes.extend(bytes);
-        with_quotes.push(b'"');
+        let mut with_quotes = String::with_capacity(string.len() + 2);
+        with_quotes.push('"');
+        with_quotes += string;
+        with_quotes.push('"');
 
         Self {
             string: without_quotes,
@@ -55,7 +48,7 @@ impl JsonString {
     #[must_use]
     #[inline(always)]
     pub fn bytes(&self) -> &[u8] {
-        &self.string
+        self.string.as_bytes()
     }
 
     /// Return the bytes representing the string with a leading and trailing
@@ -63,16 +56,20 @@ impl JsonString {
     #[must_use]
     #[inline(always)]
     pub fn bytes_with_quotes(&self) -> &[u8] {
-        &self.string_with_quotes
+        self.string_with_quotes.as_bytes()
     }
+}
 
-    /// Return a display object with a UTF8 representation of this string.
-    ///
-    /// If the string contains invalid UTF8, the value will always be `"[invalid utf8]"`.
-    #[must_use]
+impl<S: AsRef<str>> From<S> for JsonString {
     #[inline(always)]
-    pub fn display(&self) -> impl Display + '_ {
-        std::str::from_utf8(&self.string).unwrap_or("[invalid utf8]")
+    fn from(value: S) -> Self {
+        Self::new(value.as_ref())
+    }
+}
+
+impl From<JsonString> for String {
+    fn from(value: JsonString) -> Self {
+        value.to_string()
     }
 }
 
@@ -88,36 +85,35 @@ impl Eq for JsonString {}
 impl PartialEq<JsonString> for [u8] {
     #[inline(always)]
     fn eq(&self, other: &JsonString) -> bool {
-        self == other.string
+        self == other.bytes()
     }
 }
 
 impl PartialEq<JsonString> for &[u8] {
     #[inline(always)]
     fn eq(&self, other: &JsonString) -> bool {
-        *self == other.string
+        *self == other.bytes()
     }
 }
 
 impl PartialEq<[u8]> for JsonString {
     #[inline(always)]
     fn eq(&self, other: &[u8]) -> bool {
-        self.string == other
+        self.bytes() == other
     }
 }
 
 impl PartialEq<&[u8]> for JsonString {
     #[inline(always)]
     fn eq(&self, other: &&[u8]) -> bool {
-        self.string == *other
+        self.bytes() == *other
     }
 }
 
 impl std::hash::Hash for JsonString {
     #[inline(always)]
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        let slice: &[u8] = &self.string;
-        slice.hash(state);
+        self.bytes().hash(state);
     }
 }
 

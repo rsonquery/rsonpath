@@ -171,9 +171,9 @@ impl Display for JsonPathQueryNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Root(_) => write!(f, "$"),
-            Child(key, _) => write!(f, "['{}']", key.display()),
+            Child(key, _) => write!(f, "['{key}']"),
             AnyChild(_) => write!(f, "[*]"),
-            Descendant(key, _) => write!(f, "..['{}']", key.display()),
+            Descendant(key, _) => write!(f, "..['{key}']"),
             AnyDescendant(_) => write!(f, "..[*]"),
             ArrayIndexChild(i, _) => write!(f, "[{i}]"),
             ArrayIndexDescendant(i, _) => write!(f, "..[{i}]"),

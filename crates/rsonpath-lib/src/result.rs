@@ -23,7 +23,7 @@ pub type MatchIndex = usize;
 /// character, `e` occurs at index 20.
 ///
 /// This is in line with what a `[17..21]` slice in Rust represents.
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct MatchSpan {
     /// Starting index of the match.
     start_idx: MatchIndex,
@@ -33,6 +33,7 @@ pub struct MatchSpan {
 
 /// Full information of a query match &ndash; its span and the input bytes
 /// in that span.
+#[derive(Debug, Clone)]
 pub struct Match {
     /// JSON contents of the match.
     bytes: Vec<u8>,
