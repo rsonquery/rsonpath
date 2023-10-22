@@ -238,7 +238,7 @@ where
         debug!("next!");
         return if self.idx >= MAX_BLOCK_SIZE && self.idx < self.input.middle().len() + MAX_BLOCK_SIZE {
             let start = self.idx - MAX_BLOCK_SIZE;
-            let block = &self.input.middle()[start..start + N];
+            let block = unsafe { self.input.middle().get_unchecked(start..start + N) };
             self.recorder.record_block_start(block);
             self.idx += N;
             Ok(Some(block))

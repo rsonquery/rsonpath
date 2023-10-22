@@ -75,7 +75,7 @@ impl Engine for MainEngine<'_> {
         let recorder = CountRecorder::new();
         config_simd!(self.simd => |simd| {
             let executor = query_executor(&self.automaton, input, &recorder, simd);
-            unsafe { executor.run() }
+            executor.run()
         })?;
 
         Ok(recorder.into())
@@ -94,7 +94,7 @@ impl Engine for MainEngine<'_> {
         let recorder = IndexRecorder::new(sink, input.leading_padding_len());
         config_simd!(self.simd => |simd| {
             let executor = query_executor(&self.automaton, input, &recorder, simd);
-            unsafe { executor.run() }
+            executor.run()
         })?;
 
         Ok(())
@@ -113,7 +113,7 @@ impl Engine for MainEngine<'_> {
         let recorder = ApproxSpanRecorder::new(sink, input.leading_padding_len());
         config_simd!(self.simd => |simd| {
             let executor = query_executor(&self.automaton, input, &recorder, simd);
-            unsafe { executor.run() }
+            executor.run()
         })?;
 
         Ok(())
@@ -132,7 +132,7 @@ impl Engine for MainEngine<'_> {
         let recorder = NodesRecorder::build_recorder(sink, input.leading_padding_len());
         config_simd!(self.simd => |simd| {
             let executor = query_executor(&self.automaton, input, &recorder, simd);
-            unsafe { executor.run() }
+            executor.run()
         })?;
 
         Ok(())
@@ -199,10 +199,7 @@ where
     R: Recorder<I::Block<'i, BLOCK_SIZE>>,
     V: Simd,
 {
-    #[target_feature(enable = "avx2")]
-    #[target_feature(enable = "pclmulqdq")]
-    #[target_feature(enable = "popcnt")]
-    unsafe fn run(mut self) -> Result<(), EngineError> {
+    fn run(mut self) -> Result<(), EngineError> {
         let mb_head_skip = HeadSkip::new(self.input, self.automaton, self.simd);
 
         match mb_head_skip {
@@ -291,6 +288,7 @@ where
         }
     }
 
+    #[inline(always)]
     fn handle_colon(
         &mut self,
         #[allow(unused_variables)] classifier: &mut Classifier!(),
@@ -349,6 +347,7 @@ where
         Ok(())
     }
 
+    #[inline(always)]
     fn handle_comma(&mut self, _classifier: &mut Classifier!(), idx: usize) -> Result<(), EngineError> {
         self.recorder.record_value_terminator(idx, self.depth)?;
         let is_next_opening =
@@ -384,6 +383,7 @@ where
         Ok(())
     }
 
+    #[inline(always)]
     fn handle_opening(
         &mut self,
         classifier: &mut Classifier!(),
@@ -493,6 +493,7 @@ where
         Ok(())
     }
 
+    #[inline(always)]
     fn handle_closing(&mut self, classifier: &mut Classifier!(), idx: usize) -> Result<(), EngineError> {
         debug!("Closing, decreasing depth and popping stack.");
 
@@ -573,6 +574,7 @@ where
         }
     }
 
+    #[inline(always)]
     fn is_match(&self, idx: usize, member_name: &JsonString) -> Result<bool, EngineError> {
         let len = member_name.bytes_with_quotes().len();
 
