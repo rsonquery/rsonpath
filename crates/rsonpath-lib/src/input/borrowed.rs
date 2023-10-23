@@ -13,9 +13,9 @@ use std::marker::PhantomData;
 use super::{
     error::Infallible,
     padding::{EndPaddedInput, PaddedBlock, TwoSidesPaddedInput},
-    Input, InputBlockIterator, InputError, SliceSeekable, MAX_BLOCK_SIZE,
+    Input, InputBlockIterator, SliceSeekable, MAX_BLOCK_SIZE,
 };
-use crate::{debug, query::JsonString, result::InputRecorder, FallibleIterator};
+use crate::{debug, query::JsonString, result::InputRecorder};
 
 /// Input wrapping a borrowed [`[u8]`] buffer.
 pub struct BorrowedBytes<'a> {
@@ -209,7 +209,7 @@ impl<'a> Input for BorrowedBytes<'a> {
     }
 
     #[inline(always)]
-    fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> bool {
+    fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> Result<bool, Self::Error> {
         debug_assert!(from <= to);
         // The hot path is when we're checking fully within the middle section.
         // This has to be as fast as possible, so the "cold" path referring to the TwoSidesPaddedInput
@@ -220,13 +220,13 @@ impl<'a> Input for BorrowedBytes<'a> {
             let from = from - MAX_BLOCK_SIZE;
             let to = to - MAX_BLOCK_SIZE + 1;
             if to > bytes.len() {
-                return false;
+                return Ok(false);
             }
             let slice = &bytes[from..to];
-            member.bytes_with_quotes() == slice && (from == 0 || bytes[from - 1] != b'\\')
+            Ok(member.bytes_with_quotes() == slice && (from == 0 || bytes[from - 1] != b'\\'))
         } else {
             // This is a very expensive, cold path.
-            self.as_padded_input().is_member_match(from, to, member)
+            Ok(self.as_padded_input().is_member_match(from, to, member))
         }
     }
 }

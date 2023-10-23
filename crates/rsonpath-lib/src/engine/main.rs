@@ -128,7 +128,7 @@ impl Engine for MainEngine<'_> {
         if self.automaton.is_empty_query() {
             return empty_query::match_(input, sink);
         }
-        
+
         let recorder = NodesRecorder::build_recorder(sink, input.leading_padding_len());
         config_simd!(self.simd => |simd| {
             let executor = query_executor(&self.automaton, input, &recorder, simd);
@@ -588,7 +588,9 @@ where
         }
 
         let start_idx = closing_quote_idx + 1 - len;
-        Ok(self.input.is_member_match(start_idx, closing_quote_idx, member_name))
+        self.input
+            .is_member_match(start_idx, closing_quote_idx, member_name)
+            .map_err(|x| x.into().into())
     }
 
     fn verify_subtree_closed(&self) -> Result<(), EngineError> {

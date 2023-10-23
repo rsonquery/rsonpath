@@ -55,13 +55,12 @@ where
         };
 
         while let Some(block) = self.iter.next().map_err(|x| x.into())? {
-            let res = block.iter().copied().enumerate().find(|&(i, c)| {
+            for (i, c) in block.iter().copied().enumerate() {
                 let j = offset + i;
-                c == first_c && j > 0 && self.input.is_member_match(j - 1, j + label_size - 2, label)
-            });
-
-            if let Some((res, _)) = res {
-                return Ok(Some((res + offset - 1, block)));
+        
+                if c == first_c && j > 0 && self.input.is_member_match(j - 1, j + label_size - 2, label).map_err(|x| x.into())? {
+                    return Ok(Some((j - 1, block)));
+                }
             }
 
             offset += block.len();

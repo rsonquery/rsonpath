@@ -4,7 +4,6 @@ use crate::{
     input::{error::InputError, Input, InputBlock, InputBlockIterator},
     query::JsonString,
     result::InputRecorder,
-    FallibleIterator,
 };
 
 const SIZE: usize = 64;
@@ -85,7 +84,11 @@ where
             let mut result = (previous_block | (first_bitmask << 1)) & second_bitmask;
             while result != 0 {
                 let idx = result.trailing_zeros() as usize;
-                if self.input.is_member_match(offset + idx - 1, offset + idx, label) {
+                if self
+                    .input
+                    .is_member_match(offset + idx - 1, offset + idx, label)
+                    .map_err(|x| x.into())?
+                {
                     return Ok(Some((offset + idx - 1, block)));
                 }
                 result &= !(1 << idx);
@@ -131,7 +134,7 @@ where
             );
 
             if let Some(res) =
-                mask_64::find_in_mask(self.input, label, previous_block, first_bitmask, second_bitmask, offset)
+                mask_64::find_in_mask(self.input, label, previous_block, first_bitmask, second_bitmask, offset)?
             {
                 return Ok(Some((res, block)));
             }
@@ -179,7 +182,7 @@ where
             );
 
             if let Some(res) =
-                mask_64::find_in_mask(self.input, label, previous_block, first_bitmask, second_bitmask, offset)
+                mask_64::find_in_mask(self.input, label, previous_block, first_bitmask, second_bitmask, offset)?
             {
                 return Ok(Some((res, block)));
             }

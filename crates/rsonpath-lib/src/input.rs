@@ -23,7 +23,7 @@ pub use buffered::BufferedInput;
 pub use mmap::MmapInput;
 
 use self::error::InputError;
-use crate::{query::JsonString, result::InputRecorder, FallibleIterator};
+use crate::{query::JsonString, result::InputRecorder};
 use std::ops::Deref;
 
 /// Make the struct repr(C) with alignment equal to [`MAX_BLOCK_SIZE`].
@@ -130,7 +130,7 @@ pub trait Input: Sized {
     ///
     /// This will also check if the leading double quote is not
     /// escaped by a backslash character.
-    fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> bool;
+    fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> Result<bool, Self::Error>;
 }
 
 /// An iterator over blocks of input of size `N`.

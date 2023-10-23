@@ -1,4 +1,8 @@
-use crate::{debug, input::Input, query::JsonString};
+use crate::{
+    debug,
+    input::{error::InputError, Input},
+    query::JsonString,
+};
 
 #[inline(always)]
 pub(crate) fn find_in_mask<I: Input>(
@@ -8,16 +12,20 @@ pub(crate) fn find_in_mask<I: Input>(
     first: u64,
     second: u64,
     offset: usize,
-) -> Option<usize> {
+) -> Result<Option<usize>, InputError> {
     let label_size = label.bytes_with_quotes().len();
     let mut result = (previous_block | (first << 1)) & second;
     while result != 0 {
         let idx = result.trailing_zeros() as usize;
         debug!("{offset} + {idx} - 2 to {offset} + {idx} + {label_size} - 3");
-        if offset + idx > 1 && input.is_member_match(offset + idx - 2, offset + idx + label_size - 3, label) {
-            return Some(offset + idx - 2);
+        if offset + idx > 1
+            && input
+                .is_member_match(offset + idx - 2, offset + idx + label_size - 3, label)
+                .map_err(|x| x.into())?
+        {
+            return Ok(Some(offset + idx - 2));
         }
         result &= !(1 << idx);
     }
-    None
+    Ok(None)
 }

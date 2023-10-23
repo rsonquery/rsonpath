@@ -118,7 +118,7 @@ impl Input for MmapInput {
     }
 
     #[inline]
-    fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> bool {
-        self.as_padded_input().is_member_match(from, to, member)
+    fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> Result<bool, Self::Error> {
+        Ok(self.as_padded_input().is_member_match(from, to, member))
     }
 }

@@ -24,12 +24,16 @@ where
     let block_idx = start_idx % N;
     let label_size = label.bytes_with_quotes().len();
 
-    let res = first_block[block_idx..].iter().copied().enumerate().find(|&(i, c)| {
+    for (i, c) in first_block[block_idx..].iter().copied().enumerate() {
         let j = start_idx + i;
-        c == b'"' && input.is_member_match(j, j + label_size - 1, label)
-    });
-    if let Some((res, _)) = res {
-        return Ok(Some((res + start_idx, first_block)));
+
+        if c == b'"'
+            && input
+                .is_member_match(j, j + label_size - 1, label)
+                .map_err(|x| x.into())?
+        {
+            return Ok(Some((j, first_block)));
+        }
     }
 
     Ok(None)

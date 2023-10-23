@@ -107,7 +107,7 @@ where
             let second_bitmask = m32::combine_16(classified1.second, classified2.second);
 
             if let Some(res) =
-                mask_32::find_in_mask(self.input, label, previous_block, first_bitmask, second_bitmask, offset)
+                mask_32::find_in_mask(self.input, label, previous_block, first_bitmask, second_bitmask, offset)?
             {
                 return Ok(Some((res, block)));
             }
@@ -143,7 +143,7 @@ where
             let second_bitmask = m32::combine_16(classified1.second, classified2.second);
 
             if let Some(res) =
-                mask_32::find_in_mask(self.input, label, previous_block, first_bitmask, second_bitmask, offset)
+                mask_32::find_in_mask(self.input, label, previous_block, first_bitmask, second_bitmask, offset)?
             {
                 return Ok(Some((res, block)));
             }

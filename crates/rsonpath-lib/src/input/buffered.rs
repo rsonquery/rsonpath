@@ -19,9 +19,7 @@
 use super::{
     error::InputError, repr_align_block_size, Input, InputBlock, InputBlockIterator, SliceSeekable, MAX_BLOCK_SIZE,
 };
-use crate::{
-    error::InternalRsonpathError, query::JsonString, result::InputRecorder, FallibleIterator, JSON_SPACE_BYTE,
-};
+use crate::{error::InternalRsonpathError, query::JsonString, result::InputRecorder, JSON_SPACE_BYTE};
 use std::{cell::RefCell, io::Read, ops::Deref, slice};
 
 const BUF_SIZE: usize = 64 * 1024;
@@ -211,8 +209,18 @@ impl<R: Read> Input for BufferedInput<R> {
     }
 
     #[inline(always)]
-    fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> bool {
-        todo!()
+    fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> Result<bool, Self::Error> {
+        let mut buf = self.0.borrow_mut();
+        
+        while buf.len() <= to {
+            if !buf.read_more()? {
+                return Ok(false)
+            }
+        }
+
+        let bytes = buf.as_slice();
+        let slice = &bytes[from..to + 1];
+        Ok(member.bytes_with_quotes() == slice && (from == 0 || bytes[from - 1] != b'\\'))
     }
 }
 

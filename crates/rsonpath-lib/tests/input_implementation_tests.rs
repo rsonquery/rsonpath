@@ -2,7 +2,6 @@ use pretty_assertions::assert_eq;
 use rsonpath::{
     input::{error::InputError, *},
     result::empty::EmptyRecorder,
-    FallibleIterator,
 };
 use std::{cmp, fs, iter};
 use std::{fs::File, io::Read};
@@ -106,7 +105,7 @@ impl InMemoryTestInput {
     }
 
     fn test_borrowed(bytes: &[u8]) {
-        let input = BorrowedBytes::new(&bytes);
+        let input = BorrowedBytes::new(bytes);
 
         test_equivalence(bytes, input);
     }

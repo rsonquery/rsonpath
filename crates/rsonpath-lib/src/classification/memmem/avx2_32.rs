@@ -102,7 +102,7 @@ where
                 classified.first,
                 classified.second,
                 offset,
-            ) {
+            )? {
                 return Ok(Some((res, block)));
             }
 
@@ -138,7 +138,7 @@ where
                 classified.first,
                 classified.second,
                 offset,
-            ) {
+            )? {
                 return Ok(Some((res, block)));
             }
 

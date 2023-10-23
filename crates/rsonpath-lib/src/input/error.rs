@@ -27,7 +27,8 @@ pub enum InputError {
 pub enum Infallible {}
 
 impl From<Infallible> for InputError {
-    fn from(value: Infallible) -> Self {
+    #[inline(always)]
+    fn from(_value: Infallible) -> Self {
         unreachable!()
     }
 }
