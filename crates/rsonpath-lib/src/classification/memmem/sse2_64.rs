@@ -86,7 +86,7 @@ where
                 let idx = result.trailing_zeros() as usize;
                 if self
                     .input
-                    .is_member_match(offset + idx - 1, offset + idx, label)
+                    .is_member_match(offset + idx - 1, offset + idx + 1, label)
                     .map_err(|x| x.into())?
                 {
                     return Ok(Some((offset + idx - 1, block)));

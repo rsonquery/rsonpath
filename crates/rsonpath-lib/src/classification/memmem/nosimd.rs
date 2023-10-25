@@ -57,8 +57,14 @@ where
         while let Some(block) = self.iter.next().map_err(|x| x.into())? {
             for (i, c) in block.iter().copied().enumerate() {
                 let j = offset + i;
-        
-                if c == first_c && j > 0 && self.input.is_member_match(j - 1, j + label_size - 2, label).map_err(|x| x.into())? {
+
+                if c == first_c
+                    && j > 0
+                    && self
+                        .input
+                        .is_member_match(j - 1, j + label_size - 1, label)
+                        .map_err(|x| x.into())?
+                {
                     return Ok(Some((j - 1, block)));
                 }
             }

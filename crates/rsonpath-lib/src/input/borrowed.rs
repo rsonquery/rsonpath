@@ -123,7 +123,7 @@ impl<'a> Input for BorrowedBytes<'a> {
 
     #[inline]
     fn seek_backward(&self, from: usize, needle: u8) -> Option<usize> {
-        return if from >= MAX_BLOCK_SIZE && from < self.middle_bytes.len() {
+        return if from >= MAX_BLOCK_SIZE && from < self.middle_bytes.len() + MAX_BLOCK_SIZE {
             match self.middle_bytes.seek_backward(from - MAX_BLOCK_SIZE, needle) {
                 Some(x) => Some(x + MAX_BLOCK_SIZE),
                 None => handle_first(&self.first_block, needle),
@@ -141,14 +141,16 @@ impl<'a> Input for BorrowedBytes<'a> {
 
     #[inline]
     fn seek_forward<const N: usize>(&self, from: usize, needles: [u8; N]) -> Result<Option<(usize, u8)>, Infallible> {
-        return Ok(if from >= MAX_BLOCK_SIZE && from < self.middle_bytes.len() {
-            match self.middle_bytes.seek_forward(from - MAX_BLOCK_SIZE, needles) {
-                Some((x, y)) => Some((x + MAX_BLOCK_SIZE, y)),
-                None => handle_last(&self.last_block, MAX_BLOCK_SIZE + self.middle_bytes.len(), needles),
-            }
-        } else {
-            self.as_padded_input().seek_forward(from, needles)
-        });
+        return Ok(
+            if from >= MAX_BLOCK_SIZE && from < self.middle_bytes.len() + MAX_BLOCK_SIZE {
+                match self.middle_bytes.seek_forward(from - MAX_BLOCK_SIZE, needles) {
+                    Some((x, y)) => Some((x + MAX_BLOCK_SIZE, y)),
+                    None => handle_last(&self.last_block, MAX_BLOCK_SIZE + self.middle_bytes.len(), needles),
+                }
+            } else {
+                self.as_padded_input().seek_forward(from, needles)
+            },
+        );
 
         #[cold]
         #[inline(never)]
@@ -170,7 +172,7 @@ impl<'a> Input for BorrowedBytes<'a> {
             // The hot path is when we start and end within the middle section.
             // We use the regular slice path for that scenario, and fall back to the very expensive
             // TwoSidesPaddedInput with all bells and whistles only when that doesn't work.
-            if from >= MAX_BLOCK_SIZE && from < self.middle_bytes.len() {
+            if from >= MAX_BLOCK_SIZE && from < self.middle_bytes.len() + MAX_BLOCK_SIZE {
                 match self.middle_bytes.seek_non_whitespace_forward(from - MAX_BLOCK_SIZE) {
                     Some((x, y)) => Some((x + MAX_BLOCK_SIZE, y)),
                     None => handle_last(&self.last_block, MAX_BLOCK_SIZE + self.middle_bytes.len()),
@@ -192,7 +194,7 @@ impl<'a> Input for BorrowedBytes<'a> {
 
     #[inline]
     fn seek_non_whitespace_backward(&self, from: usize) -> Option<(usize, u8)> {
-        return if from >= MAX_BLOCK_SIZE && from < self.middle_bytes.len() {
+        return if from >= MAX_BLOCK_SIZE && from < self.middle_bytes.len() + MAX_BLOCK_SIZE {
             match self.middle_bytes.seek_non_whitespace_backward(from - MAX_BLOCK_SIZE) {
                 Some((x, y)) => Some((x + MAX_BLOCK_SIZE, y)),
                 None => handle_first(&self.first_block),
@@ -210,7 +212,7 @@ impl<'a> Input for BorrowedBytes<'a> {
 
     #[inline(always)]
     fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> Result<bool, Self::Error> {
-        debug_assert!(from <= to);
+        debug_assert!(from < to);
         // The hot path is when we're checking fully within the middle section.
         // This has to be as fast as possible, so the "cold" path referring to the TwoSidesPaddedInput
         // impl is explicitly marked with #[cold].
@@ -218,10 +220,7 @@ impl<'a> Input for BorrowedBytes<'a> {
             // This is the hot path -- do the bounds check and memcmp.
             let bytes = self.middle_bytes;
             let from = from - MAX_BLOCK_SIZE;
-            let to = to - MAX_BLOCK_SIZE + 1;
-            if to > bytes.len() {
-                return Ok(false);
-            }
+            let to = to - MAX_BLOCK_SIZE;
             let slice = &bytes[from..to];
             Ok(member.bytes_with_quotes() == slice && (from == 0 || bytes[from - 1] != b'\\'))
         } else {
@@ -354,9 +353,8 @@ fn align_to<const N: usize>(bytes: &[u8]) -> (&[u8], &[u8], &[u8]) {
 
 #[cfg(test)]
 mod tests {
-    use crate::input::MAX_BLOCK_SIZE;
-
     use super::align_to;
+    use crate::input::MAX_BLOCK_SIZE;
 
     // Run all tests for the actual alignment we use.
     const N: usize = MAX_BLOCK_SIZE;

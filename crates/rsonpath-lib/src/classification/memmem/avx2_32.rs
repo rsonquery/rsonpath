@@ -67,7 +67,7 @@ where
             let mut result = (previous_block | (classified.first << 1)) & classified.second;
             while result != 0 {
                 let idx = result.trailing_zeros() as usize;
-                if self.input.is_member_match(offset + idx - 1, offset + idx, label) {
+                if self.input.is_member_match(offset + idx - 1, offset + idx + 1, label) {
                     return Ok(Some((offset + idx - 1, block)));
                 }
                 result &= !(1 << idx);

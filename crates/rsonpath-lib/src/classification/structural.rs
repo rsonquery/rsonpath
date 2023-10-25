@@ -206,7 +206,7 @@ mod tests {
     use super::*;
     use crate::{
         classification::simd::{self, config_simd, Simd},
-        input::{Input, BorrowedBytes},
+        input::{BorrowedBytes, Input},
         result::empty::EmptyRecorder,
     };
 
@@ -222,18 +222,19 @@ mod tests {
             let input = BorrowedBytes::new(json_string.as_bytes());
             let iter = input.iter_blocks(&EmptyRecorder);
             let quotes = simd.classify_quoted_sequences(iter);
+            let offset = input.leading_padding_len();
 
             let mut classifier = simd.classify_structural_characters(quotes);
 
-            assert_eq!(Some(Opening(Curly, 0)), classifier.next().unwrap());
-            assert_eq!(Some(Opening(Square, 6)), classifier.next().unwrap());
+            assert_eq!(Some(Opening(Curly, offset)), classifier.next().unwrap());
+            assert_eq!(Some(Opening(Square, 6 + offset)), classifier.next().unwrap());
 
             let resume_state = classifier.stop();
 
             let mut resumed_classifier = simd.resume_structural_classification(resume_state);
 
-            assert_eq!(Some(Opening(Curly, 15)), resumed_classifier.next().unwrap());
-            assert_eq!(Some(Opening(Curly, 22)), resumed_classifier.next().unwrap());
+            assert_eq!(Some(Opening(Curly, 15 + offset)), resumed_classifier.next().unwrap());
+            assert_eq!(Some(Opening(Curly, 22 + offset)), resumed_classifier.next().unwrap());
         });
     }
 
@@ -249,22 +250,23 @@ mod tests {
             let input = BorrowedBytes::new(json_string.as_bytes());
             let iter = input.iter_blocks(&EmptyRecorder);
             let quotes = simd.classify_quoted_sequences(iter);
+            let offset = input.leading_padding_len();
 
             let mut classifier = simd.classify_structural_characters(quotes);
             classifier.turn_commas_on(0);
 
-            assert_eq!(Some(Opening(Curly, 0)), classifier.next().unwrap());
-            assert_eq!(Some(Opening(Square, 6)), classifier.next().unwrap());
-            assert_eq!(Some(Comma(9)), classifier.next().unwrap());
-            assert_eq!(Some(Comma(13)), classifier.next().unwrap());
+            assert_eq!(Some(Opening(Curly, offset)), classifier.next().unwrap());
+            assert_eq!(Some(Opening(Square, 6 + offset)), classifier.next().unwrap());
+            assert_eq!(Some(Comma(9 + offset)), classifier.next().unwrap());
+            assert_eq!(Some(Comma(13 + offset)), classifier.next().unwrap());
 
             let resume_state = classifier.stop();
 
             let mut resumed_classifier = simd.resume_structural_classification(resume_state);
 
-            assert_eq!(Some(Opening(Curly, 15)), resumed_classifier.next().unwrap());
-            assert_eq!(Some(Opening(Curly, 22)), resumed_classifier.next().unwrap());
-            assert_eq!(Some(Comma(30)), resumed_classifier.next().unwrap());
+            assert_eq!(Some(Opening(Curly, 15 + offset)), resumed_classifier.next().unwrap());
+            assert_eq!(Some(Opening(Curly, 22 + offset)), resumed_classifier.next().unwrap());
+            assert_eq!(Some(Comma(30 + offset)), resumed_classifier.next().unwrap());
         });
     }
 
@@ -280,22 +282,23 @@ mod tests {
             let input = BorrowedBytes::new(json_string.as_bytes());
             let iter = input.iter_blocks(&EmptyRecorder);
             let quotes = simd.classify_quoted_sequences(iter);
+            let offset = input.leading_padding_len();
 
             let mut classifier = simd.classify_structural_characters(quotes);
             classifier.turn_colons_on(0);
 
-            assert_eq!(Some(Opening(Curly, 0)), classifier.next().unwrap());
-            assert_eq!(Some(Colon(4)), classifier.next().unwrap());
-            assert_eq!(Some(Opening(Square, 6)), classifier.next().unwrap());
+            assert_eq!(Some(Opening(Curly, offset)), classifier.next().unwrap());
+            assert_eq!(Some(Colon(4 + offset)), classifier.next().unwrap());
+            assert_eq!(Some(Opening(Square, 6 + offset)), classifier.next().unwrap());
 
             let resume_state = classifier.stop();
 
             let mut resumed_classifier = simd.resume_structural_classification(resume_state);
 
-            assert_eq!(Some(Opening(Curly, 15)), resumed_classifier.next().unwrap());
-            assert_eq!(Some(Colon(20)), resumed_classifier.next().unwrap());
-            assert_eq!(Some(Opening(Curly, 22)), resumed_classifier.next().unwrap());
-            assert_eq!(Some(Colon(27)), resumed_classifier.next().unwrap());
+            assert_eq!(Some(Opening(Curly, 15 + offset)), resumed_classifier.next().unwrap());
+            assert_eq!(Some(Colon(20 + offset)), resumed_classifier.next().unwrap());
+            assert_eq!(Some(Opening(Curly, 22 + offset)), resumed_classifier.next().unwrap());
+            assert_eq!(Some(Colon(27 + offset)), resumed_classifier.next().unwrap());
         });
     }
 
@@ -311,26 +314,27 @@ mod tests {
             let input = BorrowedBytes::new(json_string.as_bytes());
             let iter = input.iter_blocks(&EmptyRecorder);
             let quotes = simd.classify_quoted_sequences(iter);
+            let offset = input.leading_padding_len();
 
             let mut classifier = simd.classify_structural_characters(quotes);
             classifier.turn_commas_on(0);
             classifier.turn_colons_on(0);
 
-            assert_eq!(Some(Opening(Curly, 0)), classifier.next().unwrap());
-            assert_eq!(Some(Colon(4)), classifier.next().unwrap());
-            assert_eq!(Some(Opening(Square, 6)), classifier.next().unwrap());
-            assert_eq!(Some(Comma(9)), classifier.next().unwrap());
-            assert_eq!(Some(Comma(13)), classifier.next().unwrap());
+            assert_eq!(Some(Opening(Curly, offset)), classifier.next().unwrap());
+            assert_eq!(Some(Colon(4 + offset)), classifier.next().unwrap());
+            assert_eq!(Some(Opening(Square, 6 + offset)), classifier.next().unwrap());
+            assert_eq!(Some(Comma(9 + offset)), classifier.next().unwrap());
+            assert_eq!(Some(Comma(13 + offset)), classifier.next().unwrap());
 
             let resume_state = classifier.stop();
 
             let mut resumed_classifier = simd.resume_structural_classification(resume_state);
 
-            assert_eq!(Some(Opening(Curly, 15)), resumed_classifier.next().unwrap());
-            assert_eq!(Some(Colon(20)), resumed_classifier.next().unwrap());
-            assert_eq!(Some(Opening(Curly, 22)), resumed_classifier.next().unwrap());
-            assert_eq!(Some(Colon(27)), resumed_classifier.next().unwrap());
-            assert_eq!(Some(Comma(30)), resumed_classifier.next().unwrap());
+            assert_eq!(Some(Opening(Curly, 15 + offset)), resumed_classifier.next().unwrap());
+            assert_eq!(Some(Colon(20 + offset)), resumed_classifier.next().unwrap());
+            assert_eq!(Some(Opening(Curly, 22 + offset)), resumed_classifier.next().unwrap());
+            assert_eq!(Some(Colon(27 + offset)), resumed_classifier.next().unwrap());
+            assert_eq!(Some(Comma(30 + offset)), resumed_classifier.next().unwrap());
         });
     }
 }

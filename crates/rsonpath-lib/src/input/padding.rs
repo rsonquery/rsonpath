@@ -101,9 +101,9 @@ impl<'a> SliceSeekable for EndPaddedInput<'a> {
     #[cold]
     #[inline(never)]
     fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> bool {
-        debug_assert!(from <= to);
+        debug_assert!(from < to);
         let other = member.bytes_with_quotes();
-        self.cold_member_match(other, from, to + 1)
+        self.cold_member_match(other, from, to)
     }
 }
 
@@ -159,9 +159,9 @@ impl<'a> SliceSeekable for TwoSidesPaddedInput<'a> {
     #[cold]
     #[inline(never)]
     fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> bool {
-        debug_assert!(from <= to);
+        debug_assert!(from < to);
         let other = member.bytes_with_quotes();
-        self.cold_member_match(other, from, to + 1)
+        self.cold_member_match(other, from, to)
     }
 }
 
@@ -603,278 +603,268 @@ mod test {
     }
 
     #[test]
-    fn on_bytes_equal_to_full_block_gives_all_whitespace() {
+    fn on_bytes_equal_to_full_block_does_not_change_block() {
         let bytes = [42; MAX_BLOCK_SIZE];
 
         let result = PaddedBlock::pad_last_block(&bytes);
 
-        assert_eq!(result.bytes, [JSON_SPACE_BYTE; MAX_BLOCK_SIZE]);
+        assert_eq!(result.bytes, bytes);
     }
 
-    #[test]
-    fn on_bytes_longer_than_full_block_gives_last_fragment_padded() {
-        let mut bytes = [42; 2 * MAX_BLOCK_SIZE + 77];
-        bytes[2 * MAX_BLOCK_SIZE..].fill(69);
-
-        let result = PaddedBlock::pad_last_block(&bytes);
-
-        assert_eq!(result.bytes[0..77], [69; 77]);
-        assert_eq!(result.bytes[77..], [JSON_SPACE_BYTE; MAX_BLOCK_SIZE - 77]);
-    }
-
-    mod seek_forward_1 {
-        use std::iter;
-
-        use crate::input::{
-            padding::{PaddedBlock, TwoSidesPaddedInput},
-            SliceSeekable,
-        };
-        use pretty_assertions::assert_eq;
-
-        #[test]
-        fn in_empty_slice_returns_none() {
-            let input = TwoSidesPaddedInput {
-                first_block: &PaddedBlock::pad_first_block(&[]),
-                middle: &[],
-                last_block: &PaddedBlock::pad_last_block(&[]),
+    mod two_sided_padded_input {
+        mod seek_forward_1 {
+            use crate::input::{
+                padding::{PaddedBlock, TwoSidesPaddedInput},
+                SliceSeekable,
             };
+            use pretty_assertions::assert_eq;
+            use std::iter;
 
-            let result = input.seek_forward(0, [0]);
+            #[test]
+            fn in_empty_slice_returns_none() {
+                let input = TwoSidesPaddedInput {
+                    first_block: &PaddedBlock::pad_first_block(&[]),
+                    middle: &[],
+                    last_block: &PaddedBlock::pad_last_block(&[]),
+                };
 
-            assert_eq!(result, None);
+                let result = input.seek_forward(0, [0]);
+
+                assert_eq!(result, None);
+            }
+
+            #[test]
+            fn seeking_from_first_block_from_needle_returns_that() {
+                let input = TwoSidesPaddedInput {
+                    first_block: &PaddedBlock::pad_first_block(r#"{"seek": 42}"#.as_bytes()),
+                    middle: &[],
+                    last_block: &PaddedBlock::pad_last_block(&[]),
+                };
+
+                let result = input.seek_forward(123, [b':']);
+
+                assert_eq!(result, Some((123, b':')));
+            }
+
+            #[test]
+            fn seeking_from_middle_block_from_needle_returns_that() {
+                let input = TwoSidesPaddedInput {
+                    first_block: &PaddedBlock::pad_first_block(&[]),
+                    middle: r#"{"seek": 42}"#.as_bytes(),
+                    last_block: &PaddedBlock::pad_last_block(&[]),
+                };
+
+                let result = input.seek_forward(128 + 7, [b':']);
+
+                assert_eq!(result, Some((128 + 7, b':')));
+            }
+
+            #[test]
+            fn seeking_from_last_block_from_needle_returns_that() {
+                let input = TwoSidesPaddedInput {
+                    first_block: &PaddedBlock::pad_first_block(&[]),
+                    middle: &iter::repeat(b' ').take(256).collect::<Vec<_>>(),
+                    last_block: &PaddedBlock::pad_last_block(r#"{"seek": 42}"#.as_bytes()),
+                };
+
+                let result = input.seek_forward(128 + 256 + 7, [b':']);
+
+                assert_eq!(result, Some((128 + 256 + 7, b':')));
+            }
+
+            #[test]
+            fn seeking_from_first_block_from_not_needle_returns_next_needle() {
+                let input = TwoSidesPaddedInput {
+                    first_block: &PaddedBlock::pad_first_block(r"seek: \t\n42}".as_bytes()),
+                    middle: &[],
+                    last_block: &PaddedBlock::pad_last_block(&[]),
+                };
+
+                let result = input.seek_forward(119, [b'2']);
+
+                assert_eq!(result, Some((126, b'2')));
+            }
+
+            #[test]
+            fn seeking_from_middle_block_from_not_needle_returns_next_needle() {
+                let input = TwoSidesPaddedInput {
+                    first_block: &PaddedBlock::pad_first_block(&[]),
+                    middle: r"seek: \t\n42}".as_bytes(),
+                    last_block: &PaddedBlock::pad_last_block(&[]),
+                };
+
+                let result = input.seek_forward(128 + 5, [b'2']);
+
+                assert_eq!(result, Some((128 + 11, b'2')));
+            }
+
+            #[test]
+            fn seeking_from_last_block_from_not_needle_returns_next_needle() {
+                let input = TwoSidesPaddedInput {
+                    first_block: &PaddedBlock::pad_first_block(&[]),
+                    middle: &iter::repeat(b' ').take(256).collect::<Vec<_>>(),
+                    last_block: &PaddedBlock::pad_last_block(r"seek: \t\n42}".as_bytes()),
+                };
+
+                let result = input.seek_forward(128 + 256 + 5, [b'2']);
+
+                assert_eq!(result, Some((128 + 256 + 11, b'2')));
+            }
+
+            #[test]
+            fn seeking_from_first_block_from_not_needle_when_there_is_no_needle_returns_none() {
+                let bytes = "seek: \t\n42}".as_bytes();
+
+                let result = bytes.seek_forward(5, [b'3']);
+
+                assert_eq!(result, None);
+            }
         }
 
-        #[test]
-        fn seeking_from_first_block_from_needle_returns_that() {
-            let input = TwoSidesPaddedInput {
-                first_block: &PaddedBlock::pad_first_block(r#"{"seek": 42}"#.as_bytes()),
-                middle: &[],
-                last_block: &PaddedBlock::pad_last_block(&[]),
+        mod seek_forward_2 {
+            use crate::input::{
+                padding::{PaddedBlock, TwoSidesPaddedInput},
+                SliceSeekable,
             };
+            use pretty_assertions::assert_eq;
 
-            let result = input.seek_forward(123, [b':']);
+            #[test]
+            fn in_empty_input_returns_none() {
+                let input = TwoSidesPaddedInput {
+                    first_block: &PaddedBlock::pad_first_block(&[]),
+                    middle: &[],
+                    last_block: &PaddedBlock::pad_last_block(&[]),
+                };
 
-            assert_eq!(result, Some((123, b':')));
+                let result = input.seek_forward(0, [0, 1]);
+
+                assert_eq!(result, None);
+            }
+
+            #[test]
+            fn seeking_from_needle_1_returns_that() {
+                let bytes = r#"{"seek": 42}"#.as_bytes();
+
+                let result = bytes.seek_forward(7, [b':', b'4']);
+
+                assert_eq!(result, Some((7, b':')));
+            }
+
+            #[test]
+            fn seeking_from_needle_2_returns_that() {
+                let bytes = r#"{"seek": 42}"#.as_bytes();
+
+                let result = bytes.seek_forward(7, [b'4', b':']);
+
+                assert_eq!(result, Some((7, b':')));
+            }
+
+            #[test]
+            fn seeking_from_not_needle_when_next_is_needle_1_returns_that() {
+                let bytes = "seek: \t\n42}".as_bytes();
+
+                let result = bytes.seek_forward(5, [b'4', b'2']);
+
+                assert_eq!(result, Some((8, b'4')));
+            }
+
+            #[test]
+            fn seeking_from_not_needle_when_next_is_needle_2_returns_that() {
+                let bytes = "seek: \t\n42}".as_bytes();
+
+                let result = bytes.seek_forward(5, [b'2', b'4']);
+
+                assert_eq!(result, Some((8, b'4')));
+            }
+
+            #[test]
+            fn seeking_from_not_needle_when_there_is_no_needle_returns_none() {
+                let bytes = "seek: \t\n42}".as_bytes();
+
+                let result = bytes.seek_forward(5, [b'3', b'0']);
+
+                assert_eq!(result, None);
+            }
         }
 
-        #[test]
-        fn seeking_from_middle_block_from_needle_returns_that() {
-            let input = TwoSidesPaddedInput {
-                first_block: &PaddedBlock::pad_first_block(&[]),
-                middle: r#"{"seek": 42}"#.as_bytes(),
-                last_block: &PaddedBlock::pad_last_block(&[]),
+        mod seek_non_whitespace_forward {
+            use std::iter;
+
+            use crate::input::{
+                padding::{PaddedBlock, TwoSidesPaddedInput},
+                SliceSeekable,
             };
+            use pretty_assertions::assert_eq;
 
-            let result = input.seek_forward(128 + 7, [b':']);
+            #[test]
+            fn in_empty_slice_returns_none() {
+                let input = TwoSidesPaddedInput {
+                    first_block: &PaddedBlock::pad_first_block(&[]),
+                    middle: &[],
+                    last_block: &PaddedBlock::pad_last_block(&[]),
+                };
 
-            assert_eq!(result, Some((128 + 7, b':')));
-        }
+                let result = input.seek_non_whitespace_forward(0);
 
-        #[test]
-        fn seeking_from_last_block_from_needle_returns_that() {
-            let input = TwoSidesPaddedInput {
-                first_block: &PaddedBlock::pad_first_block(&[]),
-                middle: &iter::repeat(b' ').take(256).collect::<Vec<_>>(),
-                last_block: &PaddedBlock::pad_last_block(r#"{"seek": 42}"#.as_bytes()),
-            };
+                assert_eq!(result, None);
+            }
 
-            let result = input.seek_forward(128 + 256 + 7, [b':']);
+            #[test]
+            fn seeking_from_first_block_from_non_whitespace_returns_that() {
+                let input = TwoSidesPaddedInput {
+                    first_block: &PaddedBlock::pad_first_block(r#"{"seek": 42}"#.as_bytes()),
+                    middle: &[],
+                    last_block: &PaddedBlock::pad_last_block(&[]),
+                };
 
-            assert_eq!(result, Some((128 + 256 + 7, b':')));
-        }
+                let result = input.seek_non_whitespace_forward(123);
 
-        #[test]
-        fn seeking_from_first_block_from_not_needle_returns_next_needle() {
-            let input = TwoSidesPaddedInput {
-                first_block: &PaddedBlock::pad_first_block(r"seek: \t\n42}".as_bytes()),
-                middle: &[],
-                last_block: &PaddedBlock::pad_last_block(&[]),
-            };
+                assert_eq!(result, Some((123, b':')));
+            }
 
-            let result = input.seek_forward(119, [b'2']);
+            #[test]
+            fn seeking_from_middle_block_from_non_whitespace_returns_that() {
+                let input = TwoSidesPaddedInput {
+                    first_block: &PaddedBlock::pad_first_block(&[]),
+                    middle: r#"{"seek": 42}"#.as_bytes(),
+                    last_block: &PaddedBlock::pad_last_block(&[]),
+                };
 
-            assert_eq!(result, Some((126, b'2')));
-        }
+                let result = input.seek_non_whitespace_forward(128 + 7);
 
-        #[test]
-        fn seeking_from_middle_block_from_not_needle_returns_next_needle() {
-            let input = TwoSidesPaddedInput {
-                first_block: &PaddedBlock::pad_first_block(&[]),
-                middle: r"seek: \t\n42}".as_bytes(),
-                last_block: &PaddedBlock::pad_last_block(&[]),
-            };
+                assert_eq!(result, Some((128 + 7, b':')));
+            }
 
-            let result = input.seek_forward(128 + 5, [b'2']);
+            #[test]
+            fn seeking_from_last_block_from_non_whitespace_returns_that() {
+                let input = TwoSidesPaddedInput {
+                    first_block: &PaddedBlock::pad_first_block(&[]),
+                    middle: &iter::repeat(b' ').take(256).collect::<Vec<_>>(),
+                    last_block: &PaddedBlock::pad_last_block(r#"{"seek": 42}"#.as_bytes()),
+                };
 
-            assert_eq!(result, Some((128 + 11, b'2')));
-        }
+                let result = input.seek_non_whitespace_forward(128 + 256 + 7);
 
-        #[test]
-        fn seeking_from_last_block_from_not_needle_returns_next_needle() {
-            let input = TwoSidesPaddedInput {
-                first_block: &PaddedBlock::pad_first_block(&[]),
-                middle: &iter::repeat(b' ').take(256).collect::<Vec<_>>(),
-                last_block: &PaddedBlock::pad_last_block(r"seek: \t\n42}".as_bytes()),
-            };
+                assert_eq!(result, Some((128 + 256 + 7, b':')));
+            }
 
-            let result = input.seek_forward(128 + 256 + 5, [b'2']);
+            #[test]
+            fn seeking_from_whitespace_returns_next_non_whitespace() {
+                let bytes = "seek: \t\n42}".as_bytes();
 
-            assert_eq!(result, Some((128 + 256 + 11, b'2')));
-        }
+                let result = bytes.seek_non_whitespace_forward(5);
 
-        #[test]
-        fn seeking_from_first_block_from_not_needle_when_there_is_no_needle_returns_none() {
-            let bytes = "seek: \t\n42}".as_bytes();
+                assert_eq!(result, Some((8, b'4')));
+            }
 
-            let result = bytes.seek_forward(5, [b'3']);
+            #[test]
+            fn seeking_from_whitespace_when_there_is_no_more_non_whitespace_returns_none() {
+                let bytes = "seek: \t\n ".as_bytes();
 
-            assert_eq!(result, None);
-        }
-    }
+                let result = bytes.seek_non_whitespace_forward(5);
 
-    mod seek_forward_2 {
-        use crate::input::{
-            padding::{PaddedBlock, TwoSidesPaddedInput},
-            SliceSeekable,
-        };
-        use pretty_assertions::assert_eq;
-
-        #[test]
-        fn in_empty_input_returns_none() {
-            let input = TwoSidesPaddedInput {
-                first_block: &PaddedBlock::pad_first_block(&[]),
-                middle: &[],
-                last_block: &PaddedBlock::pad_last_block(&[]),
-            };
-
-            let result = input.seek_forward(0, [0, 1]);
-
-            assert_eq!(result, None);
-        }
-
-        #[test]
-        fn seeking_from_needle_1_returns_that() {
-            let bytes = r#"{"seek": 42}"#.as_bytes();
-
-            let result = bytes.seek_forward(7, [b':', b'4']);
-
-            assert_eq!(result, Some((7, b':')));
-        }
-
-        #[test]
-        fn seeking_from_needle_2_returns_that() {
-            let bytes = r#"{"seek": 42}"#.as_bytes();
-
-            let result = bytes.seek_forward(7, [b'4', b':']);
-
-            assert_eq!(result, Some((7, b':')));
-        }
-
-        #[test]
-        fn seeking_from_not_needle_when_next_is_needle_1_returns_that() {
-            let bytes = "seek: \t\n42}".as_bytes();
-
-            let result = bytes.seek_forward(5, [b'4', b'2']);
-
-            assert_eq!(result, Some((8, b'4')));
-        }
-
-        #[test]
-        fn seeking_from_not_needle_when_next_is_needle_2_returns_that() {
-            let bytes = "seek: \t\n42}".as_bytes();
-
-            let result = bytes.seek_forward(5, [b'2', b'4']);
-
-            assert_eq!(result, Some((8, b'4')));
-        }
-
-        #[test]
-        fn seeking_from_not_needle_when_there_is_no_needle_returns_none() {
-            let bytes = "seek: \t\n42}".as_bytes();
-
-            let result = bytes.seek_forward(5, [b'3', b'0']);
-
-            assert_eq!(result, None);
-        }
-    }
-
-    mod seek_non_whitespace_forward {
-        use std::iter;
-
-        use crate::input::{
-            padding::{PaddedBlock, TwoSidesPaddedInput},
-            SliceSeekable,
-        };
-        use pretty_assertions::assert_eq;
-
-        #[test]
-        fn in_empty_slice_returns_none() {
-            let input = TwoSidesPaddedInput {
-                first_block: &PaddedBlock::pad_first_block(&[]),
-                middle: &[],
-                last_block: &PaddedBlock::pad_last_block(&[]),
-            };
-
-            let result = input.seek_non_whitespace_forward(0);
-
-            assert_eq!(result, None);
-        }
-
-        #[test]
-        fn seeking_from_first_block_from_non_whitespace_returns_that() {
-            let input = TwoSidesPaddedInput {
-                first_block: &PaddedBlock::pad_first_block(r#"{"seek": 42}"#.as_bytes()),
-                middle: &[],
-                last_block: &PaddedBlock::pad_last_block(&[]),
-            };
-
-            let result = input.seek_non_whitespace_forward(123);
-
-            assert_eq!(result, Some((123, b':')));
-        }
-
-        #[test]
-        fn seeking_from_middle_block_from_non_whitespace_returns_that() {
-            let input = TwoSidesPaddedInput {
-                first_block: &PaddedBlock::pad_first_block(&[]),
-                middle: r#"{"seek": 42}"#.as_bytes(),
-                last_block: &PaddedBlock::pad_last_block(&[]),
-            };
-
-            let result = input.seek_non_whitespace_forward(128 + 7);
-
-            assert_eq!(result, Some((128 + 7, b':')));
-        }
-
-        #[test]
-        fn seeking_from_last_block_from_non_whitespace_returns_that() {
-            let input = TwoSidesPaddedInput {
-                first_block: &PaddedBlock::pad_first_block(&[]),
-                middle: &iter::repeat(b' ').take(256).collect::<Vec<_>>(),
-                last_block: &PaddedBlock::pad_last_block(r#"{"seek": 42}"#.as_bytes()),
-            };
-
-            let result = input.seek_non_whitespace_forward(128 + 256 + 7);
-
-            assert_eq!(result, Some((128 + 256 + 7, b':')));
-        }
-
-        #[test]
-        fn seeking_from_whitespace_returns_next_non_whitespace() {
-            let bytes = "seek: \t\n42}".as_bytes();
-
-            let result = bytes.seek_non_whitespace_forward(5);
-
-            assert_eq!(result, Some((8, b'4')));
-        }
-
-        #[test]
-        fn seeking_from_whitespace_when_there_is_no_more_non_whitespace_returns_none() {
-            let bytes = "seek: \t\n ".as_bytes();
-
-            let result = bytes.seek_non_whitespace_forward(5);
-
-            assert_eq!(result, None);
+                assert_eq!(result, None);
+            }
         }
     }
 }

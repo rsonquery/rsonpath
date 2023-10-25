@@ -589,7 +589,7 @@ where
 
         let start_idx = closing_quote_idx + 1 - len;
         self.input
-            .is_member_match(start_idx, closing_quote_idx, member_name)
+            .is_member_match(start_idx, closing_quote_idx + 1, member_name)
             .map_err(|x| x.into().into())
     }
 

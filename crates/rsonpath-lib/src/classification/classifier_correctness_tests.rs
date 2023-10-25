@@ -11,7 +11,7 @@ use crate::{
 
 use super::simd::config_simd;
 
-fn classify_string(json: &str) -> Vec<Structural> {
+fn classify_string(json: &str) -> (Vec<Structural>, usize) {
     let simd = simd::configure();
 
     config_simd!(simd => |simd| {
@@ -23,13 +23,19 @@ fn classify_string(json: &str) -> Vec<Structural> {
         structural_classifier.turn_commas_on(0);
         structural_classifier.turn_colons_on(0);
 
-        structural_classifier.collect().unwrap()
+        (structural_classifier.collect().unwrap(), bytes.leading_padding_len())
     })
+}
+
+fn apply_offset(vec: &mut [Structural], offset: usize) {
+    for x in vec {
+        *x = x.offset(offset);
+    }
 }
 
 #[test]
 fn empty_string() {
-    let result = classify_string("");
+    let (result, _) = classify_string("");
 
     assert_eq!(Vec::<Structural>::default(), result);
 }
@@ -37,7 +43,7 @@ fn empty_string() {
 #[test]
 fn json() {
     let json = r#"{"a": [1, 2, 3], "b": "string", "c": {"d": 42, "e": 17}}"#;
-    let expected: &[Structural] = &[
+    let mut expected: &mut [Structural] = &mut [
         Structural::Opening(BracketType::Curly, 0),
         Structural::Colon(4),
         Structural::Opening(BracketType::Square, 6),
@@ -56,7 +62,8 @@ fn json() {
         Structural::Closing(BracketType::Curly, 55),
     ];
 
-    let result = classify_string(json);
+    let (result, offset) = classify_string(json);
+    apply_offset(&mut expected, offset);
 
     assert_eq!(expected, result);
 }
@@ -64,7 +71,7 @@ fn json() {
 #[test]
 fn json_with_escapes() {
     let json = r#"{"a": "Hello, World!", "b": "\"{Hello, [World]!}\""}"#;
-    let expected: &[Structural] = &[
+    let mut expected: &mut [Structural] = &mut [
         Structural::Opening(BracketType::Curly, 0),
         Structural::Colon(4),
         Structural::Comma(21),
@@ -72,7 +79,8 @@ fn json_with_escapes() {
         Structural::Closing(BracketType::Curly, 51),
     ];
 
-    let result = classify_string(json);
+    let (result, offset) = classify_string(json);
+    apply_offset(&mut expected, offset);
 
     assert_eq!(expected, result);
 }
@@ -82,7 +90,7 @@ fn reverse_exclamation_point() {
     let wtf = "¡";
     let expected: &[Structural] = &[];
 
-    let result = classify_string(wtf);
+    let (result, _) = classify_string(wtf);
 
     assert_eq!(expected, result);
 }
@@ -92,7 +100,7 @@ fn block_boundary() {
     use Structural::*;
 
     let wtf = r##",,#;0a#0,#a#0#0aa ;a0 0a,"A"#a~A#0a~A##a0|a0#0aaa~ 0#;A|~|"a"A-|;#0 Aa,,"0","A"A0,,,,,,,,,,,,,,,"a",AA;#|#|a;AAA;a A~;aA;A##A#~a ,,,,,,0^A-AA0aa;- ~0,,,#;A;aA#A#0 a-, a;0aaa0|a 0aA -A#a,,,,"\\","##;
-    let expected: &[Structural] = &[
+    let mut expected: &mut [Structural] = &mut [
         Comma(0),
         Comma(1),
         Comma(8),
@@ -133,13 +141,14 @@ fn block_boundary() {
         Comma(193),
     ];
 
-    let result = classify_string(wtf);
+    let (result, offset) = classify_string(wtf);
+    apply_offset(&mut expected, offset);
 
     assert_eq!(expected, result);
 }
 
 mod prop_test {
-    use super::{classify_string, BracketType, Structural};
+    use super::{apply_offset, classify_string, BracketType, Structural};
     use proptest::{self, collection, prelude::*};
     use std::fmt::Debug;
 
@@ -275,15 +284,17 @@ mod prop_test {
 
     proptest! {
         #[test]
-        fn classifies_correctly_ascii((input, expected) in input_string_ascii()) {
-            let result = classify_string(&input);
+        fn classifies_correctly_ascii((input, mut expected) in input_string_ascii()) {
+            let (result, offset) = classify_string(&input);
+            apply_offset(&mut expected, offset);
 
             assert_eq!(expected, result);
         }
 
         #[test]
-        fn classifies_correctly_all((input, expected) in input_string_all()) {
-            let result = classify_string(&input);
+        fn classifies_correctly_all((input, mut expected) in input_string_all()) {
+            let (result, offset) = classify_string(&input);
+            apply_offset(&mut expected, offset);
 
             assert_eq!(expected, result);
         }

@@ -27,11 +27,7 @@ where
     for (i, c) in first_block[block_idx..].iter().copied().enumerate() {
         let j = start_idx + i;
 
-        if c == b'"'
-            && input
-                .is_member_match(j, j + label_size - 1, label)
-                .map_err(|x| x.into())?
-        {
+        if c == b'"' && input.is_member_match(j, j + label_size, label).map_err(|x| x.into())? {
             return Ok(Some((j, first_block)));
         }
     }

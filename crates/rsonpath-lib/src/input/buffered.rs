@@ -211,15 +211,15 @@ impl<R: Read> Input for BufferedInput<R> {
     #[inline(always)]
     fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> Result<bool, Self::Error> {
         let mut buf = self.0.borrow_mut();
-        
-        while buf.len() <= to {
+
+        while buf.len() < to {
             if !buf.read_more()? {
-                return Ok(false)
+                return Ok(false);
             }
         }
 
         let bytes = buf.as_slice();
-        let slice = &bytes[from..to + 1];
+        let slice = &bytes[from..to];
         Ok(member.bytes_with_quotes() == slice && (from == 0 || bytes[from - 1] != b'\\'))
     }
 }

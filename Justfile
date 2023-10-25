@@ -105,11 +105,11 @@ test-engine: (gen-tests)
 
 # Run the input tests on default features.
 test-input:
-    cargo test --test input_implementation -q
+    cargo test --test input_implementation_tests -q
 
 # Run the query tests on default features.
 test-parser:
-    cargo test --test query_parser -q
+    cargo test --test query_parser_tests -q
 
 # Run all tests, including real dataset tests, on the feature powerset of the project.
 test-full: (gen-tests)
@@ -241,12 +241,8 @@ commit msg:
 [private]
 hook-pre-commit:
     #!/bin/sh
-    tmpdiff=$(mktemp -t pre-commit-hook-diff-XXXXXXXX.$$)
     just assert-benchmarks-committed
-    git diff --full-index --binary > $tmpdiff
-    git stash -q --keep-index
-    (just verify-fmt && just verify-check); \
-    git apply --whitespace=nowarn < $tmpdiff}} && git stash drop -q; rm $tmpdiff
+    (just verify-fmt && just verify-check);
 
 [private]
 @hook-post-checkout: checkout-benchmarks

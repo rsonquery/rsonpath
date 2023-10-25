@@ -15,7 +15,7 @@ pub(crate) fn find_in_mask<I: Input>(
         let idx = result.trailing_zeros() as usize;
         if offset + idx > 1
             && input
-                .is_member_match(offset + idx - 2, offset + idx + label_size - 3, label)
+                .is_member_match(offset + idx - 2, offset + idx + label_size - 2, label)
                 .map_err(|x| x.into())?
         {
             return Some(offset + idx - 2);

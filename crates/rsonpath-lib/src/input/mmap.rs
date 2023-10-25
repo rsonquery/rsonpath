@@ -99,26 +99,80 @@ impl Input for MmapInput {
 
     #[inline]
     fn seek_backward(&self, from: usize, needle: u8) -> Option<usize> {
-        self.as_padded_input().seek_backward(from, needle)
+        return if from < self.last_block_start {
+            self.mmap.seek_backward(from, needle)
+        } else {
+            self.as_padded_input().seek_backward(from, needle)
+        };
     }
 
     #[inline]
     fn seek_forward<const N: usize>(&self, from: usize, needles: [u8; N]) -> Result<Option<(usize, u8)>, Infallible> {
-        Ok(self.as_padded_input().seek_forward(from, needles))
+        return Ok(if from < self.last_block_start {
+            self.mmap
+                .seek_forward(from, needles)
+                .or_else(|| handle_last(&self.last_block, self.last_block_start, needles))
+        } else {
+            self.as_padded_input().seek_forward(from, needles)
+        });
+
+        #[cold]
+        #[inline(never)]
+        fn handle_last<const N: usize>(
+            last_block: &PaddedBlock,
+            offset: usize,
+            needles: [u8; N],
+        ) -> Option<(usize, u8)> {
+            last_block
+                .bytes()
+                .seek_forward(0, needles)
+                .map(|(x, y)| (x + offset, y))
+        }
     }
 
     #[inline]
     fn seek_non_whitespace_forward(&self, from: usize) -> Result<Option<(usize, u8)>, Infallible> {
-        Ok(self.as_padded_input().seek_non_whitespace_forward(from))
+        return Ok(if from < self.last_block_start {
+            self.mmap
+                .seek_non_whitespace_forward(from)
+                .or_else(|| handle_last(&self.last_block, self.last_block_start))
+        } else {
+            self.as_padded_input().seek_non_whitespace_forward(from)
+        });
+
+        #[cold]
+        #[inline(never)]
+        fn handle_last(last_block: &PaddedBlock, offset: usize) -> Option<(usize, u8)> {
+            last_block
+                .bytes()
+                .seek_non_whitespace_forward(0)
+                .map(|(x, y)| (x + offset, y))
+        }
     }
 
     #[inline]
     fn seek_non_whitespace_backward(&self, from: usize) -> Option<(usize, u8)> {
-        self.as_padded_input().seek_non_whitespace_backward(from)
+        return if from < self.last_block_start {
+            self.mmap.seek_non_whitespace_backward(from)
+        } else {
+            self.as_padded_input().seek_non_whitespace_backward(from)
+        };
     }
 
     #[inline]
     fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> Result<bool, Self::Error> {
-        Ok(self.as_padded_input().is_member_match(from, to, member))
+        debug_assert!(from < to);
+        // The hot path is when we're checking fully within the middle section.
+        // This has to be as fast as possible, so the "cold" path referring to the TwoSidesPaddedInput
+        // impl is explicitly marked with #[cold].
+        if to < self.last_block_start {
+            // This is the hot path -- do the bounds check and memcmp.
+            let bytes = &self.mmap;
+            let slice = &bytes[from..to];
+            Ok(member.bytes_with_quotes() == slice && (from == 0 || bytes[from - 1] != b'\\'))
+        } else {
+            // This is a very expensive, cold path.
+            Ok(self.as_padded_input().is_member_match(from, to, member))
+        }
     }
 }

@@ -20,7 +20,7 @@ pub(crate) fn find_in_mask<I: Input>(
         debug!("{offset} + {idx} - 2 to {offset} + {idx} + {label_size} - 3");
         if offset + idx > 1
             && input
-                .is_member_match(offset + idx - 2, offset + idx + label_size - 3, label)
+                .is_member_match(offset + idx - 2, offset + idx + label_size - 2, label)
                 .map_err(|x| x.into())?
         {
             return Ok(Some(offset + idx - 2));
