@@ -61,6 +61,7 @@ pub trait Input: Sized {
         Self: 'i,
         R: InputRecorder<Self::Block<'i, N>> + 'r;
 
+    /// Type of errors that can occur when operating on this [`Input`].
     type Error: Into<InputError>;
 
     /// Type of the blocks returned by the `BlockIterator`.
@@ -79,9 +80,21 @@ pub trait Input: Sized {
         None
     }
 
+    /// Return the length of the padding added at the start of the input.
+    ///
+    /// This depends on the particular [`Input`] implementation, and may be zero.
+    /// In any case the length of the entire input should be equivalent to the length
+    /// of the source plus [`leading_padding_len`](`Input::leading_padding_len`) plus
+    /// [`trailing_padding_len`](`Input::trailing_padding_len`).
     #[must_use]
     fn leading_padding_len(&self) -> usize;
 
+    /// Return the length of the padding added at the end of the input.
+    ///
+    /// This depends on the particular [`Input`] implementation, and may be zero.
+    /// In any case the length of the entire input should be equivalent to the length
+    /// of the source plus [`leading_padding_len`](`Input::leading_padding_len`) plus
+    /// [`trailing_padding_len`](`Input::trailing_padding_len`).
     #[must_use]
     fn trailing_padding_len(&self) -> usize;
 
@@ -130,6 +143,10 @@ pub trait Input: Sized {
     ///
     /// This will also check if the leading double quote is not
     /// escaped by a backslash character.
+    ///
+    /// # Errors
+    /// This function can read more data from the input if `to` falls beyond
+    /// the range that was already read, and the read operation can fail.
     fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> Result<bool, Self::Error>;
 }
 
@@ -140,8 +157,13 @@ pub trait InputBlockIterator<'i, const N: usize> {
     /// The type of blocks returned.
     type Block: InputBlock<'i, N>;
 
+    /// Type of errors that can occur when reading from this iterator.
     type Error: Into<InputError>;
 
+    /// Advances the iterator and returns the next value.
+    ///
+    /// # Errors
+    /// May fail depending on the implementation.
     fn next(&mut self) -> Result<Option<Self::Block>, Self::Error>;
 
     /// Get the offset of the iterator in the input.

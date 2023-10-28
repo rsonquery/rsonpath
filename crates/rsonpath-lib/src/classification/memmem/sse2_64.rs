@@ -1,7 +1,10 @@
 use super::{shared::mask_64, shared::vector_128, *};
 use crate::{
     classification::mask::m64,
-    input::{error::InputError, Input, InputBlock, InputBlockIterator},
+    input::{
+        error::{InputError, InputErrorConvertible},
+        Input, InputBlock, InputBlockIterator,
+    },
     query::JsonString,
     result::InputRecorder,
 };
@@ -61,7 +64,7 @@ where
         let classifier = vector_128::BlockClassifier128::new(b'"', b'"');
         let mut previous_block: u64 = 0;
 
-        while let Some(block) = self.iter.next().map_err(|x| x.into())? {
+        while let Some(block) = self.iter.next().e()? {
             let (block1, block2, block3, block4) = block.quarters();
             let classified1 = classifier.classify_block(block1);
             let classified2 = classifier.classify_block(block2);
@@ -87,7 +90,7 @@ where
                 if self
                     .input
                     .is_member_match(offset + idx - 1, offset + idx + 1, label)
-                    .map_err(|x| x.into())?
+                    .e()?
                 {
                     return Ok(Some((offset + idx - 1, block)));
                 }
@@ -113,7 +116,7 @@ where
         let classifier = vector_128::BlockClassifier128::new(label.bytes()[0], b'"');
         let mut previous_block: u64 = 0;
 
-        while let Some(block) = self.iter.next().map_err(|x| x.into())? {
+        while let Some(block) = self.iter.next().e()? {
             let (block1, block2, block3, block4) = block.quarters();
             let classified1 = classifier.classify_block(block1);
             let classified2 = classifier.classify_block(block2);
@@ -161,7 +164,7 @@ where
         let classifier = vector_128::BlockClassifier128::new(label.bytes()[0], label.bytes()[1]);
         let mut previous_block: u64 = 0;
 
-        while let Some(block) = self.iter.next().map_err(|x| x.into())? {
+        while let Some(block) = self.iter.next().e()? {
             let (block1, block2, block3, block4) = block.quarters();
             let classified1 = classifier.classify_block(block1);
             let classified2 = classifier.classify_block(block2);

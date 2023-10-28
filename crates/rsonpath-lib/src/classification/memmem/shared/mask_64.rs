@@ -1,6 +1,9 @@
 use crate::{
     debug,
-    input::{error::InputError, Input},
+    input::{
+        error::{InputError, InputErrorConvertible},
+        Input,
+    },
     query::JsonString,
 };
 
@@ -21,7 +24,7 @@ pub(crate) fn find_in_mask<I: Input>(
         if offset + idx > 1
             && input
                 .is_member_match(offset + idx - 2, offset + idx + label_size - 2, label)
-                .map_err(|x| x.into())?
+                .e()?
         {
             return Ok(Some(offset + idx - 2));
         }

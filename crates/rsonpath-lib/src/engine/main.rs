@@ -19,6 +19,7 @@ use crate::{
         tail_skipping::TailSkip,
         Compiler, Engine, Input,
     },
+    input::error::InputErrorConvertible,
     query::{
         automaton::{Automaton, State, TransitionLabel},
         error::CompilerError,
@@ -269,16 +270,9 @@ where
         debug!("Reporting result somewhere after {start_idx} with hint {hint:?}");
 
         let index = match hint {
-            NodeTypeHint::Complex(BracketType::Curly) => {
-                self.input.seek_forward(start_idx, [b'{']).map_err(|e| e.into())?
-            }
-            NodeTypeHint::Complex(BracketType::Square) => {
-                self.input.seek_forward(start_idx, [b'[']).map_err(|e| e.into())?
-            }
-            NodeTypeHint::Atomic => self
-                .input
-                .seek_non_whitespace_forward(start_idx)
-                .map_err(|e| e.into())?,
+            NodeTypeHint::Complex(BracketType::Curly) => self.input.seek_forward(start_idx, [b'{']).e()?,
+            NodeTypeHint::Complex(BracketType::Square) => self.input.seek_forward(start_idx, [b'[']).e()?,
+            NodeTypeHint::Atomic => self.input.seek_non_whitespace_forward(start_idx).e()?,
         }
         .map(|x| x.0);
 
@@ -296,12 +290,11 @@ where
     ) -> Result<(), EngineError> {
         debug!("Colon");
 
-        let is_next_opening =
-            if let Some((_, c)) = self.input.seek_non_whitespace_forward(idx + 1).map_err(|e| e.into())? {
-                c == b'{' || c == b'['
-            } else {
-                false
-            };
+        let is_next_opening = if let Some((_, c)) = self.input.seek_non_whitespace_forward(idx + 1).e()? {
+            c == b'{' || c == b'['
+        } else {
+            false
+        };
 
         if !is_next_opening {
             let mut any_matched = false;
@@ -350,12 +343,11 @@ where
     #[inline(always)]
     fn handle_comma(&mut self, _classifier: &mut Classifier!(), idx: usize) -> Result<(), EngineError> {
         self.recorder.record_value_terminator(idx, self.depth)?;
-        let is_next_opening =
-            if let Some((_, c)) = self.input.seek_non_whitespace_forward(idx + 1).map_err(|e| e.into())? {
-                c == b'{' || c == b'['
-            } else {
-                false
-            };
+        let is_next_opening = if let Some((_, c)) = self.input.seek_non_whitespace_forward(idx + 1).e()? {
+            c == b'{' || c == b'['
+        } else {
+            false
+        };
 
         let is_fallback_accepting = self.automaton.is_accepting(self.automaton[self.state].fallback_state());
 
@@ -465,7 +457,7 @@ where
                     is_fallback_accepting || self.automaton.has_first_array_index_transition_to_accepting(self.state);
 
                 if wants_first_item {
-                    let next = self.input.seek_non_whitespace_forward(idx + 1).map_err(|e| e.into())?;
+                    let next = self.input.seek_non_whitespace_forward(idx + 1).e()?;
 
                     match next {
                         Some((_, b'[' | b'{' | b']')) => (), // Complex value or empty list.

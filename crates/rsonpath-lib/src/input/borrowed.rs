@@ -243,6 +243,9 @@ where
         debug!("next!");
         return if self.idx >= MAX_BLOCK_SIZE && self.idx < self.input.middle().len() + MAX_BLOCK_SIZE {
             let start = self.idx - MAX_BLOCK_SIZE;
+            // SAFETY: Bounds check above.
+            // self.idx >= MBS => start >= 0, and self.idx < middle.len + MBS => self.idx < middle.len
+            // By construction, middle has length divisible by N.
             let block = unsafe { self.input.middle().get_unchecked(start..start + N) };
             self.recorder.record_block_start(block);
             self.idx += N;
@@ -296,6 +299,9 @@ where
         debug!("next!");
         return if self.idx < self.input.middle().len() {
             let start = self.idx;
+            // SAFETY: Bounds check above.
+            // self.idx >= MBS => start >= 0, and self.idx < middle.len + MBS => self.idx < middle.len
+            // By construction, middle has length divisible by N.
             let block = unsafe { self.input.middle().get_unchecked(start..start + N) };
             self.recorder.record_block_start(block);
             self.idx += N;

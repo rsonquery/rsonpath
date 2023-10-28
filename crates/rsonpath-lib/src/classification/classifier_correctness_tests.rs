@@ -43,7 +43,7 @@ fn empty_string() {
 #[test]
 fn json() {
     let json = r#"{"a": [1, 2, 3], "b": "string", "c": {"d": 42, "e": 17}}"#;
-    let mut expected: &mut [Structural] = &mut [
+    let expected: &mut [Structural] = &mut [
         Structural::Opening(BracketType::Curly, 0),
         Structural::Colon(4),
         Structural::Opening(BracketType::Square, 6),
@@ -63,7 +63,7 @@ fn json() {
     ];
 
     let (result, offset) = classify_string(json);
-    apply_offset(&mut expected, offset);
+    apply_offset(expected, offset);
 
     assert_eq!(expected, result);
 }
@@ -71,7 +71,7 @@ fn json() {
 #[test]
 fn json_with_escapes() {
     let json = r#"{"a": "Hello, World!", "b": "\"{Hello, [World]!}\""}"#;
-    let mut expected: &mut [Structural] = &mut [
+    let expected: &mut [Structural] = &mut [
         Structural::Opening(BracketType::Curly, 0),
         Structural::Colon(4),
         Structural::Comma(21),
@@ -80,7 +80,7 @@ fn json_with_escapes() {
     ];
 
     let (result, offset) = classify_string(json);
-    apply_offset(&mut expected, offset);
+    apply_offset(expected, offset);
 
     assert_eq!(expected, result);
 }
@@ -100,7 +100,7 @@ fn block_boundary() {
     use Structural::*;
 
     let wtf = r##",,#;0a#0,#a#0#0aa ;a0 0a,"A"#a~A#0a~A##a0|a0#0aaa~ 0#;A|~|"a"A-|;#0 Aa,,"0","A"A0,,,,,,,,,,,,,,,"a",AA;#|#|a;AAA;a A~;aA;A##A#~a ,,,,,,0^A-AA0aa;- ~0,,,#;A;aA#A#0 a-, a;0aaa0|a 0aA -A#a,,,,"\\","##;
-    let mut expected: &mut [Structural] = &mut [
+    let expected: &mut [Structural] = &mut [
         Comma(0),
         Comma(1),
         Comma(8),
@@ -142,7 +142,7 @@ fn block_boundary() {
     ];
 
     let (result, offset) = classify_string(wtf);
-    apply_offset(&mut expected, offset);
+    apply_offset(expected, offset);
 
     assert_eq!(expected, result);
 }

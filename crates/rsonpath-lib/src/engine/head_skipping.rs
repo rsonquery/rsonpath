@@ -13,7 +13,10 @@ use crate::{
     debug,
     depth::Depth,
     engine::EngineError,
-    input::{error::InputError, Input, InputBlockIterator},
+    input::{
+        error::{InputError, InputErrorConvertible},
+        Input, InputBlockIterator,
+    },
     query::{
         automaton::{Automaton, State},
         JsonString,
@@ -148,11 +151,11 @@ impl<'b, 'q, I: Input, V: Simd> HeadSkip<'b, 'q, I, V, BLOCK_SIZE> {
                     debug!("Needle found at {idx}");
                     let seek_start_idx = idx + head_skip.member_name.bytes_with_quotes().len();
 
-                match head_skip.bytes.seek_non_whitespace_forward(seek_start_idx).map_err(|e| e.into())? {
+                match head_skip.bytes.seek_non_whitespace_forward(seek_start_idx).e()? {
                     Some((colon_idx, b':')) => {
                         let (next_idx, next_c) = head_skip
                             .bytes
-                            .seek_non_whitespace_forward(colon_idx + 1).map_err(|e| e.into())?
+                            .seek_non_whitespace_forward(colon_idx + 1).e()?
                             .ok_or(EngineError::MissingItem())?;
 
                             let ResumedQuoteClassifier {

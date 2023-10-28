@@ -7,7 +7,7 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 pub enum InputError {
     /// Error that occurs when an unbounded-sized implementation
-    /// (e.g. [`OwnedBytes`](super::OwnedBytes)) would allocate more than the global limit of [isize::MAX].
+    /// (e.g. [`BufferedInput`](super::BufferedInput)) would allocate more than the global limit of [isize::MAX].
     #[error("owned buffer size exceeded the hard system limit of isize::MAX")]
     AllocationSizeExceeded,
     /// Error when reading input from an underlying IO handle.
@@ -23,6 +23,19 @@ pub enum InputError {
     ),
 }
 
+pub(crate) trait InputErrorConvertible<T>: Sized {
+    fn e(self) -> Result<T, InputError>;
+}
+
+impl<T, E: Into<InputError>> InputErrorConvertible<T> for Result<T, E> {
+    #[inline(always)]
+    fn e(self) -> Result<T, InputError> {
+        self.map_err(std::convert::Into::into)
+    }
+}
+
+/// Error type for [`Input`](`super::Input`) implementations that never fail
+/// when reading more input.
 #[derive(Debug, Error)]
 pub enum Infallible {}
 

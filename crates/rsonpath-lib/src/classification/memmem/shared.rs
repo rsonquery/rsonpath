@@ -1,6 +1,10 @@
-use crate::input::error::InputError;
-use crate::input::Input;
-use crate::query::JsonString;
+use crate::{
+    input::{
+        error::{InputError, InputErrorConvertible},
+        Input,
+    },
+    query::JsonString,
+};
 
 #[cfg(target_arch = "x86")]
 pub(super) mod mask_32;
@@ -27,7 +31,7 @@ where
     for (i, c) in first_block[block_idx..].iter().copied().enumerate() {
         let j = start_idx + i;
 
-        if c == b'"' && input.is_member_match(j, j + label_size, label).map_err(|x| x.into())? {
+        if c == b'"' && input.is_member_match(j, j + label_size, label).e()? {
             return Ok(Some((j, first_block)));
         }
     }

@@ -1,7 +1,10 @@
 use super::{shared::mask_32, shared::vector_128, *};
 use crate::{
     classification::mask::m32,
-    input::{error::InputError, Input, InputBlock, InputBlockIterator},
+    input::{
+        error::{InputError, InputErrorConvertible},
+        Input, InputBlock, InputBlockIterator,
+    },
     query::JsonString,
     result::InputRecorder,
     FallibleIterator,
@@ -62,7 +65,7 @@ where
         let classifier = vector_128::BlockClassifier128::new(b'"', b'"');
         let mut previous_block: u32 = 0;
 
-        while let Some(block) = self.iter.next()? {
+        while let Some(block) = self.iter.next().e()? {
             let (block1, block2) = block.halves();
             let classified1 = classifier.classify_block(block1);
             let classified2 = classifier.classify_block(block2);
@@ -98,7 +101,7 @@ where
         let classifier = vector_128::BlockClassifier128::new(label.bytes()[0], b'"');
         let mut previous_block: u32 = 0;
 
-        while let Some(block) = self.iter.next()? {
+        while let Some(block) = self.iter.next().e()? {
             let (block1, block2) = block.halves();
             let classified1 = classifier.classify_block(block1);
             let classified2 = classifier.classify_block(block2);
@@ -134,7 +137,7 @@ where
         let classifier = vector_128::BlockClassifier128::new(label.bytes()[0], label.bytes()[1]);
         let mut previous_block: u32 = 0;
 
-        while let Some(block) = self.iter.next()? {
+        while let Some(block) = self.iter.next().e()? {
             let (block1, block2) = block.halves();
             let classified1 = classifier.classify_block(block1);
             let classified2 = classifier.classify_block(block2);

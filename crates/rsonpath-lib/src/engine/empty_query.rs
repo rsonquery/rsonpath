@@ -6,7 +6,7 @@
 //! here.
 use crate::{
     engine::{error::EngineError, Input},
-    input::InputBlockIterator,
+    input::{error::InputErrorConvertible, InputBlockIterator},
     is_json_whitespace,
     result::{empty::EmptyRecorder, Match, MatchCount, MatchIndex, MatchSpan, Sink},
     BLOCK_SIZE,
@@ -19,7 +19,7 @@ where
 {
     // Assuming a correct JSON, there is either one root if any non-whitespace character
     // occurs in the document, or the document is empty.
-    if input.seek_non_whitespace_forward(0).map_err(|e| e.into())?.is_some() {
+    if input.seek_non_whitespace_forward(0).e()?.is_some() {
         Ok(1)
     } else {
         Ok(0)
@@ -33,7 +33,7 @@ where
     S: Sink<MatchIndex>,
 {
     // Assuming a correct JSON, the root starts at the first non-whitespace character, if any.
-    if let Some((first_idx, _)) = input.seek_non_whitespace_forward(0).map_err(|e| e.into())? {
+    if let Some((first_idx, _)) = input.seek_non_whitespace_forward(0).e()? {
         sink.add_match(first_idx - input.leading_padding_len())
             .map_err(|err| EngineError::SinkError(Box::new(err)))?;
     }
@@ -54,7 +54,7 @@ where
     // Some input know their lengths: bytes already in memory, file mmaps, etc.
     // A BufferedInput over an arbitrary Read stream cannot know its length, so we actually
     // need to iterate until the end and count the bytes.
-    if let Some((first_idx, _)) = input.seek_non_whitespace_forward(0).map_err(|e| e.into())? {
+    if let Some((first_idx, _)) = input.seek_non_whitespace_forward(0).e()? {
         let end_idx = match input.len_hint() {
             Some(end_idx) => end_idx, // Known length, just take it.
             None => {
@@ -62,7 +62,7 @@ where
                 let mut iter = input.iter_blocks::<_, BLOCK_SIZE>(&EmptyRecorder);
                 let mut end_idx = 0;
 
-                while (iter.next().map_err(|e| e.into())?).is_some() {
+                while (iter.next().e()?).is_some() {
                     end_idx += BLOCK_SIZE;
                 }
 
@@ -94,7 +94,7 @@ where
     let mut first_significant_idx = None;
     let mut offset = 0;
 
-    while let Some(block) = iter.next().map_err(|e| e.into())? {
+    while let Some(block) = iter.next().e()? {
         if first_significant_idx.is_none() {
             // Start of the root not found yet, look for it.
             first_significant_idx = block.iter().position(|&x| !is_json_whitespace(x));

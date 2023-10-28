@@ -1,6 +1,9 @@
 use super::{shared::mask_32, shared::vector_256, *};
 use crate::{
-    input::{error::InputError, Input, InputBlockIterator},
+    input::{
+        error::{InputError, InputErrorConvertible},
+        Input, InputBlockIterator,
+    },
     query::JsonString,
     result::InputRecorder,
     FallibleIterator,
@@ -61,7 +64,7 @@ where
         let classifier = vector_256::BlockClassifier256::new(b'"', b'"');
         let mut previous_block: u32 = 0;
 
-        while let Some(block) = self.iter.next()? {
+        while let Some(block) = self.iter.next().e()? {
             let classified = classifier.classify_block(&block);
 
             let mut result = (previous_block | (classified.first << 1)) & classified.second;
@@ -92,7 +95,7 @@ where
         let classifier = vector_256::BlockClassifier256::new(label.bytes()[0], b'"');
         let mut previous_block: u32 = 0;
 
-        while let Some(block) = self.iter.next()? {
+        while let Some(block) = self.iter.next().e()? {
             let classified = classifier.classify_block(&block);
 
             if let Some(res) = mask_32::find_in_mask(
@@ -128,7 +131,7 @@ where
         let classifier = vector_256::BlockClassifier256::new(label.bytes()[0], label.bytes()[1]);
         let mut previous_block: u32 = 0;
 
-        while let Some(block) = self.iter.next()? {
+        while let Some(block) = self.iter.next().e()? {
             let classified = classifier.classify_block(&block);
 
             if let Some(res) = mask_32::find_in_mask(

@@ -1,5 +1,9 @@
 use super::*;
-use crate::{debug, input::InputBlockIterator, FallibleIterator, MaskType};
+use crate::{
+    debug,
+    input::{error::InputErrorConvertible, InputBlockIterator},
+    FallibleIterator, MaskType,
+};
 use std::marker::PhantomData;
 
 pub(crate) struct Constructor;
@@ -98,7 +102,7 @@ where
 
     #[inline(always)]
     fn next(&mut self) -> Result<Option<Self::Item>, InputError> {
-        match self.iter.next().map_err(|x| x.into())? {
+        match self.iter.next().e()? {
             Some(block) => Ok(Some(self.classify_block(block))),
             None => Ok(None),
         }
@@ -127,7 +131,7 @@ where
         debug!("Offsetting by {count}");
 
         for _ in 0..count - 1 {
-            self.iter.next().map_err(|x| x.into())?;
+            self.iter.next().e()?;
         }
 
         self.next()

@@ -1,8 +1,12 @@
 use super::*;
-use crate::input::error::InputError;
-use crate::input::{Input, InputBlockIterator};
-use crate::query::JsonString;
-use crate::result::InputRecorder;
+use crate::{
+    input::{
+        error::{InputError, InputErrorConvertible},
+        Input, InputBlockIterator,
+    },
+    query::JsonString,
+    result::InputRecorder,
+};
 
 pub(crate) struct Constructor;
 
@@ -54,17 +58,11 @@ where
             label.bytes()[0]
         };
 
-        while let Some(block) = self.iter.next().map_err(|x| x.into())? {
+        while let Some(block) = self.iter.next().e()? {
             for (i, c) in block.iter().copied().enumerate() {
                 let j = offset + i;
 
-                if c == first_c
-                    && j > 0
-                    && self
-                        .input
-                        .is_member_match(j - 1, j + label_size - 1, label)
-                        .map_err(|x| x.into())?
-                {
+                if c == first_c && j > 0 && self.input.is_member_match(j - 1, j + label_size - 1, label).e()? {
                     return Ok(Some((j - 1, block)));
                 }
             }

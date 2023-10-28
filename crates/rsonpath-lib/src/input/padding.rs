@@ -18,6 +18,7 @@ pub struct TwoSidesPaddedInput<'a> {
 }
 
 impl PaddedBlock {
+    #[allow(clippy::unused_self)] // This is nicer than using the constant everywhere.
     pub(super) const fn len(&self) -> usize {
         MAX_BLOCK_SIZE
     }
@@ -580,9 +581,7 @@ fn seek_non_whitespace_backward_impl(bytes: &[u8], from: usize) -> Option<(usize
 
 #[cfg(test)]
 mod test {
-    use super::{PaddedBlock, JSON_SPACE_BYTE};
-
-    use super::*;
+    use super::{PaddedBlock, JSON_SPACE_BYTE, *};
     use pretty_assertions::assert_eq;
 
     #[test]
@@ -787,14 +786,73 @@ mod test {
             }
         }
 
-        mod seek_non_whitespace_forward {
-            use std::iter;
-
+        mod seek_backward {
             use crate::input::{
                 padding::{PaddedBlock, TwoSidesPaddedInput},
                 SliceSeekable,
             };
             use pretty_assertions::assert_eq;
+
+            #[test]
+            fn in_empty_slice_returns_none() {
+                let input = TwoSidesPaddedInput {
+                    first_block: &PaddedBlock::pad_first_block(&[]),
+                    middle: &[],
+                    last_block: &PaddedBlock::pad_last_block(&[]),
+                };
+
+                let result = input.seek_non_whitespace_forward(0);
+
+                assert_eq!(result, None);
+            }
+
+            #[test]
+            fn seeking_from_needle_returns_that() {
+                let input = TwoSidesPaddedInput {
+                    first_block: &PaddedBlock::pad_first_block(&[]),
+                    middle: r#"{"seek": 42}"#.as_bytes(),
+                    last_block: &PaddedBlock::pad_last_block(&[]),
+                };
+
+                let result = input.seek_backward(136, b':');
+
+                assert_eq!(result, Some(135));
+            }
+
+            #[test]
+            fn seeking_from_not_needle_when_previous_is_needle_returns_that() {
+                let input = TwoSidesPaddedInput {
+                    first_block: &PaddedBlock::pad_first_block(&[]),
+                    middle: "seek: \t\n42}".as_bytes(),
+                    last_block: &PaddedBlock::pad_last_block(&[]),
+                };
+
+                let result = input.seek_backward(137, b'4');
+
+                assert_eq!(result, Some(136));
+            }
+
+            #[test]
+            fn seeking_from_not_needle_when_there_is_no_needle_returns_none() {
+                let input = TwoSidesPaddedInput {
+                    first_block: &PaddedBlock::pad_first_block(&[]),
+                    middle: "seek: \t\n42}".as_bytes(),
+                    last_block: &PaddedBlock::pad_last_block(&[]),
+                };
+
+                let result = input.seek_backward(138, b'3');
+
+                assert_eq!(result, None);
+            }
+        }
+
+        mod seek_non_whitespace_forward {
+            use crate::input::{
+                padding::{PaddedBlock, TwoSidesPaddedInput},
+                SliceSeekable,
+            };
+            use pretty_assertions::assert_eq;
+            use std::iter;
 
             #[test]
             fn in_empty_slice_returns_none() {
