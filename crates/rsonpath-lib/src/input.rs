@@ -6,21 +6,24 @@
 //! documentation of each type to determine which to use. Here's a quick
 //! cheat-sheet:
 //!
-//! | Input scenario | Type to use    |
-//! |:---------------|:---------------|
-//! | file based     | [`MmapInput`]  |
-//! | memory based | [`BorrowedBytes`] |
+//! | Input scenario                | Type to use       |
+//! |:------------------------------|:------------------|
+//! | memory based                  | [`BorrowedBytes`] |
+//! | memory based, take ownership  | [`OwnedBytes`]    |
+//! | file based                    | [`MmapInput`]     |
 //! | [`Read`](std::io::Read) based | [`BufferedInput`] |
-//!
+
 pub mod borrowed;
 pub mod buffered;
 pub mod error;
 pub mod mmap;
+pub mod owned;
 mod padding;
 mod slice;
 pub use borrowed::BorrowedBytes;
 pub use buffered::BufferedInput;
 pub use mmap::MmapInput;
+pub use owned::OwnedBytes;
 
 use self::error::InputError;
 use crate::{query::JsonString, result::InputRecorder};
@@ -216,4 +219,74 @@ pub(super) trait SliceSeekable {
     fn seek_non_whitespace_forward(&self, from: usize) -> Option<(usize, u8)>;
 
     fn seek_non_whitespace_backward(&self, from: usize) -> Option<(usize, u8)>;
+}
+
+// This is mostly adapted from [slice::align_to](https://doc.rust-lang.org/std/primitive.slice.html#method.align_to).
+fn align_to<const N: usize>(bytes: &[u8]) -> (&[u8], &[u8], &[u8]) {
+    let ptr = bytes.as_ptr();
+    let offset = ptr.align_offset(N);
+    if offset > bytes.len() {
+        (bytes, &[], &[])
+    } else {
+        let (left, rest) = bytes.split_at(offset);
+        let middle_len = (rest.len() / N) * N;
+        let (middle, right) = rest.split_at(middle_len);
+
+        (left, middle, right)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::align_to;
+    use crate::input::MAX_BLOCK_SIZE;
+
+    // Run all tests for the actual alignment we use.
+    const N: usize = MAX_BLOCK_SIZE;
+    const SIZE: usize = 1024;
+
+    #[repr(align(128))]
+    struct Aligned {
+        bytes: [u8; SIZE],
+    }
+
+    #[test]
+    fn test_all_alignments() {
+        // We construct a byte array that is already aligned,
+        // and then take all suffixes for all possible misalignments
+        // and small sizes.
+        let aligned = Aligned { bytes: get_bytes() };
+        let slice = &aligned.bytes;
+
+        for i in 0..slice.len() {
+            let misalignment = i % N;
+            test_with_misalignment(misalignment, &slice[i..]);
+        }
+    }
+
+    fn get_bytes() -> [u8; SIZE] {
+        let mut bytes = [0; SIZE];
+
+        for (i, b) in bytes.iter_mut().enumerate() {
+            let x = i % (u8::MAX as usize);
+            *b = x as u8;
+        }
+
+        bytes
+    }
+
+    fn test_with_misalignment(misalignment: usize, slice: &[u8]) {
+        let expected_left_len = (N - misalignment) % N;
+        let expected_rem_len = slice.len() - expected_left_len;
+        let expected_middle_len = (expected_rem_len / N) * N;
+        let expected_right_len = expected_rem_len - expected_middle_len;
+
+        let (left, middle, right) = align_to::<N>(slice);
+        let glued_back: Vec<_> = [left, middle, right].into_iter().flatten().copied().collect();
+
+        assert_eq!(left.len(), expected_left_len, "misalignment = {misalignment}");
+        assert_eq!(middle.len(), expected_middle_len, "misalignment = {misalignment}");
+        assert_eq!(right.len(), expected_right_len, "misalignment = {misalignment}");
+        assert_eq!(glued_back, slice, "misalignment = {misalignment}");
+    }
 }

@@ -7,7 +7,7 @@ use eyre::{Result, WrapErr};
 use log::warn;
 use rsonpath_lib::{
     engine::{error::EngineError, main::MainEngine, Compiler, Engine},
-    input::{BorrowedBytes, BufferedInput, Input, MmapInput},
+    input::{BorrowedBytes, BufferedInput, Input, MmapInput, OwnedBytes},
     query::automaton::Automaton,
     result::MatchWriter,
 };
@@ -119,12 +119,12 @@ impl<S: AsRef<str>> ResolvedInput<S> {
             ResolvedInputKind::Owned => match self.file {
                 JsonSource::File(f) => {
                     let contents = get_contents(f)?;
-                    let input = BorrowedBytes::new(contents.as_bytes());
+                    let input = OwnedBytes::new(contents.into_bytes());
                     with_output.run_and_output(engine, input)
                 }
                 JsonSource::Stdin(s) => {
                     let contents = get_contents(s)?;
-                    let input = BorrowedBytes::new(contents.as_bytes());
+                    let input = OwnedBytes::new(contents.into_bytes());
                     with_output.run_and_output(engine, input)
                 }
                 JsonSource::Inline(j) => {

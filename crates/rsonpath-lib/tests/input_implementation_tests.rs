@@ -38,6 +38,7 @@ enum FileTestInput {
 enum InMemoryTestInput {
     Buffered,
     Borrowed,
+    Owned,
 }
 
 impl FileTestInput {
@@ -94,6 +95,7 @@ impl InMemoryTestInput {
         match self {
             InMemoryTestInput::Buffered => Self::test_padding_buffered(bytes),
             InMemoryTestInput::Borrowed => Self::test_padding_borrowed(bytes),
+            InMemoryTestInput::Owned => Self::test_padding_owned(bytes),
         }
     }
 
@@ -101,6 +103,7 @@ impl InMemoryTestInput {
         match self {
             InMemoryTestInput::Buffered => Self::test_seek_forward_buffered(bytes, from, needle, expected),
             InMemoryTestInput::Borrowed => Self::test_seek_forward_borrowed(bytes, from, needle, expected),
+            InMemoryTestInput::Owned => Self::test_seek_forward_owned(bytes, from, needle, expected),
         }
     }
 
@@ -112,6 +115,9 @@ impl InMemoryTestInput {
             InMemoryTestInput::Borrowed => {
                 Self::test_seek_non_whitespace_forward_borrowed(bytes, from, expected, expected_byte)
             }
+            InMemoryTestInput::Owned => {
+                Self::test_seek_non_whitespace_forward_owned(bytes, from, expected, expected_byte)
+            }
         }
     }
 
@@ -119,6 +125,7 @@ impl InMemoryTestInput {
         match self {
             InMemoryTestInput::Buffered => Self::test_seek_backward_buffered(bytes, from, needle, expected),
             InMemoryTestInput::Borrowed => Self::test_seek_backward_borrowed(bytes, from, needle, expected),
+            InMemoryTestInput::Owned => Self::test_seek_backward_owned(bytes, from, needle, expected),
         }
     }
 
@@ -130,6 +137,9 @@ impl InMemoryTestInput {
             InMemoryTestInput::Borrowed => {
                 Self::test_seek_non_whitespace_backward_borrowed(bytes, from, expected, expected_byte)
             }
+            InMemoryTestInput::Owned => {
+                Self::test_seek_non_whitespace_backward_owned(bytes, from, expected, expected_byte)
+            }
         }
     }
 
@@ -137,6 +147,7 @@ impl InMemoryTestInput {
         match self {
             InMemoryTestInput::Buffered => Self::test_positive_is_member_match_buffered(bytes, from, to, json_string),
             InMemoryTestInput::Borrowed => Self::test_positive_is_member_match_borrowed(bytes, from, to, json_string),
+            InMemoryTestInput::Owned => Self::test_positive_is_member_match_owned(bytes, from, to, json_string),
         }
     }
 
@@ -150,6 +161,15 @@ impl InMemoryTestInput {
 
     fn test_seek_forward_borrowed(bytes: &[u8], from: usize, needle: u8, expected: usize) {
         let input = BorrowedBytes::new(bytes);
+        let result = input.seek_forward(from, [needle]).expect("seek succeeds");
+        // Need to take padding into account.
+        let expected = expected + input.leading_padding_len();
+
+        assert_eq!(result, Some((expected, needle)));
+    }
+
+    fn test_seek_forward_owned(bytes: &[u8], from: usize, needle: u8, expected: usize) {
+        let input = OwnedBytes::new(bytes);
         let result = input.seek_forward(from, [needle]).expect("seek succeeds");
         // Need to take padding into account.
         let expected = expected + input.leading_padding_len();
@@ -174,6 +194,15 @@ impl InMemoryTestInput {
         assert_eq!(result, Some((expected, expected_byte)));
     }
 
+    fn test_seek_non_whitespace_forward_owned(bytes: &[u8], from: usize, expected: usize, expected_byte: u8) {
+        let input = OwnedBytes::new(bytes);
+        let result = input.seek_non_whitespace_forward(from).expect("seek succeeds");
+        // Need to take padding into account.
+        let expected = expected + input.leading_padding_len();
+
+        assert_eq!(result, Some((expected, expected_byte)));
+    }
+
     fn test_seek_backward_buffered(bytes: &[u8], from: usize, needle: u8, expected: usize) {
         let input = create_buffered(bytes);
         // A bit of a hack, make sure we read buffered until at least `from`.
@@ -187,6 +216,17 @@ impl InMemoryTestInput {
 
     fn test_seek_backward_borrowed(bytes: &[u8], from: usize, needle: u8, expected: usize) {
         let input = BorrowedBytes::new(bytes);
+
+        // Need to take padding into account.
+        let from = from + input.leading_padding_len();
+        let expected = expected + input.leading_padding_len();
+        let result = input.seek_backward(from, needle);
+
+        assert_eq!(result, Some(expected));
+    }
+
+    fn test_seek_backward_owned(bytes: &[u8], from: usize, needle: u8, expected: usize) {
+        let input = OwnedBytes::new(bytes);
 
         // Need to take padding into account.
         let from = from + input.leading_padding_len();
@@ -218,6 +258,17 @@ impl InMemoryTestInput {
         assert_eq!(result, Some((expected, expected_byte)));
     }
 
+    fn test_seek_non_whitespace_backward_owned(bytes: &[u8], from: usize, expected: usize, expected_byte: u8) {
+        let input = OwnedBytes::new(bytes);
+
+        // Need to take padding into account.
+        let from = from + input.leading_padding_len();
+        let expected = expected + input.leading_padding_len();
+        let result = input.seek_non_whitespace_backward(from);
+
+        assert_eq!(result, Some((expected, expected_byte)));
+    }
+
     fn test_positive_is_member_match_buffered(bytes: &[u8], from: usize, to: usize, json_string: JsonString) {
         let input = create_buffered(bytes);
 
@@ -238,6 +289,17 @@ impl InMemoryTestInput {
         assert!(result);
     }
 
+    fn test_positive_is_member_match_owned(bytes: &[u8], from: usize, to: usize, json_string: JsonString) {
+        let input = OwnedBytes::new(bytes);
+
+        // Need to take padding into account.
+        let from = from + input.leading_padding_len();
+        let to = to + input.leading_padding_len();
+        let result = input.is_member_match(from, to, &json_string).expect("match succeeds");
+
+        assert!(result);
+    }
+
     fn test_padding_buffered(bytes: &[u8]) {
         let input = create_buffered(bytes);
         test_equivalence(bytes, input);
@@ -245,6 +307,11 @@ impl InMemoryTestInput {
 
     fn test_padding_borrowed(bytes: &[u8]) {
         let input = BorrowedBytes::new(bytes);
+        test_equivalence(bytes, input);
+    }
+
+    fn test_padding_owned(bytes: &[u8]) {
+        let input = OwnedBytes::new(bytes);
         test_equivalence(bytes, input);
     }
 }
@@ -369,6 +436,11 @@ mod in_memory_proptests {
         }
 
         #[test]
+        fn owned_bytes_represents_the_same_bytes_padded(input in prop::collection::vec(prop::num::u8::ANY, 0..1024)) {
+            InMemoryTestInput::Owned.test_padding(&input)
+        }
+
+        #[test]
         fn buffered_input_seek_forward_is_correct((input, from, expected) in seek_forward_strategy()) {
             InMemoryTestInput::Buffered.test_seek_forward(&input, from, 255, expected)
         }
@@ -376,6 +448,11 @@ mod in_memory_proptests {
         #[test]
         fn borrowed_input_seek_forward_is_correct((input, from, expected) in seek_forward_strategy()) {
             InMemoryTestInput::Borrowed.test_seek_forward(&input, from, 255, expected)
+        }
+
+        #[test]
+        fn owned_input_seek_forward_is_correct((input, from, expected) in seek_forward_strategy()) {
+            InMemoryTestInput::Owned.test_seek_forward(&input, from, 255, expected)
         }
 
         #[test]
@@ -389,6 +466,11 @@ mod in_memory_proptests {
         }
 
         #[test]
+        fn owned_input_seek_non_whitespace_forward_is_correct((input, from, expected) in seek_non_whitespace_forward_strategy()) {
+            InMemoryTestInput::Owned.test_seek_non_whitespace_forward(&input, from, expected, 255)
+        }
+
+        #[test]
         fn buffered_input_seek_backward_is_correct((input, from, expected) in seek_backward_strategy()) {
             InMemoryTestInput::Buffered.test_seek_backward(&input, from, 255, expected)
         }
@@ -396,6 +478,11 @@ mod in_memory_proptests {
         #[test]
         fn borrowed_input_seek_backward_is_correct((input, from, expected) in seek_backward_strategy()) {
             InMemoryTestInput::Borrowed.test_seek_backward(&input, from, 255, expected)
+        }
+
+        #[test]
+        fn owned_input_seek_backward_is_correct((input, from, expected) in seek_backward_strategy()) {
+            InMemoryTestInput::Owned.test_seek_backward(&input, from, 255, expected)
         }
 
         #[test]
@@ -409,6 +496,11 @@ mod in_memory_proptests {
         }
 
         #[test]
+        fn owned_input_seek_non_whitespace_backward_is_correct((input, from, expected) in seek_non_whitespace_backward_strategy()) {
+            InMemoryTestInput::Owned.test_seek_non_whitespace_backward(&input, from, expected, 255)
+        }
+
+        #[test]
         fn buffered_input_is_member_match_should_be_true((input, from, to, member) in positive_is_member_match_strategy()) {
              InMemoryTestInput::Buffered.test_positive_is_member_match(&input, from, to, member)
         }
@@ -416,6 +508,11 @@ mod in_memory_proptests {
         #[test]
         fn borrowed_input_is_member_match_should_be_true((input, from, to, member) in positive_is_member_match_strategy()) {
             InMemoryTestInput::Borrowed.test_positive_is_member_match(&input, from, to, member)
+        }
+
+        #[test]
+        fn owned_input_is_member_match_should_be_true((input, from, to, member) in positive_is_member_match_strategy()) {
+            InMemoryTestInput::Owned.test_positive_is_member_match(&input, from, to, member)
         }
     }
 

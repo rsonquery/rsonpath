@@ -65,7 +65,7 @@ impl MmapInput {
 }
 
 impl Input for MmapInput {
-    type BlockIterator<'a, 'r, R, const N: usize> = BorrowedBytesBlockIterator<'a, 'r, EndPaddedInput<'a>, R, N>
+    type BlockIterator<'a, 'r, R, const N: usize> = BorrowedBytesBlockIterator<'r, EndPaddedInput<'a>, R, N>
     where
         R: InputRecorder<&'a [u8]> + 'r;
 

@@ -22,6 +22,10 @@ use super::{
 use crate::{error::InternalRsonpathError, query::JsonString, result::InputRecorder, JSON_SPACE_BYTE};
 use std::{cell::RefCell, io::Read, ops::Deref, slice};
 
+// The buffer has to be a multiple of MAX_BLOCK_SIZE.
+// It could technically be as small as MAX_BLOCK_SIZE, but there is a performance consideration.
+// The fewer reads we make, the smoother the pipeline of the engine can go.
+// 8KB is too little and hurts performance. 64KB appears to be a good compromise.
 const BUF_SIZE: usize = 64 * 1024;
 
 static_assertions::const_assert!(BUF_SIZE >= MAX_BLOCK_SIZE);
