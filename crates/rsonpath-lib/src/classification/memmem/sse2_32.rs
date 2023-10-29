@@ -7,7 +7,6 @@ use crate::{
     },
     query::JsonString,
     result::InputRecorder,
-    FallibleIterator,
 };
 
 const SIZE: usize = 32;
@@ -76,7 +75,11 @@ where
             let mut result = (previous_block | (first_bitmask << 1)) & second_bitmask;
             while result != 0 {
                 let idx = result.trailing_zeros() as usize;
-                if self.input.is_member_match(offset + idx - 1, offset + idx + 1, label) {
+                if self
+                    .input
+                    .is_member_match(offset + idx - 1, offset + idx + 1, label)
+                    .e()?
+                {
                     return Ok(Some((offset + idx - 1, block)));
                 }
                 result &= !(1 << idx);

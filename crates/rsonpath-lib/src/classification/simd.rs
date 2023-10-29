@@ -944,18 +944,20 @@ cfg_if! {
     else {
         macro_rules! config_simd {
             ($conf:expr => |$simd:ident| $b:block) => {
-                let conf = $conf;
-                assert_eq!(conf.highest_simd(), $crate::classification::simd::SimdTag::Nosimd);
-                assert!(!conf.fast_quotes());
-                assert!(!conf.fast_popcnt());
-                let $simd = $crate::classification::simd::ResolvedSimd::<
-                    $crate::classification::quotes::nosimd::Constructor,
-                    $crate::classification::structural::nosimd::Constructor,
-                    $crate::classification::depth::nosimd::Constructor,
-                    $crate::classification::memmem::nosimd::Constructor,
-                    {$crate::classification::simd::NOSIMD},
-                >::new();
-                $b
+                {
+                    let conf = $conf;
+                    assert_eq!(conf.highest_simd(), $crate::classification::simd::SimdTag::Nosimd);
+                    assert!(!conf.fast_quotes());
+                    assert!(!conf.fast_popcnt());
+                    let $simd = $crate::classification::simd::ResolvedSimd::<
+                        $crate::classification::quotes::nosimd::Constructor,
+                        $crate::classification::structural::nosimd::Constructor,
+                        $crate::classification::depth::nosimd::Constructor,
+                        $crate::classification::memmem::nosimd::Constructor,
+                        {$crate::classification::simd::NOSIMD},
+                    >::new();
+                    $b
+                }
             };
         }
     }
