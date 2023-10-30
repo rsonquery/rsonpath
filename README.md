@@ -136,7 +136,7 @@ with `rq --version` &ndash; check the `SIMD support` field:
 
 ```console,ignore
 $ rq --version
-rq 0.8.3
+rq 0.8.4
 
 Commit SHA:      be6abb7fc8a3a9342876d01cad2388c10f5751e3
 Features:        default,simd
