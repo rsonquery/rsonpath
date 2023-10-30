@@ -23,6 +23,7 @@ members = ["."]
 
 [profile.release]
 debug = 1
+lto = false
 
 [[bin]]
 name = "fuzz_arbitrary_bytes"

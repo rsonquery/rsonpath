@@ -2,6 +2,48 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.4] - 2023-10-30
+
+### Features
+
+- [**breaking**] Refactor the `Input` implementors with automatic padding (#[276](https://github.com/V0ldek/rsonpath/issues/276)).
+  - Padding and alignment is now handled automatically by the input types,
+    allowing them to work safely without copying the entire input. The overhead is now
+    limited to the padding, which is at most 256 bytes in total.
+  - [`BorrowedBytes`](https://docs.rs/rsonpath-lib/0.8.4/rsonpath/input/borrowed/struct.BorrowedBytes.html) is now safe to construct.
+  - [`OwnedBytes`](https://docs.rs/rsonpath-lib/0.8.4/rsonpath/input/owned/struct.OwnedBytes.html) no longer copies
+    the entire source on construction.
+  
+### Bug Fixes
+
+- Atomic values getting invalid spans (#327). ([#327](https://github.com/V0ldek/rsonpath/issues/327))
+  - Fixed an issue where atomic values would be matched with all
+    trailing characters up until the next closing.
+
+### Performance
+
+- Improve SIMD codegen.
+  - Improved the way we dispatch to SIMD-intensive functions.
+    This results in slightly larger binaries, but *massive* speedups &ndash;
+    throughput increase of 5, 10, 20, or in case of `google_map::travel_modes/rsonpath_direct_count`
+    59 (fifty-nine) percent.
+
+### Reliability
+
+- Harden GitHub Actions.
+  - We now use the StepSecurity [harden-runner](https://github.com/step-security/harden-runner) in audit mode
+    to test a more secure approach to GitHub CI.
+- End to end test refactor.
+  - tests are now generated into many separate files instead of one gigantic file.
+    This improves compilation times, responsiveness of rust-analyzer,
+    and in general makes the tooling happier.
+
+### Dependencies
+
+- Bump arbitrary from 1.3.0 to 1.3.2.
+- Bump clap from 4.4.6 to 4.4.7.
+- Bump thiserror from 1.0.49 to 1.0.50.
+
 ## [0.8.3] - 2023-10-04
 
 ### Bug Fixes
