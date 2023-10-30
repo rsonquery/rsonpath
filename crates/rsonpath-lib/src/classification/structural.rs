@@ -337,4 +337,30 @@ mod tests {
             assert_eq!(Some(Comma(30 + offset)), resumed_classifier.next().unwrap());
         });
     }
+
+    #[test]
+    fn resumption_at_block_boundary() {
+        use BracketType::*;
+        use Structural::*;
+
+        let simd = simd::configure();
+        config_simd!(simd => |simd| {
+            let mut json_string = "{".to_owned();
+            json_string += &" ".repeat(128);
+            json_string += "}";
+            let input = BorrowedBytes::new(json_string.as_bytes());
+            let iter = input.iter_blocks(&EmptyRecorder);
+            let quotes = simd.classify_quoted_sequences(iter);
+            let offset = input.leading_padding_len();
+
+            let mut classifier = simd.classify_structural_characters(quotes);
+
+            assert_eq!(Some(Opening(Curly, offset)), classifier.next().unwrap());
+
+            let resume_state = classifier.stop();
+            let mut resumed_classifier = simd.resume_structural_classification(resume_state);
+
+            assert_eq!(Some(Closing(Curly, 129 + offset)), resumed_classifier.next().unwrap());
+        });
+    }
 }

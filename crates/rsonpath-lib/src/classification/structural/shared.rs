@@ -221,7 +221,7 @@ macro_rules! structural_classifier {
                 let block = state.block.map(|b| {
                     // SAFETY: target_feature invariant
                     let mut block = unsafe { classifier.classify(b.block) };
-                    let idx_mask = <$mask_ty>::MAX << b.idx;
+                    let idx_mask = <$mask_ty>::MAX.checked_shl(b.idx as u32).unwrap_or(0);
                     block.structural_mask &= idx_mask;
 
                     block
