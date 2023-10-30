@@ -15,9 +15,6 @@
 //! // Parse a JSONPath query from string.
 //! let query = JsonPathQuery::parse("$..phoneNumbers[*].number")?;
 //! // Convert the contents to the Input type required by the Engines.
-//! // Currently requires the contents to be owned and allocations to occur,
-//! // this is a known limitation tracked as issue #23
-//! // (https://github.com/V0ldek/rsonpath/issues/23).
 //! let mut contents = r#"
 //! {
 //!   "person": {
