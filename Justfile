@@ -280,9 +280,9 @@ release-patch ver:
 [private]
 release-readme:
     #!/usr/bin/env nu
-    let rsonpath_deps = (cargo tree --package rsonpath --edges normal --edges build --depth 1 --target=all);
-    let rsonpath_lib_deps = (cargo tree --package rsonpath-lib --edges normal --edges build --depth 1 --target=all);
-    let rsonpath_full_deps = (cargo tree --package rsonpath --edges normal --edges build --target=all);
+    let rsonpath_deps = (cargo tree --package rsonpath --edges normal --edges build --depth 1 --target=all --all-features);
+    let rsonpath_lib_deps = (cargo tree --package rsonpath-lib --edges normal --edges build --depth 1 --target=all --all-features);
+    let rsonpath_full_deps = (cargo tree --package rsonpath --edges normal --edges build --target=all --all-features);
     let params = [
         [$rsonpath_deps, "rsonpath", "./README.md"],
         [$rsonpath_lib_deps, "rsonpath-lib", "./README.md"],
@@ -290,7 +290,7 @@ release-readme:
         [$rsonpath_full_deps, "rsonpath-full", "./README.md"]
     ];
     $params | each {|x|
-        let deps = ($x.0 | str replace '\n' '\n' --all | str replace '/' '\/' --all);
+        let deps = ($x.0 | str replace "\n" '\n' --all | str replace '/' '\/' --all);
         sed -z -i $'s/<!-- ($x.1) dependencies start -->\n```ini\n.*```\n<!-- ($x.1) dependencies end -->/<!-- ($x.1) dependencies start -->\n```ini\n($deps)\n```\n<!-- ($x.1) dependencies end -->/' $x.2
     };
 

@@ -1,4 +1,4 @@
-# <div style="display: flex; align-items: center;"><img style="margin-right: 1rem" src="img/rsonquery-logo.svg" width="50" /> rsonpath &ndash; SIMD-powered JSONPath 🚀</div>
+# rsonpath &ndash; SIMD-powered JSONPath 🚀 <img src="img/rsonquery-logo.svg" width="50em" align="left" />
 
 [![Rust](https://github.com/V0ldek/rsonpath/actions/workflows/rust.yml/badge.svg)](https://github.com/V0ldek/rsonpath/actions/workflows/rust.yml)
 [![docs.rs](https://img.shields.io/docsrs/rsonpath-lib?logo=docs.rs)](https://docs.rs/crate/rsonpath-lib/latest)
@@ -216,12 +216,12 @@ cargo tree --package rsonpath --edges normal --depth 1
 
 <!-- rsonpath dependencies start -->
 ```ini
-rsonpath v0.8.3 (/home/mat/rsonpath/crates/rsonpath)
-├── clap v4.4.6
+rsonpath v0.8.4 (/home/mat/rsonpath/crates/rsonpath)
+├── clap v4.4.7
 ├── color-eyre v0.6.2
 ├── eyre v0.6.8
 ├── log v0.4.20
-├── rsonpath-lib v0.8.3 (/home/mat/rsonpath/crates/rsonpath-lib)
+├── rsonpath-lib v0.8.4 (/home/mat/rsonpath/crates/rsonpath-lib)
 └── simple_logger v4.2.0
 [build-dependencies]
 ├── rustflags v0.1.4
@@ -236,14 +236,15 @@ cargo tree --package rsonpath-lib --edges normal --depth 1
 
 <!-- rsonpath-lib dependencies start -->
 ```ini
-rsonpath-lib v0.8.3 (/home/mat/rsonpath/crates/rsonpath-lib)
+rsonpath-lib v0.8.4 (/home/mat/rsonpath/crates/rsonpath-lib)
+├── arbitrary v1.3.2
 ├── cfg-if v1.0.0
 ├── log v0.4.20
 ├── memmap2 v0.9.0
 ├── nom v7.1.3
 ├── smallvec v1.11.1
 ├── static_assertions v1.1.0
-├── thiserror v1.0.49
+├── thiserror v1.0.50
 └── vector-map v1.0.1
 ```
 <!-- rsonpath-lib dependencies end -->
@@ -269,9 +270,9 @@ cargo tree --package rsonpath --edges normal
 
 <!-- rsonpath-full dependencies start -->
 ```ini
-rsonpath v0.8.3 (/home/mat/rsonpath/crates/rsonpath)
-├── clap v4.4.6
-│   ├── clap_builder v4.4.6
+rsonpath v0.8.4 (/home/mat/rsonpath/crates/rsonpath)
+├── clap v4.4.7
+│   ├── clap_builder v4.4.7
 │   │   ├── anstream v0.6.4
 │   │   │   ├── anstyle v1.0.4
 │   │   │   ├── anstyle-parse v0.2.2
@@ -292,31 +293,26 @@ rsonpath v0.8.3 (/home/mat/rsonpath/crates/rsonpath)
 │   │   │   ├── colorchoice v1.0.0
 │   │   │   └── utf8parse v0.2.1
 │   │   ├── anstyle v1.0.4
-│   │   ├── clap_lex v0.5.1
+│   │   ├── clap_lex v0.6.0
 │   │   ├── strsim v0.10.0
 │   │   └── terminal_size v0.3.0
-│   │       ├── rustix v0.38.15
-│   │       │   ├── bitflags v2.4.0
-│   │       │   ├── errno v0.3.4
-│   │       │   │   ├── errno-dragonfly v0.1.2
-│   │       │   │   │   └── libc v0.2.148
-│   │       │   │   │   [build-dependencies]
-│   │       │   │   │   └── cc v1.0.83
-│   │       │   │   │       └── libc v0.2.148
-│   │       │   │   ├── libc v0.2.148
+│   │       ├── rustix v0.38.21
+│   │       │   ├── bitflags v2.4.1
+│   │       │   ├── errno v0.3.5
+│   │       │   │   ├── libc v0.2.149
 │   │       │   │   └── windows-sys v0.48.0 (*)
-│   │       │   ├── libc v0.2.148
-│   │       │   ├── linux-raw-sys v0.4.8
+│   │       │   ├── libc v0.2.149
+│   │       │   ├── linux-raw-sys v0.4.10
 │   │       │   └── windows-sys v0.48.0 (*)
 │   │       └── windows-sys v0.48.0 (*)
-│   └── clap_derive v4.4.2 (proc-macro)
+│   └── clap_derive v4.4.7 (proc-macro)
 │       ├── heck v0.4.1
-│       ├── proc-macro2 v1.0.67
+│       ├── proc-macro2 v1.0.69
 │       │   └── unicode-ident v1.0.12
 │       ├── quote v1.0.33
-│       │   └── proc-macro2 v1.0.67 (*)
-│       └── syn v2.0.37
-│           ├── proc-macro2 v1.0.67 (*)
+│       │   └── proc-macro2 v1.0.69 (*)
+│       └── syn v2.0.38
+│           ├── proc-macro2 v1.0.69 (*)
 │           ├── quote v1.0.33 (*)
 │           └── unicode-ident v1.0.12
 ├── color-eyre v0.6.2
@@ -324,14 +320,15 @@ rsonpath v0.8.3 (/home/mat/rsonpath/crates/rsonpath)
 │   │   ├── addr2line v0.21.0
 │   │   │   └── gimli v0.28.0
 │   │   ├── cfg-if v1.0.0
-│   │   ├── libc v0.2.148
+│   │   ├── libc v0.2.149
 │   │   ├── miniz_oxide v0.7.1
 │   │   │   └── adler v1.0.2
 │   │   ├── object v0.32.1
 │   │   │   └── memchr v2.6.4
 │   │   └── rustc-demangle v0.1.23
 │   │   [build-dependencies]
-│   │   └── cc v1.0.83 (*)
+│   │   └── cc v1.0.83
+│   │       └── libc v0.2.149
 │   ├── eyre v0.6.8
 │   │   ├── indenter v0.3.3
 │   │   └── once_cell v1.18.0
@@ -340,35 +337,35 @@ rsonpath v0.8.3 (/home/mat/rsonpath/crates/rsonpath)
 │   └── owo-colors v3.5.0
 ├── eyre v0.6.8 (*)
 ├── log v0.4.20
-├── rsonpath-lib v0.8.3 (/home/mat/rsonpath/crates/rsonpath-lib)
+├── rsonpath-lib v0.8.4 (/home/mat/rsonpath/crates/rsonpath-lib)
 │   ├── cfg-if v1.0.0
 │   ├── log v0.4.20
 │   ├── memmap2 v0.9.0
-│   │   └── libc v0.2.148
+│   │   └── libc v0.2.149
 │   ├── nom v7.1.3
 │   │   ├── memchr v2.6.4
 │   │   └── minimal-lexical v0.2.1
 │   ├── smallvec v1.11.1
 │   ├── static_assertions v1.1.0
-│   ├── thiserror v1.0.49
-│   │   └── thiserror-impl v1.0.49 (proc-macro)
-│   │       ├── proc-macro2 v1.0.67 (*)
+│   ├── thiserror v1.0.50
+│   │   └── thiserror-impl v1.0.50 (proc-macro)
+│   │       ├── proc-macro2 v1.0.69 (*)
 │   │       ├── quote v1.0.33 (*)
-│   │       └── syn v2.0.37 (*)
+│   │       └── syn v2.0.38 (*)
 │   └── vector-map v1.0.1
 │       ├── contracts v0.4.0 (proc-macro)
-│       │   ├── proc-macro2 v1.0.67 (*)
+│       │   ├── proc-macro2 v1.0.69 (*)
 │       │   ├── quote v1.0.33 (*)
 │       │   └── syn v1.0.109
-│       │       ├── proc-macro2 v1.0.67 (*)
+│       │       ├── proc-macro2 v1.0.69 (*)
 │       │       ├── quote v1.0.33 (*)
 │       │       └── unicode-ident v1.0.12
 │       └── rand v0.7.3
 │           ├── getrandom v0.1.16
 │           │   ├── cfg-if v1.0.0
-│           │   ├── libc v0.2.148
+│           │   ├── libc v0.2.149
 │           │   └── wasi v0.9.0+wasi-snapshot-preview1
-│           ├── libc v0.2.148
+│           ├── libc v0.2.149
 │           ├── rand_chacha v0.2.2
 │           │   ├── ppv-lite86 v0.2.17
 │           │   └── rand_core v0.5.1
@@ -380,17 +377,19 @@ rsonpath v0.8.3 (/home/mat/rsonpath/crates/rsonpath)
     ├── colored v2.0.4
     │   ├── is-terminal v0.4.9
     │   │   ├── hermit-abi v0.3.3
-    │   │   ├── rustix v0.38.15 (*)
+    │   │   ├── rustix v0.38.21 (*)
     │   │   └── windows-sys v0.48.0 (*)
     │   ├── lazy_static v1.4.0
     │   └── windows-sys v0.48.0 (*)
     ├── log v0.4.20
-    ├── time v0.3.29
-    │   ├── deranged v0.3.8
+    ├── time v0.3.30
+    │   ├── deranged v0.3.9
+    │   │   └── powerfmt v0.2.0
     │   ├── itoa v1.0.9
-    │   ├── libc v0.2.148
+    │   ├── libc v0.2.149
     │   ├── num_threads v0.1.6
-    │   │   └── libc v0.2.148
+    │   │   └── libc v0.2.149
+    │   ├── powerfmt v0.2.0
     │   ├── time-core v0.1.2
     │   └── time-macros v0.2.15 (proc-macro)
     │       └── time-core v0.1.2
@@ -407,12 +406,13 @@ rsonpath v0.8.3 (/home/mat/rsonpath/crates/rsonpath)
 └── vergen v8.2.5
     ├── anyhow v1.0.75
     ├── rustc_version v0.4.0
-    │   └── semver v1.0.19
-    └── time v0.3.29
-        ├── deranged v0.3.8
+    │   └── semver v1.0.20
+    └── time v0.3.30
+        ├── deranged v0.3.9 (*)
         ├── itoa v1.0.9
-        ├── libc v0.2.148
+        ├── libc v0.2.149
         ├── num_threads v0.1.6 (*)
+        ├── powerfmt v0.2.0
         └── time-core v0.1.2
     [build-dependencies]
     └── rustversion v1.0.14 (proc-macro)
