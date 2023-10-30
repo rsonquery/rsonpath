@@ -29,7 +29,8 @@ updates:
   - package-ecosystem: cargo
     directory: /crates/rsonpath-test-codegen
     schedule:
-      interval: daily
+      interval: weekly
+      day: Monday
       time: "20:01"
     assignees:
       - V0ldek
@@ -44,7 +45,8 @@ updates:
   - package-ecosystem: cargo
     directory: /crates/rsonpath-test
     schedule:
-      interval: daily
+      interval: weekly
+      day: Monday
       time: "20:01"
     assignees:
       - V0ldek
@@ -59,7 +61,8 @@ updates:
   - package-ecosystem: cargo
     directory: /fuzz
     schedule:
-      interval: daily
+      interval: weekly
+      day: Monday
       time: "20:01"
     assignees:
       - V0ldek
@@ -74,7 +77,8 @@ updates:
   - package-ecosystem: docker
     directory: /.clusterfuzzlite
     schedule:
-      interval: daily
+      interval: weekly
+      day: Monday
       time: "20:02"
     assignees:
       - V0ldek
