@@ -15,7 +15,18 @@ jobs:
     - name: Harden Runner
       uses: step-security/harden-runner@1b05615854632b887b69ae1be8cbefe72d3ae423 # v2.6.0
       with:
-        egress-policy: audit
+        disable-sudo: true
+        egress-policy: block
+        allowed-endpoints: >
+          github.com:443
+          crates.io:443
+          index.crates.io:443
+          static.crates.io:443
+          archive.ubuntu.com:80
+          security.ubuntu.com:80
+          static.rust-lang.org:443
+          gcr.io:443
+          storage.googleapis.com:443
 
     - name: Build Fuzzers
       id: build
