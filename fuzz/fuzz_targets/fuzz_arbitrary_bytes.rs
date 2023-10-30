@@ -2,12 +2,12 @@
 
 use libfuzzer_sys::{arbitrary::Arbitrary, fuzz_target};
 use rsonpath::engine::{Compiler, Engine, RsonpathEngine};
-use rsonpath::input::OwnedBytes;
+use rsonpath::input::BorrowedBytes;
 use rsonpath::query::JsonPathQuery;
 use std::fmt::Debug;
 
 fuzz_target!(|data: DisplayableBytes| {
-    let bytes = OwnedBytes::new(&data.0).expect("error creating input");
+    let bytes = BorrowedBytes::new(data.0);
     let query = JsonPathQuery::parse("$..*").expect("error when parsing the query");
     let engine = RsonpathEngine::compile_query(&query).expect("error when compiling");
     let mut sink = vec![];

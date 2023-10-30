@@ -2,26 +2,34 @@
 //!
 //! Choose this implementation if:
 //!
-//! 1. You already have the data loaded in-memory and it is properly aligned.
+//! 1. You already have the data loaded in-memory and can borrow it while
+//! using the engine.
 //!
 //! ## Performance characteristics
 //!
 //! This type of input is the fastest to process for the engine,
 //! since there is no additional overhead from loading anything to memory.
+//! It is on par with [`OwnedBytes`](`super::OwnedBytes`), but doesn't take ownership
+//! of the bytes.
 
-use super::*;
+use super::{
+    align_to,
+    error::Infallible,
+    padding::{EndPaddedInput, PaddedBlock, TwoSidesPaddedInput},
+    Input, InputBlockIterator, SliceSeekable, MAX_BLOCK_SIZE,
+};
 use crate::{debug, query::JsonString, result::InputRecorder};
 
 /// Input wrapping a borrowed [`[u8]`] buffer.
 pub struct BorrowedBytes<'a> {
-    bytes: &'a [u8],
-    last_block: LastBlock,
+    middle_bytes: &'a [u8],
+    first_block: PaddedBlock,
+    last_block: PaddedBlock,
 }
 
 /// Iterator over blocks of [`BorrowedBytes`] of size exactly `N`.
-pub struct BorrowedBytesBlockIterator<'a, 'r, const N: usize, R> {
-    input: &'a [u8],
-    last_block: &'a LastBlock,
+pub struct BorrowedBytesBlockIterator<'r, I, R, const N: usize> {
+    input: I,
     idx: usize,
     recorder: &'r R,
 }
@@ -29,153 +37,298 @@ pub struct BorrowedBytesBlockIterator<'a, 'r, const N: usize, R> {
 impl<'a> BorrowedBytes<'a> {
     /// Create a new instance of [`BorrowedBytes`] wrapping the given buffer.
     ///
-    /// # Safety
-    /// The buffer must satisfy all invariants of [`BorrowedBytes`],
-    /// since it is not copied or modified. It must:
-    /// - have length divisible by [`MAX_BLOCK_SIZE`] (the function checks this);
-    /// - be aligned to [`MAX_BLOCK_SIZE`].
-    ///
-    /// The latter condition cannot be reliably checked.
-    /// Violating it may result in memory errors where the engine relies
-    /// on proper alignment.
-    ///
-    /// # Panics
-    ///
-    /// If `bytes.len()` is not divisible by [`MAX_BLOCK_SIZE`].
+    /// The input will be automatically padded internally, incurring at most
+    /// two times [`MAX_BLOCK_SIZE`] of memory overhead.
     #[must_use]
     #[inline(always)]
-    pub unsafe fn new(bytes: &'a [u8]) -> Self {
-        assert_eq!(bytes.len() % MAX_BLOCK_SIZE, 0);
-        let last_block = in_slice::pad_last_block(bytes);
-        Self { bytes, last_block }
+    pub fn new(bytes: &'a [u8]) -> Self {
+        let (first, middle, last) = align_to::<MAX_BLOCK_SIZE>(bytes);
+        let first_block = PaddedBlock::pad_first_block(first);
+        let last_block = PaddedBlock::pad_last_block(last);
+
+        Self {
+            middle_bytes: middle,
+            first_block,
+            last_block,
+        }
     }
 
-    /// Get a reference to the bytes as a slice.
-    #[must_use]
-    #[inline(always)]
-    pub fn as_slice(&self) -> &[u8] {
-        self.bytes
-    }
-
-    /// Copy the bytes to an [`OwnedBytes`] instance.
-    #[must_use]
-    #[inline(always)]
-    pub fn to_owned(&self) -> OwnedBytes {
-        OwnedBytes::from(self)
+    pub(super) fn as_padded_input(&self) -> TwoSidesPaddedInput {
+        TwoSidesPaddedInput::new(&self.first_block, self.middle_bytes, &self.last_block)
     }
 }
 
-impl<'a> AsRef<[u8]> for BorrowedBytes<'a> {
+impl<'a> From<&'a [u8]> for BorrowedBytes<'a> {
     #[inline(always)]
-    fn as_ref(&self) -> &[u8] {
-        self.bytes
+    fn from(value: &'a [u8]) -> Self {
+        BorrowedBytes::new(value)
     }
 }
 
-impl<'a, 'r, const N: usize, R> BorrowedBytesBlockIterator<'a, 'r, N, R>
+impl<'a> From<&'a str> for BorrowedBytes<'a> {
+    #[inline(always)]
+    fn from(value: &'a str) -> Self {
+        BorrowedBytes::new(value.as_bytes())
+    }
+}
+
+impl<'a, 'r, I, R, const N: usize> BorrowedBytesBlockIterator<'r, I, R, N>
 where
     R: InputRecorder<&'a [u8]>,
 {
     #[must_use]
     #[inline(always)]
-    pub(super) fn new(bytes: &'a [u8], last_block: &'a LastBlock, recorder: &'r R) -> Self {
+    pub(super) fn new(input: I, recorder: &'r R) -> Self {
         Self {
-            input: bytes,
             idx: 0,
-            last_block,
+            input,
             recorder,
         }
     }
 }
 
 impl<'a> Input for BorrowedBytes<'a> {
-    type BlockIterator<'b, 'r, const N: usize, R> = BorrowedBytesBlockIterator<'b, 'r, N, R>
+    type BlockIterator<'b, 'r, R, const N: usize> = BorrowedBytesBlockIterator<'r, TwoSidesPaddedInput<'b>, R, N>
     where Self: 'b,
           R: InputRecorder<&'b [u8]> + 'r;
 
+    type Error = Infallible;
     type Block<'b, const N: usize> = &'b [u8] where Self: 'b;
 
     #[inline(always)]
-    fn len_hint(&self) -> Option<usize> {
-        Some((self.bytes.len() / MAX_BLOCK_SIZE + 1) * MAX_BLOCK_SIZE)
+    fn leading_padding_len(&self) -> usize {
+        self.first_block.padding_len()
     }
 
     #[inline(always)]
-    fn iter_blocks<'b, 'r, R, const N: usize>(&'b self, recorder: &'r R) -> Self::BlockIterator<'b, 'r, N, R>
+    fn trailing_padding_len(&self) -> usize {
+        self.last_block.padding_len()
+    }
+
+    #[inline(always)]
+    fn len_hint(&self) -> Option<usize> {
+        Some(self.middle_bytes.len() + self.first_block.len() + self.last_block.len())
+    }
+
+    #[inline(always)]
+    fn iter_blocks<'b, 'r, R, const N: usize>(&'b self, recorder: &'r R) -> Self::BlockIterator<'b, 'r, R, N>
     where
         R: InputRecorder<&'b [u8]>,
     {
+        let padded_input = TwoSidesPaddedInput::new(&self.first_block, self.middle_bytes, &self.last_block);
+
         Self::BlockIterator {
-            input: self.bytes,
             idx: 0,
-            last_block: &self.last_block,
+            input: padded_input,
             recorder,
         }
     }
 
     #[inline]
     fn seek_backward(&self, from: usize, needle: u8) -> Option<usize> {
-        in_slice::seek_backward(self.bytes, from, needle)
+        return if from >= MAX_BLOCK_SIZE && from < self.middle_bytes.len() + MAX_BLOCK_SIZE {
+            match self.middle_bytes.seek_backward(from - MAX_BLOCK_SIZE, needle) {
+                Some(x) => Some(x + MAX_BLOCK_SIZE),
+                None => handle_first(&self.first_block, needle),
+            }
+        } else {
+            self.as_padded_input().seek_backward(from, needle)
+        };
+
+        #[cold]
+        #[inline(never)]
+        fn handle_first(first_block: &PaddedBlock, needle: u8) -> Option<usize> {
+            first_block.bytes().seek_backward(first_block.len() - 1, needle)
+        }
     }
 
     #[inline]
-    fn seek_forward<const N: usize>(&self, from: usize, needles: [u8; N]) -> Result<Option<(usize, u8)>, InputError> {
-        Ok(in_slice::seek_forward(self.as_slice(), from, needles))
+    fn seek_forward<const N: usize>(&self, from: usize, needles: [u8; N]) -> Result<Option<(usize, u8)>, Infallible> {
+        return Ok(
+            if from >= MAX_BLOCK_SIZE && from < self.middle_bytes.len() + MAX_BLOCK_SIZE {
+                match self.middle_bytes.seek_forward(from - MAX_BLOCK_SIZE, needles) {
+                    Some((x, y)) => Some((x + MAX_BLOCK_SIZE, y)),
+                    None => handle_last(&self.last_block, MAX_BLOCK_SIZE + self.middle_bytes.len(), needles),
+                }
+            } else {
+                self.as_padded_input().seek_forward(from, needles)
+            },
+        );
+
+        #[cold]
+        #[inline(never)]
+        fn handle_last<const N: usize>(
+            last_block: &PaddedBlock,
+            offset: usize,
+            needles: [u8; N],
+        ) -> Option<(usize, u8)> {
+            last_block
+                .bytes()
+                .seek_forward(0, needles)
+                .map(|(x, y)| (x + offset, y))
+        }
     }
 
     #[inline]
-    fn seek_non_whitespace_forward(&self, from: usize) -> Result<Option<(usize, u8)>, InputError> {
-        Ok(in_slice::seek_non_whitespace_forward(self.bytes, from))
+    fn seek_non_whitespace_forward(&self, from: usize) -> Result<Option<(usize, u8)>, Infallible> {
+        return Ok(
+            // The hot path is when we start and end within the middle section.
+            // We use the regular slice path for that scenario, and fall back to the very expensive
+            // TwoSidesPaddedInput with all bells and whistles only when that doesn't work.
+            if from >= MAX_BLOCK_SIZE && from < self.middle_bytes.len() + MAX_BLOCK_SIZE {
+                match self.middle_bytes.seek_non_whitespace_forward(from - MAX_BLOCK_SIZE) {
+                    Some((x, y)) => Some((x + MAX_BLOCK_SIZE, y)),
+                    None => handle_last(&self.last_block, MAX_BLOCK_SIZE + self.middle_bytes.len()),
+                }
+            } else {
+                self.as_padded_input().seek_non_whitespace_forward(from)
+            },
+        );
+
+        #[cold]
+        #[inline(never)]
+        fn handle_last(last_block: &PaddedBlock, offset: usize) -> Option<(usize, u8)> {
+            last_block
+                .bytes()
+                .seek_non_whitespace_forward(0)
+                .map(|(x, y)| (x + offset, y))
+        }
     }
 
     #[inline]
     fn seek_non_whitespace_backward(&self, from: usize) -> Option<(usize, u8)> {
-        in_slice::seek_non_whitespace_backward(self.bytes, from)
-    }
-
-    #[inline]
-    fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> bool {
-        in_slice::is_member_match(self.bytes, from, to, member)
-    }
-}
-
-impl<'a, 'r, const N: usize, R> FallibleIterator for BorrowedBytesBlockIterator<'a, 'r, N, R>
-where
-    R: InputRecorder<&'a [u8]>,
-{
-    type Item = &'a [u8];
-    type Error = InputError;
-
-    #[inline]
-    fn next(&mut self) -> Result<Option<Self::Item>, Self::Error> {
-        debug!("next!");
-
-        if self.idx >= self.input.len() {
-            Ok(None)
-        } else if self.idx >= self.last_block.absolute_start {
-            let i = self.idx - self.last_block.absolute_start;
-            self.idx += N;
-            let block = &self.last_block.bytes[i..i + N];
-
-            self.recorder.record_block_start(block);
-
-            Ok(Some(block))
+        return if from >= MAX_BLOCK_SIZE && from < self.middle_bytes.len() + MAX_BLOCK_SIZE {
+            match self.middle_bytes.seek_non_whitespace_backward(from - MAX_BLOCK_SIZE) {
+                Some((x, y)) => Some((x + MAX_BLOCK_SIZE, y)),
+                None => handle_first(&self.first_block),
+            }
         } else {
-            let block = &self.input[self.idx..self.idx + N];
-            self.idx += N;
+            self.as_padded_input().seek_non_whitespace_backward(from)
+        };
 
-            self.recorder.record_block_start(block);
+        #[cold]
+        #[inline(never)]
+        fn handle_first(first_block: &PaddedBlock) -> Option<(usize, u8)> {
+            first_block.bytes().seek_non_whitespace_backward(first_block.len() - 1)
+        }
+    }
 
-            Ok(Some(block))
+    #[inline(always)]
+    fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> Result<bool, Self::Error> {
+        debug_assert!(from < to);
+        // The hot path is when we're checking fully within the middle section.
+        // This has to be as fast as possible, so the "cold" path referring to the TwoSidesPaddedInput
+        // impl is explicitly marked with #[cold].
+        if from > MAX_BLOCK_SIZE && to < self.middle_bytes.len() + MAX_BLOCK_SIZE {
+            // This is the hot path -- do the bounds check and memcmp.
+            let bytes = self.middle_bytes;
+            let from = from - MAX_BLOCK_SIZE;
+            let to = to - MAX_BLOCK_SIZE;
+            let slice = &bytes[from..to];
+            Ok(member.bytes_with_quotes() == slice && (from == 0 || bytes[from - 1] != b'\\'))
+        } else {
+            // This is a very expensive, cold path.
+            Ok(self.as_padded_input().is_member_match(from, to, member))
         }
     }
 }
 
-impl<'a, 'r, const N: usize, R> InputBlockIterator<'a, N> for BorrowedBytesBlockIterator<'a, 'r, N, R>
+impl<'a, 'r, R, const N: usize> InputBlockIterator<'a, N>
+    for BorrowedBytesBlockIterator<'r, TwoSidesPaddedInput<'a>, R, N>
 where
     R: InputRecorder<&'a [u8]> + 'r,
 {
     type Block = &'a [u8];
+    type Error = Infallible;
+
+    #[inline(always)]
+    fn next(&mut self) -> Result<Option<Self::Block>, Self::Error> {
+        debug!("next!");
+        return if self.idx >= MAX_BLOCK_SIZE && self.idx < self.input.middle().len() + MAX_BLOCK_SIZE {
+            let start = self.idx - MAX_BLOCK_SIZE;
+            // SAFETY: Bounds check above.
+            // self.idx >= MBS => start >= 0, and self.idx < middle.len + MBS => self.idx < middle.len
+            // By construction, middle has length divisible by N.
+            let block = unsafe { self.input.middle().get_unchecked(start..start + N) };
+            self.recorder.record_block_start(block);
+            self.idx += N;
+            Ok(Some(block))
+        } else {
+            Ok(cold_path(self))
+        };
+
+        #[cold]
+        fn cold_path<'a, 'r, R, const N: usize>(
+            iter: &mut BorrowedBytesBlockIterator<'r, TwoSidesPaddedInput<'a>, R, N>,
+        ) -> Option<&'a [u8]>
+        where
+            R: InputRecorder<&'a [u8]>,
+        {
+            let block = iter.input.try_slice(iter.idx, N);
+
+            if let Some(b) = block {
+                iter.recorder.record_block_start(b);
+                iter.idx += N;
+            }
+
+            block
+        }
+    }
+
+    #[inline(always)]
+    fn offset(&mut self, count: isize) {
+        assert!(count >= 0);
+        debug!("offsetting input iter by {count}");
+        self.idx += count as usize * N;
+    }
+
+    #[inline(always)]
+    fn get_offset(&self) -> usize {
+        debug!("getting input iter {}", self.idx);
+        self.idx
+    }
+}
+
+impl<'a, 'r, R, const N: usize> InputBlockIterator<'a, N> for BorrowedBytesBlockIterator<'r, EndPaddedInput<'a>, R, N>
+where
+    R: InputRecorder<&'a [u8]> + 'r,
+{
+    type Block = &'a [u8];
+    type Error = Infallible;
+
+    #[inline(always)]
+    fn next(&mut self) -> Result<Option<Self::Block>, Self::Error> {
+        debug!("next!");
+        return if self.idx < self.input.middle().len() {
+            let start = self.idx;
+            // SAFETY: Bounds check above.
+            // self.idx >= MBS => start >= 0, and self.idx < middle.len + MBS => self.idx < middle.len
+            // By construction, middle has length divisible by N.
+            let block = unsafe { self.input.middle().get_unchecked(start..start + N) };
+            self.recorder.record_block_start(block);
+            self.idx += N;
+            Ok(Some(block))
+        } else {
+            Ok(cold_path(self))
+        };
+
+        #[cold]
+        fn cold_path<'a, 'r, R, const N: usize>(
+            iter: &mut BorrowedBytesBlockIterator<'r, EndPaddedInput<'a>, R, N>,
+        ) -> Option<&'a [u8]>
+        where
+            R: InputRecorder<&'a [u8]>,
+        {
+            let block = iter.input.try_slice(iter.idx, N);
+
+            if let Some(b) = block {
+                iter.recorder.record_block_start(b);
+                iter.idx += N;
+            }
+
+            block
+        }
+    }
 
     #[inline(always)]
     fn offset(&mut self, count: isize) {

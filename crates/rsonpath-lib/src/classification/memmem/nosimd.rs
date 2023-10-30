@@ -1,9 +1,12 @@
 use super::*;
-use crate::input::error::InputError;
-use crate::input::{Input, InputBlockIterator};
-use crate::query::JsonString;
-use crate::result::InputRecorder;
-use crate::FallibleIterator;
+use crate::{
+    input::{
+        error::{InputError, InputErrorConvertible},
+        Input, InputBlockIterator,
+    },
+    query::JsonString,
+    result::InputRecorder,
+};
 
 pub(crate) struct Constructor;
 
@@ -11,13 +14,13 @@ impl MemmemImpl for Constructor {
     type Classifier<'i, 'b, 'r, I, R> = SequentialMemmemClassifier<'i, 'b, 'r, I, R, BLOCK_SIZE>
     where
         I: Input + 'i,
-        <I as Input>::BlockIterator<'i, 'r, BLOCK_SIZE, R>: 'b,
+        <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>: 'b,
         R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>> + 'r,
         'i: 'r;
 
     fn memmem<'i, 'b, 'r, I, R>(
         input: &'i I,
-        iter: &'b mut <I as Input>::BlockIterator<'i, 'r, BLOCK_SIZE, R>,
+        iter: &'b mut <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>,
     ) -> Self::Classifier<'i, 'b, 'r, I, R>
     where
         I: Input,
@@ -34,7 +37,7 @@ where
     R: InputRecorder<I::Block<'i, N>> + 'r,
 {
     input: &'i I,
-    iter: &'b mut I::BlockIterator<'i, 'r, N, R>,
+    iter: &'b mut I::BlockIterator<'i, 'r, R, N>,
 }
 
 impl<'i, 'b, 'r, I, R, const N: usize> SequentialMemmemClassifier<'i, 'b, 'r, I, R, N>
@@ -55,14 +58,13 @@ where
             label.bytes()[0]
         };
 
-        while let Some(block) = self.iter.next()? {
-            let res = block.iter().copied().enumerate().find(|&(i, c)| {
+        while let Some(block) = self.iter.next().e()? {
+            for (i, c) in block.iter().copied().enumerate() {
                 let j = offset + i;
-                c == first_c && j > 0 && self.input.is_member_match(j - 1, j + label_size - 2, label)
-            });
 
-            if let Some((res, _)) = res {
-                return Ok(Some((res + offset - 1, block)));
+                if c == first_c && j > 0 && self.input.is_member_match(j - 1, j + label_size - 1, label).e()? {
+                    return Ok(Some((j - 1, block)));
+                }
             }
 
             offset += block.len();

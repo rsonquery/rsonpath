@@ -6,13 +6,15 @@ use std::cell::RefCell;
 /// Recorder that saves only the start indices to the [`Sink`].
 pub struct IndexRecorder<'s, S> {
     sink: RefCell<&'s mut S>,
+    leading_padding_len: usize,
 }
 
 impl<'s, S> IndexRecorder<'s, S> {
     #[inline]
-    pub(crate) fn new(sink: &'s mut S) -> Self {
+    pub(crate) fn new(sink: &'s mut S, leading_padding_len: usize) -> Self {
         Self {
             sink: RefCell::new(sink),
+            leading_padding_len,
         }
     }
 }
@@ -35,7 +37,7 @@ where
     fn record_match(&self, idx: usize, _depth: Depth, _ty: MatchedNodeType) -> Result<(), EngineError> {
         self.sink
             .borrow_mut()
-            .add_match(idx)
+            .add_match(idx - self.leading_padding_len)
             .map_err(|err| EngineError::SinkError(Box::new(err)))
     }
 

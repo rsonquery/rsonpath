@@ -13,7 +13,10 @@ use crate::{
     debug,
     depth::Depth,
     engine::EngineError,
-    input::{error::InputError, Input, InputBlockIterator},
+    input::{
+        error::{InputError, InputErrorConvertible},
+        Input, InputBlockIterator,
+    },
     query::{
         automaton::{Automaton, State},
         JsonString,
@@ -46,8 +49,8 @@ where
         &mut self,
         next_event: Structural,
         state: State,
-        structural_classifier: V::StructuralClassifier<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>>,
-    ) -> Result<ResumeState<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, V, MaskType>, EngineError>;
+        structural_classifier: V::StructuralClassifier<'i, I::BlockIterator<'i, 'r, R, BLOCK_SIZE>>,
+    ) -> Result<ResumeState<'i, I::BlockIterator<'i, 'r, R, BLOCK_SIZE>, V, MaskType>, EngineError>;
 
     fn recorder(&mut self) -> &'r R;
 }
@@ -148,12 +151,12 @@ impl<'b, 'q, I: Input, V: Simd> HeadSkip<'b, 'q, I, V, BLOCK_SIZE> {
                     debug!("Needle found at {idx}");
                     let seek_start_idx = idx + head_skip.member_name.bytes_with_quotes().len();
 
-                    match head_skip.bytes.seek_non_whitespace_forward(seek_start_idx)? {
-                        Some((colon_idx, b':')) => {
-                            let (next_idx, next_c) = head_skip
-                                .bytes
-                                .seek_non_whitespace_forward(colon_idx + 1)?
-                                .ok_or(EngineError::MissingItem())?;
+                match head_skip.bytes.seek_non_whitespace_forward(seek_start_idx).e()? {
+                    Some((colon_idx, b':')) => {
+                        let (next_idx, next_c) = head_skip
+                            .bytes
+                            .seek_non_whitespace_forward(colon_idx + 1).e()?
+                            .ok_or(EngineError::MissingItem())?;
 
                             let ResumedQuoteClassifier {
                                 classifier: quote_classifier,

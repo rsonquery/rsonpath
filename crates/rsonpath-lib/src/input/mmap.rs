@@ -15,14 +15,20 @@
 //! by an order of magnitude to execute the query on a memory map than it is to simply read the
 //! file into main memory.
 
-use super::{borrowed::BorrowedBytesBlockIterator, error::InputError, in_slice, Input, LastBlock, MAX_BLOCK_SIZE};
-use crate::{query::JsonString, result::InputRecorder};
+use super::{
+    borrowed::BorrowedBytesBlockIterator,
+    error::{Infallible, InputError},
+    padding::PaddedBlock,
+    Input, SliceSeekable, MAX_BLOCK_SIZE,
+};
+use crate::{input::padding::EndPaddedInput, query::JsonString, result::InputRecorder};
 use memmap2::{Mmap, MmapAsRawDesc};
 
 /// Input wrapping a memory mapped file.
 pub struct MmapInput {
     mmap: Mmap,
-    last_block: LastBlock,
+    last_block_start: usize,
+    last_block: PaddedBlock,
 }
 
 impl MmapInput {
@@ -40,20 +46,41 @@ impl MmapInput {
     pub unsafe fn map_file<D: MmapAsRawDesc>(file_desc: D) -> Result<Self, InputError> {
         match Mmap::map(file_desc) {
             Ok(mmap) => {
-                let last_block = in_slice::pad_last_block(&mmap);
-                Ok(Self { mmap, last_block })
+                let last_block_start = (mmap.len() / MAX_BLOCK_SIZE) * MAX_BLOCK_SIZE;
+                let last_block = PaddedBlock::pad_last_block(&mmap[last_block_start..]);
+                Ok(Self {
+                    mmap,
+                    last_block_start,
+                    last_block,
+                })
             }
             Err(err) => Err(err.into()),
         }
     }
+
+    pub(super) fn as_padded_input(&self) -> EndPaddedInput {
+        let middle = &self.mmap.as_ref()[..self.last_block_start];
+        EndPaddedInput::new(middle, &self.last_block)
+    }
 }
 
 impl Input for MmapInput {
-    type BlockIterator<'a, 'r, const N: usize, R> = BorrowedBytesBlockIterator<'a, 'r, N, R>
+    type BlockIterator<'a, 'r, R, const N: usize> = BorrowedBytesBlockIterator<'r, EndPaddedInput<'a>, R, N>
     where
         R: InputRecorder<&'a [u8]> + 'r;
 
+    type Error = Infallible;
     type Block<'a, const N: usize> = &'a [u8];
+
+    #[inline(always)]
+    fn leading_padding_len(&self) -> usize {
+        0
+    }
+
+    #[inline(always)]
+    fn trailing_padding_len(&self) -> usize {
+        self.last_block.padding_len()
+    }
 
     #[inline(always)]
     fn len_hint(&self) -> Option<usize> {
@@ -61,35 +88,91 @@ impl Input for MmapInput {
     }
 
     #[inline(always)]
-    fn iter_blocks<'a, 'r, R, const N: usize>(&'a self, recorder: &'r R) -> Self::BlockIterator<'a, 'r, N, R>
+    fn iter_blocks<'a, 'r, R, const N: usize>(&'a self, recorder: &'r R) -> Self::BlockIterator<'a, 'r, R, N>
     where
         R: InputRecorder<&'a [u8]>,
     {
-        BorrowedBytesBlockIterator::new(&self.mmap, &self.last_block, recorder)
+        let padded_input = EndPaddedInput::new(&self.mmap[..self.last_block_start], &self.last_block);
+
+        BorrowedBytesBlockIterator::new(padded_input, recorder)
     }
 
     #[inline]
     fn seek_backward(&self, from: usize, needle: u8) -> Option<usize> {
-        in_slice::seek_backward(&self.mmap, from, needle)
+        return if from < self.last_block_start {
+            self.mmap.seek_backward(from, needle)
+        } else {
+            self.as_padded_input().seek_backward(from, needle)
+        };
     }
 
     #[inline]
-    fn seek_forward<const N: usize>(&self, from: usize, needles: [u8; N]) -> Result<Option<(usize, u8)>, InputError> {
-        Ok(in_slice::seek_forward(&self.mmap, from, needles))
+    fn seek_forward<const N: usize>(&self, from: usize, needles: [u8; N]) -> Result<Option<(usize, u8)>, Infallible> {
+        return Ok(if from < self.last_block_start {
+            self.mmap
+                .seek_forward(from, needles)
+                .or_else(|| handle_last(&self.last_block, self.last_block_start, needles))
+        } else {
+            self.as_padded_input().seek_forward(from, needles)
+        });
+
+        #[cold]
+        #[inline(never)]
+        fn handle_last<const N: usize>(
+            last_block: &PaddedBlock,
+            offset: usize,
+            needles: [u8; N],
+        ) -> Option<(usize, u8)> {
+            last_block
+                .bytes()
+                .seek_forward(0, needles)
+                .map(|(x, y)| (x + offset, y))
+        }
     }
 
     #[inline]
-    fn seek_non_whitespace_forward(&self, from: usize) -> Result<Option<(usize, u8)>, InputError> {
-        Ok(in_slice::seek_non_whitespace_forward(&self.mmap, from))
+    fn seek_non_whitespace_forward(&self, from: usize) -> Result<Option<(usize, u8)>, Infallible> {
+        return Ok(if from < self.last_block_start {
+            self.mmap
+                .seek_non_whitespace_forward(from)
+                .or_else(|| handle_last(&self.last_block, self.last_block_start))
+        } else {
+            self.as_padded_input().seek_non_whitespace_forward(from)
+        });
+
+        #[cold]
+        #[inline(never)]
+        fn handle_last(last_block: &PaddedBlock, offset: usize) -> Option<(usize, u8)> {
+            last_block
+                .bytes()
+                .seek_non_whitespace_forward(0)
+                .map(|(x, y)| (x + offset, y))
+        }
     }
 
     #[inline]
     fn seek_non_whitespace_backward(&self, from: usize) -> Option<(usize, u8)> {
-        in_slice::seek_non_whitespace_backward(&self.mmap, from)
+        return if from < self.last_block_start {
+            self.mmap.seek_non_whitespace_backward(from)
+        } else {
+            self.as_padded_input().seek_non_whitespace_backward(from)
+        };
     }
 
     #[inline]
-    fn is_member_match(&self, from: usize, to: usize, label: &JsonString) -> bool {
-        in_slice::is_member_match(&self.mmap, from, to, label)
+    fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> Result<bool, Self::Error> {
+        debug_assert!(from < to);
+        // The hot path is when we're checking fully within the middle section.
+        // This has to be as fast as possible, so the "cold" path referring to the TwoSidesPaddedInput
+        // impl is explicitly marked with #[cold].
+        if to < self.last_block_start {
+            // This is the hot path -- do the bounds check and memcmp.
+            let bytes = &self.mmap;
+            let slice = &bytes[from..to];
+            Ok(member.bytes_with_quotes() == slice && (from == 0 || bytes[from - 1] != b'\\'))
+        } else {
+            // This is a very expensive, cold path.
+            Ok(self.as_padded_input().is_member_match(from, to, member))
+        }
     }
 }

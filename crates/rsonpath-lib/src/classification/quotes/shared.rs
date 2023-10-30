@@ -77,7 +77,7 @@ macro_rules! quote_classifier {
 
             #[inline(always)]
             fn next(&mut self) -> Result<Option<Self::Item>, Self::Error> {
-                match self.iter.next()? {
+                match self.iter.next().e()? {
                     Some(block) => {
                         // SAFETY: target_feature invariant
                         let mask = unsafe { self.classifier.classify(&block) };
@@ -107,7 +107,7 @@ macro_rules! quote_classifier {
                 debug!("Offsetting by {count}");
 
                 for _ in 0..count - 1 {
-                    self.iter.next()?;
+                    self.iter.next().e()?;
                 }
 
                 self.next()

@@ -60,6 +60,7 @@
 			"rustdoc",
 			"RUSTFLAGS",
 			"rustfmt",
+			"Seekable",
 			"SIMD",
 			"snaks",
 			"srli",
@@ -91,6 +92,6 @@
 			"./crates/rsonpath-test/Cargo.toml",
 			"./crates/rsonpath-test-codegen/Cargo.toml",
 			"./fuzz/Cargo.toml"
-		]
+		],
 	}
 }
