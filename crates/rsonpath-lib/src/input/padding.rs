@@ -261,33 +261,43 @@ impl<'a> EndPaddedInput<'a> {
         (start < MAX_BLOCK_SIZE).then(|| &self.last_block.bytes[start..start + len])
     }
 
-    fn cold_member_match(&self, other: &[u8], from: usize, to: usize) -> bool {
-        if from < self.middle.len() {
-            if to <= self.middle.len() {
-                let slice = &self.middle[from..to];
-                other == slice && (from > 0 && self.middle[from - 1] != b'\\')
-            } else {
-                let cnt_to = to - self.middle.len();
-                if cnt_to > self.last_block.bytes.len() {
-                    return false;
-                }
-                let middle_slice = &self.middle[from..];
+    /// Slice the entire input from `from` to `to` and return the part
+    /// from the middle, and the part from the last block. Either or both
+    /// may be empty when appropriate.
+    fn slice_parts(&self, from: usize, to: usize) -> (&[u8], &[u8]) {
+        use std::cmp::min;
 
-                &other[..middle_slice.len()] == middle_slice
-                    && other[middle_slice.len()..] == self.last_block.bytes[..cnt_to]
-                    && (from > 0 && self.middle[from - 1] != b'\\')
-            }
+        let middle_from = min(from, self.middle.len());
+        let middle_to = min(to, self.middle.len());
+
+        let from = from.saturating_sub(self.middle.len());
+        let to = to.saturating_sub(self.middle.len());
+        let last_from = min(from, self.last_block.len());
+        let last_to = min(to, self.last_block.len());
+
+        (
+            &self.middle[middle_from..middle_to],
+            &self.last_block.bytes[last_from..last_to],
+        )
+    }
+
+    fn get_at(&self, idx: usize) -> Option<u8> {
+        if idx < self.middle.len() {
+            Some(self.middle[idx])
+        } else if idx < self.middle.len() + MAX_BLOCK_SIZE {
+            Some(self.last_block.bytes[idx - self.middle.len()])
         } else {
-            let cnt_from = from - self.middle.len();
-            let cnt_to = to - self.middle.len();
-            if cnt_to > self.last_block.bytes.len() {
-                return false;
-            }
-            other == &self.last_block.bytes[cnt_from..cnt_to]
-                && ((cnt_from > 0 && self.last_block.bytes[cnt_from - 1] != b'\\')
-                    || (cnt_from == 0 && self.middle.is_empty())
-                    || (cnt_from == 0 && !self.middle.is_empty() && self.middle[self.middle.len() - 1] != b'\\'))
+            None
         }
+    }
+
+    fn cold_member_match(&self, other: &[u8], from: usize, to: usize) -> bool {
+        let (middle_self, last_self) = self.slice_parts(from, to);
+        let middle_other = &other[..middle_self.len()];
+        let last_other = &other[middle_self.len()..];
+        let preceding_char = from.checked_sub(1).and_then(|x| self.get_at(x));
+
+        middle_self == middle_other && last_self == last_other && preceding_char.map_or(true, |x| x != b'\\')
     }
 }
 
@@ -434,21 +444,21 @@ impl<'a> TwoSidesPaddedInput<'a> {
         debug_assert!(len < MAX_BLOCK_SIZE);
 
         if start < MAX_BLOCK_SIZE {
-            self.slice_first(start, len)
+            Some(self.slice_first(start, len))
         } else if start < self.middle.len() + MAX_BLOCK_SIZE {
-            self.slice_middle(start, len)
+            Some(self.slice_middle(start, len))
         } else {
             self.slice_last(start, len)
         }
     }
 
-    fn slice_first(&self, start: usize, len: usize) -> Option<&'a [u8]> {
-        Some(&self.first_block.bytes[start..start + len])
+    fn slice_first(&self, start: usize, len: usize) -> &'a [u8] {
+        &self.first_block.bytes[start..start + len]
     }
 
-    fn slice_middle(&self, start: usize, len: usize) -> Option<&'a [u8]> {
+    fn slice_middle(&self, start: usize, len: usize) -> &'a [u8] {
         let start = start - MAX_BLOCK_SIZE;
-        Some(&self.middle[start..start + len])
+        &self.middle[start..start + len]
     }
 
     fn slice_last(&self, start: usize, len: usize) -> Option<&'a [u8]> {
@@ -456,53 +466,55 @@ impl<'a> TwoSidesPaddedInput<'a> {
         (start < MAX_BLOCK_SIZE).then(|| &self.last_block.bytes[start..start + len])
     }
 
-    fn cold_member_match(&self, other: &[u8], from: usize, to: usize) -> bool {
-        let (cnt_from, cnt_to, cnt_other) = if from < MAX_BLOCK_SIZE {
-            if to <= MAX_BLOCK_SIZE {
-                let slice = &self.first_block.bytes[from..to];
-                return &other[..slice.len()] == slice && (from == 0 || self.first_block.bytes[from - 1] != b'\\');
-            } else {
-                let slice = &self.first_block.bytes[from..];
-                if slice != &other[..slice.len()] {
-                    return false;
-                }
-                (0, to - MAX_BLOCK_SIZE, &other[slice.len()..])
-            }
-        } else {
-            (from - MAX_BLOCK_SIZE, to - MAX_BLOCK_SIZE, other)
-        };
+    /// Slice the entire input from `from` to `to` and return the part
+    /// from the first block, from the middle, and the part from the last block.
+    /// Any and all of them may be empty when appropriate.
+    fn slice_parts(&self, from: usize, to: usize) -> (&[u8], &[u8], &[u8]) {
+        use std::cmp::min;
 
-        if cnt_from < self.middle.len() {
-            if cnt_to <= self.middle.len() {
-                let slice = &self.middle[cnt_from..cnt_to];
-                cnt_other == slice
-                    && ((cnt_from > 0 && self.middle[cnt_from - 1] != b'\\')
-                        || (cnt_from == 0 && self.first_block.bytes[self.first_block.len() - 1] != b'\\'))
-            } else {
-                let cnt_to = cnt_to - self.middle.len();
-                if cnt_to > self.last_block.bytes.len() {
-                    return false;
-                }
-                let middle_slice = &self.middle[cnt_from..];
+        let first_from = min(from, MAX_BLOCK_SIZE);
+        let first_to = min(to, MAX_BLOCK_SIZE);
 
-                &cnt_other[..middle_slice.len()] == middle_slice
-                    && cnt_other[middle_slice.len()..] == self.last_block.bytes[..cnt_to]
-                    && ((cnt_from > 0 && self.middle[cnt_from - 1] != b'\\')
-                        || (cnt_from == 0 && self.first_block.bytes[self.first_block.len() - 1] != b'\\'))
-            }
+        let from = from.saturating_sub(MAX_BLOCK_SIZE);
+        let to = to.saturating_sub(MAX_BLOCK_SIZE);
+        let middle_from = min(from, self.middle.len());
+        let middle_to = min(to, self.middle.len());
+
+        let from = from.saturating_sub(self.middle.len());
+        let to = to.saturating_sub(self.middle.len());
+        let last_from = min(from, self.last_block.len());
+        let last_to = min(to, self.last_block.len());
+
+        (
+            &self.first_block.bytes[first_from..first_to],
+            &self.middle[middle_from..middle_to],
+            &self.last_block.bytes[last_from..last_to],
+        )
+    }
+
+    fn get_at(&self, idx: usize) -> Option<u8> {
+        if idx < MAX_BLOCK_SIZE {
+            Some(self.first_block.bytes[idx])
+        } else if idx < self.middle.len() + MAX_BLOCK_SIZE {
+            Some(self.middle[idx - MAX_BLOCK_SIZE])
+        } else if idx < self.middle.len() + 2 * MAX_BLOCK_SIZE {
+            Some(self.last_block.bytes[idx - MAX_BLOCK_SIZE - self.middle.len()])
         } else {
-            let cnt_from = cnt_from - self.middle.len();
-            let cnt_to = cnt_to - self.middle.len();
-            if cnt_to > self.last_block.bytes.len() {
-                return false;
-            }
-            cnt_other == &self.last_block.bytes[cnt_from..cnt_to]
-                && ((cnt_from > 0 && self.last_block.bytes[cnt_from - 1] != b'\\')
-                    || (cnt_from == 0
-                        && self.middle.is_empty()
-                        && self.first_block.bytes[self.first_block.len() - 1] != b'\\')
-                    || (cnt_from == 0 && !self.middle.is_empty() && self.middle[self.middle.len() - 1] != b'\\'))
+            None
         }
+    }
+
+    fn cold_member_match(&self, other: &[u8], from: usize, to: usize) -> bool {
+        let (first_self, middle_self, last_self) = self.slice_parts(from, to);
+        let first_other = &other[..first_self.len()];
+        let middle_other = &other[first_self.len()..first_self.len() + middle_self.len()];
+        let last_other = &other[first_self.len() + middle_self.len()..];
+        let preceding_char = from.checked_sub(1).and_then(|x| self.get_at(x));
+
+        first_self == first_other
+            && middle_self == middle_other
+            && last_self == last_other
+            && preceding_char.map_or(true, |x| x != b'\\')
     }
 }
 

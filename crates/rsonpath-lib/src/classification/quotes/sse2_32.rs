@@ -6,7 +6,7 @@ use crate::{
     block,
     classification::mask::m32,
     debug,
-    input::{InputBlock, InputBlockIterator},
+    input::{error::InputErrorConvertible, InputBlock, InputBlockIterator},
     FallibleIterator,
 };
 use std::marker::PhantomData;

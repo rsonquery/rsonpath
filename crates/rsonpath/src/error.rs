@@ -76,7 +76,6 @@ fn report_query_syntax_error(query_string: &str, report: ParseErrorReport) -> ey
         let error_slice = &query_string[error.start_idx..error.start_idx + error.len];
         let slice = &query_string[display_start_idx..display_start_idx + display_length];
         let error_idx = error.start_idx - display_start_idx;
-        // { start_idx: 1, len: 339 }, ParseError { start_idx: 341, len: 26 }
         let underline: String = iter::repeat(' ')
             .take(error_idx)
             .chain(iter::repeat('^').take(error.len))
