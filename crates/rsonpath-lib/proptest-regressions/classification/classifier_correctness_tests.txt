@@ -4,4 +4,5 @@
 #
 # It is recommended to check this file in to source control so that
 # everyone who runs the test benefits from these saved cases.
-cc eda3f32ad766433cc2f8a6f7968002c161ccd7355a7686e244b4763cb35bcfad # shrinks to (input, from, expected) = ([255], 0, 0)
+cc 34c43f30d1bf155cf3ee0e13c9776fc11c4dac1f3f19aa602c4c50df5f0e7049 # shrinks to (input, expected) = (",", [Comma(0)])
+cc 24036ddd437694148c11fa1c274956e48ed3792ea084f3923deaa4225d030700 # shrinks to (input, expected) = (",", [Comma(0)])

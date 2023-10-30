@@ -1,9 +1,11 @@
 use super::{shared::mask_32, shared::vector_256, *};
 use crate::{
-    input::{error::InputError, Input, InputBlockIterator},
+    input::{
+        error::{InputError, InputErrorConvertible},
+        Input, InputBlockIterator,
+    },
     query::JsonString,
     result::InputRecorder,
-    FallibleIterator,
 };
 
 const SIZE: usize = 32;
@@ -14,13 +16,13 @@ impl MemmemImpl for Constructor {
     type Classifier<'i, 'b, 'r, I, R> = Avx2MemmemClassifier32<'i, 'b, 'r, I, R>
     where
         I: Input + 'i,
-        <I as Input>::BlockIterator<'i, 'r, BLOCK_SIZE, R>: 'b,
+        <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>: 'b,
         R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>> + 'r,
         'i: 'r;
 
     fn memmem<'i, 'b, 'r, I, R>(
         input: &'i I,
-        iter: &'b mut <I as Input>::BlockIterator<'i, 'r, BLOCK_SIZE, R>,
+        iter: &'b mut <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>,
     ) -> Self::Classifier<'i, 'b, 'r, I, R>
     where
         I: Input,
@@ -37,7 +39,7 @@ where
     R: InputRecorder<I::Block<'i, SIZE>> + 'r,
 {
     input: &'i I,
-    iter: &'b mut I::BlockIterator<'i, 'r, SIZE, R>,
+    iter: &'b mut I::BlockIterator<'i, 'r, R, SIZE>,
 }
 
 impl<'i, 'b, 'r, I, R> Avx2MemmemClassifier32<'i, 'b, 'r, I, R>
@@ -48,7 +50,7 @@ where
 {
     #[inline]
     #[allow(dead_code)]
-    pub(crate) fn new(input: &'i I, iter: &'b mut I::BlockIterator<'i, 'r, SIZE, R>) -> Self {
+    pub(crate) fn new(input: &'i I, iter: &'b mut I::BlockIterator<'i, 'r, R, SIZE>) -> Self {
         Self { input, iter }
     }
 
@@ -61,13 +63,17 @@ where
         let classifier = vector_256::BlockClassifier256::new(b'"', b'"');
         let mut previous_block: u32 = 0;
 
-        while let Some(block) = self.iter.next()? {
+        while let Some(block) = self.iter.next().e()? {
             let classified = classifier.classify_block(&block);
 
             let mut result = (previous_block | (classified.first << 1)) & classified.second;
             while result != 0 {
                 let idx = result.trailing_zeros() as usize;
-                if self.input.is_member_match(offset + idx - 1, offset + idx, label) {
+                if self
+                    .input
+                    .is_member_match(offset + idx - 1, offset + idx + 1, label)
+                    .e()?
+                {
                     return Ok(Some((offset + idx - 1, block)));
                 }
                 result &= !(1 << idx);
@@ -92,7 +98,7 @@ where
         let classifier = vector_256::BlockClassifier256::new(label.bytes()[0], b'"');
         let mut previous_block: u32 = 0;
 
-        while let Some(block) = self.iter.next()? {
+        while let Some(block) = self.iter.next().e()? {
             let classified = classifier.classify_block(&block);
 
             if let Some(res) = mask_32::find_in_mask(
@@ -102,7 +108,7 @@ where
                 classified.first,
                 classified.second,
                 offset,
-            ) {
+            )? {
                 return Ok(Some((res, block)));
             }
 
@@ -128,7 +134,7 @@ where
         let classifier = vector_256::BlockClassifier256::new(label.bytes()[0], label.bytes()[1]);
         let mut previous_block: u32 = 0;
 
-        while let Some(block) = self.iter.next()? {
+        while let Some(block) = self.iter.next().e()? {
             let classified = classifier.classify_block(&block);
 
             if let Some(res) = mask_32::find_in_mask(
@@ -138,7 +144,7 @@ where
                 classified.first,
                 classified.second,
                 offset,
-            ) {
+            )? {
                 return Ok(Some((res, block)));
             }
 

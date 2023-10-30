@@ -4,7 +4,7 @@ use super::{
 };
 use crate::{
     block, debug,
-    input::{InputBlock, InputBlockIterator},
+    input::{error::InputErrorConvertible, InputBlock, InputBlockIterator},
     FallibleIterator,
 };
 use std::marker::PhantomData;

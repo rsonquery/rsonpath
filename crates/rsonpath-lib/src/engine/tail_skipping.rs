@@ -51,7 +51,7 @@ where
             tail_skip.classifier = Some('a: {
                 let resume_state = classifier.stop();
                 let DepthIteratorResumeOutcome(first_vector, mut depth_classifier) =
-                tail_skip.simd.resume_depth_classification(resume_state, opening);
+                    tail_skip.simd.resume_depth_classification(resume_state, opening);
 
                 let mut current_vector = match first_vector {
                     Some(v) => Some(v),

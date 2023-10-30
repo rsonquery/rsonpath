@@ -65,6 +65,7 @@
         "rustdoc",
         "RUSTFLAGS",
         "rustfmt",
+        "Seekable",
         "SIMD",
         "smallvec",
         "snaks",

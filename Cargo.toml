@@ -19,7 +19,7 @@ lto = false
 # Release should be used for benching, but not actually distributed.
 [profile.release]
 lto = "thin"
-debug = 2
+debug = 1
 
 # This is the profile used for final binaries distributed via package managers.
 # It prioritizes performance, and then binary size. We generally don't care about

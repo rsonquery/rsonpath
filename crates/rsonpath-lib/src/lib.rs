@@ -6,7 +6,7 @@
 //! # Examples
 //! ```rust
 //! use rsonpath::engine::{Compiler, Engine, RsonpathEngine};
-//! use rsonpath::input::OwnedBytes;
+//! use rsonpath::input::BorrowedBytes;
 //! use rsonpath::query::JsonPathQuery;
 //! use rsonpath::result::count::CountRecorder;
 //! # use std::error::Error;
@@ -35,8 +35,8 @@
 //!     ]
 //!   }
 //! }
-//! "#.to_owned();
-//! let input = OwnedBytes::try_from(contents).unwrap();
+//! "#;
+//! let input = BorrowedBytes::new(contents.as_bytes());
 //! // Compile the query. The engine can be reused to run the same query on different contents.
 //! let engine = RsonpathEngine::compile_query(&query)?;
 //! // Count the number of occurrences of elements satisfying the query.

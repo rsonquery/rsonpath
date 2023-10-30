@@ -5,7 +5,7 @@ _This part of the book is a work in progress._
 ```rust
 # extern crate rsonpath;
 use rsonpath::engine::{Compiler, Engine, RsonpathEngine};
-use rsonpath::input::OwnedBytes;
+use rsonpath::input::BorrowedBytes;
 use rsonpath::query::JsonPathQuery;
 
 # fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -29,7 +29,7 @@ let contents = r#"
   }
 }"#;
 
-let input = OwnedBytes::new(&contents)?;
+let input = BorrowedBytes::new(contents.as_bytes());
 let engine = RsonpathEngine::compile_query(&query)?;
 let count = engine.count(&input)?;
 

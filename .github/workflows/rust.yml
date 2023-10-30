@@ -55,11 +55,13 @@ jobs:
             # This target needs special setup with MinGW.
             needs-mingw: x86
             can-run: true
-            rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
+            # lld on Windows uses extreme amounts of memory for debuginfo=2
+            rustflags: "-C link-arg=-fuse-ld=lld -C debuginfo=1 --deny warnings"
           - os: windows-latest
             target_triple: i686-pc-windows-msvc
             can-run: true
-            rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
+            # lld on Windows uses extreme amounts of memory for debuginfo=2
+            rustflags: "-C link-arg=-fuse-ld=lld -C debuginfo=1 --deny warnings"
           - os: ubuntu-latest
             target_triple:
               i686-unknown-linux-gnu
@@ -74,11 +76,13 @@ jobs:
           - os: windows-latest
             target_triple: x86_64-pc-windows-gnu
             can-run: true
-            rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
+            # lld on Windows uses extreme amounts of memory for debuginfo=2
+            rustflags: "-C link-arg=-fuse-ld=lld -C debuginfo=1 --deny warnings"
           - os: windows-latest
             target_triple: x86_64-pc-windows-msvc
             can-run: true
-            rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
+            # lld on Windows uses extreme amounts of memory for debuginfo=2
+            rustflags: "-C link-arg=-fuse-ld=lld -C debuginfo=1 --deny warnings"
           - os: ubuntu-latest
             target_triple: x86_64-unknown-linux-gnu
             can-run: true

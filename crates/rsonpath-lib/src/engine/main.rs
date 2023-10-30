@@ -19,6 +19,7 @@ use crate::{
         tail_skipping::TailSkip,
         Compiler, Engine, Input,
     },
+    input::error::InputErrorConvertible,
     query::{
         automaton::{Automaton, State, TransitionLabel},
         error::CompilerError,
@@ -68,16 +69,15 @@ impl Engine for MainEngine<'_> {
     where
         I: Input,
     {
-        let recorder = CountRecorder::new();
-
         if self.automaton.is_empty_query() {
             return empty_query::count(input);
         }
 
+        let recorder = CountRecorder::new();
         config_simd!(self.simd => |simd| {
             let executor = query_executor(&self.automaton, input, &recorder, simd);
-            executor.run()?;
-        });
+            executor.run()
+        })?;
 
         Ok(recorder.into())
     }
@@ -88,16 +88,15 @@ impl Engine for MainEngine<'_> {
         I: Input,
         S: Sink<MatchIndex>,
     {
-        let recorder = IndexRecorder::new(sink);
-
         if self.automaton.is_empty_query() {
             return empty_query::index(input, sink);
         }
 
+        let recorder = IndexRecorder::new(sink, input.leading_padding_len());
         config_simd!(self.simd => |simd| {
             let executor = query_executor(&self.automaton, input, &recorder, simd);
-            executor.run()?;
-        });
+            executor.run()
+        })?;
 
         Ok(())
     }
@@ -108,16 +107,15 @@ impl Engine for MainEngine<'_> {
         I: Input,
         S: Sink<MatchSpan>,
     {
-        let recorder = ApproxSpanRecorder::new(sink);
-
         if self.automaton.is_empty_query() {
             return empty_query::approx_span(input, sink);
         }
 
+        let recorder = ApproxSpanRecorder::new(sink, input.leading_padding_len());
         config_simd!(self.simd => |simd| {
             let executor = query_executor(&self.automaton, input, &recorder, simd);
-            executor.run()?;
-        });
+            executor.run()
+        })?;
 
         Ok(())
     }
@@ -128,16 +126,15 @@ impl Engine for MainEngine<'_> {
         I: Input,
         S: Sink<Match>,
     {
-        let recorder = NodesRecorder::build_recorder(sink);
-
         if self.automaton.is_empty_query() {
             return empty_query::match_(input, sink);
         }
 
+        let recorder = NodesRecorder::build_recorder(sink, input.leading_padding_len());
         config_simd!(self.simd => |simd| {
             let executor = query_executor(&self.automaton, input, &recorder, simd);
-            executor.run()?;
-        });
+            executor.run()
+        })?;
 
         Ok(())
     }
@@ -147,9 +144,9 @@ macro_rules! Classifier {
     () => {
         TailSkip<
             'i,
-            I::BlockIterator<'i, 'r, BLOCK_SIZE, R>,
-            V::QuotesClassifier<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>>,
-            V::StructuralClassifier<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>>,
+            I::BlockIterator<'i, 'r, R, BLOCK_SIZE>,
+            V::QuotesClassifier<'i, I::BlockIterator<'i, 'r, R, BLOCK_SIZE>>,
+            V::StructuralClassifier<'i, I::BlockIterator<'i, 'r, R, BLOCK_SIZE>>,
             V,
             BLOCK_SIZE>
     };
@@ -273,9 +270,9 @@ where
         debug!("Reporting result somewhere after {start_idx} with hint {hint:?}");
 
         let index = match hint {
-            NodeTypeHint::Complex(BracketType::Curly) => self.input.seek_forward(start_idx, [b'{'])?,
-            NodeTypeHint::Complex(BracketType::Square) => self.input.seek_forward(start_idx, [b'['])?,
-            NodeTypeHint::Atomic => self.input.seek_non_whitespace_forward(start_idx)?,
+            NodeTypeHint::Complex(BracketType::Curly) => self.input.seek_forward(start_idx, [b'{']).e()?,
+            NodeTypeHint::Complex(BracketType::Square) => self.input.seek_forward(start_idx, [b'[']).e()?,
+            NodeTypeHint::Atomic => self.input.seek_non_whitespace_forward(start_idx).e()?,
         }
         .map(|x| x.0);
 
@@ -285,6 +282,7 @@ where
         }
     }
 
+    #[inline(always)]
     fn handle_colon(
         &mut self,
         #[allow(unused_variables)] classifier: &mut Classifier!(),
@@ -292,7 +290,7 @@ where
     ) -> Result<(), EngineError> {
         debug!("Colon");
 
-        let is_next_opening = if let Some((_, c)) = self.input.seek_non_whitespace_forward(idx + 1)? {
+        let is_next_opening = if let Some((_, c)) = self.input.seek_non_whitespace_forward(idx + 1).e()? {
             c == b'{' || c == b'['
         } else {
             false
@@ -342,9 +340,10 @@ where
         Ok(())
     }
 
+    #[inline(always)]
     fn handle_comma(&mut self, _classifier: &mut Classifier!(), idx: usize) -> Result<(), EngineError> {
         self.recorder.record_value_terminator(idx, self.depth)?;
-        let is_next_opening = if let Some((_, c)) = self.input.seek_non_whitespace_forward(idx + 1)? {
+        let is_next_opening = if let Some((_, c)) = self.input.seek_non_whitespace_forward(idx + 1).e()? {
             c == b'{' || c == b'['
         } else {
             false
@@ -376,6 +375,7 @@ where
         Ok(())
     }
 
+    #[inline(always)]
     fn handle_opening(
         &mut self,
         classifier: &mut Classifier!(),
@@ -457,7 +457,7 @@ where
                     is_fallback_accepting || self.automaton.has_first_array_index_transition_to_accepting(self.state);
 
                 if wants_first_item {
-                    let next = self.input.seek_non_whitespace_forward(idx + 1)?;
+                    let next = self.input.seek_non_whitespace_forward(idx + 1).e()?;
 
                     match next {
                         Some((_, b'[' | b'{' | b']')) => (), // Complex value or empty list.
@@ -485,6 +485,7 @@ where
         Ok(())
     }
 
+    #[inline(always)]
     fn handle_closing(&mut self, classifier: &mut Classifier!(), idx: usize) -> Result<(), EngineError> {
         debug!("Closing, decreasing depth and popping stack.");
 
@@ -565,6 +566,7 @@ where
         }
     }
 
+    #[inline(always)]
     fn is_match(&self, idx: usize, member_name: &JsonString) -> Result<bool, EngineError> {
         let len = member_name.bytes_with_quotes().len();
 
@@ -578,7 +580,9 @@ where
         }
 
         let start_idx = closing_quote_idx + 1 - len;
-        Ok(self.input.is_member_match(start_idx, closing_quote_idx, member_name))
+        self.input
+            .is_member_match(start_idx, closing_quote_idx + 1, member_name)
+            .map_err(|x| x.into().into())
     }
 
     fn verify_subtree_closed(&self) -> Result<(), EngineError> {
@@ -650,8 +654,8 @@ where
         &mut self,
         next_event: Structural,
         state: State,
-        structural_classifier: V::StructuralClassifier<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>>,
-    ) -> Result<ResumeState<'i, I::BlockIterator<'i, 'r, BLOCK_SIZE, R>, V, MaskType>, EngineError> {
+        structural_classifier: V::StructuralClassifier<'i, I::BlockIterator<'i, 'r, R, BLOCK_SIZE>>,
+    ) -> Result<ResumeState<'i, I::BlockIterator<'i, 'r, R, BLOCK_SIZE>, V, MaskType>, EngineError> {
         let mut classifier = TailSkip::new(structural_classifier, self.simd);
 
         self.state = state;

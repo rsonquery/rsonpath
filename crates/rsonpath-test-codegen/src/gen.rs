@@ -32,7 +32,7 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> Result<(), io::Error> {
         let mut group_mod = vec![];
         for query in &discovered_doc.document.queries {
             let mut fns = vec![];
-            for input_type in [InputTypeToTest::Owned, InputTypeToTest::Buffered, InputTypeToTest::Mmap] {
+            for input_type in [InputTypeToTest::Borrowed, InputTypeToTest::Buffered, InputTypeToTest::Mmap] {
                 for result_type in get_available_results(&discovered_doc.document.input.source, query)? {
                     let fn_name = format_ident!(
                         "{}",
@@ -156,10 +156,10 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> Result<(), io::Error> {
         let raw_input_path = input_path.as_ref().to_str().expect("supported unicode path");
 
         let code = match input_type {
-            InputTypeToTest::Owned => {
+            InputTypeToTest::Borrowed => {
                 quote! {
                     let raw_json = fs::read_to_string(#raw_input_path)?;
-                    let #ident = OwnedBytes::new(&raw_json.as_bytes())?;
+                    let #ident = BorrowedBytes::new(raw_json.as_bytes());
                 }
             }
             InputTypeToTest::Buffered => {
@@ -345,7 +345,7 @@ pub(crate) fn generate_imports() -> TokenStream {
 
 #[derive(Clone, Copy)]
 enum InputTypeToTest {
-    Owned,
+    Borrowed,
     Buffered,
     Mmap,
 }
@@ -370,7 +370,7 @@ impl Display for InputTypeToTest {
             f,
             "{}",
             match self {
-                Self::Owned => "OwnedBytes",
+                Self::Borrowed => "BorrowedBytes",
                 Self::Buffered => "BufferedInput",
                 Self::Mmap => "MmapInput",
             }
