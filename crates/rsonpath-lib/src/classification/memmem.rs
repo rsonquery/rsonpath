@@ -2,10 +2,10 @@
 //! of a specific member name as quickly as possible.
 use crate::{
     input::{error::InputError, Input},
-    query::JsonString,
     result::InputRecorder,
     BLOCK_SIZE,
 };
+use rsonpath_syntax::string::JsonString;
 
 /// Classifier that can quickly find a member name in a byte stream.
 pub trait Memmem<'i, 'b, 'r, I: Input, const N: usize> {

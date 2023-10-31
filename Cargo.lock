@@ -832,6 +832,7 @@ dependencies = [
  "eyre",
  "log",
  "rsonpath-lib",
+ "rsonpath-syntax",
  "rustflags",
  "simple_logger",
  "trycmd",
@@ -850,11 +851,23 @@ dependencies = [
  "nom",
  "pretty_assertions",
  "proptest",
+ "rsonpath-syntax",
  "smallvec",
  "static_assertions",
  "test-case",
  "thiserror",
  "vector-map",
+]
+
+[[package]]
+name = "rsonpath-syntax"
+version = "0.1.0"
+dependencies = [
+ "arbitrary",
+ "nom",
+ "pretty_assertions",
+ "test-case",
+ "thiserror",
 ]
 
 [[package]]
@@ -866,6 +879,7 @@ dependencies = [
  "md5",
  "pretty_assertions",
  "rsonpath-lib",
+ "rsonpath-syntax",
  "rsonpath-test-codegen",
 ]
 

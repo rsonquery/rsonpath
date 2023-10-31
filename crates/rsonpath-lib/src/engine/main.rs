@@ -23,7 +23,6 @@ use crate::{
     query::{
         automaton::{Automaton, State, TransitionLabel},
         error::CompilerError,
-        JsonPathQuery, JsonString, NonNegativeArrayIndex,
     },
     result::{
         approx_span::ApproxSpanRecorder, count::CountRecorder, index::IndexRecorder, nodes::NodesRecorder, Match,
@@ -31,6 +30,7 @@ use crate::{
     },
     FallibleIterator, MaskType, BLOCK_SIZE,
 };
+use rsonpath_syntax::{number::NonNegativeArrayIndex, string::JsonString, JsonPathQuery};
 use smallvec::{smallvec, SmallVec};
 
 /// Main engine for a fixed JSONPath query.

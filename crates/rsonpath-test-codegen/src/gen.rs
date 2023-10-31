@@ -32,7 +32,11 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> Result<(), io::Error> {
         let mut group_mod = vec![];
         for query in &discovered_doc.document.queries {
             let mut fns = vec![];
-            for input_type in [InputTypeToTest::Borrowed, InputTypeToTest::Buffered, InputTypeToTest::Mmap] {
+            for input_type in [
+                InputTypeToTest::Borrowed,
+                InputTypeToTest::Buffered,
+                InputTypeToTest::Mmap,
+            ] {
                 for result_type in get_available_results(&discovered_doc.document.input.source, query)? {
                     let fn_name = format_ident!(
                         "{}",
@@ -334,7 +338,7 @@ pub(crate) fn generate_imports() -> TokenStream {
     quote! {
         use rsonpath::engine::{Compiler, Engine, main::MainEngine};
         use rsonpath::input::*;
-        use rsonpath::query::JsonPathQuery;
+        use rsonpath_syntax::JsonPathQuery;
         use pretty_assertions::assert_eq;
         use std::error::Error;
         use std::fs;

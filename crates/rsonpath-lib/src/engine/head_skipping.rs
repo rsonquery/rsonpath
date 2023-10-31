@@ -17,13 +17,11 @@ use crate::{
         error::{InputError, InputErrorConvertible},
         Input, InputBlockIterator,
     },
-    query::{
-        automaton::{Automaton, State},
-        JsonString,
-    },
+    query::automaton::{Automaton, State},
     result::Recorder,
     FallibleIterator, MaskType, BLOCK_SIZE,
 };
+use rsonpath_syntax::string::JsonString;
 
 /// Trait that needs to be implemented by an [`Engine`](`super::Engine`) to use this submodule.
 pub(super) trait CanHeadSkip<'i, 'r, I, R, V>

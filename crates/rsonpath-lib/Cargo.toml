@@ -2,17 +2,21 @@
 name = "rsonpath-lib"
 version = "0.8.4"
 authors = ["Mateusz Gienieczko <mat@gienieczko.com>"]
-edition = "2021"
 description = "Blazing fast JSONPath query engine powered by SIMD. Core library of `rsonpath`."
 readme = "README.md"
 license = "MIT"
-keywords = ["json", "jsonpath", "query", "simd", "parser"]
-exclude = ["/tests", "/proptest-regressions"]
-categories = [
-    "text-processing",
-    "parser-implementations",
+keywords = ["json", "jsonpath", "query", "search", "simd"]
+exclude = [
+    "/tests",
+    "/proptest-regressions",
+    "/src/classification/classifier_correctness_tests.rs",
+    "/src/classification/classifier_correctness_tests.proptest-regressions",
 ]
+categories = ["text-processing"]
 repository = "https://github.com/V0ldek/rsonpath"
+homepage = "https://v0ldek.github.io/rsonpath/"
+workspace = "../.."
+edition = "2021"
 rust-version = "1.67.1"
 
 [lib]
@@ -21,7 +25,7 @@ name = "rsonpath"
 
 [package.metadata.docs.rs]
 rustdoc-args = ["--cfg", "docsrs"]
-features = [ "arbitrary" ]
+all-features = true
 
 [dependencies]
 arbitrary = { version = "1.3.1", features = ["derive"], optional = true }
@@ -29,6 +33,7 @@ cfg-if = "1.0.0"
 log = "0.4.20"
 memmap2 = "0.9.0"
 nom = "7.1.3"
+rsonpath-syntax = { version = "0.1.0", path = "../rsonpath-syntax" }
 smallvec = { version = "1.11.1", features = ["union"] }
 static_assertions = "1.1.0"
 thiserror = "1.0.50"

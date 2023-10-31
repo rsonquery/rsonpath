@@ -1,12 +1,9 @@
 use color_eyre::{Help, SectionExt};
 use eyre::eyre;
-use rsonpath_lib::{
-    engine::error::EngineError,
-    error::UnsupportedFeatureError,
-    query::{
-        error::{CompilerError, ParseErrorReport, ParserError},
-        JsonPathQuery,
-    },
+use rsonpath_lib::{engine::error::EngineError, error::UnsupportedFeatureError, query::error::CompilerError};
+use rsonpath_syntax::{
+    error::{ParseErrorReport, ParserError},
+    JsonPathQuery,
 };
 
 const FEATURE_REQUEST_URL: &str = "https://github.com/V0ldek/rsonpath/issues/new?template=feature_request.md";
@@ -29,7 +26,7 @@ pub fn report_compiler_error(query: &JsonPathQuery, error: CompilerError) -> eyr
             if query
                 .root()
                 .iter()
-                .any(|node| matches!(node, rsonpath_lib::query::JsonPathQueryNode::AnyChild(_)))
+                .any(|node| matches!(node, rsonpath_syntax::JsonPathQueryNode::AnyChild(_)))
             {
                 report = report.suggestion(
                     "Wildcard selectors are a common source of query complexity.\n            \

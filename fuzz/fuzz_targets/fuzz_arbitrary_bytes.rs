@@ -3,7 +3,7 @@
 use libfuzzer_sys::{arbitrary::Arbitrary, fuzz_target};
 use rsonpath::engine::{Compiler, Engine, RsonpathEngine};
 use rsonpath::input::BorrowedBytes;
-use rsonpath::query::JsonPathQuery;
+use rsonpath_syntax::JsonPathQuery;
 use std::fmt::Debug;
 
 fuzz_target!(|data: DisplayableBytes| {

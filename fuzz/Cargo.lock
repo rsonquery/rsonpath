@@ -209,6 +209,7 @@ dependencies = [
  "log",
  "memmap2",
  "nom",
+ "rsonpath-syntax",
  "smallvec",
  "static_assertions",
  "thiserror",
@@ -222,8 +223,18 @@ dependencies = [
  "arbitrary",
  "libfuzzer-sys",
  "rsonpath-lib",
+ "rsonpath-syntax",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "rsonpath-syntax"
+version = "0.1.0"
+dependencies = [
+ "arbitrary",
+ "nom",
+ "thiserror",
 ]
 
 [[package]]

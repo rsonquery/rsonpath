@@ -133,7 +133,7 @@ test-x86-simd:
 # Run doctests on the library.
 test-doc:
     -cargo install cargo-hack
-    cargo rsontest -p rsonpath-lib --doc
+    cargo rsontest --doc
 
 # Run cmd tests
 test-cmd:

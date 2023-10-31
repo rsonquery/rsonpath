@@ -19,7 +19,8 @@
 use super::{
     error::InputError, repr_align_block_size, Input, InputBlock, InputBlockIterator, SliceSeekable, MAX_BLOCK_SIZE,
 };
-use crate::{error::InternalRsonpathError, query::JsonString, result::InputRecorder, JSON_SPACE_BYTE};
+use crate::{error::InternalRsonpathError, result::InputRecorder, JSON_SPACE_BYTE};
+use rsonpath_syntax::string::JsonString;
 use std::{cell::RefCell, io::Read, ops::Deref, slice};
 
 // The buffer has to be a multiple of MAX_BLOCK_SIZE.

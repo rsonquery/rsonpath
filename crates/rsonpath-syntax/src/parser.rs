@@ -1,6 +1,9 @@
-use super::error::{ArrayIndexError, ParseErrorReport, ParserError};
-use crate::debug;
-use crate::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType, JsonString, NonNegativeArrayIndex};
+use crate::{
+    error::{ArrayIndexError, ParseErrorReport, ParserError},
+    number::NonNegativeArrayIndex,
+    string::JsonString,
+    JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType,
+};
 use nom::{branch::*, bytes::complete::*, character::complete::*, combinator::*, multi::*, sequence::*, *};
 use std::{
     borrow::Borrow,
@@ -71,14 +74,6 @@ pub(crate) fn parse_json_path_query(query_string: &str) -> Result<JsonPathQuery,
 
     match finished {
         Ok(("", (_root_token, tokens))) => {
-            debug!("Parsed tokens: {}", {
-                use fmt::Write;
-                _root_token.map_or(String::new(), |x| format!("{x}"))
-                    + &tokens.iter().fold(String::new(), |mut out, x| {
-                        write!(out, "({x:?})").expect("infallible");
-                        out
-                    })
-            });
             let node = tokens_to_node(&mut tokens.into_iter())?;
             Ok(match node {
                 None => JsonPathQuery::new(Box::new(JsonPathQueryNode::Root(None))),
@@ -335,7 +330,7 @@ impl nom::ExtendInto for MaybeEscapedCharVec {
 #[cfg(test)]
 mod tests {
     use super::parse_json_path_query;
-    use crate::query::{parser::MemberString, JsonPathQuery};
+    use crate::{parser::MemberString, JsonPathQuery};
     use pretty_assertions::assert_eq;
 
     #[test]
@@ -459,7 +454,7 @@ mod tests {
     #[test]
     fn should_infer_root_from_empty_string() {
         let input = "";
-        let expected_query = JsonPathQuery::new(Box::new(crate::query::JsonPathQueryNode::Root(None)));
+        let expected_query = JsonPathQuery::new(Box::new(crate::JsonPathQueryNode::Root(None)));
 
         let result = parse_json_path_query(input).expect("expected Ok");
 
@@ -469,7 +464,7 @@ mod tests {
     #[test]
     fn root() {
         let input = "$";
-        let expected_query = JsonPathQuery::new(Box::new(crate::query::JsonPathQueryNode::Root(None)));
+        let expected_query = JsonPathQuery::new(Box::new(crate::JsonPathQueryNode::Root(None)));
 
         let result = parse_json_path_query(input).expect("expected Ok");
 

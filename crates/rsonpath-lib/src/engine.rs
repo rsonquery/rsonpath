@@ -13,9 +13,10 @@ mod empty_query;
 use self::error::EngineError;
 use crate::{
     input::Input,
-    query::{automaton::Automaton, error::CompilerError, JsonPathQuery},
+    query::{automaton::Automaton, error::CompilerError},
     result::{Match, MatchCount, MatchIndex, MatchSpan, Sink},
 };
+use rsonpath_syntax::JsonPathQuery;
 
 /// An engine that can run its query on a given input.
 pub trait Engine {

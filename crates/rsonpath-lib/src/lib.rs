@@ -190,8 +190,6 @@
     warn(clippy::print_stderr, clippy::print_stdout, clippy::todo)
 )]
 #![cfg_attr(docsrs, feature(doc_cfg))]
-// Unsafe code allowed only for SIMD.
-/*#![cfg_attr(not(feature = "simd"), forbid(unsafe_code))]*/
 
 pub mod classification;
 mod depth;

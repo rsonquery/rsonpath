@@ -6,9 +6,9 @@ mod state;
 
 pub use state::{State, StateAttributes};
 
-use super::{error::CompilerError, JsonPathQuery, JsonString, NonNegativeArrayIndex};
-use crate::debug;
+use crate::{debug, query::error::CompilerError};
 use nfa::NondeterministicAutomaton;
+use rsonpath_syntax::{number::NonNegativeArrayIndex, string::JsonString, JsonPathQuery};
 use smallvec::SmallVec;
 use std::{borrow::Borrow, fmt::Display, ops::Index};
 
@@ -81,11 +81,11 @@ impl Display for TransitionLabel<'_> {
     }
 }
 
-impl<T: Borrow<NonNegativeArrayIndex>> From<T> for TransitionLabel<'_> {
+impl From<NonNegativeArrayIndex> for TransitionLabel<'_> {
     #[must_use]
     #[inline(always)]
-    fn from(index: T) -> Self {
-        TransitionLabel::new_array_index(*index.borrow())
+    fn from(index: NonNegativeArrayIndex) -> Self {
+        TransitionLabel::new_array_index(index)
     }
 }
 

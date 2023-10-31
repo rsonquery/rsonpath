@@ -1,5 +1,6 @@
 use super::{SliceSeekable, MAX_BLOCK_SIZE};
-use crate::{query::JsonString, JSON_SPACE_BYTE};
+use crate::JSON_SPACE_BYTE;
+use rsonpath_syntax::string::JsonString;
 
 pub(super) struct PaddedBlock {
     bytes: [u8; MAX_BLOCK_SIZE],

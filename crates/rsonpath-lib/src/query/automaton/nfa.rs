@@ -2,7 +2,8 @@
 //! obtained from a JsonPath query. This is then turned into
 //! a DFA with the minimizer.
 use super::TransitionLabel;
-use crate::query::{error::CompilerError, JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType};
+use crate::query::error::CompilerError;
+use rsonpath_syntax::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType};
 use std::{fmt::Display, ops::Index};
 
 /// An NFA representing a query. It is always a directed path
@@ -157,7 +158,8 @@ impl<'q> Display for NondeterministicAutomaton<'q> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::query::{builder::JsonPathQueryBuilder, JsonString};
+    use crate::query::builder::JsonPathQueryBuilder;
+    use rsonpath_syntax::string::JsonString;
 
     #[test]
     fn nfa_test() {

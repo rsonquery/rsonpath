@@ -26,7 +26,8 @@ pub use mmap::MmapInput;
 pub use owned::OwnedBytes;
 
 use self::error::InputError;
-use crate::{query::JsonString, result::InputRecorder};
+use crate::result::InputRecorder;
+use rsonpath_syntax::string::JsonString;
 use std::ops::Deref;
 
 /// Make the struct repr(C) with alignment equal to [`MAX_BLOCK_SIZE`].

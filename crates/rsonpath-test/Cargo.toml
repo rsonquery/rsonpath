@@ -2,21 +2,21 @@
 name = "rsonpath-test"
 version = "0.8.4"
 authors = ["Mateusz Gienieczko <mat@gienieczko.com>"]
-edition = "2021"
 description = "Just a build script for the auto test generation."
 readme = "README.md"
 license = "MIT"
 keywords = ["json", "jsonpath", "query", "simd", "parser"]
-categories = [
-    "text-processing",
-]
+categories = ["text-processing"]
 repository = "https://github.com/V0ldek/rsonpath"
+workspace = "../.."
+edition = "2021"
 rust-version = "1.70.0"
 publish = false
 
 [dev-dependencies]
 pretty_assertions = "1.4.0"
 rsonpath-lib = { version = "0.8.4", path = "../rsonpath-lib" }
+rsonpath-syntax = { version = "0.1.0", path = "../rsonpath-syntax" }
 
 [build-dependencies]
 eyre = "0.6.8"

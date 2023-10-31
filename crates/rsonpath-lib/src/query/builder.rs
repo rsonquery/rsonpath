@@ -1,6 +1,6 @@
 //! Utility for building a [`JsonPathQuery`](`crate::query::JsonPathQuery`)
 //! programmatically.
-use super::{JsonPathQuery, JsonPathQueryNode, JsonString, NonNegativeArrayIndex};
+use rsonpath_syntax::{number::NonNegativeArrayIndex, string::JsonString, JsonPathQuery, JsonPathQueryNode};
 
 /// Builder for [`JsonPathQuery`] instances.
 ///
@@ -107,9 +107,7 @@ impl JsonPathQueryBuilder {
             };
         }
 
-        JsonPathQuery {
-            root: Box::new(JsonPathQueryNode::Root(last)),
-        }
+        JsonPathQuery::new(Box::new(JsonPathQueryNode::Root(last)))
     }
 }
 

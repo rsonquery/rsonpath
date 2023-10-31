@@ -1,5 +1,5 @@
 use super::SliceSeekable;
-use crate::query::JsonString;
+use rsonpath_syntax::string::JsonString;
 
 impl<T: AsRef<[u8]>> SliceSeekable for T {
     fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> bool {
@@ -310,8 +310,8 @@ mod tests {
 
     mod is_member_match {
         use crate::input::SliceSeekable;
-        use crate::query::JsonString;
         use pretty_assertions::assert_eq;
+        use rsonpath_syntax::string::JsonString;
 
         #[test]
         fn on_exact_match_returns_true() {

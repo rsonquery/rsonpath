@@ -1,5 +1,6 @@
 use pretty_assertions::assert_eq;
-use rsonpath::query::{builder::JsonPathQueryBuilder, JsonPathQuery, JsonString};
+use rsonpath::query::builder::JsonPathQueryBuilder;
+use rsonpath_syntax::{string::JsonString, JsonPathQuery};
 use test_case::test_case;
 
 #[test]
@@ -244,7 +245,7 @@ mod transform_json_escape_sequences_tests {
 mod proptests {
     use super::*;
     use proptest::prelude::*;
-    use rsonpath::query::NonNegativeArrayIndex;
+    use rsonpath_syntax::number::NonNegativeArrayIndex;
 
     /* Approach: we generate a sequence of Selectors, each having its generated string
      * and a tag describing what selector it represents, and, optionally, what string is attached.
