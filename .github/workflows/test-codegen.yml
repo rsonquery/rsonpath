@@ -33,6 +33,9 @@ jobs:
           allowed-endpoints: >
             github.com:443
             azure.archive.ubuntu.com:80
+            crates.io:443
+            index.crates.io:443
+            static.crates.io:443
             static.rust-lang.org:443
 
       - name: Install lld
