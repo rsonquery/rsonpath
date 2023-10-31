@@ -29,7 +29,11 @@ jobs:
       - name: Harden Runner
         uses: step-security/harden-runner@1b05615854632b887b69ae1be8cbefe72d3ae423 # v2.6.0
         with:
-          egress-policy: audit
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
+            azure.archive.ubuntu.com:80
+            static.rust-lang.org:443
 
       - name: Install lld
         run: sudo apt install lld

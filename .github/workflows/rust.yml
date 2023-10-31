@@ -94,11 +94,16 @@ jobs:
           egress-policy: block
           allowed-endpoints: >
             github.com:443
+            api.github.com:443
             azure.archive.ubuntu.com:80
+            esm.ubuntu.com:443
+            motd.ubuntu.com:443
             crates.io:443
             index.crates.io:443
             static.crates.io:443
             static.rust-lang.org:443
+            packages.microsoft.com:443
+            ppa.launchpadcontent.net:443
 
       - name: Cache restore (MinGW)
         id: cache-restore-mingw
