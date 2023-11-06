@@ -1,4 +1,4 @@
-//! Error types for the [`query`](`crate::query`) module.
+//! Error types for the [`automaton`](`crate::automaton`) module.
 
 use std::num::TryFromIntError;
 use thiserror::Error;
