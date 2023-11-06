@@ -8,8 +8,8 @@
 //! Retrieving the part of input that caused a parse error:
 //!
 //! ```rust
-//! use rsonpath::query::JsonPathQuery;
-//! use rsonpath::query::error::ParserError;
+//! use rsonpath_syntax::JsonPathQuery;
+//! use rsonpath_syntax::error::ParserError;
 //!
 //! let query_str =
 //!     "$.prop..invalid$chars.this_is_fine";
@@ -34,10 +34,7 @@
 //! }
 //! ```
 use crate::number::NonNegativeArrayIndex;
-use std::{
-    fmt::{self, Display},
-    num::TryFromIntError,
-};
+use std::fmt::{self, Display};
 use thiserror::Error;
 
 pub(crate) const BUG_REPORT_URL: &str = "https://github.com/V0ldek/rsonpath/issues/new?template=bug_report.md";

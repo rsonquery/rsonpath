@@ -6,9 +6,9 @@ use crate::{
 use eyre::{Result, WrapErr};
 use log::warn;
 use rsonpath_lib::{
+    automaton::Automaton,
     engine::{error::EngineError, main::MainEngine, Compiler, Engine},
     input::{BorrowedBytes, BufferedInput, Input, MmapInput, OwnedBytes},
-    query::automaton::Automaton,
     result::MatchWriter,
 };
 use std::{

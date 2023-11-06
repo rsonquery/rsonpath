@@ -3,7 +3,7 @@ use clap::Parser;
 use color_eyre::{eyre::Result, Help};
 use error::{report_compiler_error, report_parser_error};
 use log::*;
-use rsonpath_lib::query::automaton::Automaton;
+use rsonpath_lib::automaton::Automaton;
 use rsonpath_syntax::JsonPathQuery;
 use runner::Runner;
 

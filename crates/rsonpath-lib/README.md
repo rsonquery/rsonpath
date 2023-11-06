@@ -8,7 +8,7 @@
 [![GitHub Release Date](https://img.shields.io/github/release-date/v0ldek/rsonpath?logo=github)](https://github.com/V0ldek/rsonpath/releases)
 [![GitHub last commit](https://img.shields.io/github/last-commit/v0ldek/rsonpath?logo=github)](https://github.com/V0ldek/rsonpath/commits/main)
 
-![MSRV](https://img.shields.io/badge/msrv-v1.67.1-orange?logo=rust "Minimum Supported Rust Version for `rq`")
+![MSRV](https://img.shields.io/badge/msrv-v1.67.1-orange?logo=rust "Minimum Supported Rust Version for `rsonpath-lib`")
 [![License](https://img.shields.io/crates/l/rsonpath)](https://choosealicense.com/licenses/mit/)
 
 Library for [`rsonpath`](https://crates.io/crates/rsonpath), the JSONPath engine for querying massive streamed datasets.

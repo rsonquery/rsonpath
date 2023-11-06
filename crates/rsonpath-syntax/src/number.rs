@@ -1,3 +1,5 @@
+//! JSON number types expressible in a JSONPath query.
+
 use super::error::ArrayIndexError;
 use std::fmt::{self, Display, Formatter};
 
@@ -8,7 +10,7 @@ use std::fmt::{self, Display, Formatter};
 /// # Examples
 ///
 /// ```
-/// # use rsonpath::query::NonNegativeArrayIndex;
+/// # use rsonpath_syntax::number::NonNegativeArrayIndex;
 ///
 /// let idx = NonNegativeArrayIndex::new(2);
 ///

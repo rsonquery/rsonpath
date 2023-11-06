@@ -9,8 +9,8 @@ keywords = ["json", "jsonpath", "query", "search", "parser"]
 exclude = ["/tests"]
 categories = [ "parser-implementations", "text-processing"]
 repository = "https://github.com/V0ldek/rsonpath"
-workspace = "../.."
 edition = "2021"
+rust-version = "1.67.1"
 
 [package.metadata.docs.rs]
 rustdoc-args = ["--cfg", "docsrs"]

@@ -143,6 +143,7 @@ test-cmd:
 test-book:
     rm -f ./target/debug/deps/librsonpath-*
     cargo build -p rsonpath-lib
+    cargo build -p rsonpath-syntax
     mdbook test ./book -L ./target/debug/deps
 
 @add-test name:

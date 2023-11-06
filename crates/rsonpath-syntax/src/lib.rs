@@ -1,3 +1,47 @@
+//! Complete, fast, and fully spec-compliant JSONPath query parser.
+//!
+//! The crate exposes the [`JsonPathQuery`] type and the [`parse`](`JsonPathQuery::parse`)
+//! function that converts a query string into the AST representation. The parsing
+//! complies with the proposed [JSONPath RFC specification](https://www.ietf.org/archive/id/draft-ietf-jsonpath-base-21.html).
+//!
+//! A JSONPath query is a sequence of **segments**, each containing one or more
+//! **selectors**. There are two types of segments, **child** and **descendant**,
+//! and five different types of selectors: **name**, **wildcard**, **index**, **slice**, and **filter**.
+//!
+//! Descriptions of each segment and selector can be found in the documentation of the
+//! relevant type in this crate, while the formal grammar is described in the RFC.
+//!
+//! # Examples
+//! To create a query from a query string:
+//! ```
+//! # use rsonpath_syntax::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType};
+//! # use std::error::Error;
+//! #
+//! # fn main() -> Result<(), Box<dyn Error>> {
+//! let query_string = "$..phoneNumbers[*].number";
+//! let query = JsonPathQuery::parse(query_string)?;
+//!
+//! // Query structure is a linear sequence of nodes:
+//! // Root '$', descendant '..phoneNumbers', child wildcard, child 'number'.
+//! let root_node = query.root();
+//! let descendant_node = root_node.child().unwrap();
+//! let child_wildcard_node = descendant_node.child().unwrap();
+//! let child_node = child_wildcard_node.child().unwrap();
+//!
+//! assert!(root_node.is_root());
+//! assert!(descendant_node.is_descendant());
+//! assert!(child_wildcard_node.is_any_child());
+//! assert!(child_node.is_child());
+//! // Final node will have a None child.
+//! assert!(child_node.child().is_none());
+//!
+//! assert_eq!(descendant_node.member_name().unwrap(), "phoneNumbers".as_bytes());
+//! assert_eq!(child_wildcard_node.member_name(), None);
+//! assert_eq!(child_node.member_name().unwrap(), "number".as_bytes());
+//! # Ok(())
+//! # }
+//! ```
+
 #![forbid(unsafe_code)]
 // Generic pedantic lints.
 #![warn(
@@ -68,9 +112,10 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![doc(html_logo_url = "https://raw.githubusercontent.com/V0ldek/rsonpath/main/img/rsonquery-logo.svg")]
 
+pub mod builder;
 pub mod error;
 pub mod number;
-pub mod parser;
+mod parser;
 pub mod string;
 
 use self::{error::ParserError, number::NonNegativeArrayIndex, string::JsonString};

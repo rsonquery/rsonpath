@@ -2,6 +2,7 @@
 //! the first matching member name in a query starting with a self-looping state.
 //! This happens in queries starting with a descendant selector.
 use crate::{
+    automaton::{Automaton, State},
     classification::{
         mask::Mask,
         memmem::Memmem,
@@ -17,7 +18,6 @@ use crate::{
         error::{InputError, InputErrorConvertible},
         Input, InputBlockIterator,
     },
-    query::automaton::{Automaton, State},
     result::Recorder,
     FallibleIterator, MaskType, BLOCK_SIZE,
 };

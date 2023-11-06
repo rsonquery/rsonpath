@@ -6,6 +6,10 @@
 //! the JSON structure, which allows efficient SIMD operations and optimized register usage.
 #![allow(clippy::type_complexity)] // The private Classifier type is very complex, but we specifically macro it out.
 use crate::{
+    automaton::{
+        error::CompilerError,
+        {Automaton, State, TransitionLabel},
+    },
     classification::{
         simd::{self, config_simd, dispatch_simd, Simd, SimdConfiguration},
         structural::{BracketType, Structural, StructuralIterator},
@@ -20,10 +24,6 @@ use crate::{
         Compiler, Engine, Input,
     },
     input::error::InputErrorConvertible,
-    query::{
-        automaton::{Automaton, State, TransitionLabel},
-        error::CompilerError,
-    },
     result::{
         approx_span::ApproxSpanRecorder, count::CountRecorder, index::IndexRecorder, nodes::NodesRecorder, Match,
         MatchCount, MatchIndex, MatchSpan, MatchedNodeType, Recorder, Sink,

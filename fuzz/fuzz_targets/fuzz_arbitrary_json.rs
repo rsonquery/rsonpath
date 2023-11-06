@@ -3,8 +3,8 @@
 use libfuzzer_sys::{arbitrary::Arbitrary, fuzz_target, Corpus};
 use rsonpath::input::BorrowedBytes;
 use rsonpath::{
+    automaton::error::CompilerError,
     engine::{Compiler, Engine, RsonpathEngine},
-    query::error::CompilerError,
 };
 use rsonpath_syntax::JsonPathQuery;
 use std::{

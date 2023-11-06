@@ -1,6 +1,6 @@
 use color_eyre::{Help, SectionExt};
 use eyre::eyre;
-use rsonpath_lib::{engine::error::EngineError, error::UnsupportedFeatureError, query::error::CompilerError};
+use rsonpath_lib::{engine::error::EngineError, error::UnsupportedFeatureError, automaton::error::CompilerError};
 use rsonpath_syntax::{
     error::{ParseErrorReport, ParserError},
     JsonPathQuery,

@@ -1,12 +1,12 @@
 //! Utility for building a [`JsonPathQuery`](`crate::query::JsonPathQuery`)
 //! programmatically.
-use rsonpath_syntax::{number::NonNegativeArrayIndex, string::JsonString, JsonPathQuery, JsonPathQueryNode};
+use crate::{number::NonNegativeArrayIndex, string::JsonString, JsonPathQuery, JsonPathQueryNode};
 
 /// Builder for [`JsonPathQuery`] instances.
 ///
 /// # Examples
 /// ```
-/// # use rsonpath::query::{JsonPathQuery, JsonString, builder::JsonPathQueryBuilder};
+/// # use rsonpath_syntax::{JsonPathQuery, builder::JsonPathQueryBuilder, string::JsonString};
 /// let builder = JsonPathQueryBuilder::new()
 ///     .child(JsonString::new("a"))
 ///     .descendant(JsonString::new("b"))
@@ -28,7 +28,7 @@ impl JsonPathQueryBuilder {
     ///
     /// # Examples
     /// ```
-    /// # use rsonpath::query::{JsonPathQuery, JsonPathQueryNode, builder::JsonPathQueryBuilder};
+    /// # use rsonpath_syntax::{JsonPathQuery, JsonPathQueryNode, builder::JsonPathQueryBuilder};
     /// let builder = JsonPathQueryBuilder::new();
     /// let query: JsonPathQuery = builder.into();
     ///

@@ -1,6 +1,5 @@
 use pretty_assertions::assert_eq;
-use rsonpath::query::builder::JsonPathQueryBuilder;
-use rsonpath_syntax::{string::JsonString, JsonPathQuery};
+use rsonpath_syntax::{builder::JsonPathQueryBuilder, string::JsonString, JsonPathQuery};
 use test_case::test_case;
 
 #[test]

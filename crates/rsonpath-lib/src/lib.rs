@@ -7,7 +7,7 @@
 //! ```rust
 //! use rsonpath::engine::{Compiler, Engine, RsonpathEngine};
 //! use rsonpath::input::BorrowedBytes;
-//! use rsonpath::query::JsonPathQuery;
+//! use rsonpath_syntax::JsonPathQuery;
 //! use rsonpath::result::count::CountRecorder;
 //! # use std::error::Error;
 //!
@@ -191,12 +191,12 @@
 )]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
+pub mod automaton;
 pub mod classification;
 mod depth;
 pub mod engine;
 pub mod error;
 pub mod input;
-pub mod query;
 pub mod result;
 
 cfg_if::cfg_if! {
