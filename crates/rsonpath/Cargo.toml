@@ -34,7 +34,7 @@ simple_logger = "4.2.0"
 
 [build-dependencies]
 rustflags = { version = "0.1.4" }
-vergen = { version = "8.2.5", features = ["cargo", "git", "gitcl", "rustc"] }
+vergen = { version = "8.2.6", features = ["cargo", "git", "gitcl", "rustc"] }
 
 [dev-dependencies]
 trycmd = "0.14.19"
