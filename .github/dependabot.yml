@@ -30,7 +30,7 @@ updates:
     directory: /crates/rsonpath-test-codegen
     schedule:
       interval: weekly
-      day: Monday
+      day: monday
       time: "20:01"
     assignees:
       - V0ldek
@@ -46,7 +46,7 @@ updates:
     directory: /crates/rsonpath-test
     schedule:
       interval: weekly
-      day: Monday
+      day: monday
       time: "20:01"
     assignees:
       - V0ldek
@@ -62,7 +62,7 @@ updates:
     directory: /fuzz
     schedule:
       interval: weekly
-      day: Monday
+      day: monday
       time: "20:01"
     assignees:
       - V0ldek
@@ -78,7 +78,7 @@ updates:
     directory: /.clusterfuzzlite
     schedule:
       interval: weekly
-      day: Monday
+      day: monday
       time: "20:02"
     assignees:
       - V0ldek
