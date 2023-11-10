@@ -224,6 +224,8 @@ jobs:
         uses: dtolnay/rust-toolchain@1482605bfc5719782e1267fd0c0cc350fe7646b8 # stable
         with:
           toolchain: stable
+      - name: Publish rsonpath-syntax
+        run: cargo publish --token ${{ secrets.CRATES_TOKEN }} -p rsonpath-syntax --no-verify
       - name: Publish rsonpath-lib
         run: cargo publish --token ${{ secrets.CRATES_TOKEN }} -p rsonpath-lib --no-verify
       - name: Publish rsonpath

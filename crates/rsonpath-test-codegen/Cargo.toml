@@ -2,16 +2,15 @@
 name = "rsonpath-test-codegen"
 version = "0.8.4"
 authors = ["Mateusz Gienieczko <mat@gienieczko.com>"]
-edition = "2021"
 description = "TOML-based test codegen for rsonpath-lib."
 readme = "README.md"
 license = "MIT"
 keywords = ["json", "jsonpath", "query", "simd", "parser"]
-exclude = ["/tests"]
 categories = [
     "text-processing",
 ]
 repository = "https://github.com/V0ldek/rsonpath"
+edition = "2021"
 rust-version = "1.70.0"
 publish = false
 

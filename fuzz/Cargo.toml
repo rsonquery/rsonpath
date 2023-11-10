@@ -17,6 +17,10 @@ serde_json = "1.0.108"
 path = "../crates/rsonpath-lib"
 features = ["arbitrary"]
 
+[dependencies.rsonpath-syntax]
+path = "../crates/rsonpath-syntax"
+features = ["arbitrary"]
+
 # Prevent this from interfering with workspaces
 [workspace]
 members = ["."]

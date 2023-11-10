@@ -1,9 +1,9 @@
 use rsonpath::{
     engine::{Compiler, Engine, RsonpathEngine},
     input::MmapInput,
-    query::JsonPathQuery,
     result::MatchWriter,
 };
+use rsonpath_syntax::JsonPathQuery;
 use std::{env, error::Error, fs, io, process::ExitCode};
 
 fn main() -> Result<ExitCode, Box<dyn Error>> {

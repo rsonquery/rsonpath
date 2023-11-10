@@ -1,3 +1,5 @@
+//! JSON string types expressible in a JSONPath query.
+
 use std::fmt::Display;
 
 /// String to search for in a JSON document, conforming to the
@@ -9,7 +11,7 @@ use std::fmt::Display;
 /// # Examples
 ///
 /// ```rust
-/// # use rsonpath::query::JsonString;
+/// # use rsonpath_syntax::string::JsonString;
 /// let needle = JsonString::new("needle");
 ///
 /// assert_eq!(needle.bytes(), "needle".as_bytes());

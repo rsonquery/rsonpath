@@ -1,9 +1,20 @@
-//! Defines JSONPath query structure and parsing logic.
+//! Complete, fast, and fully spec-compliant JSONPath query parser.
+//!
+//! The crate exposes the [`JsonPathQuery`] type and the [`parse`](`JsonPathQuery::parse`)
+//! function that converts a query string into the AST representation. The parsing
+//! complies with the proposed [JSONPath RFC specification](https://www.ietf.org/archive/id/draft-ietf-jsonpath-base-21.html).
+//!
+//! A JSONPath query is a sequence of **segments**, each containing one or more
+//! **selectors**. There are two types of segments, **child** and **descendant**,
+//! and five different types of selectors: **name**, **wildcard**, **index**, **slice**, and **filter**.
+//!
+//! Descriptions of each segment and selector can be found in the documentation of the
+//! relevant type in this crate, while the formal grammar is described in the RFC.
 //!
 //! # Examples
 //! To create a query from a query string:
 //! ```
-//! # use rsonpath::query::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType};
+//! # use rsonpath_syntax::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType};
 //! # use std::error::Error;
 //! #
 //! # fn main() -> Result<(), Box<dyn Error>> {
@@ -30,16 +41,84 @@
 //! # Ok(())
 //! # }
 //! ```
-pub mod automaton;
+
+#![forbid(unsafe_code)]
+// Generic pedantic lints.
+#![warn(
+    explicit_outlives_requirements,
+    semicolon_in_expressions_from_macros,
+    unreachable_pub,
+    unused_import_braces,
+    unused_lifetimes
+)]
+// Clippy pedantic lints.
+#![warn(
+    clippy::allow_attributes_without_reason,
+    clippy::cargo_common_metadata,
+    clippy::cast_lossless,
+    clippy::cloned_instead_of_copied,
+    clippy::empty_drop,
+    clippy::empty_line_after_outer_attr,
+    clippy::equatable_if_let,
+    clippy::expl_impl_clone_on_copy,
+    clippy::explicit_deref_methods,
+    clippy::explicit_into_iter_loop,
+    clippy::explicit_iter_loop,
+    clippy::fallible_impl_from,
+    clippy::flat_map_option,
+    clippy::if_then_some_else_none,
+    clippy::inconsistent_struct_constructor,
+    clippy::large_digit_groups,
+    clippy::let_underscore_must_use,
+    clippy::manual_ok_or,
+    clippy::map_err_ignore,
+    clippy::map_unwrap_or,
+    clippy::match_same_arms,
+    clippy::match_wildcard_for_single_variants,
+    clippy::missing_inline_in_public_items,
+    clippy::mod_module_files,
+    clippy::must_use_candidate,
+    clippy::needless_continue,
+    clippy::needless_for_each,
+    clippy::needless_pass_by_value,
+    clippy::ptr_as_ptr,
+    clippy::redundant_closure_for_method_calls,
+    clippy::ref_binding_to_reference,
+    clippy::ref_option_ref,
+    clippy::rest_pat_in_fully_bound_structs,
+    clippy::undocumented_unsafe_blocks,
+    clippy::unneeded_field_pattern,
+    clippy::unseparated_literal_suffix,
+    clippy::unreadable_literal,
+    clippy::unused_self,
+    clippy::use_self
+)]
+// Panic-free lint.
+#![warn(clippy::exit)]
+// Panic-free lints (disabled for tests).
+#![cfg_attr(not(test), warn(clippy::panic, clippy::panic_in_result_fn, clippy::unwrap_used))]
+// IO hygiene, only on --release.
+#![cfg_attr(
+    not(debug_assertions),
+    warn(clippy::print_stderr, clippy::print_stdout, clippy::todo)
+)]
+// Documentation lints, enabled only on --release.
+#![cfg_attr(
+    not(debug_assertions),
+    warn(missing_docs, clippy::missing_errors_doc, clippy::missing_panics_doc,)
+)]
+#![cfg_attr(not(debug_assertions), warn(rustdoc::missing_crate_level_docs))]
+// Docs.rs config.
+#![cfg_attr(docsrs, feature(doc_cfg))]
+#![doc(html_logo_url = "https://raw.githubusercontent.com/V0ldek/rsonpath/main/img/rsonquery-logo.svg")]
+
 pub mod builder;
 pub mod error;
-mod json_string;
-mod nonnegative_array_index;
+pub mod number;
 mod parser;
-pub use json_string::JsonString;
-pub use nonnegative_array_index::NonNegativeArrayIndex;
+pub mod string;
 
-use log::*;
+use self::{error::ParserError, number::NonNegativeArrayIndex, string::JsonString};
 use std::fmt::{self, Display};
 
 /// Linked list structure of a JSONPath query.
@@ -62,8 +141,6 @@ pub enum JsonPathQueryNode {
 }
 
 use JsonPathQueryNode::*;
-
-use self::error::ParserError;
 
 impl JsonPathQueryNode {
     /// Retrieve the child of the node or `None` if it is the last one
@@ -151,7 +228,6 @@ impl JsonPathQuery {
         let root = if node.is_root() {
             node
         } else {
-            info!("Implicitly using the Root expression (`$`) at the start of the query.");
             Box::new(Root(Some(node)))
         };
 

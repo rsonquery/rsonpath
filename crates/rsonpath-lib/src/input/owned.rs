@@ -24,7 +24,8 @@ use super::{
     padding::{PaddedBlock, TwoSidesPaddedInput},
     Input, SliceSeekable, MAX_BLOCK_SIZE,
 };
-use crate::{query::JsonString, result::InputRecorder};
+use crate::result::InputRecorder;
+use rsonpath_syntax::string::JsonString;
 use std::borrow::Borrow;
 
 /// Input wrapping a buffer borrowable as a slice of bytes.

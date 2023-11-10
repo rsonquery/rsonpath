@@ -4,9 +4,9 @@ use crate::{
         error::{InputError, InputErrorConvertible},
         Input, InputBlockIterator,
     },
-    query::JsonString,
     result::InputRecorder,
 };
+use rsonpath_syntax::string::JsonString;
 
 pub(crate) struct Constructor;
 

@@ -18,7 +18,8 @@ use super::{
     padding::{EndPaddedInput, PaddedBlock, TwoSidesPaddedInput},
     Input, InputBlockIterator, SliceSeekable, MAX_BLOCK_SIZE,
 };
-use crate::{debug, query::JsonString, result::InputRecorder};
+use crate::{debug, result::InputRecorder};
+use rsonpath_syntax::string::JsonString;
 
 /// Input wrapping a borrowed [`[u8]`] buffer.
 pub struct BorrowedBytes<'a> {

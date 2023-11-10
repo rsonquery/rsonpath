@@ -3,6 +3,7 @@
 members = [
     "crates/rsonpath",
     "crates/rsonpath-lib",
+    "crates/rsonpath-syntax",
     "crates/rsonpath-test"
 ]
 
@@ -34,3 +35,4 @@ strip = "debuginfo" # Smaller binary size.
 
 [patch.crates-io]
 rsonpath-lib = { path = "./crates/rsonpath-lib" }
+rsonpath-syntax = { path = "./crates/rsonpath-syntax" }

@@ -1,4 +1,5 @@
 //! Automaton representations of a JSONPath query.
+pub mod error;
 mod minimizer;
 mod nfa;
 mod small_set;
@@ -6,11 +7,11 @@ mod state;
 
 pub use state::{State, StateAttributes};
 
-use super::{error::CompilerError, JsonPathQuery, JsonString, NonNegativeArrayIndex};
-use crate::debug;
+use crate::{automaton::error::CompilerError, debug};
 use nfa::NondeterministicAutomaton;
+use rsonpath_syntax::{number::NonNegativeArrayIndex, string::JsonString, JsonPathQuery};
 use smallvec::SmallVec;
-use std::{borrow::Borrow, fmt::Display, ops::Index};
+use std::{fmt::Display, ops::Index};
 
 /// A minimal, deterministic automaton representing a JSONPath query.
 #[derive(Debug, PartialEq, Eq)]
@@ -81,11 +82,11 @@ impl Display for TransitionLabel<'_> {
     }
 }
 
-impl<T: Borrow<NonNegativeArrayIndex>> From<T> for TransitionLabel<'_> {
+impl From<NonNegativeArrayIndex> for TransitionLabel<'_> {
     #[must_use]
     #[inline(always)]
-    fn from(index: T) -> Self {
-        TransitionLabel::new_array_index(*index.borrow())
+    fn from(index: NonNegativeArrayIndex) -> Self {
+        TransitionLabel::new_array_index(index)
     }
 }
 
@@ -155,8 +156,8 @@ impl<'q> Automaton<'q> {
     ///
     /// # Examples
     /// ```rust
-    /// # use rsonpath::query::*;
-    /// # use rsonpath::query::automaton::*;
+    /// # use rsonpath_syntax::JsonPathQuery;
+    /// # use rsonpath::automaton::*;
     /// let query = JsonPathQuery::parse("$").unwrap();
     /// let automaton = Automaton::new(&query).unwrap();
     ///
@@ -164,8 +165,8 @@ impl<'q> Automaton<'q> {
     /// ```
     ///
     /// ```rust
-    /// # use rsonpath::query::*;
-    /// # use rsonpath::query::automaton::*;
+    /// # use rsonpath_syntax::JsonPathQuery;
+    /// # use rsonpath::automaton::*;
     /// let query = JsonPathQuery::parse("$.a").unwrap();
     /// let automaton = Automaton::new(&query).unwrap();
     ///
@@ -207,8 +208,8 @@ impl<'q> Automaton<'q> {
     ///
     /// # Example
     /// ```rust
-    /// # use rsonpath::query::*;
-    /// # use rsonpath::query::automaton::*;
+    /// # use rsonpath_syntax::JsonPathQuery;
+    /// # use rsonpath::automaton::*;
     /// let query = JsonPathQuery::parse("$.a").unwrap();
     /// let automaton = Automaton::new(&query).unwrap();
     /// let state_2 = automaton[automaton.initial_state()].transitions()[0].1;
@@ -225,8 +226,8 @@ impl<'q> Automaton<'q> {
     ///
     /// # Example
     /// ```rust
-    /// # use rsonpath::query::*;
-    /// # use rsonpath::query::automaton::*;
+    /// # use rsonpath_syntax::JsonPathQuery;
+    /// # use rsonpath::automaton::*;
     /// let query = JsonPathQuery::parse("$[2]").unwrap();
     /// let automaton = Automaton::new(&query).unwrap();
     /// let state = automaton.initial_state();
@@ -246,8 +247,8 @@ impl<'q> Automaton<'q> {
     ///
     /// # Example
     /// ```rust
-    /// # use rsonpath::query::*;
-    /// # use rsonpath::query::automaton::*;
+    /// # use rsonpath_syntax::JsonPathQuery;
+    /// # use rsonpath::automaton::*;
     /// let query = JsonPathQuery::parse("$[2]").unwrap();
     /// let automaton = Automaton::new(&query).unwrap();
     /// let state = automaton.initial_state();
@@ -267,8 +268,8 @@ impl<'q> Automaton<'q> {
     ///
     /// # Example
     /// ```rust
-    /// # use rsonpath::query::*;
-    /// # use rsonpath::query::automaton::*;
+    /// # use rsonpath_syntax::JsonPathQuery;
+    /// # use rsonpath::automaton::*;
     /// let query = JsonPathQuery::parse("$[0]").unwrap();
     /// let automaton = Automaton::new(&query).unwrap();
     /// let state = automaton.initial_state();
@@ -276,8 +277,8 @@ impl<'q> Automaton<'q> {
     /// assert!(automaton.has_first_array_index_transition_to_accepting(state));
     /// ```
     /// ```rust
-    /// # use rsonpath::query::*;
-    /// # use rsonpath::query::automaton::*;
+    /// # use rsonpath_syntax::JsonPathQuery;
+    /// # use rsonpath::automaton::*;
     /// let query = JsonPathQuery::parse("$[1]").unwrap();
     /// let automaton = Automaton::new(&query).unwrap();
     /// let state = automaton.initial_state();
@@ -294,8 +295,8 @@ impl<'q> Automaton<'q> {
     ///
     /// # Example
     /// ```rust
-    /// # use rsonpath::query::*;
-    /// # use rsonpath::query::automaton::*;
+    /// # use rsonpath_syntax::{JsonPathQuery, number::NonNegativeArrayIndex};
+    /// # use rsonpath::automaton::*;
     /// let query = JsonPathQuery::parse("$[1]").unwrap();
     /// let automaton = Automaton::new(&query).unwrap();
     /// let state = automaton.initial_state();
@@ -319,8 +320,8 @@ impl<'q> Automaton<'q> {
     ///
     /// # Example
     /// ```rust
-    /// # use rsonpath::query::*;
-    /// # use rsonpath::query::automaton::*;
+    /// # use rsonpath_syntax::JsonPathQuery;
+    /// # use rsonpath::automaton::*;
     /// let query = JsonPathQuery::parse("$.a").unwrap();
     /// let automaton = Automaton::new(&query).unwrap();
     ///
@@ -337,8 +338,8 @@ impl<'q> Automaton<'q> {
     ///
     /// # Example
     /// ```rust
-    /// # use rsonpath::query::*;
-    /// # use rsonpath::query::automaton::*;
+    /// # use rsonpath_syntax::JsonPathQuery;
+    /// # use rsonpath::automaton::*;
     /// let query = JsonPathQuery::parse("$.a").unwrap();
     /// let automaton = Automaton::new(&query).unwrap();
     ///
@@ -359,8 +360,8 @@ impl<'q> Automaton<'q> {
     ///
     /// # Example
     /// ```rust
-    /// # use rsonpath::query::*;
-    /// # use rsonpath::query::automaton::*;
+    /// # use rsonpath_syntax::JsonPathQuery;
+    /// # use rsonpath::automaton::*;
     /// let query = JsonPathQuery::parse("$.a").unwrap();
     /// let automaton = Automaton::new(&query).unwrap();
     ///

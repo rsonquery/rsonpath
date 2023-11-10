@@ -1,10 +1,8 @@
-use crate::{
-    input::{
-        error::{InputError, InputErrorConvertible},
-        Input,
-    },
-    query::JsonString,
+use crate::input::{
+    error::{InputError, InputErrorConvertible},
+    Input,
 };
+use rsonpath_syntax::string::JsonString;
 
 #[cfg(target_arch = "x86")]
 pub(super) mod mask_32;

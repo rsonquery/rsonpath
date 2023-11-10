@@ -1,9 +1,9 @@
 use pretty_assertions::assert_eq;
 use rsonpath::{
     input::{error::InputError, *},
-    query::JsonString,
     result::empty::EmptyRecorder,
 };
+use rsonpath_syntax::string::JsonString;
 use std::{cmp, fs, fs::File, io::Read, iter};
 use test_case::test_case;
 
@@ -417,7 +417,7 @@ impl<'a> Read for ReadBytes<'a> {
 mod in_memory_proptests {
     use crate::InMemoryTestInput;
     use proptest::prelude::*;
-    use rsonpath::query::JsonString;
+    use rsonpath_syntax::string::JsonString;
     const JSON_WHITESPACE_BYTES: [u8; 4] = [b' ', b'\t', b'\n', b'\r'];
 
     fn decode_whitespace(ws_idx: Vec<usize>) -> Vec<u8> {

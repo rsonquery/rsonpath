@@ -1,4 +1,4 @@
-//! Error types for the [`query`](`crate::query`) module.
+//! Error types for the crate.
 //!
 //! The main error type is [`ParseErrorReport`], which contains
 //! all [`ParseErrors`](`ParseError`) encountered during parsing.
@@ -8,8 +8,8 @@
 //! Retrieving the part of input that caused a parse error:
 //!
 //! ```rust
-//! use rsonpath::query::JsonPathQuery;
-//! use rsonpath::query::error::ParserError;
+//! use rsonpath_syntax::JsonPathQuery;
+//! use rsonpath_syntax::error::ParserError;
 //!
 //! let query_str =
 //!     "$.prop..invalid$chars.this_is_fine";
@@ -33,12 +33,11 @@
 //!     _ => unreachable!(),
 //! }
 //! ```
-use super::NonNegativeArrayIndex;
-use std::{
-    fmt::{self, Display},
-    num::TryFromIntError,
-};
+use crate::number::NonNegativeArrayIndex;
+use std::fmt::{self, Display};
 use thiserror::Error;
+
+pub(crate) const BUG_REPORT_URL: &str = "https://github.com/V0ldek/rsonpath/issues/new?template=bug_report.md";
 
 /// Errors raised by the query parser.
 #[derive(Debug, Error)]
@@ -51,11 +50,8 @@ pub enum ParserError {
     },
 
     /// Internal parser error. This is not expected to happen,
-    /// and signifies a bug in [`query`](`crate::query`).
-    #[error(
-        "unexpected error in the parser; please report this issue at {}",
-        crate::error::BUG_REPORT_URL
-    )]
+    /// and signifies a bug in the crate.
+    #[error("unexpected error in the parser; please report this issue at {}", BUG_REPORT_URL)]
     InternalNomError {
         /// Source error from the [`nom`] crate.
         #[from]
@@ -149,16 +145,4 @@ impl ParseErrorReport {
     fn add_new(&mut self, idx: usize) {
         self.errors.push(ParseError { start_idx: idx, len: 1 })
     }
-}
-
-/// Errors raised by the query compiler.
-#[derive(Debug, Error)]
-pub enum CompilerError {
-    /// Max automaton size was exceeded during compilation of the query.
-    #[error("Max automaton size was exceeded. Query is too complex.")]
-    QueryTooComplex(#[source] Option<TryFromIntError>),
-
-    /// Compiler error that occurred due to a known limitation.
-    #[error(transparent)]
-    NotSupported(#[from] crate::error::UnsupportedFeatureError),
 }

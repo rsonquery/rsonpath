@@ -4,8 +4,8 @@ use crate::{
         error::{InputError, InputErrorConvertible},
         Input,
     },
-    query::JsonString,
 };
+use rsonpath_syntax::string::JsonString;
 
 #[inline(always)]
 pub(crate) fn find_in_mask<I: Input>(

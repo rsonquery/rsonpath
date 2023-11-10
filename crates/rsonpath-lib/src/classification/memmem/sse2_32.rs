@@ -5,9 +5,9 @@ use crate::{
         error::{InputError, InputErrorConvertible},
         Input, InputBlock, InputBlockIterator,
     },
-    query::JsonString,
     result::InputRecorder,
 };
+use rsonpath_syntax::string::JsonString;
 
 const SIZE: usize = 32;
 

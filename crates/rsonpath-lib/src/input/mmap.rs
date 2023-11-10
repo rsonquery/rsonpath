@@ -21,8 +21,9 @@ use super::{
     padding::PaddedBlock,
     Input, SliceSeekable, MAX_BLOCK_SIZE,
 };
-use crate::{input::padding::EndPaddedInput, query::JsonString, result::InputRecorder};
+use crate::{input::padding::EndPaddedInput, result::InputRecorder};
 use memmap2::{Mmap, MmapAsRawDesc};
+use rsonpath_syntax::string::JsonString;
 
 /// Input wrapping a memory mapped file.
 pub struct MmapInput {

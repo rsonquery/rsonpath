@@ -2,12 +2,14 @@
 
 // NOTE: Some comments in this module are outdated, because the minimizer doesn't
 // actually produce minimal automata as of now - see #91.
-use super::nfa::{self, NfaState, NfaStateId};
-use super::small_set::{SmallSet, SmallSet256};
-use super::state::StateAttributesBuilder;
-use super::{Automaton, NondeterministicAutomaton, State as DfaStateId, StateAttributes, StateTable, TransitionLabel};
+use super::{
+    error::CompilerError,
+    nfa::{self, NfaState, NfaStateId},
+    small_set::{SmallSet, SmallSet256},
+    state::StateAttributesBuilder,
+    {Automaton, NondeterministicAutomaton, State as DfaStateId, StateAttributes, StateTable, TransitionLabel},
+};
 use crate::debug;
-use crate::query::error::CompilerError;
 use smallvec::{smallvec, SmallVec};
 use vector_map::VecMap;
 

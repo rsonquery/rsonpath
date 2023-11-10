@@ -133,7 +133,7 @@ test-x86-simd:
 # Run doctests on the library.
 test-doc:
     -cargo install cargo-hack
-    cargo rsontest -p rsonpath-lib --doc
+    cargo rsontest --doc
 
 # Run cmd tests
 test-cmd:
@@ -143,6 +143,7 @@ test-cmd:
 test-book:
     rm -f ./target/debug/deps/librsonpath-*
     cargo build -p rsonpath-lib
+    cargo build -p rsonpath-syntax
     mdbook test ./book -L ./target/debug/deps
 
 @add-test name:
@@ -173,7 +174,7 @@ alias v := verify-quick
 alias verify := verify-full
 
 # Run all lints and checks required.
-verify-full: build-all verify-deny verify-clippy verify-doc verify-fmt test-full
+verify-full: verify-fmt verify-doc verify-deny verify-clippy verify-bench test-full (build-bin "release")
 
 # Run a quick formatting and compilation check.
 verify-quick: verify-fmt verify-check verify-deny verify-bench
@@ -196,9 +197,10 @@ verify-clippy: (build-all "release")
     cargo +nightly clippy --workspace --all-features --release -- --deny warnings
 
 # Verify that documentation successfully builds for rsonpath-lib.
-verify-doc $RUSTDOCFLAGS="--cfg docsrs": (build-bin "release")
+verify-doc $RUSTDOCFLAGS="--cfg docsrs -D warnings":
     cargo +nightly doc --package rsonpath-lib --no-default-features --no-deps
     cargo +nightly doc --package rsonpath-lib --all-features --no-deps
+    cargo +nightly doc --package rsonpath-syntax --all-features --no-deps
 
 # Verify formatting rules are not violated.
 verify-fmt:
