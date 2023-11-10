@@ -200,6 +200,7 @@ verify-clippy: (build-all "release")
 verify-doc $RUSTDOCFLAGS="--cfg docsrs -D warnings":
     cargo +nightly doc --package rsonpath-lib --no-default-features --no-deps
     cargo +nightly doc --package rsonpath-lib --all-features --no-deps
+    cargo +nightly doc --package rsonpath-syntax --all-features --no-deps
 
 # Verify formatting rules are not violated.
 verify-fmt:

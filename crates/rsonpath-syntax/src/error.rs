@@ -1,4 +1,4 @@
-//! Error types for the [`query`](`crate::query`) module.
+//! Error types for the crate.
 //!
 //! The main error type is [`ParseErrorReport`], which contains
 //! all [`ParseErrors`](`ParseError`) encountered during parsing.
@@ -50,7 +50,7 @@ pub enum ParserError {
     },
 
     /// Internal parser error. This is not expected to happen,
-    /// and signifies a bug in [`query`](`crate::query`).
+    /// and signifies a bug in the crate.
     #[error("unexpected error in the parser; please report this issue at {}", BUG_REPORT_URL)]
     InternalNomError {
         /// Source error from the [`nom`] crate.

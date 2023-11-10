@@ -1,4 +1,4 @@
-//! Utility for building a [`JsonPathQuery`](`crate::query::JsonPathQuery`)
+//! Utility for building a [`JsonPathQuery`](`crate::JsonPathQuery`)
 //! programmatically.
 use crate::{number::NonNegativeArrayIndex, string::JsonString, JsonPathQuery, JsonPathQueryNode};
 
