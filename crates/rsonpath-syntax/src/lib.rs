@@ -114,11 +114,11 @@
 
 pub mod builder;
 pub mod error;
-pub mod number;
+pub mod num;
 mod parser;
 pub mod string;
 
-use self::{error::ParserError, number::JsonUInt, string::JsonString};
+use self::{error::ParserError, num::JsonUInt, string::JsonString};
 use std::fmt::{self, Display};
 
 /// Linked list structure of a JSONPath query.

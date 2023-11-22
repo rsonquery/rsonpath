@@ -1,6 +1,6 @@
 use crate::{
-    error::{JsonFormatError, ParseErrorReport, ParserError},
-    number::JsonUInt,
+    error::{ParseErrorReport, ParserError},
+    num::JsonUInt,
     string::JsonString,
     JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType,
 };
@@ -231,19 +231,8 @@ fn nonnegative_array_index<'a>() -> impl Parser<'a, JsonUInt> {
     map_res(parsed_array_index(), TryInto::try_into)
 }
 
-fn parsed_array_index<'a>() -> impl Parser<'a, u64> {
-    map_res(length_limited_array_index(), str::parse)
-}
-
-const ARRAY_INDEX_ULIMIT_BASE_10_DIGIT_COUNT: usize = JsonUInt::MAX.as_u64().ilog10() as usize;
-fn length_limited_array_index<'a>() -> impl Parser<'a, &'a str> {
-    map_res(digit1, |cs: &str| {
-        if cs.len() > (ARRAY_INDEX_ULIMIT_BASE_10_DIGIT_COUNT + 1) {
-            Err(JsonFormatError::ExceedsUpperLimitError(cs.to_owned()))
-        } else {
-            Ok(cs)
-        }
-    })
+fn parsed_array_index<'a>() -> impl Parser<'a, JsonUInt> {
+    map_res(digit1, str::parse)
 }
 
 fn quoted_member<'a>() -> impl Parser<'a, MemberString<'a>> {
@@ -402,7 +391,7 @@ mod tests {
 
         let result = super::array_index_selector()(input);
 
-        assert_eq!(result, Ok(("", 5.try_into().unwrap())));
+        assert_eq!(result, Ok(("", 5_u64.try_into().unwrap())));
     }
 
     #[test]
@@ -411,7 +400,7 @@ mod tests {
 
         let result = super::array_index_selector()(input);
 
-        assert_eq!(result, Ok(("", 0.try_into().unwrap())));
+        assert_eq!(result, Ok(("", 0_u64.try_into().unwrap())));
     }
 
     #[test]
@@ -441,7 +430,7 @@ mod tests {
 
         let result = super::array_index_selector()(input);
 
-        assert_eq!(result, Ok(("", 9_007_199_254_740_991.try_into().unwrap())));
+        assert_eq!(result, Ok(("", 9_007_199_254_740_991_u64.try_into().unwrap())));
     }
 
     #[test]

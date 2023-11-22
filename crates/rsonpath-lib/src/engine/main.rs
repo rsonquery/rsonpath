@@ -30,7 +30,7 @@ use crate::{
     },
     FallibleIterator, MaskType, BLOCK_SIZE,
 };
-use rsonpath_syntax::{number::JsonUInt, string::JsonString, JsonPathQuery};
+use rsonpath_syntax::{num::JsonUInt, string::JsonString, JsonPathQuery};
 use smallvec::{smallvec, SmallVec};
 
 /// Main engine for a fixed JSONPath query.

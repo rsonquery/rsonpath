@@ -9,7 +9,7 @@ pub use state::{State, StateAttributes};
 
 use crate::{automaton::error::CompilerError, debug};
 use nfa::NondeterministicAutomaton;
-use rsonpath_syntax::{number::JsonUInt, string::JsonString, JsonPathQuery};
+use rsonpath_syntax::{num::JsonUInt, string::JsonString, JsonPathQuery};
 use smallvec::SmallVec;
 use std::{fmt::Display, ops::Index};
 
