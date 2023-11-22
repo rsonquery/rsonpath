@@ -1,6 +1,6 @@
 //! Utility for building a [`JsonPathQuery`](`crate::JsonPathQuery`)
 //! programmatically.
-use crate::{number::NonNegativeArrayIndex, string::JsonString, JsonPathQuery, JsonPathQueryNode};
+use crate::{number::JsonUInt, string::JsonString, JsonPathQuery, JsonPathQueryNode};
 
 /// Builder for [`JsonPathQuery`] instances.
 ///
@@ -51,7 +51,7 @@ impl JsonPathQueryBuilder {
     /// Add a child selector with a given index.
     #[must_use]
     #[inline(always)]
-    pub fn array_index_child(mut self, index: NonNegativeArrayIndex) -> Self {
+    pub fn array_index_child(mut self, index: JsonUInt) -> Self {
         self.nodes.push(NodeTemplate::ArrayIndexChild(index));
         self
     }
@@ -59,7 +59,7 @@ impl JsonPathQueryBuilder {
     /// Add a descendant selector with a given index.
     #[must_use]
     #[inline(always)]
-    pub fn array_index_descendant(mut self, index: NonNegativeArrayIndex) -> Self {
+    pub fn array_index_descendant(mut self, index: JsonUInt) -> Self {
         self.nodes.push(NodeTemplate::ArrayIndexDescendant(index));
         self
     }
@@ -127,8 +127,8 @@ impl From<JsonPathQueryBuilder> for JsonPathQuery {
 
 enum NodeTemplate {
     Child(JsonString),
-    ArrayIndexChild(NonNegativeArrayIndex),
-    ArrayIndexDescendant(NonNegativeArrayIndex),
+    ArrayIndexChild(JsonUInt),
+    ArrayIndexDescendant(JsonUInt),
     AnyChild,
     AnyDescendant,
     Descendant(JsonString),

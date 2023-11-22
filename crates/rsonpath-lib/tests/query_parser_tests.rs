@@ -244,7 +244,7 @@ mod transform_json_escape_sequences_tests {
 mod proptests {
     use super::*;
     use proptest::prelude::*;
-    use rsonpath_syntax::number::NonNegativeArrayIndex;
+    use rsonpath_syntax::number::JsonUInt;
 
     /* Approach: we generate a sequence of Selectors, each having its generated string
      * and a tag describing what selector it represents, and, optionally, what string is attached.
@@ -258,8 +258,8 @@ mod proptests {
         Child(String),
         WildcardDescendant,
         Descendant(String),
-        ArrayIndexChild(NonNegativeArrayIndex),
-        ArrayIndexDescendant(NonNegativeArrayIndex),
+        ArrayIndexChild(JsonUInt),
+        ArrayIndexDescendant(JsonUInt),
     }
 
     #[derive(Debug, Clone)]
@@ -314,14 +314,14 @@ mod proptests {
 
     fn any_array_index_child() -> impl Strategy<Value = Selector> {
         any_non_negative_array_index().prop_map(|i| Selector {
-            string: format!("[{}]", i.get_index()),
+            string: format!("[{}]", i.as_u64()),
             tag: SelectorTag::ArrayIndexChild(i),
         })
     }
 
     fn any_array_index_descendant() -> impl Strategy<Value = Selector> {
         any_non_negative_array_index().prop_map(|i| Selector {
-            string: format!("..[{}]", i.get_index()),
+            string: format!("..[{}]", i.as_u64()),
             tag: SelectorTag::ArrayIndexDescendant(i),
         })
     }
@@ -349,9 +349,9 @@ mod proptests {
         r#"([^'"\\\u0000-\u001F]|(\\[btnfr/\\])|[']|(\\"))*"#
     }
 
-    fn any_non_negative_array_index() -> impl Strategy<Value = NonNegativeArrayIndex> {
+    fn any_non_negative_array_index() -> impl Strategy<Value = JsonUInt> {
         const MAX: u64 = (1 << 53) - 1;
-        (0..MAX).prop_map(NonNegativeArrayIndex::new)
+        (0..MAX).prop_map(|x| JsonUInt::try_from(x).expect("in-range JsonUInt"))
     }
     // Cspell: enable
 

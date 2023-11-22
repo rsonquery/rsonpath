@@ -33,7 +33,7 @@
 //!     _ => unreachable!(),
 //! }
 //! ```
-use crate::number::NonNegativeArrayIndex;
+use crate::number::JsonUInt;
 use std::fmt::{self, Display};
 use thiserror::Error;
 
@@ -61,19 +61,15 @@ pub enum ParserError {
 
     /// An invalid array index was specified in the query.
     #[error(transparent)]
-    ArrayIndexError(#[from] ArrayIndexError),
+    ArrayIndexError(#[from] JsonFormatError),
 }
 
 /// Errors raised trying to parse array indices.
 #[derive(Debug, Error)]
-pub enum ArrayIndexError {
+pub enum JsonFormatError {
     /// A value in excess of the permitted size was specified.
-    #[error(
-        "Array index {0} exceeds maximum specification value of {}.",
-        NonNegativeArrayIndex::MAX
-    )]
+    #[error("Array index {0} exceeds maximum specification value of {}.", JsonUInt::MAX)]
     ExceedsUpperLimitError(String),
-
     /// An error occurred while calculating the maximum possible length of array indices.
     #[error("There was an error determining the maximum possible length of array indices.")]
     UpperLimitLengthCalculationError,

@@ -118,7 +118,7 @@ pub mod number;
 mod parser;
 pub mod string;
 
-use self::{error::ParserError, number::NonNegativeArrayIndex, string::JsonString};
+use self::{error::ParserError, number::JsonUInt, string::JsonString};
 use std::fmt::{self, Display};
 
 /// Linked list structure of a JSONPath query.
@@ -135,9 +135,9 @@ pub enum JsonPathQueryNode {
     /// Represents recursive descendant with a wildcard ('`..*`' tokens).
     AnyDescendant(Option<Box<JsonPathQueryNode>>),
     /// Represents direct descendant list item with a positive index (numbers).
-    ArrayIndexChild(NonNegativeArrayIndex, Option<Box<JsonPathQueryNode>>),
+    ArrayIndexChild(JsonUInt, Option<Box<JsonPathQueryNode>>),
     /// Represents recursive descendant with an array index ('`..[n]`' tokens).
-    ArrayIndexDescendant(NonNegativeArrayIndex, Option<Box<JsonPathQueryNode>>),
+    ArrayIndexDescendant(JsonUInt, Option<Box<JsonPathQueryNode>>),
 }
 
 use JsonPathQueryNode::*;
@@ -287,7 +287,7 @@ pub trait JsonPathQueryNodeType {
 
     /// If the type is [`JsonPathQueryNode::ArrayIndexDescendant`] or [`JsonPathQueryNode::ArrayIndexChild`]
     /// returns the index it represents; otherwise, `None`.
-    fn array_index(&self) -> Option<&NonNegativeArrayIndex>;
+    fn array_index(&self) -> Option<&JsonUInt>;
 }
 
 impl JsonPathQueryNodeType for JsonPathQueryNode {
@@ -325,7 +325,7 @@ impl JsonPathQueryNodeType for JsonPathQueryNode {
     }
 
     #[inline(always)]
-    fn array_index(&self) -> Option<&NonNegativeArrayIndex> {
+    fn array_index(&self) -> Option<&JsonUInt> {
         match self {
             ArrayIndexChild(i, _) | ArrayIndexDescendant(i, _) => Some(i),
             Child(_, _) | Descendant(_, _) | Root(_) | AnyChild(_) | AnyDescendant(_) => None,
@@ -369,7 +369,7 @@ impl<T: std::ops::Deref<Target = JsonPathQueryNode>> JsonPathQueryNodeType for O
     }
 
     #[inline(always)]
-    fn array_index(&self) -> Option<&NonNegativeArrayIndex> {
+    fn array_index(&self) -> Option<&JsonUInt> {
         self.as_ref().and_then(|x| x.array_index())
     }
 }
@@ -388,8 +388,8 @@ impl<'a> arbitrary::Arbitrary<'a> for JsonPathQuery {
             AnyChild,
             Descendant(JsonString),
             AnyDescendant,
-            ArrayIndexChild(NonNegativeArrayIndex),
-            ArrayIndexDescendant(NonNegativeArrayIndex),
+            ArrayIndexChild(JsonUInt),
+            ArrayIndexDescendant(JsonUInt),
         }
 
         let sequence = u.arbitrary_iter()?;

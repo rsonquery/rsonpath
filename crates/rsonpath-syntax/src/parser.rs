@@ -1,6 +1,6 @@
 use crate::{
-    error::{ArrayIndexError, ParseErrorReport, ParserError},
-    number::NonNegativeArrayIndex,
+    error::{JsonFormatError, ParseErrorReport, ParserError},
+    number::JsonUInt,
     string::JsonString,
     JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType,
 };
@@ -13,10 +13,10 @@ use std::{
 enum Token<'a> {
     Root,
     Child(MemberString<'a>),
-    ArrayIndexChild(NonNegativeArrayIndex),
+    ArrayIndexChild(JsonUInt),
     WildcardChild(),
     Descendant(MemberString<'a>),
-    ArrayIndexDescendant(NonNegativeArrayIndex),
+    ArrayIndexDescendant(JsonUInt),
     WildcardDescendant(),
 }
 
@@ -223,11 +223,11 @@ fn array_index_descendant_selector<'a>() -> impl Parser<'a, Token<'a>> {
     map(array_index_selector(), Token::ArrayIndexDescendant)
 }
 
-fn array_index_selector<'a>() -> impl Parser<'a, NonNegativeArrayIndex> {
+fn array_index_selector<'a>() -> impl Parser<'a, JsonUInt> {
     delimited(char('['), nonnegative_array_index(), char(']'))
 }
 
-fn nonnegative_array_index<'a>() -> impl Parser<'a, NonNegativeArrayIndex> {
+fn nonnegative_array_index<'a>() -> impl Parser<'a, JsonUInt> {
     map_res(parsed_array_index(), TryInto::try_into)
 }
 
@@ -235,11 +235,11 @@ fn parsed_array_index<'a>() -> impl Parser<'a, u64> {
     map_res(length_limited_array_index(), str::parse)
 }
 
-const ARRAY_INDEX_ULIMIT_BASE_10_DIGIT_COUNT: usize = NonNegativeArrayIndex::MAX.get_index().ilog10() as usize;
+const ARRAY_INDEX_ULIMIT_BASE_10_DIGIT_COUNT: usize = JsonUInt::MAX.as_u64().ilog10() as usize;
 fn length_limited_array_index<'a>() -> impl Parser<'a, &'a str> {
     map_res(digit1, |cs: &str| {
         if cs.len() > (ARRAY_INDEX_ULIMIT_BASE_10_DIGIT_COUNT + 1) {
-            Err(ArrayIndexError::ExceedsUpperLimitError(cs.to_owned()))
+            Err(JsonFormatError::ExceedsUpperLimitError(cs.to_owned()))
         } else {
             Ok(cs)
         }
