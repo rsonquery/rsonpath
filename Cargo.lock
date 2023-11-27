@@ -866,6 +866,7 @@ dependencies = [
  "arbitrary",
  "nom",
  "pretty_assertions",
+ "proptest",
  "test-case",
  "thiserror",
 ]

@@ -1,5 +1,5 @@
 use pretty_assertions::assert_eq;
-use rsonpath_syntax::{builder::JsonPathQueryBuilder, string::JsonString, JsonPathQuery};
+use rsonpath_syntax::{builder::JsonPathQueryBuilder, num::JsonUInt, string::JsonString, JsonPathQuery};
 use test_case::test_case;
 
 #[test]
@@ -60,7 +60,7 @@ fn wildcard_child_selector() {
 fn descendant_nonnegative_array_indexed_selector() {
     let input = "$..[5]";
     let expected_query = JsonPathQueryBuilder::new()
-        .array_index_descendant(5.try_into().unwrap())
+        .array_index_descendant(5_u64.try_into().unwrap())
         .into();
 
     let result = JsonPathQuery::parse(input).expect("expected Ok");
@@ -72,7 +72,7 @@ fn descendant_nonnegative_array_indexed_selector() {
 fn nonnegative_array_indexed_selector() {
     let input = "$[5]";
     let expected_query = JsonPathQueryBuilder::new()
-        .array_index_child(5.try_into().unwrap())
+        .array_index_child(5_u64.try_into().unwrap())
         .into();
 
     let result = JsonPathQuery::parse(input).expect("expected Ok");
@@ -84,8 +84,8 @@ fn nonnegative_array_indexed_selector() {
 fn multiple_nonnegative_array_indexed_selector() {
     let input = "$[5][2]";
     let expected_query = JsonPathQueryBuilder::new()
-        .array_index_child(5.try_into().unwrap())
-        .array_index_child(2.try_into().unwrap())
+        .array_index_child(5_u64.try_into().unwrap())
+        .array_index_child(2_u64.try_into().unwrap())
         .into();
 
     let result = JsonPathQuery::parse(input).expect("expected Ok");
@@ -96,9 +96,7 @@ fn multiple_nonnegative_array_indexed_selector() {
 #[test]
 fn zeroth_array_indexed_selector() {
     let input = "$[0]";
-    let expected_query = JsonPathQueryBuilder::new()
-        .array_index_child(0.try_into().unwrap())
-        .into();
+    let expected_query = JsonPathQueryBuilder::new().array_index_child(JsonUInt::ZERO).into();
 
     let result = JsonPathQuery::parse(input).expect("expected Ok");
 
@@ -244,7 +242,7 @@ mod transform_json_escape_sequences_tests {
 mod proptests {
     use super::*;
     use proptest::prelude::*;
-    use rsonpath_syntax::number::NonNegativeArrayIndex;
+    use rsonpath_syntax::num::JsonUInt;
 
     /* Approach: we generate a sequence of Selectors, each having its generated string
      * and a tag describing what selector it represents, and, optionally, what string is attached.
@@ -258,8 +256,8 @@ mod proptests {
         Child(String),
         WildcardDescendant,
         Descendant(String),
-        ArrayIndexChild(NonNegativeArrayIndex),
-        ArrayIndexDescendant(NonNegativeArrayIndex),
+        ArrayIndexChild(JsonUInt),
+        ArrayIndexDescendant(JsonUInt),
     }
 
     #[derive(Debug, Clone)]
@@ -314,14 +312,14 @@ mod proptests {
 
     fn any_array_index_child() -> impl Strategy<Value = Selector> {
         any_non_negative_array_index().prop_map(|i| Selector {
-            string: format!("[{}]", i.get_index()),
+            string: format!("[{}]", i.as_u64()),
             tag: SelectorTag::ArrayIndexChild(i),
         })
     }
 
     fn any_array_index_descendant() -> impl Strategy<Value = Selector> {
         any_non_negative_array_index().prop_map(|i| Selector {
-            string: format!("..[{}]", i.get_index()),
+            string: format!("..[{}]", i.as_u64()),
             tag: SelectorTag::ArrayIndexDescendant(i),
         })
     }
@@ -349,9 +347,9 @@ mod proptests {
         r#"([^'"\\\u0000-\u001F]|(\\[btnfr/\\])|[']|(\\"))*"#
     }
 
-    fn any_non_negative_array_index() -> impl Strategy<Value = NonNegativeArrayIndex> {
+    fn any_non_negative_array_index() -> impl Strategy<Value = JsonUInt> {
         const MAX: u64 = (1 << 53) - 1;
-        (0..MAX).prop_map(NonNegativeArrayIndex::new)
+        (0..MAX).prop_map(|x| JsonUInt::try_from(x).expect("in-range JsonUInt"))
     }
     // Cspell: enable
 

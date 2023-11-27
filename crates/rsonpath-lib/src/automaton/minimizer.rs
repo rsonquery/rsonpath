@@ -385,7 +385,7 @@ mod tests {
     #[test]
     fn simple_nonnegative_indexed() {
         // Query = $[0]
-        let label = TransitionLabel::ArrayIndex(0.try_into().unwrap());
+        let label = TransitionLabel::ArrayIndex(JsonUInt::ZERO);
 
         let nfa = NondeterministicAutomaton {
             ordered_states: vec![NfaState::Direct(nfa::Transition::Labelled(label)), NfaState::Accepting],
@@ -630,7 +630,7 @@ mod tests {
     #[test]
     fn simple_multi_accepting_nneg_index() {
         // Query = $..[3]
-        let label = TransitionLabel::ArrayIndex(0.try_into().unwrap());
+        let label = TransitionLabel::ArrayIndex(JsonUInt::ZERO);
 
         let nfa = NondeterministicAutomaton {
             ordered_states: vec![

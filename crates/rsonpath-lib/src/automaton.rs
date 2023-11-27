@@ -9,7 +9,7 @@ pub use state::{State, StateAttributes};
 
 use crate::{automaton::error::CompilerError, debug};
 use nfa::NondeterministicAutomaton;
-use rsonpath_syntax::{number::NonNegativeArrayIndex, string::JsonString, JsonPathQuery};
+use rsonpath_syntax::{num::JsonUInt, string::JsonString, JsonPathQuery};
 use smallvec::SmallVec;
 use std::{fmt::Display, ops::Index};
 
@@ -24,8 +24,8 @@ pub struct Automaton<'q> {
 pub enum TransitionLabel<'q> {
     /// Transition when a JSON member name matches a [`JsonString`]i.
     ObjectMember(&'q JsonString),
-    /// Transition on the n-th element of an array, with n specified by a [`NonNegativeArrayIndex`].
-    ArrayIndex(NonNegativeArrayIndex),
+    /// Transition on the n-th element of an array, with n specified by a [`JsonUInt`].
+    ArrayIndex(JsonUInt),
 }
 
 impl<'q> TransitionLabel<'q> {
@@ -39,10 +39,10 @@ impl<'q> TransitionLabel<'q> {
         }
     }
 
-    ///Return the [`NonNegativeArrayIndex`] being wrapped if so. Returns [`None`] otherwise.
+    ///Return the [`JsonUInt`] being wrapped if so. Returns [`None`] otherwise.
     #[must_use]
     #[inline(always)]
-    pub fn get_array_index(&'q self) -> Option<&'q NonNegativeArrayIndex> {
+    pub fn get_array_index(&'q self) -> Option<&'q JsonUInt> {
         match self {
             TransitionLabel::ArrayIndex(name) => Some(name),
             TransitionLabel::ObjectMember(_) => None,
@@ -56,10 +56,10 @@ impl<'q> TransitionLabel<'q> {
         TransitionLabel::ObjectMember(member_name)
     }
 
-    /// Wraps a [`NonNegativeArrayIndex`] in a [`TransitionLabel`].
+    /// Wraps a [`JsonUInt`] in a [`TransitionLabel`].
     #[must_use]
     #[inline(always)]
-    pub fn new_array_index(index: NonNegativeArrayIndex) -> Self {
+    pub fn new_array_index(index: JsonUInt) -> Self {
         TransitionLabel::ArrayIndex(index)
     }
 }
@@ -77,15 +77,15 @@ impl Display for TransitionLabel<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             TransitionLabel::ObjectMember(name) => write!(f, "{}", name.display()),
-            TransitionLabel::ArrayIndex(index) => write!(f, "{}", index.get_index()),
+            TransitionLabel::ArrayIndex(index) => write!(f, "{}", index.as_u64()),
         }
     }
 }
 
-impl From<NonNegativeArrayIndex> for TransitionLabel<'_> {
+impl From<JsonUInt> for TransitionLabel<'_> {
     #[must_use]
     #[inline(always)]
-    fn from(index: NonNegativeArrayIndex) -> Self {
+    fn from(index: JsonUInt) -> Self {
         TransitionLabel::new_array_index(index)
     }
 }
@@ -288,27 +288,27 @@ impl<'q> Automaton<'q> {
     #[must_use]
     #[inline(always)]
     pub fn has_first_array_index_transition_to_accepting(&self, state: State) -> bool {
-        self.has_array_index_transition_to_accepting(state, &NonNegativeArrayIndex::ZERO)
+        self.has_array_index_transition_to_accepting(state, &JsonUInt::ZERO)
     }
 
     /// Returns whether the given state is accepting the item at a given index in a list.
     ///
     /// # Example
     /// ```rust
-    /// # use rsonpath_syntax::{JsonPathQuery, number::NonNegativeArrayIndex};
+    /// # use rsonpath_syntax::{JsonPathQuery, num::JsonUInt};
     /// # use rsonpath::automaton::*;
     /// let query = JsonPathQuery::parse("$[1]").unwrap();
     /// let automaton = Automaton::new(&query).unwrap();
     /// let state = automaton.initial_state();
-    /// let match_index_1 = NonNegativeArrayIndex::new(1);
-    /// let match_index_2 = NonNegativeArrayIndex::new(2);
+    /// let match_index_1 = JsonUInt::try_from(1).unwrap();
+    /// let match_index_2 = JsonUInt::try_from(2).unwrap();
     ///
     /// assert!(automaton.has_array_index_transition_to_accepting(state, &match_index_1));
     /// assert!(!automaton.has_array_index_transition_to_accepting(state, &match_index_2));
     /// ```
     #[must_use]
     #[inline(always)]
-    pub fn has_array_index_transition_to_accepting(&self, state: State, match_index: &NonNegativeArrayIndex) -> bool {
+    pub fn has_array_index_transition_to_accepting(&self, state: State, match_index: &JsonUInt) -> bool {
         self[state].transitions().iter().any(|t| match t {
             (TransitionLabel::ArrayIndex(i), s) => i.eq(match_index) && self.is_accepting(*s),
             _ => false,

@@ -30,7 +30,7 @@ use crate::{
     },
     FallibleIterator, MaskType, BLOCK_SIZE,
 };
-use rsonpath_syntax::{number::NonNegativeArrayIndex, string::JsonString, JsonPathQuery};
+use rsonpath_syntax::{num::JsonUInt, string::JsonString, JsonPathQuery};
 use smallvec::{smallvec, SmallVec};
 
 /// Main engine for a fixed JSONPath query.
@@ -162,7 +162,7 @@ struct Executor<'i, 'q, 'r, I, R, V> {
     simd: V,
     next_event: Option<Structural>,
     is_list: bool,
-    array_count: NonNegativeArrayIndex,
+    array_count: JsonUInt,
     has_any_array_item_transition: bool,
     has_any_array_item_transition_to_accepting: bool,
 }
@@ -187,7 +187,7 @@ where
         simd,
         next_event: None,
         is_list: false,
-        array_count: NonNegativeArrayIndex::ZERO,
+        array_count: JsonUInt::ZERO,
         has_any_array_item_transition: false,
         has_any_array_item_transition_to_accepting: false,
     }
@@ -450,7 +450,7 @@ where
 
             if searching_list {
                 needs_commas = true;
-                self.array_count = NonNegativeArrayIndex::ZERO;
+                self.array_count = JsonUInt::ZERO;
                 debug!("Initialized array count to {}", self.array_count);
 
                 let wants_first_item =
@@ -607,7 +607,7 @@ struct StackFrame {
     depth: u8,
     state: State,
     is_list: bool,
-    array_count: NonNegativeArrayIndex,
+    array_count: JsonUInt,
     has_any_array_item_transition: bool,
     has_any_array_item_transition_to_accepting: bool,
 }
