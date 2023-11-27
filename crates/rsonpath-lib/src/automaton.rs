@@ -295,13 +295,13 @@ impl<'q> Automaton<'q> {
     ///
     /// # Example
     /// ```rust
-    /// # use rsonpath_syntax::{JsonPathQuery, number::IndexValue};
+    /// # use rsonpath_syntax::{JsonPathQuery, num::JsonUInt};
     /// # use rsonpath::automaton::*;
     /// let query = JsonPathQuery::parse("$[1]").unwrap();
     /// let automaton = Automaton::new(&query).unwrap();
     /// let state = automaton.initial_state();
-    /// let match_index_1 = IndexValue::new(1);
-    /// let match_index_2 = IndexValue::new(2);
+    /// let match_index_1 = JsonUInt::try_from(1).unwrap();
+    /// let match_index_2 = JsonUInt::try_from(2).unwrap();
     ///
     /// assert!(automaton.has_array_index_transition_to_accepting(state, &match_index_1));
     /// assert!(!automaton.has_array_index_transition_to_accepting(state, &match_index_2));

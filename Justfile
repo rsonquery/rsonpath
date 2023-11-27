@@ -132,8 +132,7 @@ test-x86-simd:
 
 # Run doctests on the library.
 test-doc:
-    -cargo install cargo-hack
-    cargo rsontest --doc
+    cargo test --doc
 
 # Run cmd tests
 test-cmd:

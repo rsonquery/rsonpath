@@ -35,8 +35,8 @@ use std::{
 /// let two = JsonInt::try_from(2).expect("within range");
 /// let zero = JsonInt::try_from(0).expect("within range");
 /// let negative = JsonInt::try_from(-2).expect("within range");
-/// let too_big = JsonInt::try_from(1 << 53).expect_err("out of range");
-/// let too_small = JsonInt::try_from(-(1 << 53)).expect_err("out of range");
+/// let too_big = JsonInt::try_from(1_i64 << 53).expect_err("out of range");
+/// let too_small = JsonInt::try_from(-(1_i64 << 53)).expect_err("out of range");
 ///
 /// assert_eq!(two.as_i64(), 2);
 /// assert_eq!(zero.as_i64(), 0);
@@ -63,7 +63,7 @@ pub struct JsonInt(i64);
 ///
 /// let two = JsonUInt::try_from(2).expect("within range");
 /// let zero = JsonUInt::try_from(0).expect("within range");
-/// let too_big = JsonUInt::try_from(1 << 53).expect_err("out of range");
+/// let too_big = JsonUInt::try_from(1_u64 << 53).expect_err("out of range");
 ///
 /// assert_eq!(two.as_u64(), 2);
 /// assert_eq!(zero.as_u64(), 0);
@@ -245,6 +245,35 @@ impl TryFrom<i64> for JsonInt {
     }
 }
 
+impl TryFrom<u64> for JsonInt {
+    type Error = JsonIntOverflowError;
+
+    #[inline]
+    fn try_from(value: u64) -> Result<Self, Self::Error> {
+        if value > i64::MAX as u64 {
+            Err(JsonIntOverflowError::int_pos_overflow_u(value))
+        } else {
+            Self::try_from(value as i64)
+        }
+    }
+}
+
+impl From<i32> for JsonInt {
+    // i32 is always in the range (-2^53, 2^53)
+    #[inline]
+    fn from(value: i32) -> Self {
+        Self::new(i64::from(value))
+    }
+}
+
+impl From<u32> for JsonInt {
+    // u32 is always in the range (-2^53, 2^53)
+    #[inline]
+    fn from(value: u32) -> Self {
+        Self::new(i64::from(value))
+    }
+}
+
 impl From<JsonInt> for i64 {
     #[inline(always)]
     fn from(value: JsonInt) -> Self {
@@ -294,6 +323,27 @@ impl TryFrom<i64> for JsonUInt {
             Err(JsonIntOverflowError::negative_uint(value))
         } else {
             Self::try_from(value as u64)
+        }
+    }
+}
+
+impl From<u32> for JsonUInt {
+    // u32 is always in the range [0, 2^53)
+    #[inline]
+    fn from(value: u32) -> Self {
+        Self::new(u64::from(value))
+    }
+}
+
+impl TryFrom<i32> for JsonUInt {
+    type Error = JsonIntOverflowError;
+
+    #[inline]
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
+        if value < 0 {
+            Err(JsonIntOverflowError::negative_uint(i64::from(value)))
+        } else {
+            Ok(Self::from(value as u32))
         }
     }
 }

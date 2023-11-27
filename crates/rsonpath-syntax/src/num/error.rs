@@ -29,6 +29,12 @@ impl JsonIntOverflowError {
         }
     }
 
+    pub(crate) fn int_pos_overflow_u(src: u64) -> Self {
+        Self {
+            kind: JsonIntOverflowKind::IntPosU(src),
+        }
+    }
+
     pub(crate) fn int_neg_overflow(src: i64) -> Self {
         Self {
             kind: JsonIntOverflowKind::IntNeg(src),
@@ -63,7 +69,9 @@ impl JsonIntParseError {
     pub(crate) fn parse_conversion_err(src: &str, err: &JsonIntOverflowError) -> Self {
         Self {
             kind: match err.kind {
-                JsonIntOverflowKind::IntPos(_) => JsonIntParseErrorKind::IntPosOverflow(src.to_string()),
+                JsonIntOverflowKind::IntPosU(_) | JsonIntOverflowKind::IntPos(_) => {
+                    JsonIntParseErrorKind::IntPosOverflow(src.to_string())
+                }
                 JsonIntOverflowKind::IntNeg(_) => JsonIntParseErrorKind::IntNegOverflow(src.to_string()),
                 JsonIntOverflowKind::UIntPos(_) => JsonIntParseErrorKind::UIntPosOverflow(src.to_string()),
                 JsonIntOverflowKind::UIntNeg(_) => JsonIntParseErrorKind::UIntNegOverflow(src.to_string()),
@@ -86,6 +94,7 @@ impl JsonIntParseError {
 #[derive(Debug)]
 enum JsonIntOverflowKind {
     IntPos(i64),
+    IntPosU(u64),
     IntNeg(i64),
     UIntPos(u64),
     UIntNeg(i64),
@@ -119,6 +128,12 @@ impl Display for JsonIntOverflowKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::IntPos(src) => write!(
+                f,
+                "value {src} is above the range of JsonInt values [{}..{}]",
+                JsonInt::MIN,
+                JsonInt::MAX
+            ),
+            Self::IntPosU(src) => write!(
                 f,
                 "value {src} is above the range of JsonInt values [{}..{}]",
                 JsonInt::MIN,
