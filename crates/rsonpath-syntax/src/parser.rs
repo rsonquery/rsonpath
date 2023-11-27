@@ -1,7 +1,7 @@
 use crate::{
     error::{ParseErrorReport, ParserError},
     num::JsonUInt,
-    string::JsonString,
+    str::JsonString,
     JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType,
 };
 use nom::{branch::*, bytes::complete::*, character::complete::*, combinator::*, multi::*, sequence::*, *};
@@ -109,13 +109,13 @@ fn tokens_to_node<'a, I: Iterator<Item = Token<'a>>>(tokens: &mut I) -> Result<O
             match token {
                 Token::Root => Ok(Some(JsonPathQueryNode::Root(child_node))),
                 Token::Child(member) => Ok(Some(JsonPathQueryNode::Child(
-                    JsonString::new(member.borrow()),
+                    JsonString::new_unchecked(member.borrow()),
                     child_node,
                 ))),
                 Token::ArrayIndexChild(i) => Ok(Some(JsonPathQueryNode::ArrayIndexChild(i, child_node))),
                 Token::WildcardChild() => Ok(Some(JsonPathQueryNode::AnyChild(child_node))),
                 Token::Descendant(member) => Ok(Some(JsonPathQueryNode::Descendant(
-                    JsonString::new(member.borrow()),
+                    JsonString::new_unchecked(member.borrow()),
                     child_node,
                 ))),
                 Token::ArrayIndexDescendant(i) => Ok(Some(JsonPathQueryNode::ArrayIndexDescendant(i, child_node))),

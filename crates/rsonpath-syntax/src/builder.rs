@@ -1,6 +1,6 @@
 //! Utility for building a [`JsonPathQuery`](`crate::JsonPathQuery`)
 //! programmatically.
-use crate::{num::JsonUInt, string::JsonString, JsonPathQuery, JsonPathQueryNode};
+use crate::{num::JsonUInt, str::JsonString, JsonPathQuery, JsonPathQueryNode};
 
 /// Builder for [`JsonPathQuery`] instances.
 ///

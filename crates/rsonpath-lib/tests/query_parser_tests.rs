@@ -1,5 +1,5 @@
 use pretty_assertions::assert_eq;
-use rsonpath_syntax::{builder::JsonPathQueryBuilder, num::JsonUInt, string::JsonString, JsonPathQuery};
+use rsonpath_syntax::{builder::JsonPathQueryBuilder, num::JsonUInt, str::JsonString, JsonPathQuery};
 use test_case::test_case;
 
 #[test]
@@ -47,7 +47,7 @@ fn wildcard_child_selector() {
     let input = "$.*.a.*";
     let expected_query = JsonPathQueryBuilder::new()
         .any_child()
-        .child(JsonString::new("a"))
+        .child(JsonString::new("a").unwrap())
         .any_child()
         .into();
 
@@ -108,8 +108,8 @@ fn indexed_wildcard_child_selector() {
     let input = r#"$[*]['*']["*"]"#;
     let expected_query = JsonPathQueryBuilder::new()
         .any_child()
-        .child(JsonString::new("*"))
-        .child(JsonString::new("*"))
+        .child(JsonString::new("*").unwrap())
+        .child(JsonString::new("*").unwrap())
         .into();
 
     let result = JsonPathQuery::parse(input).expect("expected Ok");
@@ -122,7 +122,7 @@ fn wildcard_descendant_selector() {
     let input = "$..*.a..*";
     let expected_query = JsonPathQueryBuilder::new()
         .any_descendant()
-        .child(JsonString::new("a"))
+        .child(JsonString::new("a").unwrap())
         .any_descendant()
         .into();
 
@@ -136,8 +136,8 @@ fn indexed_wildcard_descendant_selector_nested() {
     let input = r#"$..[*]..['*']..["*"]"#;
     let expected_query = JsonPathQueryBuilder::new()
         .any_descendant()
-        .descendant(JsonString::new("*"))
-        .descendant(JsonString::new("*"))
+        .descendant(JsonString::new("*").unwrap())
+        .descendant(JsonString::new("*").unwrap())
         .into();
 
     let result = JsonPathQuery::parse(input).expect("expected Ok");
@@ -148,7 +148,7 @@ fn indexed_wildcard_descendant_selector_nested() {
 #[test]
 fn escaped_single_quote_in_single_quote_member() {
     let input = r"['\'']";
-    let expected_query = JsonPathQueryBuilder::new().child(JsonString::new("'")).into();
+    let expected_query = JsonPathQueryBuilder::new().child(JsonString::new("'").unwrap()).into();
 
     let result = JsonPathQuery::parse(input).expect("expected Ok");
 
@@ -158,7 +158,9 @@ fn escaped_single_quote_in_single_quote_member() {
 #[test]
 fn unescaped_double_quote_in_single_quote_member() {
     let input = r#"['"']"#;
-    let expected_query = JsonPathQueryBuilder::new().child(JsonString::new(r#"\""#)).into();
+    let expected_query = JsonPathQueryBuilder::new()
+        .child(JsonString::new(r#"\""#).unwrap())
+        .into();
 
     let result = JsonPathQuery::parse(input).expect("expected Ok");
 
@@ -169,10 +171,10 @@ fn unescaped_double_quote_in_single_quote_member() {
 fn name_and_wildcard_selectors_bracketed_and_raw() {
     let input = "$.a['b']..c..['d'].*[*]..*..[*]";
     let expected_query = JsonPathQueryBuilder::new()
-        .child(JsonString::new("a"))
-        .child(JsonString::new("b"))
-        .descendant(JsonString::new("c"))
-        .descendant(JsonString::new("d"))
+        .child(JsonString::new("a").unwrap())
+        .child(JsonString::new("b").unwrap())
+        .descendant(JsonString::new("c").unwrap())
+        .descendant(JsonString::new("d").unwrap())
         .any_child()
         .any_child()
         .any_descendant()
@@ -367,9 +369,9 @@ mod proptests {
 
                 query = match selector.tag {
                     SelectorTag::WildcardChild => query.any_child(),
-                    SelectorTag::Child(name) => query.child(JsonString::new(&transform_json_escape_sequences(name))),
+                    SelectorTag::Child(name) => query.child(JsonString::new(&transform_json_escape_sequences(name)).unwrap()),
                     SelectorTag::WildcardDescendant => query.any_descendant(),
-                    SelectorTag::Descendant(name) => query.descendant(JsonString::new(&transform_json_escape_sequences(name))),
+                    SelectorTag::Descendant(name) => query.descendant(JsonString::new(&transform_json_escape_sequences(name)).unwrap()),
                     SelectorTag::ArrayIndexChild(idx) => query.array_index_child(idx),
                     SelectorTag::ArrayIndexDescendant(idx) => query.array_index_descendant(idx)
                 };

@@ -6,7 +6,7 @@ use crate::{
     },
     result::InputRecorder,
 };
-use rsonpath_syntax::string::JsonString;
+use rsonpath_syntax::str::JsonString;
 
 pub(crate) struct Constructor;
 
@@ -51,11 +51,11 @@ where
         label: &JsonString,
         mut offset: usize,
     ) -> Result<Option<(usize, I::Block<'i, N>)>, InputError> {
-        let label_size = label.bytes_with_quotes().len();
-        let first_c = if label.bytes().is_empty() {
+        let label_size = label.quoted().len();
+        let first_c = if label.unquoted().is_empty() {
             b'"'
         } else {
-            label.bytes()[0]
+            label.unquoted().as_bytes()[0]
         };
 
         while let Some(block) = self.iter.next().e()? {

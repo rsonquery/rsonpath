@@ -158,14 +158,14 @@ impl<'q> Display for NondeterministicAutomaton<'q> {
 mod tests {
     use super::*;
     use rsonpath_syntax::builder::JsonPathQueryBuilder;
-    use rsonpath_syntax::string::JsonString;
+    use rsonpath_syntax::str::JsonString;
 
     #[test]
     fn nfa_test() {
-        let label_a = JsonString::new("a");
-        let label_b = JsonString::new("b");
-        let label_c = JsonString::new("c");
-        let label_d = JsonString::new("d");
+        let label_a = JsonString::new("a").unwrap();
+        let label_b = JsonString::new("b").unwrap();
+        let label_c = JsonString::new("c").unwrap();
+        let label_d = JsonString::new("d").unwrap();
 
         let query = JsonPathQueryBuilder::new()
             .child(label_a.clone())

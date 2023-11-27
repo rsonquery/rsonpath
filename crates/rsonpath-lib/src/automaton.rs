@@ -9,7 +9,7 @@ pub use state::{State, StateAttributes};
 
 use crate::{automaton::error::CompilerError, debug};
 use nfa::NondeterministicAutomaton;
-use rsonpath_syntax::{num::JsonUInt, string::JsonString, JsonPathQuery};
+use rsonpath_syntax::{num::JsonUInt, str::JsonString, JsonPathQuery};
 use smallvec::SmallVec;
 use std::{fmt::Display, ops::Index};
 
@@ -76,7 +76,7 @@ impl Display for TransitionLabel<'_> {
     #[inline(always)]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            TransitionLabel::ObjectMember(name) => write!(f, "{}", name.display()),
+            TransitionLabel::ObjectMember(name) => write!(f, "{}", name.quoted()),
             TransitionLabel::ArrayIndex(index) => write!(f, "{}", index.as_u64()),
         }
     }

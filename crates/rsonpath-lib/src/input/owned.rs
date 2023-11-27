@@ -25,7 +25,7 @@ use super::{
     Input, SliceSeekable, MAX_BLOCK_SIZE,
 };
 use crate::result::InputRecorder;
-use rsonpath_syntax::string::JsonString;
+use rsonpath_syntax::str::JsonString;
 use std::borrow::Borrow;
 
 /// Input wrapping a buffer borrowable as a slice of bytes.

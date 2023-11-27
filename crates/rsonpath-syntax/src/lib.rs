@@ -35,9 +35,9 @@
 //! // Final node will have a None child.
 //! assert!(child_node.child().is_none());
 //!
-//! assert_eq!(descendant_node.member_name().unwrap(), "phoneNumbers".as_bytes());
+//! assert_eq!(descendant_node.member_name().unwrap().unquoted(), "phoneNumbers");
 //! assert_eq!(child_wildcard_node.member_name(), None);
-//! assert_eq!(child_node.member_name().unwrap(), "number".as_bytes());
+//! assert_eq!(child_node.member_name().unwrap().unquoted(), "number");
 //! # Ok(())
 //! # }
 //! ```
@@ -116,9 +116,9 @@ pub mod builder;
 pub mod error;
 pub mod num;
 mod parser;
-pub mod string;
+pub mod str;
 
-use self::{error::ParserError, num::JsonUInt, string::JsonString};
+use self::{error::ParserError, num::JsonUInt, str::JsonString};
 use std::fmt::{self, Display};
 
 /// Linked list structure of a JSONPath query.
@@ -247,9 +247,9 @@ impl Display for JsonPathQueryNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Root(_) => write!(f, "$"),
-            Child(key, _) => write!(f, "['{}']", key.display()),
+            Child(key, _) => write!(f, "['{}']", key.unquoted()),
             AnyChild(_) => write!(f, "[*]"),
-            Descendant(key, _) => write!(f, "..['{}']", key.display()),
+            Descendant(key, _) => write!(f, "..['{}']", key.unquoted()),
             AnyDescendant(_) => write!(f, "..[*]"),
             ArrayIndexChild(i, _) => write!(f, "[{i}]"),
             ArrayIndexDescendant(i, _) => write!(f, "..[{i}]"),

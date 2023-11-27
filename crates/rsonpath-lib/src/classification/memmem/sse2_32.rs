@@ -101,7 +101,7 @@ where
         label: &JsonString,
         mut offset: usize,
     ) -> Result<Option<(usize, I::Block<'i, SIZE>)>, InputError> {
-        let classifier = vector_128::BlockClassifier128::new(label.bytes()[0], b'"');
+        let classifier = vector_128::BlockClassifier128::new(label.unquoted().as_bytes()[0], b'"');
         let mut previous_block: u32 = 0;
 
         while let Some(block) = self.iter.next().e()? {
@@ -131,13 +131,14 @@ where
         label: &JsonString,
         mut offset: usize,
     ) -> Result<Option<(usize, I::Block<'i, SIZE>)>, InputError> {
-        if label.bytes().is_empty() {
+        if label.unquoted().is_empty() {
             return self.find_empty(label, offset);
-        } else if label.bytes().len() == 1 {
+        } else if label.unquoted().len() == 1 {
             return self.find_letter(label, offset);
         }
 
-        let classifier = vector_128::BlockClassifier128::new(label.bytes()[0], label.bytes()[1]);
+        let classifier =
+            vector_128::BlockClassifier128::new(label.unquoted().as_bytes()[0], label.unquoted().as_bytes()[1]);
         let mut previous_block: u32 = 0;
 
         while let Some(block) = self.iter.next().e()? {
