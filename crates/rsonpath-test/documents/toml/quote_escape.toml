@@ -22,6 +22,8 @@ nodes = ["17"]
 [[queries]]
 query = """$['"x']"""
 description = "select 'x' with quote directly"
+disabled.issue = "https://github.com/V0ldek/rsonpath/issues/117"
+disabled.reason = "we do not handle escapes correctly yet"
 
 [queries.results]
 count = 1

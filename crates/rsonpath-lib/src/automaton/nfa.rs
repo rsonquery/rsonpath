@@ -162,10 +162,10 @@ mod tests {
 
     #[test]
     fn nfa_test() {
-        let label_a = JsonString::new("a").unwrap();
-        let label_b = JsonString::new("b").unwrap();
-        let label_c = JsonString::new("c").unwrap();
-        let label_d = JsonString::new("d").unwrap();
+        let label_a = JsonString::new("a");
+        let label_b = JsonString::new("b");
+        let label_c = JsonString::new("c");
+        let label_d = JsonString::new("d");
 
         let query = JsonPathQueryBuilder::new()
             .child(label_a.clone())

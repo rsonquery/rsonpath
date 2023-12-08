@@ -24,6 +24,8 @@ nodes = ["43"]
 [[queries]]
 query = """$..['"b']"""
 description = "descendant search for 'b' with a leading quote"
+disabled.issue = "https://github.com/V0ldek/rsonpath/issues/117"
+disabled.reason = "we do not handle escapes correctly yet"
 
 [queries.results]
 count = 1

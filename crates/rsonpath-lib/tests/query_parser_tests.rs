@@ -47,7 +47,7 @@ fn wildcard_child_selector() {
     let input = "$.*.a.*";
     let expected_query = JsonPathQueryBuilder::new()
         .any_child()
-        .child(JsonString::new("a").unwrap())
+        .child(JsonString::new("a"))
         .any_child()
         .into();
 
@@ -108,8 +108,8 @@ fn indexed_wildcard_child_selector() {
     let input = r#"$[*]['*']["*"]"#;
     let expected_query = JsonPathQueryBuilder::new()
         .any_child()
-        .child(JsonString::new("*").unwrap())
-        .child(JsonString::new("*").unwrap())
+        .child(JsonString::new("*"))
+        .child(JsonString::new("*"))
         .into();
 
     let result = JsonPathQuery::parse(input).expect("expected Ok");
@@ -122,7 +122,7 @@ fn wildcard_descendant_selector() {
     let input = "$..*.a..*";
     let expected_query = JsonPathQueryBuilder::new()
         .any_descendant()
-        .child(JsonString::new("a").unwrap())
+        .child(JsonString::new("a"))
         .any_descendant()
         .into();
 
@@ -136,8 +136,8 @@ fn indexed_wildcard_descendant_selector_nested() {
     let input = r#"$..[*]..['*']..["*"]"#;
     let expected_query = JsonPathQueryBuilder::new()
         .any_descendant()
-        .descendant(JsonString::new("*").unwrap())
-        .descendant(JsonString::new("*").unwrap())
+        .descendant(JsonString::new("*"))
+        .descendant(JsonString::new("*"))
         .into();
 
     let result = JsonPathQuery::parse(input).expect("expected Ok");
@@ -148,7 +148,7 @@ fn indexed_wildcard_descendant_selector_nested() {
 #[test]
 fn escaped_single_quote_in_single_quote_member() {
     let input = r"['\'']";
-    let expected_query = JsonPathQueryBuilder::new().child(JsonString::new("'").unwrap()).into();
+    let expected_query = JsonPathQueryBuilder::new().child(JsonString::new("'")).into();
 
     let result = JsonPathQuery::parse(input).expect("expected Ok");
 
@@ -158,9 +158,7 @@ fn escaped_single_quote_in_single_quote_member() {
 #[test]
 fn unescaped_double_quote_in_single_quote_member() {
     let input = r#"['"']"#;
-    let expected_query = JsonPathQueryBuilder::new()
-        .child(JsonString::new(r#"\""#).unwrap())
-        .into();
+    let expected_query = JsonPathQueryBuilder::new().child(JsonString::new(r#"""#)).into();
 
     let result = JsonPathQuery::parse(input).expect("expected Ok");
 
@@ -171,10 +169,10 @@ fn unescaped_double_quote_in_single_quote_member() {
 fn name_and_wildcard_selectors_bracketed_and_raw() {
     let input = "$.a['b']..c..['d'].*[*]..*..[*]";
     let expected_query = JsonPathQueryBuilder::new()
-        .child(JsonString::new("a").unwrap())
-        .child(JsonString::new("b").unwrap())
-        .descendant(JsonString::new("c").unwrap())
-        .descendant(JsonString::new("d").unwrap())
+        .child(JsonString::new("a"))
+        .child(JsonString::new("b"))
+        .descendant(JsonString::new("c"))
+        .descendant(JsonString::new("d"))
         .any_child()
         .any_child()
         .any_descendant()
@@ -186,64 +184,9 @@ fn name_and_wildcard_selectors_bracketed_and_raw() {
     assert_eq!(result, expected_query);
 }
 
-/// Turn escapes of `'` and `\` into unescaped forms, and unescaped
-/// `"` into escaped. So `\'` becomes `'`, and `"` into `\"`, but `\n` stays as `\n`.
-///
-/// This is how we expect strings to be parsed.
-fn transform_json_escape_sequences(str: String) -> String {
-    let mut result = String::new();
-    let mut escaped = false;
-
-    for char in str.chars() {
-        escaped = match char {
-            '\'' | '/' if escaped => {
-                result.push(char);
-                false
-            }
-            '"' if !escaped => {
-                result.push('\\');
-                result.push('"');
-                false
-            }
-            _ if escaped => {
-                result.push('\\');
-                result.push(char);
-                false
-            }
-            '\\' => true,
-            _ => {
-                result.push(char);
-                false
-            }
-        };
-    }
-
-    result
-}
-
-// Just a few sanity tests for the unescape_unnecessary_escapes helper.
-mod transform_json_escape_sequences_tests {
-    use test_case::test_case;
-
-    #[test_case("" => ""; "empty is unchanged")]
-    #[test_case("abc" => "abc")]
-    #[test_case(r"['\n']" => r"['\n']"; "endline is unchanged")]
-    #[test_case(r"['\t']" => r"['\t']"; "tab is unchanged")]
-    #[test_case(r"['\\']" => r"['\\']"; "backslash is unchanged")]
-    #[test_case(r"['\'']" => r#"[''']"#; "single quote is unescaped")]
-    #[test_case(r#"['"']"# => r#"['\"']"#; "unescaped double quote is escaped")]
-    #[test_case(r#"['\"']"# => r#"['\"']"#; "escaped double quote is unchanged")]
-    #[test_case(r"['\/']" => r#"['/']"#; "slash is unescaped")]
-    #[test_case(r#"['\\"']"# => r#"['\\\"']"#; "escapes don't flow")]
-    #[test_case(r"['\\'']" => r"['\\'']"; "escapes don't flow2")]
-    fn cases(input: &str) -> String {
-        super::transform_json_escape_sequences(input.to_owned())
-    }
-}
-
 mod proptests {
     use super::*;
-    use proptest::prelude::*;
+    use proptest::{prelude::*, sample::SizeRange};
     use rsonpath_syntax::num::JsonUInt;
 
     /* Approach: we generate a sequence of Selectors, each having its generated string
@@ -266,6 +209,59 @@ mod proptests {
     struct Selector {
         string: String,
         tag: SelectorTag,
+    }
+
+    #[derive(Debug, PartialEq, Eq, Clone, Copy)]
+    enum JsonStringToken {
+        EncodeNormally(char),
+        ForceUnicodeEscape(char),
+    }
+
+    #[derive(Debug, PartialEq, Eq, Clone, Copy)]
+    enum JsonStringTokenEncodingMode {
+        SingleQuoted,
+        DoubleQuoted,
+    }
+
+    impl JsonStringToken {
+        fn raw(self) -> char {
+            match self {
+                Self::EncodeNormally(x) | Self::ForceUnicodeEscape(x) => x,
+            }
+        }
+
+        fn encode(self, mode: JsonStringTokenEncodingMode) -> String {
+            return match self {
+                JsonStringToken::EncodeNormally('\u{0008}') => r"\b".to_owned(),
+                JsonStringToken::EncodeNormally('\t') => r"\t".to_owned(),
+                JsonStringToken::EncodeNormally('\n') => r"\n".to_owned(),
+                JsonStringToken::EncodeNormally('\u{000C}') => r"\f".to_owned(),
+                JsonStringToken::EncodeNormally('\r') => r"\r".to_owned(),
+                JsonStringToken::EncodeNormally('"') => match mode {
+                    JsonStringTokenEncodingMode::DoubleQuoted => r#"\""#.to_owned(),
+                    JsonStringTokenEncodingMode::SingleQuoted => r#"""#.to_owned(),
+                },
+                JsonStringToken::EncodeNormally('\'') => match mode {
+                    JsonStringTokenEncodingMode::DoubleQuoted => r#"'"#.to_owned(),
+                    JsonStringTokenEncodingMode::SingleQuoted => r#"\'"#.to_owned(),
+                },
+                JsonStringToken::EncodeNormally('/') => r"\/".to_owned(),
+                JsonStringToken::EncodeNormally('\\') => r"\\".to_owned(),
+                JsonStringToken::EncodeNormally(c @ ..='\u{001F}') => encode_unicode_escape(c),
+                JsonStringToken::EncodeNormally(c) => c.to_string(),
+                JsonStringToken::ForceUnicodeEscape(c) => encode_unicode_escape(c),
+            };
+
+            fn encode_unicode_escape(c: char) -> String {
+                let mut buf = [0; 2];
+                let enc = c.encode_utf16(&mut buf);
+                let mut res = String::new();
+                for x in enc {
+                    res += &format!("\\u{x:0>4x}");
+                }
+                res
+            }
+        }
     }
 
     // Cspell: disable
@@ -298,7 +294,7 @@ mod proptests {
 
     // .label or ['label']
     fn any_child() -> impl Strategy<Value = Selector> {
-        prop_oneof![any_member().prop_map(|x| (format!(".{x}"), x)), any_name(),].prop_map(|(s, l)| Selector {
+        prop_oneof![any_short_name().prop_map(|x| (format!(".{x}"), x)), any_name(),].prop_map(|(s, l)| Selector {
             string: s,
             tag: SelectorTag::Child(l),
         })
@@ -306,7 +302,7 @@ mod proptests {
 
     // ..label or ..['label']
     fn any_descendant() -> impl Strategy<Value = Selector> {
-        prop_oneof![any_member().prop_map(|x| (x.clone(), x)), any_name(),].prop_map(|(x, l)| Selector {
+        prop_oneof![any_short_name().prop_map(|x| (x.clone(), x)), any_name(),].prop_map(|(x, l)| Selector {
             string: format!("..{x}"),
             tag: SelectorTag::Descendant(l),
         })
@@ -326,27 +322,40 @@ mod proptests {
         })
     }
 
-    fn any_member() -> impl Strategy<Value = String> {
+    fn any_short_name() -> impl Strategy<Value = String> {
         r"([A-Za-z]|_|[^\u0000-\u007F])([A-Za-z0-9]|_|[^\u0000-\u007F])*"
     }
 
     fn any_name() -> impl Strategy<Value = (String, String)> {
-        any_quoted_member().prop_map(|(s, l)| (format!("[{s}]"), l))
-    }
-
-    fn any_quoted_member() -> impl Strategy<Value = (String, String)> {
         prop_oneof![
-            any_single_quoted_member().prop_map(|x| (format!("'{x}'"), x)),
-            any_double_quoted_member().prop_map(|x| (format!("\"{x}\""), x))
+            Just(JsonStringTokenEncodingMode::SingleQuoted),
+            Just(JsonStringTokenEncodingMode::DoubleQuoted)
         ]
-    }
-
-    fn any_single_quoted_member() -> impl Strategy<Value = String> {
-        r#"([^'"\\\u0000-\u001F]|(\\[btnfr/\\])|["]|(\\'))*"#
-    }
-
-    fn any_double_quoted_member() -> impl Strategy<Value = String> {
-        r#"([^'"\\\u0000-\u001F]|(\\[btnfr/\\])|[']|(\\"))*"#
+        .prop_flat_map(|mode| {
+            prop::collection::vec(
+                (prop::char::any(), prop::bool::ANY).prop_map(|(c, b)| {
+                    if b {
+                        JsonStringToken::EncodeNormally(c)
+                    } else {
+                        JsonStringToken::ForceUnicodeEscape(c)
+                    }
+                }),
+                SizeRange::default(),
+            )
+            .prop_map(move |v| {
+                let q = match mode {
+                    JsonStringTokenEncodingMode::SingleQuoted => '\'',
+                    JsonStringTokenEncodingMode::DoubleQuoted => '"',
+                };
+                let mut s = String::new();
+                let mut l = String::new();
+                for x in v {
+                    s += &x.encode(mode);
+                    l.push(x.raw());
+                }
+                (format!("[{q}{s}{q}]"), l)
+            })
+        })
     }
 
     fn any_non_negative_array_index() -> impl Strategy<Value = JsonUInt> {
@@ -369,9 +378,9 @@ mod proptests {
 
                 query = match selector.tag {
                     SelectorTag::WildcardChild => query.any_child(),
-                    SelectorTag::Child(name) => query.child(JsonString::new(&transform_json_escape_sequences(name)).unwrap()),
+                    SelectorTag::Child(name) => query.child(JsonString::new(&name)),
                     SelectorTag::WildcardDescendant => query.any_descendant(),
-                    SelectorTag::Descendant(name) => query.descendant(JsonString::new(&transform_json_escape_sequences(name)).unwrap()),
+                    SelectorTag::Descendant(name) => query.descendant(JsonString::new(&name)),
                     SelectorTag::ArrayIndexChild(idx) => query.array_index_child(idx),
                     SelectorTag::ArrayIndexDescendant(idx) => query.array_index_descendant(idx)
                 };

@@ -66,8 +66,18 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> Result<(), io::Error> {
                         result_type,
                         EngineTypeToTest::Main,
                     );
+                    let mb_ignore = if let Some(disabled) = &query.disabled {
+                        let reason = format!("{} (see {})", disabled.reason, disabled.issue);
+                        quote! {
+                            #[doc = #reason]
+                            #[ignore]
+                        }
+                    } else {
+                        quote! {}
+                    };
 
                     let r#fn = quote! {
+                        #mb_ignore
                         #[test]
                         fn #fn_name() -> Result<(), Box<dyn Error>> {
                             #body

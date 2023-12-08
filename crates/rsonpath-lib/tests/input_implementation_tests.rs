@@ -608,7 +608,7 @@ mod in_memory_proptests {
             }
 
             let str = "x".repeat(to - from - 2);
-            let json_string = JsonString::new(&str).unwrap();
+            let json_string = JsonString::new(&str);
             let slice = &mut input[from..to];
 
             slice.copy_from_slice(json_string.quoted().as_bytes());

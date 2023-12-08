@@ -6,7 +6,7 @@ use crate::{num::JsonUInt, str::JsonString, JsonPathQuery, JsonPathQueryNode};
 ///
 /// # Examples
 /// ```
-/// # use rsonpath_syntax::{JsonPathQuery, builder::JsonPathQueryBuilder, string::JsonString};
+/// # use rsonpath_syntax::{JsonPathQuery, builder::JsonPathQueryBuilder, str::JsonString};
 /// let builder = JsonPathQueryBuilder::new()
 ///     .child(JsonString::new("a"))
 ///     .descendant(JsonString::new("b"))

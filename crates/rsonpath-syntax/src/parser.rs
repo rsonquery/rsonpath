@@ -5,65 +5,28 @@ use crate::{
     JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType,
 };
 use nom::{branch::*, bytes::complete::*, character::complete::*, combinator::*, multi::*, sequence::*, *};
-use std::{
-    borrow::Borrow,
-    fmt::{self, Display},
-};
+use std::fmt::{self, Display};
 #[derive(Debug, Clone)]
-enum Token<'a> {
+enum Token {
     Root,
-    Child(MemberString<'a>),
+    Child(JsonString),
     ArrayIndexChild(JsonUInt),
     WildcardChild(),
-    Descendant(MemberString<'a>),
+    Descendant(JsonString),
     ArrayIndexDescendant(JsonUInt),
     WildcardDescendant(),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-enum MemberString<'a> {
-    Borrowed(&'a str),
-    Owned(String),
-}
-
-impl Display for Token<'_> {
+impl Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Token::Root => write!(f, "$"),
-            Token::Child(member) => write!(f, "['{member}']"),
-            Token::ArrayIndexChild(i) => write!(f, "[{i}]"),
-            Token::WildcardChild() => write!(f, "[*]"),
-            Token::Descendant(member) => write!(f, "..['{member}']"),
-            Token::WildcardDescendant() => write!(f, "..[*]"),
-            Token::ArrayIndexDescendant(i) => write!(f, "..[{i}]"),
-        }
-    }
-}
-
-impl Display for MemberString<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            MemberString::Borrowed(member) => write!(f, "{member}"),
-            MemberString::Owned(member) => write!(f, "{member}"),
-        }
-    }
-}
-
-impl<'a> Borrow<str> for MemberString<'a> {
-    fn borrow(&self) -> &str {
-        match self {
-            MemberString::Borrowed(member) => member,
-            MemberString::Owned(member) => member,
-        }
-    }
-}
-
-impl<'a> From<Option<String>> for MemberString<'a> {
-    #[inline]
-    fn from(value: Option<String>) -> Self {
-        match value {
-            Some(member) => MemberString::Owned(member),
-            None => MemberString::Borrowed(""),
+            Self::Root => write!(f, "$"),
+            Self::Child(member) => write!(f, "['{}']", member.unquoted()),
+            Self::ArrayIndexChild(i) => write!(f, "[{i}]"),
+            Self::WildcardChild() => write!(f, "[*]"),
+            Self::Descendant(member) => write!(f, "..['{}']", member.unquoted()),
+            Self::WildcardDescendant() => write!(f, "..[*]"),
+            Self::ArrayIndexDescendant(i) => write!(f, "..[{i}]"),
         }
     }
 }
@@ -102,22 +65,16 @@ pub(crate) fn parse_json_path_query(query_string: &str) -> Result<JsonPathQuery,
     }
 }
 
-fn tokens_to_node<'a, I: Iterator<Item = Token<'a>>>(tokens: &mut I) -> Result<Option<JsonPathQueryNode>, ParserError> {
+fn tokens_to_node<I: Iterator<Item = Token>>(tokens: &mut I) -> Result<Option<JsonPathQueryNode>, ParserError> {
     match tokens.next() {
         Some(token) => {
             let child_node = tokens_to_node(tokens)?.map(Box::new);
             match token {
                 Token::Root => Ok(Some(JsonPathQueryNode::Root(child_node))),
-                Token::Child(member) => Ok(Some(JsonPathQueryNode::Child(
-                    JsonString::new_unchecked(member.borrow()),
-                    child_node,
-                ))),
+                Token::Child(member) => Ok(Some(JsonPathQueryNode::Child(member, child_node))),
                 Token::ArrayIndexChild(i) => Ok(Some(JsonPathQueryNode::ArrayIndexChild(i, child_node))),
                 Token::WildcardChild() => Ok(Some(JsonPathQueryNode::AnyChild(child_node))),
-                Token::Descendant(member) => Ok(Some(JsonPathQueryNode::Descendant(
-                    JsonString::new_unchecked(member.borrow()),
-                    child_node,
-                ))),
+                Token::Descendant(member) => Ok(Some(JsonPathQueryNode::Descendant(member, child_node))),
                 Token::ArrayIndexDescendant(i) => Ok(Some(JsonPathQueryNode::ArrayIndexDescendant(i, child_node))),
                 Token::WildcardDescendant() => Ok(Some(JsonPathQueryNode::AnyDescendant(child_node))),
             }
@@ -126,29 +83,21 @@ fn tokens_to_node<'a, I: Iterator<Item = Token<'a>>>(tokens: &mut I) -> Result<O
     }
 }
 
-trait Parser<'a, Out>: FnMut(&'a str) -> IResult<&'a str, Out> {}
-
-impl<'a, Out, T: FnMut(&'a str) -> IResult<&'a str, Out>> Parser<'a, Out> for T {}
-
-/// Helper type for parsers that might return a character that must be escaped
-/// when initialized in a [`JsonString`]. For example, an unescaped double quote
-/// must always be escaped in a string.
-enum MaybeEscapedChar {
-    Char(char),
-    Escaped(char),
+pub(crate) trait Parser<'a, Out, Err = error::Error<&'a str>>:
+    FnMut(&'a str) -> IResult<&'a str, Out, Err>
+{
 }
 
-/// Helper wrapper for a Vec, needed to implement traits for it.
-struct MaybeEscapedCharVec(Vec<MaybeEscapedChar>);
+impl<'a, Out, Err, T: FnMut(&'a str) -> IResult<&'a str, Out, Err>> Parser<'a, Out, Err> for T {}
 
-fn jsonpath<'a>() -> impl Parser<'a, (Option<Token<'a>>, Vec<Token<'a>>)> {
+fn jsonpath<'a>() -> impl Parser<'a, (Option<Token>, Vec<Token>)> {
     pair(
         opt(map(char('$'), |_| Token::Root)), // root selector
         non_root(),
     )
 }
 
-fn non_root<'a>() -> impl Parser<'a, Vec<Token<'a>>> {
+fn non_root<'a>() -> impl Parser<'a, Vec<Token>> {
     many0(alt((
         wildcard_child_selector(),
         child_selector(),
@@ -158,17 +107,17 @@ fn non_root<'a>() -> impl Parser<'a, Vec<Token<'a>>> {
     )))
 }
 
-fn wildcard_child_selector<'a>() -> impl Parser<'a, Token<'a>> {
+fn wildcard_child_selector<'a>() -> impl Parser<'a, Token> {
     map(alt((dot_wildcard_selector(), index_wildcard_selector())), |_| {
         Token::WildcardChild()
     })
 }
 
-fn child_selector<'a>() -> impl Parser<'a, Token<'a>> {
+fn child_selector<'a>() -> impl Parser<'a, Token> {
     map(alt((dot_selector(), index_selector())), Token::Child)
 }
 
-fn dot_selector<'a>() -> impl Parser<'a, MemberString<'a>> {
+fn dot_selector<'a>() -> impl Parser<'a, JsonString> {
     preceded(char('.'), member())
 }
 
@@ -176,7 +125,7 @@ fn dot_wildcard_selector<'a>() -> impl Parser<'a, char> {
     preceded(char('.'), char('*'))
 }
 
-fn descendant_selector<'a>() -> impl Parser<'a, Token<'a>> {
+fn descendant_selector<'a>() -> impl Parser<'a, Token> {
     preceded(
         tag(".."),
         alt((
@@ -186,13 +135,13 @@ fn descendant_selector<'a>() -> impl Parser<'a, Token<'a>> {
     )
 }
 
-fn wildcard_descendant_selector<'a>() -> impl Parser<'a, Token<'a>> {
+fn wildcard_descendant_selector<'a>() -> impl Parser<'a, Token> {
     map(preceded(tag(".."), alt((char('*'), index_wildcard_selector()))), |_| {
         Token::WildcardDescendant()
     })
 }
 
-fn index_selector<'a>() -> impl Parser<'a, MemberString<'a>> {
+fn index_selector<'a>() -> impl Parser<'a, JsonString> {
     delimited(char('['), quoted_member(), char(']'))
 }
 
@@ -200,10 +149,10 @@ fn index_wildcard_selector<'a>() -> impl Parser<'a, char> {
     delimited(char('['), char('*'), char(']'))
 }
 
-fn member<'a>() -> impl Parser<'a, MemberString<'a>> {
+fn member<'a>() -> impl Parser<'a, JsonString> {
     map(
         recognize(pair(member_first(), many0(member_character()))),
-        MemberString::Borrowed,
+        JsonString::new,
     )
 }
 
@@ -215,11 +164,11 @@ fn member_character<'a>() -> impl Parser<'a, char> {
     verify(anychar, |&x| x.is_alphanumeric() || x == '_' || !x.is_ascii())
 }
 
-fn array_index_child_selector<'a>() -> impl Parser<'a, Token<'a>> {
+fn array_index_child_selector<'a>() -> impl Parser<'a, Token> {
     map(array_index_selector(), Token::ArrayIndexChild)
 }
 
-fn array_index_descendant_selector<'a>() -> impl Parser<'a, Token<'a>> {
+fn array_index_descendant_selector<'a>() -> impl Parser<'a, Token> {
     map(array_index_selector(), Token::ArrayIndexDescendant)
 }
 
@@ -235,146 +184,31 @@ fn parsed_array_index<'a>() -> impl Parser<'a, JsonUInt> {
     map_res(digit1, str::parse)
 }
 
-fn quoted_member<'a>() -> impl Parser<'a, MemberString<'a>> {
-    alt((
-        delimited(
-            char('\''),
-            map(opt(single_quoted_member()), MemberString::from),
-            char('\''),
-        ),
-        delimited(
-            char('"'),
-            map(opt(double_quoted_member()), MemberString::from),
-            char('"'),
-        ),
-    ))
-}
-
-fn single_quoted_member<'a>() -> impl Parser<'a, String> {
-    escaped_transform(
-        // If ['"'] is parsed, we want the string to be \", not ", since
-        // in a valid JSON document the only way to represent a double quote in a string is with an escape.
-        map(
-            many1(alt((
-                map(unescaped(), MaybeEscapedChar::Char),
-                map(char('"'), MaybeEscapedChar::Escaped),
-            ))),
-            MaybeEscapedCharVec,
-        ),
-        '\\',
-        alt((escaped(), value("'", tag("'")))),
-    )
-}
-
-fn double_quoted_member<'a>() -> impl Parser<'a, String> {
-    escaped_transform(
-        recognize(many1(alt((unescaped(), char('\''))))),
-        '\\',
-        // If ["\""] is parsed the string must be \". Same reason as in single_quoted_member.
-        alt((escaped(), value("\\\"", tag("\"")))),
-    )
-}
-
-fn escaped<'a>() -> impl Parser<'a, &'a str> {
-    alt((
-        value("\\b", tag("b")),
-        value("\\f", tag("f")),
-        value("\\n", tag("n")),
-        value("\\r", tag("r")),
-        value("\\t", tag("t")),
-        value("\\\\", tag("\\")),
-        value("/", tag("/")),
-    ))
-}
-
-fn unescaped<'a>() -> impl Parser<'a, char> {
-    verify(none_of(r#"'"\"#), |&c| u32::from(c) >= 0x20)
-}
-
-// This impl is needed for nom `escaped_transform` to work with our `MaybeEscapedChar`.
-// Logic is simple, we can extend a `String` with `MaybeEscapedChar` by appending
-// either the raw char, or a backslash followed by the should-be-escaped char.
-impl nom::ExtendInto for MaybeEscapedCharVec {
-    type Item = char;
-
-    type Extender = String;
-
-    fn new_builder(&self) -> Self::Extender {
-        String::new()
-    }
-
-    fn extend_into(&self, acc: &mut Self::Extender) {
-        for maybe_escaped in &self.0 {
-            match maybe_escaped {
-                MaybeEscapedChar::Char(c) => acc.push(*c),
-                MaybeEscapedChar::Escaped(c) => {
-                    acc.push('\\');
-                    acc.push(*c);
-                }
+fn quoted_member<'a>() -> impl Parser<'a, JsonString> {
+    |s| {
+        alt((
+            delimited(char('"'), cut(JsonString::parse_double_quoted), char('"')),
+            delimited(char('\''), cut(JsonString::parse_single_quoted), char('\'')),
+        ))(s)
+        .map_err(|x| match x {
+            Err::Incomplete(_) => todo!(),
+            Err::Error(e) => {
+                //println!("wstawaj zesrałeś się {e}");
+                Err::Error(nom::error::Error::new(s, error::ErrorKind::Alt))
             }
-        }
+            Err::Failure(e) => {
+                //println!("wstawaj zesrałeś się mocno {e}");
+                Err::Error(nom::error::Error::new(s, error::ErrorKind::Alt))
+            }
+        })
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::parse_json_path_query;
-    use crate::{parser::MemberString, JsonPathQuery};
+    use crate::{str::JsonString, JsonPathQuery};
     use pretty_assertions::assert_eq;
-
-    #[test]
-    fn single_quoted_member() {
-        let input = "a";
-
-        let result = super::single_quoted_member()(input);
-
-        assert_eq!(result, Ok(("", "a".to_owned())));
-    }
-
-    #[test]
-    fn double_quoted_member() {
-        let input = "a";
-
-        let result = super::double_quoted_member()(input);
-
-        assert_eq!(result, Ok(("", "a".to_owned())));
-    }
-
-    #[test]
-    fn single_quoted_member_should_not_unescape_backslashes() {
-        let input = r"\\x";
-
-        let result = super::single_quoted_member()(input);
-
-        assert_eq!(result, Ok(("", r"\\x".to_owned())));
-    }
-
-    #[test]
-    fn double_quoted_member_should_not_unescape_backslashes() {
-        let input = r"\\x";
-
-        let result = super::double_quoted_member()(input);
-
-        assert_eq!(result, Ok(("", r"\\x".to_owned())));
-    }
-
-    #[test]
-    fn single_quoted_member_should_escape_double_quotes() {
-        let input = r#"""#;
-
-        let result = super::single_quoted_member()(input);
-
-        assert_eq!(result, Ok(("", r#"\""#.to_owned())));
-    }
-
-    #[test]
-    fn double_quoted_member_should_not_unescape_double_quotes() {
-        let input = r#"\""#;
-
-        let result = super::double_quoted_member()(input);
-
-        assert_eq!(result, Ok(("", r#"\""#.to_owned())));
-    }
 
     #[test]
     fn quoted_member() {
@@ -382,7 +216,7 @@ mod tests {
 
         let result = super::quoted_member()(input);
 
-        assert_eq!(result, Ok(("", MemberString::Owned("a".to_string()))));
+        assert_eq!(result, Ok(("", JsonString::new("a"))));
     }
 
     #[test]

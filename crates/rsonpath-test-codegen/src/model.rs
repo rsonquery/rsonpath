@@ -44,6 +44,8 @@ pub(crate) struct Query {
     pub(crate) query: String,
     /// Results expected to be produced by the query.
     pub(crate) results: Results,
+    /// Details about a disabled query. Omitted if query is not disabled.
+    pub(crate) disabled: Option<Disabled>,
 }
 
 /// Expected results of a query.
@@ -75,6 +77,15 @@ pub(crate) struct ResultApproximateSpan {
     pub(crate) end_lower_bound: usize,
     /// Index of the first non-whitespace after the match.
     pub(crate) end_upper_bound: Option<usize>,
+}
+
+/// Details about a disabled query.
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub(crate) struct Disabled {
+    /// Link to the GitHub issue whose resolution would fix the query.
+    pub(crate) issue: String,
+    /// Descriptive reason for the current rsonpath limitation.
+    pub(crate) reason: String,
 }
 
 /// Serialize a [`Document`] to [`String`].
@@ -117,23 +128,23 @@ impl<'de> Deserialize<'de> for ResultSpan {
 
 impl quote::ToTokens for ResultApproximateSpan {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        use proc_macro2::{Punct, Ident, Spacing, Span};
+        use proc_macro2::{Ident, Punct, Spacing, Span};
         tokens.append(Punct::new('(', Spacing::Alone));
         self.start.to_tokens(tokens);
         tokens.append(Punct::new(',', Spacing::Alone));
         self.end_lower_bound.to_tokens(tokens);
         tokens.append(Punct::new(',', Spacing::Alone));
-        
+
         match self.end_upper_bound {
             Some(x) => {
                 tokens.append(Ident::new("Some", Span::call_site()));
                 tokens.append(Punct::new('(', Spacing::Alone));
                 x.to_tokens(tokens);
                 tokens.append(Punct::new(')', Spacing::Alone));
-            },
+            }
             None => tokens.append(Ident::new("None", Span::call_site())),
         }
-        
+
         tokens.append(Punct::new(')', Spacing::Alone));
     }
 }
@@ -294,9 +305,10 @@ fn validate(doc: &Document) -> Result<(), ValidationError> {
                     }
 
                     if let Some(contents) = input.as_ref() {
-                        if span.start <= span.end { // This error is checked before, we don't want to panic here.
+                        if span.start <= span.end {
+                            // This error is checked before, we don't want to panic here.
                             let actual_value = &contents[span.start..span.end];
-                            
+
                             if actual_value != node {
                                 err.add(format!(
                                     "query {} defines a span [{}, {}] which does not select the corresponding node (expected '{}', selects '{}' instead)",
