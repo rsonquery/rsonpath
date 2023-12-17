@@ -10,11 +10,11 @@ fn main() -> ExitCode {
 
     let input: &str = &args[1];
 
-    let res = rsonpath_syntax::JsonPathQuery::parse(input);
+    let res = rsonpath_syntax::parse(input);
 
     match res {
-        Ok(x) => println!("OK: {}", x),
-        Err(err) => println!("ERR: {err}\nINPUT: {input}"),
+        Ok(x) => println!("OK: {}\nINPUT: {input}", x),
+        Err(err) => println!("ERR: {}\nINPUT: {input}", err.colored()),
     }
 
     ExitCode::SUCCESS

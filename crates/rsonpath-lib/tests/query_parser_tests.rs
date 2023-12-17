@@ -3,13 +3,21 @@ use rsonpath_syntax::{builder::JsonPathQueryBuilder, num::JsonUInt, str::JsonStr
 use test_case::test_case;
 
 #[test]
-fn should_infer_root_from_empty_string() {
+fn should_not_parse_empty_string() {
     let input = "";
-    let expected_query = JsonPathQueryBuilder::new().into();
 
-    let result = JsonPathQuery::parse(input).expect("expected Ok");
+    let result = rsonpath_syntax::parse(input).expect_err("expected Err");
 
-    assert_eq!(result, expected_query);
+    assert_eq!(
+        format!("{result}"),
+        r"query must start with the root identifier '$'
+
+  
+  ^
+
+at position 0
+"
+    );
 }
 
 #[test]
@@ -17,7 +25,7 @@ fn root() {
     let input = "$";
     let expected_query = JsonPathQueryBuilder::new().into();
 
-    let result = JsonPathQuery::parse(input).expect("expected Ok");
+    let result = rsonpath_syntax::parse(input).expect("expected Ok");
 
     assert_eq!(result, expected_query);
 }
@@ -25,9 +33,9 @@ fn root() {
 #[test_case("$.*"; "asterisk")]
 #[test_case("$[*]"; "bracketed asterisk")]
 fn child_wildcard_selector_test(input: &str) {
-    let expected_query = JsonPathQueryBuilder::new().any_child().into();
+    let expected_query = JsonPathQueryBuilder::new().child_any().build();
 
-    let result = JsonPathQuery::parse(input).expect("expected Ok");
+    let result = rsonpath_syntax::parse(input).expect("expected Ok");
 
     assert_eq!(result, expected_query);
 }
@@ -35,9 +43,9 @@ fn child_wildcard_selector_test(input: &str) {
 #[test_case("$..*"; "asterisk")]
 #[test_case("$..[*]"; "bracketed asterisk")]
 fn descendant_wildcard_selector(input: &str) {
-    let expected_query = JsonPathQueryBuilder::new().any_descendant().into();
+    let expected_query = JsonPathQueryBuilder::new().descendant_any().build();
 
-    let result = JsonPathQuery::parse(input).expect("expected Ok");
+    let result = rsonpath_syntax::parse(input).expect("expected Ok");
 
     assert_eq!(result, expected_query);
 }
@@ -46,12 +54,12 @@ fn descendant_wildcard_selector(input: &str) {
 fn wildcard_child_selector() {
     let input = "$.*.a.*";
     let expected_query = JsonPathQueryBuilder::new()
-        .any_child()
-        .child(JsonString::new("a"))
-        .any_child()
-        .into();
+        .child_any()
+        .child_name(JsonString::new("a"))
+        .child_any()
+        .build();
 
-    let result = JsonPathQuery::parse(input).expect("expected Ok");
+    let result = rsonpath_syntax::parse(input).expect("expected Ok");
 
     assert_eq!(result, expected_query);
 }
@@ -59,11 +67,9 @@ fn wildcard_child_selector() {
 #[test]
 fn descendant_nonnegative_array_indexed_selector() {
     let input = "$..[5]";
-    let expected_query = JsonPathQueryBuilder::new()
-        .array_index_descendant(5_u64.try_into().unwrap())
-        .into();
+    let expected_query = JsonPathQueryBuilder::new().descendant_index(5).build();
 
-    let result = JsonPathQuery::parse(input).expect("expected Ok");
+    let result = rsonpath_syntax::parse(input).expect("expected Ok");
 
     assert_eq!(result, expected_query);
 }
@@ -71,11 +77,9 @@ fn descendant_nonnegative_array_indexed_selector() {
 #[test]
 fn nonnegative_array_indexed_selector() {
     let input = "$[5]";
-    let expected_query = JsonPathQueryBuilder::new()
-        .array_index_child(5_u64.try_into().unwrap())
-        .into();
+    let expected_query = JsonPathQueryBuilder::new().child_index(5).build();
 
-    let result = JsonPathQuery::parse(input).expect("expected Ok");
+    let result = rsonpath_syntax::parse(input).expect("expected Ok");
 
     assert_eq!(result, expected_query);
 }
@@ -83,12 +87,9 @@ fn nonnegative_array_indexed_selector() {
 #[test]
 fn multiple_nonnegative_array_indexed_selector() {
     let input = "$[5][2]";
-    let expected_query = JsonPathQueryBuilder::new()
-        .array_index_child(5_u64.try_into().unwrap())
-        .array_index_child(2_u64.try_into().unwrap())
-        .into();
+    let expected_query = JsonPathQueryBuilder::new().child_index(5).child_index(2).build();
 
-    let result = JsonPathQuery::parse(input).expect("expected Ok");
+    let result = rsonpath_syntax::parse(input).expect("expected Ok");
 
     assert_eq!(result, expected_query);
 }
@@ -96,9 +97,9 @@ fn multiple_nonnegative_array_indexed_selector() {
 #[test]
 fn zeroth_array_indexed_selector() {
     let input = "$[0]";
-    let expected_query = JsonPathQueryBuilder::new().array_index_child(JsonUInt::ZERO).into();
+    let expected_query = JsonPathQueryBuilder::new().child_index(JsonUInt::ZERO).build();
 
-    let result = JsonPathQuery::parse(input).expect("expected Ok");
+    let result = rsonpath_syntax::parse(input).expect("expected Ok");
 
     assert_eq!(result, expected_query);
 }
@@ -107,12 +108,12 @@ fn zeroth_array_indexed_selector() {
 fn indexed_wildcard_child_selector() {
     let input = r#"$[*]['*']["*"]"#;
     let expected_query = JsonPathQueryBuilder::new()
-        .any_child()
-        .child(JsonString::new("*"))
-        .child(JsonString::new("*"))
-        .into();
+        .child_any()
+        .child_name("*")
+        .child_name("*")
+        .build();
 
-    let result = JsonPathQuery::parse(input).expect("expected Ok");
+    let result = rsonpath_syntax::parse(input).expect("expected Ok");
 
     assert_eq!(result, expected_query);
 }
@@ -121,12 +122,12 @@ fn indexed_wildcard_child_selector() {
 fn wildcard_descendant_selector() {
     let input = "$..*.a..*";
     let expected_query = JsonPathQueryBuilder::new()
-        .any_descendant()
-        .child(JsonString::new("a"))
-        .any_descendant()
-        .into();
+        .descendant_any()
+        .child_name("a")
+        .descendant_any()
+        .build();
 
-    let result = JsonPathQuery::parse(input).expect("expected Ok");
+    let result = rsonpath_syntax::parse(input).expect("expected Ok");
 
     assert_eq!(result, expected_query);
 }
@@ -135,32 +136,32 @@ fn wildcard_descendant_selector() {
 fn indexed_wildcard_descendant_selector_nested() {
     let input = r#"$..[*]..['*']..["*"]"#;
     let expected_query = JsonPathQueryBuilder::new()
-        .any_descendant()
-        .descendant(JsonString::new("*"))
-        .descendant(JsonString::new("*"))
-        .into();
+        .descendant_any()
+        .descendant_name("*")
+        .descendant_name("*")
+        .build();
 
-    let result = JsonPathQuery::parse(input).expect("expected Ok");
+    let result = rsonpath_syntax::parse(input).expect("expected Ok");
 
     assert_eq!(result, expected_query);
 }
 
 #[test]
 fn escaped_single_quote_in_single_quote_member() {
-    let input = r"['\'']";
-    let expected_query = JsonPathQueryBuilder::new().child(JsonString::new("'")).into();
+    let input = r"$['\'']";
+    let expected_query = JsonPathQueryBuilder::new().child_name("'").build();
 
-    let result = JsonPathQuery::parse(input).expect("expected Ok");
+    let result = rsonpath_syntax::parse(input).expect("expected Ok");
 
     assert_eq!(result, expected_query);
 }
 
 #[test]
 fn unescaped_double_quote_in_single_quote_member() {
-    let input = r#"['"']"#;
-    let expected_query = JsonPathQueryBuilder::new().child(JsonString::new(r#"""#)).into();
+    let input = r#"$['"']"#;
+    let expected_query = JsonPathQueryBuilder::new().child_name(r#"""#).build();
 
-    let result = JsonPathQuery::parse(input).expect("expected Ok");
+    let result = rsonpath_syntax::parse(input).expect("expected Ok");
 
     assert_eq!(result, expected_query);
 }
@@ -169,17 +170,17 @@ fn unescaped_double_quote_in_single_quote_member() {
 fn name_and_wildcard_selectors_bracketed_and_raw() {
     let input = "$.a['b']..c..['d'].*[*]..*..[*]";
     let expected_query = JsonPathQueryBuilder::new()
-        .child(JsonString::new("a"))
-        .child(JsonString::new("b"))
-        .descendant(JsonString::new("c"))
-        .descendant(JsonString::new("d"))
-        .any_child()
-        .any_child()
-        .any_descendant()
-        .any_descendant()
-        .into();
+        .child_name("a")
+        .child_name("b")
+        .descendant_name("c")
+        .descendant_name("d")
+        .child_any()
+        .child_any()
+        .descendant_any()
+        .descendant_any()
+        .build();
 
-    let result = JsonPathQuery::parse(input).expect("expected Ok");
+    let result = rsonpath_syntax::parse(input).expect("expected Ok");
 
     assert_eq!(result, expected_query);
 }
@@ -268,9 +269,9 @@ mod proptests {
     fn any_selector() -> impl Strategy<Value = Selector> {
         prop_oneof![
             any_wildcard_child(),
-            any_child(),
+            child_any(),
             any_wildcard_descendant(),
-            any_descendant(),
+            descendant_any(),
             any_array_index_child(),
             any_array_index_descendant(),
         ]
@@ -293,7 +294,7 @@ mod proptests {
     }
 
     // .label or ['label']
-    fn any_child() -> impl Strategy<Value = Selector> {
+    fn child_any() -> impl Strategy<Value = Selector> {
         prop_oneof![any_short_name().prop_map(|x| (format!(".{x}"), x)), any_name(),].prop_map(|(s, l)| Selector {
             string: s,
             tag: SelectorTag::Child(l),
@@ -301,7 +302,7 @@ mod proptests {
     }
 
     // ..label or ..['label']
-    fn any_descendant() -> impl Strategy<Value = Selector> {
+    fn descendant_any() -> impl Strategy<Value = Selector> {
         prop_oneof![any_short_name().prop_map(|x| (x.clone(), x)), any_name(),].prop_map(|(x, l)| Selector {
             string: format!("..{x}"),
             tag: SelectorTag::Descendant(l),
@@ -365,24 +366,22 @@ mod proptests {
     // Cspell: enable
 
     prop_compose! {
-        fn any_valid_query()(has_root in any::<bool>(), selectors in prop::collection::vec(any_selector(), 0..20)) -> (String, JsonPathQuery) {
+        fn any_valid_query()(selectors in prop::collection::vec(any_selector(), 0..20)) -> (String, JsonPathQuery) {
             let mut result: String = String::new();
             let mut query = JsonPathQueryBuilder::new();
 
-            if has_root {
-                result += "$";
-            }
+            result += "$";
 
             for selector in selectors {
                 result += &selector.string;
 
-                query = match selector.tag {
-                    SelectorTag::WildcardChild => query.any_child(),
-                    SelectorTag::Child(name) => query.child(JsonString::new(&name)),
-                    SelectorTag::WildcardDescendant => query.any_descendant(),
-                    SelectorTag::Descendant(name) => query.descendant(JsonString::new(&name)),
-                    SelectorTag::ArrayIndexChild(idx) => query.array_index_child(idx),
-                    SelectorTag::ArrayIndexDescendant(idx) => query.array_index_descendant(idx)
+                match selector.tag {
+                    SelectorTag::WildcardChild => query.child_any(),
+                    SelectorTag::Child(name) => query.child_name(JsonString::new(&name)),
+                    SelectorTag::WildcardDescendant => query.descendant_any(),
+                    SelectorTag::Descendant(name) => query.descendant_name(JsonString::new(&name)),
+                    SelectorTag::ArrayIndexChild(idx) => query.child_index(idx),
+                    SelectorTag::ArrayIndexDescendant(idx) => query.descendant_index(idx)
                 };
             }
 
@@ -397,7 +396,7 @@ mod proptests {
         proptest! {
             #[test]
             fn parses_expected_query((input, expected) in any_valid_query()) {
-                let result = JsonPathQuery::parse(&input).expect("expected Ok");
+                let result = rsonpath_syntax::parse(&input).expect("expected Ok");
 
                 assert_eq!(expected, result);
             }

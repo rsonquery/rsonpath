@@ -1,26 +1,31 @@
 //! Utility for building a [`JsonPathQuery`](`crate::JsonPathQuery`)
 //! programmatically.
-use crate::{num::JsonUInt, str::JsonString, JsonPathQuery, JsonPathQueryNode};
+use crate::{num::JsonInt, str::JsonString, Index, JsonPathQuery, Segment, Selector, Selectors};
 
 /// Builder for [`JsonPathQuery`] instances.
 ///
 /// # Examples
 /// ```
 /// # use rsonpath_syntax::{JsonPathQuery, builder::JsonPathQueryBuilder, str::JsonString};
-/// let builder = JsonPathQueryBuilder::new()
-///     .child(JsonString::new("a"))
-///     .descendant(JsonString::new("b"))
-///     .any_child()
-///     .child(JsonString::new("c"))
-///     .any_descendant();
+/// let mut builder = JsonPathQueryBuilder::new();
+///     
+/// builder.child_name("a")
+///     .descendant_name("b")
+///     .child_any()
+///     .child_name("c")
+///     .descendant_any();
 ///
-/// // Can also use `builder.build()`.
+/// // Can also use `builder.build()` as a non-consuming version.
 /// let query: JsonPathQuery = builder.into();
 ///
 /// assert_eq!(format!("{query}"), "$['a']..['b'][*]['c']..[*]");
 /// ```
 pub struct JsonPathQueryBuilder {
-    nodes: Vec<NodeTemplate>,
+    segments: Vec<Segment>,
+}
+
+pub struct JsonPathSelectorsBuilder {
+    selectors: Vec<Selector>,
 }
 
 impl JsonPathQueryBuilder {
@@ -28,86 +33,106 @@ impl JsonPathQueryBuilder {
     ///
     /// # Examples
     /// ```
-    /// # use rsonpath_syntax::{JsonPathQuery, JsonPathQueryNode, builder::JsonPathQueryBuilder};
+    /// # use rsonpath_syntax::{JsonPathQuery, builder::JsonPathQueryBuilder};
     /// let builder = JsonPathQueryBuilder::new();
     /// let query: JsonPathQuery = builder.into();
     ///
-    /// assert_eq!(*query.root(), JsonPathQueryNode::Root(None));
+    /// assert!(query.segments().is_empty());
     /// ```
     #[must_use]
     #[inline(always)]
     pub fn new() -> Self {
-        Self { nodes: vec![] }
+        Self { segments: vec![] }
     }
 
-    /// Add a child selector with a given member name.
-    #[must_use]
-    #[inline(always)]
-    pub fn child(mut self, member_name: JsonString) -> Self {
-        self.nodes.push(NodeTemplate::Child(member_name));
+    #[inline]
+    pub fn child<F>(&mut self, segment_builder: F) -> &mut Self
+    where
+        F: FnOnce(&mut JsonPathSelectorsBuilder) -> &mut JsonPathSelectorsBuilder,
+    {
+        let mut builder = JsonPathSelectorsBuilder::new();
+        segment_builder(&mut builder);
+        self.segments.push(Segment::Child(builder.build()));
         self
     }
 
-    /// Add a child selector with a given index.
-    #[must_use]
-    #[inline(always)]
-    pub fn array_index_child(mut self, index: JsonUInt) -> Self {
-        self.nodes.push(NodeTemplate::ArrayIndexChild(index));
+    #[inline]
+    pub fn descendant<F>(&mut self, segment_builder: F) -> &mut Self
+    where
+        F: FnOnce(&mut JsonPathSelectorsBuilder) -> &mut JsonPathSelectorsBuilder,
+    {
+        let mut builder = JsonPathSelectorsBuilder::new();
+        segment_builder(&mut builder);
+        self.segments.push(Segment::Descendant(builder.build()));
         self
     }
 
-    /// Add a descendant selector with a given index.
-    #[must_use]
     #[inline(always)]
-    pub fn array_index_descendant(mut self, index: JsonUInt) -> Self {
-        self.nodes.push(NodeTemplate::ArrayIndexDescendant(index));
-        self
+    pub fn child_name<S: Into<JsonString>>(&mut self, name: S) -> &mut Self {
+        self.child(|x| x.name(name))
     }
 
-    /// Add a wildcard child selector.
-    #[must_use]
     #[inline(always)]
-    pub fn any_child(mut self) -> Self {
-        self.nodes.push(NodeTemplate::AnyChild);
-        self
+    pub fn child_any(&mut self) -> &mut Self {
+        self.child(|x| x.any())
     }
 
-    /// Add a descendant selector with a given member_name.
-    #[must_use]
     #[inline(always)]
-    pub fn descendant(mut self, member_name: JsonString) -> Self {
-        self.nodes.push(NodeTemplate::Descendant(member_name));
-        self
+    pub fn child_index<N: Into<JsonInt>>(&mut self, idx: N) -> &mut Self {
+        self.child(|x| x.index(idx))
     }
 
-    /// Add a wildcard descendant selector.
-    #[must_use]
     #[inline(always)]
-    pub fn any_descendant(mut self) -> Self {
-        self.nodes.push(NodeTemplate::AnyDescendant);
-        self
+    pub fn descendant_name<S: Into<JsonString>>(&mut self, name: S) -> &mut Self {
+        self.descendant(|x| x.name(name))
+    }
+
+    #[inline(always)]
+    pub fn descendant_any(&mut self) -> &mut Self {
+        self.descendant(|x| x.any())
+    }
+
+    #[inline(always)]
+    pub fn descendant_index<N: Into<JsonInt>>(&mut self, idx: N) -> &mut Self {
+        self.descendant(|x| x.index(idx))
     }
 
     /// Consume the builder and produce a [`JsonPathQuery`].
     #[must_use]
     #[inline]
-    pub fn build(self) -> JsonPathQuery {
-        let mut last = None;
-
-        for node in self.nodes.into_iter().rev() {
-            last = match node {
-                NodeTemplate::ArrayIndexChild(i) => Some(Box::new(JsonPathQueryNode::ArrayIndexChild(i, last))),
-                NodeTemplate::ArrayIndexDescendant(i) => {
-                    Some(Box::new(JsonPathQueryNode::ArrayIndexDescendant(i, last)))
-                }
-                NodeTemplate::Child(name) => Some(Box::new(JsonPathQueryNode::Child(name, last))),
-                NodeTemplate::AnyChild => Some(Box::new(JsonPathQueryNode::AnyChild(last))),
-                NodeTemplate::Descendant(name) => Some(Box::new(JsonPathQueryNode::Descendant(name, last))),
-                NodeTemplate::AnyDescendant => Some(Box::new(JsonPathQueryNode::AnyDescendant(last))),
-            };
+    pub fn build(&mut self) -> JsonPathQuery {
+        JsonPathQuery {
+            segments: self.segments.clone(),
         }
+    }
+}
 
-        JsonPathQuery::new(Box::new(JsonPathQueryNode::Root(last)))
+impl JsonPathSelectorsBuilder {
+    fn new() -> Self {
+        Self { selectors: vec![] }
+    }
+
+    fn build(self) -> Selectors {
+        Selectors::many(self.selectors)
+    }
+
+    #[inline(always)]
+    pub fn name<S: Into<JsonString>>(&mut self, name: S) -> &mut Self {
+        self.selectors.push(Selector::Name(name.into()));
+        self
+    }
+
+    #[inline(always)]
+    pub fn index<N: Into<JsonInt>>(&mut self, idx: N) -> &mut Self {
+        let json_int: JsonInt = idx.into();
+        self.selectors.push(Selector::Index(Index::from(json_int)));
+        self
+    }
+
+    #[inline(always)]
+    pub fn any(&mut self) -> &mut Self {
+        self.selectors.push(Selector::Wildcard);
+        self
     }
 }
 
@@ -121,15 +146,8 @@ impl Default for JsonPathQueryBuilder {
 impl From<JsonPathQueryBuilder> for JsonPathQuery {
     #[inline(always)]
     fn from(value: JsonPathQueryBuilder) -> Self {
-        value.build()
+        Self {
+            segments: value.segments,
+        }
     }
-}
-
-enum NodeTemplate {
-    Child(JsonString),
-    ArrayIndexChild(JsonUInt),
-    ArrayIndexDescendant(JsonUInt),
-    AnyChild,
-    AnyDescendant,
-    Descendant(JsonString),
 }

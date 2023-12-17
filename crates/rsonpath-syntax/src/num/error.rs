@@ -17,7 +17,7 @@ pub struct JsonIntOverflowError {
 }
 
 /// Errors raised when trying to parse JSON integer types from strings.
-#[derive(Debug, Error)]
+#[derive(Debug, PartialEq, Eq, Error, Clone)]
 pub struct JsonIntParseError {
     kind: JsonIntParseErrorKind,
 }
@@ -100,7 +100,7 @@ enum JsonIntOverflowKind {
     UIntNeg(i64),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 enum JsonIntParseErrorKind {
     IntPosOverflow(String),
     IntNegOverflow(String),

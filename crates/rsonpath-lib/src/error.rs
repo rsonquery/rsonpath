@@ -137,6 +137,18 @@ impl UnsupportedFeatureError {
         Self::tracked(64, "Array Index")
     }
 
+    #[must_use]
+    #[inline(always)]
+    pub fn multiple_selectors() -> Self {
+        Self::untracked("Multiple Selector per Segment")
+    }
+
+    #[must_use]
+    #[inline(always)]
+    pub fn indexing_from_end() -> Self {
+        Self::untracked("Indexing from End")
+    }
+
     /// Returns the issue number on GitHub corresponding to the unsupported feature.
     /// Is [`None`] if the feature is not planned.
     #[must_use]

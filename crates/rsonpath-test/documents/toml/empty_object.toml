@@ -8,15 +8,6 @@ json_string = """
 """
 
 [[queries]]
-query = ""
-description = "select the root (empty query)"
-
-[queries.results]
-count = 1
-spans = [[0, 2]]
-nodes = ["{}"]
-
-[[queries]]
 query = "$"
 description = "select the root"
 

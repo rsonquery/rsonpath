@@ -156,18 +156,16 @@ impl<'q> Automaton<'q> {
     ///
     /// # Examples
     /// ```rust
-    /// # use rsonpath_syntax::JsonPathQuery;
     /// # use rsonpath::automaton::*;
-    /// let query = JsonPathQuery::parse("$").unwrap();
+    /// let query = rsonpath_syntax::parse("$").unwrap();
     /// let automaton = Automaton::new(&query).unwrap();
     ///
     /// assert!(automaton.is_empty_query());
     /// ```
     ///
     /// ```rust
-    /// # use rsonpath_syntax::JsonPathQuery;
     /// # use rsonpath::automaton::*;
-    /// let query = JsonPathQuery::parse("$.a").unwrap();
+    /// let query = rsonpath_syntax::parse("$.a").unwrap();
     /// let automaton = Automaton::new(&query).unwrap();
     ///
     /// assert!(!automaton.is_empty_query());
@@ -208,9 +206,8 @@ impl<'q> Automaton<'q> {
     ///
     /// # Example
     /// ```rust
-    /// # use rsonpath_syntax::JsonPathQuery;
     /// # use rsonpath::automaton::*;
-    /// let query = JsonPathQuery::parse("$.a").unwrap();
+    /// let query = rsonpath_syntax::parse("$.a").unwrap();
     /// let automaton = Automaton::new(&query).unwrap();
     /// let state_2 = automaton[automaton.initial_state()].transitions()[0].1;
     ///
@@ -226,9 +223,8 @@ impl<'q> Automaton<'q> {
     ///
     /// # Example
     /// ```rust
-    /// # use rsonpath_syntax::JsonPathQuery;
     /// # use rsonpath::automaton::*;
-    /// let query = JsonPathQuery::parse("$[2]").unwrap();
+    /// let query = rsonpath_syntax::parse("$[2]").unwrap();
     /// let automaton = Automaton::new(&query).unwrap();
     /// let state = automaton.initial_state();
     ///
@@ -247,9 +243,8 @@ impl<'q> Automaton<'q> {
     ///
     /// # Example
     /// ```rust
-    /// # use rsonpath_syntax::JsonPathQuery;
     /// # use rsonpath::automaton::*;
-    /// let query = JsonPathQuery::parse("$[2]").unwrap();
+    /// let query = rsonpath_syntax::parse("$[2]").unwrap();
     /// let automaton = Automaton::new(&query).unwrap();
     /// let state = automaton.initial_state();
     ///
@@ -268,18 +263,16 @@ impl<'q> Automaton<'q> {
     ///
     /// # Example
     /// ```rust
-    /// # use rsonpath_syntax::JsonPathQuery;
     /// # use rsonpath::automaton::*;
-    /// let query = JsonPathQuery::parse("$[0]").unwrap();
+    /// let query = rsonpath_syntax::parse("$[0]").unwrap();
     /// let automaton = Automaton::new(&query).unwrap();
     /// let state = automaton.initial_state();
     ///
     /// assert!(automaton.has_first_array_index_transition_to_accepting(state));
     /// ```
     /// ```rust
-    /// # use rsonpath_syntax::JsonPathQuery;
     /// # use rsonpath::automaton::*;
-    /// let query = JsonPathQuery::parse("$[1]").unwrap();
+    /// let query = rsonpath_syntax::parse("$[1]").unwrap();
     /// let automaton = Automaton::new(&query).unwrap();
     /// let state = automaton.initial_state();
     ///
@@ -295,9 +288,9 @@ impl<'q> Automaton<'q> {
     ///
     /// # Example
     /// ```rust
-    /// # use rsonpath_syntax::{JsonPathQuery, num::JsonUInt};
+    /// # use rsonpath_syntax::num::JsonUInt;
     /// # use rsonpath::automaton::*;
-    /// let query = JsonPathQuery::parse("$[1]").unwrap();
+    /// let query = rsonpath_syntax::parse("$[1]").unwrap();
     /// let automaton = Automaton::new(&query).unwrap();
     /// let state = automaton.initial_state();
     /// let match_index_1 = JsonUInt::try_from(1).unwrap();
@@ -320,9 +313,8 @@ impl<'q> Automaton<'q> {
     ///
     /// # Example
     /// ```rust
-    /// # use rsonpath_syntax::JsonPathQuery;
     /// # use rsonpath::automaton::*;
-    /// let query = JsonPathQuery::parse("$.a").unwrap();
+    /// let query = rsonpath_syntax::parse("$.a").unwrap();
     /// let automaton = Automaton::new(&query).unwrap();
     ///
     /// assert!(automaton.has_transition_to_accepting(automaton.initial_state()));
@@ -338,9 +330,8 @@ impl<'q> Automaton<'q> {
     ///
     /// # Example
     /// ```rust
-    /// # use rsonpath_syntax::JsonPathQuery;
     /// # use rsonpath::automaton::*;
-    /// let query = JsonPathQuery::parse("$.a").unwrap();
+    /// let query = rsonpath_syntax::parse("$.a").unwrap();
     /// let automaton = Automaton::new(&query).unwrap();
     ///
     /// assert!(automaton.is_rejecting(automaton.rejecting_state()));
@@ -360,9 +351,8 @@ impl<'q> Automaton<'q> {
     ///
     /// # Example
     /// ```rust
-    /// # use rsonpath_syntax::JsonPathQuery;
     /// # use rsonpath::automaton::*;
-    /// let query = JsonPathQuery::parse("$.a").unwrap();
+    /// let query = rsonpath_syntax::parse("$.a").unwrap();
     /// let automaton = Automaton::new(&query).unwrap();
     ///
     /// assert!(automaton.is_unitary(automaton.initial_state()));
