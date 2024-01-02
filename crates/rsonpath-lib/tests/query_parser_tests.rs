@@ -3,24 +3,6 @@ use rsonpath_syntax::{builder::JsonPathQueryBuilder, num::JsonUInt, str::JsonStr
 use test_case::test_case;
 
 #[test]
-fn should_not_parse_empty_string() {
-    let input = "";
-
-    let result = rsonpath_syntax::parse(input).expect_err("expected Err");
-
-    assert_eq!(
-        format!("{result}"),
-        r"query must start with the root identifier '$'
-
-  
-  ^
-
-at position 0
-"
-    );
-}
-
-#[test]
 fn root() {
     let input = "$";
     let expected_query = JsonPathQueryBuilder::new().into();
@@ -33,7 +15,7 @@ fn root() {
 #[test_case("$.*"; "asterisk")]
 #[test_case("$[*]"; "bracketed asterisk")]
 fn child_wildcard_selector_test(input: &str) {
-    let expected_query = JsonPathQueryBuilder::new().child_any().build();
+    let expected_query = JsonPathQueryBuilder::new().child_wildcard().to_query();
 
     let result = rsonpath_syntax::parse(input).expect("expected Ok");
 
@@ -43,7 +25,7 @@ fn child_wildcard_selector_test(input: &str) {
 #[test_case("$..*"; "asterisk")]
 #[test_case("$..[*]"; "bracketed asterisk")]
 fn descendant_wildcard_selector(input: &str) {
-    let expected_query = JsonPathQueryBuilder::new().descendant_any().build();
+    let expected_query = JsonPathQueryBuilder::new().descendant_wildcard().to_query();
 
     let result = rsonpath_syntax::parse(input).expect("expected Ok");
 
@@ -54,10 +36,10 @@ fn descendant_wildcard_selector(input: &str) {
 fn wildcard_child_selector() {
     let input = "$.*.a.*";
     let expected_query = JsonPathQueryBuilder::new()
-        .child_any()
+        .child_wildcard()
         .child_name(JsonString::new("a"))
-        .child_any()
-        .build();
+        .child_wildcard()
+        .to_query();
 
     let result = rsonpath_syntax::parse(input).expect("expected Ok");
 
@@ -67,7 +49,7 @@ fn wildcard_child_selector() {
 #[test]
 fn descendant_nonnegative_array_indexed_selector() {
     let input = "$..[5]";
-    let expected_query = JsonPathQueryBuilder::new().descendant_index(5).build();
+    let expected_query = JsonPathQueryBuilder::new().descendant_index(5).to_query();
 
     let result = rsonpath_syntax::parse(input).expect("expected Ok");
 
@@ -77,7 +59,7 @@ fn descendant_nonnegative_array_indexed_selector() {
 #[test]
 fn nonnegative_array_indexed_selector() {
     let input = "$[5]";
-    let expected_query = JsonPathQueryBuilder::new().child_index(5).build();
+    let expected_query = JsonPathQueryBuilder::new().child_index(5).to_query();
 
     let result = rsonpath_syntax::parse(input).expect("expected Ok");
 
@@ -87,7 +69,7 @@ fn nonnegative_array_indexed_selector() {
 #[test]
 fn multiple_nonnegative_array_indexed_selector() {
     let input = "$[5][2]";
-    let expected_query = JsonPathQueryBuilder::new().child_index(5).child_index(2).build();
+    let expected_query = JsonPathQueryBuilder::new().child_index(5).child_index(2).to_query();
 
     let result = rsonpath_syntax::parse(input).expect("expected Ok");
 
@@ -97,7 +79,7 @@ fn multiple_nonnegative_array_indexed_selector() {
 #[test]
 fn zeroth_array_indexed_selector() {
     let input = "$[0]";
-    let expected_query = JsonPathQueryBuilder::new().child_index(JsonUInt::ZERO).build();
+    let expected_query = JsonPathQueryBuilder::new().child_index(JsonUInt::ZERO).to_query();
 
     let result = rsonpath_syntax::parse(input).expect("expected Ok");
 
@@ -108,10 +90,10 @@ fn zeroth_array_indexed_selector() {
 fn indexed_wildcard_child_selector() {
     let input = r#"$[*]['*']["*"]"#;
     let expected_query = JsonPathQueryBuilder::new()
-        .child_any()
+        .child_wildcard()
         .child_name("*")
         .child_name("*")
-        .build();
+        .to_query();
 
     let result = rsonpath_syntax::parse(input).expect("expected Ok");
 
@@ -122,10 +104,10 @@ fn indexed_wildcard_child_selector() {
 fn wildcard_descendant_selector() {
     let input = "$..*.a..*";
     let expected_query = JsonPathQueryBuilder::new()
-        .descendant_any()
+        .descendant_wildcard()
         .child_name("a")
-        .descendant_any()
-        .build();
+        .descendant_wildcard()
+        .to_query();
 
     let result = rsonpath_syntax::parse(input).expect("expected Ok");
 
@@ -136,10 +118,10 @@ fn wildcard_descendant_selector() {
 fn indexed_wildcard_descendant_selector_nested() {
     let input = r#"$..[*]..['*']..["*"]"#;
     let expected_query = JsonPathQueryBuilder::new()
-        .descendant_any()
+        .descendant_wildcard()
         .descendant_name("*")
         .descendant_name("*")
-        .build();
+        .to_query();
 
     let result = rsonpath_syntax::parse(input).expect("expected Ok");
 
@@ -149,7 +131,7 @@ fn indexed_wildcard_descendant_selector_nested() {
 #[test]
 fn escaped_single_quote_in_single_quote_member() {
     let input = r"$['\'']";
-    let expected_query = JsonPathQueryBuilder::new().child_name("'").build();
+    let expected_query = JsonPathQueryBuilder::new().child_name("'").to_query();
 
     let result = rsonpath_syntax::parse(input).expect("expected Ok");
 
@@ -159,7 +141,7 @@ fn escaped_single_quote_in_single_quote_member() {
 #[test]
 fn unescaped_double_quote_in_single_quote_member() {
     let input = r#"$['"']"#;
-    let expected_query = JsonPathQueryBuilder::new().child_name(r#"""#).build();
+    let expected_query = JsonPathQueryBuilder::new().child_name(r#"""#).to_query();
 
     let result = rsonpath_syntax::parse(input).expect("expected Ok");
 
@@ -174,11 +156,11 @@ fn name_and_wildcard_selectors_bracketed_and_raw() {
         .child_name("b")
         .descendant_name("c")
         .descendant_name("d")
-        .child_any()
-        .child_any()
-        .descendant_any()
-        .descendant_any()
-        .build();
+        .child_wildcard()
+        .child_wildcard()
+        .descendant_wildcard()
+        .descendant_wildcard()
+        .to_query();
 
     let result = rsonpath_syntax::parse(input).expect("expected Ok");
 
@@ -376,9 +358,9 @@ mod proptests {
                 result += &selector.string;
 
                 match selector.tag {
-                    SelectorTag::WildcardChild => query.child_any(),
+                    SelectorTag::WildcardChild => query.child_wildcard(),
                     SelectorTag::Child(name) => query.child_name(JsonString::new(&name)),
-                    SelectorTag::WildcardDescendant => query.descendant_any(),
+                    SelectorTag::WildcardDescendant => query.descendant_wildcard(),
                     SelectorTag::Descendant(name) => query.descendant_name(JsonString::new(&name)),
                     SelectorTag::ArrayIndexChild(idx) => query.child_index(idx),
                     SelectorTag::ArrayIndexDescendant(idx) => query.descendant_index(idx)

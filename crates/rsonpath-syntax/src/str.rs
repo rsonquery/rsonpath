@@ -64,10 +64,93 @@ impl From<&str> for JsonString {
     }
 }
 
+/// Escape mode for the [`escape`] function.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum EscapeMode {
+    /// Treat the string as within single quotes `'`.
     SingleQuoted,
+    /// Treat the string as withing double quotes `"`.
     DoubleQuoted,
+}
+
+/// Escape a string according to JSONPath rules in a given quotation context.
+///
+/// ## Quotes
+///
+/// Processing quotes, `'` and `"`, depends on the `mode`:
+/// - in [`EscapeMode::SingleQuoted`], the string is escaped as if written in a single-quoted
+///   name selector `['<str>']`; single quotes are escaped as `\'`, double-quotes are copied as-is.
+/// - in [`EscapeMode::DoubleQuoted`], the string is escaped as if written in double-quotes,
+///   which is the same as a member name in a JSON document or a double-quoted name selector `["<str>"]`;
+///   double quotes are escaped as `\"`, single quotes are copied as-is.
+///
+/// ### Examples
+///
+/// ```rust
+/// # use rsonpath_syntax::str::{self, EscapeMode};
+/// let result_single = str::escape(r#"'rust' or "rust"\n"#, EscapeMode::SingleQuoted);
+/// let result_double = str::escape(r#"'rust' or "rust"\n"#, EscapeMode::DoubleQuoted);
+/// assert_eq!(result_single, r#"\'rust\' or "rust"\\n"#);
+/// assert_eq!(result_double, r#"'rust' or \"rust\"\\n"#);
+/// ```
+///
+/// ## Control characters
+///
+/// Control characters (U+0000 to U+001F) are escaped as special sequences
+/// where possible, e.g. Form Feed U+000C is escaped as `\f`.
+/// Other control sequences are escaped as a Unicode sequence, e.g.
+/// a null byte is escaped as `\u0000`.
+///
+/// ### Examples
+///
+/// ```rust
+/// # use rsonpath_syntax::str::{self, EscapeMode};
+/// let result = str::escape("\u{08}\u{09}\u{0A}\u{0B}\u{0C}\u{0D}", EscapeMode::DoubleQuoted);
+/// assert_eq!(result, r"\b\t\n\u000b\f\r");
+/// ```
+///
+/// ## Other
+///
+/// Characters that don't have to be escaped are not.
+///
+/// ### Examples
+///
+/// ```rust
+/// # use rsonpath_syntax::str::{self, EscapeMode};
+/// let result = str::escape("🦀", EscapeMode::DoubleQuoted);
+/// assert_eq!(result, "🦀");
+/// ```
+///
+/// Among other things, this means Unicode escapes are only produced
+/// for control characters.
+#[inline]
+#[must_use]
+pub fn escape(str: &str, mode: EscapeMode) -> String {
+    use std::fmt::Write;
+    let mut result = String::new();
+    for c in str.chars() {
+        match c {
+            // # Mode-dependent quote escapes.
+            '\'' if mode == EscapeMode::SingleQuoted => result.push_str(r"\'"),
+            '\'' if mode == EscapeMode::DoubleQuoted => result.push('\''),
+            '"' if mode == EscapeMode::SingleQuoted => result.push('"'),
+            '"' if mode == EscapeMode::DoubleQuoted => result.push_str(r#"\""#),
+            // # Mode-independent escapes.
+            '\\' => result.push_str(r"\\"),
+            // ## Special control sequences.
+            '\u{0008}' => result.push_str(r"\b"),
+            '\u{000C}' => result.push_str(r"\f"),
+            '\n' => result.push_str(r"\n"),
+            '\r' => result.push_str(r"\r"),
+            '\t' => result.push_str(r"\t"),
+            // ## Other control sequences escaped as Unicode escapes.
+            '\u{0000}'..='\u{001F}' => write!(result, "\\u{:0>4x}", c as u8).unwrap(),
+            // # Non-escapable characters.
+            _ => result.push(c),
+        }
+    }
+
+    result
 }
 
 impl JsonString {
@@ -106,31 +189,6 @@ impl JsonString {
     #[inline(always)]
     pub fn quoted(&self) -> &str {
         &self.quoted
-    }
-
-    #[inline]
-    #[must_use]
-    pub fn escape(str: &str, mode: EscapeMode) -> String {
-        use std::fmt::Write;
-        let mut result = String::new();
-        for c in str.chars() {
-            match c {
-                '\'' if mode == EscapeMode::SingleQuoted => result.push_str(r"\'"),
-                '\'' if mode == EscapeMode::DoubleQuoted => result.push('\''),
-                '"' if mode == EscapeMode::SingleQuoted => result.push('"'),
-                '"' if mode == EscapeMode::DoubleQuoted => result.push_str(r#"\""#),
-                '\u{0008}' => result.push_str(r"\b"),
-                '\u{000C}' => result.push_str(r"\f"),
-                '\n' => result.push_str(r"\n"),
-                '\r' => result.push_str(r"\r"),
-                '\t' => result.push_str(r"\t"),
-                '\\' => result.push_str(r"\\"),
-                '\u{0000}'..='\u{001F}' => write!(result, "\\u{:0>4x}", c as u8).unwrap(),
-                _ => result.push(c),
-            }
-        }
-
-        result
     }
 }
 

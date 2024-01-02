@@ -13,8 +13,14 @@ fn main() -> ExitCode {
     let res = rsonpath_syntax::parse(input);
 
     match res {
-        Ok(x) => println!("OK: {}\nINPUT: {input}", x),
-        Err(err) => println!("ERR: {}\nINPUT: {input}", err.colored()),
+        Ok(x) => println!("OK: {x:?}\nDISPLAY:{x}\nINPUT: {input}"),
+
+        Err(err) => {
+            #[cfg(feature = "color")]
+            println!("ERR: {}\nINPUT: {input}", err.colored());
+            #[cfg(not(feature = "color"))]
+            println!("ERR: {}\nINPUT: {input}", err);
+        }
     }
 
     ExitCode::SUCCESS

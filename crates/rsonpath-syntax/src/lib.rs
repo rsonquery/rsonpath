@@ -139,9 +139,11 @@ use std::{
     ops::Deref,
 };
 
+/// JSONPath query parser.
 #[derive(Debug, Clone, Default)]
 pub struct Parser {}
 
+/// Configurable builder for a [`Parser`] instance.
 #[derive(Debug, Clone, Default)]
 pub struct ParserBuilder {}
 
@@ -152,24 +154,48 @@ impl From<ParserBuilder> for Parser {
     }
 }
 
+/// Convenience alias for [`Result`](std::result::Result) values returned by this crate.
 pub type Result<T> = std::result::Result<T, error::ParseError>;
 
+/// Parse a JSONPath query string using default [`Parser`] configuration.
+///
+/// ## Errors
+/// Fails if the string does not represent a valid JSONPath query
+/// as governed by the [JSONPath RFC specification](https://www.ietf.org/archive/id/draft-ietf-jsonpath-base-21.html).
+///
+/// Note that leading and trailing whitespace is explicitly disallowed by the spec.
 #[inline]
 pub fn parse(str: &str) -> Result<JsonPathQuery> {
     Parser::default().parse(str)
 }
 
 impl Parser {
+    /// Parse a JSONPath query string.
+    ///
+    /// ## Errors
+    /// Fails if the string does not represent a valid JSONPath query
+    /// as governed by the [JSONPath RFC specification](https://www.ietf.org/archive/id/draft-ietf-jsonpath-base-21.html).
+    ///
+    /// Note that leading and trailing whitespace is explicitly disallowed by the spec.
     #[inline]
     pub fn parse(&mut self, str: &str) -> Result<JsonPathQuery> {
         crate::parser::parse_json_path_query(str)
     }
 }
 
+/// JSONPath query segment.
+///
+/// Every query is a sequence of zero or more of segments,
+/// each applying one or more selectors to a node and passing it along to the
+/// subsequent segments.
 #[derive(Debug, PartialEq, Eq, Clone)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub enum Segment {
+    /// A child segment contains a sequence of selectors,
+    /// each of which selects zero or more children of a node.
     Child(Selectors),
+    /// A child segment contains a sequence of selectors,
+    /// each of which selects zero or more descendants of a node.
     Descendant(Selectors),
 }
 
@@ -187,23 +213,38 @@ impl<'a> arbitrary::Arbitrary<'a> for Selectors {
     }
 }
 
+/// Collection of one or more [`Selector`] instances.
+///
+/// Guaranteed to be non-empty.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Selectors {
     inner: Vec<Selector>,
 }
 
+/// Each [`Segment`] defines one or more selectors.
+/// A selector produces one or more children/descendants of the node it is applied to.
 #[derive(Debug, PartialEq, Eq, Clone)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub enum Selector {
+    /// A name selector selects at most one object member value under the key equal to the
+    /// selector's [`JsonString`](str::JsonString).
     Name(str::JsonString),
+    /// A wildcard selector selects the nodes of all children of an object or array.
     Wildcard,
+    /// An index selector matches at most one array element value,
+    /// depending on the selector's [`Index`].
     Index(Index),
 }
 
+/// Directional index into a JSON array.
 #[derive(Debug, PartialEq, Eq, Clone)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub enum Index {
+    /// Zero-based index from the start of the array.
     FromStart(num::JsonUInt),
+    /// Index from the end of the array.
+    ///
+    /// `-1` is the last element, `-2` is the second last, etc.
     FromEnd(num::JsonUInt),
 }
 
@@ -226,6 +267,7 @@ pub struct JsonPathQuery {
 }
 
 impl JsonPathQuery {
+    /// Returns all [`Segments`](Segment) of the query as a slice.
     #[inline(always)]
     #[must_use]
     pub fn segments(&self) -> &[Segment] {
@@ -234,6 +276,9 @@ impl JsonPathQuery {
 }
 
 impl Segment {
+    /// Returns all [`Selector`] instances of the segment as a slice.
+    ///
+    /// Guaranteed to be non-empty.
     #[inline(always)]
     #[must_use]
     pub fn selectors(&self) -> &[Selector] {
@@ -241,15 +286,39 @@ impl Segment {
             Self::Child(s) | Self::Descendant(s) => s,
         }
     }
+
+    /// Check if this is a child segment.
+    #[inline(always)]
+    #[must_use]
+    pub fn is_child(&self) -> bool {
+        matches!(self, Self::Child(_))
+    }
+
+    /// Check if this is a descendant segment.
+    #[inline(always)]
+    #[must_use]
+    pub fn is_descendant(&self) -> bool {
+        matches!(self, Self::Descendant(_))
+    }
 }
 
 impl Selectors {
+    /// Create a singleton [`Selectors`] instance.
     #[inline(always)]
     #[must_use]
     pub fn one(selector: Selector) -> Self {
         Self { inner: vec![selector] }
     }
 
+    /// Create a [`Selectors`] instance taking ownership of the `vec`.
+    ///
+    /// ## Panics
+    /// If the `vec` is empty.
+    ///
+    /// ```should_panic
+    /// # use rsonpath_syntax::Selectors;
+    /// Selectors::many(vec![]);
+    /// ```
     #[inline]
     #[must_use]
     pub fn many(vec: Vec<Selector>) -> Self {
@@ -257,10 +326,11 @@ impl Selectors {
         Self { inner: vec }
     }
 
+    /// Get a reference to the first [`Selector`] in the collection.
     #[inline]
     #[must_use]
     pub fn first(&self) -> &Selector {
-        self.inner.first().expect("valid selectors are always non-empty")
+        &self.inner[0]
     }
 }
 
@@ -310,11 +380,7 @@ impl Display for Selector {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Name(n) => write!(
-                f,
-                "'{}'",
-                str::JsonString::escape(n.unquoted(), str::EscapeMode::SingleQuoted)
-            ),
+            Self::Name(n) => write!(f, "'{}'", str::escape(n.unquoted(), str::EscapeMode::SingleQuoted)),
             Self::Wildcard => write!(f, "*"),
             Self::Index(idx) => write!(f, "{idx}"),
         }
@@ -385,286 +451,6 @@ mod tests {
                 },
                 _ => panic!("expected to parse a single name selector, got {res:?}"),
             }
-        }
-
-        #[test_case("\u{0000}",
-"this character must be escaped
-
-  $['\u{0000}']
-     ^
-
-at position 4
-"; "null byte")]
-        #[test_case("\u{0019}",
-"this character must be escaped
-
-  $['\u{0019}']
-     ^
-
-at position 4
-"; "U+0019 ctrl")]
-        fn parse_name_with_chars_that_have_to_be_escaped(src: &str, err_msg: &str) {
-            let err = parse_single_quoted_name_selector(src).expect_err("should fail to parse");
-            assert_eq!(err.to_string(), err_msg);
-        }
-
-        #[test]
-        fn parse_unescaped_single_quote_in_single_quoted_member() {
-            let src = "unescaped ' quote";
-            let expected = r#"expected a comma separator before this character
-
-  $['unescaped ' quote']
-                 ^
-
-at position 15
-not a valid selector
-
-  $['unescaped ' quote']
-                 ^^^^^^
-
-at positions 15-20
-"#;
-            let err = parse_single_quoted_name_selector(src).expect_err("should fail to parse");
-            assert_eq!(err.to_string(), expected);
-        }
-
-        #[test]
-        fn parse_unescaped_double_quote_in_single_quoted_member() {
-            let src = r#"unescaped " quote"#;
-            let expected = r#"error: expected a comma separator before this character
-
-  $["unescaped " quote"]
-                 ^
-  (byte 15)
-
-error: not a valid selector
-
-  $["unescaped " quote"]
-                 ^^^^^^
-  (byte 15-20)
-"#;
-            let query_string = format!(r#"$["{src}"]"#);
-            let err = parse(&query_string).expect_err("should fail to parse");
-            assert_eq!(err.to_string(), expected);
-        }
-
-        #[test_case(r"escape \ a space",
-r"error: not a valid escape sequence
-
-  $['escape \ a space']
-            ^^
-  (bytes 10-11)
-"; "escaped whitespace")]
-        #[test_case(r"\",
-r"error: name selector is not closed; expected a single quote `'`
-
-  $['\']
-        ^
-  (byte 6)
-
-error: last bracketed selection is not closed; expected a closing bracket ']'
-
-  $['\']
-        ^
-  (byte 6)
-";"just a backslash")]
-        #[test_case(r"\U0012",
-r"error: not a valid escape sequence
-
-  $['\U0012']
-     ^^
-  (byte 3-4)
-"; "uppercase U unicode escape")]
-        fn parse_invalid_escape_char(src: &str, err_msg: &str) {
-            let err = parse_single_quoted_name_selector(src).expect_err("should fail to parse");
-            assert_eq!(err.to_string(), err_msg);
-        }
-
-        #[test_case(r"escape \uD800 and that is it",
-r"error: this high surrogate is unpaired
-
-  $['escape \uD800 and that is it']
-            ^^^^^^
-  (byte 10-15)
-"; "lone high surrogate")]
-        #[test_case(r"escape \uD800\uD801 please",
-r"error: this high surrogate is unpaired
-
-  $['escape \uD800\uD801 please']
-            ^^^^^^
-
-at positions 10-15
-"; "high surrogate twice")]
-        #[test_case(r"escape \uD800\n please",
-r"error: this high surrogate is unpaired
-
-  $['escape \uD800\n please']
-            ^^^^^^
-
-at positions 10-15
-"; "high surrogate followed by newline escape")]
-        #[test_case(r"escape \uD800\uCC01 please",
-r"error: this high surrogate is unpaired
-
-  $['escape \uD800\uCC01 please']
-            ^^^^^^
-
-at positions 10-15
-"; "high surrogate followed by non-surrogate")]
-        #[test_case(r"escape \uDC01 please",
-r"error: this low surrogate is unpaired
-
-  $['escape \uDC01 please']
-            ^^^^^^
-
-at positions 10-15
-"; "lone low surrogate")]
-        fn parse_name_with_surrogate_error(src: &str, err_msg: &str) {
-            let err = parse_single_quoted_name_selector(src).expect_err("should fail to parse");
-            assert_eq!(err.to_string(), err_msg);
-        }
-        #[test_case(r"\u",
-r"not a hex digit
-
-  $['\u']
-       ^
-
-at position 5
-"; "alone in the string with no digits")]
-        #[test_case(r"escape \u and that is it",
-r"not a hex digit
-
-  $['escape \u and that is it']
-              ^
-
-at position 12
-"; "with no digits")]
-        #[test_case(r"escape \u1 and that is it",
-r"not a hex digit
-
-  $['escape \u1 and that is it']
-               ^
-
-at position 13
-"; "with one digit")]
-        #[test_case(r"escape \u12 and that is it",
-r"not a hex digit
-
-  $['escape \u12 and that is it']
-                ^
-
-at position 14
-"; "with two digits")]
-        #[test_case(r"escape \u123 and that is it",
-r"not a hex digit
-
-  $['escape \u123 and that is it']
-                 ^
-
-at position 15
-"; "with three digits")]
-        #[test_case(r"escape \uGFFF please",
-r"not a hex digit
-
-  $['escape \uGFFF please']
-              ^
-
-at position 12
-"; "with invalid hex digit G at first position")]
-        #[test_case(r"escape \uFGFF please",
-r"not a hex digit
-
-  $['escape \uFGFF please']
-               ^
-
-at position 13
-"; "with invalid hex digit G at second position")]
-        #[test_case(r"escape \uFFGF please",
-r"not a hex digit
-
-  $['escape \uFFGF please']
-                ^
-
-at position 14
-"; "with invalid hex digit G at third position")]
-        #[test_case(r"escape \uFFFG please",
-r"not a hex digit
-
-  $['escape \uFFFG please']
-                 ^
-
-at position 15
-"; "with invalid hex digit G at fourth position")]
-        #[test_case(r"escape \uD800\u please",
-r"not a hex digit
-
-  $['escape \uD800\u please']
-                    ^
-
-at position 18
-"; "high surrogate followed by unicode escape with no digits")]
-        #[test_case(r"escape \uD800\uD please",
-r"not a hex digit
-
-  $['escape \uD800\uD please']
-                     ^
-
-at position 19
-"; "high surrogate followed by unicode escape with one digit")]
-        #[test_case(r"escape \uD800\uDC please",
-r"not a hex digit
-
-  $['escape \uD800\uDC please']
-                      ^
-
-at position 20
-"; "high surrogate followed by unicode escape with two digits")]
-        #[test_case(r"escape \uD800\uDC0 please",
-r"not a hex digit
-
-  $['escape \uD800\uDC0 please']
-                       ^
-
-at position 21
-"; "high surrogate followed by unicode escape with three digits")]
-        #[test_case(r"escape \uD800\uDC0X please",
-r"not a hex digit
-
-  $['escape \uD800\uDC0X please']
-                       ^
-
-at position 21
-"; "high surrogate followed by invalid hex escape")]
-        fn parse_name_with_malformed_unicode_escape(src: &str, err_msg: &str) {
-            let err = parse_single_quoted_name_selector(src).expect_err("should fail to parse");
-            assert_eq!(err.to_string(), err_msg);
-        }
-
-        #[test_case(r"Ｈｅｌｌｏ, ｗｏｒｌｄ!\u222X",
-r"not a hex digit
-
-  $['Ｈｅｌｌｏ, ｗｏｒｌｄ!\u222X']
-                                 ^
-
-at position 41
-"; "wide letters")] // This may render incorrectly in the editor, but is actually aligned in a terminal.
-        #[test_case(r"क्\u12G4",
-r"error: not a hex digit
-
-  $['क्\u12G4']
-          ^
-  (byte 13)
-"; "grapheme cluster")]
-        #[test_case(r"👩‍🔬\u222X",
-r"error: not a hex digit
-
-  $['👩‍🔬\u222X']
-              ^
-  (byte 19)
-"; "ligature emoji")] // This may render incorrectly in the editor, but is actually aligned in a terminal.
-        fn parse_error_on_name_with_varying_length_unicode_characters(src: &str, err_msg: &str) {
-            let err = parse_single_quoted_name_selector(src).expect_err("should fail to parse");
-            assert_eq!(err.to_string(), err_msg);
         }
     }
 }

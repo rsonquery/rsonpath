@@ -1,17 +1,23 @@
 //! Error types for the crate.
 //!
 //! The main error type is [`ParseError`], which contains
-//! all [`SyntaxErrors`](`SyntaxError`) encountered during parsing.
-use std::{
-    error::Error,
-    fmt::{self, Display},
+//! all syntax errors encountered during parsing.
+use crate::{
+    num::error::JsonIntParseError,
+    str::{self, EscapeMode},
 };
+#[cfg(feature = "color")]
+use std::error::Error;
+use std::fmt::{self, Display};
 use thiserror::Error;
 
-use crate::num::{self, error::JsonIntParseError};
+#[cfg(feature = "color")]
+use colored::ErrorStyle;
+#[cfg(not(feature = "color"))]
+use plain::ErrorStyle;
 
 #[derive(Debug)]
-pub struct ParseErrorBuilder {
+pub(crate) struct ParseErrorBuilder {
     syntax_errors: Vec<SyntaxError>,
 }
 
@@ -54,20 +60,14 @@ impl Display for ParseError {
     }
 }
 
+#[cfg(feature = "color")]
 impl ParseError {
+    /// Turn the error into a version with colored display.
     #[inline(always)]
     #[must_use]
+    #[cfg_attr(docsrs, doc(cfg(feature = "color")))]
     pub fn colored(self) -> impl Display + Error {
-        ColoredParseError(self)
-    }
-}
-
-#[derive(Debug, Error)]
-struct ColoredParseError(ParseError);
-
-impl Display for ColoredParseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt_parse_error(&self.0, &ErrorStyle::colored(), f)
+        colored::ColoredParseError(self)
     }
 }
 
@@ -88,14 +88,14 @@ fn fmt_parse_error(error: &ParseError, style: &ErrorStyle, f: &mut fmt::Formatte
             "{} did you mean `{}` ?",
             style.note_prefix(&"suggestion:"),
             style.suggestion(&suggestion)
-        );
+        )?;
     }
 
     Ok(())
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-pub struct SyntaxError {
+pub(crate) struct SyntaxError {
     /// Kind of the error.
     kind: SyntaxErrorKind,
     /// The byte index at which the error occurred, counting from the end of the input.
@@ -105,10 +105,9 @@ pub struct SyntaxError {
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-pub enum SyntaxErrorKind {
+pub(crate) enum SyntaxErrorKind {
     InvalidUnescapedCharacter,
     InvalidEscapeSequence,
-    InvalidUnicodeEscapeSequence,
     UnpairedHighSurrogate,
     UnpairedLowSurrogate,
     InvalidHexDigitInUnicodeEscape,
@@ -125,7 +124,6 @@ pub enum SyntaxErrorKind {
     NegativeZeroInteger,
     LeadingZeros,
     IndexParseError(JsonIntParseError),
-    Unknown,
 }
 
 impl SyntaxError {
@@ -141,13 +139,12 @@ impl SyntaxError {
         - A list of notes/suggestions at the end.
     */
     fn display(&self, input: &str, suggestion: &mut Suggestion, style: ErrorStyle) -> DisplayableSyntaxError {
-        use unicode_width::UnicodeWidthChar;
         let start_idx = input.len() - self.rev_idx;
         let end_idx = start_idx + self.len - 1;
         let mut builder = DisplayableSyntaxErrorBuilder::new();
 
         for (i, c) in input.char_indices() {
-            let width = c.width().unwrap_or(0);
+            let width = tweaked_width(c);
             if i < start_idx {
                 builder.add_non_underline(width);
             } else if i <= end_idx {
@@ -163,38 +160,129 @@ impl SyntaxError {
             builder.add_underline_message(self.kind.underline_message());
         }
 
-        let (prefix, error, suffix) = self.split_error(input);
-        if self.kind == SyntaxErrorKind::MissingRootIdentifier {
-            suggestion.insert(start_idx, "$");
-        }
-        if error.starts_with('$') {
-            builder.add_note("the root identifier '$' must appear exactly once at the start of the query".to_string());
-        }
-        if self.kind == SyntaxErrorKind::InvalidNameShorthandAfterOnePeriod && error.starts_with('[') {
-            suggestion.remove(start_idx - 1, 1);
-        }
-        if self.kind == SyntaxErrorKind::InvalidSegmentAfterTwoPeriods {
-            if error.starts_with('.') {
-                let nerror = error.trim_start_matches('.');
-                let number_of_periods = error.len() - nerror.len();
-                suggestion.remove(start_idx, number_of_periods);
+        self.generate_notes(&mut builder, suggestion, input);
+
+        return builder.finish(self.kind.toplevel_message(), start_idx, end_idx, style);
+
+        fn tweaked_width(c: char) -> usize {
+            use unicode_width::UnicodeWidthChar;
+            match c {
+                '\t' => 4,
+                _ => c.width().unwrap_or(0),
             }
-            builder.add_note("valid segments are either member name shorthands `name`, or bracketed selections like `['name']` or `[42]`".to_string());
         }
-        if self.kind == SyntaxErrorKind::InvalidSegmentStart {
-            builder.add_note("valid segments are: member name shorthands like `.name`/`..name`; or child/descendant bracketed selections like `[<segments>]`/`..[<segments>]`".to_string());
-        }
-        if self.kind == SyntaxErrorKind::MissingSelectorSeparator {
-            suggestion.insert(start_idx, ",");
+    }
+
+    fn generate_notes(&self, builder: &mut DisplayableSyntaxErrorBuilder, suggestion: &mut Suggestion, input: &str) {
+        let start_idx = input.len() - self.rev_idx;
+        let end_idx = start_idx + self.len - 1;
+        let (prefix, error, suffix) = self.split_error(input);
+        // Kind-specific notes and suggestion building.
+        match self.kind {
+            SyntaxErrorKind::InvalidUnescapedCharacter => {
+                if error == "\"" {
+                    suggestion.replace(start_idx, 1, r#"\""#);
+                } else if error == "'" {
+                    suggestion.replace(start_idx, 1, r"\'");
+                } else {
+                    let escaped = str::escape(error, EscapeMode::DoubleQuoted);
+                    suggestion.replace(start_idx, error.len(), escaped);
+                }
+            }
+            SyntaxErrorKind::InvalidEscapeSequence => {
+                if error == r"\U" && suffix.len() >= 4 && suffix[..4].chars().all(|x| x.is_ascii_hexdigit()) {
+                    builder.add_note("unicode escape sequences must use a lowercase 'u'");
+                    suggestion.replace(start_idx, 2, r"\u");
+                } else if error == r#"\""# {
+                    builder.add_note("double quotes may only be escaped within double-quoted name selectors");
+                    suggestion.replace(start_idx, 2, r#"""#);
+                } else if error == r"\'" {
+                    builder.add_note("single quotes may only be escaped within single-quoted name selectors");
+                    suggestion.replace(start_idx, 2, r#"'"#);
+                } else {
+                    builder.add_note(r#"the only valid escape sequences are \n, \r, \t, \f, \b, \\, \/, \' (in single quoted names), \" (in double quoted names), and \uXXXX where X are hex digits"#);
+                    suggestion.invalidate()
+                }
+            }
+            SyntaxErrorKind::UnpairedHighSurrogate => {
+                builder.add_note(
+                    "a UTF-16 high surrogate has to be followed by a low surrogate to encode a valid Unicode character",
+                );
+                builder.add_note("for more information about UTF-16 surrogate pairs see https://en.wikipedia.org/wiki/UTF-16#Code_points_from_U+010000_to_U+10FFFF");
+                suggestion.invalidate();
+            }
+            SyntaxErrorKind::UnpairedLowSurrogate => {
+                builder.add_note(
+                    "a UTF-16 low surrogate has to be preceded by a high surrogate to encode a valid Unicode character",
+                );
+                builder.add_note("for more information about UTF-16 surrogate pairs see https://en.wikipedia.org/wiki/UTF-16#Code_points_from_U+010000_to_U+10FFFF");
+                suggestion.invalidate();
+            }
+            SyntaxErrorKind::InvalidHexDigitInUnicodeEscape => {
+                builder.add_note("valid hex digits are 0 through 9 and A through F (case-insensitive)");
+                suggestion.invalidate();
+            }
+            SyntaxErrorKind::MissingClosingSingleQuote => suggestion.insert(end_idx, "'"),
+            SyntaxErrorKind::MissingClosingDoubleQuote => suggestion.insert(end_idx, "\""),
+            SyntaxErrorKind::MissingRootIdentifier => suggestion.insert(start_idx, "$"),
+            SyntaxErrorKind::InvalidSegmentStart => {
+                builder.add_note("valid segments are: member name shorthands like `.name`/`..name`; or child/descendant bracketed selections like `[<segments>]`/`..[<segments>]`");
+                suggestion.invalidate();
+            }
+            SyntaxErrorKind::InvalidSegmentAfterTwoPeriods => {
+                if error.starts_with('.') {
+                    let nerror = error.trim_start_matches('.');
+                    let number_of_periods = error.len() - nerror.len();
+                    suggestion.remove(start_idx, number_of_periods);
+                } else {
+                    suggestion.invalidate();
+                }
+                builder.add_note("valid segments are either member name shorthands `name`, or bracketed selections like `['name']` or `[42]`");
+            }
+            SyntaxErrorKind::InvalidNameShorthandAfterOnePeriod => {
+                if error.starts_with('[') {
+                    suggestion.remove(start_idx - 1, 1);
+                } else {
+                    suggestion.invalidate();
+                }
+            }
+            SyntaxErrorKind::MissingSelectorSeparator => {
+                let prefix_whitespace_len = prefix.len() - prefix.trim_end_matches(' ').len(); // FIXME
+                suggestion.insert(start_idx - prefix_whitespace_len, ",");
+            }
+            SyntaxErrorKind::MissingClosingBracket => suggestion.insert(end_idx, "]"),
+            SyntaxErrorKind::NegativeZeroInteger => suggestion.replace(start_idx, error.len(), "0"),
+            SyntaxErrorKind::LeadingZeros => {
+                let is_negative = error.starts_with('-');
+                let replacement = error.trim_start_matches(['-', '0']);
+                let offset = if is_negative { 1 } else { 0 };
+
+                if replacement.is_empty() {
+                    suggestion.replace(start_idx, error.len(), "0");
+                } else {
+                    let remove_len = error.len() - replacement.len() - offset;
+                    suggestion.remove(start_idx + offset, remove_len);
+                }
+            }
+            SyntaxErrorKind::InvalidSelector | SyntaxErrorKind::IndexParseError(_) | SyntaxErrorKind::EmptySelector => {
+                suggestion.invalidate()
+            }
         }
 
-        builder.finish(self.kind.toplevel_message(), start_idx, end_idx, style)
+        // Generic notes.
+        if error.starts_with('$') {
+            builder.add_note("the root identifier '$' must appear exactly once at the start of the query");
+        }
     }
 
     fn split_error<'a>(&self, input: &'a str) -> (&'a str, &'a str, &'a str) {
         let start = input.len() - self.rev_idx;
         let (prefix, rest) = input.split_at(start);
-        let (error, suffix) = rest.split_at(self.len);
+        let (error, suffix) = if self.len >= rest.len() {
+            (rest, "")
+        } else {
+            rest.split_at(self.len)
+        };
         (prefix, error, suffix)
     }
 }
@@ -230,12 +318,14 @@ impl DisplayableSyntaxErrorBuilder {
         self.current_underline_len += width;
     }
 
-    fn add_underline_message(&mut self, message: String) {
-        self.current_underline_message = Some(message);
+    fn add_underline_message<S: AsRef<str>>(&mut self, message: S) {
+        self.current_underline_message = Some(message.as_ref().to_string());
     }
 
-    fn add_note(&mut self, message: String) {
-        self.notes.push(SyntaxErrorNote { message })
+    fn add_note<S: AsRef<str>>(&mut self, message: S) {
+        self.notes.push(SyntaxErrorNote {
+            message: message.as_ref().to_string(),
+        })
     }
 
     fn add_char(&mut self, c: char) {
@@ -332,6 +422,7 @@ enum Suggestion {
     Invalid,
 }
 
+#[derive(Debug)]
 enum SuggestionDiff {
     Insert(usize, String),
     Remove(usize, usize),
@@ -354,9 +445,9 @@ mod tests {
     fn foo() {
         let input = "$..['abc' 'def']....abc..['\n']";
         let mut suggestion = Suggestion::new();
-        suggestion.insert(9, ",".to_string());
+        suggestion.insert(9, ",");
         suggestion.remove(18, 2);
-        suggestion.replace(27, 1, "\\n".to_string());
+        suggestion.replace(27, 1, "\\n");
 
         let result = suggestion.build(input).unwrap();
         assert_eq!(result, "$..['abc', 'def']..abc..['\\n']");
@@ -368,16 +459,16 @@ impl Suggestion {
         Self::Valid(vec![])
     }
 
-    fn insert<S: ToString>(&mut self, at: usize, str: S) {
-        self.push(SuggestionDiff::Insert(at, str.to_string()))
+    fn insert<S: AsRef<str>>(&mut self, at: usize, str: S) {
+        self.push(SuggestionDiff::Insert(at, str.as_ref().to_string()))
     }
 
     fn remove(&mut self, at: usize, len: usize) {
         self.push(SuggestionDiff::Remove(at, len))
     }
 
-    fn replace<S: ToString>(&mut self, at: usize, remove_len: usize, str: S) {
-        self.push(SuggestionDiff::Replace(at, remove_len, str.to_string()))
+    fn replace<S: AsRef<str>>(&mut self, at: usize, remove_len: usize, str: S) {
+        self.push(SuggestionDiff::Replace(at, remove_len, str.as_ref().to_string()))
     }
 
     fn push(&mut self, diff: SuggestionDiff) {
@@ -387,19 +478,24 @@ impl Suggestion {
         }
     }
 
-    fn build(mut self, input: &str) -> Option<String> {
+    fn invalidate(&mut self) {
+        *self = Self::Invalid
+    }
+
+    fn build(self, input: &str) -> Option<String> {
         match self {
             Self::Invalid => None,
             Self::Valid(mut diffs) => {
                 let mut result = String::new();
-                let mut input = input.char_indices();
-                let mut next = input.next();
-                diffs.sort_by(|x, y| x.start_idx().cmp(&y.start_idx()).reverse());
+                let mut input_chars = input.char_indices();
+                let mut next = input_chars.next();
+                diffs.sort_by_key(SuggestionDiff::start_idx);
+                diffs.reverse();
 
                 while let Some((i, c)) = next {
                     if let Some(x) = diffs.last() {
                         if x.start_idx() == i {
-                            let x = diffs.pop().unwrap();
+                            let x = diffs.pop().expect("unreachable, last is Some");
                             match x {
                                 SuggestionDiff::Insert(_, str) => {
                                     result.push_str(&str);
@@ -410,7 +506,7 @@ impl Suggestion {
                                         if i >= end_idx {
                                             break;
                                         }
-                                        next = input.next();
+                                        next = input_chars.next();
                                     }
                                 }
                                 SuggestionDiff::Replace(_, len, str) => {
@@ -420,15 +516,24 @@ impl Suggestion {
                                         if i >= end_idx {
                                             break;
                                         }
-                                        next = input.next();
+                                        next = input_chars.next();
                                     }
                                 }
                             }
                             continue;
                         }
                     }
-                    next = input.next();
+                    next = input_chars.next();
                     result.push(c);
+                }
+
+                // Any diffs that remain should be inserts at the end.
+                // Verify that and apply them.
+                while let Some(diff) = diffs.pop() {
+                    match diff {
+                        SuggestionDiff::Insert(at, str) if at == input.len() => result.push_str(&str),
+                        _ => panic!("invalid suggestion diff beyond bounds of input: {diff:?}"),
+                    }
                 }
 
                 Some(result)
@@ -505,10 +610,16 @@ impl Display for DisplayableSyntaxError {
             )?;
         }
 
+        writeln!(f)?;
+
         if !self.notes.is_empty() {
-            writeln!(f)?;
+            let mut first = true;
             for note in &self.notes {
-                writeln!(f, "{} {note}", self.style.note_prefix(&"note:"))?;
+                if !first {
+                    writeln!(f)?;
+                };
+                write!(f, "{} {note}", self.style.note_prefix(&"note:"))?;
+                first = false;
             }
         }
 
@@ -528,7 +639,6 @@ impl SyntaxErrorKind {
         match self {
             Self::InvalidUnescapedCharacter => "invalid unescaped control character".to_string(),
             Self::InvalidEscapeSequence => "invalid escape sequence".to_string(),
-            Self::InvalidUnicodeEscapeSequence => "invalid unicode escape sequence".to_string(),
             Self::UnpairedHighSurrogate => "invalid unicode escape sequence - unpaired high surrogate".to_string(),
             Self::UnpairedLowSurrogate => "invalid unicode escape sequence - unpaired low surrogate".to_string(),
             Self::InvalidHexDigitInUnicodeEscape => "invalid unicode escape sequence - invalid hex digit".to_string(),
@@ -545,7 +655,6 @@ impl SyntaxErrorKind {
             Self::NegativeZeroInteger => "negative zero used as an integer".to_string(),
             Self::LeadingZeros => "integer with leading zeros".to_string(),
             Self::IndexParseError(_) => "invalid index value".to_string(),
-            Self::Unknown => "unknown error".to_string(),
         }
     }
 
@@ -554,7 +663,6 @@ impl SyntaxErrorKind {
         match self {
             Self::InvalidUnescapedCharacter => "this character must be escaped".to_string(),
             Self::InvalidEscapeSequence => "not a valid escape sequence".to_string(),
-            Self::InvalidUnicodeEscapeSequence => "not a valid unicode escape sequence".to_string(),
             Self::UnpairedHighSurrogate => "this high surrogate is unpaired".to_string(),
             Self::UnpairedLowSurrogate => "this low surrogate is unpaired".to_string(),
             Self::InvalidHexDigitInUnicodeEscape => "not a hex digit".to_string(),
@@ -571,95 +679,156 @@ impl SyntaxErrorKind {
             Self::NegativeZeroInteger => "negative zero is not allowed".to_string(),
             Self::LeadingZeros => "leading zeros are not allowed".to_string(),
             Self::IndexParseError(inner) => format!("this index value is invalid; {inner}"),
-            Self::Unknown => "unknown error".to_string(),
         }
     }
 }
 
-#[derive(Clone)]
-struct ErrorStyle {
-    error_prefix: owo_colors::Style,
-    error_message: owo_colors::Style,
-    error_position_hint: owo_colors::Style,
-    error_underline: owo_colors::Style,
-    error_underline_message: owo_colors::Style,
-    line_numbers: owo_colors::Style,
-    note_prefix: owo_colors::Style,
-    suggestion: owo_colors::Style,
+#[cfg(feature = "color")]
+mod colored {
+    use super::{fmt_parse_error, ParseError};
+    use std::fmt::{self, Display};
+    use thiserror::Error;
+
+    #[derive(Debug, Error)]
+    pub(super) struct ColoredParseError(pub(super) ParseError);
+
+    impl Display for ColoredParseError {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            fmt_parse_error(&self.0, &ErrorStyle::colored(), f)
+        }
+    }
+
+    #[derive(Clone)]
+    pub(super) struct ErrorStyle {
+        error_prefix: owo_colors::Style,
+        error_message: owo_colors::Style,
+        error_position_hint: owo_colors::Style,
+        error_underline: owo_colors::Style,
+        error_underline_message: owo_colors::Style,
+        line_numbers: owo_colors::Style,
+        note_prefix: owo_colors::Style,
+        suggestion: owo_colors::Style,
+    }
+
+    impl ErrorStyle {
+        pub(super) fn empty() -> Self {
+            let empty_style = owo_colors::Style::new();
+            Self {
+                error_prefix: empty_style,
+                error_message: empty_style,
+                error_position_hint: empty_style,
+                error_underline: empty_style,
+                error_underline_message: empty_style,
+                line_numbers: empty_style,
+                note_prefix: empty_style,
+                suggestion: empty_style,
+            }
+        }
+
+        pub(super) fn colored() -> Self {
+            let error_color = owo_colors::Style::new().bright_red();
+            let error_message = owo_colors::Style::new().bold();
+            let error_position_hint = owo_colors::Style::new().dimmed();
+            let line_color = owo_colors::Style::new().cyan();
+            let note_color = owo_colors::Style::new().bright_cyan();
+            let suggestion_color = owo_colors::Style::new().bright_cyan().bold();
+
+            Self {
+                error_prefix: error_color,
+                error_message,
+                error_position_hint,
+                error_underline: error_color,
+                error_underline_message: error_color,
+                line_numbers: line_color,
+                note_prefix: note_color,
+                suggestion: suggestion_color,
+            }
+        }
+
+        pub(super) fn error_prefix<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+            use owo_colors::OwoColorize;
+            target.style(self.error_prefix)
+        }
+
+        pub(super) fn error_message<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+            use owo_colors::OwoColorize;
+            target.style(self.error_message)
+        }
+
+        pub(super) fn error_position_hint<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+            use owo_colors::OwoColorize;
+            target.style(self.error_position_hint)
+        }
+
+        pub(super) fn error_underline<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+            use owo_colors::OwoColorize;
+            target.style(self.error_underline)
+        }
+
+        pub(super) fn error_underline_message<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+            use owo_colors::OwoColorize;
+            target.style(self.error_underline_message)
+        }
+
+        pub(super) fn line_numbers<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+            use owo_colors::OwoColorize;
+            target.style(self.line_numbers)
+        }
+
+        pub(super) fn note_prefix<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+            use owo_colors::OwoColorize;
+            target.style(self.note_prefix)
+        }
+
+        pub(super) fn suggestion<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+            use owo_colors::OwoColorize;
+            target.style(self.suggestion)
+        }
+    }
 }
 
-impl ErrorStyle {
-    fn empty() -> Self {
-        let empty_style = owo_colors::Style::new();
-        Self {
-            error_prefix: empty_style,
-            error_message: empty_style,
-            error_position_hint: empty_style,
-            error_underline: empty_style,
-            error_underline_message: empty_style,
-            line_numbers: empty_style,
-            note_prefix: empty_style,
-            suggestion: empty_style,
+#[cfg(not(feature = "color"))]
+mod plain {
+    use std::fmt::Display;
+
+    #[derive(Clone)]
+    pub(super) struct ErrorStyle;
+
+    impl ErrorStyle {
+        pub(super) fn empty() -> Self {
+            Self
         }
-    }
 
-    fn colored() -> Self {
-        let error_color = owo_colors::Style::new().bright_red();
-        let error_message = owo_colors::Style::new().bold();
-        let error_position_hint = owo_colors::Style::new().dimmed();
-        let line_color = owo_colors::Style::new().cyan();
-        let note_color = owo_colors::Style::new().bright_cyan();
-        let suggestion_color = owo_colors::Style::new().bright_cyan().bold();
-
-        Self {
-            error_prefix: error_color,
-            error_message,
-            error_position_hint,
-            error_underline: error_color,
-            error_underline_message: error_color,
-            line_numbers: line_color,
-            note_prefix: note_color,
-            suggestion: suggestion_color,
+        pub(super) fn error_prefix<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+            target
         }
-    }
 
-    fn error_prefix<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
-        use owo_colors::OwoColorize;
-        target.style(self.error_prefix)
-    }
+        pub(super) fn error_message<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+            target
+        }
 
-    fn error_message<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
-        use owo_colors::OwoColorize;
-        target.style(self.error_message)
-    }
+        pub(super) fn error_position_hint<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+            target
+        }
 
-    fn error_position_hint<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
-        use owo_colors::OwoColorize;
-        target.style(self.error_position_hint)
-    }
+        pub(super) fn error_underline<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+            target
+        }
 
-    fn error_underline<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
-        use owo_colors::OwoColorize;
-        target.style(self.error_underline)
-    }
+        pub(super) fn error_underline_message<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+            target
+        }
 
-    fn error_underline_message<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
-        use owo_colors::OwoColorize;
-        target.style(self.error_underline_message)
-    }
+        pub(super) fn line_numbers<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+            target
+        }
 
-    fn line_numbers<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
-        use owo_colors::OwoColorize;
-        target.style(self.line_numbers)
-    }
+        pub(super) fn note_prefix<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+            target
+        }
 
-    fn note_prefix<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
-        use owo_colors::OwoColorize;
-        target.style(self.note_prefix)
-    }
-
-    fn suggestion<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
-        use owo_colors::OwoColorize;
-        target.style(self.suggestion)
+        pub(super) fn suggestion<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+            target
+        }
     }
 }

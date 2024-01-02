@@ -49,23 +49,24 @@ pub(crate) fn parse_json_path_query(q: &str) -> Result<JsonPathQuery> {
 
     let mut q = q;
     while !q.is_empty() {
-        match segment(q).finish() {
+        q = match segment(q).finish() {
             Ok((rest, segment)) => {
                 segments.push(segment);
-                q = skip_whitespace(rest)
+                rest
             }
             Err(InternalParseError::SyntaxError(err, rest)) => {
                 parse_error.add(err);
-                q = rest;
+                rest
             }
             Err(InternalParseError::SyntaxErrors(errs, rest)) => {
                 parse_error.add_many(errs);
-                q = rest;
+                rest
             }
             Err(InternalParseError::NomError(err)) => panic!(
                 "unexpected parser error; raw nom errors should never be produced; this is a bug\ncontext:\n{err}"
             ),
-        }
+        };
+        q = skip_whitespace(q);
     }
 
     if parse_error.is_empty() {
@@ -80,7 +81,7 @@ fn segment(q: &str) -> IResult<&str, Segment, InternalParseError> {
     alt((
         descendant_segment,
         child_segment,
-        failed_segment(SyntaxErrorKind::InvalidSegmentAfterTwoPeriods),
+        failed_segment(SyntaxErrorKind::InvalidSegmentStart),
     ))(q)
 }
 
@@ -150,6 +151,7 @@ fn bracketed_selection(q: &str) -> IResult<&str, Selectors, InternalParseError> 
             }
             Err(err) => return Err(Err::Failure(err)),
         }
+        q = skip_whitespace(q);
 
         match char::<_, nom::error::Error<_>>(',')(q) {
             Ok((rest, _)) => q = rest,
@@ -267,7 +269,7 @@ fn failed_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
 }
 
 fn int(q: &str) -> IResult<&str, &str, InternalParseError> {
-    let (rest, int) = recognize(alt((preceded(char('-'), cut(digit1)), digit1)))(q)?;
+    let (rest, int) = recognize(alt((preceded(char('-'), digit1), digit1)))(q)?;
 
     if int != "0" {
         if int == "-0" {
@@ -318,7 +320,7 @@ fn string<'a>(mode: StringParseMode) -> impl FnMut(&'a str) -> IResult<&'a str, 
                     let rest = stream.peek().map_or("", |(i, _)| &q[*i..]);
                     syntax_errors.push(SyntaxError::new(
                         SyntaxErrorKind::InvalidUnescapedCharacter,
-                        rest.len(),
+                        rest.len() + 1,
                         1,
                     ))
                 }

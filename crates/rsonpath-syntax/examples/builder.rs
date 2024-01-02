@@ -8,31 +8,34 @@ fn main() -> Result<ExitCode, Box<dyn Error>> {
     let query = JsonPathQueryBuilder::new()
         .child_name("store")
         .child_name("book")
-        .child_any()
+        .child_wildcard()
         .child_name("author")
-        .build();
+        .to_query();
     println!("{query}");
 
     // $..author
-    let query = JsonPathQueryBuilder::new().descendant_name("author").build();
+    let query = JsonPathQueryBuilder::new().descendant_name("author").to_query();
     println!("{query}");
 
     // $.store.*
-    let query = JsonPathQueryBuilder::new().child_name("store").child_any().build();
+    let query = JsonPathQueryBuilder::new()
+        .child_name("store")
+        .child_wildcard()
+        .to_query();
     println!("{query}");
 
     // $.store..price
     let query = JsonPathQueryBuilder::new()
         .child_name("store")
         .descendant_name("price")
-        .build();
+        .to_query();
     println!("{query}");
 
     // $..book[2]
     let query = JsonPathQueryBuilder::new()
         .descendant_name("book")
         .child_index(2)
-        .build();
+        .to_query();
     println!("{query}");
 
     // $..book[2].author
@@ -40,7 +43,7 @@ fn main() -> Result<ExitCode, Box<dyn Error>> {
         .descendant_name("book")
         .child_index(2)
         .child_name("author")
-        .build();
+        .to_query();
     println!("{query}");
 
     // $..book[2].publisher
@@ -48,21 +51,21 @@ fn main() -> Result<ExitCode, Box<dyn Error>> {
         .descendant_name("book")
         .child_index(2)
         .child_name("publisher")
-        .build();
+        .to_query();
     println!("{query}");
 
     // $..book[-1]
     let query = JsonPathQueryBuilder::new()
         .descendant_name("book")
         .child_index(-1)
-        .build();
+        .to_query();
     println!("{query}");
 
     // $..book[0, 1]
     let query = JsonPathQueryBuilder::new()
         .descendant_name("book")
         .child(|x| x.index(0).index(1))
-        .build();
+        .to_query();
     println!("{query}");
 
     // $..book[:2]
@@ -72,7 +75,7 @@ fn main() -> Result<ExitCode, Box<dyn Error>> {
     // $..book[?@.price<10]
 
     // $..*
-    let query = JsonPathQueryBuilder::new().descendant_any().build();
+    let query = JsonPathQueryBuilder::new().descendant_wildcard().to_query();
     println!("{query}");
 
     // === Build a query showcasing all syntactic elements. ===

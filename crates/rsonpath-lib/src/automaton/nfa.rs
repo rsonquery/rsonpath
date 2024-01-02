@@ -181,11 +181,11 @@ mod tests {
             .child_name(label_b.clone())
             .descendant_name(label_c.clone())
             .descendant_name(label_d.clone())
-            .child_any()
-            .child_any()
-            .descendant_any()
-            .descendant_any()
-            .build();
+            .child_wildcard()
+            .child_wildcard()
+            .descendant_wildcard()
+            .descendant_wildcard()
+            .to_query();
 
         let expected_automaton = NondeterministicAutomaton {
             ordered_states: vec![

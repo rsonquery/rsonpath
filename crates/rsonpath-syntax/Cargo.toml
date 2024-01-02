@@ -18,12 +18,13 @@ all-features = true
 
 [dependencies]
 arbitrary = { version = "1.3.1", features = ["derive"], optional = true }
-owo-colors = { version = "3.5.0", default-features = false }
+owo-colors = { version = "4.0.0", default-features = false, optional = true }
 nom = "7.1.3"
 thiserror = "1.0.52"
 unicode-width = "0.1.11"
 
 [dev-dependencies]
+insta = "1.34.0"
 pretty_assertions = "1.4.0"
 proptest = "1.4.0"
 test-case = "3.3.1"
@@ -31,7 +32,7 @@ test-case = "3.3.1"
 [features]
 default = []
 arbitrary = ["dep:arbitrary"]
-#owo-colors = ["dep:owo-colors"]
+color = ["dep:owo-colors"]
 
 [[bin]]
 name = "rsonpath-parse"
