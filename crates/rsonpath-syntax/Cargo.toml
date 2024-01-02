@@ -6,8 +6,8 @@ description = "A JSONPath parser."
 readme = "README.md"
 license = "MIT"
 keywords = ["json", "jsonpath", "query", "search", "parser"]
-exclude = ["/tests"]
-categories = [ "parser-implementations", "text-processing"]
+exclude = ["tests", "src/cli.rs"]
+categories = ["parser-implementations", "text-processing"]
 repository = "https://github.com/V0ldek/rsonpath"
 edition = "2021"
 rust-version = "1.67.1"
@@ -18,10 +18,13 @@ all-features = true
 
 [dependencies]
 arbitrary = { version = "1.3.1", features = ["derive"], optional = true }
+owo-colors = { version = "4.0.0", default-features = false, optional = true }
 nom = "7.1.3"
 thiserror = "1.0.52"
+unicode-width = "0.1.11"
 
 [dev-dependencies]
+insta = "1.34.0"
 pretty_assertions = "1.4.0"
 proptest = "1.4.0"
 test-case = "3.3.1"
@@ -29,3 +32,8 @@ test-case = "3.3.1"
 [features]
 default = []
 arbitrary = ["dep:arbitrary"]
+color = ["dep:owo-colors"]
+
+[[bin]]
+name = "rsonpath-parse"
+path = "src/cli.rs"

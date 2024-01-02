@@ -66,8 +66,18 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> Result<(), io::Error> {
                         result_type,
                         EngineTypeToTest::Main,
                     );
+                    let mb_ignore = if let Some(disabled) = &query.disabled {
+                        let reason = format!("{} (see {})", disabled.reason, disabled.issue);
+                        quote! {
+                            #[doc = #reason]
+                            #[ignore]
+                        }
+                    } else {
+                        quote! {}
+                    };
 
                     let r#fn = quote! {
+                        #mb_ignore
                         #[test]
                         fn #fn_name() -> Result<(), Box<dyn Error>> {
                             #body
@@ -144,7 +154,7 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> Result<(), io::Error> {
 
         quote! {
             println!(#full_description);
-            let jsonpath_query = JsonPathQuery::parse(#query_string)?;
+            let jsonpath_query = rsonpath_syntax::parse(#query_string)?;
 
             #input_setup_code
             #engine_setup_code
@@ -338,7 +348,6 @@ pub(crate) fn generate_imports() -> TokenStream {
     quote! {
         use rsonpath::engine::{Compiler, Engine, main::MainEngine};
         use rsonpath::input::*;
-        use rsonpath_syntax::JsonPathQuery;
         use pretty_assertions::assert_eq;
         use std::error::Error;
         use std::fs;

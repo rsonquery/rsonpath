@@ -3,7 +3,7 @@ use rsonpath::{
     input::{error::InputError, *},
     result::empty::EmptyRecorder,
 };
-use rsonpath_syntax::string::JsonString;
+use rsonpath_syntax::str::JsonString;
 use std::{cmp, fs, fs::File, io::Read, iter};
 use test_case::test_case;
 
@@ -417,7 +417,7 @@ impl<'a> Read for ReadBytes<'a> {
 mod in_memory_proptests {
     use crate::InMemoryTestInput;
     use proptest::prelude::*;
-    use rsonpath_syntax::string::JsonString;
+    use rsonpath_syntax::str::JsonString;
     const JSON_WHITESPACE_BYTES: [u8; 4] = [b' ', b'\t', b'\n', b'\r'];
 
     fn decode_whitespace(ws_idx: Vec<usize>) -> Vec<u8> {
@@ -611,7 +611,7 @@ mod in_memory_proptests {
             let json_string = JsonString::new(&str);
             let slice = &mut input[from..to];
 
-            slice.copy_from_slice(json_string.bytes_with_quotes());
+            slice.copy_from_slice(json_string.quoted().as_bytes());
 
             if from != 0 && input[from - 1] == b'\\' {
                 input[from - 1] = 255;

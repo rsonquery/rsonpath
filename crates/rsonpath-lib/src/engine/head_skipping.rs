@@ -21,7 +21,7 @@ use crate::{
     result::Recorder,
     FallibleIterator, MaskType, BLOCK_SIZE,
 };
-use rsonpath_syntax::string::JsonString;
+use rsonpath_syntax::str::JsonString;
 
 /// Trait that needs to be implemented by an [`Engine`](`super::Engine`) to use this submodule.
 pub(super) trait CanHeadSkip<'i, 'r, I, R, V>
@@ -147,7 +147,7 @@ impl<'b, 'q, I: Input, V: Simd> HeadSkip<'b, 'q, I, V, BLOCK_SIZE> {
                     first_block = Some(last_block);
                     idx = starting_quote_idx;
                     debug!("Needle found at {idx}");
-                    let seek_start_idx = idx + head_skip.member_name.bytes_with_quotes().len();
+                    let seek_start_idx = idx + head_skip.member_name.quoted().len();
 
                 match head_skip.bytes.seek_non_whitespace_forward(seek_start_idx).e()? {
                     Some((colon_idx, b':')) => {

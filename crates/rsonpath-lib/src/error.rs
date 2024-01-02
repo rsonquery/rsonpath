@@ -130,11 +130,20 @@ impl UnsupportedFeatureError {
         Self::untracked("Large Automaton Queries")
     }
 
-    /// Temporary error for index functionality to be implemented in engine.
+    /// Multiple Selector per Segment feature &ndash; supporting queries
+    /// that contain a union of selectors per step. Unsupported and not planned (yet).
     #[must_use]
     #[inline(always)]
-    pub fn array_index() -> Self {
-        Self::tracked(64, "Array Index")
+    pub fn multiple_selectors() -> Self {
+        Self::untracked("Multiple Selector per Segment")
+    }
+
+    /// Indexing from End &ndash; supporting index and slice selectors that
+    /// use from-end indexing. Unsupported and not planned (yet).
+    #[must_use]
+    #[inline(always)]
+    pub fn indexing_from_end() -> Self {
+        Self::untracked("Indexing from End")
     }
 
     /// Returns the issue number on GitHub corresponding to the unsupported feature.

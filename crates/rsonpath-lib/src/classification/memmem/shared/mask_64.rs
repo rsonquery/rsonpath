@@ -5,7 +5,7 @@ use crate::{
         Input,
     },
 };
-use rsonpath_syntax::string::JsonString;
+use rsonpath_syntax::str::JsonString;
 
 #[inline(always)]
 pub(crate) fn find_in_mask<I: Input>(
@@ -16,7 +16,7 @@ pub(crate) fn find_in_mask<I: Input>(
     second: u64,
     offset: usize,
 ) -> Result<Option<usize>, InputError> {
-    let label_size = label.bytes_with_quotes().len();
+    let label_size = label.quoted().len();
     let mut result = (previous_block | (first << 1)) & second;
     while result != 0 {
         let idx = result.trailing_zeros() as usize;

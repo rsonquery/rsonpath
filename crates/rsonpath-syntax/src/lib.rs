@@ -1,6 +1,6 @@
 //! Complete, fast, and fully spec-compliant JSONPath query parser.
 //!
-//! The crate exposes the [`JsonPathQuery`] type and the [`parse`](`JsonPathQuery::parse`)
+//! The crate exposes the [`JsonPathQuery`] type and the [`parse`](`crate::parse`)
 //! function that converts a query string into the AST representation. The parsing
 //! complies with the proposed [JSONPath RFC specification](https://www.ietf.org/archive/id/draft-ietf-jsonpath-base-21.html).
 //!
@@ -11,33 +11,49 @@
 //! Descriptions of each segment and selector can be found in the documentation of the
 //! relevant type in this crate, while the formal grammar is described in the RFC.
 //!
-//! # Examples
+//! ## State of the crate
+//!
+//! This is an in-development version that supports only name, index, and wildcard selectors.
+//! However, these are fully supported, tested, and fuzzed. The planned roadmap is:
+//! - support slices
+//! - support filters (without functions)
+//! - support functions (including type check)
+//! - polish the API
+//! - 1.0.0 stable release
+//!
+//! ## Examples
 //! To create a query from a query string:
 //! ```
-//! # use rsonpath_syntax::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType};
+//! # use rsonpath_syntax::{JsonPathQuery, Segment, Selectors, Selector, str::JsonString};
 //! # use std::error::Error;
 //! #
 //! # fn main() -> Result<(), Box<dyn Error>> {
 //! let query_string = "$..phoneNumbers[*].number";
-//! let query = JsonPathQuery::parse(query_string)?;
+//! let query = rsonpath_syntax::parse(query_string)?;
 //!
-//! // Query structure is a linear sequence of nodes:
-//! // Root '$', descendant '..phoneNumbers', child wildcard, child 'number'.
-//! let root_node = query.root();
-//! let descendant_node = root_node.child().unwrap();
-//! let child_wildcard_node = descendant_node.child().unwrap();
-//! let child_node = child_wildcard_node.child().unwrap();
-//!
-//! assert!(root_node.is_root());
-//! assert!(descendant_node.is_descendant());
-//! assert!(child_wildcard_node.is_any_child());
-//! assert!(child_node.is_child());
-//! // Final node will have a None child.
-//! assert!(child_node.child().is_none());
-//!
-//! assert_eq!(descendant_node.member_name().unwrap(), "phoneNumbers".as_bytes());
-//! assert_eq!(child_wildcard_node.member_name(), None);
-//! assert_eq!(child_node.member_name().unwrap(), "number".as_bytes());
+//! // Query structure is a linear sequence of segments:
+//! // Descendant '..phoneNumbers', child wildcard, child 'number'.
+//! assert_eq!(query.segments().len(), 3);
+//! assert_eq!(
+//!   query.segments()[0],
+//!   Segment::Descendant(
+//!     Selectors::one(
+//!       Selector::Name(
+//!         JsonString::new("phoneNumbers")
+//! ))));
+//! assert_eq!(
+//!   query.segments()[1],
+//!   Segment::Child(
+//!     Selectors::one(
+//!       Selector::Wildcard
+//! )));
+//! assert_eq!(
+//!   query.segments()[2],
+//!   Segment::Child(
+//!     Selectors::one(
+//!       Selector::Name(
+//!         JsonString::new("number")
+//! ))));
 //! # Ok(())
 //! # }
 //! ```
@@ -96,7 +112,7 @@
 // Panic-free lint.
 #![warn(clippy::exit)]
 // Panic-free lints (disabled for tests).
-#![cfg_attr(not(test), warn(clippy::panic, clippy::panic_in_result_fn, clippy::unwrap_used))]
+#![cfg_attr(not(test), warn(clippy::unwrap_used))]
 // IO hygiene, only on --release.
 #![cfg_attr(
     not(debug_assertions),
@@ -116,298 +132,325 @@ pub mod builder;
 pub mod error;
 pub mod num;
 mod parser;
-pub mod string;
+pub mod str;
 
-use self::{error::ParserError, num::JsonUInt, string::JsonString};
-use std::fmt::{self, Display};
+use std::{
+    fmt::{self, Display},
+    ops::Deref,
+};
 
-/// Linked list structure of a JSONPath query.
-#[derive(Debug, PartialEq, Eq)]
-pub enum JsonPathQueryNode {
-    /// The first link in the list representing the root '`$`' character.d
-    Root(Option<Box<JsonPathQueryNode>>),
-    /// Represents direct descendant with a given property name ('`.`' token).
-    Child(JsonString, Option<Box<JsonPathQueryNode>>),
-    /// Represents direct descendant with a wildcard ('`.*`' tokens).
-    AnyChild(Option<Box<JsonPathQueryNode>>),
-    /// Represents recursive descent ('`..`' token).
-    Descendant(JsonString, Option<Box<JsonPathQueryNode>>),
-    /// Represents recursive descendant with a wildcard ('`..*`' tokens).
-    AnyDescendant(Option<Box<JsonPathQueryNode>>),
-    /// Represents direct descendant list item with a positive index (numbers).
-    ArrayIndexChild(JsonUInt, Option<Box<JsonPathQueryNode>>),
-    /// Represents recursive descendant with an array index ('`..[n]`' tokens).
-    ArrayIndexDescendant(JsonUInt, Option<Box<JsonPathQueryNode>>),
-}
+/// JSONPath query parser.
+#[derive(Debug, Clone, Default)]
+pub struct Parser {}
 
-use JsonPathQueryNode::*;
+/// Configurable builder for a [`Parser`] instance.
+#[derive(Debug, Clone, Default)]
+pub struct ParserBuilder {}
 
-impl JsonPathQueryNode {
-    /// Retrieve the child of the node or `None` if it is the last one
-    /// on the list.
-    #[must_use]
+impl From<ParserBuilder> for Parser {
     #[inline(always)]
-    pub fn child(&self) -> Option<&Self> {
-        match self {
-            Root(node)
-            | Child(_, node)
-            | AnyChild(node)
-            | Descendant(_, node)
-            | AnyDescendant(node)
-            | ArrayIndexChild(_, node)
-            | ArrayIndexDescendant(_, node) => node.as_deref(),
-        }
-    }
-
-    /// Create an iterator over nodes of the query in sequence,
-    /// starting from the root.
-    #[must_use]
-    #[inline(always)]
-    pub fn iter(&self) -> JsonPathQueryIterator {
-        JsonPathQueryIterator { node: Some(self) }
+    fn from(_value: ParserBuilder) -> Self {
+        Self {}
     }
 }
 
-/// JSONPath query structure represented by the root link of the
-/// [`JsonPathQueryNode`] list.
-#[derive(Debug, PartialEq, Eq)]
-pub struct JsonPathQuery {
-    root: Box<JsonPathQueryNode>,
+/// Convenience alias for [`Result`](std::result::Result) values returned by this crate.
+pub type Result<T> = std::result::Result<T, error::ParseError>;
+
+/// Parse a JSONPath query string using default [`Parser`] configuration.
+///
+/// ## Errors
+/// Fails if the string does not represent a valid JSONPath query
+/// as governed by the [JSONPath RFC specification](https://www.ietf.org/archive/id/draft-ietf-jsonpath-base-21.html).
+///
+/// Note that leading and trailing whitespace is explicitly disallowed by the spec.
+#[inline]
+pub fn parse(str: &str) -> Result<JsonPathQuery> {
+    Parser::default().parse(str)
 }
 
-/// Iterator over query nodes traversing the parent-child relation.
-pub struct JsonPathQueryIterator<'a> {
-    node: Option<&'a JsonPathQueryNode>,
-}
-
-impl<'a> Iterator for JsonPathQueryIterator<'a> {
-    type Item = &'a JsonPathQueryNode;
-
+impl Parser {
+    /// Parse a JSONPath query string.
+    ///
+    /// ## Errors
+    /// Fails if the string does not represent a valid JSONPath query
+    /// as governed by the [JSONPath RFC specification](https://www.ietf.org/archive/id/draft-ietf-jsonpath-base-21.html).
+    ///
+    /// Note that leading and trailing whitespace is explicitly disallowed by the spec.
     #[inline]
-    fn next(&mut self) -> Option<Self::Item> {
-        let result = self.node;
-
-        if let Some(node) = result {
-            self.node = node.child()
-        }
-
-        result
+    pub fn parse(&mut self, str: &str) -> Result<JsonPathQuery> {
+        crate::parser::parse_json_path_query(str)
     }
+}
+
+/// JSONPath query segment.
+///
+/// Every query is a sequence of zero or more of segments,
+/// each applying one or more selectors to a node and passing it along to the
+/// subsequent segments.
+#[derive(Debug, PartialEq, Eq, Clone)]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+pub enum Segment {
+    /// A child segment contains a sequence of selectors,
+    /// each of which selects zero or more children of a node.
+    Child(Selectors),
+    /// A child segment contains a sequence of selectors,
+    /// each of which selects zero or more descendants of a node.
+    Descendant(Selectors),
+}
+
+// We don't derive this because an empty Vec of Selectors is not a valid representation.
+#[cfg(feature = "arbitrary")]
+#[cfg_attr(docsrs, doc(cfg(feature = "arbitrary")))]
+impl<'a> arbitrary::Arbitrary<'a> for Selectors {
+    #[inline]
+    fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
+        let first = u.arbitrary::<Selector>()?;
+        let mut rest = u.arbitrary::<Vec<Selector>>()?;
+        rest.push(first);
+
+        Ok(Self::many(rest))
+    }
+}
+
+/// Collection of one or more [`Selector`] instances.
+///
+/// Guaranteed to be non-empty.
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct Selectors {
+    inner: Vec<Selector>,
+}
+
+/// Each [`Segment`] defines one or more selectors.
+/// A selector produces one or more children/descendants of the node it is applied to.
+#[derive(Debug, PartialEq, Eq, Clone)]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+pub enum Selector {
+    /// A name selector selects at most one object member value under the key equal to the
+    /// selector's [`JsonString`](str::JsonString).
+    Name(str::JsonString),
+    /// A wildcard selector selects the nodes of all children of an object or array.
+    Wildcard,
+    /// An index selector matches at most one array element value,
+    /// depending on the selector's [`Index`].
+    Index(Index),
+}
+
+/// Directional index into a JSON array.
+#[derive(Debug, PartialEq, Eq, Clone)]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+pub enum Index {
+    /// Zero-based index from the start of the array.
+    FromStart(num::JsonUInt),
+    /// Index from the end of the array.
+    ///
+    /// `-1` is the last element, `-2` is the second last, etc.
+    FromEnd(num::JsonUInt),
+}
+
+impl From<num::JsonInt> for Index {
+    #[inline]
+    fn from(value: num::JsonInt) -> Self {
+        if value.as_i64() >= 0 {
+            Self::FromStart(value.abs())
+        } else {
+            Self::FromEnd(value.abs())
+        }
+    }
+}
+
+/// JSONPath query structure represented by a sequence of [`Segments`](Segment).
+#[derive(Debug, PartialEq, Eq, Clone)]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+pub struct JsonPathQuery {
+    segments: Vec<Segment>,
 }
 
 impl JsonPathQuery {
-    /// Retrieve reference to the root node.
-    ///
-    /// It is guaranteed that the root is the [`JsonPathQueryNode::Root`]
-    /// variant and always exists.
+    /// Returns all [`Segments`](Segment) of the query as a slice.
+    #[inline(always)]
     #[must_use]
+    pub fn segments(&self) -> &[Segment] {
+        &self.segments
+    }
+}
+
+impl Segment {
+    /// Returns all [`Selector`] instances of the segment as a slice.
+    ///
+    /// Guaranteed to be non-empty.
     #[inline(always)]
-    pub fn root(&self) -> &JsonPathQueryNode {
-        self.root.as_ref()
+    #[must_use]
+    pub fn selectors(&self) -> &[Selector] {
+        match self {
+            Self::Child(s) | Self::Descendant(s) => s,
+        }
     }
 
-    /// Parse a query string into a [`JsonPathQuery`].
-    ///
-    /// # Errors
-    ///
-    /// Will return a [`ParserError`] if the `query_string` does
-    /// not conform to the JSONPath grammar. See its documentation
-    /// for details.
+    /// Check if this is a child segment.
     #[inline(always)]
-    pub fn parse(query_string: &str) -> Result<Self, ParserError> {
-        self::parser::parse_json_path_query(query_string)
+    #[must_use]
+    pub fn is_child(&self) -> bool {
+        matches!(self, Self::Child(_))
     }
 
-    /// Create a query from a root node.
+    /// Check if this is a descendant segment.
+    #[inline(always)]
+    #[must_use]
+    pub fn is_descendant(&self) -> bool {
+        matches!(self, Self::Descendant(_))
+    }
+}
+
+impl Selectors {
+    /// Create a singleton [`Selectors`] instance.
+    #[inline(always)]
+    #[must_use]
+    pub fn one(selector: Selector) -> Self {
+        Self { inner: vec![selector] }
+    }
+
+    /// Create a [`Selectors`] instance taking ownership of the `vec`.
     ///
-    /// If node is not the [`JsonPathQueryNode::Root`] variant it will be
-    /// automatically wrapped into a [`JsonPathQueryNode::Root`] node.
+    /// ## Panics
+    /// If the `vec` is empty.
+    ///
+    /// ```should_panic
+    /// # use rsonpath_syntax::Selectors;
+    /// Selectors::many(vec![]);
+    /// ```
     #[inline]
     #[must_use]
-    pub fn new(node: Box<JsonPathQueryNode>) -> Self {
-        let root = if node.is_root() {
-            node
-        } else {
-            Box::new(Root(Some(node)))
-        };
+    pub fn many(vec: Vec<Selector>) -> Self {
+        assert!(!vec.is_empty(), "cannot create an empty Selectors collection");
+        Self { inner: vec }
+    }
 
-        Self { root }
+    /// Get a reference to the first [`Selector`] in the collection.
+    #[inline]
+    #[must_use]
+    pub fn first(&self) -> &Selector {
+        &self.inner[0]
+    }
+}
+
+impl Deref for Selectors {
+    type Target = [Selector];
+
+    #[inline(always)]
+    fn deref(&self) -> &Self::Target {
+        &self.inner
     }
 }
 
 impl Display for JsonPathQuery {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.root.as_ref())
+        write!(f, "$")?;
+        for s in &self.segments {
+            write!(f, "{s}")?;
+        }
+        Ok(())
     }
 }
 
-impl Display for JsonPathQueryNode {
+impl Display for Segment {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Root(_) => write!(f, "$"),
-            Child(key, _) => write!(f, "['{}']", key.display()),
-            AnyChild(_) => write!(f, "[*]"),
-            Descendant(key, _) => write!(f, "..['{}']", key.display()),
-            AnyDescendant(_) => write!(f, "..[*]"),
-            ArrayIndexChild(i, _) => write!(f, "[{i}]"),
-            ArrayIndexDescendant(i, _) => write!(f, "..[{i}]"),
-        }?;
-
-        if let Some(child) = self.child() {
-            write!(f, "{child}")
-        } else {
-            Ok(())
+            Self::Child(s) => write!(f, "{s}"),
+            Self::Descendant(s) => write!(f, "..{s}"),
         }
     }
 }
 
-/// Equips a struct with information on the type of [`JsonPathQueryNode`] it represents
-/// and methods to extract query elements from it.
-pub trait JsonPathQueryNodeType {
-    /// Returns `true` iff the type is [`JsonPathQueryNode::Root`].
-    fn is_root(&self) -> bool;
-
-    /// Returns `true` iff the type is [`JsonPathQueryNode::Descendant`].
-    fn is_descendant(&self) -> bool;
-
-    /// Returns `true` iff the type is [`JsonPathQueryNode::AnyDescendant`].
-    fn is_any_descendant(&self) -> bool;
-
-    /// Returns `true` iff the type is [`JsonPathQueryNode::Child`].
-    fn is_child(&self) -> bool;
-
-    /// Returns `true` iff the type is [`JsonPathQueryNode::AnyChild`].
-    fn is_any_child(&self) -> bool;
-
-    /// If the type is [`JsonPathQueryNode::Descendant`] or [`JsonPathQueryNode::Child`]
-    /// returns the member name it represents; otherwise, `None`.
-    fn member_name(&self) -> Option<&JsonString>;
-
-    /// If the type is [`JsonPathQueryNode::ArrayIndexDescendant`] or [`JsonPathQueryNode::ArrayIndexChild`]
-    /// returns the index it represents; otherwise, `None`.
-    fn array_index(&self) -> Option<&JsonUInt>;
-}
-
-impl JsonPathQueryNodeType for JsonPathQueryNode {
-    #[inline(always)]
-    fn is_root(&self) -> bool {
-        matches!(self, Root(_))
-    }
-
-    #[inline(always)]
-    fn is_descendant(&self) -> bool {
-        matches!(self, Descendant(_, _))
-    }
-
-    #[inline(always)]
-    fn is_any_descendant(&self) -> bool {
-        matches!(self, AnyDescendant(_))
-    }
-
-    #[inline(always)]
-    fn is_child(&self) -> bool {
-        matches!(self, Child(_, _))
-    }
-
-    #[inline(always)]
-    fn is_any_child(&self) -> bool {
-        matches!(self, AnyChild(_))
-    }
-
-    #[inline(always)]
-    fn member_name(&self) -> Option<&JsonString> {
-        match self {
-            Child(name, _) | Descendant(name, _) => Some(name),
-            Root(_) | AnyChild(_) | AnyDescendant(_) | ArrayIndexChild(_, _) | ArrayIndexDescendant(_, _) => None,
-        }
-    }
-
-    #[inline(always)]
-    fn array_index(&self) -> Option<&JsonUInt> {
-        match self {
-            ArrayIndexChild(i, _) | ArrayIndexDescendant(i, _) => Some(i),
-            Child(_, _) | Descendant(_, _) | Root(_) | AnyChild(_) | AnyDescendant(_) => None,
-        }
-    }
-}
-
-/// Utility blanket implementation for a [`JsonPathQueryNode`] wrapped in an [`Option`].
-///
-/// If the value is `None` automatically returns `false` or `None` on all calls in
-/// the natural manner.
-impl<T: std::ops::Deref<Target = JsonPathQueryNode>> JsonPathQueryNodeType for Option<T> {
-    #[inline(always)]
-    fn is_root(&self) -> bool {
-        self.as_ref().map_or(false, |x| x.is_root())
-    }
-
-    #[inline(always)]
-    fn is_descendant(&self) -> bool {
-        self.as_ref().map_or(false, |x| x.is_descendant())
-    }
-
-    #[inline(always)]
-    fn is_any_descendant(&self) -> bool {
-        self.as_ref().map_or(false, |x| x.is_any_descendant())
-    }
-
-    #[inline(always)]
-    fn is_child(&self) -> bool {
-        self.as_ref().map_or(false, |x| x.is_child())
-    }
-
-    #[inline(always)]
-    fn is_any_child(&self) -> bool {
-        self.as_ref().map_or(false, |x| x.is_any_child())
-    }
-
-    #[inline(always)]
-    fn member_name(&self) -> Option<&JsonString> {
-        self.as_ref().and_then(|x| x.member_name())
-    }
-
-    #[inline(always)]
-    fn array_index(&self) -> Option<&JsonUInt> {
-        self.as_ref().and_then(|x| x.array_index())
-    }
-}
-
-// We don't implement Arbitrary for JsonPathQueryNode as it is pretty much meaningless.
-// In particular, constructing a query as just a sequence of arbitrary nodes is invalid,
-// because the Root note must be always be the first node in the query and can never occur later.
-#[cfg(feature = "arbitrary")]
-#[cfg_attr(docsrs, doc(cfg(feature = "arbitrary")))]
-impl<'a> arbitrary::Arbitrary<'a> for JsonPathQuery {
+impl Display for Selectors {
     #[inline]
-    fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
-        #[derive(arbitrary::Arbitrary)]
-        enum RawNode {
-            Child(JsonString),
-            AnyChild,
-            Descendant(JsonString),
-            AnyDescendant,
-            ArrayIndexChild(JsonUInt),
-            ArrayIndexDescendant(JsonUInt),
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "[{}", self.first())?;
+        for s in self.inner.iter().skip(1) {
+            write!(f, ", {s}")?;
+        }
+        write!(f, "]")?;
+        Ok(())
+    }
+}
+
+impl Display for Selector {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Name(n) => write!(f, "'{}'", str::escape(n.unquoted(), str::EscapeMode::SingleQuoted)),
+            Self::Wildcard => write!(f, "*"),
+            Self::Index(idx) => write!(f, "{idx}"),
+        }
+    }
+}
+
+impl Display for Index {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::FromStart(idx) => write!(f, "{idx}"),
+            Self::FromEnd(idx) => write!(f, "-{idx}"),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    mod name_selector {
+        use super::*;
+        use pretty_assertions::assert_eq;
+        use test_case::test_case;
+
+        fn parse_single_quoted_name_selector(src: &str) -> Result<JsonPathQuery> {
+            let query_string = format!("$['{src}']");
+            parse(&query_string)
         }
 
-        let sequence = u.arbitrary_iter()?;
-        let mut node = None;
-
-        for raw in sequence {
-            node = Some(Box::new(match raw? {
-                RawNode::Child(s) => JsonPathQueryNode::Child(s, node),
-                RawNode::AnyChild => JsonPathQueryNode::AnyChild(node),
-                RawNode::Descendant(s) => JsonPathQueryNode::Descendant(s, node),
-                RawNode::AnyDescendant => JsonPathQueryNode::AnyDescendant(node),
-                RawNode::ArrayIndexChild(i) => JsonPathQueryNode::ArrayIndexChild(i, node),
-                RawNode::ArrayIndexDescendant(i) => JsonPathQueryNode::ArrayIndexDescendant(i, node),
-            }));
+        #[test_case("", ""; "empty")]
+        #[test_case("dog", "dog"; "ascii")]
+        #[test_case(r"\\", r"\"; "backslash")]
+        #[test_case("unescaped 🔥 fire emoji", "unescaped 🔥 fire emoji"; "unescaped emoji")]
+        #[test_case(r"escape \b backspace", "escape \u{0008} backspace"; "BS escape")]
+        #[test_case(r"escape \t tab", "escape \t tab"; "HT escape")]
+        #[test_case(r"escape \n endln", "escape \n endln"; "LF escape")]
+        #[test_case(r"escape \f formfeed", "escape \u{000C} formfeed"; "FF escape")]
+        #[test_case(r"escape \r carriage", "escape \r carriage"; "CR escape")]
+        #[test_case(r#"escape \' apost"#, r"escape ' apost"; "apostrophe escape")]
+        #[test_case(r"escape \/ slash", r"escape / slash"; "slash escape")]
+        #[test_case(r"escape \\ backslash", r"escape \ backslash"; "backslash escape")]
+        #[test_case(r"escape \u2112 script L", "escape ℒ script L"; "U+2112 Script Capital L escape")]
+        #[test_case(r"escape \u211269 script L", "escape ℒ69 script L"; "U+2112 Script Capital L escape followed by digits")]
+        #[test_case(r"escape \u21a7 bar down arrow", "escape ↧ bar down arrow"; "U+21a7 Downwards Arrow From Bar (lowercase hex)")]
+        #[test_case(r"escape \u21A7 bar down arrow", "escape ↧ bar down arrow"; "U+21A7 Downwards Arrow From Bar (uppercase hex)")]
+        #[test_case(r"escape \ud83d\udd25 fire emoji", "escape 🔥 fire emoji"; "U+1F525 fire emoji escape (lowercase hex)")]
+        #[test_case(r"escape \uD83D\uDD25 fire emoji", "escape 🔥 fire emoji"; "U+1F525 fire emoji escape (uppercase hex)")]
+        fn parse_correct_single_quoted_name(src: &str, expected: &str) {
+            let res = parse_single_quoted_name_selector(src).expect("should successfully parse");
+            match res.segments().first() {
+                Some(Segment::Child(selectors)) => match selectors.first() {
+                    Selector::Name(name) => assert_eq!(name.unquoted(), expected),
+                    _ => panic!("expected to parse a single name selector, got {res:?}"),
+                },
+                _ => panic!("expected to parse a single name selector, got {res:?}"),
+            }
         }
 
-        Ok(Self {
-            root: Box::new(JsonPathQueryNode::Root(node)),
-        })
+        #[test]
+        fn parse_double_quoted_name_with_escaped_double_quote() {
+            let query_string = r#"$["escape \" quote"]"#;
+            let res = parse(query_string).expect("should successfully parse");
+            match res.segments().first() {
+                Some(Segment::Child(selectors)) => match selectors.first() {
+                    Selector::Name(name) => assert_eq!(name.unquoted(), "escape \" quote"),
+                    _ => panic!("expected to parse a single name selector, got {res:?}"),
+                },
+                _ => panic!("expected to parse a single name selector, got {res:?}"),
+            }
+        }
     }
 }

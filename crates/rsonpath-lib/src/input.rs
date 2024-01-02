@@ -27,7 +27,7 @@ pub use owned::OwnedBytes;
 
 use self::error::InputError;
 use crate::result::InputRecorder;
-use rsonpath_syntax::string::JsonString;
+use rsonpath_syntax::str::JsonString;
 use std::ops::Deref;
 
 /// Make the struct repr(C) with alignment equal to [`MAX_BLOCK_SIZE`].

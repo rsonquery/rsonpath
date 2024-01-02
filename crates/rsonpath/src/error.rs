@@ -1,20 +1,13 @@
 use color_eyre::{Help, SectionExt};
 use eyre::eyre;
 use rsonpath_lib::{automaton::error::CompilerError, engine::error::EngineError, error::UnsupportedFeatureError};
-use rsonpath_syntax::{
-    error::{ParseErrorReport, ParserError},
-    JsonPathQuery,
-};
+use rsonpath_syntax::{error::ParseError, JsonPathQuery};
 
 const FEATURE_REQUEST_URL: &str = "https://github.com/V0ldek/rsonpath/issues/new?template=feature_request.md";
 
 /// Turn a [`ParserError`] into a user-friendly eyre Report.
-pub fn report_parser_error(query_string: &str, error: ParserError) -> eyre::Report {
-    match error {
-        ParserError::SyntaxError { report } => report_query_syntax_error(query_string, report),
-        ParserError::InternalNomError { .. } => eyre::Report::new(error),
-        ParserError::ArrayIndexError(_) => eyre::Report::new(error),
-    }
+pub fn report_parser_error(error: ParseError) -> eyre::Report {
+    eyre!("One or more syntax errors occurred.").section(error.colored().header("Parse error:"))
 }
 
 /// Turn a [`CompilerError`] into a user-friendly eyre Report.
@@ -23,11 +16,12 @@ pub fn report_compiler_error(query: &JsonPathQuery, error: CompilerError) -> eyr
         CompilerError::NotSupported(unsupported) => report_unsupported_error(unsupported),
         CompilerError::QueryTooComplex(_) => {
             let mut report = eyre::Report::new(error);
-            if query
-                .root()
-                .iter()
-                .any(|node| matches!(node, rsonpath_syntax::JsonPathQueryNode::AnyChild(_)))
-            {
+            if query.segments().iter().any(|segment| {
+                segment
+                    .selectors()
+                    .iter()
+                    .any(|selector| matches!(selector, rsonpath_syntax::Selector::Wildcard))
+            }) {
                 report = report.suggestion(
                     "Wildcard selectors are a common source of query complexity.\n            \
                     Consider reformulating the query using descendant selectors to replace sequences of wildcards.",
@@ -56,7 +50,7 @@ pub fn report_engine_error(error: EngineError) -> eyre::Report {
     }
 }
 
-fn report_query_syntax_error(query_string: &str, report: ParseErrorReport) -> eyre::Report {
+/*fn report_query_syntax_error(query_string: &str, report: ParseErrorReport) -> eyre::Report {
     let mut eyre = eyre!("One or more syntax errors occurred.");
 
     for error in report.errors() {
@@ -97,7 +91,7 @@ fn report_query_syntax_error(query_string: &str, report: ParseErrorReport) -> ey
     }
 
     eyre
-}
+}*/
 
 fn report_unsupported_error(unsupported: UnsupportedFeatureError) -> eyre::Report {
     use color_eyre::owo_colors::OwoColorize;

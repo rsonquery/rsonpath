@@ -5,7 +5,7 @@ use crate::{
     result::InputRecorder,
     BLOCK_SIZE,
 };
-use rsonpath_syntax::string::JsonString;
+use rsonpath_syntax::str::JsonString;
 
 /// Classifier that can quickly find a member name in a byte stream.
 pub trait Memmem<'i, 'b, 'r, I: Input, const N: usize> {

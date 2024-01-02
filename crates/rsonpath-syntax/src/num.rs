@@ -160,6 +160,15 @@ impl JsonInt {
     pub const fn as_i64(&self) -> i64 {
         self.0
     }
+
+    /// Return the absolute value of this integer as a [`JsonUInt`].
+    ///
+    /// This is guaranteed to succeed, as the valid range is symmetrical.
+    #[inline(always)]
+    #[must_use]
+    pub const fn abs(&self) -> JsonUInt {
+        JsonUInt(self.0.unsigned_abs())
+    }
 }
 
 impl JsonUInt {

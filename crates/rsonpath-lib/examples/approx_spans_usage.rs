@@ -3,7 +3,6 @@ use rsonpath::{
     input::MmapInput,
     result::MatchWriter,
 };
-use rsonpath_syntax::JsonPathQuery;
 use std::{env, error::Error, fs, io, process::ExitCode};
 
 fn main() -> Result<ExitCode, Box<dyn Error>> {
@@ -17,7 +16,7 @@ fn main() -> Result<ExitCode, Box<dyn Error>> {
     let query_arg = &args[1];
     let file_path = &args[2];
 
-    let query = JsonPathQuery::parse(query_arg)?;
+    let query = rsonpath_syntax::parse(query_arg)?;
     let file = fs::File::open(file_path)?;
     let input = unsafe { MmapInput::map_file(&file)? };
     let stdout_lock = io::stdout().lock();

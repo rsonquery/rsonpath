@@ -23,7 +23,7 @@ use super::{
 };
 use crate::{input::padding::EndPaddedInput, result::InputRecorder};
 use memmap2::{Mmap, MmapAsRawDesc};
-use rsonpath_syntax::string::JsonString;
+use rsonpath_syntax::str::JsonString;
 
 /// Input wrapping a memory mapped file.
 pub struct MmapInput {
@@ -170,7 +170,7 @@ impl Input for MmapInput {
             // This is the hot path -- do the bounds check and memcmp.
             let bytes = &self.mmap;
             let slice = &bytes[from..to];
-            Ok(member.bytes_with_quotes() == slice && (from == 0 || bytes[from - 1] != b'\\'))
+            Ok(member.quoted().as_bytes() == slice && (from == 0 || bytes[from - 1] != b'\\'))
         } else {
             // This is a very expensive, cold path.
             Ok(self.as_padded_input().is_member_match(from, to, member))

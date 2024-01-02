@@ -2,7 +2,7 @@ use crate::input::{
     error::{InputError, InputErrorConvertible},
     Input,
 };
-use rsonpath_syntax::string::JsonString;
+use rsonpath_syntax::str::JsonString;
 
 #[cfg(target_arch = "x86")]
 pub(super) mod mask_32;
@@ -24,7 +24,7 @@ where
     'i: 'r,
 {
     let block_idx = start_idx % N;
-    let label_size = label.bytes_with_quotes().len();
+    let label_size = label.quoted().len();
 
     for (i, c) in first_block[block_idx..].iter().copied().enumerate() {
         let j = start_idx + i;

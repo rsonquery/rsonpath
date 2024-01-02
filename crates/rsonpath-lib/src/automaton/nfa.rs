@@ -1,8 +1,10 @@
 //! Definition of a nondeterministic automaton that can be directly
 //! obtained from a JsonPath query. This is then turned into
 //! a DFA with the minimizer.
+use crate::error::UnsupportedFeatureError;
+
 use super::{error::CompilerError, TransitionLabel};
-use rsonpath_syntax::{JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType};
+use rsonpath_syntax::JsonPathQuery;
 use std::{fmt::Display, ops::Index};
 
 /// An NFA representing a query. It is always a directed path
@@ -60,22 +62,29 @@ impl<'q> NondeterministicAutomaton<'q> {
     /// # Errors
     /// Returns a [`CompilerError::QueryTooComplex`] if the internal limit
     /// on the state number is exceeded.
+    ///
+    /// Returns a [`CompilerError::NotSupported`] if the query contains a construct
+    /// not currently supported by rsonpath.
     pub(super) fn new(query: &'q JsonPathQuery) -> Result<Self, CompilerError> {
-        debug_assert!(query.root().is_root());
+        use rsonpath_syntax::{Index, Segment, Selector};
 
         let states_result: Result<Vec<NfaState>, CompilerError> = query
-            .root()
+            .segments()
             .iter()
-            .filter_map(|node| match node {
-                JsonPathQueryNode::Root(_) => None,
-                JsonPathQueryNode::Descendant(name, _) => Some(Ok(Recursive(Transition::Labelled(name.into())))),
-                JsonPathQueryNode::Child(name, _) => Some(Ok(Direct(Transition::Labelled(name.into())))),
-                JsonPathQueryNode::AnyChild(_) => Some(Ok(Direct(Transition::Wildcard))),
-                JsonPathQueryNode::AnyDescendant(_) => Some(Ok(Recursive(Transition::Wildcard))),
-                JsonPathQueryNode::ArrayIndexChild(index, _) => Some(Ok(Direct(Transition::Labelled((*index).into())))),
-                JsonPathQueryNode::ArrayIndexDescendant(index, _) => {
-                    Some(Ok(Recursive(Transition::Labelled((*index).into()))))
-                }
+            .map(|segment| match segment {
+                Segment::Child(selectors) if selectors.len() == 1 => match selectors.first() {
+                    Selector::Name(name) => Ok(Direct(Transition::Labelled(name.into()))),
+                    Selector::Wildcard => Ok(Direct(Transition::Wildcard)),
+                    Selector::Index(Index::FromStart(index)) => Ok(Direct(Transition::Labelled((*index).into()))),
+                    Selector::Index(Index::FromEnd(_)) => Err(UnsupportedFeatureError::indexing_from_end().into()),
+                },
+                Segment::Descendant(selectors) if selectors.len() == 1 => match selectors.first() {
+                    Selector::Name(name) => Ok(Recursive(Transition::Labelled(name.into()))),
+                    Selector::Wildcard => Ok(Recursive(Transition::Wildcard)),
+                    Selector::Index(Index::FromStart(index)) => Ok(Recursive(Transition::Labelled((*index).into()))),
+                    Selector::Index(Index::FromEnd(_)) => Err(UnsupportedFeatureError::indexing_from_end().into()),
+                },
+                _ => Err(UnsupportedFeatureError::multiple_selectors().into()),
             })
             .collect();
         let mut states = states_result?;
@@ -158,7 +167,7 @@ impl<'q> Display for NondeterministicAutomaton<'q> {
 mod tests {
     use super::*;
     use rsonpath_syntax::builder::JsonPathQueryBuilder;
-    use rsonpath_syntax::string::JsonString;
+    use rsonpath_syntax::str::JsonString;
 
     #[test]
     fn nfa_test() {
@@ -168,15 +177,15 @@ mod tests {
         let label_d = JsonString::new("d");
 
         let query = JsonPathQueryBuilder::new()
-            .child(label_a.clone())
-            .child(label_b.clone())
-            .descendant(label_c.clone())
-            .descendant(label_d.clone())
-            .any_child()
-            .any_child()
-            .any_descendant()
-            .any_descendant()
-            .build();
+            .child_name(label_a.clone())
+            .child_name(label_b.clone())
+            .descendant_name(label_c.clone())
+            .descendant_name(label_d.clone())
+            .child_wildcard()
+            .child_wildcard()
+            .descendant_wildcard()
+            .descendant_wildcard()
+            .to_query();
 
         let expected_automaton = NondeterministicAutomaton {
             ordered_states: vec![

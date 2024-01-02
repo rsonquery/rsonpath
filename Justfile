@@ -197,9 +197,9 @@ verify-clippy: (build-all "release")
 
 # Verify that documentation successfully builds for rsonpath-lib.
 verify-doc $RUSTDOCFLAGS="--cfg docsrs -D warnings":
-    cargo +nightly doc --package rsonpath-lib --no-default-features --no-deps
-    cargo +nightly doc --package rsonpath-lib --all-features --no-deps
-    cargo +nightly doc --package rsonpath-syntax --all-features --no-deps
+    cargo +nightly doc --package rsonpath-lib --no-default-features --no-deps --release
+    cargo +nightly doc --package rsonpath-lib --all-features --no-deps --release
+    cargo +nightly doc --package rsonpath-syntax --all-features --no-deps --release
 
 # Verify formatting rules are not violated.
 verify-fmt:

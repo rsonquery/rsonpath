@@ -19,7 +19,7 @@ use super::{
     Input, InputBlockIterator, SliceSeekable, MAX_BLOCK_SIZE,
 };
 use crate::{debug, result::InputRecorder};
-use rsonpath_syntax::string::JsonString;
+use rsonpath_syntax::str::JsonString;
 
 /// Input wrapping a borrowed [`[u8]`] buffer.
 pub struct BorrowedBytes<'a> {
@@ -226,7 +226,7 @@ impl<'a> Input for BorrowedBytes<'a> {
             let from = from - MAX_BLOCK_SIZE;
             let to = to - MAX_BLOCK_SIZE;
             let slice = &bytes[from..to];
-            Ok(member.bytes_with_quotes() == slice && (from == 0 || bytes[from - 1] != b'\\'))
+            Ok(member.quoted().as_bytes() == slice && (from == 0 || bytes[from - 1] != b'\\'))
         } else {
             // This is a very expensive, cold path.
             Ok(self.as_padded_input().is_member_match(from, to, member))

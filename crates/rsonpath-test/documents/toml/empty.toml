@@ -6,15 +6,6 @@ is_compressed = false
 json_string = ""
 
 [[queries]]
-query = ""
-description = "select the root (empty query)"
-
-[queries.results]
-count = 0
-spans = []
-nodes = []
-
-[[queries]]
 query = "$"
 description = "select the root"
 

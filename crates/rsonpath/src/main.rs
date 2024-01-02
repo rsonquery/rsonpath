@@ -57,8 +57,8 @@ fn run_with_args(args: &Args) -> Result<()> {
 }
 
 fn parse_query(query_string: &str) -> Result<JsonPathQuery> {
-    JsonPathQuery::parse(query_string)
-        .map_err(|err| report_parser_error(query_string, err).wrap_err("Could not parse JSONPath query."))
+    rsonpath_syntax::parse(query_string)
+        .map_err(|err| report_parser_error(err).wrap_err("Could not parse JSONPath query."))
 }
 
 fn compile_query(query: &JsonPathQuery) -> Result<Automaton> {

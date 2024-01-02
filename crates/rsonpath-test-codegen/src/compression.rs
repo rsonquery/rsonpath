@@ -38,6 +38,7 @@ fn compress_document(files: &mut Files, doc: &DiscoveredDocument) -> Result<(), 
                 results: compressed_results,
                 description: q.description.clone(),
                 query: q.query.clone(),
+                disabled: q.disabled.clone(),
             }
         })
         .collect();

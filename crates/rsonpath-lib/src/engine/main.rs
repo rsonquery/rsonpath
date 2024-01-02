@@ -30,7 +30,7 @@ use crate::{
     },
     FallibleIterator, MaskType, BLOCK_SIZE,
 };
-use rsonpath_syntax::{num::JsonUInt, string::JsonString, JsonPathQuery};
+use rsonpath_syntax::{num::JsonUInt, str::JsonString, JsonPathQuery};
 use smallvec::{smallvec, SmallVec};
 
 /// Main engine for a fixed JSONPath query.
@@ -568,7 +568,7 @@ where
 
     #[inline(always)]
     fn is_match(&self, idx: usize, member_name: &JsonString) -> Result<bool, EngineError> {
-        let len = member_name.bytes_with_quotes().len();
+        let len = member_name.quoted().len();
 
         let closing_quote_idx = match self.input.seek_backward(idx - 1, b'"') {
             Some(x) => x,

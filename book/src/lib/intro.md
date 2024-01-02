@@ -7,13 +7,12 @@ _This part of the book is a work in progress._
 # extern crate rsonpath_syntax;
 use rsonpath::engine::{Compiler, Engine, RsonpathEngine};
 use rsonpath::input::BorrowedBytes;
-use rsonpath_syntax::JsonPathQuery;
 use rsonpath::result::count::CountRecorder;
 # use std::error::Error;
 
 # fn main() -> Result<(), Box<dyn Error>> {
 // Parse a JSONPath query from string.
-let query = JsonPathQuery::parse("$..phoneNumbers[*].number")?;
+let query = rsonpath_syntax::parse("$..phoneNumbers[*].number")?;
 // Convert the contents to the Input type required by the Engines.
 let mut contents = r#"
 {

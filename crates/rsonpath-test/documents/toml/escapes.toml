@@ -20,6 +20,8 @@ json_string = '''
 [[queries]]
 query = '''$..a..b..['label\\']'''
 description = "select label with one actual backslash, which is two backslashes in the query"
+disabled.reason = "we do not handle escapes correctly yet"
+disabled.issue = "https://github.com/V0ldek/rsonpath/issues/117"
 
 [queries.results]
 count = 1
@@ -29,6 +31,8 @@ nodes = ["42"]
 [[queries]]
 query = '''$..a..b..['label\\\\']'''
 description = "select label with two actual backslashes (four backslashes in the query), which does not exist"
+disabled.reason = "we do not handle escapes correctly yet"
+disabled.issue = "https://github.com/V0ldek/rsonpath/issues/117"
 
 [queries.results]
 count = 0

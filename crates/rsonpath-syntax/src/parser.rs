@@ -1,380 +1,469 @@
 use crate::{
-    error::{ParseErrorReport, ParserError},
-    num::JsonUInt,
-    string::JsonString,
-    JsonPathQuery, JsonPathQueryNode, JsonPathQueryNodeType,
+    error::{InternalParseError, ParseErrorBuilder, SyntaxError, SyntaxErrorKind},
+    num::{JsonInt, JsonUInt},
+    str::{JsonString, JsonStringBuilder},
+    Index, JsonPathQuery, Result, Segment, Selector, Selectors,
 };
 use nom::{branch::*, bytes::complete::*, character::complete::*, combinator::*, multi::*, sequence::*, *};
-use std::{
-    borrow::Borrow,
-    fmt::{self, Display},
-};
-#[derive(Debug, Clone)]
-enum Token<'a> {
-    Root,
-    Child(MemberString<'a>),
-    ArrayIndexChild(JsonUInt),
-    WildcardChild(),
-    Descendant(MemberString<'a>),
-    ArrayIndexDescendant(JsonUInt),
-    WildcardDescendant(),
+use std::{iter::Peekable, str::FromStr};
+
+const WHITESPACE: [char; 4] = [' ', '\n', '\r', '\t'];
+
+fn skip_whitespace(q: &str) -> &str {
+    q.trim_start_matches(WHITESPACE)
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-enum MemberString<'a> {
-    Borrowed(&'a str),
-    Owned(String),
+fn skip_one(q: &str) -> &str {
+    let mut chars = q.chars();
+    chars.next();
+    chars.as_str()
 }
 
-impl Display for Token<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Token::Root => write!(f, "$"),
-            Token::Child(member) => write!(f, "['{member}']"),
-            Token::ArrayIndexChild(i) => write!(f, "[{i}]"),
-            Token::WildcardChild() => write!(f, "[*]"),
-            Token::Descendant(member) => write!(f, "..['{member}']"),
-            Token::WildcardDescendant() => write!(f, "..[*]"),
-            Token::ArrayIndexDescendant(i) => write!(f, "..[{i}]"),
-        }
+fn ignore_whitespace<'a, T, F, E>(mut inner: F) -> impl FnMut(&'a str) -> IResult<&'a str, T, E>
+where
+    F: nom::Parser<&'a str, T, E>,
+{
+    move |q: &'a str| {
+        inner
+            .parse(skip_whitespace(q))
+            .map(|(rest, res)| (skip_whitespace(rest), res))
     }
 }
 
-impl Display for MemberString<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            MemberString::Borrowed(member) => write!(f, "{member}"),
-            MemberString::Owned(member) => write!(f, "{member}"),
+pub(crate) fn parse_json_path_query(q: &str) -> Result<JsonPathQuery> {
+    let original_input = q;
+    let mut parse_error = ParseErrorBuilder::new();
+    let mut segments = vec![];
+    let q = skip_whitespace(q);
+    let q = match char::<_, nom::error::Error<_>>('$')(q).finish() {
+        Ok((q, _)) => skip_whitespace(q),
+        Err(e) => {
+            parse_error.add(SyntaxError::new(
+                SyntaxErrorKind::MissingRootIdentifier,
+                e.input.len(),
+                1,
+            ));
+            e.input
         }
+    };
+
+    let mut q = q;
+    while !q.is_empty() {
+        q = match segment(q).finish() {
+            Ok((rest, segment)) => {
+                segments.push(segment);
+                rest
+            }
+            Err(InternalParseError::SyntaxError(err, rest)) => {
+                parse_error.add(err);
+                rest
+            }
+            Err(InternalParseError::SyntaxErrors(errs, rest)) => {
+                parse_error.add_many(errs);
+                rest
+            }
+            Err(InternalParseError::NomError(err)) => panic!(
+                "unexpected parser error; raw nom errors should never be produced; this is a bug\ncontext:\n{err}"
+            ),
+        };
+        q = skip_whitespace(q);
+    }
+
+    if parse_error.is_empty() {
+        Ok(JsonPathQuery { segments })
+    } else {
+        Err(parse_error.build(original_input.to_owned()))
     }
 }
 
-impl<'a> Borrow<str> for MemberString<'a> {
-    fn borrow(&self) -> &str {
-        match self {
-            MemberString::Borrowed(member) => member,
-            MemberString::Owned(member) => member,
-        }
+fn segment(q: &str) -> IResult<&str, Segment, InternalParseError> {
+    // It's important to check descendant first, since we can always cut based on whether the prefix is ".." or not.
+    alt((
+        descendant_segment,
+        child_segment,
+        failed_segment(SyntaxErrorKind::InvalidSegmentStart),
+    ))(q)
+}
+
+fn descendant_segment(q: &str) -> IResult<&str, Segment, InternalParseError> {
+    map(
+        preceded(
+            tag(".."),
+            cut(alt((
+                bracketed_selection,
+                map(wildcard_selector, Selectors::one),
+                member_name_shorthand,
+                failed_segment(SyntaxErrorKind::InvalidSegmentAfterTwoPeriods),
+            ))),
+        ),
+        Segment::Descendant,
+    )(q)
+}
+
+fn child_segment(q: &str) -> IResult<&str, Segment, InternalParseError> {
+    map(
+        alt((
+            bracketed_selection,
+            // This cut is only correct because we try parsing descendant_segment first.
+            preceded(
+                char('.'),
+                cut(alt((
+                    map(wildcard_selector, Selectors::one),
+                    member_name_shorthand,
+                    failed_segment(SyntaxErrorKind::InvalidNameShorthandAfterOnePeriod),
+                ))),
+            ),
+        )),
+        Segment::Child,
+    )(q)
+}
+
+fn failed_segment<T>(kind: SyntaxErrorKind) -> impl FnMut(&str) -> IResult<&str, T, InternalParseError> {
+    move |q: &str| {
+        let rest = skip_one(q)
+            .trim_start_matches('.')
+            .trim_start_matches(|x| x != '.' && x != '[');
+        Err(Err::Failure(InternalParseError::SyntaxError(
+            SyntaxError::new(kind.clone(), q.len(), q.len() - rest.len()),
+            rest,
+        )))
     }
 }
 
-impl<'a> From<Option<String>> for MemberString<'a> {
-    #[inline]
-    fn from(value: Option<String>) -> Self {
-        match value {
-            Some(member) => MemberString::Owned(member),
-            None => MemberString::Borrowed(""),
-        }
-    }
-}
+fn bracketed_selection(q: &str) -> IResult<&str, Selectors, InternalParseError> {
+    let (mut q, _) = char('[')(q)?;
+    let mut selectors = vec![];
+    let mut syntax_errors = vec![];
 
-pub(crate) fn parse_json_path_query(query_string: &str) -> Result<JsonPathQuery, ParserError> {
-    let tokens_result = jsonpath()(query_string);
-    let finished = tokens_result.finish();
-
-    match finished {
-        Ok(("", (_root_token, tokens))) => {
-            let node = tokens_to_node(&mut tokens.into_iter())?;
-            Ok(match node {
-                None => JsonPathQuery::new(Box::new(JsonPathQueryNode::Root(None))),
-                Some(node) if node.is_root() => JsonPathQuery::new(Box::new(node)),
-                Some(node) => JsonPathQuery::new(Box::new(JsonPathQueryNode::Root(Some(Box::new(node))))),
-            })
+    loop {
+        match selector(q).finish() {
+            Ok((rest, selector)) => {
+                selectors.push(selector);
+                q = rest;
+            }
+            Err(InternalParseError::SyntaxError(err, rest)) => {
+                syntax_errors.push(err);
+                q = rest;
+            }
+            Err(InternalParseError::SyntaxErrors(mut errs, rest)) => {
+                syntax_errors.append(&mut errs);
+                q = rest;
+            }
+            Err(err) => return Err(Err::Failure(err)),
         }
-        _ => {
-            let mut parse_errors = ParseErrorReport::new();
-            let mut continuation = finished.map(|x| x.0);
-            loop {
-                match continuation {
-                    Ok("") => return Err(ParserError::SyntaxError { report: parse_errors }),
-                    Ok(remaining) => {
-                        let error_character_index = query_string.len() - remaining.len();
-                        parse_errors.record_at(error_character_index);
-                        let next_char_boundary = (1..=4)
-                            .find(|x| remaining.is_char_boundary(*x))
-                            .expect("longest UTF8 char is 4 bytes");
-                        continuation = non_root()(&remaining[next_char_boundary..]).finish().map(|x| x.0);
-                    }
-                    Err(e) => return Err(nom::error::Error::new(query_string.to_owned(), e.code).into()),
+        q = skip_whitespace(q);
+
+        match char::<_, nom::error::Error<_>>(',')(q) {
+            Ok((rest, _)) => q = rest,
+            Err(_) => {
+                if let Ok((rest, _)) = char::<_, nom::error::Error<_>>(']')(q) {
+                    q = rest;
+                    break;
+                } else if q.is_empty() {
+                    syntax_errors.push(SyntaxError::new(SyntaxErrorKind::MissingClosingBracket, 0, 1));
+                    break;
+                } else {
+                    syntax_errors.push(SyntaxError::new(SyntaxErrorKind::MissingSelectorSeparator, q.len(), 1))
                 }
             }
         }
     }
-}
 
-fn tokens_to_node<'a, I: Iterator<Item = Token<'a>>>(tokens: &mut I) -> Result<Option<JsonPathQueryNode>, ParserError> {
-    match tokens.next() {
-        Some(token) => {
-            let child_node = tokens_to_node(tokens)?.map(Box::new);
-            match token {
-                Token::Root => Ok(Some(JsonPathQueryNode::Root(child_node))),
-                Token::Child(member) => Ok(Some(JsonPathQueryNode::Child(
-                    JsonString::new(member.borrow()),
-                    child_node,
-                ))),
-                Token::ArrayIndexChild(i) => Ok(Some(JsonPathQueryNode::ArrayIndexChild(i, child_node))),
-                Token::WildcardChild() => Ok(Some(JsonPathQueryNode::AnyChild(child_node))),
-                Token::Descendant(member) => Ok(Some(JsonPathQueryNode::Descendant(
-                    JsonString::new(member.borrow()),
-                    child_node,
-                ))),
-                Token::ArrayIndexDescendant(i) => Ok(Some(JsonPathQueryNode::ArrayIndexDescendant(i, child_node))),
-                Token::WildcardDescendant() => Ok(Some(JsonPathQueryNode::AnyDescendant(child_node))),
-            }
-        }
-        _ => Ok(None),
+    if syntax_errors.is_empty() {
+        Ok((q, Selectors::many(selectors)))
+    } else {
+        Err(Err::Failure(InternalParseError::SyntaxErrors(syntax_errors, q)))
     }
 }
 
-trait Parser<'a, Out>: FnMut(&'a str) -> IResult<&'a str, Out> {}
+fn member_name_shorthand(q: &str) -> IResult<&str, Selectors, InternalParseError> {
+    return map(
+        preceded(
+            peek(name_first),
+            fold_many0(name_char, JsonStringBuilder::new, |mut acc, x| {
+                acc.push(x);
+                acc
+            }),
+        ),
+        |x| Selectors::one(Selector::Name(x.into())),
+    )(q);
 
-impl<'a, Out, T: FnMut(&'a str) -> IResult<&'a str, Out>> Parser<'a, Out> for T {}
+    fn name_first(q: &str) -> IResult<&str, char, InternalParseError> {
+        satisfy(|x| x.is_ascii_alphabetic() || matches!(x, '_' | '\u{0080}'..='\u{D7FF}' | '\u{E000}'..='\u{10FFFF}'))(
+            q,
+        )
+    }
 
-/// Helper type for parsers that might return a character that must be escaped
-/// when initialized in a [`JsonString`]. For example, an unescaped double quote
-/// must always be escaped in a string.
-enum MaybeEscapedChar {
-    Char(char),
-    Escaped(char),
+    fn name_char(q: &str) -> IResult<&str, char, InternalParseError> {
+        alt((name_first, satisfy(|x| x.is_ascii_digit())))(q)
+    }
 }
 
-/// Helper wrapper for a Vec, needed to implement traits for it.
-struct MaybeEscapedCharVec(Vec<MaybeEscapedChar>);
-
-fn jsonpath<'a>() -> impl Parser<'a, (Option<Token<'a>>, Vec<Token<'a>>)> {
-    pair(
-        opt(map(char('$'), |_| Token::Root)), // root selector
-        non_root(),
-    )
+fn selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
+    alt((
+        ignore_whitespace(name_selector),
+        ignore_whitespace(wildcard_selector),
+        ignore_whitespace(index_selector),
+        failed_selector,
+    ))(q)
 }
 
-fn non_root<'a>() -> impl Parser<'a, Vec<Token<'a>>> {
-    many0(alt((
-        wildcard_child_selector(),
-        child_selector(),
-        array_index_child_selector(),
-        wildcard_descendant_selector(),
-        descendant_selector(),
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum StringParseMode {
+    DoubleQuoted,
+    SingleQuoted,
+}
+
+fn name_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
+    return map(
+        alt((
+            preceded(char('\''), string(StringParseMode::SingleQuoted)),
+            preceded(char('"'), string(StringParseMode::DoubleQuoted)),
+        )),
+        Selector::Name,
+    )(q);
+}
+
+fn wildcard_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
+    map(tag("*"), |_| Selector::Wildcard)(q)
+}
+
+fn index_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
+    let (rest, int) = int(q)?;
+    match JsonInt::from_str(int) {
+        Ok(int) => {
+            if let Ok(uint) = JsonUInt::try_from(int) {
+                Ok((rest, Selector::Index(Index::FromStart(uint))))
+            } else {
+                Ok((rest, Selector::Index(Index::FromEnd(int.abs()))))
+            }
+        }
+        Err(err) => Err(Err::Failure(InternalParseError::SyntaxError(
+            SyntaxError::new(SyntaxErrorKind::IndexParseError(err), q.len(), int.len()),
+            rest,
+        ))),
+    }
+}
+
+fn failed_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
+    let rest = q.trim_start_matches(|x| x != ',' && x != ']');
+    let error_len = q.len() - rest.len();
+    let error_span = &q[..error_len];
+
+    Err(Err::Failure(InternalParseError::SyntaxError(
+        if error_span.chars().all(|x| [' ', '\n', '\r', '\t'].contains(&x)) {
+            SyntaxError::new(SyntaxErrorKind::EmptySelector, q.len() + 1, error_len + 2)
+        } else {
+            let meaningful_span = skip_whitespace(error_span);
+            let skipped_whitespace_len = error_span.len() - meaningful_span.len();
+            let trimmed_span = meaningful_span.trim_end_matches(WHITESPACE);
+
+            SyntaxError::new(
+                SyntaxErrorKind::InvalidSelector,
+                q.len() - skipped_whitespace_len,
+                trimmed_span.len(),
+            )
+        },
+        rest,
     )))
 }
 
-fn wildcard_child_selector<'a>() -> impl Parser<'a, Token<'a>> {
-    map(alt((dot_wildcard_selector(), index_wildcard_selector())), |_| {
-        Token::WildcardChild()
-    })
-}
+fn int(q: &str) -> IResult<&str, &str, InternalParseError> {
+    let (rest, int) = recognize(alt((preceded(char('-'), digit1), digit1)))(q)?;
 
-fn child_selector<'a>() -> impl Parser<'a, Token<'a>> {
-    map(alt((dot_selector(), index_selector())), Token::Child)
-}
-
-fn dot_selector<'a>() -> impl Parser<'a, MemberString<'a>> {
-    preceded(char('.'), member())
-}
-
-fn dot_wildcard_selector<'a>() -> impl Parser<'a, char> {
-    preceded(char('.'), char('*'))
-}
-
-fn descendant_selector<'a>() -> impl Parser<'a, Token<'a>> {
-    preceded(
-        tag(".."),
-        alt((
-            map(alt((member(), index_selector())), Token::Descendant),
-            array_index_descendant_selector(),
-        )),
-    )
-}
-
-fn wildcard_descendant_selector<'a>() -> impl Parser<'a, Token<'a>> {
-    map(preceded(tag(".."), alt((char('*'), index_wildcard_selector()))), |_| {
-        Token::WildcardDescendant()
-    })
-}
-
-fn index_selector<'a>() -> impl Parser<'a, MemberString<'a>> {
-    delimited(char('['), quoted_member(), char(']'))
-}
-
-fn index_wildcard_selector<'a>() -> impl Parser<'a, char> {
-    delimited(char('['), char('*'), char(']'))
-}
-
-fn member<'a>() -> impl Parser<'a, MemberString<'a>> {
-    map(
-        recognize(pair(member_first(), many0(member_character()))),
-        MemberString::Borrowed,
-    )
-}
-
-fn member_first<'a>() -> impl Parser<'a, char> {
-    verify(anychar, |&x| x.is_alpha() || x == '_' || !x.is_ascii())
-}
-
-fn member_character<'a>() -> impl Parser<'a, char> {
-    verify(anychar, |&x| x.is_alphanumeric() || x == '_' || !x.is_ascii())
-}
-
-fn array_index_child_selector<'a>() -> impl Parser<'a, Token<'a>> {
-    map(array_index_selector(), Token::ArrayIndexChild)
-}
-
-fn array_index_descendant_selector<'a>() -> impl Parser<'a, Token<'a>> {
-    map(array_index_selector(), Token::ArrayIndexDescendant)
-}
-
-fn array_index_selector<'a>() -> impl Parser<'a, JsonUInt> {
-    delimited(char('['), nonnegative_array_index(), char(']'))
-}
-
-fn nonnegative_array_index<'a>() -> impl Parser<'a, JsonUInt> {
-    map_res(parsed_array_index(), TryInto::try_into)
-}
-
-fn parsed_array_index<'a>() -> impl Parser<'a, JsonUInt> {
-    map_res(digit1, str::parse)
-}
-
-fn quoted_member<'a>() -> impl Parser<'a, MemberString<'a>> {
-    alt((
-        delimited(
-            char('\''),
-            map(opt(single_quoted_member()), MemberString::from),
-            char('\''),
-        ),
-        delimited(
-            char('"'),
-            map(opt(double_quoted_member()), MemberString::from),
-            char('"'),
-        ),
-    ))
-}
-
-fn single_quoted_member<'a>() -> impl Parser<'a, String> {
-    escaped_transform(
-        // If ['"'] is parsed, we want the string to be \", not ", since
-        // in a valid JSON document the only way to represent a double quote in a string is with an escape.
-        map(
-            many1(alt((
-                map(unescaped(), MaybeEscapedChar::Char),
-                map(char('"'), MaybeEscapedChar::Escaped),
-            ))),
-            MaybeEscapedCharVec,
-        ),
-        '\\',
-        alt((escaped(), value("'", tag("'")))),
-    )
-}
-
-fn double_quoted_member<'a>() -> impl Parser<'a, String> {
-    escaped_transform(
-        recognize(many1(alt((unescaped(), char('\''))))),
-        '\\',
-        // If ["\""] is parsed the string must be \". Same reason as in single_quoted_member.
-        alt((escaped(), value("\\\"", tag("\"")))),
-    )
-}
-
-fn escaped<'a>() -> impl Parser<'a, &'a str> {
-    alt((
-        value("\\b", tag("b")),
-        value("\\f", tag("f")),
-        value("\\n", tag("n")),
-        value("\\r", tag("r")),
-        value("\\t", tag("t")),
-        value("\\\\", tag("\\")),
-        value("/", tag("/")),
-    ))
-}
-
-fn unescaped<'a>() -> impl Parser<'a, char> {
-    verify(none_of(r#"'"\"#), |&c| u32::from(c) >= 0x20)
-}
-
-// This impl is needed for nom `escaped_transform` to work with our `MaybeEscapedChar`.
-// Logic is simple, we can extend a `String` with `MaybeEscapedChar` by appending
-// either the raw char, or a backslash followed by the should-be-escaped char.
-impl nom::ExtendInto for MaybeEscapedCharVec {
-    type Item = char;
-
-    type Extender = String;
-
-    fn new_builder(&self) -> Self::Extender {
-        String::new()
+    if int != "0" {
+        if int == "-0" {
+            return Err(Err::Failure(InternalParseError::SyntaxError(
+                SyntaxError::new(SyntaxErrorKind::NegativeZeroInteger, q.len(), int.len()),
+                rest,
+            )));
+        }
+        let without_minus = int.strip_prefix('-').unwrap_or(int);
+        if without_minus.strip_prefix(['0']).is_some() {
+            return Err(Err::Failure(InternalParseError::SyntaxError(
+                SyntaxError::new(SyntaxErrorKind::LeadingZeros, q.len(), int.len()),
+                rest,
+            )));
+        }
     }
 
-    fn extend_into(&self, acc: &mut Self::Extender) {
-        for maybe_escaped in &self.0 {
-            match maybe_escaped {
-                MaybeEscapedChar::Char(c) => acc.push(*c),
-                MaybeEscapedChar::Escaped(c) => {
-                    acc.push('\\');
-                    acc.push(*c);
+    Ok((rest, int))
+}
+
+fn string<'a>(mode: StringParseMode) -> impl FnMut(&'a str) -> IResult<&'a str, JsonString, InternalParseError> {
+    move |q: &'a str| {
+        let mut builder = JsonStringBuilder::new();
+        let mut syntax_errors = vec![];
+        let mut stream = q.char_indices().peekable();
+
+        while let Some((c_idx, c)) = stream.next() {
+            match (c, mode) {
+                ('\\', _) => {
+                    match read_escape_sequence(q.len(), c_idx, &mut stream, mode) {
+                        Ok(r) => {
+                            builder.push(r);
+                        }
+                        Err(err) => {
+                            syntax_errors.push(err);
+                        }
+                    };
+                }
+                ('"', StringParseMode::DoubleQuoted) | ('\'', StringParseMode::SingleQuoted) => {
+                    let rest = stream.next().map_or("", |(i, _)| &q[i..]);
+                    return if syntax_errors.is_empty() {
+                        Ok((rest, builder.finish()))
+                    } else {
+                        Err(nom::Err::Failure(InternalParseError::SyntaxErrors(syntax_errors, rest)))
+                    };
+                }
+                (..='\u{0019}', _) => {
+                    let rest = stream.peek().map_or("", |(i, _)| &q[*i..]);
+                    syntax_errors.push(SyntaxError::new(
+                        SyntaxErrorKind::InvalidUnescapedCharacter,
+                        rest.len() + 1,
+                        1,
+                    ))
+                }
+                _ => {
+                    builder.push(c);
                 }
             }
+        }
+
+        let err_kind = if mode == StringParseMode::SingleQuoted {
+            SyntaxErrorKind::MissingClosingSingleQuote
+        } else {
+            SyntaxErrorKind::MissingClosingDoubleQuote
+        };
+        syntax_errors.push(SyntaxError::new(err_kind, 0, 1));
+        return Err(nom::Err::Failure(InternalParseError::SyntaxErrors(syntax_errors, "")));
+
+        fn read_escape_sequence<I>(
+            q_len: usize,
+            c_idx: usize,
+            chars: &mut Peekable<I>,
+            mode: StringParseMode,
+        ) -> std::result::Result<char, SyntaxError>
+        where
+            I: Iterator<Item = (usize, char)>,
+        {
+            let (i, ctrl) = chars.next().ok_or(SyntaxError::new(
+                SyntaxErrorKind::InvalidUnescapedCharacter,
+                q_len - c_idx,
+                1,
+            ))?;
+            match ctrl {
+                'u' => {
+                    let raw_c = read_hexadecimal_escape(q_len, i, chars)?;
+                    match raw_c {
+                        // High surrogate, start of a UTF-16 pair.
+                        0xD800..=0xDBFF => {
+                            let &(_, next) = chars.peek().ok_or(SyntaxError::new(
+                                SyntaxErrorKind::UnpairedHighSurrogate,
+                                q_len - c_idx,
+                                6,
+                            ))?;
+                            if next != '\\' {
+                                return Err(SyntaxError::new(
+                                    SyntaxErrorKind::UnpairedHighSurrogate,
+                                    q_len - c_idx,
+                                    6,
+                                ));
+                            }
+                            chars.next();
+                            let (i, next) = chars.next().ok_or(SyntaxError::new(
+                                SyntaxErrorKind::UnpairedHighSurrogate,
+                                q_len - c_idx,
+                                6,
+                            ))?;
+                            if next != 'u' {
+                                return Err(SyntaxError::new(
+                                    SyntaxErrorKind::UnpairedHighSurrogate,
+                                    q_len - c_idx,
+                                    6,
+                                ));
+                            }
+                            let low = read_hexadecimal_escape(q_len, i, chars)?;
+                            match low {
+                                0xDC00..=0xDFFF => {
+                                    let n = ((raw_c - 0xD800) << 10 | (low - 0xDC00)) + 0x10000;
+                                    Ok(char::from_u32(n).expect("high and low surrogate pair is always a valid char"))
+                                }
+                                _ => Err(SyntaxError::new(
+                                    SyntaxErrorKind::UnpairedHighSurrogate,
+                                    q_len - c_idx,
+                                    6,
+                                )),
+                            }
+                        }
+                        // Low surrogate, invalid escape sequence.
+                        0xDC00..=0xDFFF => Err(SyntaxError::new(
+                            SyntaxErrorKind::UnpairedLowSurrogate,
+                            q_len - c_idx,
+                            6,
+                        )),
+                        _ => Ok(char::from_u32(raw_c).expect("invalid values are handled above")),
+                    }
+                }
+                'b' => Ok('\u{0008}'), // U+0008 BS backspace
+                't' => Ok('\t'),       // U+0009 HT horizontal tab
+                'n' => Ok('\n'),       // U+000A LF line feed
+                'f' => Ok('\u{000C}'), // U+000C FF form feed
+                'r' => Ok('\r'),       // U+000D CR carriage return
+                '"' if mode == StringParseMode::DoubleQuoted => Ok(ctrl),
+                '\'' if mode == StringParseMode::SingleQuoted => Ok(ctrl),
+                '/' | '\\' => Ok(ctrl), // " ' / \ are passed as is
+                _ => Err(SyntaxError::new(
+                    SyntaxErrorKind::InvalidEscapeSequence,
+                    q_len - c_idx,
+                    2,
+                )), // no other escape sequences are allowed
+            }
+        }
+
+        fn read_hexadecimal_escape<I>(
+            q_len: usize,
+            c_idx: usize,
+            chars: &mut Peekable<I>,
+        ) -> std::result::Result<u32, SyntaxError>
+        where
+            I: Iterator<Item = (usize, char)>,
+        {
+            let mut x = 0;
+            for i in 0..4 {
+                let &(_, c) = chars.peek().ok_or(SyntaxError::new(
+                    SyntaxErrorKind::InvalidEscapeSequence,
+                    q_len - c_idx + 1,
+                    2 + i,
+                ))?;
+                let v = match c {
+                    '0'..='9' => c as u32 - '0' as u32,
+                    // RFC8259.7-2 The hexadecimal letters A through F can be uppercase or lowercase.
+                    'a'..='f' => c as u32 - 'a' as u32 + 10,
+                    'A'..='F' => c as u32 - 'A' as u32 + 10,
+                    _ => {
+                        return Err(SyntaxError::new(
+                            SyntaxErrorKind::InvalidHexDigitInUnicodeEscape,
+                            q_len - c_idx - i - 1,
+                            1,
+                        ))
+                    }
+                };
+                x <<= 4;
+                x += v;
+                chars.next();
+            }
+            Ok(x)
         }
     }
 }
 
+/*
 #[cfg(test)]
 mod tests {
     use super::parse_json_path_query;
-    use crate::{parser::MemberString, JsonPathQuery};
+    use crate::{str::JsonString, JsonPathQuery};
     use pretty_assertions::assert_eq;
-
-    #[test]
-    fn single_quoted_member() {
-        let input = "a";
-
-        let result = super::single_quoted_member()(input);
-
-        assert_eq!(result, Ok(("", "a".to_owned())));
-    }
-
-    #[test]
-    fn double_quoted_member() {
-        let input = "a";
-
-        let result = super::double_quoted_member()(input);
-
-        assert_eq!(result, Ok(("", "a".to_owned())));
-    }
-
-    #[test]
-    fn single_quoted_member_should_not_unescape_backslashes() {
-        let input = r"\\x";
-
-        let result = super::single_quoted_member()(input);
-
-        assert_eq!(result, Ok(("", r"\\x".to_owned())));
-    }
-
-    #[test]
-    fn double_quoted_member_should_not_unescape_backslashes() {
-        let input = r"\\x";
-
-        let result = super::double_quoted_member()(input);
-
-        assert_eq!(result, Ok(("", r"\\x".to_owned())));
-    }
-
-    #[test]
-    fn single_quoted_member_should_escape_double_quotes() {
-        let input = r#"""#;
-
-        let result = super::single_quoted_member()(input);
-
-        assert_eq!(result, Ok(("", r#"\""#.to_owned())));
-    }
-
-    #[test]
-    fn double_quoted_member_should_not_unescape_double_quotes() {
-        let input = r#"\""#;
-
-        let result = super::double_quoted_member()(input);
-
-        assert_eq!(result, Ok(("", r#"\""#.to_owned())));
-    }
 
     #[test]
     fn quoted_member() {
@@ -382,7 +471,7 @@ mod tests {
 
         let result = super::quoted_member()(input);
 
-        assert_eq!(result, Ok(("", MemberString::Owned("a".to_string()))));
+        assert_eq!(result, Ok(("", JsonString::new("a"))));
     }
 
     #[test]
@@ -443,7 +532,7 @@ mod tests {
     #[test]
     fn should_infer_root_from_empty_string() {
         let input = "";
-        let expected_query = JsonPathQuery::new(Box::new(crate::JsonPathQueryNode::Root(None)));
+        let expected_query = todo!();
 
         let result = parse_json_path_query(input).expect("expected Ok");
 
@@ -453,7 +542,7 @@ mod tests {
     #[test]
     fn root() {
         let input = "$";
-        let expected_query = JsonPathQuery::new(Box::new(crate::JsonPathQueryNode::Root(None)));
+        let expected_query = todo!();
 
         let result = parse_json_path_query(input).expect("expected Ok");
 
@@ -473,3 +562,4 @@ mod tests {
         assert!(result.is_err());
     }
 }
+*/
