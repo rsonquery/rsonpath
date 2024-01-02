@@ -214,7 +214,7 @@ impl<'a> arbitrary::Arbitrary<'a> for JsonString {
     #[inline]
     fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
         let chars = u.arbitrary_iter()?;
-        let mut string = String::new();
+        let mut builder = JsonStringBuilder::new();
 
         // RFC 7159: All Unicode characters may be placed [in the string],
         // except for characters that must be escaped: quotation mark,
@@ -223,14 +223,16 @@ impl<'a> arbitrary::Arbitrary<'a> for JsonString {
             let c = c?;
             match c {
                 '\u{0000}'..='\u{001F}' | '\"' | '\\' => {
-                    string.push('\\');
-                    string.push(c);
+                    builder.push('\\');
+                    builder.push(c);
                 }
-                _ => string.push(c),
+                _ => {
+                    builder.push(c);
+                }
             }
         }
 
-        Ok(Self { quoted: string })
+        Ok(builder.into())
     }
 }
 

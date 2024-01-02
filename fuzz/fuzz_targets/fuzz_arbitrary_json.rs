@@ -6,7 +6,7 @@ use rsonpath::{
     automaton::error::CompilerError,
     engine::{Compiler, Engine, RsonpathEngine},
 };
-use rsonpath_syntax::JsonPathQuery;
+use rsonpath_syntax::{builder::JsonPathQueryBuilder, num, str, JsonPathQuery};
 use std::{
     collections::HashMap,
     fmt::{Debug, Display},
@@ -14,14 +14,14 @@ use std::{
 
 #[derive(Debug, Arbitrary)]
 struct FuzzData {
-    query: JsonPathQuery,
+    query: SupportedQuery,
     json: Json,
 }
 
 fuzz_target!(|data: FuzzData| -> Corpus {
     let json_string = data.json.to_string();
     let bytes = BorrowedBytes::new(json_string.as_bytes());
-    let engine = match RsonpathEngine::compile_query(&data.query) {
+    let engine = match RsonpathEngine::compile_query(&data.query.0) {
         Ok(x) => x,
         Err(CompilerError::QueryTooComplex(_)) => return Corpus::Reject,
         Err(err) => panic!("error compiling query: {err}"),
@@ -36,9 +36,46 @@ fuzz_target!(|data: FuzzData| -> Corpus {
 #[derive(Debug)]
 struct Json(serde_json::Value);
 
+#[derive(Debug)]
+struct SupportedQuery(JsonPathQuery);
+
+#[derive(Debug, Arbitrary)]
+enum SupportedSegment {
+    Child(SupportedSelector),
+    Descendant(SupportedSelector),
+}
+
+#[derive(Debug, Arbitrary)]
+enum SupportedSelector {
+    Name(str::JsonString),
+    Wildcard,
+    Index(num::JsonUInt),
+}
+
 impl Display for Json {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
+    }
+}
+
+impl<'a> Arbitrary<'a> for SupportedQuery {
+    fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
+        let segment_count = u.arbitrary_len::<SupportedSegment>()?;
+        let mut query = JsonPathQueryBuilder::new();
+
+        for _ in 0..segment_count {
+            let segment = u.arbitrary::<SupportedSegment>()?;
+            match segment {
+                SupportedSegment::Child(SupportedSelector::Name(name)) => query.child_name(name),
+                SupportedSegment::Child(SupportedSelector::Wildcard) => query.child_wildcard(),
+                SupportedSegment::Child(SupportedSelector::Index(idx)) => query.child_index(idx),
+                SupportedSegment::Descendant(SupportedSelector::Name(name)) => query.descendant_name(name),
+                SupportedSegment::Descendant(SupportedSelector::Wildcard) => query.descendant_wildcard(),
+                SupportedSegment::Descendant(SupportedSelector::Index(idx)) => query.descendant_index(idx),
+            };
+        }
+
+        Ok(SupportedQuery(query.into()))
     }
 }
 
