@@ -66,7 +66,7 @@ impl ParseError {
     #[inline(always)]
     #[must_use]
     #[cfg_attr(docsrs, doc(cfg(feature = "color")))]
-    pub fn colored(self) -> impl Display + Error {
+    pub fn colored(self) -> impl Error {
         colored::ColoredParseError(self)
     }
 }

@@ -117,9 +117,7 @@ where
     #[inline]
     fn seek_backward(&self, from: usize, needle: u8) -> Option<usize> {
         let offset = self.leading_padding_len();
-        let Some(from) = from.checked_sub(offset) else {
-            return None;
-        };
+        let from = from.checked_sub(offset)?;
 
         self.bytes.borrow().seek_backward(from, needle).map(|x| x + offset)
     }
@@ -151,9 +149,7 @@ where
     #[inline]
     fn seek_non_whitespace_backward(&self, from: usize) -> Option<(usize, u8)> {
         let offset = self.leading_padding_len();
-        let Some(from) = from.checked_sub(offset) else {
-            return None;
-        };
+        let from = from.checked_sub(offset)?;
 
         self.bytes
             .borrow()
