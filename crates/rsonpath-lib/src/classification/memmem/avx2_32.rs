@@ -6,7 +6,7 @@ use crate::{
     },
     result::InputRecorder,
 };
-use rsonpath_syntax::string::JsonString;
+use rsonpath_syntax::str::JsonString;
 
 const SIZE: usize = 32;
 
