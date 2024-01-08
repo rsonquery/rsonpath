@@ -2,7 +2,7 @@ use crate::{
     error::{InternalParseError, ParseErrorBuilder, SyntaxError, SyntaxErrorKind},
     num::{JsonInt, JsonUInt},
     str::{JsonString, JsonStringBuilder},
-    Index, JsonPathQuery, Result, Segment, Selector, Selectors,
+    Index, JsonPathQuery, ParserOptions, Result, Segment, Selector, Selectors,
 };
 use nom::{branch::*, bytes::complete::*, character::complete::*, combinator::*, multi::*, sequence::*, *};
 use std::{iter::Peekable, str::FromStr};
@@ -30,11 +30,19 @@ where
     }
 }
 
-pub(crate) fn parse_json_path_query(q: &str) -> Result<JsonPathQuery> {
+pub(crate) fn parse_json_path_query(q: &str, options: &ParserOptions) -> Result<JsonPathQuery> {
     let original_input = q;
     let mut parse_error = ParseErrorBuilder::new();
     let mut segments = vec![];
     let q = skip_whitespace(q);
+    let leading_whitespace_len = original_input.len() - q.len();
+    if leading_whitespace_len > 0 && !options.is_leading_whitespace_allowed() {
+        parse_error.add(SyntaxError::new(
+            SyntaxErrorKind::DisallowedLeadingWhitespace,
+            original_input.len(),
+            leading_whitespace_len,
+        ));
+    }
     let q = match char::<_, nom::error::Error<_>>('$')(q).finish() {
         Ok((q, _)) => skip_whitespace(q),
         Err(e) => {
@@ -67,6 +75,20 @@ pub(crate) fn parse_json_path_query(q: &str) -> Result<JsonPathQuery> {
             ),
         };
         q = skip_whitespace(q);
+    }
+
+    // For strict RFC compliance trailing whitespace has to be disallowed.
+    // This is hard to organically obtain from the parsing above, so we insert this awkward direct check if needed.
+    if !options.is_trailing_whitespace_allowed() {
+        let trimmed = original_input.trim_end_matches(WHITESPACE);
+        let trailing_whitespace_len = original_input.len() - trimmed.len();
+        if trailing_whitespace_len > 0 {
+            parse_error.add(SyntaxError::new(
+                SyntaxErrorKind::DisallowedTrailingWhitespace,
+                trailing_whitespace_len,
+                trailing_whitespace_len,
+            ));
+        }
     }
 
     if parse_error.is_empty() {

@@ -1,0 +1,6 @@
+bin = { name = "rq" }
+
+args = ["  $", "--json", "{}"]
+stdout = """
+{}
+"""

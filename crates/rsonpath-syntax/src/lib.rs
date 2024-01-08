@@ -141,16 +141,89 @@ use std::{
 
 /// JSONPath query parser.
 #[derive(Debug, Clone, Default)]
-pub struct Parser {}
+pub struct Parser {
+    options: ParserOptions,
+}
 
 /// Configurable builder for a [`Parser`] instance.
 #[derive(Debug, Clone, Default)]
-pub struct ParserBuilder {}
+pub struct ParserBuilder {
+    options: ParserOptions,
+}
+
+#[derive(Debug, Clone)]
+struct ParserOptions {
+    relaxed_whitespace: bool,
+}
+
+impl ParserBuilder {
+    /// Create a new instance of the builder with the default settings.
+    #[inline]
+    #[must_use]
+    pub fn new() -> Self {
+        Self {
+            options: ParserOptions::default(),
+        }
+    }
+
+    /// Control whether leading and trailing whitespace is allowed in a query.
+    /// Defaults to false.
+    ///
+    /// The [RFC](https://www.ietf.org/archive/id/draft-ietf-jsonpath-base-21.html) grammar
+    /// makes leading and trailing whitespace disallowed. The [`Parser`] defaults to this strict handling,
+    /// but can be relaxed with this setting.
+    ///
+    /// ## Examples
+    /// ```
+    /// # use rsonpath_syntax::{JsonPathQuery, Parser, ParserBuilder};
+    /// let default_parser = ParserBuilder::new().build();
+    /// let relaxed_parser = ParserBuilder::new()
+    ///     .allow_surrounding_whitespace(true)
+    ///     .build();
+    ///
+    /// let query = "  $.leading_whitespace";
+    /// assert!(default_parser.parse(query).is_err());
+    /// assert!(relaxed_parser.parse(query).is_ok());
+    /// ```
+    #[inline]
+    pub fn allow_surrounding_whitespace(&mut self, value: bool) -> &mut Self {
+        self.options.relaxed_whitespace = value;
+        self
+    }
+
+    /// Build a new instance of a [`Parser`].
+    #[inline]
+    #[must_use]
+    pub fn build(&self) -> Parser {
+        Parser {
+            options: self.options.clone(),
+        }
+    }
+}
+
+impl ParserOptions {
+    fn is_leading_whitespace_allowed(&self) -> bool {
+        self.relaxed_whitespace
+    }
+
+    fn is_trailing_whitespace_allowed(&self) -> bool {
+        self.relaxed_whitespace
+    }
+}
+
+impl Default for ParserOptions {
+    #[inline(always)]
+    fn default() -> Self {
+        Self {
+            relaxed_whitespace: false,
+        }
+    }
+}
 
 impl From<ParserBuilder> for Parser {
     #[inline(always)]
-    fn from(_value: ParserBuilder) -> Self {
-        Self {}
+    fn from(value: ParserBuilder) -> Self {
+        Self { options: value.options }
     }
 }
 
@@ -178,8 +251,8 @@ impl Parser {
     ///
     /// Note that leading and trailing whitespace is explicitly disallowed by the spec.
     #[inline]
-    pub fn parse(&mut self, str: &str) -> Result<JsonPathQuery> {
-        crate::parser::parse_json_path_query(str)
+    pub fn parse(&self, str: &str) -> Result<JsonPathQuery> {
+        crate::parser::parse_json_path_query(str, &self.options)
     }
 }
 
@@ -400,6 +473,39 @@ impl Display for Index {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use pretty_assertions::assert_eq;
+
+    #[test]
+    fn leading_whitespace_is_disallowed() {
+        let err = parse("  $").expect_err("should fail");
+        let display = format!("{err}");
+        let expected = r"error: query starting with whitespace
+
+    $
+  ^^ leading whitespace is disallowed
+  (bytes 0-1)
+
+
+suggestion: did you mean `$` ?
+";
+        assert_eq!(display, expected);
+    }
+
+    #[test]
+    fn trailing_whitespace_is_disallowed() {
+        let err = parse("$  ").expect_err("should fail");
+        let display = format!("{err}");
+        let expected = r"error: query ending with whitespace
+
+  $  
+   ^^ trailing whitespace is disallowed
+  (bytes 1-2)
+
+
+suggestion: did you mean `$` ?
+";
+        assert_eq!(display, expected);
+    }
 
     mod name_selector {
         use super::*;

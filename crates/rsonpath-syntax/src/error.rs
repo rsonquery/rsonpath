@@ -106,6 +106,8 @@ pub(crate) struct SyntaxError {
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub(crate) enum SyntaxErrorKind {
+    DisallowedLeadingWhitespace,
+    DisallowedTrailingWhitespace,
     InvalidUnescapedCharacter,
     InvalidEscapeSequence,
     UnpairedHighSurrogate,
@@ -179,6 +181,9 @@ impl SyntaxError {
         let (prefix, error, suffix) = self.split_error(input);
         // Kind-specific notes and suggestion building.
         match self.kind {
+            SyntaxErrorKind::DisallowedLeadingWhitespace | SyntaxErrorKind::DisallowedTrailingWhitespace => {
+                suggestion.remove(start_idx, error.len());
+            }
             SyntaxErrorKind::InvalidUnescapedCharacter => {
                 if error == "\"" {
                     suggestion.replace(start_idx, 1, r#"\""#);
@@ -637,6 +642,8 @@ impl SyntaxErrorKind {
     #[inline]
     fn toplevel_message(&self) -> String {
         match self {
+            Self::DisallowedLeadingWhitespace => "query starting with whitespace".to_string(),
+            Self::DisallowedTrailingWhitespace => "query ending with whitespace".to_string(),
             Self::InvalidUnescapedCharacter => "invalid unescaped control character".to_string(),
             Self::InvalidEscapeSequence => "invalid escape sequence".to_string(),
             Self::UnpairedHighSurrogate => "invalid unicode escape sequence - unpaired high surrogate".to_string(),
@@ -661,6 +668,8 @@ impl SyntaxErrorKind {
     #[inline]
     fn underline_message(&self) -> String {
         match self {
+            Self::DisallowedLeadingWhitespace => "leading whitespace is disallowed".to_string(),
+            Self::DisallowedTrailingWhitespace => "trailing whitespace is disallowed".to_string(),
             Self::InvalidUnescapedCharacter => "this character must be escaped".to_string(),
             Self::InvalidEscapeSequence => "not a valid escape sequence".to_string(),
             Self::UnpairedHighSurrogate => "this high surrogate is unpaired".to_string(),
