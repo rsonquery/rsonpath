@@ -15,9 +15,9 @@ rust-version = "1.70.0"
 publish = false
 
 [dependencies]
-serde = { version = "1.0.194", features = ["derive"] }
+serde = { version = "1.0.195", features = ["derive"] }
 toml = "0.8.8"
-proc-macro2 = "1.0.71"
+proc-macro2 = "1.0.76"
 quote = "1.0.33"
 heck = { version = "0.4.1", features = ["unicode"] }
 walkdir = "2.4.0"
