@@ -13,7 +13,6 @@ permissions:
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
-  CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: "aarch64-linux-gnu-gcc"
   CARGO_PROFILE_DEV_BUILD_OVERRIDE_DEBUG: "true"
 
 jobs:
@@ -40,26 +39,19 @@ jobs:
           - x86_64-pc-windows-msvc
           - x86_64-unknown-linux-gnu
         include:
-          - os: ubuntu-latest
+          - os: [self-hosted, linux, ARM64]
             target_triple:
               aarch64-unknown-linux-gnu
-            # This target needs special setup.
-            prologue-script:
-              sudo apt update && sudo apt install gcc-aarch64-linux-gnu
-            # There is no standard GitHub os image that can execute ARM, we just build it.
-            can-run: false
-            rustflags: "--deny warnings"
+            rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
           - os: windows-latest
             target_triple:
               i686-pc-windows-gnu
             # This target needs special setup with MinGW.
             needs-mingw: x86
-            can-run: true
             # lld on Windows uses extreme amounts of memory for debuginfo=2
             rustflags: "-C link-arg=-fuse-ld=lld -C debuginfo=1 --deny warnings"
           - os: windows-latest
             target_triple: i686-pc-windows-msvc
-            can-run: true
             # lld on Windows uses extreme amounts of memory for debuginfo=2
             rustflags: "-C link-arg=-fuse-ld=lld -C debuginfo=1 --deny warnings"
           - os: ubuntu-latest
@@ -67,25 +59,20 @@ jobs:
               i686-unknown-linux-gnu
             # This target needs special setup.
             prologue-script: sudo apt update && sudo apt install gcc-multilib
-            can-run: true
             rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
           - os: macos-latest
             target_triple: x86_64-apple-darwin
-            can-run: true
             rustflags: "--deny warnings"
           - os: windows-latest
             target_triple: x86_64-pc-windows-gnu
-            can-run: true
             # lld on Windows uses extreme amounts of memory for debuginfo=2
             rustflags: "-C link-arg=-fuse-ld=lld -C debuginfo=1 --deny warnings"
           - os: windows-latest
             target_triple: x86_64-pc-windows-msvc
-            can-run: true
             # lld on Windows uses extreme amounts of memory for debuginfo=2
             rustflags: "-C link-arg=-fuse-ld=lld -C debuginfo=1 --deny warnings"
           - os: ubuntu-latest
             target_triple: x86_64-unknown-linux-gnu
-            can-run: true
             rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
     steps:
       - name: Harden Runner
@@ -165,7 +152,6 @@ jobs:
           name: ${{ needs.test-gen.outputs.artifact-name }}
           path: ${{ needs.test-gen.outputs.artifact-path }}
       - name: Test all feature sets
-        if: matrix.can-run
         run: cargo hack test --workspace --feature-powerset --skip default --target ${{ matrix.target_triple }} --features arbitrary --ignore-unknown-features
         env:
           RUSTFLAGS: ${{ matrix.rustflags }}
