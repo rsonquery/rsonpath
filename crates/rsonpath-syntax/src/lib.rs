@@ -292,6 +292,8 @@ impl Parser {
     /// as governed by the [JSONPath RFC specification](https://www.ietf.org/archive/id/draft-ietf-jsonpath-base-21.html).
     ///
     /// Note that leading and trailing whitespace is explicitly disallowed by the spec.
+    /// The parser defaults to this strict behavior unless configured with
+    /// [`ParserBuilder::allow_surrounding_whitespace`].
     #[inline]
     pub fn parse(&self, str: &str) -> Result<JsonPathQuery> {
         crate::parser::parse_json_path_query(str, &self.options)
@@ -359,7 +361,7 @@ pub enum Index {
     /// Index from the end of the array.
     ///
     /// `-1` is the last element, `-2` is the second last, etc.
-    FromEnd(num::JsonUInt),
+    FromEnd(num::JsonNonZeroUInt),
 }
 
 // We don't derive this because FromEnd(0) is not a valid index.
@@ -379,7 +381,7 @@ impl From<num::JsonInt> for Index {
         if value.as_i64() >= 0 {
             Self::FromStart(value.abs())
         } else {
-            Self::FromEnd(value.abs())
+            Self::FromEnd(value.abs().try_into().expect("checked for zero already"))
         }
     }
 }
@@ -543,7 +545,7 @@ impl Index {
     /// # Examples
     /// ```
     /// # use rsonpath_syntax::{Selector, Index};
-    /// let index = Index::FromEnd((-1).into());
+    /// let index = Index::FromEnd(1.try_into().unwrap());
     /// assert!(index.is_end_based());
     /// ```
     #[inline(always)]

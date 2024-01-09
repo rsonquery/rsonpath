@@ -257,7 +257,12 @@ fn index_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
             if let Ok(uint) = JsonUInt::try_from(int) {
                 Ok((rest, Selector::Index(Index::FromStart(uint))))
             } else {
-                Ok((rest, Selector::Index(Index::FromEnd(int.abs()))))
+                Ok((
+                    rest,
+                    Selector::Index(Index::FromEnd(
+                        int.abs().try_into().expect("zero would convert to JsonUInt above"),
+                    )),
+                ))
             }
         }
         Err(err) => Err(Err::Failure(InternalParseError::SyntaxError(
@@ -513,7 +518,7 @@ mod tests {
         let input = "-5";
         let result = super::index_selector(input).expect("should parse");
 
-        assert_eq!(result, ("", Selector::Index(Index::FromEnd(5.into()))));
+        assert_eq!(result, ("", Selector::Index(Index::FromEnd(5.try_into().unwrap()))));
     }
 
     #[test]

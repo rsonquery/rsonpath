@@ -207,7 +207,7 @@ impl JsonPathSelectorsBuilder {
     /// ## Examples
     ///
     /// ```rust
-    /// # use rsonpath_syntax::{Selector, Index, num::{JsonInt, JsonUInt}, builder::JsonPathQueryBuilder};
+    /// # use rsonpath_syntax::{Selector, Index, num::{JsonNonZeroUInt, JsonUInt}, builder::JsonPathQueryBuilder};
     /// let mut builder = JsonPathQueryBuilder::new();
     /// builder.child(|x| x.index(10).index(-20));
     /// let result = builder.into_query();
@@ -215,7 +215,7 @@ impl JsonPathSelectorsBuilder {
     /// let segment = &result.segments()[0];
     /// assert_eq!(segment.selectors().as_slice(), &[
     ///     Selector::Index(Index::FromStart(JsonUInt::from(10))),
-    ///     Selector::Index(Index::FromEnd(JsonUInt::from(20))),
+    ///     Selector::Index(Index::FromEnd(JsonNonZeroUInt::try_from(20).unwrap())),
     /// ]);
     /// ```
     #[inline(always)]
