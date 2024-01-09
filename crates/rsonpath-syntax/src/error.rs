@@ -151,16 +151,13 @@ impl SyntaxError {
                 builder.add_non_underline(width);
             } else if i <= end_idx {
                 builder.add_underline(width);
-                if i == end_idx {
-                    builder.add_underline_message(self.kind.underline_message());
-                }
             }
             builder.add_char(c);
         }
         if end_idx >= input.len() {
             builder.add_underline(1);
-            builder.add_underline_message(self.kind.underline_message());
         }
+        builder.add_underline_message(self.kind.underline_message());
 
         self.generate_notes(&mut builder, suggestion, input);
 
@@ -379,6 +376,7 @@ impl DisplayableSyntaxErrorBuilder {
     }
 }
 
+#[derive(Debug)]
 pub(crate) enum InternalParseError<'a> {
     SyntaxError(SyntaxError, &'a str),
     SyntaxErrors(Vec<SyntaxError>, &'a str),
@@ -677,7 +675,7 @@ impl SyntaxErrorKind {
             Self::InvalidHexDigitInUnicodeEscape => "not a hex digit".to_string(),
             Self::MissingClosingDoubleQuote => "expected a double quote '\"'".to_string(),
             Self::MissingClosingSingleQuote => "expected a single quote `'`".to_string(),
-            Self::MissingRootIdentifier => "the '$' character missing here".to_string(),
+            Self::MissingRootIdentifier => "the '$' character missing before here".to_string(),
             Self::InvalidSegmentStart => "not a valid segment syntax".to_string(),
             Self::InvalidSegmentAfterTwoPeriods => "not a valid descendant segment syntax".to_string(),
             Self::InvalidNameShorthandAfterOnePeriod => "not a valid name shorthand".to_string(),

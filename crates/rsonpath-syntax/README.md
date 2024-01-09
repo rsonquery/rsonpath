@@ -9,3 +9,14 @@
 [![License](https://img.shields.io/crates/l/rsonpath)](https://choosealicense.com/licenses/mit/)
 
 Complete, fast, and fully spec-compliant JSONPath query parser.
+
+## State of the crate
+
+This is an in-development version that supports only name, index, and wildcard selectors.
+However, these are fully supported, tested, and fuzzed. The planned roadmap is:
+
+- [ ] support slices
+- [ ] support filters (without functions)
+- [ ] support functions (including type check)
+- [ ] polish the API
+- [ ] 1.0.0 stable release

@@ -49,7 +49,7 @@ pub(crate) fn parse_json_path_query(q: &str, options: &ParserOptions) -> Result<
             parse_error.add(SyntaxError::new(
                 SyntaxErrorKind::MissingRootIdentifier,
                 e.input.len(),
-                1,
+                q.chars().next().map_or(1, char::len_utf8),
             ));
             e.input
         }
@@ -480,108 +480,310 @@ fn string<'a>(mode: StringParseMode) -> impl FnMut(&'a str) -> IResult<&'a str, 
     }
 }
 
-/*
 #[cfg(test)]
 mod tests {
-    use super::parse_json_path_query;
-    use crate::{str::JsonString, JsonPathQuery};
-    use pretty_assertions::assert_eq;
+    use crate::{str::JsonString, Index, Selector};
 
     #[test]
-    fn quoted_member() {
+    fn name_selector() {
         let input = "'a'";
+        let result = super::name_selector(input).expect("should parse");
 
-        let result = super::quoted_member()(input);
+        assert_eq!(result, ("", Selector::Name(JsonString::new("a"))));
+    }
 
-        assert_eq!(result, Ok(("", JsonString::new("a"))));
+    #[test]
+    fn wildcard_selector() {
+        let input = "*";
+        let result = super::wildcard_selector(input).expect("should parse");
+
+        assert_eq!(result, ("", Selector::Wildcard));
     }
 
     #[test]
     fn nonnegative_array_index() {
-        let input = "[5]";
+        let input = "5";
+        let result = super::index_selector(input).expect("should parse");
 
-        let result = super::array_index_selector()(input);
-
-        assert_eq!(result, Ok(("", 5_u64.try_into().unwrap())));
-    }
-
-    #[test]
-    fn zero_array_index() {
-        let input = "[0]";
-
-        let result = super::array_index_selector()(input);
-
-        assert_eq!(result, Ok(("", 0_u64.try_into().unwrap())));
+        assert_eq!(result, ("", Selector::Index(Index::FromStart(5.into()))));
     }
 
     #[test]
     fn negative_array_index() {
-        let input = "[-5]";
+        let input = "-5";
+        let result = super::index_selector(input).expect("should parse");
 
-        super::array_index_selector()(input).unwrap_err();
+        assert_eq!(result, ("", Selector::Index(Index::FromEnd(5.into()))));
     }
 
     #[test]
-    fn two_sixyfour_array_index() {
-        let input = "[18446744073709551616]";
+    fn zero_array_index() {
+        let input = "0";
+        let result = super::index_selector(input).expect("should parse");
 
-        super::array_index_selector()(input).unwrap_err();
+        assert_eq!(result, ("", Selector::Index(Index::FromStart(0.into()))));
     }
 
     #[test]
-    fn two_sixyfour_plus_one_array_index() {
-        let input = "[18446744073709551617]";
+    fn two_sixtyfour_array_index() {
+        let input = "18446744073709551616";
+        super::index_selector(input).expect_err("should not parse");
+    }
 
-        super::array_index_selector()(input).unwrap_err();
+    #[test]
+    fn two_sixtyfour_plus_one_array_index() {
+        let input = "18446744073709551617";
+        super::index_selector(input).expect_err("should not parse");
     }
 
     #[test]
     fn two_pow_fiftythree_minus_one_array_index() {
-        let input = "[9007199254740991]";
+        let input = "9007199254740991";
+        let result = super::index_selector(input).expect("should parse");
 
-        let result = super::array_index_selector()(input);
-
-        assert_eq!(result, Ok(("", 9_007_199_254_740_991_u64.try_into().unwrap())));
+        assert_eq!(
+            result,
+            (
+                "",
+                Selector::Index(Index::FromStart(9_007_199_254_740_991_u64.try_into().unwrap()))
+            )
+        );
     }
 
     #[test]
-    fn two_pow_fiftythree_index() {
-        let input = "[9007199254740992]";
+    fn minus_two_pow_fiftythree_minus_one_array_index() {
+        let input = "-9007199254740991";
+        let result = super::index_selector(input).expect("should parse");
 
-        super::array_index_selector()(input).unwrap_err();
+        assert_eq!(
+            result,
+            (
+                "",
+                Selector::Index(Index::FromEnd(9_007_199_254_740_991_u64.try_into().unwrap()))
+            )
+        );
     }
 
     #[test]
-    fn should_infer_root_from_empty_string() {
-        let input = "";
-        let expected_query = todo!();
-
-        let result = parse_json_path_query(input).expect("expected Ok");
-
-        assert_eq!(result, expected_query);
+    fn minus_two_pow_fiftythree_index() {
+        let input = "-9007199254740992";
+        super::index_selector(input).expect_err("should not parse");
     }
 
-    #[test]
-    fn root() {
-        let input = "$";
-        let expected_query = todo!();
+    mod proptests {
+        use crate::{builder::JsonPathQueryBuilder, num::JsonUInt, str::JsonString, JsonPathQuery};
+        use proptest::{prelude::*, sample::SizeRange};
 
-        let result = parse_json_path_query(input).expect("expected Ok");
+        /* Approach: we generate a sequence of Selectors, each having its generated string
+         * and a tag describing what selector it represents, and, optionally, what string is attached.
+         * This can then easily be turned into the input (the string is attached) and the expected
+         * parser result (transform the sequence of tags).
+         */
 
-        assert_eq!(result, expected_query);
-    }
+        #[derive(Debug, Clone)]
+        enum SelectorTag {
+            WildcardChild,
+            Child(String),
+            WildcardDescendant,
+            Descendant(String),
+            ArrayIndexChild(JsonUInt),
+            ArrayIndexDescendant(JsonUInt),
+        }
 
-    // This is a regression test. There was a bug where the error handling loop would try to resume
-    // parsing at the next byte after an invalid character, which is invalid and causes a panic
-    // if the character takes more than one byte - strings can be indexed only at char boundaries.
-    #[test]
-    fn error_handling_across_unicode_values() {
-        // Ferris has 4 bytes of encoding.
-        let input = "🦀.";
+        #[derive(Debug, Clone)]
+        struct Selector {
+            string: String,
+            tag: SelectorTag,
+        }
 
-        let result = parse_json_path_query(input);
+        #[derive(Debug, PartialEq, Eq, Clone, Copy)]
+        enum JsonStringToken {
+            EncodeNormally(char),
+            ForceUnicodeEscape(char),
+        }
 
-        assert!(result.is_err());
+        #[derive(Debug, PartialEq, Eq, Clone, Copy)]
+        enum JsonStringTokenEncodingMode {
+            SingleQuoted,
+            DoubleQuoted,
+        }
+
+        impl JsonStringToken {
+            fn raw(self) -> char {
+                match self {
+                    Self::EncodeNormally(x) | Self::ForceUnicodeEscape(x) => x,
+                }
+            }
+
+            fn encode(self, mode: JsonStringTokenEncodingMode) -> String {
+                return match self {
+                    Self::EncodeNormally('\u{0008}') => r"\b".to_owned(),
+                    Self::EncodeNormally('\t') => r"\t".to_owned(),
+                    Self::EncodeNormally('\n') => r"\n".to_owned(),
+                    Self::EncodeNormally('\u{000C}') => r"\f".to_owned(),
+                    Self::EncodeNormally('\r') => r"\r".to_owned(),
+                    Self::EncodeNormally('"') => match mode {
+                        JsonStringTokenEncodingMode::DoubleQuoted => r#"\""#.to_owned(),
+                        JsonStringTokenEncodingMode::SingleQuoted => r#"""#.to_owned(),
+                    },
+                    Self::EncodeNormally('\'') => match mode {
+                        JsonStringTokenEncodingMode::DoubleQuoted => r#"'"#.to_owned(),
+                        JsonStringTokenEncodingMode::SingleQuoted => r#"\'"#.to_owned(),
+                    },
+                    Self::EncodeNormally('/') => r"\/".to_owned(),
+                    Self::EncodeNormally('\\') => r"\\".to_owned(),
+                    Self::EncodeNormally(c @ ..='\u{001F}') | Self::ForceUnicodeEscape(c) => encode_unicode_escape(c),
+                    Self::EncodeNormally(c) => c.to_string(),
+                };
+
+                fn encode_unicode_escape(c: char) -> String {
+                    let mut buf = [0; 2];
+                    let enc = c.encode_utf16(&mut buf);
+                    let mut res = String::new();
+                    for x in enc {
+                        res += &format!("\\u{x:0>4x}");
+                    }
+                    res
+                }
+            }
+        }
+
+        // Cspell: disable
+        fn any_selector() -> impl Strategy<Value = Selector> {
+            prop_oneof![
+                any_wildcard_child(),
+                child_any(),
+                any_wildcard_descendant(),
+                descendant_any(),
+                any_array_index_child(),
+                any_array_index_descendant(),
+            ]
+        }
+
+        // .* or [*]
+        fn any_wildcard_child() -> impl Strategy<Value = Selector> {
+            r"(\.\*|\[\*\])".prop_map(|x| Selector {
+                string: x,
+                tag: SelectorTag::WildcardChild,
+            })
+        }
+
+        // ..* or ..[*]
+        fn any_wildcard_descendant() -> impl Strategy<Value = Selector> {
+            r"(\*|\[\*\])".prop_map(|x| Selector {
+                string: format!("..{x}"),
+                tag: SelectorTag::WildcardDescendant,
+            })
+        }
+
+        // .label or ['label']
+        fn child_any() -> impl Strategy<Value = Selector> {
+            prop_oneof![any_short_name().prop_map(|x| (format!(".{x}"), x)), any_name(),].prop_map(|(s, l)| Selector {
+                string: s,
+                tag: SelectorTag::Child(l),
+            })
+        }
+
+        // ..label or ..['label']
+        fn descendant_any() -> impl Strategy<Value = Selector> {
+            prop_oneof![any_short_name().prop_map(|x| (x.clone(), x)), any_name(),].prop_map(|(x, l)| Selector {
+                string: format!("..{x}"),
+                tag: SelectorTag::Descendant(l),
+            })
+        }
+
+        fn any_array_index_child() -> impl Strategy<Value = Selector> {
+            any_non_negative_array_index().prop_map(|i| Selector {
+                string: format!("[{}]", i.as_u64()),
+                tag: SelectorTag::ArrayIndexChild(i),
+            })
+        }
+
+        fn any_array_index_descendant() -> impl Strategy<Value = Selector> {
+            any_non_negative_array_index().prop_map(|i| Selector {
+                string: format!("..[{}]", i.as_u64()),
+                tag: SelectorTag::ArrayIndexDescendant(i),
+            })
+        }
+
+        fn any_short_name() -> impl Strategy<Value = String> {
+            r"([A-Za-z]|_|[^\u0000-\u007F])([A-Za-z0-9]|_|[^\u0000-\u007F])*"
+        }
+
+        fn any_name() -> impl Strategy<Value = (String, String)> {
+            prop_oneof![
+                Just(JsonStringTokenEncodingMode::SingleQuoted),
+                Just(JsonStringTokenEncodingMode::DoubleQuoted)
+            ]
+            .prop_flat_map(|mode| {
+                prop::collection::vec(
+                    (prop::char::any(), prop::bool::ANY).prop_map(|(c, b)| {
+                        if b {
+                            JsonStringToken::EncodeNormally(c)
+                        } else {
+                            JsonStringToken::ForceUnicodeEscape(c)
+                        }
+                    }),
+                    SizeRange::default(),
+                )
+                .prop_map(move |v| {
+                    let q = match mode {
+                        JsonStringTokenEncodingMode::SingleQuoted => '\'',
+                        JsonStringTokenEncodingMode::DoubleQuoted => '"',
+                    };
+                    let mut s = String::new();
+                    let mut l = String::new();
+                    for x in v {
+                        s += &x.encode(mode);
+                        l.push(x.raw());
+                    }
+                    (format!("[{q}{s}{q}]"), l)
+                })
+            })
+        }
+
+        fn any_non_negative_array_index() -> impl Strategy<Value = JsonUInt> {
+            const MAX: u64 = (1 << 53) - 1;
+            (0..MAX).prop_map(|x| JsonUInt::try_from(x).expect("in-range JsonUInt"))
+        }
+        // Cspell: enable
+
+        prop_compose! {
+            fn any_valid_query()(selectors in prop::collection::vec(any_selector(), 0..20)) -> (String, JsonPathQuery) {
+                let mut result: String = String::new();
+                let mut query = JsonPathQueryBuilder::new();
+
+                result += "$";
+
+                for selector in selectors {
+                    result += &selector.string;
+
+                    match selector.tag {
+                        SelectorTag::WildcardChild => query.child_wildcard(),
+                        SelectorTag::Child(name) => query.child_name(JsonString::new(&name)),
+                        SelectorTag::WildcardDescendant => query.descendant_wildcard(),
+                        SelectorTag::Descendant(name) => query.descendant_name(JsonString::new(&name)),
+                        SelectorTag::ArrayIndexChild(idx) => query.child_index(idx),
+                        SelectorTag::ArrayIndexDescendant(idx) => query.descendant_index(idx)
+                    };
+                }
+
+                (result, query.into())
+            }
+        }
+
+        mod correct_strings {
+            use super::*;
+            use pretty_assertions::assert_eq;
+
+            proptest! {
+                #[test]
+                fn parses_expected_query((input, expected) in any_valid_query()) {
+                    let result = crate::parse(&input).expect("expected Ok");
+
+                    assert_eq!(expected, result);
+                }
+            }
+        }
     }
 }
-*/

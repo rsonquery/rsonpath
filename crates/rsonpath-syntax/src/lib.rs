@@ -311,7 +311,6 @@ pub enum Selector {
 
 /// Directional index into a JSON array.
 #[derive(Debug, PartialEq, Eq, Clone)]
-#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub enum Index {
     /// Zero-based index from the start of the array.
     FromStart(num::JsonUInt),
@@ -319,6 +318,17 @@ pub enum Index {
     ///
     /// `-1` is the last element, `-2` is the second last, etc.
     FromEnd(num::JsonUInt),
+}
+
+// We don't derive this because FromEnd(0) is not a valid index.
+#[cfg(feature = "arbitrary")]
+#[cfg_attr(docsrs, doc(cfg(feature = "arbitrary")))]
+impl<'a> arbitrary::Arbitrary<'a> for Index {
+    #[inline]
+    fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
+        let num = u.arbitrary::<num::JsonInt>()?;
+        Ok(Self::from(num))
+    }
 }
 
 impl From<num::JsonInt> for Index {

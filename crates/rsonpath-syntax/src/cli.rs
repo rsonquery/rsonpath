@@ -16,10 +16,11 @@ fn main() -> ExitCode {
         Ok(x) => println!("OK: {x:?}\nDISPLAY:{x}\nINPUT: {input}"),
 
         Err(err) => {
+            println!("DBGERR: {err:?}");
             #[cfg(feature = "color")]
             println!("ERR: {}\nINPUT: {input}", err.colored());
             #[cfg(not(feature = "color"))]
-            println!("ERR: {}\nINPUT: {input}", err);
+            println!("ERR: {err}\nINPUT: {input}");
         }
     }
 
