@@ -10,6 +10,21 @@
 //! (see [RFC 2.1-4.1](https://www.ietf.org/archive/id/draft-ietf-jsonpath-base-21.html#section-2.1-4.1)).
 //! This includes index values, all values in slice selectors, and constants
 //! in filter comparison expressions.
+//!
+//! # Examples
+//! ```
+//! # use rsonpath_syntax::num::{JsonInt, JsonUInt};
+//! // An i32/u32 converts directly to JsonInt/JsonUInt.
+//! let a = JsonInt::from(-42);
+//! let b = JsonUInt::from(42);
+//! // i64/u64 has to be checked for overflow.
+//! let c = JsonInt::try_from(42_000_000_000_000_i64).expect("within range");
+//! let d = JsonInt::try_from(42_000_000_000_000_000_i64).expect_err("too large");
+//!
+//! assert_eq!(a.as_i64(), -42);
+//! assert_eq!(b.as_u64(), 42);
+//! assert_eq!(c.as_i64(), 42_000_000_000_000_i64);
+//! ```
 pub mod error;
 
 use crate::num::error::{JsonIntOverflowError, JsonIntParseError};
@@ -18,7 +33,7 @@ use std::{
     str::FromStr,
 };
 
-/// Interoperable JSON integer (signed).
+/// Signed interoperable JSON integer.
 ///
 /// Provides an [IETF-conforming integer value](https://www.rfc-editor.org/rfc/rfc7493.html#section-2)
 /// Values are \[-2<sup>53</sup>+1, 2<sup>53</sup>-1].
@@ -31,16 +46,16 @@ use std::{
 /// # Examples
 /// ```
 /// # use rsonpath_syntax::num::JsonInt;
-///
-/// let two = JsonInt::try_from(2).expect("within range");
-/// let zero = JsonInt::try_from(0).expect("within range");
-/// let negative = JsonInt::try_from(-2).expect("within range");
-/// let too_big = JsonInt::try_from(1_i64 << 53).expect_err("out of range");
-/// let too_small = JsonInt::try_from(-(1_i64 << 53)).expect_err("out of range");
+/// let two = JsonInt::from(2);
+/// let zero = JsonInt::from(0);
+/// let negative = JsonInt::from(-2);
 ///
 /// assert_eq!(two.as_i64(), 2);
 /// assert_eq!(zero.as_i64(), 0);
 /// assert_eq!(negative.as_i64(), -2);
+///
+/// let too_big = JsonInt::try_from(1_i64 << 53).expect_err("out of range");
+/// let too_small = JsonInt::try_from(-(1_i64 << 53)).expect_err("out of range");
 /// ```
 #[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct JsonInt(i64);
@@ -60,13 +75,13 @@ pub struct JsonInt(i64);
 /// # Examples
 /// ```
 /// # use rsonpath_syntax::num::JsonUInt;
-///
-/// let two = JsonUInt::try_from(2).expect("within range");
-/// let zero = JsonUInt::try_from(0).expect("within range");
-/// let too_big = JsonUInt::try_from(1_u64 << 53).expect_err("out of range");
+/// let two = JsonUInt::from(2);
+/// let zero = JsonUInt::from(0);
 ///
 /// assert_eq!(two.as_u64(), 2);
 /// assert_eq!(zero.as_u64(), 0);
+///
+/// let too_big = JsonUInt::try_from(1_u64 << 53).expect_err("out of range");
 /// ```
 #[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct JsonUInt(u64);
@@ -129,12 +144,13 @@ impl JsonInt {
     /// # use rsonpath_syntax::num::JsonInt;
     /// let mut x = JsonInt::ZERO;
     /// x.try_increment().expect("within range");
+    /// assert_eq!(x.as_i64(), 1);
+    ///
     /// let mut y = JsonInt::MIN;
     /// y.try_increment().expect("within range");
-    /// JsonInt::MAX.try_increment().expect_err("out of range");
-    ///
-    /// assert_eq!(x.as_i64(), 1);
     /// assert_eq!(y.as_i64(), -(1 << 53) + 2);
+    ///
+    /// JsonInt::MAX.try_increment().expect_err("out of range");
     /// ```
     #[inline]
     pub fn try_increment(&mut self) -> Result<(), JsonIntOverflowError> {
@@ -152,7 +168,7 @@ impl JsonInt {
     /// # Examples
     /// ```
     /// # use rsonpath_syntax::num::JsonInt;
-    /// let val = JsonInt::try_from(42).unwrap();
+    /// let val = JsonInt::from(42);
     /// assert_eq!(val.as_i64(), 42);
     /// ```
     #[must_use]
@@ -161,9 +177,32 @@ impl JsonInt {
         self.0
     }
 
+    /// Return the negation of the value.
+    ///
+    /// This is guaranteed to succeed, as the valid range is symmetrical.
+    /// ```
+    /// # use rsonpath_syntax::num::JsonInt;
+    /// let x = JsonInt::from(-42);
+    /// assert_eq!(x.neg().as_i64(), 42);
+    /// ```
+    #[must_use]
+    #[inline(always)]
+    pub const fn neg(&self) -> Self {
+        Self(-self.0)
+    }
+
     /// Return the absolute value of this integer as a [`JsonUInt`].
     ///
     /// This is guaranteed to succeed, as the valid range is symmetrical.
+    ///
+    /// # Examples
+    /// ```
+    /// # use rsonpath_syntax::num::{JsonInt, JsonUInt};
+    /// let pos = JsonInt::from(42);
+    /// let neg = JsonInt::from(-42);
+    /// assert_eq!(neg.abs().as_u64(), 42);
+    /// assert_eq!(pos.abs().as_u64(), 42);
+    /// ```
     #[inline(always)]
     #[must_use]
     pub const fn abs(&self) -> JsonUInt {
@@ -222,6 +261,21 @@ impl JsonUInt {
         } else {
             Err(JsonIntOverflowError::uint_pos_overflow(new_index))
         }
+    }
+
+    /// Return the negation of the value as a [`JsonInt`].
+    ///
+    /// This is guaranteed to succeed, as the valid range is symmetrical.
+    /// ```
+    /// # use rsonpath_syntax::num::{JsonInt, JsonUInt};
+    /// let x = JsonUInt::from(42);
+    /// let y = JsonInt::from(-42);
+    /// assert_eq!(x.neg(), y);
+    /// ```
+    #[must_use]
+    #[inline(always)]
+    pub const fn neg(&self) -> JsonInt {
+        JsonInt(-(self.0 as i64))
     }
 
     /// Return the value stored as a regular [`u64`].

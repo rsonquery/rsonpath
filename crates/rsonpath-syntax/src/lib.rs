@@ -5,8 +5,16 @@
 //! complies with the proposed [JSONPath RFC specification](https://www.ietf.org/archive/id/draft-ietf-jsonpath-base-21.html).
 //!
 //! A JSONPath query is a sequence of **segments**, each containing one or more
-//! **selectors**. There are two types of segments, **child** and **descendant**,
-//! and five different types of selectors: **name**, **wildcard**, **index**, **slice**, and **filter**.
+//! **selectors**. There are two types of segments:
+//! - **child** ([`Segment::Child`]), and
+//! - **descendant** ([`Segment::Descendant`]);
+//!
+//! and five different types of selectors:
+//! - **name** ([`Selector::Name`]),
+//! - **wildcard** ([`Selector::Wildcard`]),
+//! - **index** ([`Selector::Index`]),
+//! - **slice**,
+//! - and **filter**.
 //!
 //! Descriptions of each segment and selector can be found in the documentation of the
 //! relevant type in this crate, while the formal grammar is described in the RFC.
@@ -57,6 +65,15 @@
 //! # Ok(())
 //! # }
 //! ```
+//!
+//! ## Crate features
+//!
+//! There are two optional features:
+//! - `arbitrary`, which enables a dependency on the [`arbitrary` crate](https://docs.rs/arbitrary/latest/arbitrary/)
+//!   to provide [`Arbitrary`](`arbitrary::Arbitrary`) implementations on query types; this is used e.g. for fuzzing.
+//! - `color`, which enables a dependency on the [`owo_colors` crate](https://docs.rs/owo-colors/latest/owo_colors/)
+//!   to provide colorful [`Display`] representations of [`ParseError`](error::ParseError);
+//!   see [`ParseError::colored`](error::ParseError::colored).
 
 #![forbid(unsafe_code)]
 // Generic pedantic lints.
@@ -237,6 +254,31 @@ pub type Result<T> = std::result::Result<T, error::ParseError>;
 /// as governed by the [JSONPath RFC specification](https://www.ietf.org/archive/id/draft-ietf-jsonpath-base-21.html).
 ///
 /// Note that leading and trailing whitespace is explicitly disallowed by the spec.
+/// This can be relaxed with a custom [`Parser`] configured with [`ParserBuilder::allow_surrounding_whitespace`].
+///
+/// # Examples
+/// ```
+/// # use rsonpath_syntax::parse;
+/// let x = "  $.a  ";
+/// let err = rsonpath_syntax::parse(x).expect_err("should fail");
+/// assert_eq!(err.to_string(),
+/// "error: query starting with whitespace
+///
+///     $.a  
+///   ^^ leading whitespace is disallowed
+///   (bytes 0-1)
+///
+///
+///error: query ending with whitespace
+///
+///     $.a  
+///        ^^ trailing whitespace is disallowed
+///   (bytes 5-6)
+///
+///
+///suggestion: did you mean `$.a` ?
+///");
+/// ```
 #[inline]
 pub fn parse(str: &str) -> Result<JsonPathQuery> {
     Parser::default().parse(str)
@@ -359,18 +401,23 @@ impl JsonPathQuery {
 }
 
 impl Segment {
-    /// Returns all [`Selector`] instances of the segment as a slice.
-    ///
-    /// Guaranteed to be non-empty.
+    /// Returns all [`Selector`] instances of the segment.
     #[inline(always)]
     #[must_use]
-    pub fn selectors(&self) -> &[Selector] {
+    pub fn selectors(&self) -> &Selectors {
         match self {
             Self::Child(s) | Self::Descendant(s) => s,
         }
     }
 
     /// Check if this is a child segment.
+    ///
+    /// # Examples
+    /// ```
+    /// # use rsonpath_syntax::{Selectors, Segment, Selector};
+    /// let segment = Segment::Child(Selectors::one(Selector::Wildcard));
+    /// assert!(segment.is_child());
+    /// ```
     #[inline(always)]
     #[must_use]
     pub fn is_child(&self) -> bool {
@@ -378,6 +425,13 @@ impl Segment {
     }
 
     /// Check if this is a descendant segment.
+    ///
+    /// # Examples
+    /// ```
+    /// # use rsonpath_syntax::{Selectors, Segment, Selector};
+    /// let segment = Segment::Descendant(Selectors::one(Selector::Wildcard));
+    /// assert!(segment.is_descendant());
+    /// ```
     #[inline(always)]
     #[must_use]
     pub fn is_descendant(&self) -> bool {
@@ -414,6 +468,88 @@ impl Selectors {
     #[must_use]
     pub fn first(&self) -> &Selector {
         &self.inner[0]
+    }
+
+    /// Get the selectors as a non-empty slice.
+    #[inline]
+    #[must_use]
+    pub fn as_slice(&self) -> &[Selector] {
+        // Deref magic.
+        self
+    }
+}
+
+impl Selector {
+    /// Check if this is a name selector.
+    ///
+    /// # Examples
+    /// ```
+    /// # use rsonpath_syntax::{Selector, str::JsonString};
+    /// let selector = Selector::Name(JsonString::new("abc"));
+    /// assert!(selector.is_name());
+    /// ```
+    #[inline(always)]
+    #[must_use]
+    pub const fn is_name(&self) -> bool {
+        matches!(self, Self::Name(_))
+    }
+
+    /// Check if this is a wildcard selector.
+    ///
+    /// # Examples
+    /// ```
+    /// # use rsonpath_syntax::Selector;
+    /// let selector = Selector::Wildcard;
+    /// assert!(selector.is_wildcard());
+    /// ```
+    #[inline(always)]
+    #[must_use]
+    pub const fn is_wildcard(&self) -> bool {
+        matches!(self, Self::Wildcard)
+    }
+
+    /// Check if this is an index selector.
+    ///
+    /// # Examples
+    /// ```
+    /// # use rsonpath_syntax::{Selector, Index};
+    /// let selector = Selector::Index(Index::FromStart(0.into()));
+    /// assert!(selector.is_index());
+    /// ```
+    #[inline(always)]
+    #[must_use]
+    pub const fn is_index(&self) -> bool {
+        matches!(self, Self::Index(_))
+    }
+}
+
+impl Index {
+    /// Check if this is an index counting from the start of an array.
+    ///
+    /// # Examples
+    /// ```
+    /// # use rsonpath_syntax::{Selector, Index};
+    /// let index = Index::FromStart(0.into());
+    /// assert!(index.is_start_based());
+    /// ```
+    #[inline(always)]
+    #[must_use]
+    pub const fn is_start_based(&self) -> bool {
+        matches!(self, Self::FromStart(_))
+    }
+
+    /// Check if this is an index counting from the end of an array.
+    ///
+    /// # Examples
+    /// ```
+    /// # use rsonpath_syntax::{Selector, Index};
+    /// let index = Index::FromEnd((-1).into());
+    /// assert!(index.is_end_based());
+    /// ```
+    #[inline(always)]
+    #[must_use]
+    pub const fn is_end_based(&self) -> bool {
+        matches!(self, Self::FromEnd(_))
     }
 }
 

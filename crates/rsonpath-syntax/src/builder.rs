@@ -18,7 +18,7 @@ use crate::{num::JsonInt, str::JsonString, Index, JsonPathQuery, Segment, Select
 /// // Can also use `builder.build()` as a non-consuming version.
 /// let query: JsonPathQuery = builder.into();
 ///
-/// assert_eq!(format!("{query}"), "$['a']..['b'][*]['c']..[*]");
+/// assert_eq!(query.to_string(), "$['a']..['b'][*]['c']..[*]");
 /// ```
 pub struct JsonPathQueryBuilder {
     segments: Vec<Segment>,
@@ -61,7 +61,7 @@ impl JsonPathQueryBuilder {
     /// assert_eq!(result.segments().len(), 1);
     /// let segment = &result.segments()[0];
     /// assert!(segment.is_child());
-    /// assert_eq!(segment.selectors(), &[
+    /// assert_eq!(&segment.selectors().as_slice(), &[
     ///     Selector::Name(JsonString::new("abc")),
     ///     Selector::Index(Index::FromStart(JsonUInt::from(10))),
     ///     Selector::Wildcard,
@@ -92,7 +92,7 @@ impl JsonPathQueryBuilder {
     /// assert_eq!(result.segments().len(), 1);
     /// let segment = &result.segments()[0];
     /// assert!(segment.is_descendant());
-    /// assert_eq!(segment.selectors(), &[
+    /// assert_eq!(&segment.selectors().as_slice(), &[
     ///     Selector::Name(JsonString::new("abc")),
     ///     Selector::Index(Index::FromStart(JsonUInt::from(10))),
     ///     Selector::Wildcard,
@@ -213,7 +213,7 @@ impl JsonPathSelectorsBuilder {
     /// let result = builder.into_query();
     /// assert_eq!(result.segments().len(), 1);
     /// let segment = &result.segments()[0];
-    /// assert_eq!(segment.selectors(), &[
+    /// assert_eq!(segment.selectors().as_slice(), &[
     ///     Selector::Index(Index::FromStart(JsonUInt::from(10))),
     ///     Selector::Index(Index::FromEnd(JsonUInt::from(20))),
     /// ]);
