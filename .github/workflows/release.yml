@@ -141,7 +141,7 @@ jobs:
           RUSTFLAGS: ${{ matrix.rustflags }}
       - name: Rename binary (Unix)
         if: matrix.os != 'windows-latest'
-        run: mv -f "target/${{ matrix.target_triple }}/distribution/rq" target/distribution/rq-${{ matrix.target_triple }}
+        run: rm -f target/distribution/rq-${{ matrix.target_triple }} && mv -f "target/${{ matrix.target_triple }}/distribution/rq" target/distribution/rq-${{ matrix.target_triple }}
       - name: Rename binary (Windows)
         if: matrix.os == 'windows-latest'
         run: mv -Force "target/${{ matrix.target_triple }}/distribution/rq.exe" target/distribution/rq-${{ matrix.target_triple }}.exe
