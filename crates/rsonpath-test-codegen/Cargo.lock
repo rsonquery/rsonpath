@@ -75,7 +75,7 @@ dependencies = [
 
 [[package]]
 name = "rsonpath-test-codegen"
-version = "0.8.4"
+version = "0.8.5"
 dependencies = [
  "heck",
  "pretty_assertions",
