@@ -106,6 +106,8 @@ pub(crate) struct SyntaxError {
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub(crate) enum SyntaxErrorKind {
+    DisallowedLeadingWhitespace,
+    DisallowedTrailingWhitespace,
     InvalidUnescapedCharacter,
     InvalidEscapeSequence,
     UnpairedHighSurrogate,
@@ -149,16 +151,13 @@ impl SyntaxError {
                 builder.add_non_underline(width);
             } else if i <= end_idx {
                 builder.add_underline(width);
-                if i == end_idx {
-                    builder.add_underline_message(self.kind.underline_message());
-                }
             }
             builder.add_char(c);
         }
         if end_idx >= input.len() {
             builder.add_underline(1);
-            builder.add_underline_message(self.kind.underline_message());
         }
+        builder.add_underline_message(self.kind.underline_message());
 
         self.generate_notes(&mut builder, suggestion, input);
 
@@ -179,6 +178,9 @@ impl SyntaxError {
         let (prefix, error, suffix) = self.split_error(input);
         // Kind-specific notes and suggestion building.
         match self.kind {
+            SyntaxErrorKind::DisallowedLeadingWhitespace | SyntaxErrorKind::DisallowedTrailingWhitespace => {
+                suggestion.remove(start_idx, error.len());
+            }
             SyntaxErrorKind::InvalidUnescapedCharacter => {
                 if error == "\"" {
                     suggestion.replace(start_idx, 1, r#"\""#);
@@ -374,6 +376,7 @@ impl DisplayableSyntaxErrorBuilder {
     }
 }
 
+#[derive(Debug)]
 pub(crate) enum InternalParseError<'a> {
     SyntaxError(SyntaxError, &'a str),
     SyntaxErrors(Vec<SyntaxError>, &'a str),
@@ -637,6 +640,8 @@ impl SyntaxErrorKind {
     #[inline]
     fn toplevel_message(&self) -> String {
         match self {
+            Self::DisallowedLeadingWhitespace => "query starting with whitespace".to_string(),
+            Self::DisallowedTrailingWhitespace => "query ending with whitespace".to_string(),
             Self::InvalidUnescapedCharacter => "invalid unescaped control character".to_string(),
             Self::InvalidEscapeSequence => "invalid escape sequence".to_string(),
             Self::UnpairedHighSurrogate => "invalid unicode escape sequence - unpaired high surrogate".to_string(),
@@ -661,6 +666,8 @@ impl SyntaxErrorKind {
     #[inline]
     fn underline_message(&self) -> String {
         match self {
+            Self::DisallowedLeadingWhitespace => "leading whitespace is disallowed".to_string(),
+            Self::DisallowedTrailingWhitespace => "trailing whitespace is disallowed".to_string(),
             Self::InvalidUnescapedCharacter => "this character must be escaped".to_string(),
             Self::InvalidEscapeSequence => "not a valid escape sequence".to_string(),
             Self::UnpairedHighSurrogate => "this high surrogate is unpaired".to_string(),
@@ -668,7 +675,7 @@ impl SyntaxErrorKind {
             Self::InvalidHexDigitInUnicodeEscape => "not a hex digit".to_string(),
             Self::MissingClosingDoubleQuote => "expected a double quote '\"'".to_string(),
             Self::MissingClosingSingleQuote => "expected a single quote `'`".to_string(),
-            Self::MissingRootIdentifier => "the '$' character missing here".to_string(),
+            Self::MissingRootIdentifier => "the '$' character missing before here".to_string(),
             Self::InvalidSegmentStart => "not a valid segment syntax".to_string(),
             Self::InvalidSegmentAfterTwoPeriods => "not a valid descendant segment syntax".to_string(),
             Self::InvalidNameShorthandAfterOnePeriod => "not a valid name shorthand".to_string(),

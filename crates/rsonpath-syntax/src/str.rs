@@ -1,9 +1,12 @@
 //! JSON string types expressible in a JSONPath query.
+//!
+//! This may refer to a member name when used in a name selector,
+//! or a raw string value used for comparison or matching in a filter expression.
 
-/// String to search for in a JSON document, conforming to the
+/// String value or JSON member name, conforming to the
 /// [RFC7159, section 7](https://www.rfc-editor.org/rfc/rfc7159#section-7)
 ///
-/// Represents the bytes defining a string key or value in a JSON object
+/// Represents the UTF-8 bytes defining a string key or value in a JSON object
 /// that can be matched against when executing a query.
 ///
 /// # Examples
@@ -159,9 +162,7 @@ impl JsonString {
     /// # Examples
     /// ```rust
     /// # use rsonpath_syntax::str::JsonString;
-    ///
     /// let needle = JsonString::new(r#"Stri\ng With \u00c9scapes \\n"#);
-    ///
     /// assert_eq!(needle.unquoted(), r#"Stri\ng With \u00c9scapes \\n"#);
     /// ```
     #[inline]
@@ -175,6 +176,12 @@ impl JsonString {
     }
 
     /// Return the contents of the string.
+    /// # Examples
+    /// ```rust
+    /// # use rsonpath_syntax::str::JsonString;
+    /// let needle = JsonString::new(r#"Stri\ng With \u00c9scapes \\n"#);
+    /// assert_eq!(needle.unquoted(), r#"Stri\ng With \u00c9scapes \\n"#);
+    /// ```
     #[must_use]
     #[inline(always)]
     pub fn unquoted(&self) -> &str {
@@ -183,8 +190,14 @@ impl JsonString {
         &self.quoted[1..len - 1]
     }
 
-    /// Return the bytes representing the string with the leading and trailing
+    /// Return the contents of the string with the leading and trailing
     /// double quote symbol `"`.
+    /// # Examples
+    /// ```rust
+    /// # use rsonpath_syntax::str::JsonString;
+    /// let needle = JsonString::new(r#"Stri\ng With \u00c9scapes \\n"#);
+    /// assert_eq!(needle.quoted(), r#""Stri\ng With \u00c9scapes \\n""#);
+    /// ```
     #[must_use]
     #[inline(always)]
     pub fn quoted(&self) -> &str {

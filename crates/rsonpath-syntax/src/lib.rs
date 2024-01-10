@@ -5,8 +5,16 @@
 //! complies with the proposed [JSONPath RFC specification](https://www.ietf.org/archive/id/draft-ietf-jsonpath-base-21.html).
 //!
 //! A JSONPath query is a sequence of **segments**, each containing one or more
-//! **selectors**. There are two types of segments, **child** and **descendant**,
-//! and five different types of selectors: **name**, **wildcard**, **index**, **slice**, and **filter**.
+//! **selectors**. There are two types of segments:
+//! - **child** ([`Segment::Child`]), and
+//! - **descendant** ([`Segment::Descendant`]);
+//!
+//! and five different types of selectors:
+//! - **name** ([`Selector::Name`]),
+//! - **wildcard** ([`Selector::Wildcard`]),
+//! - **index** ([`Selector::Index`]),
+//! - **slice**,
+//! - and **filter**.
 //!
 //! Descriptions of each segment and selector can be found in the documentation of the
 //! relevant type in this crate, while the formal grammar is described in the RFC.
@@ -57,6 +65,15 @@
 //! # Ok(())
 //! # }
 //! ```
+//!
+//! ## Crate features
+//!
+//! There are two optional features:
+//! - `arbitrary`, which enables a dependency on the [`arbitrary` crate](https://docs.rs/arbitrary/latest/arbitrary/)
+//!   to provide [`Arbitrary`](`arbitrary::Arbitrary`) implementations on query types; this is used e.g. for fuzzing.
+//! - `color`, which enables a dependency on the [`owo_colors` crate](https://docs.rs/owo-colors/latest/owo_colors/)
+//!   to provide colorful [`Display`] representations of [`ParseError`](error::ParseError);
+//!   see [`ParseError::colored`](error::ParseError::colored).
 
 #![forbid(unsafe_code)]
 // Generic pedantic lints.
@@ -141,16 +158,89 @@ use std::{
 
 /// JSONPath query parser.
 #[derive(Debug, Clone, Default)]
-pub struct Parser {}
+pub struct Parser {
+    options: ParserOptions,
+}
 
 /// Configurable builder for a [`Parser`] instance.
 #[derive(Debug, Clone, Default)]
-pub struct ParserBuilder {}
+pub struct ParserBuilder {
+    options: ParserOptions,
+}
+
+#[derive(Debug, Clone)]
+struct ParserOptions {
+    relaxed_whitespace: bool,
+}
+
+impl ParserBuilder {
+    /// Create a new instance of the builder with the default settings.
+    #[inline]
+    #[must_use]
+    pub fn new() -> Self {
+        Self {
+            options: ParserOptions::default(),
+        }
+    }
+
+    /// Control whether leading and trailing whitespace is allowed in a query.
+    /// Defaults to false.
+    ///
+    /// The [RFC](https://www.ietf.org/archive/id/draft-ietf-jsonpath-base-21.html) grammar
+    /// makes leading and trailing whitespace disallowed. The [`Parser`] defaults to this strict handling,
+    /// but can be relaxed with this setting.
+    ///
+    /// ## Examples
+    /// ```
+    /// # use rsonpath_syntax::{JsonPathQuery, Parser, ParserBuilder};
+    /// let default_parser = ParserBuilder::new().build();
+    /// let relaxed_parser = ParserBuilder::new()
+    ///     .allow_surrounding_whitespace(true)
+    ///     .build();
+    ///
+    /// let query = "  $.leading_whitespace";
+    /// assert!(default_parser.parse(query).is_err());
+    /// assert!(relaxed_parser.parse(query).is_ok());
+    /// ```
+    #[inline]
+    pub fn allow_surrounding_whitespace(&mut self, value: bool) -> &mut Self {
+        self.options.relaxed_whitespace = value;
+        self
+    }
+
+    /// Build a new instance of a [`Parser`].
+    #[inline]
+    #[must_use]
+    pub fn build(&self) -> Parser {
+        Parser {
+            options: self.options.clone(),
+        }
+    }
+}
+
+impl ParserOptions {
+    fn is_leading_whitespace_allowed(&self) -> bool {
+        self.relaxed_whitespace
+    }
+
+    fn is_trailing_whitespace_allowed(&self) -> bool {
+        self.relaxed_whitespace
+    }
+}
+
+impl Default for ParserOptions {
+    #[inline(always)]
+    fn default() -> Self {
+        Self {
+            relaxed_whitespace: false,
+        }
+    }
+}
 
 impl From<ParserBuilder> for Parser {
     #[inline(always)]
-    fn from(_value: ParserBuilder) -> Self {
-        Self {}
+    fn from(value: ParserBuilder) -> Self {
+        Self { options: value.options }
     }
 }
 
@@ -164,6 +254,31 @@ pub type Result<T> = std::result::Result<T, error::ParseError>;
 /// as governed by the [JSONPath RFC specification](https://www.ietf.org/archive/id/draft-ietf-jsonpath-base-21.html).
 ///
 /// Note that leading and trailing whitespace is explicitly disallowed by the spec.
+/// This can be relaxed with a custom [`Parser`] configured with [`ParserBuilder::allow_surrounding_whitespace`].
+///
+/// # Examples
+/// ```
+/// # use rsonpath_syntax::parse;
+/// let x = "  $.a  ";
+/// let err = rsonpath_syntax::parse(x).expect_err("should fail");
+/// assert_eq!(err.to_string(),
+/// "error: query starting with whitespace
+///
+///     $.a  
+///   ^^ leading whitespace is disallowed
+///   (bytes 0-1)
+///
+///
+///error: query ending with whitespace
+///
+///     $.a  
+///        ^^ trailing whitespace is disallowed
+///   (bytes 5-6)
+///
+///
+///suggestion: did you mean `$.a` ?
+///");
+/// ```
 #[inline]
 pub fn parse(str: &str) -> Result<JsonPathQuery> {
     Parser::default().parse(str)
@@ -177,9 +292,11 @@ impl Parser {
     /// as governed by the [JSONPath RFC specification](https://www.ietf.org/archive/id/draft-ietf-jsonpath-base-21.html).
     ///
     /// Note that leading and trailing whitespace is explicitly disallowed by the spec.
+    /// The parser defaults to this strict behavior unless configured with
+    /// [`ParserBuilder::allow_surrounding_whitespace`].
     #[inline]
-    pub fn parse(&mut self, str: &str) -> Result<JsonPathQuery> {
-        crate::parser::parse_json_path_query(str)
+    pub fn parse(&self, str: &str) -> Result<JsonPathQuery> {
+        crate::parser::parse_json_path_query(str, &self.options)
     }
 }
 
@@ -238,14 +355,24 @@ pub enum Selector {
 
 /// Directional index into a JSON array.
 #[derive(Debug, PartialEq, Eq, Clone)]
-#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub enum Index {
     /// Zero-based index from the start of the array.
     FromStart(num::JsonUInt),
     /// Index from the end of the array.
     ///
     /// `-1` is the last element, `-2` is the second last, etc.
-    FromEnd(num::JsonUInt),
+    FromEnd(num::JsonNonZeroUInt),
+}
+
+// We don't derive this because FromEnd(0) is not a valid index.
+#[cfg(feature = "arbitrary")]
+#[cfg_attr(docsrs, doc(cfg(feature = "arbitrary")))]
+impl<'a> arbitrary::Arbitrary<'a> for Index {
+    #[inline]
+    fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
+        let num = u.arbitrary::<num::JsonInt>()?;
+        Ok(Self::from(num))
+    }
 }
 
 impl From<num::JsonInt> for Index {
@@ -254,7 +381,7 @@ impl From<num::JsonInt> for Index {
         if value.as_i64() >= 0 {
             Self::FromStart(value.abs())
         } else {
-            Self::FromEnd(value.abs())
+            Self::FromEnd(value.abs().try_into().expect("checked for zero already"))
         }
     }
 }
@@ -276,18 +403,23 @@ impl JsonPathQuery {
 }
 
 impl Segment {
-    /// Returns all [`Selector`] instances of the segment as a slice.
-    ///
-    /// Guaranteed to be non-empty.
+    /// Returns all [`Selector`] instances of the segment.
     #[inline(always)]
     #[must_use]
-    pub fn selectors(&self) -> &[Selector] {
+    pub fn selectors(&self) -> &Selectors {
         match self {
             Self::Child(s) | Self::Descendant(s) => s,
         }
     }
 
     /// Check if this is a child segment.
+    ///
+    /// # Examples
+    /// ```
+    /// # use rsonpath_syntax::{Selectors, Segment, Selector};
+    /// let segment = Segment::Child(Selectors::one(Selector::Wildcard));
+    /// assert!(segment.is_child());
+    /// ```
     #[inline(always)]
     #[must_use]
     pub fn is_child(&self) -> bool {
@@ -295,6 +427,13 @@ impl Segment {
     }
 
     /// Check if this is a descendant segment.
+    ///
+    /// # Examples
+    /// ```
+    /// # use rsonpath_syntax::{Selectors, Segment, Selector};
+    /// let segment = Segment::Descendant(Selectors::one(Selector::Wildcard));
+    /// assert!(segment.is_descendant());
+    /// ```
     #[inline(always)]
     #[must_use]
     pub fn is_descendant(&self) -> bool {
@@ -331,6 +470,88 @@ impl Selectors {
     #[must_use]
     pub fn first(&self) -> &Selector {
         &self.inner[0]
+    }
+
+    /// Get the selectors as a non-empty slice.
+    #[inline]
+    #[must_use]
+    pub fn as_slice(&self) -> &[Selector] {
+        // Deref magic.
+        self
+    }
+}
+
+impl Selector {
+    /// Check if this is a name selector.
+    ///
+    /// # Examples
+    /// ```
+    /// # use rsonpath_syntax::{Selector, str::JsonString};
+    /// let selector = Selector::Name(JsonString::new("abc"));
+    /// assert!(selector.is_name());
+    /// ```
+    #[inline(always)]
+    #[must_use]
+    pub const fn is_name(&self) -> bool {
+        matches!(self, Self::Name(_))
+    }
+
+    /// Check if this is a wildcard selector.
+    ///
+    /// # Examples
+    /// ```
+    /// # use rsonpath_syntax::Selector;
+    /// let selector = Selector::Wildcard;
+    /// assert!(selector.is_wildcard());
+    /// ```
+    #[inline(always)]
+    #[must_use]
+    pub const fn is_wildcard(&self) -> bool {
+        matches!(self, Self::Wildcard)
+    }
+
+    /// Check if this is an index selector.
+    ///
+    /// # Examples
+    /// ```
+    /// # use rsonpath_syntax::{Selector, Index};
+    /// let selector = Selector::Index(Index::FromStart(0.into()));
+    /// assert!(selector.is_index());
+    /// ```
+    #[inline(always)]
+    #[must_use]
+    pub const fn is_index(&self) -> bool {
+        matches!(self, Self::Index(_))
+    }
+}
+
+impl Index {
+    /// Check if this is an index counting from the start of an array.
+    ///
+    /// # Examples
+    /// ```
+    /// # use rsonpath_syntax::{Selector, Index};
+    /// let index = Index::FromStart(0.into());
+    /// assert!(index.is_start_based());
+    /// ```
+    #[inline(always)]
+    #[must_use]
+    pub const fn is_start_based(&self) -> bool {
+        matches!(self, Self::FromStart(_))
+    }
+
+    /// Check if this is an index counting from the end of an array.
+    ///
+    /// # Examples
+    /// ```
+    /// # use rsonpath_syntax::{Selector, Index};
+    /// let index = Index::FromEnd(1.try_into().unwrap());
+    /// assert!(index.is_end_based());
+    /// ```
+    #[inline(always)]
+    #[must_use]
+    pub const fn is_end_based(&self) -> bool {
+        matches!(self, Self::FromEnd(_))
     }
 }
 
@@ -400,6 +621,39 @@ impl Display for Index {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use pretty_assertions::assert_eq;
+
+    #[test]
+    fn leading_whitespace_is_disallowed() {
+        let err = parse("  $").expect_err("should fail");
+        let display = format!("{err}");
+        let expected = r"error: query starting with whitespace
+
+    $
+  ^^ leading whitespace is disallowed
+  (bytes 0-1)
+
+
+suggestion: did you mean `$` ?
+";
+        assert_eq!(display, expected);
+    }
+
+    #[test]
+    fn trailing_whitespace_is_disallowed() {
+        let err = parse("$  ").expect_err("should fail");
+        let display = format!("{err}");
+        let expected = r"error: query ending with whitespace
+
+  $  
+   ^^ trailing whitespace is disallowed
+  (bytes 1-2)
+
+
+suggestion: did you mean `$` ?
+";
+        assert_eq!(display, expected);
+    }
 
     mod name_selector {
         use super::*;

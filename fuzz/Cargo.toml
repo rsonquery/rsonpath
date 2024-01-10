@@ -42,6 +42,12 @@ test = false
 doc = false
 
 [[bin]]
+name = "query_fuzz_round_trip"
+path = "fuzz_targets/query_fuzz_round_trip.rs"
+test = false
+doc = false
+
+[[bin]]
 name = "fuzz_arbitrary_json"
 path = "fuzz_targets/fuzz_arbitrary_json.rs"
 test = false

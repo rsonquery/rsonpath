@@ -52,6 +52,12 @@ impl JsonIntOverflowError {
             kind: JsonIntOverflowKind::UIntNeg(src),
         }
     }
+
+    pub(crate) fn zero_non_zero_uint() -> Self {
+        Self {
+            kind: JsonIntOverflowKind::NonZeroUIntZero,
+        }
+    }
 }
 
 impl JsonIntParseError {
@@ -75,6 +81,7 @@ impl JsonIntParseError {
                 JsonIntOverflowKind::IntNeg(_) => JsonIntParseErrorKind::IntNegOverflow(src.to_string()),
                 JsonIntOverflowKind::UIntPos(_) => JsonIntParseErrorKind::UIntPosOverflow(src.to_string()),
                 JsonIntOverflowKind::UIntNeg(_) => JsonIntParseErrorKind::UIntNegOverflow(src.to_string()),
+                JsonIntOverflowKind::NonZeroUIntZero => JsonIntParseErrorKind::NonZeroUIntZero(src.to_string()),
             },
         }
     }
@@ -89,6 +96,17 @@ impl JsonIntParseError {
             },
         }
     }
+
+    pub(crate) fn non_zero_uint_parse_error(src: &str, err: &IntErrorKind) -> Self {
+        Self {
+            kind: match err {
+                IntErrorKind::PosOverflow => JsonIntParseErrorKind::UIntPosOverflow(src.to_string()),
+                IntErrorKind::NegOverflow => JsonIntParseErrorKind::UIntNegOverflow(src.to_string()),
+                IntErrorKind::Zero => JsonIntParseErrorKind::NonZeroUIntZero(src.to_string()),
+                _ => JsonIntParseErrorKind::InvalidFormat(src.to_string()),
+            },
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -98,6 +116,7 @@ enum JsonIntOverflowKind {
     IntNeg(i64),
     UIntPos(u64),
     UIntNeg(i64),
+    NonZeroUIntZero,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -106,6 +125,7 @@ enum JsonIntParseErrorKind {
     IntNegOverflow(String),
     UIntPosOverflow(String),
     UIntNegOverflow(String),
+    NonZeroUIntZero(String),
     InvalidFormat(String),
 }
 
@@ -153,6 +173,9 @@ impl Display for JsonIntOverflowKind {
             Self::UIntNeg(src) => {
                 write!(f, "attempt to convert a negative value {src} into a JsonUInt",)
             }
+            Self::NonZeroUIntZero => {
+                write!(f, "attempt to convert a zero value into a JsonNonZeroUInt",)
+            }
         }
     }
 }
@@ -184,6 +207,10 @@ impl Display for JsonIntParseErrorKind {
                     JsonUInt::MAX
                 )
             }
+            Self::NonZeroUIntZero(src) => write!(
+                f,
+                "string '{src}' represents a zero value, which is not a valid JsonNonZeroUInt"
+            ),
             Self::InvalidFormat(src) => write!(f, "string '{src}' is not a valid representation of a JSON integer"),
         }
     }

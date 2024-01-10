@@ -382,6 +382,14 @@ mod proptests {
 
                 assert_eq!(expected, result);
             }
+
+            #[test]
+            fn round_trip((_, query) in any_valid_query()) {
+                let input = query.to_string();
+                let result = rsonpath_syntax::parse(&input).expect("expected Ok");
+
+                assert_eq!(query, result);
+            }
         }
     }
 }

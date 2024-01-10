@@ -4,7 +4,7 @@ use color_eyre::{eyre::Result, Help};
 use error::{report_compiler_error, report_parser_error};
 use log::*;
 use rsonpath_lib::automaton::Automaton;
-use rsonpath_syntax::JsonPathQuery;
+use rsonpath_syntax::{JsonPathQuery, ParserBuilder};
 use runner::Runner;
 
 mod args;
@@ -57,7 +57,11 @@ fn run_with_args(args: &Args) -> Result<()> {
 }
 
 fn parse_query(query_string: &str) -> Result<JsonPathQuery> {
-    rsonpath_syntax::parse(query_string)
+    let mut parser_builder = ParserBuilder::default();
+    parser_builder.allow_surrounding_whitespace(true);
+    let parser: rsonpath_syntax::Parser = parser_builder.into();
+    parser
+        .parse(query_string)
         .map_err(|err| report_parser_error(err).wrap_err("Could not parse JSONPath query."))
 }
 
