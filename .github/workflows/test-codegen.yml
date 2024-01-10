@@ -8,7 +8,7 @@ on:
         value: rsonpath-test-documents
       artifact-path:
         description: Path to which the artifact should be extracted.
-        value: crates/rsonpath-test/documents
+        value: crates/rsonpath-test
 
 env:
   CARGO_TERM_COLOR: always
