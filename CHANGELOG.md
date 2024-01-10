@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.5] - 2024-01-10
+
+### Features
+
+- [**breaking**] Separate `rsonpath-syntax`.
+  - The parsing logic and query AST are now moved to a separately published subcrate.
+  - The crate is versioned separately. Changes to it that do not affect `rq` will be documented
+    in its separate changelog. See the `crates/rsonpath-syntax` subdirectory.
+- [**breaking**] Rework numeric types in the query parser.
+  - renamed `NonNegativeArrayIndex` to `JsonUInt`
+  - added the `JsonInt` and `JsonNonZeroUInt` types
+- Fancy error handling in the parser.
+
+### Reliability
+
+- Use self-hosted runner for ARM.
+  - We now have a self-hosted runner to continuously test rsonpath on ARM64!
+- Set restrictive egress rules on runners.
+  - Following up on StepSecurity upgrades, runners now block egress
+  traffic by default and allow only specific trusted endpoints.
+
+### Dependencies
+
+- Bump arbitrary from 1.3.0 to 1.3.2.
+- Bump clap from 4.4.7 to 4.4.14.
+- Bump eyre from 0.6.8 to 0.6.11.
+- Bump memmap2 from 0.9.0 to 0..3.
+- Bump simple_logger from 4.2.0 to 4.3.3.
+- Bump smallvec from 1.11.1 to 1.11.2.
+- Bump thiserror from 1.0.49 to 1.0.56.
+- Bump vergen from 8.2.5 to 8.2.6.
+
 ## [0.8.4] - 2023-10-30
 
 ### Features

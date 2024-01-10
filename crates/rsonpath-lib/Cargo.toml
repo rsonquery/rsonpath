@@ -1,6 +1,6 @@
 [package]
 name = "rsonpath-lib"
-version = "0.8.4"
+version = "0.8.5"
 authors = ["Mateusz Gienieczko <mat@gienieczko.com>"]
 description = "Blazing fast JSONPath query engine powered by SIMD. Core library of `rsonpath`."
 readme = "README.md"
