@@ -3,4 +3,4 @@
 !/documents/json/large
 /documents/json/large/compressed
 /documents/toml/compressed
-/tests
+/tests/generated

@@ -3,8 +3,8 @@ use std::{fs, io::ErrorKind, process::Command};
 
 const TOML_DIRECTORY_PATH: &str = "documents/toml";
 const JSON_DIRECTORY_PATH: &str = "documents/json";
-const TEST_OUTPUT_PATH: &str = "tests";
-const GEN_RUST_GLOB: &str = "tests/**/*.rs";
+const TEST_OUTPUT_PATH: &str = "tests/generated";
+const GEN_RUST_GLOB: &str = "tests/generated/**/*.rs";
 const RUSTFMT_TOML_PATH: &str = "../../rustfmt.toml";
 const CONTROL_ENV_VAR: &str = "RSONPATH_ENABLE_TEST_CODEGEN";
 

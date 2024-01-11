@@ -134,7 +134,7 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> Result<(), io::Error> {
         #(#tests_mod)*
     };
 
-    files.add_rust_file("tests.rs", &tests_source);
+    files.add_rust_file("mod.rs", &tests_source);
 
     return Ok(());
 
@@ -234,7 +234,8 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> Result<(), io::Error> {
                     let mut result = vec![];
                     #engine_ident.indices(&#input_ident, &mut result)?;
 
-                    assert_eq!(result, vec![#(#indices,)*], "result != expected");
+                    let expected: Vec<usize> = vec![#(#indices,)*];
+                    assert_eq!(result, expected, "result != expected");
                 }
             }
             ResultTypeToTest::ApproximateSpans(spans) => {
