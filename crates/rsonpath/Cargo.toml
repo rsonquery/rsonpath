@@ -24,7 +24,7 @@ path = "./src/main.rs"
 name = "rq"
 
 [dependencies]
-clap = { version = "4.4.15", features = ["derive", "wrap_help"] }
+clap = { version = "4.4.16", features = ["derive", "wrap_help"] }
 color-eyre = { version = "0.6.2", default-features = false }
 eyre = "0.6.11"
 log = "0.4.20"
@@ -34,10 +34,10 @@ simple_logger = "4.3.3"
 
 [build-dependencies]
 rustflags = { version = "0.1.4" }
-vergen = { version = "8.2.6", features = ["cargo", "git", "gitcl", "rustc"] }
+vergen = { version = "8.2.7", features = ["cargo", "git", "gitcl", "rustc"] }
 
 [dev-dependencies]
-trycmd = "0.14.19"
+trycmd = "0.14.20"
 
 [features]
 default = ["simd"]
