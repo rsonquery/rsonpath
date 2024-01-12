@@ -343,7 +343,7 @@ fn string<'a>(mode: StringParseMode) -> impl FnMut(&'a str) -> IResult<&'a str, 
                         Err(nom::Err::Failure(InternalParseError::SyntaxErrors(syntax_errors, rest)))
                     };
                 }
-                (..='\u{0019}', _) => {
+                (..='\u{001F}', _) => {
                     let rest = stream.peek().map_or("", |(i, _)| &q[*i..]);
                     syntax_errors.push(SyntaxError::new(
                         SyntaxErrorKind::InvalidUnescapedCharacter,
