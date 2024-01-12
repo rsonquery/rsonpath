@@ -1,8 +1,8 @@
 use crate::{
     error::{InternalParseError, ParseErrorBuilder, SyntaxError, SyntaxErrorKind},
-    num::{JsonInt, JsonUInt},
+    num::{error::JsonIntParseError, JsonInt, JsonNonZeroUInt, JsonUInt},
     str::{JsonString, JsonStringBuilder},
-    Index, JsonPathQuery, ParserOptions, Result, Segment, Selector, Selectors,
+    Index, JsonPathQuery, ParserOptions, Result, Segment, Selector, Selectors, SliceBuilder, Step,
 };
 use nom::{branch::*, bytes::complete::*, character::complete::*, combinator::*, multi::*, sequence::*, *};
 use std::{iter::Peekable, str::FromStr};
@@ -225,6 +225,7 @@ fn selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
     alt((
         ignore_whitespace(name_selector),
         ignore_whitespace(wildcard_selector),
+        ignore_whitespace(slice_selector),
         ignore_whitespace(index_selector),
         failed_selector,
     ))(q)
@@ -250,22 +251,62 @@ fn wildcard_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
     map(tag("*"), |_| Selector::Wildcard)(q)
 }
 
-fn index_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
-    let (rest, int) = int(q)?;
-    match JsonInt::from_str(int) {
-        Ok(int) => {
-            if let Ok(uint) = JsonUInt::try_from(int) {
-                Ok((rest, Selector::Index(Index::FromStart(uint))))
-            } else {
-                Ok((
+fn slice_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
+    let (rest, opt_start) = terminated(opt(int), ignore_whitespace(char(':')))(q)?;
+    // We have parsed a ':', so this *must* be a slice selector. Any errors after here are fatal.
+    let mut slice = SliceBuilder::new();
+
+    if let Some(start_str) = opt_start {
+        match parse_directional_int(start_str) {
+            DirectionalInt::Plus(int) => slice.with_start(Index::FromStart(int)),
+            DirectionalInt::Minus(int) => slice.with_start(Index::FromEnd(int)),
+            DirectionalInt::Error(err) => {
+                return fail(
+                    SyntaxErrorKind::SliceStartParseError(err),
+                    q.len(),
+                    start_str.len(),
                     rest,
-                    Selector::Index(Index::FromEnd(
-                        int.abs().try_into().expect("zero would convert to JsonUInt above"),
-                    )),
-                ))
+                );
             }
-        }
-        Err(err) => Err(Err::Failure(InternalParseError::SyntaxError(
+        };
+    }
+    let q = rest;
+    let (rest, opt_end) = opt(ignore_whitespace(int))(q)?;
+
+    if let Some(end_str) = opt_end {
+        match parse_directional_int(end_str) {
+            DirectionalInt::Plus(int) => slice.with_end(Index::FromStart(int)),
+            DirectionalInt::Minus(int) => slice.with_end(Index::FromEnd(int)),
+            DirectionalInt::Error(err) => {
+                return fail(SyntaxErrorKind::SliceEndParseError(err), q.len(), end_str.len(), rest);
+            }
+        };
+    }
+
+    let q = rest;
+    let (rest, opt_step) = opt(ignore_whitespace(preceded(char(':'), opt(ignore_whitespace(int)))))(q)?;
+
+    if let Some(Some(step_str)) = opt_step {
+        match parse_directional_int(step_str) {
+            DirectionalInt::Plus(int) => slice.with_step(Step::Forward(int)),
+            DirectionalInt::Minus(int) => slice.with_step(Step::Backward(int)),
+            DirectionalInt::Error(err) => {
+                return fail(SyntaxErrorKind::SliceStepParseError(err), q.len(), step_str.len(), rest);
+            }
+        };
+    }
+
+    Ok((rest, Selector::Slice(slice.into())))
+}
+
+fn index_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
+    // This has to be called after the slice selector.
+    // Thanks to that we can make a hard cut if we parsed an integer but it doesn't work as an index.
+    let (rest, int) = int(q)?;
+    match parse_directional_int(int) {
+        DirectionalInt::Plus(int) => Ok((rest, Selector::Index(Index::FromStart(int)))),
+        DirectionalInt::Minus(int) => Ok((rest, Selector::Index(Index::FromEnd(int)))),
+        DirectionalInt::Error(err) => Err(Err::Failure(InternalParseError::SyntaxError(
             SyntaxError::new(SyntaxErrorKind::IndexParseError(err), q.len(), int.len()),
             rest,
         ))),
@@ -293,6 +334,25 @@ fn failed_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
         },
         rest,
     )))
+}
+
+enum DirectionalInt {
+    Plus(JsonUInt),
+    Minus(JsonNonZeroUInt),
+    Error(JsonIntParseError),
+}
+
+fn parse_directional_int(int_str: &str) -> DirectionalInt {
+    match JsonInt::from_str(int_str) {
+        Ok(int) => {
+            if let Ok(uint) = JsonUInt::try_from(int) {
+                DirectionalInt::Plus(uint)
+            } else {
+                DirectionalInt::Minus(int.abs().try_into().expect("zero would convert to JsonUInt above"))
+            }
+        }
+        Err(err) => DirectionalInt::Error(err),
+    }
 }
 
 fn int(q: &str) -> IResult<&str, &str, InternalParseError> {
@@ -483,6 +543,13 @@ fn string<'a>(mode: StringParseMode) -> impl FnMut(&'a str) -> IResult<&'a str, 
             Ok(x)
         }
     }
+}
+
+fn fail<T>(kind: SyntaxErrorKind, rev_idx: usize, err_len: usize, rest: &str) -> IResult<&str, T, InternalParseError> {
+    Err(Err::Failure(InternalParseError::SyntaxError(
+        SyntaxError::new(kind, rev_idx, err_len),
+        rest,
+    )))
 }
 
 #[cfg(test)]

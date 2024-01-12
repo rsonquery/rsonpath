@@ -146,6 +146,14 @@ impl UnsupportedFeatureError {
         Self::untracked("Indexing from End")
     }
 
+    /// Slice Selector &ndash; supporting slice selectors.
+    /// https://github.com/V0ldek/rsonpath/issues/152
+    #[must_use]
+    #[inline(always)]
+    pub fn slice_selector() -> Self {
+        Self::tracked(152, "Slice Selector")
+    }
+
     /// Returns the issue number on GitHub corresponding to the unsupported feature.
     /// Is [`None`] if the feature is not planned.
     #[must_use]

@@ -305,7 +305,7 @@ impl Parser {
 /// Every query is a sequence of zero or more of segments,
 /// each applying one or more selectors to a node and passing it along to the
 /// subsequent segments.
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub enum Segment {
     /// A child segment contains a sequence of selectors,
@@ -333,14 +333,14 @@ impl<'a> arbitrary::Arbitrary<'a> for Selectors {
 /// Collection of one or more [`Selector`] instances.
 ///
 /// Guaranteed to be non-empty.
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub struct Selectors {
     inner: Vec<Selector>,
 }
 
 /// Each [`Segment`] defines one or more selectors.
 /// A selector produces one or more children/descendants of the node it is applied to.
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub enum Selector {
     /// A name selector selects at most one object member value under the key equal to the
@@ -351,10 +351,13 @@ pub enum Selector {
     /// An index selector matches at most one array element value,
     /// depending on the selector's [`Index`].
     Index(Index),
+    // A slice selector matches elements from arrays starting at a given index,
+    // ending at a given index, and incrementing with a specified step.
+    Slice(Slice),
 }
 
 /// Directional index into a JSON array.
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub enum Index {
     /// Zero-based index from the start of the array.
     FromStart(num::JsonUInt),
@@ -386,8 +389,187 @@ impl From<num::JsonInt> for Index {
     }
 }
 
+/// Directional step offset within a JSON array.
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
+pub enum Step {
+    // Step forward by a given offset amount.
+    Forward(num::JsonUInt),
+    /// Step backward by a given offset amount.
+    Backward(num::JsonNonZeroUInt),
+}
+
+// We don't derive this because Backward(0) is not a valid step.
+#[cfg(feature = "arbitrary")]
+#[cfg_attr(docsrs, doc(cfg(feature = "arbitrary")))]
+impl<'a> arbitrary::Arbitrary<'a> for Step {
+    #[inline]
+    fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
+        let num = u.arbitrary::<num::JsonInt>()?;
+        Ok(Self::from(num))
+    }
+}
+
+impl From<num::JsonInt> for Step {
+    #[inline]
+    fn from(value: num::JsonInt) -> Self {
+        if value.as_i64() >= 0 {
+            Self::Forward(value.abs())
+        } else {
+            Self::Backward(value.abs().try_into().expect("checked for zero already"))
+        }
+    }
+}
+
+/// Slice selector defining the start and end bounds, as well as the step value and direction.
+///
+/// The start index is inclusive defaults to `Index::FromStart(0)`.
+///
+/// The end index is exclusive and optional.
+/// If `None`, the end of the slice depends on the step direction:
+/// - if going forward, the end is `len` of the array;
+/// - if going backward, the end is 0.
+///
+/// The step defaults to `Step::Forward(1)`. Note that `Step::Forward(0)` is a valid
+/// value and is specified to result in an empty slice, regardless of `start` and `end`.
+///
+/// # Examples
+/// ```
+/// # use rsonpath_syntax::{Slice, Index, Step, num::JsonUInt};
+/// let slice = Slice::default();
+/// assert_eq!(slice.start(), Index::FromStart(JsonUInt::ZERO));
+/// assert_eq!(slice.end(), None);
+/// assert_eq!(slice.step(), Step::Forward(JsonUInt::ONE));
+/// ```
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+pub struct Slice {
+    start: Index,
+    end: Option<Index>,
+    step: Step,
+}
+
+/// Helper API for programmatically constructing [`Slice`] instances.
+///
+/// # Examples
+/// ```
+/// # use rsonpath_syntax::{Slice, SliceBuilder, Index, Step, num::JsonUInt};
+/// let mut builder = SliceBuilder::new();
+///
+/// builder
+///   .with_start(Index::FromEnd(3.try_into().unwrap()))
+///   .with_end(Index::FromStart(1.into()))
+///   .with_step(Step::Backward(7.try_into().unwrap()));
+///
+/// let slice: Slice = builder.into();
+/// assert_eq!(slice.to_string(), "-3:1:-7");
+/// ```
+pub struct SliceBuilder {
+    inner: Slice,
+}
+
+impl Slice {
+    const DEFAULT_START: Index = Index::FromStart(num::JsonUInt::ZERO);
+    const DEFAULT_STEP: Step = Step::Forward(num::JsonUInt::ONE);
+
+    /// Create a new [`Slice`] from given bounds and step.
+    #[inline(always)]
+    #[must_use]
+    pub fn new(start: Index, end: Option<Index>, step: Step) -> Self {
+        Self { start, end, step }
+    }
+
+    /// Get the start index of the [`Slice`].
+    #[inline(always)]
+    #[must_use]
+    pub fn start(&self) -> Index {
+        self.start
+    }
+
+    /// Get the end index of the [`Slice`].
+    #[inline(always)]
+    #[must_use]
+    pub fn end(&self) -> Option<Index> {
+        self.end
+    }
+
+    /// Get the step of the [`Slice`].
+    #[inline(always)]
+    #[must_use]
+    pub fn step(&self) -> Step {
+        self.step
+    }
+}
+
+impl Default for Slice {
+    #[inline]
+    fn default() -> Self {
+        Self {
+            start: Index::FromStart(0.into()),
+            end: None,
+            step: Step::Forward(1.into()),
+        }
+    }
+}
+
+impl SliceBuilder {
+    /// Create a new [`Slice`] configuration with default values.
+    #[inline]
+    #[must_use]
+    pub fn new() -> Self {
+        Self {
+            inner: Slice::default(),
+        }
+    }
+
+    /// Set the start of the [`Slice`].
+    #[inline]
+    pub fn with_start(&mut self, start: Index) -> &mut Self {
+        self.inner.start = start;
+        self
+    }
+
+    /// Set the end of the [`Slice`].
+    #[inline]
+    pub fn with_end(&mut self, end: Index) -> &mut Self {
+        self.inner.end = Some(end);
+        self
+    }
+
+    /// Set the step of the [`Slice`].
+    #[inline]
+    pub fn with_step(&mut self, step: Step) -> &mut Self {
+        self.inner.step = step;
+        self
+    }
+
+    /// Get the configured [`Slice`] instance.
+    ///
+    /// This does not consume the builder. For a consuming variant use the `Into<Slice>` impl.
+    #[inline]
+    #[must_use]
+    pub fn to_slice(&mut self) -> Slice {
+        self.inner.clone()
+    }
+}
+
+impl From<SliceBuilder> for Slice {
+    #[inline]
+    #[must_use]
+    fn from(value: SliceBuilder) -> Self {
+        value.inner
+    }
+}
+
+impl Default for SliceBuilder {
+    #[inline(always)]
+    #[must_use]
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// JSONPath query structure represented by a sequence of [`Segments`](Segment).
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub struct JsonPathQuery {
     segments: Vec<Segment>,
@@ -604,6 +786,7 @@ impl Display for Selector {
             Self::Name(n) => write!(f, "'{}'", str::escape(n.unquoted(), str::EscapeMode::SingleQuoted)),
             Self::Wildcard => write!(f, "*"),
             Self::Index(idx) => write!(f, "{idx}"),
+            Self::Slice(slice) => write!(f, "{slice}"),
         }
     }
 }
@@ -615,6 +798,33 @@ impl Display for Index {
             Self::FromStart(idx) => write!(f, "{idx}"),
             Self::FromEnd(idx) => write!(f, "-{idx}"),
         }
+    }
+}
+
+impl Display for Step {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Forward(idx) => write!(f, "{idx}"),
+            Self::Backward(idx) => write!(f, "-{idx}"),
+        }
+    }
+}
+
+impl Display for Slice {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.start != Self::DEFAULT_START {
+            write!(f, "{}", self.start)?;
+        }
+        write!(f, ":")?;
+        if let Some(end) = self.end {
+            write!(f, "{end}")?;
+        }
+        if self.step != Self::DEFAULT_STEP {
+            write!(f, ":{}", self.step)?;
+        }
+        Ok(())
     }
 }
 
