@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.6] - 2024-01-15
+
+### Features
+
+- [**breaking**] Parsing `Slice` selectors.
+  - This is mainly an `rsonpath-syntax` change &ndash; the selectors are parsed,
+    but `rq` will give you an unsupported error and a link to [#152](https://github.com/V0ldek/rsonpath/issues/152)
+    if you put them in a query.
+
+### Bug Fixes
+
+- Bug in `-c` graph display.
+  - dot format was temporarily broken by doubling double quotes in labels
+
+- U+001A-U+001F in name selectors.
+  - Characters U+001A through U+001F were erroneously accepted unescaped.
+    This is now a hard error.
+
+### Dependencies
+
+- Bump clap from 4.4.14 to 4.4.16
+- Bump vergen from 8.2.6 to 8.2.7.
+
 ## [0.8.5] - 2024-01-10
 
 ### Features
