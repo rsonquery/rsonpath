@@ -1,8 +1,8 @@
 use crate::{
     error::{InternalParseError, ParseErrorBuilder, SyntaxError, SyntaxErrorKind},
-    num::{JsonInt, JsonUInt},
+    num::{error::JsonIntParseError, JsonInt, JsonNonZeroUInt, JsonUInt},
     str::{JsonString, JsonStringBuilder},
-    Index, JsonPathQuery, ParserOptions, Result, Segment, Selector, Selectors,
+    Index, JsonPathQuery, ParserOptions, Result, Segment, Selector, Selectors, Step,
 };
 use nom::{branch::*, bytes::complete::*, character::complete::*, combinator::*, multi::*, sequence::*, *};
 use std::{iter::Peekable, str::FromStr};
@@ -225,6 +225,7 @@ fn selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
     alt((
         ignore_whitespace(name_selector),
         ignore_whitespace(wildcard_selector),
+        ignore_whitespace(slice_selector),
         ignore_whitespace(index_selector),
         failed_selector,
     ))(q)
@@ -250,22 +251,62 @@ fn wildcard_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
     map(tag("*"), |_| Selector::Wildcard)(q)
 }
 
-fn index_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
-    let (rest, int) = int(q)?;
-    match JsonInt::from_str(int) {
-        Ok(int) => {
-            if let Ok(uint) = JsonUInt::try_from(int) {
-                Ok((rest, Selector::Index(Index::FromStart(uint))))
-            } else {
-                Ok((
+fn slice_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
+    let (rest, opt_start) = terminated(opt(int), ignore_whitespace(char(':')))(q)?;
+    // We have parsed a ':', so this *must* be a slice selector. Any errors after here are fatal.
+    let mut slice = crate::Slice::default();
+
+    if let Some(start_str) = opt_start {
+        match parse_directional_int(start_str) {
+            DirectionalInt::Plus(int) => slice.start = Index::FromStart(int),
+            DirectionalInt::Minus(int) => slice.start = Index::FromEnd(int),
+            DirectionalInt::Error(err) => {
+                return fail(
+                    SyntaxErrorKind::SliceStartParseError(err),
+                    q.len(),
+                    start_str.len(),
                     rest,
-                    Selector::Index(Index::FromEnd(
-                        int.abs().try_into().expect("zero would convert to JsonUInt above"),
-                    )),
-                ))
+                );
             }
-        }
-        Err(err) => Err(Err::Failure(InternalParseError::SyntaxError(
+        };
+    }
+    let q = rest;
+    let (rest, opt_end) = opt(ignore_whitespace(int))(q)?;
+
+    if let Some(end_str) = opt_end {
+        match parse_directional_int(end_str) {
+            DirectionalInt::Plus(int) => slice.end = Some(Index::FromStart(int)),
+            DirectionalInt::Minus(int) => slice.end = Some(Index::FromEnd(int)),
+            DirectionalInt::Error(err) => {
+                return fail(SyntaxErrorKind::SliceEndParseError(err), q.len(), end_str.len(), rest);
+            }
+        };
+    }
+
+    let q = rest;
+    let (rest, opt_step) = opt(ignore_whitespace(preceded(char(':'), opt(ignore_whitespace(int)))))(q)?;
+
+    if let Some(Some(step_str)) = opt_step {
+        match parse_directional_int(step_str) {
+            DirectionalInt::Plus(int) => slice.step = Step::Forward(int),
+            DirectionalInt::Minus(int) => slice.step = Step::Backward(int),
+            DirectionalInt::Error(err) => {
+                return fail(SyntaxErrorKind::SliceStepParseError(err), q.len(), step_str.len(), rest);
+            }
+        };
+    }
+
+    Ok((rest, Selector::Slice(slice)))
+}
+
+fn index_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
+    // This has to be called after the slice selector.
+    // Thanks to that we can make a hard cut if we parsed an integer but it doesn't work as an index.
+    let (rest, int) = int(q)?;
+    match parse_directional_int(int) {
+        DirectionalInt::Plus(int) => Ok((rest, Selector::Index(Index::FromStart(int)))),
+        DirectionalInt::Minus(int) => Ok((rest, Selector::Index(Index::FromEnd(int)))),
+        DirectionalInt::Error(err) => Err(Err::Failure(InternalParseError::SyntaxError(
             SyntaxError::new(SyntaxErrorKind::IndexParseError(err), q.len(), int.len()),
             rest,
         ))),
@@ -293,6 +334,25 @@ fn failed_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
         },
         rest,
     )))
+}
+
+enum DirectionalInt {
+    Plus(JsonUInt),
+    Minus(JsonNonZeroUInt),
+    Error(JsonIntParseError),
+}
+
+fn parse_directional_int(int_str: &str) -> DirectionalInt {
+    match JsonInt::from_str(int_str) {
+        Ok(int) => {
+            if let Ok(uint) = JsonUInt::try_from(int) {
+                DirectionalInt::Plus(uint)
+            } else {
+                DirectionalInt::Minus(int.abs().try_into().expect("zero would convert to JsonUInt above"))
+            }
+        }
+        Err(err) => DirectionalInt::Error(err),
+    }
 }
 
 fn int(q: &str) -> IResult<&str, &str, InternalParseError> {
@@ -343,7 +403,7 @@ fn string<'a>(mode: StringParseMode) -> impl FnMut(&'a str) -> IResult<&'a str, 
                         Err(nom::Err::Failure(InternalParseError::SyntaxErrors(syntax_errors, rest)))
                     };
                 }
-                (..='\u{0019}', _) => {
+                (..='\u{001F}', _) => {
                     let rest = stream.peek().map_or("", |(i, _)| &q[*i..]);
                     syntax_errors.push(SyntaxError::new(
                         SyntaxErrorKind::InvalidUnescapedCharacter,
@@ -485,6 +545,13 @@ fn string<'a>(mode: StringParseMode) -> impl FnMut(&'a str) -> IResult<&'a str, 
     }
 }
 
+fn fail<T>(kind: SyntaxErrorKind, rev_idx: usize, err_len: usize, rest: &str) -> IResult<&str, T, InternalParseError> {
+    Err(Err::Failure(InternalParseError::SyntaxError(
+        SyntaxError::new(kind, rev_idx, err_len),
+        rest,
+    )))
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{str::JsonString, Index, Selector};
@@ -588,11 +655,13 @@ mod tests {
         #[derive(Debug, Clone)]
         enum SelectorTag {
             WildcardChild,
-            Child(String),
-            WildcardDescendant,
-            Descendant(String),
+            NameChild(String),
             ArrayIndexChild(JsonUInt),
+            ArraySliceChild(JsonUInt, Option<JsonUInt>, JsonUInt),
+            WildcardDescendant,
+            NameDescendant(String),
             ArrayIndexDescendant(JsonUInt),
+            ArraySliceDescendant(JsonUInt, Option<JsonUInt>, JsonUInt),
         }
 
         #[derive(Debug, Clone)]
@@ -657,11 +726,13 @@ mod tests {
         fn any_selector() -> impl Strategy<Value = Selector> {
             prop_oneof![
                 any_wildcard_child(),
-                child_any(),
-                any_wildcard_descendant(),
-                descendant_any(),
+                any_child_name(),
                 any_array_index_child(),
+                any_array_slice_child(),
+                any_wildcard_descendant(),
+                any_descendant_name(),
                 any_array_index_descendant(),
+                any_array_slice_descendant(),
             ]
         }
 
@@ -682,18 +753,18 @@ mod tests {
         }
 
         // .label or ['label']
-        fn child_any() -> impl Strategy<Value = Selector> {
+        fn any_child_name() -> impl Strategy<Value = Selector> {
             prop_oneof![any_short_name().prop_map(|x| (format!(".{x}"), x)), any_name(),].prop_map(|(s, l)| Selector {
                 string: s,
-                tag: SelectorTag::Child(l),
+                tag: SelectorTag::NameChild(l),
             })
         }
 
         // ..label or ..['label']
-        fn descendant_any() -> impl Strategy<Value = Selector> {
+        fn any_descendant_name() -> impl Strategy<Value = Selector> {
             prop_oneof![any_short_name().prop_map(|x| (x.clone(), x)), any_name(),].prop_map(|(x, l)| Selector {
                 string: format!("..{x}"),
-                tag: SelectorTag::Descendant(l),
+                tag: SelectorTag::NameDescendant(l),
             })
         }
 
@@ -704,11 +775,43 @@ mod tests {
             })
         }
 
+        fn any_array_slice_child() -> impl Strategy<Value = Selector> {
+            (
+                any_non_negative_array_index(),
+                proptest::option::of(any_non_negative_array_index()),
+                any_non_negative_array_index(),
+            )
+                .prop_map(|(start, end, step)| Selector {
+                    string: if let Some(end) = end {
+                        format!("[{}:{}:{}]", start.as_u64(), end.as_u64(), step.as_u64())
+                    } else {
+                        format!("[{}::{}]", start.as_u64(), step.as_u64())
+                    },
+                    tag: SelectorTag::ArraySliceChild(start, end, step),
+                })
+        }
+
         fn any_array_index_descendant() -> impl Strategy<Value = Selector> {
             any_non_negative_array_index().prop_map(|i| Selector {
                 string: format!("..[{}]", i.as_u64()),
                 tag: SelectorTag::ArrayIndexDescendant(i),
             })
+        }
+
+        fn any_array_slice_descendant() -> impl Strategy<Value = Selector> {
+            (
+                any_non_negative_array_index(),
+                proptest::option::of(any_non_negative_array_index()),
+                any_non_negative_array_index(),
+            )
+                .prop_map(|(start, end, step)| Selector {
+                    string: if let Some(end) = end {
+                        format!("..[{}:{}:{}]", start.as_u64(), end.as_u64(), step.as_u64())
+                    } else {
+                        format!("..[{}::{}]", start.as_u64(), step.as_u64())
+                    },
+                    tag: SelectorTag::ArraySliceDescendant(start, end, step),
+                })
         }
 
         fn any_short_name() -> impl Strategy<Value = String> {
@@ -764,12 +867,20 @@ mod tests {
                     result += &selector.string;
 
                     match selector.tag {
-                        SelectorTag::WildcardChild => query.child_wildcard(),
-                        SelectorTag::Child(name) => query.child_name(JsonString::new(&name)),
-                        SelectorTag::WildcardDescendant => query.descendant_wildcard(),
-                        SelectorTag::Descendant(name) => query.descendant_name(JsonString::new(&name)),
+                        SelectorTag::NameChild(name) => query.child_name(JsonString::new(&name)),
                         SelectorTag::ArrayIndexChild(idx) => query.child_index(idx),
-                        SelectorTag::ArrayIndexDescendant(idx) => query.descendant_index(idx)
+                        SelectorTag::ArraySliceChild(start, None, step) =>
+                            query.child_slice(|x| x.with_start(start).with_step(step)),
+                        SelectorTag::ArraySliceChild(start, Some(end), step) =>
+                            query.child_slice(|x| x.with_start(start).with_end(end).with_step(step)),
+                        SelectorTag::WildcardChild => query.child_wildcard(),
+                        SelectorTag::NameDescendant(name) => query.descendant_name(JsonString::new(&name)),
+                        SelectorTag::ArrayIndexDescendant(idx) => query.descendant_index(idx),
+                        SelectorTag::ArraySliceDescendant(start, None, step) =>
+                            query.descendant_slice(|x| x.with_start(start).with_step(step)),
+                        SelectorTag::ArraySliceDescendant(start, Some(end), step) =>
+                            query.descendant_slice(|x| x.with_start(start).with_end(end).with_step(step)),
+                        SelectorTag::WildcardDescendant => query.descendant_wildcard(),
                     };
                 }
 
@@ -787,6 +898,14 @@ mod tests {
                     let result = crate::parse(&input).expect("expected Ok");
 
                     assert_eq!(expected, result);
+                }
+
+                #[test]
+                fn round_trip((_, query) in any_valid_query()) {
+                    let input = query.to_string();
+                    let result = crate::parse(&input).expect("expected Ok");
+
+                    assert_eq!(query, result);
                 }
             }
         }

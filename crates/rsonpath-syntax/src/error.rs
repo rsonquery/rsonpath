@@ -126,6 +126,9 @@ pub(crate) enum SyntaxErrorKind {
     NegativeZeroInteger,
     LeadingZeros,
     IndexParseError(JsonIntParseError),
+    SliceStartParseError(JsonIntParseError),
+    SliceEndParseError(JsonIntParseError),
+    SliceStepParseError(JsonIntParseError),
 }
 
 impl SyntaxError {
@@ -266,9 +269,12 @@ impl SyntaxError {
                     suggestion.remove(start_idx + offset, remove_len);
                 }
             }
-            SyntaxErrorKind::InvalidSelector | SyntaxErrorKind::IndexParseError(_) | SyntaxErrorKind::EmptySelector => {
-                suggestion.invalidate()
-            }
+            SyntaxErrorKind::InvalidSelector
+            | SyntaxErrorKind::IndexParseError(_)
+            | SyntaxErrorKind::SliceStartParseError(_)
+            | SyntaxErrorKind::SliceStepParseError(_)
+            | SyntaxErrorKind::SliceEndParseError(_)
+            | SyntaxErrorKind::EmptySelector => suggestion.invalidate(),
         }
 
         // Generic notes.
@@ -660,6 +666,9 @@ impl SyntaxErrorKind {
             Self::NegativeZeroInteger => "negative zero used as an integer".to_string(),
             Self::LeadingZeros => "integer with leading zeros".to_string(),
             Self::IndexParseError(_) => "invalid index value".to_string(),
+            Self::SliceStartParseError(_) => "invalid slice start".to_string(),
+            Self::SliceEndParseError(_) => "invalid slice end".to_string(),
+            Self::SliceStepParseError(_) => "invalid slice step value".to_string(),
         }
     }
 
@@ -686,6 +695,9 @@ impl SyntaxErrorKind {
             Self::NegativeZeroInteger => "negative zero is not allowed".to_string(),
             Self::LeadingZeros => "leading zeros are not allowed".to_string(),
             Self::IndexParseError(inner) => format!("this index value is invalid; {inner}"),
+            Self::SliceStartParseError(inner) => format!("this start index is invalid; {inner}"),
+            Self::SliceEndParseError(inner) => format!("this end index is invalid; {inner}"),
+            Self::SliceStepParseError(inner) => format!("this step value is invalid; {inner}"),
         }
     }
 }

@@ -129,6 +129,15 @@ impl JsonInt {
     /// ```
     pub const ZERO: Self = Self::new(0);
 
+    /// A constant value of one.
+    ///
+    /// # Examples
+    /// ```
+    /// # use rsonpath_syntax::num::JsonInt;
+    /// assert_eq!(JsonInt::ONE.as_i64(), 1);
+    /// ```
+    pub const ONE: Self = Self::new(1);
+
     /// A constant for the smallest expressible value.
     ///
     /// # Examples
@@ -245,6 +254,15 @@ impl JsonUInt {
     /// assert_eq!(JsonUInt::ZERO.as_u64(), 0);
     /// ```
     pub const ZERO: Self = Self::new(0);
+
+    /// A constant value of one.
+    ///
+    /// # Examples
+    /// ```
+    /// # use rsonpath_syntax::num::JsonUInt;
+    /// assert_eq!(JsonUInt::ONE.as_u64(), 1);
+    /// ```
+    pub const ONE: Self = Self::new(1);
 
     /// A constant for the largest expressible value.
     ///

@@ -71,5 +71,5 @@ jobs:
           name: rsonpath-test-documents
           path: |
             crates/rsonpath-test/documents
-            crates/rsonpath-test/tests
+            crates/rsonpath-test/tests/generated
           retention-days: 1

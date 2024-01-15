@@ -76,7 +76,7 @@ impl Display for TransitionLabel<'_> {
     #[inline(always)]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            TransitionLabel::ObjectMember(name) => write!(f, "{}", name.quoted()),
+            TransitionLabel::ObjectMember(name) => write!(f, "{}", name.unquoted()),
             TransitionLabel::ArrayIndex(index) => write!(f, "{}", index.as_u64()),
         }
     }
