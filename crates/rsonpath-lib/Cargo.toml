@@ -33,7 +33,7 @@ log = "0.4.20"
 memmap2 = "0.9.3"
 nom = "7.1.3"
 rsonpath-syntax = { version = "0.1.0", path = "../rsonpath-syntax" }
-smallvec = { version = "1.11.2", features = ["union"] }
+smallvec = { version = "1.12.0", features = ["union"] }
 static_assertions = "1.1.0"
 thiserror = "1.0.56"
 vector-map = "1.0.1"
