@@ -216,17 +216,17 @@ cargo tree --package rsonpath --edges normal --depth 1
 
 <!-- rsonpath dependencies start -->
 ```ini
-rsonpath v0.8.5 (/home/mat/src/rsonpath/crates/rsonpath)
-├── clap v4.4.14
+rsonpath v0.8.6 (/home/mat/src/rsonpath/crates/rsonpath)
+├── clap v4.4.16
 ├── color-eyre v0.6.2
 ├── eyre v0.6.11
 ├── log v0.4.20
-├── rsonpath-lib v0.8.5 (/home/mat/src/rsonpath/crates/rsonpath-lib)
+├── rsonpath-lib v0.8.6 (/home/mat/src/rsonpath/crates/rsonpath-lib)
 ├── rsonpath-syntax v0.1.0 (/home/mat/src/rsonpath/crates/rsonpath-syntax)
 └── simple_logger v4.3.3
 [build-dependencies]
 ├── rustflags v0.1.4
-└── vergen v8.2.6
+└── vergen v8.2.9
     [build-dependencies]
 ```
 <!-- rsonpath dependencies end -->
@@ -237,14 +237,14 @@ cargo tree --package rsonpath-lib --edges normal --depth 1
 
 <!-- rsonpath-lib dependencies start -->
 ```ini
-rsonpath-lib v0.8.5 (/home/mat/src/rsonpath/crates/rsonpath-lib)
+rsonpath-lib v0.8.6 (/home/mat/src/rsonpath/crates/rsonpath-lib)
 ├── arbitrary v1.3.2
 ├── cfg-if v1.0.0
 ├── log v0.4.20
 ├── memmap2 v0.9.3
 ├── nom v7.1.3
 ├── rsonpath-syntax v0.1.0 (/home/mat/src/rsonpath/crates/rsonpath-syntax)
-├── smallvec v1.11.2
+├── smallvec v1.12.0
 ├── static_assertions v1.1.0
 ├── thiserror v1.0.56
 └── vector-map v1.0.1
@@ -272,10 +272,10 @@ cargo tree --package rsonpath --edges normal
 
 <!-- rsonpath-full dependencies start -->
 ```ini
-rsonpath v0.8.5 (/home/mat/src/rsonpath/crates/rsonpath)
-├── clap v4.4.14
-│   ├── clap_builder v4.4.14
-│   │   ├── anstream v0.6.5
+rsonpath v0.8.6 (/home/mat/src/rsonpath/crates/rsonpath)
+├── clap v4.4.16
+│   ├── clap_builder v4.4.16
+│   │   ├── anstream v0.6.7
 │   │   │   ├── anstyle v1.0.4
 │   │   │   ├── anstyle-parse v0.2.3
 │   │   │   │   └── utf8parse v0.2.1
@@ -298,7 +298,7 @@ rsonpath v0.8.5 (/home/mat/src/rsonpath/crates/rsonpath)
 │   │   ├── clap_lex v0.6.0
 │   │   ├── strsim v0.10.0
 │   │   └── terminal_size v0.3.0
-│   │       ├── rustix v0.38.28
+│   │       ├── rustix v0.38.30
 │   │       │   ├── bitflags v2.4.1
 │   │       │   ├── errno v0.3.8
 │   │       │   │   ├── libc v0.2.152
@@ -347,7 +347,7 @@ rsonpath v0.8.5 (/home/mat/src/rsonpath/crates/rsonpath)
 │   └── owo-colors v3.5.0
 ├── eyre v0.6.11 (*)
 ├── log v0.4.20
-├── rsonpath-lib v0.8.5 (/home/mat/src/rsonpath/crates/rsonpath-lib)
+├── rsonpath-lib v0.8.6 (/home/mat/src/rsonpath/crates/rsonpath-lib)
 │   ├── cfg-if v1.0.0
 │   ├── log v0.4.20
 │   ├── memmap2 v0.9.3
@@ -364,7 +364,7 @@ rsonpath v0.8.5 (/home/mat/src/rsonpath/crates/rsonpath)
 │   │   │       ├── quote v1.0.35 (*)
 │   │   │       └── syn v2.0.48 (*)
 │   │   └── unicode-width v0.1.11
-│   ├── smallvec v1.11.2
+│   ├── smallvec v1.12.0
 │   ├── static_assertions v1.1.0
 │   ├── thiserror v1.0.56 (*)
 │   └── vector-map v1.0.1
@@ -408,10 +408,36 @@ rsonpath v0.8.5 (/home/mat/src/rsonpath/crates/rsonpath)
     └── windows-sys v0.48.0 (*)
 [build-dependencies]
 ├── rustflags v0.1.4
-└── vergen v8.2.6
+└── vergen v8.2.9
     ├── anyhow v1.0.79
+    ├── cargo_metadata v0.18.1
+    │   ├── camino v1.1.6
+    │   │   └── serde v1.0.195
+    │   │       └── serde_derive v1.0.195 (proc-macro)
+    │   │           ├── proc-macro2 v1.0.76 (*)
+    │   │           ├── quote v1.0.35 (*)
+    │   │           └── syn v2.0.48 (*)
+    │   ├── cargo-platform v0.1.6
+    │   │   └── serde v1.0.195 (*)
+    │   ├── semver v1.0.21
+    │   │   └── serde v1.0.195 (*)
+    │   ├── serde v1.0.195 (*)
+    │   ├── serde_json v1.0.111
+    │   │   ├── itoa v1.0.10
+    │   │   ├── ryu v1.0.16
+    │   │   └── serde v1.0.195 (*)
+    │   └── thiserror v1.0.56 (*)
+    ├── regex v1.10.2
+    │   ├── aho-corasick v1.1.2
+    │   │   └── memchr v2.7.1
+    │   ├── memchr v2.7.1
+    │   ├── regex-automata v0.4.3
+    │   │   ├── aho-corasick v1.1.2 (*)
+    │   │   ├── memchr v2.7.1
+    │   │   └── regex-syntax v0.8.2
+    │   └── regex-syntax v0.8.2
     ├── rustc_version v0.4.0
-    │   └── semver v1.0.21
+    │   └── semver v1.0.21 (*)
     └── time v0.3.31
         ├── deranged v0.3.11 (*)
         ├── itoa v1.0.10
