@@ -351,8 +351,8 @@ pub enum Selector {
     /// An index selector matches at most one array element value,
     /// depending on the selector's [`Index`].
     Index(Index),
-    // A slice selector matches elements from arrays starting at a given index,
-    // ending at a given index, and incrementing with a specified step.
+    /// A slice selector matches elements from arrays starting at a given index,
+    /// ending at a given index, and incrementing with a specified step.
     Slice(Slice),
 }
 
@@ -392,7 +392,7 @@ impl From<num::JsonInt> for Index {
 /// Directional step offset within a JSON array.
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub enum Step {
-    // Step forward by a given offset amount.
+    /// Step forward by a given offset amount.
     Forward(num::JsonUInt),
     /// Step backward by a given offset amount.
     Backward(num::JsonNonZeroUInt),
@@ -455,10 +455,7 @@ pub struct Slice {
 /// # use rsonpath_syntax::{Slice, SliceBuilder, Index, Step, num::JsonUInt};
 /// let mut builder = SliceBuilder::new();
 ///
-/// builder
-///   .with_start(Index::FromEnd(3.try_into().unwrap()))
-///   .with_end(Index::FromStart(1.into()))
-///   .with_step(Step::Backward(7.try_into().unwrap()));
+/// builder.with_start(-3).with_end(1).with_step(-7);
 ///
 /// let slice: Slice = builder.into();
 /// assert_eq!(slice.to_string(), "-3:1:-7");
@@ -523,22 +520,22 @@ impl SliceBuilder {
 
     /// Set the start of the [`Slice`].
     #[inline]
-    pub fn with_start(&mut self, start: Index) -> &mut Self {
-        self.inner.start = start;
+    pub fn with_start<N: Into<num::JsonInt>>(&mut self, start: N) -> &mut Self {
+        self.inner.start = start.into().into();
         self
     }
 
     /// Set the end of the [`Slice`].
     #[inline]
-    pub fn with_end(&mut self, end: Index) -> &mut Self {
-        self.inner.end = Some(end);
+    pub fn with_end<N: Into<num::JsonInt>>(&mut self, end: N) -> &mut Self {
+        self.inner.end = Some(end.into().into());
         self
     }
 
     /// Set the step of the [`Slice`].
     #[inline]
-    pub fn with_step(&mut self, step: Step) -> &mut Self {
-        self.inner.step = step;
+    pub fn with_step<N: Into<num::JsonInt>>(&mut self, step: N) -> &mut Self {
+        self.inner.step = step.into().into();
         self
     }
 

@@ -1,6 +1,6 @@
 //! Utility for building a [`JsonPathQuery`](`crate::JsonPathQuery`)
 //! programmatically.
-use crate::{num::JsonInt, str::JsonString, Index, JsonPathQuery, Segment, Selector, Selectors};
+use crate::{num::JsonInt, str::JsonString, Index, JsonPathQuery, Segment, Selector, Selectors, SliceBuilder};
 
 /// Builder for [`JsonPathQuery`] instances.
 ///
@@ -13,12 +13,13 @@ use crate::{num::JsonInt, str::JsonString, Index, JsonPathQuery, Segment, Select
 ///     .descendant_name("b")
 ///     .child_wildcard()
 ///     .child_name("c")
-///     .descendant_wildcard();
+///     .descendant_wildcard()
+///     .child_slice(|x| x.with_start(3).with_end(-7).with_step(2));
 ///
 /// // Can also use `builder.build()` as a non-consuming version.
 /// let query: JsonPathQuery = builder.into();
 ///
-/// assert_eq!(query.to_string(), "$['a']..['b'][*]['c']..[*]");
+/// assert_eq!(query.to_string(), "$['a']..['b'][*]['c']..[*][3:-7:2]");
 /// ```
 pub struct JsonPathQueryBuilder {
     segments: Vec<Segment>,
@@ -133,6 +134,17 @@ impl JsonPathQueryBuilder {
         self.child(|x| x.index(idx))
     }
 
+    /// Add a child segment with a single slice selector.
+    ///
+    /// This is a shorthand for `.child(|x| x.slice(slice_builder))`.
+    #[inline(always)]
+    pub fn child_slice<F>(&mut self, slice_builder: F) -> &mut Self
+    where
+        F: FnOnce(&mut SliceBuilder) -> &mut SliceBuilder,
+    {
+        self.child(|x| x.slice(slice_builder))
+    }
+
     /// Add a descendant segment with a single name selector.
     ///
     /// This is a shorthand for `.descendant(|x| x.name(name))`.
@@ -155,6 +167,17 @@ impl JsonPathQueryBuilder {
     #[inline(always)]
     pub fn descendant_index<N: Into<JsonInt>>(&mut self, idx: N) -> &mut Self {
         self.descendant(|x| x.index(idx))
+    }
+
+    /// Add a descendant segment with a single slice selector.
+    ///
+    /// This is a shorthand for `.descendant(|x| x.slice(slice_builder))`.
+    #[inline(always)]
+    pub fn descendant_slice<F>(&mut self, slice_builder: F) -> &mut Self
+    where
+        F: FnOnce(&mut SliceBuilder) -> &mut SliceBuilder,
+    {
+        self.descendant(|x| x.slice(slice_builder))
     }
 
     /// Produce a [`JsonPathQuery`] from the builder.
@@ -222,6 +245,47 @@ impl JsonPathSelectorsBuilder {
     pub fn index<N: Into<JsonInt>>(&mut self, idx: N) -> &mut Self {
         let json_int: JsonInt = idx.into();
         self.selectors.push(Selector::Index(Index::from(json_int)));
+        self
+    }
+
+    /// Add a slice selector based on a given start, end, and step integers.
+    ///
+    /// The result is a [`Selector::Slice`] with given `start`, `end`, and `step`.
+    ///
+    /// ## Examples
+    ///
+    /// ```rust
+    /// # use rsonpath_syntax::{Selector, SliceBuilder, Index, Step, num::{JsonNonZeroUInt, JsonUInt}, builder::JsonPathQueryBuilder};
+    /// let mut builder = JsonPathQueryBuilder::new();
+    /// builder.child(|x| x
+    ///     .slice(|s| s.with_start(10).with_end(-20).with_step(5))
+    ///     .slice(|s| s.with_start(-20).with_step(-30)));
+    /// let result = builder.into_query();
+    ///
+    /// assert_eq!(result.segments().len(), 1);
+    /// let segment = &result.segments()[0];
+    /// let selectors = segment.selectors().as_slice();
+    /// match (&selectors[0], &selectors[1]) {
+    ///     (Selector::Slice(s1), Selector::Slice(s2)) => {
+    ///         assert_eq!(s1.start(), Index::FromStart(10.into()));
+    ///         assert_eq!(s1.end(), Some(Index::FromEnd(JsonNonZeroUInt::try_from(20).unwrap())));
+    ///         assert_eq!(s1.step(), Step::Forward(5.into()));
+    ///         assert_eq!(s2.start(), Index::FromEnd(JsonNonZeroUInt::try_from(20).unwrap()));
+    ///         assert_eq!(s2.end(), None);
+    ///         assert_eq!(s2.step(), Step::Backward(JsonNonZeroUInt::try_from(30).unwrap()));
+    ///     }
+    ///     _ => unreachable!()
+    /// }
+    /// ```
+    #[inline(always)]
+    pub fn slice<F>(&mut self, slice_builder: F) -> &mut Self
+    where
+        F: FnOnce(&mut SliceBuilder) -> &mut SliceBuilder,
+    {
+        let mut slice = SliceBuilder::new();
+        slice_builder(&mut slice);
+        let slice = slice.into();
+        self.selectors.push(Selector::Slice(slice));
         self
     }
 

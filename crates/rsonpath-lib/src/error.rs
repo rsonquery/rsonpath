@@ -147,7 +147,7 @@ impl UnsupportedFeatureError {
     }
 
     /// Slice Selector &ndash; supporting slice selectors.
-    /// https://github.com/V0ldek/rsonpath/issues/152
+    /// <https://github.com/V0ldek/rsonpath/issues/152>
     #[must_use]
     #[inline(always)]
     pub fn slice_selector() -> Self {
