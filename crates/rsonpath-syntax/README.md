@@ -36,7 +36,7 @@ A small CLI tool, `rsonpath-parse` is attached. It takes one argument, a query t
 This is an in-development version that supports only name, index, and wildcard selectors.
 However, these are fully supported, tested, and fuzzed. The planned roadmap is:
 
-- [ ] support slices
+- [x] support slices
 - [ ] support filters (without functions)
 - [ ] support functions (including type check)
 - [ ] polish the API

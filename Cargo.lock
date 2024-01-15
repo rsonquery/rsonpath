@@ -864,7 +864,7 @@ checksum = "c08c74e62047bb2de4ff487b251e4a92e24f48745648451635cec7d591162d9f"
 
 [[package]]
 name = "rsonpath"
-version = "0.8.5"
+version = "0.8.6"
 dependencies = [
  "clap",
  "color-eyre",
@@ -880,7 +880,7 @@ dependencies = [
 
 [[package]]
 name = "rsonpath-lib"
-version = "0.8.5"
+version = "0.8.6"
 dependencies = [
  "arbitrary",
  "cfg-if",
@@ -900,7 +900,7 @@ dependencies = [
 
 [[package]]
 name = "rsonpath-syntax"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "arbitrary",
  "insta",
@@ -915,7 +915,7 @@ dependencies = [
 
 [[package]]
 name = "rsonpath-test"
-version = "0.8.5"
+version = "0.8.6"
 dependencies = [
  "eyre",
  "glob",
@@ -930,7 +930,7 @@ dependencies = [
 
 [[package]]
 name = "rsonpath-test-codegen"
-version = "0.8.5"
+version = "0.8.6"
 dependencies = [
  "heck",
  "proc-macro2",
