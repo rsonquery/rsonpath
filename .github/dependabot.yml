@@ -93,7 +93,7 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: daily
+      interval: weekly
       time: "20:02"
     assignees:
       - V0ldek
