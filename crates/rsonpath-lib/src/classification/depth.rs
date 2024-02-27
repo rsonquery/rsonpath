@@ -86,11 +86,6 @@ pub(crate) trait DepthImpl {
         I: InputBlockIterator<'i, BLOCK_SIZE>,
         Q: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE>;
 
-    fn new<'i, I, Q>(iter: Q, opening: BracketType) -> Self::Classifier<'i, I, Q>
-    where
-        I: InputBlockIterator<'i, BLOCK_SIZE>,
-        Q: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE>;
-
     fn resume<'i, I, Q>(
         state: ResumeClassifierState<'i, I, Q, MaskType, BLOCK_SIZE>,
         opening: BracketType,

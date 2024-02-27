@@ -1,6 +1,8 @@
 use super::*;
-use crate::classification::{quotes::QuoteClassifiedBlock, ResumeClassifierBlockState};
-use crate::debug;
+use crate::{
+    classification::{QuoteClassifiedBlock, ResumeClassifierBlockState},
+    debug,
+};
 use std::marker::PhantomData;
 
 pub(crate) struct Constructor;
@@ -10,22 +12,6 @@ impl DepthImpl for Constructor {
     where
         I: InputBlockIterator<'i, BLOCK_SIZE>,
         Q: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE>;
-
-    #[inline]
-    #[allow(dead_code)]
-    fn new<'i, I, Q>(iter: Q, opening: BracketType) -> Self::Classifier<'i, I, Q>
-    where
-        I: InputBlockIterator<'i, BLOCK_SIZE>,
-        Q: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE>,
-    {
-        Self::Classifier {
-            iter,
-            opening,
-            were_commas_on: false,
-            were_colons_on: false,
-            phantom: PhantomData,
-        }
-    }
 }
 
 pub(crate) struct VectorIterator<'i, I, Q, const N: usize> {

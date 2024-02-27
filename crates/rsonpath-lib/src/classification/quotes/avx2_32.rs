@@ -2,11 +2,7 @@ use super::{
     shared::{mask_32, vector_256},
     *,
 };
-use crate::{
-    block, debug,
-    input::{error::InputErrorConvertible, InputBlock, InputBlockIterator},
-    FallibleIterator,
-};
+use crate::{block, debug, input::error::InputErrorConvertible};
 use std::marker::PhantomData;
 
 super::shared::quote_classifier!(Avx2QuoteClassifier32, BlockAvx2Classifier, 32, u32);

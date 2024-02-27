@@ -1,5 +1,5 @@
 use super::*;
-use crate::classification::{quotes::QuoteClassifiedBlock, ResumeClassifierBlockState, ResumeClassifierState};
+use crate::classification::{quotes::QuoteClassifiedBlock, ResumeClassifierBlockState};
 use crate::debug;
 
 pub(crate) struct Constructor;

@@ -2,13 +2,7 @@ use super::{
     shared::{mask_64, vector_128},
     *,
 };
-use crate::{
-    block,
-    classification::mask::m64,
-    debug,
-    input::{error::InputErrorConvertible, InputBlock, InputBlockIterator},
-    FallibleIterator,
-};
+use crate::{block, classification::mask::m64, debug, input::error::InputErrorConvertible};
 use std::marker::PhantomData;
 
 super::shared::quote_classifier!(Sse2QuoteClassifier64, BlockSse2Classifier, 64, u64);

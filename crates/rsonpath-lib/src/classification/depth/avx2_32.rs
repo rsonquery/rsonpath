@@ -1,9 +1,11 @@
-use super::{shared::mask_32::DepthVector32, shared::vector_256::DelimiterClassifierImpl256, *};
+use super::{
+    shared::{mask_32::DepthVector32, vector_256::DelimiterClassifierImpl256},
+    *,
+};
 use crate::{
-    classification::{quotes::QuoteClassifiedBlock, ResumeClassifierBlockState},
+    classification::{QuoteClassifiedBlock, ResumeClassifierBlockState},
     debug,
-    input::{error::InputError, InputBlock},
-    FallibleIterator,
+    input::InputBlock,
 };
 use std::marker::PhantomData;
 

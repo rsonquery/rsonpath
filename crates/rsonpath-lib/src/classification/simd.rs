@@ -247,6 +247,7 @@ pub(crate) trait Simd: Copy {
     /// The value should correspond to the `const`s defined in [`simd`](`self`),
     /// like [`AVX2_PCLMULQDQ_POPCNT`] or [`NOSIMD`].
     #[must_use]
+    #[allow(dead_code)] // Not used in targets that have only one possible tag (NOSIMD for non-x86 for example).
     fn dispatch_tag(self) -> usize;
 
     /// Walk through the JSON document given by the `iter` and classify quoted sequences.
@@ -283,16 +284,6 @@ pub(crate) trait Simd: Copy {
         self,
         state: ResumeClassifierState<'i, I, Self::QuotesClassifier<'i, I>, MaskType, BLOCK_SIZE>,
     ) -> Self::StructuralClassifier<'i, I>
-    where
-        I: InputBlockIterator<'i, BLOCK_SIZE>;
-
-    /// Enrich quote classified blocks with depth information.
-    #[must_use]
-    fn classify_depth<'i, I>(
-        self,
-        iter: Self::QuotesClassifier<'i, I>,
-        opening: BracketType,
-    ) -> Self::DepthClassifier<'i, I>
     where
         I: InputBlockIterator<'i, BLOCK_SIZE>;
 
@@ -416,18 +407,6 @@ where
         I: InputBlockIterator<'i, BLOCK_SIZE>,
     {
         S::resume(state)
-    }
-
-    #[inline(always)]
-    fn classify_depth<'i, I>(
-        self,
-        iter: Self::QuotesClassifier<'i, I>,
-        opening: BracketType,
-    ) -> Self::DepthClassifier<'i, I>
-    where
-        I: InputBlockIterator<'i, BLOCK_SIZE>,
-    {
-        D::new(iter, opening)
     }
 
     #[inline(always)]

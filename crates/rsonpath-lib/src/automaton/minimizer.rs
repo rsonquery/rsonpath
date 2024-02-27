@@ -321,7 +321,6 @@ impl<'q> Minimizer<'q> {
 mod tests {
     use super::super::*;
     use super::*;
-    use nfa::NfaState;
     use pretty_assertions::assert_eq;
     use smallvec::smallvec;
 

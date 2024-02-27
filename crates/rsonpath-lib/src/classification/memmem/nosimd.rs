@@ -1,12 +1,5 @@
 use super::*;
-use crate::{
-    input::{
-        error::{InputError, InputErrorConvertible},
-        Input, InputBlockIterator,
-    },
-    result::InputRecorder,
-};
-use rsonpath_syntax::str::JsonString;
+use crate::input::{error::InputErrorConvertible, InputBlockIterator};
 
 pub(crate) struct Constructor;
 

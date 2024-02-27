@@ -5,10 +5,9 @@ use super::{
 use crate::{
     bin_u64,
     classification::mask::m64,
-    classification::{QuoteClassifiedBlock, ResumeClassifierBlockState, ResumeClassifierState},
+    classification::{QuoteClassifiedBlock, ResumeClassifierBlockState},
     debug,
-    input::{error::InputError, InputBlock, InputBlockIterator},
-    FallibleIterator,
+    input::InputBlock,
 };
 
 super::shared::structural_classifier!(Avx2Classifier64, BlockAvx2Classifier64, mask_64, 64, u64);

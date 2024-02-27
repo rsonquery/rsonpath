@@ -12,9 +12,9 @@ use std::fmt::{self, Display};
 use thiserror::Error;
 
 #[cfg(feature = "color")]
-use colored::ErrorStyle;
+use colored::OwoColorsErrorStyle as ErrorStyleImpl;
 #[cfg(not(feature = "color"))]
-use plain::ErrorStyle;
+use plain::PlainErrorStyle as ErrorStyleImpl;
 
 #[derive(Debug)]
 pub(crate) struct ParseErrorBuilder {
@@ -56,7 +56,7 @@ impl ParseErrorBuilder {
 impl Display for ParseError {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt_parse_error(self, &ErrorStyle::empty(), f)
+        fmt_parse_error(self, &ErrorStyleImpl::empty(), f)
     }
 }
 
@@ -72,7 +72,7 @@ impl ParseError {
 }
 
 #[inline(always)]
-fn fmt_parse_error(error: &ParseError, style: &ErrorStyle, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+fn fmt_parse_error(error: &ParseError, style: &ErrorStyleImpl, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     let mut suggestion = Suggestion::new();
     for syntax_error in &error.syntax_errors {
         writeln!(
@@ -143,7 +143,7 @@ impl SyntaxError {
         - A list of lines of the input, each with an optional underline message.
         - A list of notes/suggestions at the end.
     */
-    fn display(&self, input: &str, suggestion: &mut Suggestion, style: ErrorStyle) -> DisplayableSyntaxError {
+    fn display(&self, input: &str, suggestion: &mut Suggestion, style: ErrorStyleImpl) -> DisplayableSyntaxError {
         let start_idx = input.len() - self.rev_idx;
         let end_idx = start_idx + self.len - 1;
         let mut builder = DisplayableSyntaxErrorBuilder::new();
@@ -368,7 +368,7 @@ impl DisplayableSyntaxErrorBuilder {
         toplevel_message: String,
         start_idx: usize,
         end_idx: usize,
-        style: ErrorStyle,
+        style: ErrorStyleImpl,
     ) -> DisplayableSyntaxError {
         self.finish_line();
         DisplayableSyntaxError {
@@ -408,7 +408,7 @@ struct DisplayableSyntaxError {
     end_idx: usize,
     lines: Vec<SyntaxErrorLine>,
     notes: Vec<SyntaxErrorNote>,
-    style: ErrorStyle,
+    style: ErrorStyleImpl,
 }
 
 struct SyntaxErrorNote {
@@ -702,6 +702,18 @@ impl SyntaxErrorKind {
     }
 }
 
+pub(super) trait ErrorStyle {
+    fn empty() -> Self;
+    fn error_prefix<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a;
+    fn error_message<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a;
+    fn error_position_hint<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a;
+    fn error_underline<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a;
+    fn error_underline_message<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a;
+    fn line_numbers<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a;
+    fn note_prefix<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a;
+    fn suggestion<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a;
+}
+
 #[cfg(feature = "color")]
 mod colored {
     use super::{fmt_parse_error, ParseError};
@@ -713,12 +725,12 @@ mod colored {
 
     impl Display for ColoredParseError {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            fmt_parse_error(&self.0, &ErrorStyle::colored(), f)
+            fmt_parse_error(&self.0, &OwoColorsErrorStyle::colored(), f)
         }
     }
 
     #[derive(Clone)]
-    pub(super) struct ErrorStyle {
+    pub(super) struct OwoColorsErrorStyle {
         error_prefix: owo_colors::Style,
         error_message: owo_colors::Style,
         error_position_hint: owo_colors::Style,
@@ -729,21 +741,7 @@ mod colored {
         suggestion: owo_colors::Style,
     }
 
-    impl ErrorStyle {
-        pub(super) fn empty() -> Self {
-            let empty_style = owo_colors::Style::new();
-            Self {
-                error_prefix: empty_style,
-                error_message: empty_style,
-                error_position_hint: empty_style,
-                error_underline: empty_style,
-                error_underline_message: empty_style,
-                line_numbers: empty_style,
-                note_prefix: empty_style,
-                suggestion: empty_style,
-            }
-        }
-
+    impl OwoColorsErrorStyle {
         pub(super) fn colored() -> Self {
             let error_color = owo_colors::Style::new().bright_red();
             let error_message = owo_colors::Style::new().bold();
@@ -763,43 +761,59 @@ mod colored {
                 suggestion: suggestion_color,
             }
         }
+    }
 
-        pub(super) fn error_prefix<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+    impl super::ErrorStyle for OwoColorsErrorStyle {
+        fn empty() -> Self {
+            let empty_style = owo_colors::Style::new();
+            Self {
+                error_prefix: empty_style,
+                error_message: empty_style,
+                error_position_hint: empty_style,
+                error_underline: empty_style,
+                error_underline_message: empty_style,
+                line_numbers: empty_style,
+                note_prefix: empty_style,
+                suggestion: empty_style,
+            }
+        }
+
+        fn error_prefix<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
             use owo_colors::OwoColorize;
             target.style(self.error_prefix)
         }
 
-        pub(super) fn error_message<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+        fn error_message<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
             use owo_colors::OwoColorize;
             target.style(self.error_message)
         }
 
-        pub(super) fn error_position_hint<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+        fn error_position_hint<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
             use owo_colors::OwoColorize;
             target.style(self.error_position_hint)
         }
 
-        pub(super) fn error_underline<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+        fn error_underline<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
             use owo_colors::OwoColorize;
             target.style(self.error_underline)
         }
 
-        pub(super) fn error_underline_message<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+        fn error_underline_message<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
             use owo_colors::OwoColorize;
             target.style(self.error_underline_message)
         }
 
-        pub(super) fn line_numbers<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+        fn line_numbers<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
             use owo_colors::OwoColorize;
             target.style(self.line_numbers)
         }
 
-        pub(super) fn note_prefix<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+        fn note_prefix<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
             use owo_colors::OwoColorize;
             target.style(self.note_prefix)
         }
 
-        pub(super) fn suggestion<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+        fn suggestion<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
             use owo_colors::OwoColorize;
             target.style(self.suggestion)
         }
@@ -811,42 +825,42 @@ mod plain {
     use std::fmt::Display;
 
     #[derive(Clone)]
-    pub(super) struct ErrorStyle;
+    pub(super) struct PlainErrorStyle;
 
-    impl ErrorStyle {
-        pub(super) fn empty() -> Self {
+    impl super::ErrorStyle for PlainErrorStyle {
+        fn empty() -> Self {
             Self
         }
 
-        pub(super) fn error_prefix<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+        fn error_prefix<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
             target
         }
 
-        pub(super) fn error_message<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+        fn error_message<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
             target
         }
 
-        pub(super) fn error_position_hint<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+        fn error_position_hint<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
             target
         }
 
-        pub(super) fn error_underline<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+        fn error_underline<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
             target
         }
 
-        pub(super) fn error_underline_message<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+        fn error_underline_message<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
             target
         }
 
-        pub(super) fn line_numbers<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+        fn line_numbers<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
             target
         }
 
-        pub(super) fn note_prefix<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+        fn note_prefix<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
             target
         }
 
-        pub(super) fn suggestion<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+        fn suggestion<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
             target
         }
     }

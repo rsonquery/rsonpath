@@ -149,7 +149,7 @@ fn block_boundary() {
 
 mod prop_test {
     use super::{apply_offset, classify_string, BracketType, Structural};
-    use proptest::{self, collection, prelude::*};
+    use proptest::{collection, prelude::*};
     use std::fmt::Debug;
 
     /// A string inside quotes (quotes included)

@@ -1,13 +1,8 @@
 use super::{shared::mask_64, shared::vector_256, *};
 use crate::{
     classification::mask::m64,
-    input::{
-        error::{InputError, InputErrorConvertible},
-        Input, InputBlock, InputBlockIterator,
-    },
-    result::InputRecorder,
+    input::{error::InputErrorConvertible, InputBlock, InputBlockIterator},
 };
-use rsonpath_syntax::str::JsonString;
 
 const SIZE: usize = 64;
 
