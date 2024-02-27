@@ -1,8 +1,9 @@
 use crate::{
     error::{InternalParseError, ParseErrorBuilder, SyntaxError, SyntaxErrorKind},
-    num::{error::JsonIntParseError, JsonInt, JsonNonZeroUInt, JsonUInt},
+    num::{error::JsonIntParseError, JsonFloat, JsonInt, JsonNonZeroUInt, JsonNumber, JsonUInt},
     str::{JsonString, JsonStringBuilder},
-    Index, JsonPathQuery, ParserOptions, Result, Segment, Selector, Selectors, Step,
+    Comparable, ComparisonExpr, ComparisonOp, Index, JsonPathQuery, Literal, LogicalExpr, ParserOptions, Result,
+    Segment, Selector, Selectors, Step, TestExpr,
 };
 use nom::{branch::*, bytes::complete::*, character::complete::*, combinator::*, multi::*, sequence::*, *};
 use std::{iter::Peekable, str::FromStr};
@@ -227,6 +228,7 @@ fn selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
         ignore_whitespace(wildcard_selector),
         ignore_whitespace(slice_selector),
         ignore_whitespace(index_selector),
+        ignore_whitespace(filter_selector),
         failed_selector,
     ))(q)
 }
@@ -238,13 +240,14 @@ enum StringParseMode {
 }
 
 fn name_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
-    return map(
-        alt((
-            preceded(char('\''), string(StringParseMode::SingleQuoted)),
-            preceded(char('"'), string(StringParseMode::DoubleQuoted)),
-        )),
-        Selector::Name,
-    )(q);
+    map(string_literal, Selector::Name)(q)
+}
+
+fn string_literal(q: &str) -> IResult<&str, JsonString, InternalParseError> {
+    alt((
+        preceded(char('\''), string(StringParseMode::SingleQuoted)),
+        preceded(char('"'), string(StringParseMode::DoubleQuoted)),
+    ))(q)
 }
 
 fn wildcard_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
@@ -334,6 +337,315 @@ fn failed_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
         },
         rest,
     )))
+}
+
+fn filter_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
+    into(preceded(char('?'), ignore_whitespace(logical_expr)))(q)
+}
+
+fn logical_expr(q: &str) -> IResult<&str, LogicalExpr, InternalParseError> {
+    // This is the most involved part of the parser, as it is inherently recursive.
+    //
+    // There are two sources of recursion here: parentheses introduce recursion,
+    // since the rule is simply '(' filter_expression ')'; and the boolean combinations
+    // require checking for an operator, and if any is present recursively parsing
+    // another filter and wrapping the result in an appropriate node type.
+    //
+    // In total, we handle the negation operator at the start and then apply the rules:
+    // - '(' |=> filter_expression, ')'
+    // - literal |=> comp_op, comparable
+    // - query, comp_op |=> comparable
+    // - query
+    // where |=> means a cut. We separately apply two additional restrictions:
+    // - negation cannot immediately precede a comparison,
+    // - query in a comparison must be singular.
+    // It would be possible to directly disallow them by the rules, but if the parser understands
+    // these two special cases it can give much clearer error messages about them.
+    //
+    // At the end, we check for `&&` and `||``, recurse and wrap if needed; if not, we end parsing
+    // and leave the rest to the parsers higher up the stack. They might accept the next
+    // character (e.g. it's `)` called from a recursive filter call, `,` chaining selectors,
+    // `]` ending a segment...) and are responsible for error handling otherwise.
+    #[derive(Debug, Clone, Copy)]
+    enum BooleanOp {
+        And,
+        Or,
+    }
+
+    let (rest, this_expr) = ignore_whitespace(parse_single)(q)?;
+    let mut loop_rest = skip_whitespace(rest);
+    let mut final_expr = this_expr;
+
+    loop {
+        let (rest, mb_boolean_op) = opt(ignore_whitespace(alt((
+            value(BooleanOp::And, tag("&&")),
+            value(BooleanOp::Or, tag("||")),
+        ))))(loop_rest)?;
+        loop_rest = rest;
+
+        match mb_boolean_op {
+            Some(BooleanOp::And) => {
+                let (rest, rhs_expr) = ignore_whitespace(parse_single)(loop_rest)?;
+                loop_rest = rest;
+                final_expr = LogicalExpr::And(Box::new(final_expr), Box::new(rhs_expr));
+            }
+            Some(BooleanOp::Or) => {
+                let (rest, rhs_expr) = ignore_whitespace(logical_expr)(loop_rest)?;
+                loop_rest = rest;
+                final_expr = LogicalExpr::Or(Box::new(final_expr), Box::new(rhs_expr));
+            }
+            None => break,
+        }
+    }
+
+    return Ok((loop_rest, final_expr));
+
+    fn parse_single(q: &str) -> IResult<&str, LogicalExpr, InternalParseError> {
+        let (rest, opt_neg) = ignore_whitespace(opt(char('!')))(q)?;
+        let negated = opt_neg.is_some();
+        if let Ok((rest, _)) = char::<_, ()>('(')(rest) {
+            let (rest, nested_filter) = cut(logical_expr)(skip_whitespace(rest))?;
+            let rest = skip_whitespace(rest);
+            let Ok((rest, _)) = char::<_, ()>(')')(rest) else {
+                return failed_filter_expression(SyntaxErrorKind::MissingClosingParenthesis)(rest);
+            };
+            let selector = if negated {
+                LogicalExpr::Not(Box::new(nested_filter))
+            } else {
+                nested_filter
+            };
+            Ok((rest, selector))
+        } else if let Ok((rest, lhs)) = literal(rest) {
+            let rest = skip_whitespace(rest);
+            let Ok((rest, comp_op)) = comparison_operator(rest) else {
+                if peek(char::<_, ()>(']'))(rest).is_ok() {
+                    return fail(SyntaxErrorKind::MissingComparisonOperator, rest.len(), 1, rest);
+                } else {
+                    return failed_filter_expression(SyntaxErrorKind::InvalidComparisonOperator)(rest);
+                };
+            };
+            let rest = skip_whitespace(rest);
+            let Ok((rest, rhs)) = comparable(rest) else {
+                if peek(char::<_, ()>(']'))(rest).is_ok() {
+                    return fail(SyntaxErrorKind::InvalidComparable, rest.len(), 1, rest);
+                } else {
+                    return failed_filter_expression(SyntaxErrorKind::InvalidComparable)(rest);
+                };
+            };
+            if negated {
+                return fail(SyntaxErrorKind::InvalidNegation, q.len(), 1, rest);
+            } else {
+                Ok((
+                    rest,
+                    LogicalExpr::Comparison(ComparisonExpr {
+                        lhs: Comparable::Literal(lhs),
+                        op: comp_op,
+                        rhs,
+                    }),
+                ))
+            }
+        } else if let Ok((rest, query)) = filter_query(rest) {
+            let query_len = q.len() - rest.len();
+            let rest = skip_whitespace(rest);
+            if let Ok((rest, comp_op)) = comparison_operator(rest) {
+                let rest = skip_whitespace(rest);
+                let Ok((rest, rhs)) = comparable(rest) else {
+                    return failed_filter_expression(SyntaxErrorKind::InvalidComparable)(rest);
+                };
+                let Some(singular_query) = query.try_to_comparable() else {
+                    return fail(SyntaxErrorKind::NonSingularQueryInComparison, q.len(), query_len, rest);
+                };
+                if negated {
+                    return fail(SyntaxErrorKind::InvalidNegation, q.len(), 1, rest);
+                } else {
+                    Ok((
+                        rest,
+                        LogicalExpr::Comparison(ComparisonExpr {
+                            lhs: singular_query,
+                            rhs,
+                            op: comp_op,
+                        }),
+                    ))
+                }
+            } else {
+                let test_expr = LogicalExpr::Test(query.into_test_query());
+                let expr = if negated {
+                    LogicalExpr::Not(Box::new(test_expr))
+                } else {
+                    test_expr
+                };
+                Ok((rest, expr))
+            }
+        } else {
+            failed_filter_expression(SyntaxErrorKind::InvalidFilter)(rest)
+        }
+    }
+}
+
+enum FilterQuery {
+    Relative(JsonPathQuery),
+    Absolute(JsonPathQuery),
+}
+
+#[derive(Clone, Copy)]
+enum RootSelectorType {
+    Relative,
+    Absolute,
+}
+
+impl FilterQuery {
+    fn into_test_query(self) -> TestExpr {
+        match self {
+            Self::Relative(q) => TestExpr::Relative(q),
+            Self::Absolute(q) => TestExpr::Absolute(q),
+        }
+    }
+
+    fn try_to_comparable(self) -> Option<Comparable> {
+        match self {
+            Self::Relative(q) => q.try_to_singular().ok().map(Comparable::RelativeSingularQuery),
+            Self::Absolute(q) => q.try_to_singular().ok().map(Comparable::AbsoluteSingularQuery),
+        }
+    }
+}
+
+fn filter_query(q: &str) -> IResult<&str, FilterQuery, InternalParseError> {
+    let (rest, root_type) = alt((
+        value(RootSelectorType::Absolute, char('$')),
+        value(RootSelectorType::Relative, char('@')),
+    ))(q)?;
+    let rest = skip_whitespace(rest);
+    let mut segments = vec![];
+    let mut syntax_errors = vec![];
+
+    let mut q = rest;
+
+    loop {
+        if peek(one_of::<_, _, ()>(".["))(q).is_err() {
+            break;
+        }
+
+        q = match alt((
+            descendant_segment,
+            child_segment,
+            failed_segment_within_filter(SyntaxErrorKind::InvalidSegmentStart),
+        ))(q)
+        .finish()
+        {
+            Ok((rest, segment)) => {
+                segments.push(segment);
+                rest
+            }
+            Err(InternalParseError::SyntaxError(err, rest)) => {
+                syntax_errors.push(err);
+                rest
+            }
+            Err(InternalParseError::SyntaxErrors(mut errs, rest)) => {
+                syntax_errors.append(&mut errs);
+                rest
+            }
+            Err(InternalParseError::NomError(err)) => panic!(
+                "unexpected parser error; raw nom errors should never be produced; this is a bug\ncontext:\n{err}"
+            ),
+        };
+        q = skip_whitespace(q);
+    }
+
+    if !syntax_errors.is_empty() {
+        Err(Err::Failure(InternalParseError::SyntaxErrors(syntax_errors, q)))
+    } else {
+        let query = JsonPathQuery { segments };
+        let query = match root_type {
+            RootSelectorType::Relative => FilterQuery::Relative(query),
+            RootSelectorType::Absolute => FilterQuery::Absolute(query),
+        };
+        Ok((q, query))
+    }
+}
+
+fn failed_segment_within_filter<T>(kind: SyntaxErrorKind) -> impl FnMut(&str) -> IResult<&str, T, InternalParseError> {
+    move |q: &str| {
+        // We want to find the next segment or close the filter.
+        let rest = skip_one(q)
+            .trim_start_matches('.')
+            .trim_start_matches(|x| x != ',' && x != ']' && x != '.' && x != '[');
+        Err(Err::Failure(InternalParseError::SyntaxError(
+            SyntaxError::new(kind.clone(), q.len(), q.len() - rest.len()),
+            rest,
+        )))
+    }
+}
+
+fn failed_filter_expression<T>(kind: SyntaxErrorKind) -> impl FnMut(&str) -> IResult<&str, T, InternalParseError> {
+    move |q: &str| {
+        // We want to close the filter, so just try to find the next ']' or ','
+        let rest = skip_one(q).trim_start_matches(|x| x != ',' && x != ']');
+        Err(Err::Failure(InternalParseError::SyntaxError(
+            SyntaxError::new(kind.clone(), q.len(), q.len() - rest.len()),
+            rest,
+        )))
+    }
+}
+
+fn comparison_operator(q: &str) -> IResult<&str, ComparisonOp, InternalParseError> {
+    alt((
+        value(ComparisonOp::Equal, tag("==")),
+        value(ComparisonOp::NotEqual, tag("!=")),
+        value(ComparisonOp::LesserOrEqual, tag("<=")),
+        value(ComparisonOp::GreaterOrEqual, tag(">=")),
+        value(ComparisonOp::Lesser, char('<')),
+        value(ComparisonOp::Greater, char('>')),
+    ))(q)
+}
+
+fn comparable(q: &str) -> IResult<&str, Comparable, InternalParseError> {
+    return alt((into(literal), singular_query))(q);
+
+    fn singular_query(q: &str) -> IResult<&str, Comparable, InternalParseError> {
+        let (rest, query) = filter_query(q)?;
+        let Some(cmp) = query.try_to_comparable() else {
+            let query_len = q.len() - rest.len();
+            return fail(SyntaxErrorKind::NonSingularQueryInComparison, q.len(), query_len, rest);
+        };
+        Ok((rest, cmp))
+    }
+}
+
+fn literal(q: &str) -> IResult<&str, Literal, InternalParseError> {
+    alt((
+        into(number),
+        into(string_literal),
+        value(Literal::Bool(true), tag("true")),
+        value(Literal::Bool(false), tag("false")),
+        value(Literal::Null, tag("null")),
+    ))(q)
+}
+
+fn number(q: &str) -> IResult<&str, JsonNumber, InternalParseError> {
+    map(float, |f| JsonNumber::from(f).normalize())(q)
+}
+
+// Exported for JsonFloat::from_str
+fn float(q: &str) -> IResult<&str, JsonFloat, InternalParseError> {
+    // Look ahead to verify that this has a chance to be a number.
+    let (rest, valid_str) = recognize(alt((preceded(char('-'), base_float), base_float)))(q)?;
+
+    // It is a number, so after here we can hard cut.
+    return match JsonFloat::from_str(valid_str) {
+        Ok(n) => Ok((rest, n)),
+        Err(e) => fail(SyntaxErrorKind::NumberParseError(e), rest.len(), valid_str.len(), q),
+    };
+
+    fn base_float(q: &str) -> IResult<&str, &str, InternalParseError> {
+        recognize(tuple((
+            digit1,
+            opt(preceded(char('.'), digit1)),
+            opt(preceded(
+                tag_no_case("e"),
+                preceded(opt(alt((char('+'), char('-')))), digit1),
+            )),
+        )))(q)
+    }
 }
 
 enum DirectionalInt {
@@ -554,7 +866,13 @@ fn fail<T>(kind: SyntaxErrorKind, rev_idx: usize, err_len: usize, rest: &str) ->
 
 #[cfg(test)]
 mod tests {
-    use crate::{str::JsonString, Index, Selector};
+    use crate::{
+        num::{JsonFloat, JsonInt, JsonNumber},
+        str::JsonString,
+        Comparable, ComparisonExpr, ComparisonOp, Index, Literal, LogicalExpr, Selector, SingularJsonPathQuery,
+        SingularSegment, Step,
+    };
+    use test_case::test_case;
 
     #[test]
     fn name_selector() {
@@ -642,272 +960,92 @@ mod tests {
         super::index_selector(input).expect_err("should not parse");
     }
 
-    mod proptests {
-        use crate::{builder::JsonPathQueryBuilder, num::JsonUInt, str::JsonString, JsonPathQuery};
-        use proptest::{prelude::*, sample::SizeRange};
-
-        /* Approach: we generate a sequence of Selectors, each having its generated string
-         * and a tag describing what selector it represents, and, optionally, what string is attached.
-         * This can then easily be turned into the input (the string is attached) and the expected
-         * parser result (transform the sequence of tags).
-         */
-
-        #[derive(Debug, Clone)]
-        enum SelectorTag {
-            WildcardChild,
-            NameChild(String),
-            ArrayIndexChild(JsonUInt),
-            ArraySliceChild(JsonUInt, Option<JsonUInt>, JsonUInt),
-            WildcardDescendant,
-            NameDescendant(String),
-            ArrayIndexDescendant(JsonUInt),
-            ArraySliceDescendant(JsonUInt, Option<JsonUInt>, JsonUInt),
-        }
-
-        #[derive(Debug, Clone)]
-        struct Selector {
-            string: String,
-            tag: SelectorTag,
-        }
-
-        #[derive(Debug, PartialEq, Eq, Clone, Copy)]
-        enum JsonStringToken {
-            EncodeNormally(char),
-            ForceUnicodeEscape(char),
-        }
-
-        #[derive(Debug, PartialEq, Eq, Clone, Copy)]
-        enum JsonStringTokenEncodingMode {
-            SingleQuoted,
-            DoubleQuoted,
-        }
-
-        impl JsonStringToken {
-            fn raw(self) -> char {
-                match self {
-                    Self::EncodeNormally(x) | Self::ForceUnicodeEscape(x) => x,
-                }
+    #[test_case("3:4:5", Index::FromStart(3.into()), Some(Index::FromStart(4.into())), Step::Forward(5.into()); "test 3c4c5")]
+    #[test_case("-3:4:5", Index::FromEnd(3.try_into().unwrap()), Some(Index::FromStart(4.into())), Step::Forward(5.into()); "test m3c4c5")]
+    #[test_case("3:-4:5", Index::FromStart(3.into()), Some(Index::FromEnd(4.try_into().unwrap())), Step::Forward(5.into()); "test 3cm4c5")]
+    #[test_case("3:4:-5", Index::FromStart(3.into()), Some(Index::FromStart(4.into())), Step::Backward(5.try_into().unwrap()); "test 3c4cm5")]
+    #[test_case("-3:-4:5", Index::FromEnd(3.try_into().unwrap()), Some(Index::FromEnd(4.try_into().unwrap())), Step::Forward(5.into()); "test m3cm4c5")]
+    #[test_case("-3:4:-5", Index::FromEnd(3.try_into().unwrap()), Some(Index::FromStart(4.into())), Step::Backward(5.try_into().unwrap()); "test m3c4cm5")]
+    #[test_case("3:-4:-5", Index::FromStart(3.into()), Some(Index::FromEnd(4.try_into().unwrap())), Step::Backward(5.try_into().unwrap()); "test 3cm4cm5")]
+    #[test_case("-3:-4:-5", Index::FromEnd(3.try_into().unwrap()), Some(Index::FromEnd(4.try_into().unwrap())), Step::Backward(5.try_into().unwrap()); "test m3cm4cm5")]
+    #[test_case(":4:5", Index::FromStart(0.into()), Some(Index::FromStart(4.into())), Step::Forward(5.into()); "test c4c5")]
+    #[test_case(":-4:5", Index::FromStart(0.into()), Some(Index::FromEnd(4.try_into().unwrap())), Step::Forward(5.into()); "test cm4c5")]
+    #[test_case(":4:-5", Index::FromStart(0.into()), Some(Index::FromStart(4.into())), Step::Backward(5.try_into().unwrap()); "test c4cm5")]
+    #[test_case(":-4:-5", Index::FromStart(0.into()), Some(Index::FromEnd(4.try_into().unwrap())), Step::Backward(5.try_into().unwrap()); "test cm4cm5")]
+    #[test_case("3::5", Index::FromStart(3.into()), None, Step::Forward(5.into()); "test 3cc5")]
+    #[test_case("-3::5", Index::FromEnd(3.try_into().unwrap()), None, Step::Forward(5.into()); "test m3cc5")]
+    #[test_case("3::-5", Index::FromStart(3.into()), None, Step::Backward(5.try_into().unwrap()); "test 3ccm5")]
+    #[test_case("-3::-5", Index::FromEnd(3.try_into().unwrap()), None, Step::Backward(5.try_into().unwrap()); "test m3ccm5")]
+    #[test_case("3:4:", Index::FromStart(3.into()), Some(Index::FromStart(4.into())), Step::Forward(1.into()); "test 3c4c")]
+    #[test_case("-3:4:", Index::FromEnd(3.try_into().unwrap()), Some(Index::FromStart(4.into())), Step::Forward(1.into()); "test m3c4c")]
+    #[test_case("3:-4:", Index::FromStart(3.into()), Some(Index::FromEnd(4.try_into().unwrap())), Step::Forward(1.into()); "test 3cm4c")]
+    #[test_case("-3:-4:", Index::FromEnd(3.try_into().unwrap()), Some(Index::FromEnd(4.try_into().unwrap())), Step::Forward(1.into()); "test m3cm4c")]
+    #[test_case("3::", Index::FromStart(3.into()), None, Step::Forward(1.into()); "test 3cc")]
+    #[test_case("-3::", Index::FromEnd(3.try_into().unwrap()), None, Step::Forward(1.into()); "test m3cc")]
+    #[test_case("3:", Index::FromStart(3.into()), None, Step::Forward(1.into()); "test 3c")]
+    #[test_case("-3:", Index::FromEnd(3.try_into().unwrap()), None, Step::Forward(1.into()); "test m3c")]
+    #[test_case(":4:", Index::FromStart(0.into()), Some(Index::FromStart(4.into())), Step::Forward(1.into()); "test c4c")]
+    #[test_case(":-4:", Index::FromStart(0.into()), Some(Index::FromEnd(4.try_into().unwrap())), Step::Forward(1.into()); "test cm4c")]
+    #[test_case(":4", Index::FromStart(0.into()), Some(Index::FromStart(4.into())), Step::Forward(1.into()); "test c4")]
+    #[test_case(":-4", Index::FromStart(0.into()), Some(Index::FromEnd(4.try_into().unwrap())), Step::Forward(1.into()); "test cm4")]
+    #[test_case("::5", Index::FromStart(0.into()), None, Step::Forward(5.into()); "test cc5")]
+    #[test_case("::-5", Index::FromStart(0.into()), None, Step::Backward(5.try_into().unwrap()); "test ccm5")]
+    #[test_case("::", Index::FromStart(0.into()), None, Step::Forward(1.into()); "test cc")]
+    fn full_positive_slice(input: &str, exp_start: Index, exp_end: Option<Index>, exp_step: Step) {
+        let (rest, selector) = super::slice_selector(input).expect("should parse");
+        assert_eq!("", rest);
+        match selector {
+            Selector::Slice(slice) => {
+                assert_eq!(slice.start, exp_start);
+                assert_eq!(slice.end, exp_end);
+                assert_eq!(slice.step, exp_step);
             }
-
-            fn encode(self, mode: JsonStringTokenEncodingMode) -> String {
-                return match self {
-                    Self::EncodeNormally('\u{0008}') => r"\b".to_owned(),
-                    Self::EncodeNormally('\t') => r"\t".to_owned(),
-                    Self::EncodeNormally('\n') => r"\n".to_owned(),
-                    Self::EncodeNormally('\u{000C}') => r"\f".to_owned(),
-                    Self::EncodeNormally('\r') => r"\r".to_owned(),
-                    Self::EncodeNormally('"') => match mode {
-                        JsonStringTokenEncodingMode::DoubleQuoted => r#"\""#.to_owned(),
-                        JsonStringTokenEncodingMode::SingleQuoted => r#"""#.to_owned(),
-                    },
-                    Self::EncodeNormally('\'') => match mode {
-                        JsonStringTokenEncodingMode::DoubleQuoted => r#"'"#.to_owned(),
-                        JsonStringTokenEncodingMode::SingleQuoted => r#"\'"#.to_owned(),
-                    },
-                    Self::EncodeNormally('/') => r"\/".to_owned(),
-                    Self::EncodeNormally('\\') => r"\\".to_owned(),
-                    Self::EncodeNormally(c @ ..='\u{001F}') | Self::ForceUnicodeEscape(c) => encode_unicode_escape(c),
-                    Self::EncodeNormally(c) => c.to_string(),
-                };
-
-                fn encode_unicode_escape(c: char) -> String {
-                    let mut buf = [0; 2];
-                    let enc = c.encode_utf16(&mut buf);
-                    let mut res = String::new();
-                    for x in enc {
-                        res += &format!("\\u{x:0>4x}");
-                    }
-                    res
-                }
-            }
+            _ => unreachable!(),
         }
+    }
 
-        // Cspell: disable
-        fn any_selector() -> impl Strategy<Value = Selector> {
-            prop_oneof![
-                any_wildcard_child(),
-                any_child_name(),
-                any_array_index_child(),
-                any_array_slice_child(),
-                any_wildcard_descendant(),
-                any_descendant_name(),
-                any_array_index_descendant(),
-                any_array_slice_descendant(),
-            ]
-        }
+    #[allow(clippy::needless_pass_by_value)]
+    #[test_case("true", Literal::Bool(true); "true literal")]
+    #[test_case("false", Literal::Bool(false); "false literal")]
+    #[test_case("null", Literal::Null; "null literal")]
+    #[test_case("42", Literal::Number(JsonNumber::Int(JsonInt::from(42))); "42 int")]
+    #[test_case("42.37", Literal::Number(JsonNumber::Float(JsonFloat::try_from(42.37).unwrap())); "42d37 float")]
+    #[test_case("-42.37", Literal::Number(JsonNumber::Float(JsonFloat::try_from(-42.37).unwrap())); "m42d37 float")]
+    #[test_case("0", Literal::Number(JsonNumber::Int(JsonInt::ZERO)); "0")]
+    #[test_case("0.0", Literal::Number(JsonNumber::Int(JsonInt::ZERO)); "m0")]
+    #[test_case("-0", Literal::Number(JsonNumber::Int(JsonInt::ZERO)); "0d0")]
+    #[test_case("-0.0", Literal::Number(JsonNumber::Int(JsonInt::ZERO)); "m0d0")]
+    #[test_case("1e15", Literal::Number(JsonNumber::Int(JsonInt::try_from(1_000_000_000_000_000_i64).unwrap())); "1e15")]
+    #[test_case("1E15", Literal::Number(JsonNumber::Int(JsonInt::try_from(1_000_000_000_000_000_i64).unwrap())); "1ue15")]
+    #[test_case("1e16", Literal::Number(JsonNumber::Float(JsonFloat::try_from(1e16).unwrap())); "1e16")]
+    #[test_case("-1e15", Literal::Number(JsonNumber::Int(JsonInt::try_from(-1_000_000_000_000_000_i64).unwrap())); "m1e15")]
+    #[test_case("-1e16", Literal::Number(JsonNumber::Float(JsonFloat::try_from(-1e16).unwrap())); "m1e16")]
+    #[test_case("1.04e15", Literal::Number(JsonNumber::Int(JsonInt::try_from(1_040_000_000_000_000_i64).unwrap())); "1d04e15")]
+    #[test_case("1.04e16", Literal::Number(JsonNumber::Float(JsonFloat::try_from(1.04e16).unwrap())); "1d04e16")]
+    #[test_case("-1.04e15", Literal::Number(JsonNumber::Int(JsonInt::try_from(-1_040_000_000_000_000_i64).unwrap())); "m1d04e15")]
+    #[test_case("-1.04e16", Literal::Number(JsonNumber::Float(JsonFloat::try_from(-1.04e16).unwrap())); "m1d04e16")]
+    #[test_case("1e-15", Literal::Number(JsonNumber::Float(JsonFloat::try_from(1e-15).unwrap())); "1em15")]
+    #[test_case("-1e-15", Literal::Number(JsonNumber::Float(JsonFloat::try_from(-1e-15).unwrap())); "m1em15")]
+    #[test_case("1.04e-15", Literal::Number(JsonNumber::Float(JsonFloat::try_from(1.04e-15).unwrap())); "1d04em15")]
+    #[test_case("-1.04e-15", Literal::Number(JsonNumber::Float(JsonFloat::try_from(-1.04e-15).unwrap())); "m1d04em15")]
+    #[test_case("-1.04E-15", Literal::Number(JsonNumber::Float(JsonFloat::try_from(-1.04e-15).unwrap())); "m1d04uem15")]
+    #[test_case(r#""abc""#, Literal::String(JsonString::new("abc")))]
+    fn valid_literal(input: &str, exp: Literal) {
+        let (rest, lit) = super::literal(input).expect("should parse");
+        assert_eq!("", rest);
+        assert_eq!(lit, exp);
+    }
 
-        // .* or [*]
-        fn any_wildcard_child() -> impl Strategy<Value = Selector> {
-            r"(\.\*|\[\*\])".prop_map(|x| Selector {
-                string: x,
-                tag: SelectorTag::WildcardChild,
-            })
-        }
-
-        // ..* or ..[*]
-        fn any_wildcard_descendant() -> impl Strategy<Value = Selector> {
-            r"(\*|\[\*\])".prop_map(|x| Selector {
-                string: format!("..{x}"),
-                tag: SelectorTag::WildcardDescendant,
-            })
-        }
-
-        // .label or ['label']
-        fn any_child_name() -> impl Strategy<Value = Selector> {
-            prop_oneof![any_short_name().prop_map(|x| (format!(".{x}"), x)), any_name(),].prop_map(|(s, l)| Selector {
-                string: s,
-                tag: SelectorTag::NameChild(l),
-            })
-        }
-
-        // ..label or ..['label']
-        fn any_descendant_name() -> impl Strategy<Value = Selector> {
-            prop_oneof![any_short_name().prop_map(|x| (x.clone(), x)), any_name(),].prop_map(|(x, l)| Selector {
-                string: format!("..{x}"),
-                tag: SelectorTag::NameDescendant(l),
-            })
-        }
-
-        fn any_array_index_child() -> impl Strategy<Value = Selector> {
-            any_non_negative_array_index().prop_map(|i| Selector {
-                string: format!("[{}]", i.as_u64()),
-                tag: SelectorTag::ArrayIndexChild(i),
-            })
-        }
-
-        fn any_array_slice_child() -> impl Strategy<Value = Selector> {
-            (
-                any_non_negative_array_index(),
-                proptest::option::of(any_non_negative_array_index()),
-                any_non_negative_array_index(),
-            )
-                .prop_map(|(start, end, step)| Selector {
-                    string: if let Some(end) = end {
-                        format!("[{}:{}:{}]", start.as_u64(), end.as_u64(), step.as_u64())
-                    } else {
-                        format!("[{}::{}]", start.as_u64(), step.as_u64())
-                    },
-                    tag: SelectorTag::ArraySliceChild(start, end, step),
-                })
-        }
-
-        fn any_array_index_descendant() -> impl Strategy<Value = Selector> {
-            any_non_negative_array_index().prop_map(|i| Selector {
-                string: format!("..[{}]", i.as_u64()),
-                tag: SelectorTag::ArrayIndexDescendant(i),
-            })
-        }
-
-        fn any_array_slice_descendant() -> impl Strategy<Value = Selector> {
-            (
-                any_non_negative_array_index(),
-                proptest::option::of(any_non_negative_array_index()),
-                any_non_negative_array_index(),
-            )
-                .prop_map(|(start, end, step)| Selector {
-                    string: if let Some(end) = end {
-                        format!("..[{}:{}:{}]", start.as_u64(), end.as_u64(), step.as_u64())
-                    } else {
-                        format!("..[{}::{}]", start.as_u64(), step.as_u64())
-                    },
-                    tag: SelectorTag::ArraySliceDescendant(start, end, step),
-                })
-        }
-
-        fn any_short_name() -> impl Strategy<Value = String> {
-            r"([A-Za-z]|_|[^\u0000-\u007F])([A-Za-z0-9]|_|[^\u0000-\u007F])*"
-        }
-
-        fn any_name() -> impl Strategy<Value = (String, String)> {
-            prop_oneof![
-                Just(JsonStringTokenEncodingMode::SingleQuoted),
-                Just(JsonStringTokenEncodingMode::DoubleQuoted)
-            ]
-            .prop_flat_map(|mode| {
-                prop::collection::vec(
-                    (prop::char::any(), prop::bool::ANY).prop_map(|(c, b)| {
-                        if b {
-                            JsonStringToken::EncodeNormally(c)
-                        } else {
-                            JsonStringToken::ForceUnicodeEscape(c)
-                        }
-                    }),
-                    SizeRange::default(),
-                )
-                .prop_map(move |v| {
-                    let q = match mode {
-                        JsonStringTokenEncodingMode::SingleQuoted => '\'',
-                        JsonStringTokenEncodingMode::DoubleQuoted => '"',
-                    };
-                    let mut s = String::new();
-                    let mut l = String::new();
-                    for x in v {
-                        s += &x.encode(mode);
-                        l.push(x.raw());
-                    }
-                    (format!("[{q}{s}{q}]"), l)
-                })
-            })
-        }
-
-        fn any_non_negative_array_index() -> impl Strategy<Value = JsonUInt> {
-            const MAX: u64 = (1 << 53) - 1;
-            (0..MAX).prop_map(|x| JsonUInt::try_from(x).expect("in-range JsonUInt"))
-        }
-        // Cspell: enable
-
-        prop_compose! {
-            fn any_valid_query()(selectors in prop::collection::vec(any_selector(), 0..20)) -> (String, JsonPathQuery) {
-                let mut result: String = String::new();
-                let mut query = JsonPathQueryBuilder::new();
-
-                result += "$";
-
-                for selector in selectors {
-                    result += &selector.string;
-
-                    match selector.tag {
-                        SelectorTag::NameChild(name) => query.child_name(JsonString::new(&name)),
-                        SelectorTag::ArrayIndexChild(idx) => query.child_index(idx),
-                        SelectorTag::ArraySliceChild(start, None, step) =>
-                            query.child_slice(|x| x.with_start(start).with_step(step)),
-                        SelectorTag::ArraySliceChild(start, Some(end), step) =>
-                            query.child_slice(|x| x.with_start(start).with_end(end).with_step(step)),
-                        SelectorTag::WildcardChild => query.child_wildcard(),
-                        SelectorTag::NameDescendant(name) => query.descendant_name(JsonString::new(&name)),
-                        SelectorTag::ArrayIndexDescendant(idx) => query.descendant_index(idx),
-                        SelectorTag::ArraySliceDescendant(start, None, step) =>
-                            query.descendant_slice(|x| x.with_start(start).with_step(step)),
-                        SelectorTag::ArraySliceDescendant(start, Some(end), step) =>
-                            query.descendant_slice(|x| x.with_start(start).with_end(end).with_step(step)),
-                        SelectorTag::WildcardDescendant => query.descendant_wildcard(),
-                    };
-                }
-
-                (result, query.into())
-            }
-        }
-
-        mod correct_strings {
-            use super::*;
-            use pretty_assertions::assert_eq;
-
-            proptest! {
-                #[test]
-                fn parses_expected_query((input, expected) in any_valid_query()) {
-                    let result = crate::parse(&input).expect("expected Ok");
-
-                    assert_eq!(expected, result);
-                }
-
-                #[test]
-                fn round_trip((_, query) in any_valid_query()) {
-                    let input = query.to_string();
-                    let result = crate::parse(&input).expect("expected Ok");
-
-                    assert_eq!(query, result);
-                }
-            }
-        }
+    #[test_case("?@.b == 'kilo'", LogicalExpr::Comparison(ComparisonExpr {
+        lhs: Comparable::RelativeSingularQuery(SingularJsonPathQuery {
+            segments: vec![SingularSegment::Name(JsonString::from("b"))],
+        }),
+        rhs: Comparable::Literal(Literal::String(JsonString::from("kilo"))),
+        op: ComparisonOp::Equal,
+    }))]
+    fn valid_filter(input: &str, exp: LogicalExpr) {
+        let (rest, lit) = super::filter_selector(input).expect("should parse");
+        assert_eq!("", rest);
+        assert_eq!(lit, Selector::Filter(exp));
     }
 }

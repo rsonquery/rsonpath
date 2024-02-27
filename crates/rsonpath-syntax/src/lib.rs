@@ -13,8 +13,8 @@
 //! - **name** ([`Selector::Name`]),
 //! - **wildcard** ([`Selector::Wildcard`]),
 //! - **index** ([`Selector::Index`]),
-//! - **slice**,
-//! - and **filter**.
+//! - **slice** ([`Selector::Slice`]),
+//! - and **filter** ([`Selector::Filter`]).
 //!
 //! Descriptions of each segment and selector can be found in the documentation of the
 //! relevant type in this crate, while the formal grammar is described in the RFC.
@@ -24,7 +24,7 @@
 //! This is an in-development version that supports only name, index, and wildcard selectors.
 //! However, these are fully supported, tested, and fuzzed. The planned roadmap is:
 //! - [x] support slices
-//! - [ ] support filters (without functions)
+//! - [x] support filters (without functions)
 //! - [ ] support functions (including type check)
 //! - [ ] polish the API
 //! - [ ] 1.0.0 stable release
@@ -354,6 +354,35 @@ pub enum Selector {
     /// A slice selector matches elements from arrays starting at a given index,
     /// ending at a given index, and incrementing with a specified step.
     Slice(Slice),
+    Filter(LogicalExpr),
+}
+
+impl From<str::JsonString> for Selector {
+    #[inline]
+    fn from(value: str::JsonString) -> Self {
+        Self::Name(value)
+    }
+}
+
+impl From<Index> for Selector {
+    #[inline]
+    fn from(value: Index) -> Self {
+        Self::Index(value)
+    }
+}
+
+impl From<Slice> for Selector {
+    #[inline]
+    fn from(value: Slice) -> Self {
+        Self::Slice(value)
+    }
+}
+
+impl From<LogicalExpr> for Selector {
+    #[inline]
+    fn from(value: LogicalExpr) -> Self {
+        Self::Filter(value)
+    }
 }
 
 /// Directional index into a JSON array.
@@ -378,9 +407,10 @@ impl<'a> arbitrary::Arbitrary<'a> for Index {
     }
 }
 
-impl From<num::JsonInt> for Index {
+impl<N: Into<num::JsonInt>> From<N> for Index {
     #[inline]
-    fn from(value: num::JsonInt) -> Self {
+    fn from(value: N) -> Self {
+        let value = value.into();
         if value.as_i64() >= 0 {
             Self::FromStart(value.abs())
         } else {
@@ -565,11 +595,204 @@ impl Default for SliceBuilder {
     }
 }
 
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+pub enum Literal {
+    String(str::JsonString),
+    Number(num::JsonNumber),
+    Bool(bool),
+    Null,
+}
+
+impl<S> From<S> for Literal
+where
+    S: Into<str::JsonString>,
+{
+    #[inline(always)]
+    fn from(value: S) -> Self {
+        Self::String(value.into())
+    }
+}
+
+impl From<num::JsonInt> for Literal {
+    #[inline(always)]
+    fn from(value: num::JsonInt) -> Self {
+        Self::Number(num::JsonNumber::Int(value))
+    }
+}
+
+impl From<num::JsonFloat> for Literal {
+    #[inline(always)]
+    fn from(value: num::JsonFloat) -> Self {
+        Self::Number(num::JsonNumber::Float(value))
+    }
+}
+
+impl From<num::JsonNumber> for Literal {
+    #[inline(always)]
+    fn from(value: num::JsonNumber) -> Self {
+        Self::Number(value)
+    }
+}
+
+impl From<bool> for Literal {
+    #[inline(always)]
+    fn from(value: bool) -> Self {
+        Self::Bool(value)
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+pub enum LogicalExpr {
+    Or(LogicalExprNode, LogicalExprNode),
+    And(LogicalExprNode, LogicalExprNode),
+    Not(LogicalExprNode),
+    Comparison(ComparisonExpr),
+    Test(TestExpr),
+}
+
+impl LogicalExpr {
+    fn precedence(&self) -> usize {
+        match self {
+            Self::Or(_, _) => 2,
+            Self::And(_, _) => 3,
+            Self::Comparison(_) => 4,
+            Self::Not(_) => 5,
+            Self::Test(_) => 10,
+        }
+    }
+}
+
+type LogicalExprNode = Box<LogicalExpr>;
+
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+pub enum TestExpr {
+    Relative(JsonPathQuery),
+    Absolute(JsonPathQuery),
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+pub struct ComparisonExpr {
+    lhs: Comparable,
+    op: ComparisonOp,
+    rhs: Comparable,
+}
+
+impl ComparisonExpr {
+    #[inline]
+    #[must_use]
+    pub fn from_parts(lhs: Comparable, op: ComparisonOp, rhs: Comparable) -> Self {
+        Self { lhs, op, rhs }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+pub enum ComparisonOp {
+    Equal,
+    NotEqual,
+    LesserOrEqual,
+    GreaterOrEqual,
+    Lesser,
+    Greater,
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+pub enum Comparable {
+    Literal(Literal),
+    RelativeSingularQuery(SingularJsonPathQuery),
+    AbsoluteSingularQuery(SingularJsonPathQuery),
+}
+
+impl From<Literal> for Comparable {
+    #[inline(always)]
+    fn from(value: Literal) -> Self {
+        Self::Literal(value)
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+pub struct SingularJsonPathQuery {
+    segments: Vec<SingularSegment>,
+}
+
+impl SingularJsonPathQuery {
+    fn segments(&self) -> impl Iterator<Item = &'_ SingularSegment> {
+        self.segments.iter()
+    }
+}
+
+// We don't derive this because obviously not all JsonPathQuery instances are singular.
+#[cfg(feature = "arbitrary")]
+#[cfg_attr(docsrs, doc(cfg(feature = "arbitrary")))]
+impl<'a> arbitrary::Arbitrary<'a> for SingularJsonPathQuery {
+    #[inline]
+    fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
+        let segments = u.arbitrary::<Vec<SingularSegment>>()?;
+        Ok(Self::from_iter(segments))
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+pub enum SingularSegment {
+    Name(str::JsonString),
+    Index(Index),
+}
+
+impl FromIterator<SingularSegment> for SingularJsonPathQuery {
+    #[inline]
+    fn from_iter<T: IntoIterator<Item = SingularSegment>>(iter: T) -> Self {
+        Self {
+            segments: iter.into_iter().collect(),
+        }
+    }
+}
+
+impl From<SingularSegment> for Segment {
+    #[inline]
+    fn from(value: SingularSegment) -> Self {
+        match value {
+            SingularSegment::Name(n) => Self::Child(Selectors::one(Selector::Name(n))),
+            SingularSegment::Index(i) => Self::Child(Selectors::one(Selector::Index(i))),
+        }
+    }
+}
+
 /// JSONPath query structure represented by a sequence of [`Segments`](Segment).
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub struct JsonPathQuery {
     segments: Vec<Segment>,
+}
+
+impl FromIterator<Segment> for JsonPathQuery {
+    #[inline]
+    fn from_iter<T: IntoIterator<Item = Segment>>(iter: T) -> Self {
+        Self {
+            segments: iter.into_iter().collect(),
+        }
+    }
+}
+
+impl JsonPathQuery {
+    fn try_to_singular(self) -> std::result::Result<SingularJsonPathQuery, Self> {
+        if self.segments.iter().all(Segment::is_singular) {
+            let mut singular_segments = Vec::with_capacity(self.segments.len());
+            for segment in self.segments {
+                singular_segments.push(segment.into_singular());
+            }
+            Ok(SingularJsonPathQuery {
+                segments: singular_segments,
+            })
+        } else {
+            Err(self)
+        }
+    }
 }
 
 impl JsonPathQuery {
@@ -617,6 +840,25 @@ impl Segment {
     #[must_use]
     pub fn is_descendant(&self) -> bool {
         matches!(self, Self::Descendant(_))
+    }
+
+    fn is_singular(&self) -> bool {
+        match self {
+            Self::Child(s) => s.len() == 1 && s.first().is_singular(),
+            Self::Descendant(_) => false,
+        }
+    }
+
+    fn into_singular(self) -> SingularSegment {
+        assert!(self.is_singular());
+        match self {
+            Self::Child(mut s) => match s.inner.drain(..).next().expect("is_singular") {
+                Selector::Name(n) => SingularSegment::Name(n),
+                Selector::Index(i) => SingularSegment::Index(i),
+                _ => unreachable!(),
+            },
+            Self::Descendant(_) => unreachable!(),
+        }
     }
 }
 
@@ -702,6 +944,10 @@ impl Selector {
     pub const fn is_index(&self) -> bool {
         matches!(self, Self::Index(_))
     }
+
+    fn is_singular(&self) -> bool {
+        matches!(self, Self::Name(_) | Self::Index(_))
+    }
 }
 
 impl Index {
@@ -784,6 +1030,7 @@ impl Display for Selector {
             Self::Wildcard => write!(f, "*"),
             Self::Index(idx) => write!(f, "{idx}"),
             Self::Slice(slice) => write!(f, "{slice}"),
+            Self::Filter(filter) => write!(f, "?{filter}"),
         }
     }
 }
@@ -822,6 +1069,149 @@ impl Display for Slice {
             write!(f, ":{}", self.step)?;
         }
         Ok(())
+    }
+}
+
+impl Display for LogicalExpr {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Or(lhs, rhs) => {
+                if lhs.precedence() <= self.precedence() {
+                    write!(f, "({lhs})")?;
+                } else {
+                    write!(f, "{lhs}")?;
+                }
+                write!(f, " || ")?;
+                if rhs.precedence() < self.precedence() {
+                    write!(f, "({rhs})")?;
+                } else {
+                    write!(f, "{rhs}")?;
+                }
+                Ok(())
+            }
+            Self::And(lhs, rhs) => {
+                if lhs.precedence() < self.precedence() {
+                    write!(f, "({lhs})")?;
+                } else {
+                    write!(f, "{lhs}")?;
+                }
+                write!(f, " && ")?;
+                if rhs.precedence() <= self.precedence() {
+                    write!(f, "({rhs})")?;
+                } else {
+                    write!(f, "{rhs}")?;
+                }
+                Ok(())
+            }
+            Self::Not(expr) => {
+                if expr.precedence() <= self.precedence() {
+                    write!(f, "!({expr})")
+                } else {
+                    write!(f, "!{expr}")
+                }
+            }
+            Self::Comparison(expr) => write!(f, "{expr}"),
+            Self::Test(test) => write!(f, "{test}"),
+        }
+    }
+}
+
+impl Display for ComparisonExpr {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{} {} {}", self.lhs, self.op, self.rhs)
+    }
+}
+
+impl Display for TestExpr {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Relative(q) => {
+                write!(f, "@")?;
+                for s in q.segments() {
+                    write!(f, "{s}")?;
+                }
+            }
+            Self::Absolute(q) => {
+                write!(f, "$")?;
+                for s in q.segments() {
+                    write!(f, "{s}")?;
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+impl Display for Comparable {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Literal(lit) => write!(f, "{lit}"),
+            Self::RelativeSingularQuery(q) => {
+                write!(f, "@")?;
+                for s in q.segments() {
+                    write!(f, "{s}")?;
+                }
+                Ok(())
+            }
+            Self::AbsoluteSingularQuery(q) => {
+                write!(f, "$")?;
+                for s in q.segments() {
+                    write!(f, "{s}")?;
+                }
+                Ok(())
+            }
+        }
+    }
+}
+
+impl Display for Literal {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::String(s) => write!(f, "\"{}\"", str::escape(s.unquoted(), str::EscapeMode::DoubleQuoted)),
+            Self::Number(n) => write!(f, "{n}"),
+            Self::Bool(true) => write!(f, "true"),
+            Self::Bool(false) => write!(f, "false"),
+            Self::Null => write!(f, "null"),
+        }
+    }
+}
+
+impl Display for ComparisonOp {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Equal => write!(f, "=="),
+            Self::NotEqual => write!(f, "!="),
+            Self::LesserOrEqual => write!(f, "<="),
+            Self::GreaterOrEqual => write!(f, ">="),
+            Self::Lesser => write!(f, "<"),
+            Self::Greater => write!(f, ">"),
+        }
+    }
+}
+
+impl Display for SingularJsonPathQuery {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for s in &self.segments {
+            write!(f, "[{s}]")?;
+        }
+        Ok(())
+    }
+}
+
+impl Display for SingularSegment {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Name(n) => write!(f, "['{}']", str::escape(n.unquoted(), str::EscapeMode::SingleQuoted)),
+            Self::Index(i) => write!(f, "[{i}]"),
+        }
     }
 }
 

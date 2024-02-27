@@ -6,5 +6,5 @@ use rsonpath_syntax::JsonPathQuery;
 fuzz_target!(|data: JsonPathQuery| {
     let str = data.to_string();
     let query = rsonpath_syntax::parse(&str).expect("should parse");
-    assert_eq!(data, query);
+    assert_eq!(data, query, "query string: {str}");
 });

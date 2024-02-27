@@ -162,8 +162,8 @@ impl JsonString {
     /// # Examples
     /// ```rust
     /// # use rsonpath_syntax::str::JsonString;
-    /// let needle = JsonString::new(r#"Stri\ng With \u00c9scapes \\n"#);
-    /// assert_eq!(needle.unquoted(), r#"Stri\ng With \u00c9scapes \\n"#);
+    /// let str = JsonString::new(r#"Stri\ng With \u00c9scapes \\n"#);
+    /// assert_eq!(str.unquoted(), r#"Stri\ng With \u00c9scapes \\n"#);
     /// ```
     #[inline]
     #[must_use]

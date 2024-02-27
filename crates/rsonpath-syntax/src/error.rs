@@ -3,7 +3,7 @@
 //! The main error type is [`ParseError`], which contains
 //! all syntax errors encountered during parsing.
 use crate::{
-    num::error::JsonIntParseError,
+    num::error::{JsonFloatParseError, JsonIntParseError},
     str::{self, EscapeMode},
 };
 #[cfg(feature = "color")]
@@ -106,8 +106,11 @@ pub(crate) struct SyntaxError {
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub(crate) enum SyntaxErrorKind {
+    // Top-level errors.
     DisallowedLeadingWhitespace,
     DisallowedTrailingWhitespace,
+    MissingRootIdentifier,
+    // String/name parsing errors.
     InvalidUnescapedCharacter,
     InvalidEscapeSequence,
     UnpairedHighSurrogate,
@@ -115,20 +118,32 @@ pub(crate) enum SyntaxErrorKind {
     InvalidHexDigitInUnicodeEscape,
     MissingClosingSingleQuote,
     MissingClosingDoubleQuote,
-    MissingRootIdentifier,
+    // Segment errors.
     InvalidSegmentStart,
     InvalidSegmentAfterTwoPeriods,
-    InvalidNameShorthandAfterOnePeriod,
-    InvalidSelector,
     EmptySelector,
+    InvalidSelector,
     MissingSelectorSeparator,
     MissingClosingBracket,
+    InvalidNameShorthandAfterOnePeriod,
+    // Number parsing errors.
     NegativeZeroInteger,
     LeadingZeros,
+    NumberParseError(JsonFloatParseError),
+    // Index selector.
     IndexParseError(JsonIntParseError),
+    // Slice selector.
     SliceStartParseError(JsonIntParseError),
     SliceEndParseError(JsonIntParseError),
     SliceStepParseError(JsonIntParseError),
+    // Filter selector.
+    MissingClosingParenthesis,
+    InvalidNegation,
+    MissingComparisonOperator,
+    InvalidComparisonOperator,
+    InvalidComparable,
+    NonSingularQueryInComparison,
+    InvalidFilter,
 }
 
 impl SyntaxError {
@@ -256,6 +271,7 @@ impl SyntaxError {
                 suggestion.insert(start_idx - prefix_whitespace_len, ",");
             }
             SyntaxErrorKind::MissingClosingBracket => suggestion.insert(end_idx, "]"),
+            SyntaxErrorKind::MissingClosingParenthesis => suggestion.insert(end_idx, ")"),
             SyntaxErrorKind::NegativeZeroInteger => suggestion.replace(start_idx, error.len(), "0"),
             SyntaxErrorKind::LeadingZeros => {
                 let is_negative = error.starts_with('-');
@@ -269,12 +285,22 @@ impl SyntaxError {
                     suggestion.remove(start_idx + offset, remove_len);
                 }
             }
+            SyntaxErrorKind::NonSingularQueryInComparison => {
+                suggestion.invalidate();
+                builder.add_note("singular queries use only child segments with single name or index selectors")
+            }
             SyntaxErrorKind::InvalidSelector
             | SyntaxErrorKind::IndexParseError(_)
             | SyntaxErrorKind::SliceStartParseError(_)
             | SyntaxErrorKind::SliceStepParseError(_)
             | SyntaxErrorKind::SliceEndParseError(_)
-            | SyntaxErrorKind::EmptySelector => suggestion.invalidate(),
+            | SyntaxErrorKind::NumberParseError(_)
+            | SyntaxErrorKind::EmptySelector
+            | SyntaxErrorKind::InvalidNegation
+            | SyntaxErrorKind::InvalidComparisonOperator
+            | SyntaxErrorKind::InvalidFilter
+            | SyntaxErrorKind::MissingComparisonOperator
+            | SyntaxErrorKind::InvalidComparable => suggestion.invalidate(),
         }
 
         // Generic notes.
@@ -669,6 +695,14 @@ impl SyntaxErrorKind {
             Self::SliceStartParseError(_) => "invalid slice start".to_string(),
             Self::SliceEndParseError(_) => "invalid slice end".to_string(),
             Self::SliceStepParseError(_) => "invalid slice step value".to_string(),
+            Self::NumberParseError(_) => "invalid number format".to_string(),
+            Self::MissingClosingParenthesis => "missing closing parenthesis in filter expression".to_string(),
+            Self::InvalidNegation => "invalid use of logical negation".to_string(),
+            Self::MissingComparisonOperator => "missing comparison operator".to_string(),
+            Self::InvalidComparisonOperator => "invalid comparison operator".to_string(),
+            Self::InvalidComparable => "invalid right-hand side of comparison".to_string(),
+            Self::NonSingularQueryInComparison => "non-singular query used in comparison".to_string(),
+            Self::InvalidFilter => "invalid filter expression syntax".to_string(),
         }
     }
 
@@ -698,6 +732,17 @@ impl SyntaxErrorKind {
             Self::SliceStartParseError(inner) => format!("this start index is invalid; {inner}"),
             Self::SliceEndParseError(inner) => format!("this end index is invalid; {inner}"),
             Self::SliceStepParseError(inner) => format!("this step value is invalid; {inner}"),
+            Self::NumberParseError(inner) => format!("this number is invalid; {inner}"),
+            Self::MissingClosingParenthesis => "expected a closing parenthesis `(`".to_string(),
+            Self::InvalidNegation => {
+                "this negation is ambiguous; try adding parenthesis around the expression you want to negate"
+                    .to_string()
+            }
+            Self::InvalidComparable => "expected a literal or a filter query here".to_string(),
+            Self::NonSingularQueryInComparison => "this query is not singular".to_string(),
+            Self::MissingComparisonOperator => "expected a comparison operator here".to_string(),
+            Self::InvalidComparisonOperator => "not a valid comparison operator".to_string(),
+            Self::InvalidFilter => "not a valid filter expression".to_string(),
         }
     }
 }

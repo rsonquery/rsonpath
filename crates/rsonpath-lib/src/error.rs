@@ -154,6 +154,14 @@ impl UnsupportedFeatureError {
         Self::tracked(152, "Slice Selector")
     }
 
+    /// Filter Selector &ndash; supporting filter selectors.
+    /// <https://github.com/V0ldek/rsonpath/issues/154>
+    #[must_use]
+    #[inline(always)]
+    pub fn filter_selector() -> Self {
+        Self::tracked(154, "Filter Selector")
+    }
+
     /// Returns the issue number on GitHub corresponding to the unsupported feature.
     /// Is [`None`] if the feature is not planned.
     #[must_use]

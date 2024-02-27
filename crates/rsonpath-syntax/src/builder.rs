@@ -1,6 +1,10 @@
 //! Utility for building a [`JsonPathQuery`](`crate::JsonPathQuery`)
 //! programmatically.
-use crate::{num::JsonInt, str::JsonString, Index, JsonPathQuery, Segment, Selector, Selectors, SliceBuilder};
+
+use crate::{
+    num::JsonInt, str::JsonString, Comparable, ComparisonExpr, ComparisonOp, Index, JsonPathQuery, Literal,
+    LogicalExpr, Segment, Selector, Selectors, SingularJsonPathQuery, SingularSegment, SliceBuilder, TestExpr,
+};
 
 /// Builder for [`JsonPathQuery`] instances.
 ///
@@ -143,6 +147,17 @@ impl JsonPathQueryBuilder {
         F: FnOnce(&mut SliceBuilder) -> &mut SliceBuilder,
     {
         self.child(|x| x.slice(slice_builder))
+    }
+
+    /// Add a child segment with a single filter selector.
+    ///
+    /// This is a shorthand for `.child(|x| x.filter(filter_builder))`.
+    #[inline(always)]
+    pub fn child_filter<F>(&mut self, filter_builder: F) -> &mut Self
+    where
+        F: FnOnce(EmptyLogicalExprBuilder) -> LogicalExprBuilder,
+    {
+        self.child(|x| x.filter(filter_builder))
     }
 
     /// Add a descendant segment with a single name selector.
@@ -295,6 +310,18 @@ impl JsonPathSelectorsBuilder {
         self.selectors.push(Selector::Wildcard);
         self
     }
+
+    /// Add a filter selector.
+    #[inline]
+    pub fn filter<F>(&mut self, filter_builder: F) -> &mut Self
+    where
+        F: FnOnce(EmptyLogicalExprBuilder) -> LogicalExprBuilder,
+    {
+        let filter = filter_builder(EmptyLogicalExprBuilder);
+        let logical_expr = filter.into();
+        self.selectors.push(Selector::Filter(logical_expr));
+        self
+    }
 }
 
 impl Default for JsonPathQueryBuilder {
@@ -310,5 +337,275 @@ impl From<JsonPathQueryBuilder> for JsonPathQuery {
         Self {
             segments: value.segments,
         }
+    }
+}
+
+pub struct EmptyLogicalExprBuilder;
+pub struct EmptyComparisonBuilder;
+pub struct ComparisonWithLhsBuilder {
+    lhs: Comparable,
+}
+pub struct ComparisonWithLhsAndOpBuilder {
+    lhs: Comparable,
+    op: ComparisonOp,
+}
+
+pub struct LogicalExprBuilder {
+    current: LogicalExpr,
+}
+
+pub struct SingularJsonPathQueryBuilder {
+    segments: Vec<SingularSegment>,
+}
+
+impl SingularJsonPathQueryBuilder {
+    #[inline]
+    #[must_use]
+    pub fn new() -> Self {
+        Self { segments: vec![] }
+    }
+
+    #[inline]
+    pub fn name<S: Into<JsonString>>(&mut self, name: S) -> &mut Self {
+        self.segments.push(SingularSegment::Name(name.into()));
+        self
+    }
+
+    #[inline]
+    pub fn index<N: Into<Index>>(&mut self, n: N) -> &mut Self {
+        self.segments.push(SingularSegment::Index(n.into()));
+        self
+    }
+}
+
+impl Default for SingularJsonPathQueryBuilder {
+    #[inline]
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl From<SingularJsonPathQueryBuilder> for SingularJsonPathQuery {
+    #[inline]
+    #[must_use]
+    fn from(value: SingularJsonPathQueryBuilder) -> Self {
+        Self {
+            segments: value.segments,
+        }
+    }
+}
+
+impl EmptyLogicalExprBuilder {
+    #[inline]
+    #[must_use]
+    pub fn comparison<F>(self, cf: F) -> LogicalExprBuilder
+    where
+        F: FnOnce(EmptyComparisonBuilder) -> ComparisonExpr,
+    {
+        let comparison = cf(EmptyComparisonBuilder);
+        LogicalExprBuilder {
+            current: LogicalExpr::Comparison(comparison),
+        }
+    }
+
+    #[inline]
+    pub fn test_absolute<F>(self, tf: F) -> LogicalExprBuilder
+    where
+        F: FnOnce(&mut JsonPathQueryBuilder) -> &mut JsonPathQueryBuilder,
+    {
+        let mut query = JsonPathQueryBuilder::new();
+        tf(&mut query);
+        LogicalExprBuilder {
+            current: LogicalExpr::Test(TestExpr::Absolute(query.into_query())),
+        }
+    }
+
+    #[inline]
+    pub fn test_relative<F>(self, tf: F) -> LogicalExprBuilder
+    where
+        F: FnOnce(&mut JsonPathQueryBuilder) -> &mut JsonPathQueryBuilder,
+    {
+        let mut query = JsonPathQueryBuilder::new();
+        tf(&mut query);
+        LogicalExprBuilder {
+            current: LogicalExpr::Test(TestExpr::Relative(query.into_query())),
+        }
+    }
+
+    #[inline]
+    pub fn not<F>(self, tf: F) -> LogicalExprBuilder
+    where
+        F: FnOnce(Self) -> LogicalExprBuilder,
+    {
+        let inner = tf(Self).into();
+        LogicalExprBuilder {
+            current: LogicalExpr::Not(Box::new(inner)),
+        }
+    }
+}
+
+impl EmptyComparisonBuilder {
+    #[inline]
+    #[must_use]
+    pub fn literal<L: Into<Literal>>(self, l: L) -> ComparisonWithLhsBuilder {
+        ComparisonWithLhsBuilder {
+            lhs: Comparable::Literal(l.into()),
+        }
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn query_absolute<F>(self, qf: F) -> ComparisonWithLhsBuilder
+    where
+        F: FnOnce(&mut SingularJsonPathQueryBuilder) -> &mut SingularJsonPathQueryBuilder,
+    {
+        let mut query = SingularJsonPathQueryBuilder::new();
+        qf(&mut query);
+        ComparisonWithLhsBuilder {
+            lhs: Comparable::AbsoluteSingularQuery(query.into()),
+        }
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn query_relative<F>(self, qf: F) -> ComparisonWithLhsBuilder
+    where
+        F: FnOnce(&mut SingularJsonPathQueryBuilder) -> &mut SingularJsonPathQueryBuilder,
+    {
+        let mut query = SingularJsonPathQueryBuilder::new();
+        qf(&mut query);
+        ComparisonWithLhsBuilder {
+            lhs: Comparable::RelativeSingularQuery(query.into()),
+        }
+    }
+}
+
+impl ComparisonWithLhsBuilder {
+    #[inline]
+    #[must_use]
+    pub fn equal_to(self) -> ComparisonWithLhsAndOpBuilder {
+        ComparisonWithLhsAndOpBuilder {
+            lhs: self.lhs,
+            op: ComparisonOp::Equal,
+        }
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn not_equal_to(self) -> ComparisonWithLhsAndOpBuilder {
+        ComparisonWithLhsAndOpBuilder {
+            lhs: self.lhs,
+            op: ComparisonOp::NotEqual,
+        }
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn less_than(self) -> ComparisonWithLhsAndOpBuilder {
+        ComparisonWithLhsAndOpBuilder {
+            lhs: self.lhs,
+            op: ComparisonOp::Lesser,
+        }
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn lesser_or_equal_to(self) -> ComparisonWithLhsAndOpBuilder {
+        ComparisonWithLhsAndOpBuilder {
+            lhs: self.lhs,
+            op: ComparisonOp::LesserOrEqual,
+        }
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn greater_than(self) -> ComparisonWithLhsAndOpBuilder {
+        ComparisonWithLhsAndOpBuilder {
+            lhs: self.lhs,
+            op: ComparisonOp::Greater,
+        }
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn greater_or_equal_to(self) -> ComparisonWithLhsAndOpBuilder {
+        ComparisonWithLhsAndOpBuilder {
+            lhs: self.lhs,
+            op: ComparisonOp::GreaterOrEqual,
+        }
+    }
+}
+
+impl ComparisonWithLhsAndOpBuilder {
+    #[inline]
+    pub fn literal<L: Into<Literal>>(self, l: L) -> ComparisonExpr {
+        ComparisonExpr {
+            lhs: self.lhs,
+            op: self.op,
+            rhs: Comparable::Literal(l.into()),
+        }
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn query_absolute<F>(self, qf: F) -> ComparisonExpr
+    where
+        F: FnOnce(&mut SingularJsonPathQueryBuilder) -> &mut SingularJsonPathQueryBuilder,
+    {
+        let mut query = SingularJsonPathQueryBuilder::new();
+        qf(&mut query);
+        ComparisonExpr {
+            lhs: self.lhs,
+            op: self.op,
+            rhs: Comparable::AbsoluteSingularQuery(query.into()),
+        }
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn query_relative<F>(self, qf: F) -> ComparisonExpr
+    where
+        F: FnOnce(&mut SingularJsonPathQueryBuilder) -> &mut SingularJsonPathQueryBuilder,
+    {
+        let mut query = SingularJsonPathQueryBuilder::new();
+        qf(&mut query);
+        ComparisonExpr {
+            lhs: self.lhs,
+            op: self.op,
+            rhs: Comparable::RelativeSingularQuery(query.into()),
+        }
+    }
+}
+
+impl LogicalExprBuilder {
+    #[inline]
+    pub fn and<F>(self, f: F) -> Self
+    where
+        F: FnOnce(EmptyLogicalExprBuilder) -> Self,
+    {
+        let lhs = Box::new(self.current);
+        let rhs = Box::new(f(EmptyLogicalExprBuilder).into());
+        Self {
+            current: LogicalExpr::And(lhs, rhs),
+        }
+    }
+
+    #[inline]
+    pub fn or<F>(self, f: F) -> Self
+    where
+        F: FnOnce(EmptyLogicalExprBuilder) -> Self,
+    {
+        let lhs = Box::new(self.current);
+        let rhs = Box::new(f(EmptyLogicalExprBuilder).into());
+        Self {
+            current: LogicalExpr::Or(lhs, rhs),
+        }
+    }
+}
+
+impl From<LogicalExprBuilder> for LogicalExpr {
+    #[inline(always)]
+    fn from(value: LogicalExprBuilder) -> Self {
+        value.current
     }
 }
