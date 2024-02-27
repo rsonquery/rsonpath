@@ -242,7 +242,6 @@ mod tests256 {
     use super::*;
     use itertools::Itertools;
     use proptest::{collection, proptest};
-    use std::collections::BTreeSet;
 
     const MAX_SET_SIZE: usize = 256;
     const MAX_INPUT_SIZE: usize = 1024;

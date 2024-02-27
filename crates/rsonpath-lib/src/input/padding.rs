@@ -594,7 +594,7 @@ fn seek_non_whitespace_backward_impl(bytes: &[u8], from: usize) -> Option<(usize
 
 #[cfg(test)]
 mod test {
-    use super::{PaddedBlock, JSON_SPACE_BYTE, *};
+    use super::*;
     use pretty_assertions::assert_eq;
 
     #[test]
