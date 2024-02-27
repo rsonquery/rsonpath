@@ -247,6 +247,7 @@ pub(crate) trait Simd: Copy {
     /// The value should correspond to the `const`s defined in [`simd`](`self`),
     /// like [`AVX2_PCLMULQDQ_POPCNT`] or [`NOSIMD`].
     #[must_use]
+    #[allow(dead_code)] // Not used in targets that have only one possible tag (NOSIMD for non-x86 for example).
     fn dispatch_tag(self) -> usize;
 
     /// Walk through the JSON document given by the `iter` and classify quoted sequences.
