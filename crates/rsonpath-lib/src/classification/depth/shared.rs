@@ -15,22 +15,6 @@ macro_rules! depth_classifier {
         impl DepthImpl for Constructor {
             type Classifier<'i, I, Q> = $name<'i, I, Q>
             where I: InputBlockIterator<'i, BLOCK_SIZE>, Q: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE>;
-
-            #[inline]
-            #[allow(dead_code)]
-            fn new<'i, I, Q>(iter: Q, opening: BracketType) -> Self::Classifier<'i, I, Q>
-            where
-                I: InputBlockIterator<'i, BLOCK_SIZE>,
-                Q: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE>,
-            {
-                Self::Classifier {
-                    iter,
-                    classifier: $core::new(opening),
-                    were_commas_on: false,
-                    were_colons_on: false,
-                    phantom: PhantomData,
-                }
-            }
         }
 
         pub(crate) struct $name<'i, I, Q> {

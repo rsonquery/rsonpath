@@ -8,7 +8,7 @@
 #![allow(clippy::expect_used)]
 
 use super::{output_queue::OutputQueue, *};
-use crate::{debug, depth::Depth, is_json_whitespace};
+use crate::{debug, is_json_whitespace};
 use std::{
     cell::RefCell,
     fmt::{self, Debug},

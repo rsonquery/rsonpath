@@ -1,9 +1,5 @@
 use super::*;
-use crate::{
-    debug,
-    input::{error::InputErrorConvertible, InputBlockIterator},
-    FallibleIterator, MaskType,
-};
+use crate::{debug, input::error::InputErrorConvertible};
 use std::marker::PhantomData;
 
 pub(crate) struct Constructor;

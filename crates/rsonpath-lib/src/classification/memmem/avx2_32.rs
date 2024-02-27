@@ -1,12 +1,5 @@
 use super::{shared::mask_32, shared::vector_256, *};
-use crate::{
-    input::{
-        error::{InputError, InputErrorConvertible},
-        Input, InputBlockIterator,
-    },
-    result::InputRecorder,
-};
-use rsonpath_syntax::str::JsonString;
+use crate::input::{error::InputErrorConvertible, InputBlockIterator};
 
 const SIZE: usize = 32;
 

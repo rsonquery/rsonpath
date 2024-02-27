@@ -286,16 +286,6 @@ pub(crate) trait Simd: Copy {
     where
         I: InputBlockIterator<'i, BLOCK_SIZE>;
 
-    /// Enrich quote classified blocks with depth information.
-    #[must_use]
-    fn classify_depth<'i, I>(
-        self,
-        iter: Self::QuotesClassifier<'i, I>,
-        opening: BracketType,
-    ) -> Self::DepthClassifier<'i, I>
-    where
-        I: InputBlockIterator<'i, BLOCK_SIZE>;
-
     /// Resume classification using a state retrieved from a previously
     /// used classifier via the [`stop`](DepthIterator::stop) function.
     #[must_use]
@@ -416,18 +406,6 @@ where
         I: InputBlockIterator<'i, BLOCK_SIZE>,
     {
         S::resume(state)
-    }
-
-    #[inline(always)]
-    fn classify_depth<'i, I>(
-        self,
-        iter: Self::QuotesClassifier<'i, I>,
-        opening: BracketType,
-    ) -> Self::DepthClassifier<'i, I>
-    where
-        I: InputBlockIterator<'i, BLOCK_SIZE>,
-    {
-        D::new(iter, opening)
     }
 
     #[inline(always)]
