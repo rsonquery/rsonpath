@@ -60,8 +60,8 @@ fn test_one(t: TaggedTestCase) -> (String, TestResult) {
 
 fn does_parser_support(tag: Tag) -> bool {
     match tag {
-        Tag::Basic => true,
-        Tag::Filter | Tag::Function => false,
+        Tag::Basic | Tag::Filter => true,
+        Tag::Function => false,
     }
 }
 

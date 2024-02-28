@@ -74,6 +74,9 @@ pub fn read_and_tag<P: AsRef<Path>>(path: P) -> Result<Vec<TaggedTestCase>, io::
     collection.read_file_and_tag(whitespace_selectors, Tag::Basic)?;
     collection.read_file_and_tag(whitespace_slice, Tag::Basic)?;
 
+    // This is included in /filter.json, but contains function calls.
+    collection.add_special_case_tag("equals, special nothing", Tag::Function);
+
     Ok(collection.get())
 }
 
@@ -95,6 +98,15 @@ impl TaggedTestCollection {
         }
 
         Ok(())
+    }
+
+    fn add_special_case_tag(&mut self, name: &str, tag: Tag) {
+        let case = self
+            .cases
+            .iter_mut()
+            .find(|x| x.test_case.name == name)
+            .expect("invalid special-case name");
+        case.tag = tag;
     }
 
     fn get(self) -> Vec<TaggedTestCase> {

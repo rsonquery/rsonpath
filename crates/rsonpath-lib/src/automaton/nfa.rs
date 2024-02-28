@@ -78,6 +78,7 @@ impl<'q> NondeterministicAutomaton<'q> {
                     Selector::Index(Index::FromStart(index)) => Ok(Direct(Transition::Labelled((*index).into()))),
                     Selector::Index(Index::FromEnd(_)) => Err(UnsupportedFeatureError::indexing_from_end().into()),
                     Selector::Slice(_) => Err(UnsupportedFeatureError::slice_selector().into()),
+                    Selector::Filter(_) => Err(UnsupportedFeatureError::filter_selector().into()),
                 },
                 Segment::Descendant(selectors) if selectors.len() == 1 => match selectors.first() {
                     Selector::Name(name) => Ok(Recursive(Transition::Labelled(name.into()))),
@@ -85,6 +86,7 @@ impl<'q> NondeterministicAutomaton<'q> {
                     Selector::Index(Index::FromStart(index)) => Ok(Recursive(Transition::Labelled((*index).into()))),
                     Selector::Index(Index::FromEnd(_)) => Err(UnsupportedFeatureError::indexing_from_end().into()),
                     Selector::Slice(_) => Err(UnsupportedFeatureError::slice_selector().into()),
+                    Selector::Filter(_) => Err(UnsupportedFeatureError::filter_selector().into()),
                 },
                 _ => Err(UnsupportedFeatureError::multiple_selectors().into()),
             })

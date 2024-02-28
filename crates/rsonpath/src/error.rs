@@ -5,7 +5,7 @@ use rsonpath_syntax::{error::ParseError, JsonPathQuery};
 
 const FEATURE_REQUEST_URL: &str = "https://github.com/V0ldek/rsonpath/issues/new?template=feature_request.md";
 
-/// Turn a [`ParserError`] into a user-friendly eyre Report.
+/// Turn a [`ParseError`] into a user-friendly eyre Report.
 pub fn report_parser_error(error: ParseError) -> eyre::Report {
     eyre!("One or more syntax errors occurred.").section(error.colored().header("Parse error:"))
 }

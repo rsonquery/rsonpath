@@ -60,6 +60,7 @@
         "proptests",
         "regs",
         "repr",
+        "reprs",
         "rfind",
         "roadmap",
         "rposition",
@@ -100,5 +101,8 @@
         "./crates/rsonpath-benchmarks/Cargo.toml",
         "./crates/rsonpath-test/Cargo.toml",
         "./crates/rsonpath-test-codegen/Cargo.toml"
-    ]
+    ],
+    "rust-analyzer.cargo.extraEnv": {
+        "RUSTFLAGS": "-Clinker=clang -Clink-arg=-fuse-ld=lld"
+    }
 }
