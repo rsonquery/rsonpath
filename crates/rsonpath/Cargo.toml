@@ -16,7 +16,7 @@ homepage = "https://v0ldek.github.io/rsonpath/"
 build = "build.rs"
 workspace = "../.."
 edition = "2021"
-rust-version = "1.70"
+rust-version = "1.74.0"
 
 [[bin]]
 bench = false

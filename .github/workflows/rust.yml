@@ -346,3 +346,29 @@ jobs:
 
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - uses: EmbarkStudios/cargo-deny-action@68cd9c5e3e16328a430a37c743167572e3243e7e # v1.5.15
+
+  cargo-msrv:
+    name: Verify MSRV (cargo-msrv)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          submodules: true
+      - name: Install Rust toolchain (stable)
+        uses: dtolnay/rust-toolchain@1482605bfc5719782e1267fd0c0cc350fe7646b8 # master
+        with:
+          toolchain: stable
+      - name: Override toolchain
+        run: rustup override set stable
+      - name: Install cargo-msrv
+        run: cargo install cargo-msrv
+      - name: Run cargo-msrv verify on rsonpath
+        run: cargo msrv --path ./crates/rsonpath verify
+      - name: Run cargo-msrv verify on rsonpath-lib
+        run: cargo msrv --path ./crates/rsonpath-lib verify
+      - name: Run cargo-msrv verify on rsonpath-syntax
+        run: cargo msrv --path ./crates/rsonpath-syntax verify

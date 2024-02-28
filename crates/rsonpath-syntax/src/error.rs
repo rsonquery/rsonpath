@@ -702,18 +702,6 @@ impl SyntaxErrorKind {
     }
 }
 
-pub(super) trait ErrorStyle {
-    fn empty() -> Self;
-    fn error_prefix<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a;
-    fn error_message<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a;
-    fn error_position_hint<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a;
-    fn error_underline<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a;
-    fn error_underline_message<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a;
-    fn line_numbers<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a;
-    fn note_prefix<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a;
-    fn suggestion<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a;
-}
-
 #[cfg(feature = "color")]
 mod colored {
     use super::{fmt_parse_error, ParseError};
@@ -761,10 +749,8 @@ mod colored {
                 suggestion: suggestion_color,
             }
         }
-    }
 
-    impl super::ErrorStyle for OwoColorsErrorStyle {
-        fn empty() -> Self {
+        pub(crate) fn empty() -> Self {
             let empty_style = owo_colors::Style::new();
             Self {
                 error_prefix: empty_style,
@@ -778,42 +764,42 @@ mod colored {
             }
         }
 
-        fn error_prefix<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+        pub(crate) fn error_prefix<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
             use owo_colors::OwoColorize;
             target.style(self.error_prefix)
         }
 
-        fn error_message<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+        pub(crate) fn error_message<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
             use owo_colors::OwoColorize;
             target.style(self.error_message)
         }
 
-        fn error_position_hint<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+        pub(crate) fn error_position_hint<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
             use owo_colors::OwoColorize;
             target.style(self.error_position_hint)
         }
 
-        fn error_underline<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+        pub(crate) fn error_underline<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
             use owo_colors::OwoColorize;
             target.style(self.error_underline)
         }
 
-        fn error_underline_message<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+        pub(crate) fn error_underline_message<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
             use owo_colors::OwoColorize;
             target.style(self.error_underline_message)
         }
 
-        fn line_numbers<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+        pub(crate) fn line_numbers<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
             use owo_colors::OwoColorize;
             target.style(self.line_numbers)
         }
 
-        fn note_prefix<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+        pub(crate) fn note_prefix<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
             use owo_colors::OwoColorize;
             target.style(self.note_prefix)
         }
 
-        fn suggestion<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+        pub(crate) fn suggestion<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
             use owo_colors::OwoColorize;
             target.style(self.suggestion)
         }
@@ -827,40 +813,50 @@ mod plain {
     #[derive(Clone)]
     pub(super) struct PlainErrorStyle;
 
-    impl super::ErrorStyle for PlainErrorStyle {
-        fn empty() -> Self {
+    impl PlainErrorStyle {
+        pub(crate) fn empty() -> Self {
             Self
         }
 
-        fn error_prefix<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+        // We want to keep the same function signature as for the colored version, so `&self` must be here.
+        // We could use a trait, but returning `impl trait` in traits would bump MSRV to 1.75.
+        #[allow(clippy::unused_self)]
+        pub(crate) fn error_prefix<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
             target
         }
 
-        fn error_message<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+        #[allow(clippy::unused_self)]
+        pub(crate) fn error_message<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
             target
         }
 
-        fn error_position_hint<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+        #[allow(clippy::unused_self)]
+        pub(crate) fn error_position_hint<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
             target
         }
 
-        fn error_underline<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+        #[allow(clippy::unused_self)]
+        pub(crate) fn error_underline<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
             target
         }
 
-        fn error_underline_message<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+        #[allow(clippy::unused_self)]
+        pub(crate) fn error_underline_message<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
             target
         }
 
-        fn line_numbers<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+        #[allow(clippy::unused_self)]
+        pub(crate) fn line_numbers<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
             target
         }
 
-        fn note_prefix<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+        #[allow(clippy::unused_self)]
+        pub(crate) fn note_prefix<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
             target
         }
 
-        fn suggestion<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
+        #[allow(clippy::unused_self)]
+        pub(crate) fn suggestion<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
             target
         }
     }
