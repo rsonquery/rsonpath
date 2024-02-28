@@ -155,7 +155,7 @@ impl std::hash::Hash for JsonFloat {
 
 /// JSONPath numeric type - either a [`JsonInt`] or a [`JsonFloat`].
 ///
-/// Note that this type is not normalized and an integer in the range7
+/// Note that this type is not normalized and an integer in the range
 /// \[-2<sup>53</sup>+1, (2<sup>53</sup>)-1] can be represented both as
 /// a [`JsonNumber::Int`] and as a [`JsonNumber::Float`].
 ///
@@ -183,7 +183,9 @@ impl std::hash::Hash for JsonFloat {
 #[derive(Clone, Copy, Debug)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub enum JsonNumber {
+    /// A [`JsonInt`] number.
     Int(JsonInt),
+    /// A [`JsonFloat`] number.
     Float(JsonFloat),
 }
 

@@ -589,12 +589,12 @@ fn failed_filter_expression<T>(kind: SyntaxErrorKind) -> impl FnMut(&str) -> IRe
 
 fn comparison_operator(q: &str) -> IResult<&str, ComparisonOp, InternalParseError> {
     alt((
-        value(ComparisonOp::Equal, tag("==")),
-        value(ComparisonOp::NotEqual, tag("!=")),
-        value(ComparisonOp::LesserOrEqual, tag("<=")),
-        value(ComparisonOp::GreaterOrEqual, tag(">=")),
-        value(ComparisonOp::Lesser, char('<')),
-        value(ComparisonOp::Greater, char('>')),
+        value(ComparisonOp::EqualTo, tag("==")),
+        value(ComparisonOp::NotEqualTo, tag("!=")),
+        value(ComparisonOp::LesserOrEqualTo, tag("<=")),
+        value(ComparisonOp::GreaterOrEqualTo, tag(">=")),
+        value(ComparisonOp::LessThan, char('<')),
+        value(ComparisonOp::GreaterThan, char('>')),
     ))(q)
 }
 
@@ -1041,7 +1041,7 @@ mod tests {
             segments: vec![SingularSegment::Name(JsonString::from("b"))],
         }),
         rhs: Comparable::Literal(Literal::String(JsonString::from("kilo"))),
-        op: ComparisonOp::Equal,
+        op: ComparisonOp::EqualTo,
     }))]
     fn valid_filter(input: &str, exp: LogicalExpr) {
         let (rest, lit) = super::filter_selector(input).expect("should parse");

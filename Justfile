@@ -52,7 +52,7 @@ build-all profile="dev": (build-lib profile) (build-bin profile) (gen-tests)
 
 # Build and open the library documentation.
 doc $RUSTDOCFLAGS="--cfg docsrs":
-    cargo +nightly doc --open --package rsonpath-lib --all-features -Z rustdoc-scrape-examples
+    cargo +nightly doc --open --all-features -Z rustdoc-scrape-examples
 
 # Run the codegen for rsonpath-test, generating the E2E tests and JSONs.
 gen-tests:

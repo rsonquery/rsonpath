@@ -27,9 +27,10 @@ There are two optional features:
 - `arbitrary`, which enables a dependency on the [`arbitrary` crate](https://docs.rs/arbitrary/latest/arbitrary/) to provide `Arbitrary` implementations on query types; this is used e.g. for fuzzing.
 - `color`, which enables a dependency on the [`owo_colors` crate](https://docs.rs/owo-colors/latest/owo_colors/) to provide colorful `Display` representations of `ParseError` with the `colored` function.
 
-## Binary
+## Examples
 
-A small CLI tool, `rsonpath-parse` is attached. It takes one argument, a query to parse, and prints a debug representation of the result query, or an error message. This is useful for debugging.
+There are two examples programs, [`builder`](./examples/builder.rs) showcases usage of the `JsonPathQueryBuilder`
+struct; [`cli`](./examples/cli.rs) is a small CLI tool that takes one argument, a query to parse, and prints a debug representation of the result query, or an error message &ndash; this is useful for debugging when developing the crate itself.
 
 ## State of the crate
 
@@ -37,7 +38,7 @@ This is an in-development version that supports only name, index, and wildcard s
 However, these are fully supported, tested, and fuzzed. The planned roadmap is:
 
 - [x] support slices
-- [ ] support filters (without functions)
+- [x] support filters (without functions)
 - [ ] support functions (including type check)
 - [ ] polish the API
 - [ ] 1.0.0 stable release

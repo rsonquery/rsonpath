@@ -21,8 +21,9 @@
 //!
 //! ## State of the crate
 //!
-//! This is an in-development version that supports only name, index, and wildcard selectors.
-//! However, these are fully supported, tested, and fuzzed. The planned roadmap is:
+//! This is an in-development version that does not yet support functions in filter
+//! expressions.
+//! However, all other constructs are fully supported, tested, and fuzzed. The planned roadmap is:
 //! - [x] support slices
 //! - [x] support filters (without functions)
 //! - [ ] support functions (including type check)
@@ -32,7 +33,7 @@
 //! ## Examples
 //! To create a query from a query string:
 //! ```
-//! # use rsonpath_syntax::{JsonPathQuery, Segment, Selectors, Selector, str::JsonString};
+//! use rsonpath_syntax::prelude::*;
 //! # use std::error::Error;
 //! #
 //! # fn main() -> Result<(), Box<dyn Error>> {
@@ -62,8 +63,27 @@
 //!       Selector::Name(
 //!         JsonString::new("number")
 //! ))));
+//!
+//! // Queries stringify to a canonical representation.
+//! assert_eq!(query.to_string(), "$..['phoneNumbers'][*]['number']");
 //! # Ok(())
 //! # }
+//! ```
+//!
+//! Constructing queries programmatically is more ergonomic with the provided builder interface.
+//! For example, to construct the same query as above:
+//!
+//! ```rust
+//! use rsonpath_syntax::builder::JsonPathQueryBuilder;
+//!
+//! let mut query_builder = JsonPathQueryBuilder::new();
+//! query_builder
+//!   .descendant_name("phoneNumbers")
+//!   .child_wildcard()
+//!   .child_name("number");
+//! let query = query_builder.into_query();
+//!
+//! assert_eq!(query.to_string(), "$..['phoneNumbers'][*]['number']");
 //! ```
 //!
 //! ## Crate features
@@ -149,6 +169,7 @@ pub mod builder;
 pub mod error;
 pub mod num;
 mod parser;
+pub mod prelude;
 pub mod str;
 
 use std::{
@@ -354,6 +375,8 @@ pub enum Selector {
     /// A slice selector matches elements from arrays starting at a given index,
     /// ending at a given index, and incrementing with a specified step.
     Slice(Slice),
+    /// A filter selector matches members/elements which satisfy the given
+    /// [`LogicalExpr`].
     Filter(LogicalExpr),
 }
 
@@ -478,22 +501,6 @@ pub struct Slice {
     step: Step,
 }
 
-/// Helper API for programmatically constructing [`Slice`] instances.
-///
-/// # Examples
-/// ```
-/// # use rsonpath_syntax::{Slice, SliceBuilder, Index, Step, num::JsonUInt};
-/// let mut builder = SliceBuilder::new();
-///
-/// builder.with_start(-3).with_end(1).with_step(-7);
-///
-/// let slice: Slice = builder.into();
-/// assert_eq!(slice.to_string(), "-3:1:-7");
-/// ```
-pub struct SliceBuilder {
-    inner: Slice,
-}
-
 impl Slice {
     const DEFAULT_START: Index = Index::FromStart(num::JsonUInt::ZERO);
     const DEFAULT_STEP: Step = Step::Forward(num::JsonUInt::ONE);
@@ -538,69 +545,18 @@ impl Default for Slice {
     }
 }
 
-impl SliceBuilder {
-    /// Create a new [`Slice`] configuration with default values.
-    #[inline]
-    #[must_use]
-    pub fn new() -> Self {
-        Self {
-            inner: Slice::default(),
-        }
-    }
-
-    /// Set the start of the [`Slice`].
-    #[inline]
-    pub fn with_start<N: Into<num::JsonInt>>(&mut self, start: N) -> &mut Self {
-        self.inner.start = start.into().into();
-        self
-    }
-
-    /// Set the end of the [`Slice`].
-    #[inline]
-    pub fn with_end<N: Into<num::JsonInt>>(&mut self, end: N) -> &mut Self {
-        self.inner.end = Some(end.into().into());
-        self
-    }
-
-    /// Set the step of the [`Slice`].
-    #[inline]
-    pub fn with_step<N: Into<num::JsonInt>>(&mut self, step: N) -> &mut Self {
-        self.inner.step = step.into().into();
-        self
-    }
-
-    /// Get the configured [`Slice`] instance.
-    ///
-    /// This does not consume the builder. For a consuming variant use the `Into<Slice>` impl.
-    #[inline]
-    #[must_use]
-    pub fn to_slice(&mut self) -> Slice {
-        self.inner.clone()
-    }
-}
-
-impl From<SliceBuilder> for Slice {
-    #[inline]
-    #[must_use]
-    fn from(value: SliceBuilder) -> Self {
-        value.inner
-    }
-}
-
-impl Default for SliceBuilder {
-    #[inline(always)]
-    #[must_use]
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
+/// JSON literal value available in comparison expressions of a filter selector.
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub enum Literal {
+    /// [`JsonString`](str::JsonString) literal.
     String(str::JsonString),
+    /// [`JsonNumber`](num::JsonNumber) literal &ndash;
+    /// an integer or a floating point value.
     Number(num::JsonNumber),
+    /// Boolean JSON value &ndash; `true`` or `false`.
     Bool(bool),
+    /// The `null` JSON literal value.
     Null,
 }
 
@@ -642,13 +598,24 @@ impl From<bool> for Literal {
     }
 }
 
+/// Logical expression used in a [`Filter`](Selector::Filter) selector.
+///
+/// Expressions form a tree, where [`Comparison`](LogicalExpr::Comparison)
+/// and [`Test`](LogicalExpr::Test) expressions can be leaves, and boolean combinators
+/// (OR, AND, NOT) store their children as [`Boxes`](Box).
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub enum LogicalExpr {
+    /// Logical disjunction of two child expressions.
     Or(LogicalExprNode, LogicalExprNode),
+    /// Logical conjunction of two child expressions.
     And(LogicalExprNode, LogicalExprNode),
+    /// Logical negation of a child expression.
     Not(LogicalExprNode),
+    /// Comparison expression &ndash; compare single values determined
+    /// by query or a literal constant.
     Comparison(ComparisonExpr),
+    /// Existence test &ndash; query and see if any matched nodes exist.
     Test(TestExpr),
 }
 
@@ -666,13 +633,34 @@ impl LogicalExpr {
 
 type LogicalExprNode = Box<LogicalExpr>;
 
+/// Existence test based on a relative or absolute [`JsonPathQuery`].
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub enum TestExpr {
+    /// Relative test &ndash; query from the selected node.
     Relative(JsonPathQuery),
+    /// Absolute test &ndash; query from the document root.
     Absolute(JsonPathQuery),
 }
 
+/// Comparison based on two singular values and a comparison operator.
+///
+/// # Examples
+/// ```rust
+/// # use rsonpath_syntax::{ComparisonExpr, Comparable, ComparisonOp, Literal, SingularJsonPathQuery};
+/// let lhs = Comparable::from(Literal::from("abc"));
+/// let rhs = Comparable::RelativeSingularQuery(
+///     SingularJsonPathQuery::from_iter(vec![])
+/// );
+/// let comparison = ComparisonExpr::from_parts(
+///     lhs.clone(),
+///     ComparisonOp::EqualTo,
+///     rhs.clone());
+///
+/// assert_eq!(&lhs, comparison.lhs());
+/// assert_eq!(ComparisonOp::EqualTo, comparison.op());
+/// assert_eq!(&rhs, comparison.rhs());
+/// ```
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub struct ComparisonExpr {
@@ -682,6 +670,28 @@ pub struct ComparisonExpr {
 }
 
 impl ComparisonExpr {
+    /// Get the comparable left-hand side of the comparison operation.
+    #[inline]
+    #[must_use]
+    pub fn lhs(&self) -> &Comparable {
+        &self.lhs
+    }
+
+    /// Get the comparison operator.
+    #[inline]
+    #[must_use]
+    pub fn op(&self) -> ComparisonOp {
+        self.op
+    }
+
+    /// Get the comparable right-hand side of the comparison operation.
+    #[inline]
+    #[must_use]
+    pub fn rhs(&self) -> &Comparable {
+        &self.rhs
+    }
+
+    /// Construct a [`ComparisonExpr`] from its constituent parts.
     #[inline]
     #[must_use]
     pub fn from_parts(lhs: Comparable, op: ComparisonOp, rhs: Comparable) -> Self {
@@ -689,22 +699,33 @@ impl ComparisonExpr {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+/// Comparison operator usable in a [`ComparisonExpr`].
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub enum ComparisonOp {
-    Equal,
-    NotEqual,
-    LesserOrEqual,
-    GreaterOrEqual,
-    Lesser,
-    Greater,
+    /// Compares two values for equality; `==`
+    EqualTo,
+    /// Compares two values for non-equality; `!=`
+    NotEqualTo,
+    /// Compares whether the lhs is smaller or equal to rhs; '<='
+    LesserOrEqualTo,
+    /// Compares whether the lhs is bigger or equal to rhs; '>='
+    GreaterOrEqualTo,
+    /// Compares whether the lhs is smaller than rhs; '<'
+    LessThan,
+    /// Compares whether the lhs is bigger than rhs; '>'
+    GreaterThan,
 }
 
+/// One of the sides of a [`ComparisonExpr`], either a constant literal or a singular JSONPath query.
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub enum Comparable {
+    /// Constant [`Literal`] value.
     Literal(Literal),
+    /// Single value queried from the current node.
     RelativeSingularQuery(SingularJsonPathQuery),
+    /// Single value queried from the JSON root.
     AbsoluteSingularQuery(SingularJsonPathQuery),
 }
 
@@ -715,32 +736,35 @@ impl From<Literal> for Comparable {
     }
 }
 
+/// Singular JSONPath query.
+///
+/// A singular JSONPath query returns at most one value, and can be used in
+/// [`ComparisonExprs`](ComparisonExpr) as any of the comparison sides.
+///
+/// This is guaranteed syntactically &ndash; only child name and index selectors are allowed
+/// in a [`SingularJsonPathQuery`], which naturally matches only the precise specified path,
+/// if it exists.
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub struct SingularJsonPathQuery {
     segments: Vec<SingularSegment>,
 }
 
 impl SingularJsonPathQuery {
-    fn segments(&self) -> impl Iterator<Item = &'_ SingularSegment> {
+    /// Iterate over the [`SingularSegments`](SingularSegment) of this query.
+    #[inline]
+    pub fn segments(&self) -> impl Iterator<Item = &'_ SingularSegment> {
         self.segments.iter()
     }
 }
 
-// We don't derive this because obviously not all JsonPathQuery instances are singular.
-#[cfg(feature = "arbitrary")]
-#[cfg_attr(docsrs, doc(cfg(feature = "arbitrary")))]
-impl<'a> arbitrary::Arbitrary<'a> for SingularJsonPathQuery {
-    #[inline]
-    fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
-        let segments = u.arbitrary::<Vec<SingularSegment>>()?;
-        Ok(Self::from_iter(segments))
-    }
-}
-
+/// Segment allowed in a [`SingularJsonPathQuery`].
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub enum SingularSegment {
+    /// Child name selector. Equivalent of [`Selector::Name`].
     Name(str::JsonString),
+    /// Child index selector. Equivalent of [`Selector::Index`].
     Index(Index),
 }
 
@@ -1185,12 +1209,12 @@ impl Display for ComparisonOp {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Equal => write!(f, "=="),
-            Self::NotEqual => write!(f, "!="),
-            Self::LesserOrEqual => write!(f, "<="),
-            Self::GreaterOrEqual => write!(f, ">="),
-            Self::Lesser => write!(f, "<"),
-            Self::Greater => write!(f, ">"),
+            Self::EqualTo => write!(f, "=="),
+            Self::NotEqualTo => write!(f, "!="),
+            Self::LesserOrEqualTo => write!(f, "<="),
+            Self::GreaterOrEqualTo => write!(f, ">="),
+            Self::LessThan => write!(f, "<"),
+            Self::GreaterThan => write!(f, ">"),
         }
     }
 }

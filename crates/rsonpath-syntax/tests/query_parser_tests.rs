@@ -235,7 +235,7 @@ mod proptests {
         }
     }
     use rsonpath_syntax::{
-        num::JsonInt, str::JsonString, JsonPathQuery, LogicalExpr, Segment, Selector, Selectors, SliceBuilder,
+        builder::SliceBuilder, num::JsonInt, str::JsonString, JsonPathQuery, LogicalExpr, Segment, Selector, Selectors,
     };
 
     /* Approach: we generate the query string bit by bit, each time attaching what the expected
@@ -761,12 +761,12 @@ mod proptests {
 
         fn any_comparison_op() -> impl Strategy<Value = (String, ComparisonOp)> {
             prop_oneof![
-                strategy::Just(("==".to_string(), ComparisonOp::Equal)),
-                strategy::Just(("!=".to_string(), ComparisonOp::NotEqual)),
-                strategy::Just(("<".to_string(), ComparisonOp::Lesser)),
-                strategy::Just((">".to_string(), ComparisonOp::Greater)),
-                strategy::Just(("<=".to_string(), ComparisonOp::LesserOrEqual)),
-                strategy::Just((">=".to_string(), ComparisonOp::GreaterOrEqual)),
+                strategy::Just(("==".to_string(), ComparisonOp::EqualTo)),
+                strategy::Just(("!=".to_string(), ComparisonOp::NotEqualTo)),
+                strategy::Just(("<".to_string(), ComparisonOp::LessThan)),
+                strategy::Just((">".to_string(), ComparisonOp::GreaterThan)),
+                strategy::Just(("<=".to_string(), ComparisonOp::LesserOrEqualTo)),
+                strategy::Just((">=".to_string(), ComparisonOp::GreaterOrEqualTo)),
             ]
         }
     }
