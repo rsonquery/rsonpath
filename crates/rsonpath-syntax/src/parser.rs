@@ -31,13 +31,45 @@ where
     }
 }
 
-pub(crate) fn parse_json_path_query(q: &str, options: &ParserOptions) -> Result<JsonPathQuery> {
+// This context gets copied into parser functions that require access to the options.
+// We also carry the current nesting depth to terminate recursion when excessive
+// filter nesting is present.
+#[derive(Debug, Clone, Copy)]
+struct ParseCtx<'a> {
+    options: &'a ParserOptions,
+    current_nesting: usize,
+}
+
+impl<'a> ParseCtx<'a> {
+    fn new(options: &'a ParserOptions) -> Self {
+        Self {
+            options,
+            current_nesting: 0,
+        }
+    }
+
+    fn increase_nesting(&self) -> Option<Self> {
+        match self.options.recursion_limit {
+            Some(limit) if limit <= self.current_nesting => None,
+            _ => Some(Self {
+                options: self.options,
+                current_nesting: self.current_nesting + 1,
+            }),
+        }
+    }
+}
+
+pub(crate) fn parse_with_options(q: &str, options: &ParserOptions) -> Result<JsonPathQuery> {
+    parse_json_path_query(q, ParseCtx::new(options))
+}
+
+fn parse_json_path_query(q: &str, ctx: ParseCtx) -> Result<JsonPathQuery> {
     let original_input = q;
     let mut parse_error = ParseErrorBuilder::new();
     let mut segments = vec![];
     let q = skip_whitespace(q);
     let leading_whitespace_len = original_input.len() - q.len();
-    if leading_whitespace_len > 0 && !options.is_leading_whitespace_allowed() {
+    if leading_whitespace_len > 0 && !ctx.options.is_leading_whitespace_allowed() {
         parse_error.add(SyntaxError::new(
             SyntaxErrorKind::DisallowedLeadingWhitespace,
             original_input.len(),
@@ -58,7 +90,7 @@ pub(crate) fn parse_json_path_query(q: &str, options: &ParserOptions) -> Result<
 
     let mut q = q;
     while !q.is_empty() {
-        q = match segment(q).finish() {
+        q = match segment(q, ctx).finish() {
             Ok((rest, segment)) => {
                 segments.push(segment);
                 rest
@@ -80,7 +112,7 @@ pub(crate) fn parse_json_path_query(q: &str, options: &ParserOptions) -> Result<
 
     // For strict RFC compliance trailing whitespace has to be disallowed.
     // This is hard to organically obtain from the parsing above, so we insert this awkward direct check if needed.
-    if !options.is_trailing_whitespace_allowed() {
+    if !ctx.options.is_trailing_whitespace_allowed() {
         let trimmed = original_input.trim_end_matches(WHITESPACE);
         let trailing_whitespace_len = original_input.len() - trimmed.len();
         if trailing_whitespace_len > 0 {
@@ -99,21 +131,21 @@ pub(crate) fn parse_json_path_query(q: &str, options: &ParserOptions) -> Result<
     }
 }
 
-fn segment(q: &str) -> IResult<&str, Segment, InternalParseError> {
+fn segment<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, Segment, InternalParseError<'q>> {
     // It's important to check descendant first, since we can always cut based on whether the prefix is ".." or not.
     alt((
-        descendant_segment,
-        child_segment,
+        |q| descendant_segment(q, ctx),
+        |q| child_segment(q, ctx),
         failed_segment(SyntaxErrorKind::InvalidSegmentStart),
     ))(q)
 }
 
-fn descendant_segment(q: &str) -> IResult<&str, Segment, InternalParseError> {
+fn descendant_segment<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, Segment, InternalParseError<'q>> {
     map(
         preceded(
             tag(".."),
             cut(alt((
-                bracketed_selection,
+                |q| bracketed_selection(q, ctx),
                 map(wildcard_selector, Selectors::one),
                 member_name_shorthand,
                 failed_segment(SyntaxErrorKind::InvalidSegmentAfterTwoPeriods),
@@ -123,10 +155,10 @@ fn descendant_segment(q: &str) -> IResult<&str, Segment, InternalParseError> {
     )(q)
 }
 
-fn child_segment(q: &str) -> IResult<&str, Segment, InternalParseError> {
+fn child_segment<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, Segment, InternalParseError<'q>> {
     map(
         alt((
-            bracketed_selection,
+            |q| bracketed_selection(q, ctx),
             // This cut is only correct because we try parsing descendant_segment first.
             preceded(
                 char('.'),
@@ -146,20 +178,17 @@ fn failed_segment<T>(kind: SyntaxErrorKind) -> impl FnMut(&str) -> IResult<&str,
         let rest = skip_one(q)
             .trim_start_matches('.')
             .trim_start_matches(|x| x != '.' && x != '[');
-        Err(Err::Failure(InternalParseError::SyntaxError(
-            SyntaxError::new(kind.clone(), q.len(), q.len() - rest.len()),
-            rest,
-        )))
+        fail(kind.clone(), q.len(), q.len() - rest.len(), rest)
     }
 }
 
-fn bracketed_selection(q: &str) -> IResult<&str, Selectors, InternalParseError> {
+fn bracketed_selection<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, Selectors, InternalParseError<'q>> {
     let (mut q, _) = char('[')(q)?;
     let mut selectors = vec![];
     let mut syntax_errors = vec![];
 
     loop {
-        match selector(q).finish() {
+        match selector(q, ctx).finish() {
             Ok((rest, selector)) => {
                 selectors.push(selector);
                 q = rest;
@@ -222,13 +251,13 @@ fn member_name_shorthand(q: &str) -> IResult<&str, Selectors, InternalParseError
     }
 }
 
-fn selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
+fn selector<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, Selector, InternalParseError<'q>> {
     alt((
         ignore_whitespace(name_selector),
         ignore_whitespace(wildcard_selector),
         ignore_whitespace(slice_selector),
         ignore_whitespace(index_selector),
-        ignore_whitespace(filter_selector),
+        ignore_whitespace(|q| filter_selector(q, ctx)),
         failed_selector,
     ))(q)
 }
@@ -339,11 +368,11 @@ fn failed_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
     )))
 }
 
-fn filter_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
-    into(preceded(char('?'), ignore_whitespace(logical_expr)))(q)
+fn filter_selector<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, Selector, InternalParseError<'q>> {
+    into(preceded(char('?'), ignore_whitespace(|q| logical_expr(q, ctx))))(q)
 }
 
-fn logical_expr(q: &str) -> IResult<&str, LogicalExpr, InternalParseError> {
+fn logical_expr<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, LogicalExpr, InternalParseError<'q>> {
     // This is the most involved part of the parser, as it is inherently recursive.
     //
     // There are two sources of recursion here: parentheses introduce recursion,
@@ -372,7 +401,7 @@ fn logical_expr(q: &str) -> IResult<&str, LogicalExpr, InternalParseError> {
         Or,
     }
 
-    let (rest, this_expr) = ignore_whitespace(parse_single)(q)?;
+    let (rest, this_expr) = ignore_whitespace(|q| parse_single(q, ctx))(q)?;
     let mut loop_rest = skip_whitespace(rest);
     let mut final_expr = this_expr;
 
@@ -385,12 +414,12 @@ fn logical_expr(q: &str) -> IResult<&str, LogicalExpr, InternalParseError> {
 
         match mb_boolean_op {
             Some(BooleanOp::And) => {
-                let (rest, rhs_expr) = ignore_whitespace(parse_single)(loop_rest)?;
+                let (rest, rhs_expr) = ignore_whitespace(|q| parse_single(q, ctx))(loop_rest)?;
                 loop_rest = rest;
                 final_expr = LogicalExpr::And(Box::new(final_expr), Box::new(rhs_expr));
             }
             Some(BooleanOp::Or) => {
-                let (rest, rhs_expr) = ignore_whitespace(logical_expr)(loop_rest)?;
+                let (rest, rhs_expr) = ignore_whitespace(|q| logical_expr(q, ctx))(loop_rest)?;
                 loop_rest = rest;
                 final_expr = LogicalExpr::Or(Box::new(final_expr), Box::new(rhs_expr));
             }
@@ -400,11 +429,11 @@ fn logical_expr(q: &str) -> IResult<&str, LogicalExpr, InternalParseError> {
 
     return Ok((loop_rest, final_expr));
 
-    fn parse_single(q: &str) -> IResult<&str, LogicalExpr, InternalParseError> {
+    fn parse_single<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, LogicalExpr, InternalParseError<'q>> {
         let (rest, opt_neg) = ignore_whitespace(opt(char('!')))(q)?;
         let negated = opt_neg.is_some();
         if let Ok((rest, _)) = char::<_, ()>('(')(rest) {
-            let (rest, nested_filter) = cut(logical_expr)(skip_whitespace(rest))?;
+            let (rest, nested_filter) = cut(|q| logical_expr(q, ctx))(skip_whitespace(rest))?;
             let rest = skip_whitespace(rest);
             let Ok((rest, _)) = char::<_, ()>(')')(rest) else {
                 return failed_filter_expression(SyntaxErrorKind::MissingClosingParenthesis)(rest);
@@ -425,7 +454,7 @@ fn logical_expr(q: &str) -> IResult<&str, LogicalExpr, InternalParseError> {
                 };
             };
             let rest = skip_whitespace(rest);
-            let Ok((rest, rhs)) = comparable(rest) else {
+            let Ok((rest, rhs)) = comparable(rest, ctx) else {
                 if peek(char::<_, ()>(']'))(rest).is_ok() {
                     return fail(SyntaxErrorKind::InvalidComparable, rest.len(), 1, rest);
                 } else {
@@ -444,12 +473,12 @@ fn logical_expr(q: &str) -> IResult<&str, LogicalExpr, InternalParseError> {
                     }),
                 ))
             }
-        } else if let Ok((rest, query)) = filter_query(rest) {
+        } else if let Ok((rest, query)) = filter_query(rest, ctx) {
             let query_len = q.len() - rest.len();
             let rest = skip_whitespace(rest);
             if let Ok((rest, comp_op)) = comparison_operator(rest) {
                 let rest = skip_whitespace(rest);
-                let Ok((rest, rhs)) = comparable(rest) else {
+                let Ok((rest, rhs)) = comparable(rest, ctx) else {
                     return failed_filter_expression(SyntaxErrorKind::InvalidComparable)(rest);
                 };
                 let Some(singular_query) = query.try_to_comparable() else {
@@ -509,7 +538,16 @@ impl FilterQuery {
     }
 }
 
-fn filter_query(q: &str) -> IResult<&str, FilterQuery, InternalParseError> {
+fn filter_query<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, FilterQuery, InternalParseError<'q>> {
+    let Some(ctx) = ctx.increase_nesting() else {
+        return fail(
+            SyntaxErrorKind::QueryNestingLimitExceeded(ctx.options.recursion_limit.expect("limit exists if exceeded")),
+            q.len(),
+            q.len(),
+            "",
+        );
+    };
+
     let (rest, root_type) = alt((
         value(RootSelectorType::Absolute, char('$')),
         value(RootSelectorType::Relative, char('@')),
@@ -526,8 +564,8 @@ fn filter_query(q: &str) -> IResult<&str, FilterQuery, InternalParseError> {
         }
 
         q = match alt((
-            descendant_segment,
-            child_segment,
+            |q| descendant_segment(q, ctx),
+            |q| child_segment(q, ctx),
             failed_segment_within_filter(SyntaxErrorKind::InvalidSegmentStart),
         ))(q)
         .finish()
@@ -569,10 +607,7 @@ fn failed_segment_within_filter<T>(kind: SyntaxErrorKind) -> impl FnMut(&str) ->
         let rest = skip_one(q)
             .trim_start_matches('.')
             .trim_start_matches(|x| x != ',' && x != ']' && x != '.' && x != '[');
-        Err(Err::Failure(InternalParseError::SyntaxError(
-            SyntaxError::new(kind.clone(), q.len(), q.len() - rest.len()),
-            rest,
-        )))
+        fail(kind.clone(), q.len(), q.len() - rest.len(), rest)
     }
 }
 
@@ -580,10 +615,7 @@ fn failed_filter_expression<T>(kind: SyntaxErrorKind) -> impl FnMut(&str) -> IRe
     move |q: &str| {
         // We want to close the filter, so just try to find the next ']' or ','
         let rest = skip_one(q).trim_start_matches(|x| x != ',' && x != ']');
-        Err(Err::Failure(InternalParseError::SyntaxError(
-            SyntaxError::new(kind.clone(), q.len(), q.len() - rest.len()),
-            rest,
-        )))
+        fail(kind.clone(), q.len(), q.len() - rest.len(), rest)
     }
 }
 
@@ -598,11 +630,11 @@ fn comparison_operator(q: &str) -> IResult<&str, ComparisonOp, InternalParseErro
     ))(q)
 }
 
-fn comparable(q: &str) -> IResult<&str, Comparable, InternalParseError> {
-    return alt((into(literal), singular_query))(q);
+fn comparable<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, Comparable, InternalParseError<'q>> {
+    return alt((into(literal), |q| singular_query(q, ctx)))(q);
 
-    fn singular_query(q: &str) -> IResult<&str, Comparable, InternalParseError> {
-        let (rest, query) = filter_query(q)?;
+    fn singular_query<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, Comparable, InternalParseError<'q>> {
+        let (rest, query) = filter_query(q, ctx)?;
         let Some(cmp) = query.try_to_comparable() else {
             let query_len = q.len() - rest.len();
             return fail(SyntaxErrorKind::NonSingularQueryInComparison, q.len(), query_len, rest);
@@ -672,17 +704,11 @@ fn int(q: &str) -> IResult<&str, &str, InternalParseError> {
 
     if int != "0" {
         if int == "-0" {
-            return Err(Err::Failure(InternalParseError::SyntaxError(
-                SyntaxError::new(SyntaxErrorKind::NegativeZeroInteger, q.len(), int.len()),
-                rest,
-            )));
+            return fail(SyntaxErrorKind::NegativeZeroInteger, q.len(), int.len(), rest);
         }
         let without_minus = int.strip_prefix('-').unwrap_or(int);
         if without_minus.strip_prefix(['0']).is_some() {
-            return Err(Err::Failure(InternalParseError::SyntaxError(
-                SyntaxError::new(SyntaxErrorKind::LeadingZeros, q.len(), int.len()),
-                rest,
-            )));
+            return fail(SyntaxErrorKind::LeadingZeros, q.len(), int.len(), rest);
         }
     }
 
@@ -869,8 +895,8 @@ mod tests {
     use crate::{
         num::{JsonFloat, JsonInt, JsonNumber},
         str::JsonString,
-        Comparable, ComparisonExpr, ComparisonOp, Index, Literal, LogicalExpr, Selector, SingularJsonPathQuery,
-        SingularSegment, Step,
+        Comparable, ComparisonExpr, ComparisonOp, Index, Literal, LogicalExpr, ParserOptions, Selector,
+        SingularJsonPathQuery, SingularSegment, Step,
     };
     use test_case::test_case;
 
@@ -1044,7 +1070,11 @@ mod tests {
         op: ComparisonOp::EqualTo,
     }))]
     fn valid_filter(input: &str, exp: LogicalExpr) {
-        let (rest, lit) = super::filter_selector(input).expect("should parse");
+        let no_limit_opts = ParserOptions {
+            recursion_limit: None,
+            ..Default::default()
+        };
+        let (rest, lit) = super::filter_selector(input, super::ParseCtx::new(&no_limit_opts)).expect("should parse");
         assert_eq!("", rest);
         assert_eq!(lit, Selector::Filter(exp));
     }

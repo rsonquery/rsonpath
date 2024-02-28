@@ -4,7 +4,7 @@ args = ["--help"]
 stdout = """
 Blazing fast JSONPath CLI tool powered by SIMD.
 
-A usage guide is available at https://v0ldek.github.io/rsonpath/.
+A usage guide is available at <https://v0ldek.github.io/rsonpath/>.
 
 Usage: rq[EXE] [OPTIONS] <QUERY> [FILE_PATH]
 

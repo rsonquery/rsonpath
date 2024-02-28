@@ -144,6 +144,7 @@ pub(crate) enum SyntaxErrorKind {
     InvalidComparable,
     NonSingularQueryInComparison,
     InvalidFilter,
+    QueryNestingLimitExceeded(usize),
 }
 
 impl SyntaxError {
@@ -300,7 +301,8 @@ impl SyntaxError {
             | SyntaxErrorKind::InvalidComparisonOperator
             | SyntaxErrorKind::InvalidFilter
             | SyntaxErrorKind::MissingComparisonOperator
-            | SyntaxErrorKind::InvalidComparable => suggestion.invalidate(),
+            | SyntaxErrorKind::InvalidComparable
+            | SyntaxErrorKind::QueryNestingLimitExceeded(_) => suggestion.invalidate(),
         }
 
         // Generic notes.
@@ -703,6 +705,7 @@ impl SyntaxErrorKind {
             Self::InvalidComparable => "invalid right-hand side of comparison".to_string(),
             Self::NonSingularQueryInComparison => "non-singular query used in comparison".to_string(),
             Self::InvalidFilter => "invalid filter expression syntax".to_string(),
+            Self::QueryNestingLimitExceeded(_) => "query nesting limit exceeded".to_string(),
         }
     }
 
@@ -743,6 +746,9 @@ impl SyntaxErrorKind {
             Self::MissingComparisonOperator => "expected a comparison operator here".to_string(),
             Self::InvalidComparisonOperator => "not a valid comparison operator".to_string(),
             Self::InvalidFilter => "not a valid filter expression".to_string(),
+            Self::QueryNestingLimitExceeded(_) => {
+                "starting here, the filter expression is excessively deeply nested".to_string()
+            }
         }
     }
 }

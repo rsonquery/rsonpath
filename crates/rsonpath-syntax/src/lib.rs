@@ -191,6 +191,7 @@ pub struct ParserBuilder {
 
 #[derive(Debug, Clone)]
 struct ParserOptions {
+    recursion_limit: Option<usize>,
     relaxed_whitespace: bool,
 }
 
@@ -202,6 +203,33 @@ impl ParserBuilder {
         Self {
             options: ParserOptions::default(),
         }
+    }
+
+    /// Override the default recursion limit in a query.
+    /// Defaults to [Parser::RECURSION_LIMIT_DEFAULT].
+    ///
+    /// JSONPath queries are inherently recursive, since the [`LogicalExpr`] in a filter
+    /// can test arbitrary nested JSONPath queries. Our parser implementation is recursive,
+    /// so an excessively nested query could overflow the stack.
+    ///
+    /// The limit can be relaxed here, or removed entirely by passing [`None`].
+    ///
+    /// ## Examples
+    /// ```
+    /// # use rsonpath_syntax::{JsonPathQuery, Parser, ParserBuilder};
+    /// let default_parser = ParserBuilder::new().build();
+    /// let no_nesting_parser = ParserBuilder::new()
+    ///     .set_recursion_limit(Some(1))
+    ///     .build();
+    ///
+    /// let query = "$[?@[?@]]";
+    /// assert!(default_parser.parse(query).is_ok());
+    /// assert!(no_nesting_parser.parse(query).is_err());
+    /// ```
+    #[inline]
+    pub fn set_recursion_limit(&mut self, value: Option<usize>) -> &mut Self {
+        self.options.recursion_limit = value;
+        self
     }
 
     /// Control whether leading and trailing whitespace is allowed in a query.
@@ -253,6 +281,7 @@ impl Default for ParserOptions {
     #[inline(always)]
     fn default() -> Self {
         Self {
+            recursion_limit: Some(Parser::RECURSION_LIMIT_DEFAULT),
             relaxed_whitespace: false,
         }
     }
@@ -306,6 +335,11 @@ pub fn parse(str: &str) -> Result<JsonPathQuery> {
 }
 
 impl Parser {
+    /// Default limit on the nesting level of a query.
+    ///
+    /// This can be overridden by [`ParserBuilder::set_recursion_limit`].
+    pub const RECURSION_LIMIT_DEFAULT: usize = 512;
+
     /// Parse a JSONPath query string.
     ///
     /// ## Errors
@@ -315,9 +349,13 @@ impl Parser {
     /// Note that leading and trailing whitespace is explicitly disallowed by the spec.
     /// The parser defaults to this strict behavior unless configured with
     /// [`ParserBuilder::allow_surrounding_whitespace`].
+    ///
+    /// There is a limit on the complexity of the query measured as the depth of nested filter test queries.
+    /// This limit defaults to [`RECURSION_LIMIT_DEFAULT`](Self::RECURSION_LIMIT_DEFAULT) and can be overridden
+    /// with [`ParserBuilder::set_recursion_limit`].
     #[inline]
     pub fn parse(&self, str: &str) -> Result<JsonPathQuery> {
-        crate::parser::parse_json_path_query(str, &self.options)
+        crate::parser::parse_with_options(str, &self.options)
     }
 }
 
