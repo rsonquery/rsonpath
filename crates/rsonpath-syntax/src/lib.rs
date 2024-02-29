@@ -864,6 +864,158 @@ impl JsonPathQuery {
     pub fn segments(&self) -> &[Segment] {
         &self.segments
     }
+
+    /// Check the nesting level of the query.
+    ///
+    /// JSONPath queries are recursive, as a [`Selector::Filter`] can contain
+    /// a [`TestExpr`] that is an arbitrary query, which can in turn contain a filter
+    /// with a test expression, etc. ad nauseam.
+    ///
+    /// ## Returns
+    /// A query with no nested test expressions has nesting level 0.
+    /// If it contains any test expressions, and the maximum nesting level
+    /// of queries in those is n, then the nesting level of the entire query is n+1.
+    ///
+    /// Checking this takes time proportional to the size of the query.
+    ///
+    /// ## Examples
+    ///
+    /// Queries with no test filters have nesting level 0.
+    ///
+    /// ```rust
+    /// # use rsonpath_syntax::prelude::*;
+    /// let query = parse_json_path_query("$[0]['name']").unwrap();
+    ///
+    /// assert_eq!(query.nesting_level(), 0);
+    /// ```
+    ///
+    /// Single-nested filters have nesting level 1.
+    ///
+    /// ```rust
+    /// # use rsonpath_syntax::prelude::*;
+    /// let query = parse_json_path_query("$[0][?@.name]").unwrap();
+    ///
+    /// assert_eq!(query.nesting_level(), 1);
+    /// ```
+    ///
+    /// ... and so on ...
+    ///
+    /// ```rust
+    /// # use rsonpath_syntax::prelude::*;
+    /// let query = parse_json_path_query("$[0][?@[0][?@[0][?@]]]").unwrap();
+    ///
+    /// assert_eq!(query.nesting_level(), 3);
+    /// ```
+    ///
+    /// Singular queries can add only one level, since they allow no filter selectors.
+    ///
+    /// ```rust
+    /// # use rsonpath_syntax::prelude::*;
+    /// let query = parse_json_path_query("$[0][?@[0][?@.x == true]]").unwrap();
+    ///
+    /// assert_eq!(query.nesting_level(), 2);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn nesting_level(&self) -> usize {
+        let mut result = 0;
+        let mut nested_queries = iter_nested(self).collect::<Vec<_>>();
+        let mut scratch = vec![];
+
+        while !nested_queries.is_empty() {
+            result += 1;
+            scratch.extend(nested_queries.drain(..).filter_map(iter_nested_either).flatten());
+            std::mem::swap(&mut scratch, &mut nested_queries);
+        }
+
+        return result;
+
+        #[derive(Clone, Copy)]
+        enum EitherQuery<'a> {
+            Full(&'a JsonPathQuery),
+            Singular,
+        }
+
+        fn iter_nested_either(q: EitherQuery) -> Option<impl Iterator<Item = EitherQuery>> {
+            match q {
+                EitherQuery::Full(q) => Some(iter_nested(q)),
+                EitherQuery::Singular => None,
+            }
+        }
+
+        fn iter_nested(q: &JsonPathQuery) -> impl Iterator<Item = EitherQuery> {
+            q.segments
+                .iter()
+                .flat_map(|x| x.selectors().iter())
+                .filter_map(|s| match s {
+                    Selector::Filter(f) => Some(f),
+                    _ => None,
+                })
+                .flat_map(iter_queries_in_filter)
+        }
+
+        fn iter_queries_in_filter(f: &LogicalExpr) -> impl Iterator<Item = EitherQuery> {
+            return TreeWalker::new(f).flatten();
+
+            struct TreeWalker<'a> {
+                current: Option<&'a LogicalExpr>,
+                stack: Vec<&'a LogicalExpr>,
+                leftover: Option<EitherQuery<'a>>,
+            }
+
+            impl<'a> TreeWalker<'a> {
+                fn new(f: &'a LogicalExpr) -> Self {
+                    Self {
+                        current: Some(f),
+                        stack: vec![],
+                        leftover: None,
+                    }
+                }
+            }
+
+            impl<'a> Iterator for TreeWalker<'a> {
+                type Item = Option<EitherQuery<'a>>;
+
+                fn next(&mut self) -> Option<Self::Item> {
+                    if let Some(x) = self.leftover.take() {
+                        return Some(Some(x));
+                    }
+                    match self.current? {
+                        LogicalExpr::Test(TestExpr::Absolute(q) | TestExpr::Relative(q)) => {
+                            self.current = self.stack.pop();
+                            Some(Some(EitherQuery::Full(q)))
+                        }
+                        LogicalExpr::Comparison(cmp) => {
+                            let lhs = match cmp.lhs() {
+                                Comparable::RelativeSingularQuery(_) | Comparable::AbsoluteSingularQuery(_) => {
+                                    Some(EitherQuery::Singular)
+                                }
+                                Comparable::Literal(_) => None,
+                            };
+                            let rhs = match cmp.rhs() {
+                                Comparable::RelativeSingularQuery(_) | Comparable::AbsoluteSingularQuery(_) => {
+                                    Some(EitherQuery::Singular)
+                                }
+                                Comparable::Literal(_) => None,
+                            };
+                            self.current = self.stack.pop();
+                            self.leftover = rhs;
+                            Some(lhs)
+                        }
+                        LogicalExpr::Not(node) => {
+                            self.current = Some(node.as_ref());
+                            Some(None)
+                        }
+                        LogicalExpr::And(l, r) | LogicalExpr::Or(l, r) => {
+                            self.stack.push(l.as_ref());
+                            self.current = Some(r);
+                            Some(None)
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 impl Segment {
@@ -1005,6 +1157,34 @@ impl Selector {
     #[must_use]
     pub const fn is_index(&self) -> bool {
         matches!(self, Self::Index(_))
+    }
+
+    /// Check if this is a slice selector.
+    ///
+    /// # Examples
+    /// ```
+    /// # use rsonpath_syntax::{Selector, Slice};
+    /// let selector = Selector::Slice(Slice::default());
+    /// assert!(selector.is_slice());
+    /// ```
+    #[inline(always)]
+    #[must_use]
+    pub const fn is_slice(&self) -> bool {
+        matches!(self, Self::Slice(_))
+    }
+
+    /// Check if this is a filter selector.
+    ///
+    /// # Examples
+    /// ```
+    /// # use rsonpath_syntax::{JsonPathQuery, TestExpr, LogicalExpr, Selector, Index};
+    /// let selector = Selector::Filter(LogicalExpr::Test(TestExpr::Relative(JsonPathQuery::from_iter(vec![]))));
+    /// assert!(selector.is_filter());
+    /// ```
+    #[inline(always)]
+    #[must_use]
+    pub const fn is_filter(&self) -> bool {
+        matches!(self, Self::Filter(_))
     }
 
     fn is_singular(&self) -> bool {

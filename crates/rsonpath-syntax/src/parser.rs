@@ -443,70 +443,88 @@ fn logical_expr<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, LogicalExpr, 
             } else {
                 nested_filter
             };
-            Ok((rest, selector))
-        } else if let Ok((rest, lhs)) = literal(rest) {
-            let rest = skip_whitespace(rest);
-            let Ok((rest, comp_op)) = comparison_operator(rest) else {
-                if peek(char::<_, ()>(']'))(rest).is_ok() {
-                    return fail(SyntaxErrorKind::MissingComparisonOperator, rest.len(), 1, rest);
-                } else {
-                    return failed_filter_expression(SyntaxErrorKind::InvalidComparisonOperator)(rest);
-                };
-            };
-            let rest = skip_whitespace(rest);
-            let Ok((rest, rhs)) = comparable(rest, ctx) else {
-                if peek(char::<_, ()>(']'))(rest).is_ok() {
-                    return fail(SyntaxErrorKind::InvalidComparable, rest.len(), 1, rest);
-                } else {
-                    return failed_filter_expression(SyntaxErrorKind::InvalidComparable)(rest);
-                };
-            };
-            if negated {
-                return fail(SyntaxErrorKind::InvalidNegation, q.len(), 1, rest);
-            } else {
-                Ok((
-                    rest,
-                    LogicalExpr::Comparison(ComparisonExpr {
-                        lhs: Comparable::Literal(lhs),
-                        op: comp_op,
-                        rhs,
-                    }),
-                ))
-            }
-        } else if let Ok((rest, query)) = filter_query(rest, ctx) {
-            let query_len = q.len() - rest.len();
-            let rest = skip_whitespace(rest);
-            if let Ok((rest, comp_op)) = comparison_operator(rest) {
+            return Ok((rest, selector));
+        }
+
+        match literal(rest) {
+            Ok((rest, lhs)) => {
                 let rest = skip_whitespace(rest);
-                let Ok((rest, rhs)) = comparable(rest, ctx) else {
-                    return failed_filter_expression(SyntaxErrorKind::InvalidComparable)(rest);
+                let (rest, comp_op) = match comparison_operator(rest) {
+                    Ok((rest, comp_op)) => (rest, comp_op),
+                    Err(Err::Failure(err)) => return Err(Err::Failure(err)),
+                    _ => {
+                        if peek(char::<_, ()>(']'))(rest).is_ok() {
+                            return fail(SyntaxErrorKind::MissingComparisonOperator, rest.len(), 1, rest);
+                        } else {
+                            return failed_filter_expression(SyntaxErrorKind::InvalidComparisonOperator)(rest);
+                        };
+                    }
                 };
-                let Some(singular_query) = query.try_to_comparable() else {
-                    return fail(SyntaxErrorKind::NonSingularQueryInComparison, q.len(), query_len, rest);
+                let rest = skip_whitespace(rest);
+                let (rest, rhs) = match comparable(rest, ctx) {
+                    Ok((rest, rhs)) => (rest, rhs),
+                    Err(Err::Failure(err)) => return Err(Err::Failure(err)),
+                    _ => {
+                        if peek(char::<_, ()>(']'))(rest).is_ok() {
+                            return fail(SyntaxErrorKind::InvalidComparable, rest.len(), 1, rest);
+                        } else {
+                            return failed_filter_expression(SyntaxErrorKind::InvalidComparable)(rest);
+                        };
+                    }
                 };
                 if negated {
                     return fail(SyntaxErrorKind::InvalidNegation, q.len(), 1, rest);
                 } else {
-                    Ok((
+                    return Ok((
                         rest,
                         LogicalExpr::Comparison(ComparisonExpr {
-                            lhs: singular_query,
-                            rhs,
+                            lhs: Comparable::Literal(lhs),
                             op: comp_op,
+                            rhs,
                         }),
-                    ))
+                    ));
                 }
-            } else {
-                let test_expr = LogicalExpr::Test(query.into_test_query());
-                let expr = if negated {
-                    LogicalExpr::Not(Box::new(test_expr))
-                } else {
-                    test_expr
-                };
-                Ok((rest, expr))
             }
-        } else {
-            failed_filter_expression(SyntaxErrorKind::InvalidFilter)(rest)
+            Err(Err::Failure(err)) => return Err(Err::Failure(err)),
+            _ => (),
+        };
+
+        match filter_query(rest, ctx) {
+            Ok((rest, query)) => {
+                let query_len = q.len() - rest.len();
+                let rest = skip_whitespace(rest);
+                if let Ok((rest, comp_op)) = comparison_operator(rest) {
+                    let rest = skip_whitespace(rest);
+                    let Ok((rest, rhs)) = comparable(rest, ctx) else {
+                        return failed_filter_expression(SyntaxErrorKind::InvalidComparable)(rest);
+                    };
+                    let Some(singular_query) = query.try_to_comparable() else {
+                        return fail(SyntaxErrorKind::NonSingularQueryInComparison, q.len(), query_len, rest);
+                    };
+                    if negated {
+                        return fail(SyntaxErrorKind::InvalidNegation, q.len(), 1, rest);
+                    } else {
+                        Ok((
+                            rest,
+                            LogicalExpr::Comparison(ComparisonExpr {
+                                lhs: singular_query,
+                                rhs,
+                                op: comp_op,
+                            }),
+                        ))
+                    }
+                } else {
+                    let test_expr = LogicalExpr::Test(query.into_test_query());
+                    let expr = if negated {
+                        LogicalExpr::Not(Box::new(test_expr))
+                    } else {
+                        test_expr
+                    };
+                    Ok((rest, expr))
+                }
+            }
+            Err(Err::Failure(err)) => Err(Err::Failure(err)),
+            _ => failed_filter_expression(SyntaxErrorKind::InvalidFilter)(rest),
         }
     }
 }
