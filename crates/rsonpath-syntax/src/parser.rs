@@ -103,6 +103,14 @@ fn parse_json_path_query(q: &str, ctx: ParseCtx) -> Result<JsonPathQuery> {
                 parse_error.add_many(errs);
                 rest
             }
+            Err(InternalParseError::RecursionLimitExceeded) => {
+                return Err(ParseErrorBuilder::recursion_limit_exceeded(
+                    original_input.to_owned(),
+                    ctx.options
+                        .recursion_limit
+                        .expect("recursion limit should exists when exceeded"),
+                ));
+            }
             Err(InternalParseError::NomError(err)) => panic!(
                 "unexpected parser error; raw nom errors should never be produced; this is a bug\ncontext:\n{err}"
             ),
@@ -401,6 +409,10 @@ fn logical_expr<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, LogicalExpr, 
         Or,
     }
 
+    let Some(ctx) = ctx.increase_nesting() else {
+        return Err(Err::Failure(InternalParseError::RecursionLimitExceeded));
+    };
+
     let (rest, this_expr) = ignore_whitespace(|q| parse_single(q, ctx))(q)?;
     let mut loop_rest = skip_whitespace(rest);
     let mut final_expr = this_expr;
@@ -443,70 +455,88 @@ fn logical_expr<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, LogicalExpr, 
             } else {
                 nested_filter
             };
-            Ok((rest, selector))
-        } else if let Ok((rest, lhs)) = literal(rest) {
-            let rest = skip_whitespace(rest);
-            let Ok((rest, comp_op)) = comparison_operator(rest) else {
-                if peek(char::<_, ()>(']'))(rest).is_ok() {
-                    return fail(SyntaxErrorKind::MissingComparisonOperator, rest.len(), 1, rest);
-                } else {
-                    return failed_filter_expression(SyntaxErrorKind::InvalidComparisonOperator)(rest);
-                };
-            };
-            let rest = skip_whitespace(rest);
-            let Ok((rest, rhs)) = comparable(rest, ctx) else {
-                if peek(char::<_, ()>(']'))(rest).is_ok() {
-                    return fail(SyntaxErrorKind::InvalidComparable, rest.len(), 1, rest);
-                } else {
-                    return failed_filter_expression(SyntaxErrorKind::InvalidComparable)(rest);
-                };
-            };
-            if negated {
-                return fail(SyntaxErrorKind::InvalidNegation, q.len(), 1, rest);
-            } else {
-                Ok((
-                    rest,
-                    LogicalExpr::Comparison(ComparisonExpr {
-                        lhs: Comparable::Literal(lhs),
-                        op: comp_op,
-                        rhs,
-                    }),
-                ))
-            }
-        } else if let Ok((rest, query)) = filter_query(rest, ctx) {
-            let query_len = q.len() - rest.len();
-            let rest = skip_whitespace(rest);
-            if let Ok((rest, comp_op)) = comparison_operator(rest) {
+            return Ok((rest, selector));
+        }
+
+        match literal(rest) {
+            Ok((rest, lhs)) => {
                 let rest = skip_whitespace(rest);
-                let Ok((rest, rhs)) = comparable(rest, ctx) else {
-                    return failed_filter_expression(SyntaxErrorKind::InvalidComparable)(rest);
+                let (rest, comp_op) = match comparison_operator(rest) {
+                    Ok((rest, comp_op)) => (rest, comp_op),
+                    Err(Err::Failure(err)) => return Err(Err::Failure(err)),
+                    _ => {
+                        if peek(char::<_, ()>(']'))(rest).is_ok() {
+                            return fail(SyntaxErrorKind::MissingComparisonOperator, rest.len(), 1, rest);
+                        } else {
+                            return failed_filter_expression(SyntaxErrorKind::InvalidComparisonOperator)(rest);
+                        };
+                    }
                 };
-                let Some(singular_query) = query.try_to_comparable() else {
-                    return fail(SyntaxErrorKind::NonSingularQueryInComparison, q.len(), query_len, rest);
+                let rest = skip_whitespace(rest);
+                let (rest, rhs) = match comparable(rest, ctx) {
+                    Ok((rest, rhs)) => (rest, rhs),
+                    Err(Err::Failure(err)) => return Err(Err::Failure(err)),
+                    _ => {
+                        if peek(char::<_, ()>(']'))(rest).is_ok() {
+                            return fail(SyntaxErrorKind::InvalidComparable, rest.len(), 1, rest);
+                        } else {
+                            return failed_filter_expression(SyntaxErrorKind::InvalidComparable)(rest);
+                        };
+                    }
                 };
                 if negated {
                     return fail(SyntaxErrorKind::InvalidNegation, q.len(), 1, rest);
                 } else {
-                    Ok((
+                    return Ok((
                         rest,
                         LogicalExpr::Comparison(ComparisonExpr {
-                            lhs: singular_query,
-                            rhs,
+                            lhs: Comparable::Literal(lhs),
                             op: comp_op,
+                            rhs,
                         }),
-                    ))
+                    ));
                 }
-            } else {
-                let test_expr = LogicalExpr::Test(query.into_test_query());
-                let expr = if negated {
-                    LogicalExpr::Not(Box::new(test_expr))
-                } else {
-                    test_expr
-                };
-                Ok((rest, expr))
             }
-        } else {
-            failed_filter_expression(SyntaxErrorKind::InvalidFilter)(rest)
+            Err(Err::Failure(err)) => return Err(Err::Failure(err)),
+            _ => (),
+        };
+
+        match filter_query(rest, ctx) {
+            Ok((rest, query)) => {
+                let query_len = q.len() - rest.len();
+                let rest = skip_whitespace(rest);
+                if let Ok((rest, comp_op)) = comparison_operator(rest) {
+                    let rest = skip_whitespace(rest);
+                    let Ok((rest, rhs)) = comparable(rest, ctx) else {
+                        return failed_filter_expression(SyntaxErrorKind::InvalidComparable)(rest);
+                    };
+                    let Some(singular_query) = query.try_to_comparable() else {
+                        return fail(SyntaxErrorKind::NonSingularQueryInComparison, q.len(), query_len, rest);
+                    };
+                    if negated {
+                        return fail(SyntaxErrorKind::InvalidNegation, q.len(), 1, rest);
+                    } else {
+                        Ok((
+                            rest,
+                            LogicalExpr::Comparison(ComparisonExpr {
+                                lhs: singular_query,
+                                rhs,
+                                op: comp_op,
+                            }),
+                        ))
+                    }
+                } else {
+                    let test_expr = LogicalExpr::Test(query.into_test_query());
+                    let expr = if negated {
+                        LogicalExpr::Not(Box::new(test_expr))
+                    } else {
+                        test_expr
+                    };
+                    Ok((rest, expr))
+                }
+            }
+            Err(Err::Failure(err)) => Err(Err::Failure(err)),
+            _ => failed_filter_expression(SyntaxErrorKind::InvalidFilter)(rest),
         }
     }
 }
@@ -539,15 +569,6 @@ impl FilterQuery {
 }
 
 fn filter_query<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, FilterQuery, InternalParseError<'q>> {
-    let Some(ctx) = ctx.increase_nesting() else {
-        return fail(
-            SyntaxErrorKind::QueryNestingLimitExceeded(ctx.options.recursion_limit.expect("limit exists if exceeded")),
-            q.len(),
-            q.len(),
-            "",
-        );
-    };
-
     let (rest, root_type) = alt((
         value(RootSelectorType::Absolute, char('$')),
         value(RootSelectorType::Relative, char('@')),
@@ -581,6 +602,9 @@ fn filter_query<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, FilterQuery, 
             Err(InternalParseError::SyntaxErrors(mut errs, rest)) => {
                 syntax_errors.append(&mut errs);
                 rest
+            }
+            Err(InternalParseError::RecursionLimitExceeded) => {
+                return Err(Err::Failure(InternalParseError::RecursionLimitExceeded));
             }
             Err(InternalParseError::NomError(err)) => panic!(
                 "unexpected parser error; raw nom errors should never be produced; this is a bug\ncontext:\n{err}"

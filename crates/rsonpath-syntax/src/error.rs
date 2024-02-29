@@ -25,7 +25,22 @@ pub(crate) struct ParseErrorBuilder {
 #[derive(Debug, Error)]
 pub struct ParseError {
     input: String,
-    syntax_errors: Vec<SyntaxError>,
+    inner: InnerParseError,
+}
+
+impl ParseError {
+    /// Returns whether the error was caused by exceeding the parser's nesting limit.
+    #[inline]
+    #[must_use]
+    pub fn is_nesting_limit_exceeded(&self) -> bool {
+        matches!(self.inner, InnerParseError::RecursionLimit(_))
+    }
+}
+
+#[derive(Debug)]
+enum InnerParseError {
+    Syntax(Vec<SyntaxError>),
+    RecursionLimit(usize),
 }
 
 impl ParseErrorBuilder {
@@ -48,7 +63,14 @@ impl ParseErrorBuilder {
     pub(crate) fn build(self, str: String) -> ParseError {
         ParseError {
             input: str,
-            syntax_errors: self.syntax_errors,
+            inner: InnerParseError::Syntax(self.syntax_errors),
+        }
+    }
+
+    pub(crate) fn recursion_limit_exceeded(str: String, recursion_limit: usize) -> ParseError {
+        ParseError {
+            input: str,
+            inner: InnerParseError::RecursionLimit(recursion_limit),
         }
     }
 }
@@ -73,22 +95,42 @@ impl ParseError {
 
 #[inline(always)]
 fn fmt_parse_error(error: &ParseError, style: &ErrorStyleImpl, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    let mut suggestion = Suggestion::new();
-    for syntax_error in &error.syntax_errors {
-        writeln!(
-            f,
-            "{}",
-            syntax_error.display(&error.input, &mut suggestion, style.clone())
-        )?;
-    }
+    match &error.inner {
+        InnerParseError::Syntax(syntax_errors) => {
+            let mut suggestion = Suggestion::new();
+            for syntax_error in syntax_errors {
+                writeln!(
+                    f,
+                    "{}",
+                    syntax_error.display(&error.input, &mut suggestion, style.clone())
+                )?;
+            }
 
-    if let Some(suggestion) = suggestion.build(&error.input) {
-        writeln!(
-            f,
-            "{} did you mean `{}` ?",
-            style.note_prefix(&"suggestion:"),
-            style.suggestion(&suggestion)
-        )?;
+            if let Some(suggestion) = suggestion.build(&error.input) {
+                writeln!(
+                    f,
+                    "{} did you mean `{}` ?",
+                    style.note_prefix(&"suggestion:"),
+                    style.suggestion(&suggestion)
+                )?;
+            }
+        }
+        InnerParseError::RecursionLimit(limit) => {
+            writeln!(
+                f,
+                "{} {}",
+                style.error_prefix(&"error:"),
+                style.error_message(&"nesting level exceeded")
+            )?;
+            writeln!(f)?;
+            writeln!(f, "  {}", error.input)?;
+            writeln!(
+                f,
+                "{} the parser limits nesting to {}; this applies to filter logical expressions",
+                style.note_prefix(&"note:"),
+                limit
+            )?;
+        }
     }
 
     Ok(())
@@ -144,7 +186,6 @@ pub(crate) enum SyntaxErrorKind {
     InvalidComparable,
     NonSingularQueryInComparison,
     InvalidFilter,
-    QueryNestingLimitExceeded(usize),
 }
 
 impl SyntaxError {
@@ -301,8 +342,7 @@ impl SyntaxError {
             | SyntaxErrorKind::InvalidComparisonOperator
             | SyntaxErrorKind::InvalidFilter
             | SyntaxErrorKind::MissingComparisonOperator
-            | SyntaxErrorKind::InvalidComparable
-            | SyntaxErrorKind::QueryNestingLimitExceeded(_) => suggestion.invalidate(),
+            | SyntaxErrorKind::InvalidComparable => suggestion.invalidate(),
         }
 
         // Generic notes.
@@ -414,6 +454,7 @@ impl DisplayableSyntaxErrorBuilder {
 pub(crate) enum InternalParseError<'a> {
     SyntaxError(SyntaxError, &'a str),
     SyntaxErrors(Vec<SyntaxError>, &'a str),
+    RecursionLimitExceeded,
     NomError(nom::error::Error<&'a str>),
 }
 
@@ -705,7 +746,6 @@ impl SyntaxErrorKind {
             Self::InvalidComparable => "invalid right-hand side of comparison".to_string(),
             Self::NonSingularQueryInComparison => "non-singular query used in comparison".to_string(),
             Self::InvalidFilter => "invalid filter expression syntax".to_string(),
-            Self::QueryNestingLimitExceeded(_) => "query nesting limit exceeded".to_string(),
         }
     }
 
@@ -746,9 +786,6 @@ impl SyntaxErrorKind {
             Self::MissingComparisonOperator => "expected a comparison operator here".to_string(),
             Self::InvalidComparisonOperator => "not a valid comparison operator".to_string(),
             Self::InvalidFilter => "not a valid filter expression".to_string(),
-            Self::QueryNestingLimitExceeded(_) => {
-                "starting here, the filter expression is excessively deeply nested".to_string()
-            }
         }
     }
 }

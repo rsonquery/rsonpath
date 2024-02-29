@@ -208,9 +208,10 @@ impl ParserBuilder {
     /// Override the default recursion limit in a query.
     /// Defaults to [Parser::RECURSION_LIMIT_DEFAULT].
     ///
-    /// JSONPath queries are inherently recursive, since the [`LogicalExpr`] in a filter
-    /// can test arbitrary nested JSONPath queries. Our parser implementation is recursive,
-    /// so an excessively nested query could overflow the stack.
+    /// JSONPath queries are inherently recursive, since
+    /// - [`LogicalExpr`] can be an arbitrarily deep tree of AND/OR operators;
+    /// - the [`TestExpr`] in a filter can test arbitrary nested JSONPath queries.
+    /// Our parser implementation is recursive, so an excessively nested query could overflow the stack.
     ///
     /// The limit can be relaxed here, or removed entirely by passing [`None`].
     ///
@@ -338,7 +339,7 @@ impl Parser {
     /// Default limit on the nesting level of a query.
     ///
     /// This can be overridden by [`ParserBuilder::set_recursion_limit`].
-    pub const RECURSION_LIMIT_DEFAULT: usize = 512;
+    pub const RECURSION_LIMIT_DEFAULT: usize = 128;
 
     /// Parse a JSONPath query string.
     ///
@@ -350,7 +351,7 @@ impl Parser {
     /// The parser defaults to this strict behavior unless configured with
     /// [`ParserBuilder::allow_surrounding_whitespace`].
     ///
-    /// There is a limit on the complexity of the query measured as the depth of nested filter test queries.
+    /// There is a limit on the complexity of the query measured as the depth of nested filter expressions.
     /// This limit defaults to [`RECURSION_LIMIT_DEFAULT`](Self::RECURSION_LIMIT_DEFAULT) and can be overridden
     /// with [`ParserBuilder::set_recursion_limit`].
     #[inline]
@@ -1005,6 +1006,34 @@ impl Selector {
     #[must_use]
     pub const fn is_index(&self) -> bool {
         matches!(self, Self::Index(_))
+    }
+
+    /// Check if this is a slice selector.
+    ///
+    /// # Examples
+    /// ```
+    /// # use rsonpath_syntax::{Selector, Slice};
+    /// let selector = Selector::Slice(Slice::default());
+    /// assert!(selector.is_slice());
+    /// ```
+    #[inline(always)]
+    #[must_use]
+    pub const fn is_slice(&self) -> bool {
+        matches!(self, Self::Slice(_))
+    }
+
+    /// Check if this is a filter selector.
+    ///
+    /// # Examples
+    /// ```
+    /// # use rsonpath_syntax::{JsonPathQuery, TestExpr, LogicalExpr, Selector, Index};
+    /// let selector = Selector::Filter(LogicalExpr::Test(TestExpr::Relative(JsonPathQuery::from_iter(vec![]))));
+    /// assert!(selector.is_filter());
+    /// ```
+    #[inline(always)]
+    #[must_use]
+    pub const fn is_filter(&self) -> bool {
+        matches!(self, Self::Filter(_))
     }
 
     fn is_singular(&self) -> bool {
