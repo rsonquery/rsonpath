@@ -103,6 +103,14 @@ fn parse_json_path_query(q: &str, ctx: ParseCtx) -> Result<JsonPathQuery> {
                 parse_error.add_many(errs);
                 rest
             }
+            Err(InternalParseError::RecursionLimitExceeded) => {
+                return Err(ParseErrorBuilder::recursion_limit_exceeded(
+                    original_input.to_owned(),
+                    ctx.options
+                        .recursion_limit
+                        .expect("recursion limit should exists when exceeded"),
+                ));
+            }
             Err(InternalParseError::NomError(err)) => panic!(
                 "unexpected parser error; raw nom errors should never be produced; this is a bug\ncontext:\n{err}"
             ),
@@ -401,6 +409,10 @@ fn logical_expr<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, LogicalExpr, 
         Or,
     }
 
+    let Some(ctx) = ctx.increase_nesting() else {
+        return Err(Err::Failure(InternalParseError::RecursionLimitExceeded));
+    };
+
     let (rest, this_expr) = ignore_whitespace(|q| parse_single(q, ctx))(q)?;
     let mut loop_rest = skip_whitespace(rest);
     let mut final_expr = this_expr;
@@ -557,15 +569,6 @@ impl FilterQuery {
 }
 
 fn filter_query<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, FilterQuery, InternalParseError<'q>> {
-    let Some(ctx) = ctx.increase_nesting() else {
-        return fail(
-            SyntaxErrorKind::QueryNestingLimitExceeded(ctx.options.recursion_limit.expect("limit exists if exceeded")),
-            q.len(),
-            q.len(),
-            "",
-        );
-    };
-
     let (rest, root_type) = alt((
         value(RootSelectorType::Absolute, char('$')),
         value(RootSelectorType::Relative, char('@')),
@@ -599,6 +602,9 @@ fn filter_query<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, FilterQuery, 
             Err(InternalParseError::SyntaxErrors(mut errs, rest)) => {
                 syntax_errors.append(&mut errs);
                 rest
+            }
+            Err(InternalParseError::RecursionLimitExceeded) => {
+                return Err(Err::Failure(InternalParseError::RecursionLimitExceeded));
             }
             Err(InternalParseError::NomError(err)) => panic!(
                 "unexpected parser error; raw nom errors should never be produced; this is a bug\ncontext:\n{err}"
