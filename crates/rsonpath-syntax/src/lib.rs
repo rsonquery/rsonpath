@@ -338,7 +338,7 @@ impl Parser {
     /// Default limit on the nesting level of a query.
     ///
     /// This can be overridden by [`ParserBuilder::set_recursion_limit`].
-    pub const RECURSION_LIMIT_DEFAULT: usize = 512;
+    pub const RECURSION_LIMIT_DEFAULT: usize = 128;
 
     /// Parse a JSONPath query string.
     ///
