@@ -216,17 +216,17 @@ cargo tree --package rsonpath --edges normal --depth 1
 
 <!-- rsonpath dependencies start -->
 ```ini
-rsonpath v0.8.6 (/home/mat/src/rsonpath/crates/rsonpath)
-├── clap v4.4.16
+rsonpath v0.8.7 (/home/mat/src/rsonpath/crates/rsonpath)
+├── clap v4.5.1
 ├── color-eyre v0.6.2
-├── eyre v0.6.11
-├── log v0.4.20
-├── rsonpath-lib v0.8.6 (/home/mat/src/rsonpath/crates/rsonpath-lib)
-├── rsonpath-syntax v0.1.0 (/home/mat/src/rsonpath/crates/rsonpath-syntax)
+├── eyre v0.6.12
+├── log v0.4.21
+├── rsonpath-lib v0.8.7 (/home/mat/src/rsonpath/crates/rsonpath-lib)
+├── rsonpath-syntax v0.2.0 (/home/mat/src/rsonpath/crates/rsonpath-syntax)
 └── simple_logger v4.3.3
 [build-dependencies]
 ├── rustflags v0.1.4
-└── vergen v8.2.9
+└── vergen v8.3.1
     [build-dependencies]
 ```
 <!-- rsonpath dependencies end -->
@@ -237,16 +237,16 @@ cargo tree --package rsonpath-lib --edges normal --depth 1
 
 <!-- rsonpath-lib dependencies start -->
 ```ini
-rsonpath-lib v0.8.6 (/home/mat/src/rsonpath/crates/rsonpath-lib)
+rsonpath-lib v0.8.7 (/home/mat/src/rsonpath/crates/rsonpath-lib)
 ├── arbitrary v1.3.2
 ├── cfg-if v1.0.0
-├── log v0.4.20
-├── memmap2 v0.9.3
+├── log v0.4.21
+├── memmap2 v0.9.4
 ├── nom v7.1.3
-├── rsonpath-syntax v0.1.0 (/home/mat/src/rsonpath/crates/rsonpath-syntax)
-├── smallvec v1.12.0
+├── rsonpath-syntax v0.2.0 (/home/mat/src/rsonpath/crates/rsonpath-syntax)
+├── smallvec v1.13.1
 ├── static_assertions v1.1.0
-├── thiserror v1.0.56
+├── thiserror v1.0.57
 └── vector-map v1.0.1
 ```
 <!-- rsonpath-lib dependencies end -->
@@ -272,39 +272,39 @@ cargo tree --package rsonpath --edges normal
 
 <!-- rsonpath-full dependencies start -->
 ```ini
-rsonpath v0.8.6 (/home/mat/src/rsonpath/crates/rsonpath)
-├── clap v4.4.16
-│   ├── clap_builder v4.4.16
-│   │   ├── anstream v0.6.7
-│   │   │   ├── anstyle v1.0.4
+rsonpath v0.8.7 (/home/mat/src/rsonpath/crates/rsonpath)
+├── clap v4.5.1
+│   ├── clap_builder v4.5.1
+│   │   ├── anstream v0.6.13
+│   │   │   ├── anstyle v1.0.6
 │   │   │   ├── anstyle-parse v0.2.3
 │   │   │   │   └── utf8parse v0.2.1
 │   │   │   ├── anstyle-query v1.0.2
 │   │   │   │   └── windows-sys v0.52.0
-│   │   │   │       └── windows-targets v0.52.0
-│   │   │   │           ├── windows_aarch64_gnullvm v0.52.0
-│   │   │   │           ├── windows_aarch64_msvc v0.52.0
-│   │   │   │           ├── windows_i686_gnu v0.52.0
-│   │   │   │           ├── windows_i686_msvc v0.52.0
-│   │   │   │           ├── windows_x86_64_gnu v0.52.0
-│   │   │   │           ├── windows_x86_64_gnullvm v0.52.0
-│   │   │   │           └── windows_x86_64_msvc v0.52.0
+│   │   │   │       └── windows-targets v0.52.4
+│   │   │   │           ├── windows_aarch64_gnullvm v0.52.4
+│   │   │   │           ├── windows_aarch64_msvc v0.52.4
+│   │   │   │           ├── windows_i686_gnu v0.52.4
+│   │   │   │           ├── windows_i686_msvc v0.52.4
+│   │   │   │           ├── windows_x86_64_gnu v0.52.4
+│   │   │   │           ├── windows_x86_64_gnullvm v0.52.4
+│   │   │   │           └── windows_x86_64_msvc v0.52.4
 │   │   │   ├── anstyle-wincon v3.0.2
-│   │   │   │   ├── anstyle v1.0.4
+│   │   │   │   ├── anstyle v1.0.6
 │   │   │   │   └── windows-sys v0.52.0 (*)
 │   │   │   ├── colorchoice v1.0.0
 │   │   │   └── utf8parse v0.2.1
-│   │   ├── anstyle v1.0.4
-│   │   ├── clap_lex v0.6.0
-│   │   ├── strsim v0.10.0
+│   │   ├── anstyle v1.0.6
+│   │   ├── clap_lex v0.7.0
+│   │   ├── strsim v0.11.0
 │   │   └── terminal_size v0.3.0
-│   │       ├── rustix v0.38.30
-│   │       │   ├── bitflags v2.4.1
+│   │       ├── rustix v0.38.31
+│   │       │   ├── bitflags v2.4.2
 │   │       │   ├── errno v0.3.8
-│   │       │   │   ├── libc v0.2.152
+│   │       │   │   ├── libc v0.2.153
 │   │       │   │   └── windows-sys v0.52.0 (*)
-│   │       │   ├── libc v0.2.152
-│   │       │   ├── linux-raw-sys v0.4.12
+│   │       │   ├── libc v0.2.153
+│   │       │   ├── linux-raw-sys v0.4.13
 │   │       │   └── windows-sys v0.52.0 (*)
 │   │       └── windows-sys v0.48.0
 │   │           └── windows-targets v0.48.5
@@ -315,14 +315,14 @@ rsonpath v0.8.6 (/home/mat/src/rsonpath/crates/rsonpath)
 │   │               ├── windows_x86_64_gnu v0.48.5
 │   │               ├── windows_x86_64_gnullvm v0.48.5
 │   │               └── windows_x86_64_msvc v0.48.5
-│   └── clap_derive v4.4.7 (proc-macro)
+│   └── clap_derive v4.5.0 (proc-macro)
 │       ├── heck v0.4.1
-│       ├── proc-macro2 v1.0.76
+│       ├── proc-macro2 v1.0.78
 │       │   └── unicode-ident v1.0.12
 │       ├── quote v1.0.35
-│       │   └── proc-macro2 v1.0.76 (*)
-│       └── syn v2.0.48
-│           ├── proc-macro2 v1.0.76 (*)
+│       │   └── proc-macro2 v1.0.78 (*)
+│       └── syn v2.0.52
+│           ├── proc-macro2 v1.0.78 (*)
 │           ├── quote v1.0.35 (*)
 │           └── unicode-ident v1.0.12
 ├── color-eyre v0.6.2
@@ -330,57 +330,56 @@ rsonpath v0.8.6 (/home/mat/src/rsonpath/crates/rsonpath)
 │   │   ├── addr2line v0.21.0
 │   │   │   └── gimli v0.28.1
 │   │   ├── cfg-if v1.0.0
-│   │   ├── libc v0.2.152
-│   │   ├── miniz_oxide v0.7.1
+│   │   ├── libc v0.2.153
+│   │   ├── miniz_oxide v0.7.2
 │   │   │   └── adler v1.0.2
 │   │   ├── object v0.32.2
 │   │   │   └── memchr v2.7.1
 │   │   └── rustc-demangle v0.1.23
 │   │   [build-dependencies]
-│   │   └── cc v1.0.83
-│   │       └── libc v0.2.152
-│   ├── eyre v0.6.11
+│   │   └── cc v1.0.88
+│   ├── eyre v0.6.12
 │   │   ├── indenter v0.3.3
 │   │   └── once_cell v1.19.0
 │   ├── indenter v0.3.3
 │   ├── once_cell v1.19.0
 │   └── owo-colors v3.5.0
-├── eyre v0.6.11 (*)
-├── log v0.4.20
-├── rsonpath-lib v0.8.6 (/home/mat/src/rsonpath/crates/rsonpath-lib)
+├── eyre v0.6.12 (*)
+├── log v0.4.21
+├── rsonpath-lib v0.8.7 (/home/mat/src/rsonpath/crates/rsonpath-lib)
 │   ├── cfg-if v1.0.0
-│   ├── log v0.4.20
-│   ├── memmap2 v0.9.3
-│   │   └── libc v0.2.152
+│   ├── log v0.4.21
+│   ├── memmap2 v0.9.4
+│   │   └── libc v0.2.153
 │   ├── nom v7.1.3
 │   │   ├── memchr v2.7.1
 │   │   └── minimal-lexical v0.2.1
-│   ├── rsonpath-syntax v0.1.0 (/home/mat/src/rsonpath/crates/rsonpath-syntax)
+│   ├── rsonpath-syntax v0.2.0 (/home/mat/src/rsonpath/crates/rsonpath-syntax)
 │   │   ├── nom v7.1.3 (*)
 │   │   ├── owo-colors v4.0.0
-│   │   ├── thiserror v1.0.56
-│   │   │   └── thiserror-impl v1.0.56 (proc-macro)
-│   │   │       ├── proc-macro2 v1.0.76 (*)
+│   │   ├── thiserror v1.0.57
+│   │   │   └── thiserror-impl v1.0.57 (proc-macro)
+│   │   │       ├── proc-macro2 v1.0.78 (*)
 │   │   │       ├── quote v1.0.35 (*)
-│   │   │       └── syn v2.0.48 (*)
+│   │   │       └── syn v2.0.52 (*)
 │   │   └── unicode-width v0.1.11
-│   ├── smallvec v1.12.0
+│   ├── smallvec v1.13.1
 │   ├── static_assertions v1.1.0
-│   ├── thiserror v1.0.56 (*)
+│   ├── thiserror v1.0.57 (*)
 │   └── vector-map v1.0.1
 │       ├── contracts v0.4.0 (proc-macro)
-│       │   ├── proc-macro2 v1.0.76 (*)
+│       │   ├── proc-macro2 v1.0.78 (*)
 │       │   ├── quote v1.0.35 (*)
 │       │   └── syn v1.0.109
-│       │       ├── proc-macro2 v1.0.76 (*)
+│       │       ├── proc-macro2 v1.0.78 (*)
 │       │       ├── quote v1.0.35 (*)
 │       │       └── unicode-ident v1.0.12
 │       └── rand v0.7.3
 │           ├── getrandom v0.1.16
 │           │   ├── cfg-if v1.0.0
-│           │   ├── libc v0.2.152
+│           │   ├── libc v0.2.153
 │           │   └── wasi v0.9.0+wasi-snapshot-preview1
-│           ├── libc v0.2.152
+│           ├── libc v0.2.153
 │           ├── rand_chacha v0.2.2
 │           │   ├── ppv-lite86 v0.2.17
 │           │   └── rand_core v0.5.1
@@ -388,61 +387,65 @@ rsonpath v0.8.6 (/home/mat/src/rsonpath/crates/rsonpath)
 │           ├── rand_core v0.5.1 (*)
 │           └── rand_hc v0.2.0
 │               └── rand_core v0.5.1 (*)
-├── rsonpath-syntax v0.1.0 (/home/mat/src/rsonpath/crates/rsonpath-syntax) (*)
+├── rsonpath-syntax v0.2.0 (/home/mat/src/rsonpath/crates/rsonpath-syntax) (*)
 └── simple_logger v4.3.3
     ├── colored v2.1.0
     │   ├── lazy_static v1.4.0
     │   └── windows-sys v0.48.0 (*)
-    ├── log v0.4.20
-    ├── time v0.3.31
+    ├── log v0.4.21
+    ├── time v0.3.34
     │   ├── deranged v0.3.11
     │   │   └── powerfmt v0.2.0
     │   ├── itoa v1.0.10
-    │   ├── libc v0.2.152
-    │   ├── num_threads v0.1.6
-    │   │   └── libc v0.2.152
+    │   ├── libc v0.2.153
+    │   ├── num-conv v0.1.0
+    │   ├── num_threads v0.1.7
+    │   │   └── libc v0.2.153
     │   ├── powerfmt v0.2.0
     │   ├── time-core v0.1.2
-    │   └── time-macros v0.2.16 (proc-macro)
+    │   └── time-macros v0.2.17 (proc-macro)
+    │       ├── num-conv v0.1.0
     │       └── time-core v0.1.2
     └── windows-sys v0.48.0 (*)
 [build-dependencies]
 ├── rustflags v0.1.4
-└── vergen v8.2.9
-    ├── anyhow v1.0.79
+└── vergen v8.3.1
+    ├── anyhow v1.0.80
     ├── cargo_metadata v0.18.1
     │   ├── camino v1.1.6
-    │   │   └── serde v1.0.195
-    │   │       └── serde_derive v1.0.195 (proc-macro)
-    │   │           ├── proc-macro2 v1.0.76 (*)
+    │   │   └── serde v1.0.197
+    │   │       └── serde_derive v1.0.197 (proc-macro)
+    │   │           ├── proc-macro2 v1.0.78 (*)
     │   │           ├── quote v1.0.35 (*)
-    │   │           └── syn v2.0.48 (*)
-    │   ├── cargo-platform v0.1.6
-    │   │   └── serde v1.0.195 (*)
-    │   ├── semver v1.0.21
-    │   │   └── serde v1.0.195 (*)
-    │   ├── serde v1.0.195 (*)
-    │   ├── serde_json v1.0.111
+    │   │           └── syn v2.0.52 (*)
+    │   ├── cargo-platform v0.1.7
+    │   │   └── serde v1.0.197 (*)
+    │   ├── semver v1.0.22
+    │   │   └── serde v1.0.197 (*)
+    │   ├── serde v1.0.197 (*)
+    │   ├── serde_json v1.0.114
     │   │   ├── itoa v1.0.10
-    │   │   ├── ryu v1.0.16
-    │   │   └── serde v1.0.195 (*)
-    │   └── thiserror v1.0.56 (*)
-    ├── regex v1.10.2
+    │   │   ├── ryu v1.0.17
+    │   │   └── serde v1.0.197 (*)
+    │   └── thiserror v1.0.57 (*)
+    ├── cfg-if v1.0.0
+    ├── regex v1.10.3
     │   ├── aho-corasick v1.1.2
     │   │   └── memchr v2.7.1
     │   ├── memchr v2.7.1
-    │   ├── regex-automata v0.4.3
+    │   ├── regex-automata v0.4.5
     │   │   ├── aho-corasick v1.1.2 (*)
     │   │   ├── memchr v2.7.1
     │   │   └── regex-syntax v0.8.2
     │   └── regex-syntax v0.8.2
     ├── rustc_version v0.4.0
-    │   └── semver v1.0.21 (*)
-    └── time v0.3.31
+    │   └── semver v1.0.22 (*)
+    └── time v0.3.34
         ├── deranged v0.3.11 (*)
         ├── itoa v1.0.10
-        ├── libc v0.2.152
-        ├── num_threads v0.1.6 (*)
+        ├── libc v0.2.153
+        ├── num-conv v0.1.0
+        ├── num_threads v0.1.7 (*)
         ├── powerfmt v0.2.0
         └── time-core v0.1.2
     [build-dependencies]

@@ -71,7 +71,8 @@ body:
   attributes:
     label: Version of the release
     options:
-      # <newest-release=v0.8.6>
+      # <newest-release=v0.8.7>
+      - v0.8.7
       - v0.8.6
       - v0.8.5
       - v0.8.4

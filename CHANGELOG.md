@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.7] - 2024-02-29
+
+### Features
+
+- [**breaking**] Parsing filter expressions. ([#154](https://github.com/V0ldek/rsonpath/issues/154))
+  - This is mainly an `rsonpath-syntax` change &ndash; the selectors are parsed,
+    but `rq` will give you an unsupported error and a link to [#154](https://github.com/V0ldek/rsonpath/issues/154)
+    if you put them in a query.
+  
+### Reliability
+
+- Add msrv verify as ci check. ([#480](https://github.com/V0ldek/rsonpath/issues/480))
+  - The MSRV got unknowingly bumped before, with this CI check we will avoid it in the future.
+
+### Dependencies
+
+- Bump clap from 4.4.16 to 4.5.1
+- Bump eyre from 0.6.11 to 0.6.12
+- Bump log from 0.4.20 to 0.4.21
+- Bump memmap2 from 0.9.3 to 0.9.4
+- Bump smallvec from 1.12.0 to 1.13.1
+- Bump thiserror from 1.0.56 to 1.0.57
+- Bump vergen from 8.2.7 to 8.3.1
+
 ## [0.8.6] - 2024-01-15
 
 ### Features
@@ -181,7 +205,7 @@ All notable changes to this project will be documented in this file.
 - Fixed a panic when parsing invalid queries with wide UTF8 characters.
   - This was detected by fuzzing! Parsing a query with invalid syntax
     caused by a longer-than-byte UTF-8 character would panic when
-    the error handler tried to resume parsing from the next _byte_
+    the error handler tried to resume parsing from the next *byte*
     instead of respecting char boundaries.
 - Fixed a panic caused by node results in invalid JSON documents.
   - This was detected by fuzzing! Invalid JSON documents could
@@ -264,7 +288,7 @@ All notable changes to this project will be documented in this file.
   - Actions now use explicit, lowest possible permissions for all jobs.
 - Add SLSA3 provenance to the release pipeline.
   - Future releases will include cryptographically signed provenance for all binaries.
-    See: https://slsa.dev/spec/v1.0/about
+    See: <https://slsa.dev/spec/v1.0/about>
 
 - [StepSecurity](https://www.stepsecurity.io/) Apply security best practices.
   - All CI uses hash-pinned dependencies now.
@@ -478,7 +502,7 @@ of input-engine-result types.
 ### Bug Fixes
 
 - Properly flow simd feature to dependencies. ([#111](https://github.com/V0ldek/rsonpath/issues/111))
-  - This fixes build issues with the `aarch64` target. It also turns out our CI did not actually compile to all the targets we claimed it did, which is a bit embarrassing. We now _do_ actually support all Rust Tier 1 targets and run tests for all **except** `aarch64-unknown-linux-gnu`, because there's no image for aarch64 on GitHub.
+  - This fixes build issues with the `aarch64` target. It also turns out our CI did not actually compile to all the targets we claimed it did, which is a bit embarrassing. We now *do* actually support all Rust Tier 1 targets and run tests for all **except** `aarch64-unknown-linux-gnu`, because there's no image for aarch64 on GitHub.
 
 ### Dependencies
 

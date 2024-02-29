@@ -2,7 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2024-02-29
+
+### Features
+
+- [**breaking**] Parsing `Filter` selectors.
+  - Added the `Selector::Filter` variant and related parsing.
+
+### Dependencies
+
+- Bump thiserror from 1.0.56 to 1.0.57
+
 ## [0.2.0] - 2024-01-15
+
+### Features
+
+- [**breaking**] Parsing `Slice` selectors.
+  - Added the `Selector::Slice` variant and related parsing.
 
 ### Bug Fixes
 
