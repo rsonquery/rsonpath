@@ -24,7 +24,7 @@ thiserror = "1.0.57"
 unicode-width = "0.1.11"
 
 [dev-dependencies]
-insta = "1.35.1"
+insta = "1.36.1"
 pretty_assertions = "1.4.0"
 proptest = "1.4.0"
 test-case = "3.3.1"
