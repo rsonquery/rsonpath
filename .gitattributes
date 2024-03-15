@@ -1,2 +1,3 @@
 * eol=lf
 /pdf/* -text
+/crates/rsonpath-syntax/tests/error_snapshots.rs diff

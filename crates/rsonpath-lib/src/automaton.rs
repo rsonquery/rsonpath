@@ -19,79 +19,10 @@ pub struct Automaton<'q> {
     states: Vec<StateTable<'q>>,
 }
 
-/// Represent the distinct methods of moving on a match between states.
-#[derive(Debug, Copy, PartialEq, Clone, Eq)]
-pub enum TransitionLabel<'q> {
-    /// Transition when a JSON member name matches a [`JsonString`]i.
-    ObjectMember(&'q JsonString),
-    /// Transition on the n-th element of an array, with n specified by a [`JsonUInt`].
-    ArrayIndex(JsonUInt),
-}
-
-impl<'q> TransitionLabel<'q> {
-    ///Return the textual [`JsonString`] being wrapped if so. Returns [`None`] otherwise.
-    #[must_use]
-    #[inline(always)]
-    pub fn get_member_name(&self) -> Option<&'q JsonString> {
-        match self {
-            TransitionLabel::ObjectMember(name) => Some(name),
-            TransitionLabel::ArrayIndex(_) => None,
-        }
-    }
-
-    ///Return the [`JsonUInt`] being wrapped if so. Returns [`None`] otherwise.
-    #[must_use]
-    #[inline(always)]
-    pub fn get_array_index(&'q self) -> Option<&'q JsonUInt> {
-        match self {
-            TransitionLabel::ArrayIndex(name) => Some(name),
-            TransitionLabel::ObjectMember(_) => None,
-        }
-    }
-
-    /// Wraps a [`JsonString`] in a [`TransitionLabel`].
-    #[must_use]
-    #[inline(always)]
-    pub fn new_object_member(member_name: &'q JsonString) -> Self {
-        TransitionLabel::ObjectMember(member_name)
-    }
-
-    /// Wraps a [`JsonUInt`] in a [`TransitionLabel`].
-    #[must_use]
-    #[inline(always)]
-    pub fn new_array_index(index: JsonUInt) -> Self {
-        TransitionLabel::ArrayIndex(index)
-    }
-}
-
-impl<'q> From<&'q JsonString> for TransitionLabel<'q> {
-    #[must_use]
-    #[inline(always)]
-    fn from(member_name: &'q JsonString) -> Self {
-        TransitionLabel::new_object_member(member_name)
-    }
-}
-
-impl Display for TransitionLabel<'_> {
-    #[inline(always)]
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            TransitionLabel::ObjectMember(name) => write!(f, "{}", name.unquoted()),
-            TransitionLabel::ArrayIndex(index) => write!(f, "{}", index.as_u64()),
-        }
-    }
-}
-
-impl From<JsonUInt> for TransitionLabel<'_> {
-    #[must_use]
-    #[inline(always)]
-    fn from(index: JsonUInt) -> Self {
-        TransitionLabel::new_array_index(index)
-    }
-}
-
-/// A single transition of an [`Automaton`].
-type Transition<'q> = (TransitionLabel<'q>, State);
+/// Transition when a JSON member name matches a [`JsonString`]i.
+pub type MemberTransition<'q> = (&'q JsonString, State);
+/// Transition on the n-th element of an array, with n specified by a [`JsonUInt`].
+pub type ArrayTransition<'q> = (JsonUInt, State);
 
 /// A transition table of a single [`State`] of an [`Automaton`].
 ///
@@ -100,7 +31,8 @@ type Transition<'q> = (TransitionLabel<'q>, State);
 #[derive(Debug)]
 pub struct StateTable<'q> {
     attributes: StateAttributes,
-    transitions: SmallVec<[Transition<'q>; 2]>,
+    member_transitions: SmallVec<[MemberTransition<'q>; 2]>,
+    array_transitions: SmallVec<[ArrayTransition<'q>; 2]>,
     fallback_state: State,
 }
 
@@ -109,7 +41,8 @@ impl<'q> Default for StateTable<'q> {
     fn default() -> Self {
         Self {
             attributes: StateAttributes::default(),
-            transitions: Default::default(),
+            member_transitions: SmallVec::default(),
+            array_transitions: SmallVec::default(),
             fallback_state: State(0),
         }
     }
@@ -118,11 +51,17 @@ impl<'q> Default for StateTable<'q> {
 impl<'q> PartialEq for StateTable<'q> {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
-        self.fallback_state == other.fallback_state
-            && self.transitions.len() == other.transitions.len()
-            && self.transitions.iter().all(|x| other.transitions.contains(x))
-            && other.transitions.iter().all(|x| self.transitions.contains(x))
-            && self.attributes == other.attributes
+        return self.fallback_state == other.fallback_state
+            && set_eq(&self.array_transitions, &other.array_transitions)
+            && set_eq(&self.member_transitions, &other.member_transitions)
+            && self.attributes == other.attributes;
+
+        #[inline(always)]
+        fn set_eq<T: Eq, A: smallvec::Array<Item = T>>(left: &SmallVec<A>, right: &SmallVec<A>) -> bool {
+            left.len() == right.len()
+                && left.iter().all(|x| right.contains(x))
+                && right.iter().all(|x| left.contains(x))
+        }
     }
 }
 
@@ -209,7 +148,7 @@ impl<'q> Automaton<'q> {
     /// # use rsonpath::automaton::*;
     /// let query = rsonpath_syntax::parse("$.a").unwrap();
     /// let automaton = Automaton::new(&query).unwrap();
-    /// let state_2 = automaton[automaton.initial_state()].transitions()[0].1;
+    /// let state_2 = automaton[automaton.initial_state()].member_transitions()[0].1;
     ///
     /// assert!(automaton.is_accepting(state_2));
     /// ```
@@ -233,30 +172,7 @@ impl<'q> Automaton<'q> {
     #[must_use]
     #[inline(always)]
     pub fn has_any_array_item_transition(&self, state: State) -> bool {
-        self[state]
-            .transitions()
-            .iter()
-            .any(|t| matches!(t, (TransitionLabel::ArrayIndex(_), _)))
-    }
-
-    /// Returns whether the given state is accepting an item in a list.
-    ///
-    /// # Example
-    /// ```rust
-    /// # use rsonpath::automaton::*;
-    /// let query = rsonpath_syntax::parse("$[2]").unwrap();
-    /// let automaton = Automaton::new(&query).unwrap();
-    /// let state = automaton.initial_state();
-    ///
-    /// assert!(automaton.has_any_array_item_transition_to_accepting(state));
-    /// ```
-    #[must_use]
-    #[inline(always)]
-    pub fn has_any_array_item_transition_to_accepting(&self, state: State) -> bool {
-        self[state].transitions().iter().any(|t| match t {
-            (TransitionLabel::ArrayIndex(_), s) => self.is_accepting(*s),
-            _ => false,
-        })
+        self[state].attributes.has_array_index_transition()
     }
 
     /// Returns whether the given state is accepting the first item in a list.
@@ -302,10 +218,12 @@ impl<'q> Automaton<'q> {
     #[must_use]
     #[inline(always)]
     pub fn has_array_index_transition_to_accepting(&self, state: State, match_index: &JsonUInt) -> bool {
-        self[state].transitions().iter().any(|t| match t {
-            (TransitionLabel::ArrayIndex(i), s) => i.eq(match_index) && self.is_accepting(*s),
-            _ => false,
-        })
+        let state = &self[state];
+        state.attributes.has_array_index_transition_to_accepting()
+            && state
+                .array_transitions()
+                .iter()
+                .any(|(i, s)| i.eq(match_index) && self.is_accepting(*s))
     }
 
     /// Returns whether the given state has any transitions
@@ -379,14 +297,24 @@ impl<'q> StateTable<'q> {
         self.fallback_state
     }
 
-    /// Returns the collection of labelled transitions from this state.
+    /// Returns the collection of labelled array transitions from this state.
     ///
-    /// A transition is triggered if the [`TransitionLabel`] is matched and leads
+    /// A transition is triggered if the [`ArrayTransition`] is matched and leads
     /// to the contained [`State`].
     #[must_use]
     #[inline(always)]
-    pub fn transitions(&self) -> &[Transition<'q>] {
-        &self.transitions
+    pub fn array_transitions(&self) -> &[ArrayTransition<'q>] {
+        &self.array_transitions
+    }
+
+    /// Returns the collection of labelled member transitions from this state.
+    ///
+    /// A transition is triggered if the [`MemberTransition`] is matched and leads
+    /// to the contained [`State`].
+    #[must_use]
+    #[inline(always)]
+    pub fn member_transitions(&self) -> &[MemberTransition<'q>] {
+        &self.member_transitions
     }
 }
 
@@ -420,8 +348,11 @@ impl<'q> Display for Automaton<'q> {
         }
 
         for (i, transitions) in self.states.iter().enumerate() {
-            for (label, state) in &transitions.transitions {
-                writeln!(f, "  {i} -> {} [label=\"{}\"]", state.0, label,)?
+            for (label, state) in &transitions.array_transitions {
+                writeln!(f, "  {i} -> {} [label=\"[{}]\"]", state.0, label.as_u64())?
+            }
+            for (label, state) in &transitions.member_transitions {
+                writeln!(f, "  {i} -> {} [label=\"{}\"]", state.0, label.unquoted())?
             }
             writeln!(f, "  {i} -> {} [label=\"*\"]", transitions.fallback_state.0)?;
         }

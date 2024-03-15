@@ -3,8 +3,8 @@
 //! a DFA with the minimizer.
 use crate::error::UnsupportedFeatureError;
 
-use super::{error::CompilerError, TransitionLabel};
-use rsonpath_syntax::JsonPathQuery;
+use super::error::CompilerError;
+use rsonpath_syntax::{num::JsonUInt, str::JsonString, JsonPathQuery};
 use std::{fmt::Display, ops::Index};
 
 /// An NFA representing a query. It is always a directed path
@@ -31,10 +31,61 @@ use NfaState::*;
 /// A transition in the NFA mapped from a [`JsonPathQuery`] selector.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(super) enum Transition<'q> {
-    /// A transition matching a specific label.
+    /// A transition matching a specific member or array index.
     Labelled(TransitionLabel<'q>),
     /// A transition matching anything.
     Wildcard,
+}
+
+/// Represent the distinct methods of moving on a match between states.
+#[derive(Debug, Copy, PartialEq, Clone, Eq)]
+pub(super) enum TransitionLabel<'q> {
+    /// Transition when a JSON member name matches a [`JsonString`].
+    ObjectMember(&'q JsonString),
+    /// Transition on the n-th element of an array, with n specified by a [`JsonUInt`].
+    ArrayIndex(JsonUInt),
+}
+
+impl<'q> TransitionLabel<'q> {
+    /// Wraps a [`JsonString`] in a [`TransitionLabel`].
+    #[must_use]
+    #[inline(always)]
+    pub(super) fn new_object_member(member_name: &'q JsonString) -> Self {
+        TransitionLabel::ObjectMember(member_name)
+    }
+
+    /// Wraps a [`JsonUInt`] in a [`TransitionLabel`].
+    #[must_use]
+    #[inline(always)]
+    pub(super) fn new_array_index(index: JsonUInt) -> Self {
+        TransitionLabel::ArrayIndex(index)
+    }
+}
+
+impl<'q> From<&'q JsonString> for TransitionLabel<'q> {
+    #[must_use]
+    #[inline(always)]
+    fn from(member_name: &'q JsonString) -> Self {
+        TransitionLabel::new_object_member(member_name)
+    }
+}
+
+impl Display for TransitionLabel<'_> {
+    #[inline(always)]
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TransitionLabel::ObjectMember(name) => write!(f, "{}", name.unquoted()),
+            TransitionLabel::ArrayIndex(index) => write!(f, "{}", index.as_u64()),
+        }
+    }
+}
+
+impl From<JsonUInt> for TransitionLabel<'_> {
+    #[must_use]
+    #[inline(always)]
+    fn from(index: JsonUInt) -> Self {
+        TransitionLabel::new_array_index(index)
+    }
 }
 
 /// State of an [`NondeterministicAutomaton`]. Thin wrapper over a state's
