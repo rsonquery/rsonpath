@@ -222,7 +222,6 @@ impl<'q> Display for NondeterministicAutomaton<'q> {
 mod tests {
     use super::*;
     use rsonpath_syntax::builder::JsonPathQueryBuilder;
-    use rsonpath_syntax::str::JsonString;
 
     #[test]
     fn nfa_test() {
