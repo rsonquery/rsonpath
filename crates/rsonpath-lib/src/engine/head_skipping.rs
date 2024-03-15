@@ -95,22 +95,21 @@ impl<'b, 'q, I: Input, V: Simd> HeadSkip<'b, 'q, I, V, BLOCK_SIZE> {
     pub(super) fn new(bytes: &'b I, automaton: &'b Automaton<'q>, simd: V) -> Option<Self> {
         let initial_state = automaton.initial_state();
         let fallback_state = automaton[initial_state].fallback_state();
-        let transitions = automaton[initial_state].transitions();
+        let transitions = automaton[initial_state].member_transitions();
 
-        if fallback_state == initial_state && transitions.len() == 1 {
-            let (label, target_state) = transitions[0];
-
-            if let Some(member_name) = label.get_member_name() {
-                debug!("Automaton starts with a descendant search, using memmem heuristic.");
-
-                return Some(Self {
-                    bytes,
-                    state: target_state,
-                    is_accepting: automaton.is_accepting(target_state),
-                    member_name,
-                    simd,
-                });
-            }
+        if fallback_state == initial_state
+            && transitions.len() == 1
+            && automaton[initial_state].array_transitions().is_empty()
+        {
+            let (member_name, target_state) = transitions[0];
+            debug!("Automaton starts with a descendant search, using memmem heuristic.");
+            return Some(Self {
+                bytes,
+                state: target_state,
+                is_accepting: automaton.is_accepting(target_state),
+                member_name,
+                simd,
+            });
         }
 
         None

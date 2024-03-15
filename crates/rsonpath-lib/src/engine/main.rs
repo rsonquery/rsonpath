@@ -8,7 +8,7 @@
 use crate::{
     automaton::{
         error::CompilerError,
-        {Automaton, State, TransitionLabel},
+        {Automaton, State},
     },
     classification::{
         simd::{self, config_simd, dispatch_simd, Simd, SimdConfiguration},
@@ -163,8 +163,6 @@ struct Executor<'i, 'q, 'r, I, R, V> {
     next_event: Option<Structural>,
     is_list: bool,
     array_count: JsonUInt,
-    has_any_array_item_transition: bool,
-    has_any_array_item_transition_to_accepting: bool,
 }
 
 fn query_executor<'i, 'q, 'r, I, R, V: Simd>(
@@ -188,8 +186,6 @@ where
         next_event: None,
         is_list: false,
         array_count: JsonUInt::ZERO,
-        has_any_array_item_transition: false,
-        has_any_array_item_transition_to_accepting: false,
     }
 }
 
@@ -299,19 +295,14 @@ where
         if !is_next_opening {
             let mut any_matched = false;
 
-            for &(label, target) in self.automaton[self.state].transitions() {
-                match label {
-                    TransitionLabel::ArrayIndex(_) => {}
-                    TransitionLabel::ObjectMember(member_name) => {
-                        if self.automaton.is_accepting(target) && self.is_match(idx, member_name)? {
-                            self.record_match_detected_at(
-                                idx + 1,
-                                NodeTypeHint::Atomic, /* since is_next_opening is false */
-                            )?;
-                            any_matched = true;
-                            break;
-                        }
-                    }
+            for &(member_name, target) in self.automaton[self.state].member_transitions() {
+                if self.automaton.is_accepting(target) && self.is_match(idx, member_name)? {
+                    self.record_match_detected_at(
+                        idx + 1,
+                        NodeTypeHint::Atomic, /* since is_next_opening is false */
+                    )?;
+                    any_matched = true;
+                    break;
                 }
             }
             let fallback_state = self.automaton[self.state].fallback_state();
@@ -363,11 +354,12 @@ where
         }
         debug!("Incremented array count to {}", self.array_count);
 
-        let match_index = self
-            .automaton
-            .has_array_index_transition_to_accepting(self.state, &self.array_count);
-
-        if self.is_list && !is_next_opening && match_index {
+        if self.is_list
+            && !is_next_opening
+            && self
+                .automaton
+                .has_array_index_transition_to_accepting(self.state, &self.array_count)
+        {
             debug!("Accepting on list item.");
             self.record_match_detected_at(idx + 1, NodeTypeHint::Atomic /* since is_next_opening is false */)?;
         }
@@ -387,29 +379,28 @@ where
 
         let colon_idx = self.find_preceding_colon(idx);
 
-        for &(label, target) in self.automaton[self.state].transitions() {
-            match label {
-                TransitionLabel::ArrayIndex(i) => {
-                    if self.is_list && i.eq(&self.array_count) {
+        'trans: {
+            for &(i, target) in self.automaton[self.state].array_transitions() {
+                if self.is_list && i.eq(&self.array_count) {
+                    any_matched = true;
+                    self.transition_to(target, bracket_type);
+                    if self.automaton.is_accepting(target) {
+                        debug!("Accept {idx}");
+                        self.record_match_detected_at(idx, NodeTypeHint::Complex(bracket_type))?;
+                    }
+                    break 'trans;
+                }
+            }
+
+            for &(member_name, target) in self.automaton[self.state].member_transitions() {
+                if let Some(colon_idx) = colon_idx {
+                    if self.is_match(colon_idx, member_name)? {
                         any_matched = true;
                         self.transition_to(target, bracket_type);
                         if self.automaton.is_accepting(target) {
-                            debug!("Accept {idx}");
-                            self.record_match_detected_at(idx, NodeTypeHint::Complex(bracket_type))?;
+                            self.record_match_detected_at(colon_idx + 1, NodeTypeHint::Complex(bracket_type))?;
                         }
-                        break;
-                    }
-                }
-                TransitionLabel::ObjectMember(member_name) => {
-                    if let Some(colon_idx) = colon_idx {
-                        if self.is_match(colon_idx, member_name)? {
-                            any_matched = true;
-                            self.transition_to(target, bracket_type);
-                            if self.automaton.is_accepting(target) {
-                                self.record_match_detected_at(colon_idx + 1, NodeTypeHint::Complex(bracket_type))?;
-                            }
-                            break;
-                        }
+                        break 'trans;
                     }
                 }
             }
@@ -439,14 +430,10 @@ where
         let mut needs_commas = false;
 
         if self.is_list {
-            self.has_any_array_item_transition = self.automaton.has_any_array_item_transition(self.state);
-            self.has_any_array_item_transition_to_accepting =
-                self.automaton.has_any_array_item_transition_to_accepting(self.state);
-
             let fallback = self.automaton[self.state].fallback_state();
             let is_fallback_accepting = self.automaton.is_accepting(fallback);
 
-            let searching_list = is_fallback_accepting || self.has_any_array_item_transition;
+            let searching_list = is_fallback_accepting || self.automaton.has_any_array_item_transition(self.state);
 
             if searching_list {
                 needs_commas = true;
@@ -498,8 +485,6 @@ where
             self.state = stack_frame.state;
             self.is_list = stack_frame.is_list;
             self.array_count = stack_frame.array_count;
-            self.has_any_array_item_transition = stack_frame.has_any_array_item_transition;
-            self.has_any_array_item_transition_to_accepting = stack_frame.has_any_array_item_transition_to_accepting;
 
             debug!("Restored array count to {}", self.array_count);
 
@@ -514,7 +499,7 @@ where
 
         if self.is_list
             && (self.automaton.is_accepting(self.automaton[self.state].fallback_state())
-                || self.has_any_array_item_transition)
+                || self.automaton.has_any_array_item_transition(self.state))
         {
             classifier.turn_commas_on(idx);
         } else {
@@ -536,7 +521,7 @@ where
 
         let fallback = self.automaton[self.state].fallback_state();
         let is_fallback_accepting = self.automaton.is_accepting(fallback);
-        let searching_list = is_fallback_accepting || self.has_any_array_item_transition;
+        let searching_list = is_fallback_accepting || self.automaton.has_any_array_item_transition(self.state);
 
         if target != self.state || target_is_list != self.is_list || searching_list {
             debug!(
@@ -549,8 +534,6 @@ where
                 state: self.state,
                 is_list: self.is_list,
                 array_count: self.array_count,
-                has_any_array_item_transition: self.has_any_array_item_transition,
-                has_any_array_item_transition_to_accepting: self.has_any_array_item_transition_to_accepting,
             });
             self.state = target;
         }
@@ -608,8 +591,6 @@ struct StackFrame {
     state: State,
     is_list: bool,
     array_count: JsonUInt,
-    has_any_array_item_transition: bool,
-    has_any_array_item_transition_to_accepting: bool,
 }
 
 #[derive(Debug)]
