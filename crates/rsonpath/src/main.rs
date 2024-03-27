@@ -35,6 +35,7 @@ fn run_with_args(args: &Args) -> Result<()> {
     if args.compile {
         // Only compilation was requested, so we print the automaton and exit.
         println!("{automaton}");
+        debug!("{automaton:?}");
         Ok(())
     } else {
         // Actual query execution.

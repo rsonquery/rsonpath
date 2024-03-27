@@ -154,6 +154,14 @@ impl UnsupportedFeatureError {
         Self::tracked(152, "Slice Selector")
     }
 
+    /// Slice with Backward Step &ndash; supporting slice selectors that step backwards.
+    /// Unsupported and not planned (yet).
+    #[must_use]
+    #[inline(always)]
+    pub fn slice_with_backward_step() -> Self {
+        Self::untracked("Slice with Backward Step")
+    }
+
     /// Filter Selector &ndash; supporting filter selectors.
     /// <https://github.com/V0ldek/rsonpath/issues/154>
     #[must_use]

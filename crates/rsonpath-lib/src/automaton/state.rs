@@ -19,10 +19,10 @@ pub(crate) enum StateAttribute {
     /// (labelled or fallback) to an [`Accepting`](`StateAttribute::Accepting`) state.
     TransitionsToAccepting = 0x08,
     /// Marks that the [`State`] contains some transition labelled with an array index.
-    HasArrayIndexTransition = 0x10,
+    HasArrayTransition = 0x10,
     /// Marks that the [`State`] contains an array-index labelled transition
     /// to an to an [`Accepting`](`StateAttribute::Accepting`) state.
-    HasArrayIndexTransitionToAccepting = 0x20,
+    HasArrayTransitionToAccepting = 0x20,
 }
 
 pub(crate) struct StateAttributesBuilder {
@@ -56,12 +56,12 @@ impl StateAttributesBuilder {
         self.set(StateAttribute::TransitionsToAccepting)
     }
 
-    pub(crate) fn has_array_index_transition(self) -> Self {
-        self.set(StateAttribute::HasArrayIndexTransition)
+    pub(crate) fn has_array_transition(self) -> Self {
+        self.set(StateAttribute::HasArrayTransition)
     }
 
-    pub(crate) fn has_array_index_transition_to_accepting(self) -> Self {
-        self.set(StateAttribute::HasArrayIndexTransitionToAccepting)
+    pub(crate) fn has_array_transition_to_accepting(self) -> Self {
+        self.set(StateAttribute::HasArrayTransitionToAccepting)
     }
 
     pub(crate) fn build(self) -> StateAttributes {
@@ -106,12 +106,11 @@ impl StateAttributes {
     /// A state is _unitary_ if it contains exactly one labelled transition
     /// and its fallback transition is [`Rejecting`](`StateAttributes::is_rejecting`).
     pub const UNITARY: Self = Self(StateAttribute::Unitary as u8);
-    /// Marks that the [`State`] contains some transition labelled with an array index.
-    pub const HAS_ARRAY_INDEX_TRANSITION: Self = Self(StateAttribute::HasArrayIndexTransition as u8);
-    /// Marks that the [`State`] contains an array-index labelled transition
+    /// Marks that the [`State`] contains some transition labelled with an array index or slice.
+    pub const HAS_ARRAY_TRANSITION: Self = Self(StateAttribute::HasArrayTransition as u8);
+    /// Marks that the [`State`] contains an array index- or slice-labelled transition
     /// to an to an [`Accepting`](`StateAttributes::is_accepting`) state.
-    pub const HAS_ARRAY_INDEX_TRANSITION_TO_ACCEPTING: Self =
-        Self(StateAttribute::HasArrayIndexTransitionToAccepting as u8);
+    pub const HAS_ARRAY_TRANSITION_TO_ACCEPTING: Self = Self(StateAttribute::HasArrayTransitionToAccepting as u8);
 
     /// Check if the the state is accepting.
     #[inline(always)]
@@ -145,19 +144,19 @@ impl StateAttributes {
         self.is_set(StateAttribute::Unitary)
     }
 
-    /// Marks that the [`State`] contains some transition labelled with an array index.
+    /// Marks that the [`State`] contains some transition labelled with an array index or slice.
     #[inline(always)]
     #[must_use]
-    pub fn has_array_index_transition(&self) -> bool {
-        self.is_set(StateAttribute::HasArrayIndexTransition)
+    pub fn has_array_transition(&self) -> bool {
+        self.is_set(StateAttribute::HasArrayTransition)
     }
 
-    /// Marks that the [`State`] contains an array-index labelled transition
+    /// Marks that the [`State`] contains an array index- or slice- labelled transition
     /// to an to an [`Accepting`](`StateAttributes::is_accepting`) state.
     #[inline(always)]
     #[must_use]
-    pub fn has_array_index_transition_to_accepting(&self) -> bool {
-        self.is_set(StateAttribute::HasArrayIndexTransitionToAccepting)
+    pub fn has_array_transition_to_accepting(&self) -> bool {
+        self.is_set(StateAttribute::HasArrayTransitionToAccepting)
     }
 
     #[inline(always)]

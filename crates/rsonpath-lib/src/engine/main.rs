@@ -6,10 +6,7 @@
 //! the JSON structure, which allows efficient SIMD operations and optimized register usage.
 #![allow(clippy::type_complexity)] // The private Classifier type is very complex, but we specifically macro it out.
 use crate::{
-    automaton::{
-        error::CompilerError,
-        {Automaton, State},
-    },
+    automaton::{error::CompilerError, Automaton, State},
     classification::{
         simd::{self, config_simd, dispatch_simd, Simd, SimdConfiguration},
         structural::{BracketType, Structural, StructuralIterator},
@@ -377,20 +374,21 @@ where
         debug!("Opening {bracket_type:?}, increasing depth and pushing stack.",);
         let mut any_matched = false;
 
-        let colon_idx = self.find_preceding_colon(idx);
-
-        'trans: {
-            for &(i, target) in self.automaton[self.state].array_transitions() {
-                if self.is_list && i.eq(&self.array_count) {
+        if self.is_list {
+            for trans in self.automaton[self.state].array_transitions() {
+                if trans.matches(self.array_count) {
+                    let target = trans.target_state();
                     any_matched = true;
                     self.transition_to(target, bracket_type);
                     if self.automaton.is_accepting(target) {
                         debug!("Accept {idx}");
                         self.record_match_detected_at(idx, NodeTypeHint::Complex(bracket_type))?;
                     }
-                    break 'trans;
+                    break;
                 }
             }
+        } else {
+            let colon_idx = self.find_preceding_colon(idx);
 
             for &(member_name, target) in self.automaton[self.state].member_transitions() {
                 if let Some(colon_idx) = colon_idx {
@@ -400,7 +398,7 @@ where
                         if self.automaton.is_accepting(target) {
                             self.record_match_detected_at(colon_idx + 1, NodeTypeHint::Complex(bracket_type))?;
                         }
-                        break 'trans;
+                        break;
                     }
                 }
             }

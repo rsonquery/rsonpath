@@ -1,4 +1,5 @@
 //! Automaton representations of a JSONPath query.
+mod array_transition_set;
 pub mod error;
 mod minimizer;
 mod nfa;
@@ -21,8 +22,23 @@ pub struct Automaton<'q> {
 
 /// Transition when a JSON member name matches a [`JsonString`]i.
 pub type MemberTransition<'q> = (&'q JsonString, State);
-/// Transition on the n-th element of an array, with n specified by a [`JsonUInt`].
-pub type ArrayTransition<'q> = (JsonUInt, State);
+
+/// Transition on elements of an array with indices specified by either a single index
+/// or a simple slice expression.
+#[derive(Debug, PartialEq, Eq)]
+pub struct ArrayTransition {
+    label: ArrayTransitionLabel,
+    target: State,
+}
+
+/// Represent the distinct methods of moving on a match between states.
+#[derive(Debug, Copy, PartialEq, Clone, Eq)]
+pub(super) enum ArrayTransitionLabel {
+    /// Transition on the n-th element of an array, with n specified by a [`JsonUInt`].
+    Index(JsonUInt),
+    /// Transition on elements of array matched by a slice expression - bounds and a step.
+    Slice(SimpleSlice),
+}
 
 /// A transition table of a single [`State`] of an [`Automaton`].
 ///
@@ -32,8 +48,15 @@ pub type ArrayTransition<'q> = (JsonUInt, State);
 pub struct StateTable<'q> {
     attributes: StateAttributes,
     member_transitions: SmallVec<[MemberTransition<'q>; 2]>,
-    array_transitions: SmallVec<[ArrayTransition<'q>; 2]>,
+    array_transitions: SmallVec<[ArrayTransition; 2]>,
     fallback_state: State,
+}
+
+#[derive(Debug, Copy, PartialEq, Clone, Eq)]
+pub(crate) struct SimpleSlice {
+    start: JsonUInt,
+    end: Option<JsonUInt>,
+    step: JsonUInt,
 }
 
 impl<'q> Default for StateTable<'q> {
@@ -73,6 +96,47 @@ impl<'q> Index<State> for Automaton<'q> {
     #[inline(always)]
     fn index(&self, index: State) -> &Self::Output {
         &self.states[index.0 as usize]
+    }
+}
+
+impl ArrayTransition {
+    pub(crate) fn new(label: ArrayTransitionLabel, target: State) -> Self {
+        Self { label, target }
+    }
+
+    #[inline(always)]
+    pub(crate) fn target_state(&self) -> State {
+        self.target
+    }
+
+    #[inline(always)]
+    pub(crate) fn matches(&self, index: JsonUInt) -> bool {
+        self.label.matches(index)
+    }
+}
+
+impl ArrayTransitionLabel {
+    pub(crate) fn matches(&self, index: JsonUInt) -> bool {
+        match self {
+            Self::Index(i) => index.eq(i),
+            Self::Slice(s) => s.contains(index),
+        }
+    }
+}
+
+impl From<JsonUInt> for ArrayTransitionLabel {
+    #[must_use]
+    #[inline(always)]
+    fn from(index: JsonUInt) -> Self {
+        Self::Index(index)
+    }
+}
+
+impl From<SimpleSlice> for ArrayTransitionLabel {
+    #[must_use]
+    #[inline(always)]
+    fn from(slice: SimpleSlice) -> Self {
+        Self::Slice(slice)
     }
 }
 
@@ -172,7 +236,7 @@ impl<'q> Automaton<'q> {
     #[must_use]
     #[inline(always)]
     pub fn has_any_array_item_transition(&self, state: State) -> bool {
-        self[state].attributes.has_array_index_transition()
+        self[state].attributes.has_array_transition()
     }
 
     /// Returns whether the given state is accepting the first item in a list.
@@ -219,11 +283,11 @@ impl<'q> Automaton<'q> {
     #[inline(always)]
     pub fn has_array_index_transition_to_accepting(&self, state: State, match_index: &JsonUInt) -> bool {
         let state = &self[state];
-        state.attributes.has_array_index_transition_to_accepting()
+        state.attributes.has_array_transition_to_accepting()
             && state
                 .array_transitions()
                 .iter()
-                .any(|(i, s)| i.eq(match_index) && self.is_accepting(*s))
+                .any(|trans| self.is_accepting(trans.target) && trans.matches(*match_index))
     }
 
     /// Returns whether the given state has any transitions
@@ -303,7 +367,7 @@ impl<'q> StateTable<'q> {
     /// to the contained [`State`].
     #[must_use]
     #[inline(always)]
-    pub fn array_transitions(&self) -> &[ArrayTransition<'q>] {
+    pub fn array_transitions(&self) -> &[ArrayTransition] {
         &self.array_transitions
     }
 
@@ -315,6 +379,22 @@ impl<'q> StateTable<'q> {
     #[inline(always)]
     pub fn member_transitions(&self) -> &[MemberTransition<'q>] {
         &self.member_transitions
+    }
+}
+
+impl Display for ArrayTransitionLabel {
+    #[inline(always)]
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Index(index) => write!(f, "{}", index.as_u64()),
+            Self::Slice(slice) => {
+                if let Some(end) = slice.end {
+                    write!(f, "[{}:{}:{}]", slice.start, end, slice.step)
+                } else {
+                    write!(f, "[{}::{}]", slice.start, slice.step)
+                }
+            }
+        }
     }
 }
 
@@ -348,8 +428,35 @@ impl<'q> Display for Automaton<'q> {
         }
 
         for (i, transitions) in self.states.iter().enumerate() {
-            for (label, state) in &transitions.array_transitions {
-                writeln!(f, "  {i} -> {} [label=\"[{}]\"]", state.0, label.as_u64())?
+            for array_transition in &transitions.array_transitions {
+                match array_transition.label {
+                    ArrayTransitionLabel::Index(label) => writeln!(
+                        f,
+                        "  {i} -> {} [label=\"[{}]\"]",
+                        array_transition.target.0,
+                        label.as_u64()
+                    )?,
+                    ArrayTransitionLabel::Slice(label) => {
+                        if let Some(end) = label.end {
+                            writeln!(
+                                f,
+                                "  {i} -> {} [label=\"[{}:{}:{}]\"]",
+                                array_transition.target.0,
+                                label.start.as_u64(),
+                                end.as_u64(),
+                                label.step.as_u64()
+                            )?
+                        } else {
+                            writeln!(
+                                f,
+                                "  {i} -> {} [label=\"[{}::{}]\"]",
+                                array_transition.target.0,
+                                label.start.as_u64(),
+                                label.step.as_u64()
+                            )?
+                        }
+                    }
+                }
             }
             for (label, state) in &transitions.member_transitions {
                 writeln!(f, "  {i} -> {} [label=\"{}\"]", state.0, label.unquoted())?
@@ -358,5 +465,44 @@ impl<'q> Display for Automaton<'q> {
         }
         write!(f, "}}")?;
         Ok(())
+    }
+}
+
+impl SimpleSlice {
+    fn new(start: JsonUInt, end: Option<JsonUInt>, step: JsonUInt) -> Self {
+        Self { start, end, step }
+    }
+
+    #[inline(always)]
+    #[must_use]
+    fn contains(&self, index: JsonUInt) -> bool {
+        if index < self.start {
+            return false;
+        }
+        let offset = index.as_u64() - self.start.as_u64();
+        if let Some(end) = self.end {
+            index < end && offset % self.step.as_u64() == 0
+        } else {
+            offset % self.step.as_u64() == 0
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::SimpleSlice;
+    use rsonpath_syntax::num::JsonUInt;
+    use test_case::test_case;
+
+    #[test_case(0.into(), None, 1.into(), 0.into() => true)]
+    #[test_case(2.into(), None, 1.into(), 3.into() => true)]
+    #[test_case(2.into(), None, 2.into(), 3.into() => false)]
+    #[test_case(3.into(), None, 2.into(), 3.into() => true)]
+    #[test_case(2.into(), None, 2.into(), 4.into() => true)]
+    #[test_case(2.into(), Some(6.into()), 2.into(), 2.into() => true)]
+    #[test_case(2.into(), Some(6.into()), 2.into(), 6.into() => false)]
+    fn simple_slice_containment(start: JsonUInt, end: Option<JsonUInt>, step: JsonUInt, idx: JsonUInt) -> bool {
+        let slice = SimpleSlice::new(start, end, step);
+        slice.contains(idx)
     }
 }

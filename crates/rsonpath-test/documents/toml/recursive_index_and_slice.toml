@@ -1,0 +1,66 @@
+# Define the JSON input for all query test cases.
+[input]
+# Short description of the input structure.
+description = "Nested arrays with integers."
+ # Set to true only if your specific test input is fully compressed (no extraneous whitespace).
+is_compressed = false
+
+# Inline JSON document.
+[input.source]
+json_string = '''
+[
+  0,
+  1,
+  2,
+  [
+    10,
+    11,
+    12,
+    [13]
+  ],
+  [
+    20,
+    21,
+    22,
+    [23]
+  ],
+]
+'''
+
+# Define queries to test on the input.
+[[queries]]
+ # Valid JSONPath query string.
+query = "$..[3::][3]"
+# Short descritpion of the query semantics.
+description = "select slice starting at 3 and then 3"
+
+[queries.results]
+# Number of expected matches.
+count = 2
+# Byte locations of spans of all matches, in order.
+spans = [[49, 53], [91, 95]]
+# Stringified values of all matches, verbatim as in the input,
+# in the same order as above.
+nodes = [
+  '[13]',
+  '[23]'
+]
+
+# Define queries to test on the input.
+[[queries]]
+ # Valid JSONPath query string.
+query = "$..[3::][3][0]"
+# Short descritpion of the query semantics.
+description = "select slice starting at 3 and then 3 and then 0"
+
+[queries.results]
+# Number of expected matches.
+count = 2
+# Byte locations of spans of all matches, in order.
+spans = [[50, 52], [92, 94]]
+# Stringified values of all matches, verbatim as in the input,
+# in the same order as above.
+nodes = [
+  '13',
+  '23'
+]

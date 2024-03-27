@@ -1071,6 +1071,36 @@ impl Index {
     }
 }
 
+impl Step {
+    /// Check if this is a step going forward in an array.
+    ///
+    /// # Examples
+    /// ```
+    /// # use rsonpath_syntax::{Selector, Step};
+    /// let step = Step::Forward(2.try_into().unwrap());
+    /// assert!(step.is_forward());
+    /// ```
+    #[inline(always)]
+    #[must_use]
+    pub const fn is_forward(&self) -> bool {
+        matches!(self, Self::Forward(_))
+    }
+
+    /// Check if this is a step going backward in an array.
+    ///
+    /// # Examples
+    /// ```
+    /// # use rsonpath_syntax::{Selector, Step};
+    /// let step = Step::Backward(2.try_into().unwrap());
+    /// assert!(step.is_backward());
+    /// ```
+    #[inline(always)]
+    #[must_use]
+    pub const fn is_backward(&self) -> bool {
+        matches!(self, Self::Backward(_))
+    }
+}
+
 impl Deref for Selectors {
     type Target = [Selector];
 
