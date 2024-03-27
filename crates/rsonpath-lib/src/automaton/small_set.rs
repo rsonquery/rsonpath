@@ -15,6 +15,9 @@ pub(crate) trait SmallSet<T: Copy + PartialOrd + Ord>: IntoIterator<Item = T> {
     /// Modify the set to include `elem`.
     fn insert(&mut self, elem: T);
 
+    /// Modify the set to include all elements from `other`.
+    fn union(&mut self, other: &Self);
+
     /// Returns whether the given `elem` is a member of the set.
     fn contains(&self, elem: T) -> bool;
 
@@ -40,11 +43,6 @@ pub(crate) struct SmallSet256 {
     half_2: SmallSet128,
 }
 
-#[derive(Default, Clone, Copy, PartialEq, Eq)]
-struct SmallSet128 {
-    bitmask: u128,
-}
-
 impl SmallSet<u8> for SmallSet256 {
     fn len(&self) -> usize {
         self.half_1.len() + self.half_2.len()
@@ -60,6 +58,11 @@ impl SmallSet<u8> for SmallSet256 {
         } else {
             self.half_2.insert(elem - 128)
         }
+    }
+
+    fn union(&mut self, other: &Self) {
+        self.half_1.union(&other.half_1);
+        self.half_2.union(&other.half_2);
     }
 
     fn contains(&self, elem: u8) -> bool {
@@ -102,54 +105,94 @@ impl SmallSet<u8> for SmallSet256 {
     }
 }
 
-impl SmallSet<u8> for SmallSet128 {
-    fn len(&self) -> usize {
-        self.bitmask.count_ones() as usize
-    }
+macro_rules! native_small_set {
+    ($name:ident, $iter:ident, $mask:ty, $size:literal) => {
+        #[derive(Default, Clone, Copy, PartialEq, Eq)]
+        struct $name {
+            bitmask: $mask,
+        }
 
-    fn is_empty(&self) -> bool {
-        self.bitmask == 0
-    }
+        struct $iter {
+            bitmask: $mask,
+        }
 
-    fn insert(&mut self, elem: u8) {
-        self.bitmask |= 1 << elem;
-    }
+        impl SmallSet<u8> for $name {
+            fn len(&self) -> usize {
+                self.bitmask.count_ones() as usize
+            }
 
-    fn contains(&self, elem: u8) -> bool {
-        (self.bitmask & (1 << elem)) != 0
-    }
+            fn is_empty(&self) -> bool {
+                self.bitmask == 0
+            }
 
-    fn iter(&self) -> SmallSet128Iter {
-        SmallSet128Iter { bitmask: self.bitmask }
-    }
+            fn insert(&mut self, elem: u8) {
+                self.bitmask |= 1 << elem;
+            }
 
-    fn singleton(&self) -> Option<u8> {
-        let elem = self.bitmask.trailing_zeros();
-        let elem_mask = 1_u128.wrapping_shl(elem);
-        let remainder = self.bitmask ^ elem_mask;
+            fn union(&mut self, other: &Self) {
+                self.bitmask |= other.bitmask;
+            }
 
-        // CAST: trivially safe as bitmask can have at most 128 zeroes.
-        (remainder == 0).then_some(elem as u8)
-    }
+            fn contains(&self, elem: u8) -> bool {
+                (self.bitmask & (1 << elem)) != 0
+            }
 
-    fn clear(&mut self) {
-        self.bitmask = 0;
-    }
+            fn iter(&self) -> $iter {
+                $iter {
+                    bitmask: self.bitmask,
+                }
+            }
 
-    fn remove_all_before(&mut self, cutoff: u8) {
-        let mask: u128 = 0xFFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF << cutoff;
-        self.bitmask &= mask;
-    }
+            fn singleton(&self) -> Option<u8> {
+                let elem = self.bitmask.trailing_zeros();
+                let elem_mask = (1 as $mask).wrapping_shl(elem);
+                let remainder = self.bitmask ^ elem_mask;
+
+                // CAST: trivially safe as bitmask can have at most 128 zeroes.
+                (remainder == 0).then_some(elem as u8)
+            }
+
+            fn clear(&mut self) {
+                self.bitmask = 0;
+            }
+
+            fn remove_all_before(&mut self, cutoff: u8) {
+                let mask: $mask = <$mask>::MAX << cutoff;
+                self.bitmask &= mask;
+            }
+        }
+
+        impl IntoIterator for $name {
+            type Item = u8;
+            type IntoIter = $iter;
+
+            fn into_iter(self) -> Self::IntoIter {
+                self.iter()
+            }
+        }
+
+        impl Iterator for $iter {
+            type Item = u8;
+
+            fn next(&mut self) -> Option<Self::Item> {
+                let next_elem = self.bitmask.trailing_zeros();
+
+                if next_elem == $size {
+                    return None;
+                }
+
+                let elem_mask = 1 << next_elem;
+                self.bitmask ^= elem_mask;
+
+                // CAST: trivially safe as bitmask can have at most 128 zeroes.
+                Some(next_elem as u8)
+            }
+        }
+    };
 }
 
-impl IntoIterator for SmallSet128 {
-    type Item = u8;
-    type IntoIter = SmallSet128Iter;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.iter()
-    }
-}
+native_small_set!(SmallSet64, SmallSet64Iter, u64, 64);
+native_small_set!(SmallSet128, SmallSet128Iter, u128, 128);
 
 impl<const N: usize> From<[u8; N]> for SmallSet256 {
     fn from(arr: [u8; N]) -> Self {
@@ -212,28 +255,6 @@ impl Iterator for SmallSet256Iter {
 
     fn next(&mut self) -> Option<Self::Item> {
         self.half_1.next().or_else(|| self.half_2.next().map(|x| x + 128))
-    }
-}
-
-struct SmallSet128Iter {
-    bitmask: u128,
-}
-
-impl Iterator for SmallSet128Iter {
-    type Item = u8;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let next_elem = self.bitmask.trailing_zeros();
-
-        if next_elem == 128 {
-            return None;
-        }
-
-        let elem_mask = 1 << next_elem;
-        self.bitmask ^= elem_mask;
-
-        // CAST: trivially safe as bitmask can have at most 128 zeroes.
-        Some(next_elem as u8)
     }
 }
 

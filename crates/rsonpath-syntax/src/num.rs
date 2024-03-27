@@ -721,6 +721,14 @@ impl From<JsonUInt> for u64 {
     }
 }
 
+impl From<JsonUInt> for i64 {
+    #[inline(always)]
+    fn from(value: JsonUInt) -> Self {
+        // Safe cast since JsonUInt::MAX is lower than i64::MAX.
+        value.0 as Self
+    }
+}
+
 impl TryFrom<JsonInt> for JsonUInt {
     type Error = JsonIntOverflowError;
 

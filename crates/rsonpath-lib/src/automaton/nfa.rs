@@ -1,10 +1,10 @@
 //! Definition of a nondeterministic automaton that can be directly
 //! obtained from a JsonPath query. This is then turned into
 //! a DFA with the minimizer.
-use crate::error::UnsupportedFeatureError;
+use crate::{automaton::SimpleSlice, error::UnsupportedFeatureError};
 
-use super::error::CompilerError;
-use rsonpath_syntax::{num::JsonUInt, str::JsonString, JsonPathQuery};
+use super::{error::CompilerError, ArrayTransitionLabel};
+use rsonpath_syntax::{str::JsonString, JsonPathQuery, Step};
 use std::{fmt::Display, ops::Index};
 
 /// An NFA representing a query. It is always a directed path
@@ -31,61 +31,12 @@ use NfaState::*;
 /// A transition in the NFA mapped from a [`JsonPathQuery`] selector.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(super) enum Transition<'q> {
-    /// A transition matching a specific member or array index.
-    Labelled(TransitionLabel<'q>),
+    /// A transition matching array indices.
+    Array(ArrayTransitionLabel),
+    /// A transition matching a specific member.
+    Member(&'q JsonString),
     /// A transition matching anything.
     Wildcard,
-}
-
-/// Represent the distinct methods of moving on a match between states.
-#[derive(Debug, Copy, PartialEq, Clone, Eq)]
-pub(super) enum TransitionLabel<'q> {
-    /// Transition when a JSON member name matches a [`JsonString`].
-    ObjectMember(&'q JsonString),
-    /// Transition on the n-th element of an array, with n specified by a [`JsonUInt`].
-    ArrayIndex(JsonUInt),
-}
-
-impl<'q> TransitionLabel<'q> {
-    /// Wraps a [`JsonString`] in a [`TransitionLabel`].
-    #[must_use]
-    #[inline(always)]
-    pub(super) fn new_object_member(member_name: &'q JsonString) -> Self {
-        TransitionLabel::ObjectMember(member_name)
-    }
-
-    /// Wraps a [`JsonUInt`] in a [`TransitionLabel`].
-    #[must_use]
-    #[inline(always)]
-    pub(super) fn new_array_index(index: JsonUInt) -> Self {
-        TransitionLabel::ArrayIndex(index)
-    }
-}
-
-impl<'q> From<&'q JsonString> for TransitionLabel<'q> {
-    #[must_use]
-    #[inline(always)]
-    fn from(member_name: &'q JsonString) -> Self {
-        TransitionLabel::new_object_member(member_name)
-    }
-}
-
-impl Display for TransitionLabel<'_> {
-    #[inline(always)]
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            TransitionLabel::ObjectMember(name) => write!(f, "{}", name.unquoted()),
-            TransitionLabel::ArrayIndex(index) => write!(f, "{}", index.as_u64()),
-        }
-    }
-}
-
-impl From<JsonUInt> for TransitionLabel<'_> {
-    #[must_use]
-    #[inline(always)]
-    fn from(index: JsonUInt) -> Self {
-        TransitionLabel::new_array_index(index)
-    }
 }
 
 /// State of an [`NondeterministicAutomaton`]. Thin wrapper over a state's
@@ -117,29 +68,47 @@ impl<'q> NondeterministicAutomaton<'q> {
     /// Returns a [`CompilerError::NotSupported`] if the query contains a construct
     /// not currently supported by rsonpath.
     pub(super) fn new(query: &'q JsonPathQuery) -> Result<Self, CompilerError> {
-        use rsonpath_syntax::{Index, Segment, Selector};
+        use rsonpath_syntax::{Index, Selector};
 
         let states_result: Result<Vec<NfaState>, CompilerError> = query
             .segments()
             .iter()
-            .map(|segment| match segment {
-                Segment::Child(selectors) if selectors.len() == 1 => match selectors.first() {
-                    Selector::Name(name) => Ok(Direct(Transition::Labelled(name.into()))),
-                    Selector::Wildcard => Ok(Direct(Transition::Wildcard)),
-                    Selector::Index(Index::FromStart(index)) => Ok(Direct(Transition::Labelled((*index).into()))),
-                    Selector::Index(Index::FromEnd(_)) => Err(UnsupportedFeatureError::indexing_from_end().into()),
-                    Selector::Slice(_) => Err(UnsupportedFeatureError::slice_selector().into()),
-                    Selector::Filter(_) => Err(UnsupportedFeatureError::filter_selector().into()),
-                },
-                Segment::Descendant(selectors) if selectors.len() == 1 => match selectors.first() {
-                    Selector::Name(name) => Ok(Recursive(Transition::Labelled(name.into()))),
-                    Selector::Wildcard => Ok(Recursive(Transition::Wildcard)),
-                    Selector::Index(Index::FromStart(index)) => Ok(Recursive(Transition::Labelled((*index).into()))),
-                    Selector::Index(Index::FromEnd(_)) => Err(UnsupportedFeatureError::indexing_from_end().into()),
-                    Selector::Slice(_) => Err(UnsupportedFeatureError::slice_selector().into()),
-                    Selector::Filter(_) => Err(UnsupportedFeatureError::filter_selector().into()),
-                },
-                _ => Err(UnsupportedFeatureError::multiple_selectors().into()),
+            .map(|segment| {
+                let selectors = segment.selectors();
+
+                if selectors.len() > 1 {
+                    Err(UnsupportedFeatureError::multiple_selectors().into())
+                } else {
+                    let transition = match selectors.first() {
+                        Selector::Name(name) => Ok::<_, CompilerError>(Transition::Member(name)),
+                        Selector::Wildcard => Ok(Transition::Wildcard),
+                        Selector::Index(Index::FromStart(index)) => Ok(Transition::Array((*index).into())),
+                        Selector::Index(Index::FromEnd(_)) => Err(UnsupportedFeatureError::indexing_from_end().into()),
+                        Selector::Slice(slice) => {
+                            let start = match slice.start() {
+                                Index::FromStart(idx) => Ok::<_, CompilerError>(idx),
+                                Index::FromEnd(_) => Err(UnsupportedFeatureError::indexing_from_end().into()),
+                            }?;
+                            let end = match slice.end() {
+                                Some(Index::FromStart(idx)) => Ok::<_, CompilerError>(Some(idx)),
+                                Some(Index::FromEnd(_)) => Err(UnsupportedFeatureError::indexing_from_end().into()),
+                                None => Ok(None),
+                            }?;
+                            let step = match slice.step() {
+                                Step::Forward(step) => Ok::<_, CompilerError>(step),
+                                Step::Backward(_) => Err(UnsupportedFeatureError::slice_with_backward_step().into()),
+                            }?;
+                            let simple_slice = SimpleSlice::new(start, end, step);
+                            Ok(Transition::Array(simple_slice.into()))
+                        }
+                        Selector::Filter(_) => Err(UnsupportedFeatureError::filter_selector().into()),
+                    }?;
+                    if segment.is_child() {
+                        Ok(Direct(transition))
+                    } else {
+                        Ok(Recursive(transition))
+                    }
+                }
             })
             .collect();
         let mut states = states_result?;
@@ -182,15 +151,21 @@ impl<'q> Display for NondeterministicAutomaton<'q> {
             .ordered_states
             .iter()
             .filter_map(|s| match s {
-                Direct(Transition::Labelled(label)) | Recursive(Transition::Labelled(label)) => Some(*label),
+                Direct(Transition::Member(label)) | Recursive(Transition::Member(label)) => {
+                    Some(label.unquoted().to_string())
+                }
+                Direct(Transition::Array(label)) | Recursive(Transition::Array(label)) => Some(label.to_string()),
                 _ => None,
             })
             .collect();
 
         for (i, state) in self.ordered_states.iter().enumerate() {
             match state {
-                Direct(Transition::Labelled(label)) => {
+                Direct(Transition::Array(label)) => {
                     writeln!(f, "s{i}.{} -> s{};", label, i + 1)?;
+                }
+                Direct(Transition::Member(label)) => {
+                    writeln!(f, "s{i}.{} -> s{};", label.unquoted(), i + 1)?;
                 }
                 Direct(Transition::Wildcard) => {
                     for label in &all_labels {
@@ -198,9 +173,16 @@ impl<'q> Display for NondeterministicAutomaton<'q> {
                     }
                     writeln!(f, "s{i}.X -> s{};", i + 1)?;
                 }
-                Recursive(Transition::Labelled(label)) => {
+                Recursive(Transition::Member(label)) => {
+                    writeln!(f, "s{i}.{} -> s{i}, s{};", label.unquoted(), i + 1)?;
+                    for label in all_labels.iter().filter(|&l| l != label.unquoted()) {
+                        writeln!(f, "s{i}.{} -> s{i};", label)?;
+                    }
+                    writeln!(f, "s{i}.X -> s{i};")?;
+                }
+                Recursive(Transition::Array(label)) => {
                     writeln!(f, "s{i}.{} -> s{i}, s{};", label, i + 1)?;
-                    for label in all_labels.iter().filter(|&l| l != label) {
+                    for label in all_labels.iter().filter(|&l| l != &label.to_string()) {
                         writeln!(f, "s{i}.{} -> s{i};", label)?;
                     }
                     writeln!(f, "s{i}.X -> s{i};")?;
@@ -243,10 +225,10 @@ mod tests {
 
         let expected_automaton = NondeterministicAutomaton {
             ordered_states: vec![
-                NfaState::Direct(Transition::Labelled((&label_a).into())),
-                NfaState::Direct(Transition::Labelled((&label_b).into())),
-                NfaState::Recursive(Transition::Labelled((&label_c).into())),
-                NfaState::Recursive(Transition::Labelled((&label_d).into())),
+                NfaState::Direct(Transition::Member(&label_a)),
+                NfaState::Direct(Transition::Member(&label_b)),
+                NfaState::Recursive(Transition::Member(&label_c)),
+                NfaState::Recursive(Transition::Member(&label_d)),
                 NfaState::Direct(Transition::Wildcard),
                 NfaState::Direct(Transition::Wildcard),
                 NfaState::Recursive(Transition::Wildcard),
