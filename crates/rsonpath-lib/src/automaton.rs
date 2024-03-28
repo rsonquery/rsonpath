@@ -155,7 +155,7 @@ impl<'q> Automaton<'q> {
         Automaton::minimize(nfa)
     }
 
-    /// Returns whether this automaton represents an empty JSONPath query ('$').
+    /// Returns whether this automaton represents the select-root JSONPath query ('$').
     ///
     /// # Examples
     /// ```rust
@@ -163,12 +163,43 @@ impl<'q> Automaton<'q> {
     /// let query = rsonpath_syntax::parse("$").unwrap();
     /// let automaton = Automaton::new(&query).unwrap();
     ///
-    /// assert!(automaton.is_empty_query());
+    /// assert!(automaton.is_select_root_query());
     /// ```
     ///
     /// ```rust
     /// # use rsonpath::automaton::*;
     /// let query = rsonpath_syntax::parse("$.a").unwrap();
+    /// let automaton = Automaton::new(&query).unwrap();
+    ///
+    /// assert!(!automaton.is_select_root_query());
+    /// ```
+    #[must_use]
+    #[inline(always)]
+    pub fn is_select_root_query(&self) -> bool {
+        self.states.len() == 2
+            && self.states[1].array_transitions.is_empty()
+            && self.states[1].member_transitions.is_empty()
+            && self.states[1].fallback_state == State(0)
+            && self.states[1].attributes.is_accepting()
+    }
+
+    /// Returns whether this automaton represents an empty JSONPath query that cannot accept anything.
+    ///
+    /// A query like this can be created by, for example, putting a trivially false filter
+    /// or an empty slice into the query.
+    ///
+    /// # Examples
+    /// ```rust
+    /// # use rsonpath::automaton::*;
+    /// let query = rsonpath_syntax::parse("$[::0]").unwrap();
+    /// let automaton = Automaton::new(&query).unwrap();
+    ///
+    /// assert!(automaton.is_empty_query());
+    /// ```
+    ///
+    /// ```rust
+    /// # use rsonpath::automaton::*;
+    /// let query = rsonpath_syntax::parse("$").unwrap();
     /// let automaton = Automaton::new(&query).unwrap();
     ///
     /// assert!(!automaton.is_empty_query());
@@ -177,6 +208,10 @@ impl<'q> Automaton<'q> {
     #[inline(always)]
     pub fn is_empty_query(&self) -> bool {
         self.states.len() == 2
+            && self.states[1].array_transitions.is_empty()
+            && self.states[1].member_transitions.is_empty()
+            && self.states[1].fallback_state == State(0)
+            && !self.states[1].attributes.is_accepting()
     }
 
     /// Returns the rejecting state of the automaton.

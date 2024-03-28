@@ -8,7 +8,7 @@ mod head_skipping;
 pub mod main;
 mod tail_skipping;
 pub use main::MainEngine as RsonpathEngine;
-mod empty_query;
+mod select_root_query;
 
 use self::error::EngineError;
 use crate::{

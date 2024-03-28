@@ -7,29 +7,84 @@ pub enum Tag {
     Basic,
     Filter,
     Function,
+    MultipleSelectors,
+    IndexingFromEnd,
+    BackwardStep,
+    ProperUnicode,
+    StrictDescendantOrder,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TestSuite {
-    tests: Vec<TestCase>,
+    tests: Vec<TestCaseDef>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestCase {
+pub struct TestCaseDef {
     pub name: String,
     pub selector: String,
     #[serde(default)]
     pub document: serde_json::Value,
     #[serde(default)]
-    pub result: Vec<serde_json::Value>,
+    pub result: Option<Vec<serde_json::Value>>,
+    #[serde(default)]
+    pub results: Option<Vec<Vec<serde_json::Value>>>,
     #[serde(default)]
     pub invalid_selector: bool,
 }
 
 #[derive(Debug, Clone)]
+pub struct TestCase {
+    pub name: String,
+    pub details: TestCaseDetails,
+}
+
+#[derive(Debug, Clone)]
+pub enum TestCaseDetails {
+    Invalid(InvalidTestCase),
+    Valid(ValidTestCase),
+}
+
+#[derive(Debug, Clone)]
+pub struct InvalidTestCase {
+    pub selector: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct ValidTestCase {
+    pub selector: String,
+    pub document: serde_json::Value,
+    pub results: Vec<Vec<serde_json::Value>>,
+}
+
+#[derive(Debug, Clone)]
 pub struct TaggedTestCase {
-    pub tag: Tag,
+    pub tags: Vec<Tag>,
     pub test_case: TestCase,
+}
+
+impl From<TestCaseDef> for TestCase {
+    fn from(value: TestCaseDef) -> Self {
+        let name = value.name;
+        let details = if value.invalid_selector {
+            TestCaseDetails::Invalid(InvalidTestCase {
+                selector: value.selector,
+            })
+        } else {
+            let results = match (value.result, value.results) {
+                (Some(result), None) => vec![result],
+                (None, Some(results)) => results,
+                (Some(_), Some(_)) => panic!("{name}: both 'result' and 'results' defined"),
+                (None, None) => panic!("{name}: neither 'result' nor 'results' defined"),
+            };
+            TestCaseDetails::Valid(ValidTestCase {
+                selector: value.selector,
+                document: value.document,
+                results,
+            })
+        };
+        Self { name, details }
+    }
 }
 
 /// Read and tag test cases from the base jsonpath-compliance-test-suite path.
@@ -77,6 +132,98 @@ pub fn read_and_tag<P: AsRef<Path>>(path: P) -> Result<Vec<TaggedTestCase>, io::
     // This is included in /filter.json, but contains function calls.
     collection.add_special_case_tag("equals, special nothing", Tag::Function);
 
+    // Tests with multiple selectors.
+    let tests = [
+        "multiple selectors",
+        "multiple selectors, name and index, array data",
+        "multiple selectors, name and index, object data",
+        "multiple selectors, index and slice",
+        "multiple selectors, index and slice, overlapping",
+        "multiple selectors, duplicate index",
+        "multiple selectors, wildcard and index",
+        "multiple selectors, wildcard and name",
+        "multiple selectors, wildcard and slice",
+        "multiple selectors, multiple wildcards",
+        "descendant segment, multiple selectors",
+        "descendant segment, object traversal, multiple selectors",
+        "space between selector and comma",
+        "newline between selector and comma",
+        "tab between selector and comma",
+        "return between selector and comma",
+        "space between comma and selector",
+        "newline between comma and selector",
+        "tab between comma and selector",
+        "return between comma and selector",
+    ];
+    for test in tests {
+        collection.add_special_case_tag(test, Tag::MultipleSelectors);
+    }
+
+    // Tests with indexing from end.
+    let tests = [
+        "negative",
+        "more negative",
+        "negative out of bound",
+        "negative range with default step",
+        "negative range with negative step",
+        "negative range with larger negative step",
+        "larger negative range with larger negative step",
+        "negative from, positive to",
+        "negative from",
+        "positive from, negative to",
+        "negative from, positive to, negative step",
+        "positive from, negative to, negative step",
+        "excessively small from value",
+        "excessively large from value with negative step",
+        "excessively small to value with negative step",
+        "excessively small step",
+    ];
+    for test in tests {
+        collection.add_special_case_tag(test, Tag::IndexingFromEnd);
+    }
+
+    // Tests with backwards step.
+    let tests = [
+        "negative step with default start and end",
+        "negative step with default start",
+        "negative step with default end",
+        "larger negative step",
+        "negative step with empty array",
+        "maximal range with negative step",
+    ];
+    for test in tests {
+        collection.add_special_case_tag(test, Tag::BackwardStep);
+    }
+
+    // Tests that require proper unicode support.
+    let tests = [
+        "double quotes, escaped double quote",
+        "double quotes, escaped reverse solidus",
+        "double quotes, escaped backspace",
+        "double quotes, escaped form feed",
+        "double quotes, escaped line feed",
+        "double quotes, escaped carriage return",
+        "double quotes, escaped tab",
+        "single quotes, escaped reverse solidus",
+        "single quotes, escaped backspace",
+        "single quotes, escaped form feed",
+        "single quotes, escaped line feed",
+        "single quotes, escaped carriage return",
+        "single quotes, escaped tab",
+    ];
+    for test in tests {
+        collection.add_special_case_tag(test, Tag::ProperUnicode);
+    }
+
+    // Tests that require quite insane ordering semantics from descendant.
+    let tests = [
+        "descendant segment, wildcard selector, nested arrays",
+        "descendant segment, wildcard selector, nested objects",
+    ];
+    for test in tests {
+        collection.add_special_case_tag(test, Tag::StrictDescendantOrder);
+    }
+
     Ok(collection.get())
 }
 
@@ -93,8 +240,12 @@ impl TaggedTestCollection {
         let file = File::open(file.as_ref())?;
         let deser: TestSuite = serde_json::from_reader(file)?;
 
-        for test_case in deser.tests {
-            self.cases.push(TaggedTestCase { tag, test_case })
+        for test_case_def in deser.tests {
+            let test_case = test_case_def.into();
+            self.cases.push(TaggedTestCase {
+                tags: vec![tag],
+                test_case,
+            })
         }
 
         Ok(())
@@ -106,7 +257,7 @@ impl TaggedTestCollection {
             .iter_mut()
             .find(|x| x.test_case.name == name)
             .expect("invalid special-case name");
-        case.tag = tag;
+        case.tags.push(tag);
     }
 
     fn get(self) -> Vec<TaggedTestCase> {
