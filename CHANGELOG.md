@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.0] - 2024-03-28
+
+### Features
+
+- Array slice selector. ([#152](https://github.com/V0ldek/rsonpath/issues/152))
+  - Simple slicing: forward step and positive bounds.
+  Includes an overhaul to how array transitions are compiled.
+
+### Performance
+
+- Improve performance of the index selector. ([#138](https://github.com/V0ldek/rsonpath/issues/138))
+  - Added more structure and metadata to the automaton,
+    improving perf of all queries in general (~6% thpt) and
+    array-index queries in particular (~12% thpt).
+
+### Reliability
+
+- Run JSONPath Compliance Test Suite on basic queries.
+  - CTS is now run in CI on queries that the engine supports.
+
+### Dependencies
+
+- Bump clap from 4.5.1 to 4.5.2
+- Bump thiserror from 1.0.57 to 1.0.58
+
 ## [0.8.7] - 2024-02-29
 
 ### Features
