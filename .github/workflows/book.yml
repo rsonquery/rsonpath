@@ -64,9 +64,20 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: book-cargo-${{ hashFiles('**/Cargo.toml') }}
-      - name: Install mdbook
+      - name: cargo install mdbook
         if: steps.cache-restore-cargo.outputs.cache-hit != 'true'
-        run: cargo install mdbook mdbook-katex
+        uses: baptiste0928/cargo-install@94e1849646e5797d0c8b34d8e525124ae9ae1d86 # v3.0.1
+        with:
+          # Name of the crate to install
+          crate: mdbook
+        env:
+          CARGO_TARGET_DIR: target/
+      - name: cargo install mdbook-katex
+        if: steps.cache-restore-cargo.outputs.cache-hit != 'true'
+        uses: baptiste0928/cargo-install@94e1849646e5797d0c8b34d8e525124ae9ae1d86 # v3.0.1
+        with:
+          # Name of the crate to install
+          crate: mdbook-katex
         env:
           CARGO_TARGET_DIR: target/
       - name: Build the book

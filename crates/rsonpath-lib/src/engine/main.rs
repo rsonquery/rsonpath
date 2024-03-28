@@ -14,9 +14,9 @@ use crate::{
     debug,
     depth::Depth,
     engine::{
-        empty_query,
         error::EngineError,
         head_skipping::{CanHeadSkip, HeadSkip, ResumeState},
+        select_root_query,
         tail_skipping::TailSkip,
         Compiler, Engine, Input,
     },
@@ -66,8 +66,11 @@ impl Engine for MainEngine<'_> {
     where
         I: Input,
     {
+        if self.automaton.is_select_root_query() {
+            return select_root_query::count(input);
+        }
         if self.automaton.is_empty_query() {
-            return empty_query::count(input);
+            return Ok(0);
         }
 
         let recorder = CountRecorder::new();
@@ -85,8 +88,11 @@ impl Engine for MainEngine<'_> {
         I: Input,
         S: Sink<MatchIndex>,
     {
+        if self.automaton.is_select_root_query() {
+            return select_root_query::index(input, sink);
+        }
         if self.automaton.is_empty_query() {
-            return empty_query::index(input, sink);
+            return Ok(());
         }
 
         let recorder = IndexRecorder::new(sink, input.leading_padding_len());
@@ -104,8 +110,11 @@ impl Engine for MainEngine<'_> {
         I: Input,
         S: Sink<MatchSpan>,
     {
+        if self.automaton.is_select_root_query() {
+            return select_root_query::approx_span(input, sink);
+        }
         if self.automaton.is_empty_query() {
-            return empty_query::approx_span(input, sink);
+            return Ok(());
         }
 
         let recorder = ApproxSpanRecorder::new(sink, input.leading_padding_len());
@@ -123,8 +132,11 @@ impl Engine for MainEngine<'_> {
         I: Input,
         S: Sink<Match>,
     {
+        if self.automaton.is_select_root_query() {
+            return select_root_query::match_(input, sink);
+        }
         if self.automaton.is_empty_query() {
-            return empty_query::match_(input, sink);
+            return Ok(());
         }
 
         let recorder = NodesRecorder::build_recorder(sink, input.leading_padding_len());
