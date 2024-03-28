@@ -137,9 +137,12 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ matrix.toolchain }}-${{ matrix.target_triple }}-cargo-${{ hashFiles('**/Cargo.toml') }}
-      - name: Install cargo-hack
+      - name: cargo install cargo-hack
         if: steps.cache-restore-cargo.outputs.cache-hit != 'true'
-        run: cargo install cargo-hack
+        uses: baptiste0928/cargo-install@94e1849646e5797d0c8b34d8e525124ae9ae1d86 # v3.0.1
+        with:
+          # Name of the crate to install
+          crate: cargo-hack
         env:
           CARGO_TARGET_DIR: target/
       - name: Build all feature sets
@@ -359,9 +362,7 @@ jobs:
         with:
           submodules: true
       - name: cargo install cargo-msrv
-        # You may pin to the exact commit or the version.
-        # uses: baptiste0928/cargo-install@1cd874a5478fdca35d868ccc74640c5aabbb8f1b
-        uses: baptiste0928/cargo-install@v3.0.1
+        uses: baptiste0928/cargo-install@94e1849646e5797d0c8b34d8e525124ae9ae1d86 # v3.0.1
         with:
           # Name of the crate to install
           crate: cargo-msrv
