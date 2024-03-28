@@ -1,6 +1,6 @@
 [package]
 name = "rsonpath-syntax"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["Mateusz Gienieczko <mat@gienieczko.com>"]
 description = "A JSONPath parser."
 readme = "README.md"

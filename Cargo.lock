@@ -560,9 +560,9 @@ checksum = "490cc448043f947bae3cbee9c203358d62dbee0db12107a74be5c30ccfd09771"
 
 [[package]]
 name = "memchr"
-version = "2.7.1"
+version = "2.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "523dc4f511e55ab87b694dc30d0f820d60906ef06413f93d4d7a1385599cc149"
+checksum = "6c8640c5d730cb13ebd907d8d04b52f55ac9a2eec55b440c8892f40d56c76c1d"
 
 [[package]]
 name = "memmap2"
@@ -872,7 +872,7 @@ checksum = "adad44e29e4c806119491a7f06f03de4d1af22c3a680dd47f1e6e179439d1f56"
 
 [[package]]
 name = "rsonpath"
-version = "0.8.7"
+version = "0.9.0"
 dependencies = [
  "clap",
  "color-eyre",
@@ -888,7 +888,7 @@ dependencies = [
 
 [[package]]
 name = "rsonpath-lib"
-version = "0.8.7"
+version = "0.9.0"
 dependencies = [
  "arbitrary",
  "cfg-if",
@@ -908,7 +908,7 @@ dependencies = [
 
 [[package]]
 name = "rsonpath-syntax"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "arbitrary",
  "insta",
@@ -923,7 +923,7 @@ dependencies = [
 
 [[package]]
 name = "rsonpath-test"
-version = "0.8.7"
+version = "0.9.0"
 dependencies = [
  "eyre",
  "glob",
@@ -938,7 +938,7 @@ dependencies = [
 
 [[package]]
 name = "rsonpath-test-codegen"
-version = "0.8.7"
+version = "0.9.0"
 dependencies = [
  "heck 0.4.1",
  "proc-macro2",

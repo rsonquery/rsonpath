@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.1] - 2024-03-28
+
+### Features
+
+- Added the [`Step::is_forward`](https://docs.rs/rsonpath-syntax/0.3.1/rsonpath_syntax/enum.Step.html#method.is_forward) and [`Step::is_backward`](https://docs.rs/rsonpath-syntax/0.3.1/rsonpath_syntax/enum.Step.html#method.is_backward) methods.
+- Added `From<JsonUInt> for i64`.
+
 ## [0.3.0] - 2024-02-29
 
 ### Features

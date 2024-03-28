@@ -35,7 +35,7 @@ To verify it works, check if `rq` is available from your command line:
 
 ```console
 $ rq -V
-rq 0.8.7
+rq 0.9.0
 
 ```
 
