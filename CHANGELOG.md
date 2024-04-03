@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.1] - 2024-04-03
+
+### Bug Fixes
+
+- Child slice selectors only selecting first matching index (#499). ([#499](https://github.com/V0ldek/rsonpath/issues/499))
+  - Fixed a bug where the compiler would erroneously mark states
+    with a single slice transition as unitary, even though such
+    transitions could match more than one index.
+
 ## [0.9.0] - 2024-03-28
 
 ### Features

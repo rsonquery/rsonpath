@@ -267,6 +267,8 @@ release ver:
     just release-patch {{ver}}
     just release-readme
     just release-bug-template {{ver}}
+    cargo build
+    cargo +nightly fuzz build
 
 [private]
 release-patch ver:
@@ -275,7 +277,7 @@ release-patch ver:
     let crates = ["rsonpath", "rsonpath-lib", "rsonpath-benchmarks", "rsonpath-test", "rsonpath-test-codegen"];
     $crates | each { |cr|
         let path = $"./crates/($cr)/Cargo.toml";
-        sed -i $'s/^version = "[^"]*"/version = "($ver)"/;s/^rsonpath-lib = { version = "[^"]*"/rsonpath-lib = { version = "($ver)"/' $path;
+        sed -i $'s/^version = "[^"]*"/version = "($ver)"/;s/^rsonpath-lib = { version = "[^"]*"/rsonpath-lib = { version = "($ver)"/;s/rsonpath-test-codegen = { version = "[^"]*"/rsonpath-test-codegen = { version = "($ver)"/' $path;
     };
 
 [private]

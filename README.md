@@ -136,7 +136,7 @@ with `rq --version` &ndash; check the `SIMD support` field:
 
 ```console,ignore
 $ rq --version
-rq 0.9.0
+rq 0.9.1
 
 Commit SHA:      c024e1bab89610455537b77aed249d2a05a81ed6
 Features:        default,simd
@@ -216,12 +216,12 @@ cargo tree --package rsonpath --edges normal --depth 1
 
 <!-- rsonpath dependencies start -->
 ```ini
-rsonpath v0.9.0 (/home/mat/src/rsonpath/crates/rsonpath)
+rsonpath v0.9.1 (/home/mat/src/rsonpath/crates/rsonpath)
 ├── clap v4.5.4
 ├── color-eyre v0.6.3
 ├── eyre v0.6.12
 ├── log v0.4.21
-├── rsonpath-lib v0.9.0 (/home/mat/src/rsonpath/crates/rsonpath-lib)
+├── rsonpath-lib v0.9.1 (/home/mat/src/rsonpath/crates/rsonpath-lib)
 ├── rsonpath-syntax v0.3.1 (/home/mat/src/rsonpath/crates/rsonpath-syntax)
 └── simple_logger v4.3.3
 [build-dependencies]
@@ -237,7 +237,7 @@ cargo tree --package rsonpath-lib --edges normal --depth 1
 
 <!-- rsonpath-lib dependencies start -->
 ```ini
-rsonpath-lib v0.9.0 (/home/mat/src/rsonpath/crates/rsonpath-lib)
+rsonpath-lib v0.9.1 (/home/mat/src/rsonpath/crates/rsonpath-lib)
 ├── arbitrary v1.3.2
 ├── cfg-if v1.0.0
 ├── log v0.4.21
@@ -272,7 +272,7 @@ cargo tree --package rsonpath --edges normal
 
 <!-- rsonpath-full dependencies start -->
 ```ini
-rsonpath v0.9.0 (/home/mat/src/rsonpath/crates/rsonpath)
+rsonpath v0.9.1 (/home/mat/src/rsonpath/crates/rsonpath)
 ├── clap v4.5.4
 │   ├── clap_builder v4.5.2
 │   │   ├── anstream v0.6.13
@@ -296,7 +296,7 @@ rsonpath v0.9.0 (/home/mat/src/rsonpath/crates/rsonpath)
 │   │   │   └── utf8parse v0.2.1
 │   │   ├── anstyle v1.0.6
 │   │   ├── clap_lex v0.7.0
-│   │   ├── strsim v0.11.0
+│   │   ├── strsim v0.11.1
 │   │   └── terminal_size v0.3.0
 │   │       ├── rustix v0.38.32
 │   │       │   ├── bitflags v2.5.0
@@ -321,7 +321,7 @@ rsonpath v0.9.0 (/home/mat/src/rsonpath/crates/rsonpath)
 │       │   └── unicode-ident v1.0.12
 │       ├── quote v1.0.35
 │       │   └── proc-macro2 v1.0.79 (*)
-│       └── syn v2.0.55
+│       └── syn v2.0.58
 │           ├── proc-macro2 v1.0.79 (*)
 │           ├── quote v1.0.35 (*)
 │           └── unicode-ident v1.0.12
@@ -346,7 +346,7 @@ rsonpath v0.9.0 (/home/mat/src/rsonpath/crates/rsonpath)
 │   └── owo-colors v3.5.0
 ├── eyre v0.6.12 (*)
 ├── log v0.4.21
-├── rsonpath-lib v0.9.0 (/home/mat/src/rsonpath/crates/rsonpath-lib)
+├── rsonpath-lib v0.9.1 (/home/mat/src/rsonpath/crates/rsonpath-lib)
 │   ├── cfg-if v1.0.0
 │   ├── log v0.4.21
 │   ├── memmap2 v0.9.4
@@ -361,7 +361,7 @@ rsonpath v0.9.0 (/home/mat/src/rsonpath/crates/rsonpath)
 │   │   │   └── thiserror-impl v1.0.58 (proc-macro)
 │   │   │       ├── proc-macro2 v1.0.79 (*)
 │   │   │       ├── quote v1.0.35 (*)
-│   │   │       └── syn v2.0.55 (*)
+│   │   │       └── syn v2.0.58 (*)
 │   │   └── unicode-width v0.1.11
 │   ├── smallvec v1.13.2
 │   ├── static_assertions v1.1.0
@@ -417,7 +417,7 @@ rsonpath v0.9.0 (/home/mat/src/rsonpath/crates/rsonpath)
     │   │       └── serde_derive v1.0.197 (proc-macro)
     │   │           ├── proc-macro2 v1.0.79 (*)
     │   │           ├── quote v1.0.35 (*)
-    │   │           └── syn v2.0.55 (*)
+    │   │           └── syn v2.0.58 (*)
     │   ├── cargo-platform v0.1.8
     │   │   └── serde v1.0.197 (*)
     │   ├── semver v1.0.22

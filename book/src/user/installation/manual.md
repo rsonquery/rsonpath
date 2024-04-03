@@ -49,7 +49,7 @@ field.
 
 ```console,ignore
 $ rq --version
-rq 0.9.0
+rq 0.9.1
 
 Commit SHA:      05ced6146b2dcc4e474f2dbc17c2e6d0986a7181
 Features:        default,simd
