@@ -122,6 +122,15 @@ impl ArrayTransitionLabel {
             Self::Slice(s) => s.contains(index),
         }
     }
+
+    fn matches_at_most_once(&self) -> bool {
+        match self {
+            Self::Index(_) => true,
+            Self::Slice(slice) => {
+                slice.step == JsonUInt::ZERO && slice.end.map_or(false, |end| slice.start.as_u64() + 1 >= end.as_u64())
+            }
+        }
+    }
 }
 
 impl From<JsonUInt> for ArrayTransitionLabel {
