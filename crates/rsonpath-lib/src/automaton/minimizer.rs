@@ -188,10 +188,7 @@ impl<'q> Minimizer<'q> {
             debug!("{id} is rejecting");
             attrs = attrs.rejecting();
         }
-        if array_transitions.len() + member_transitions.len() == 1 && fallback == Self::rejecting_state() {
-            debug!("{id} is unitary");
-            attrs = attrs.unitary();
-        }
+
         if self.accepting.contains(fallback.0)
             || array_transitions
                 .iter()
@@ -211,6 +208,23 @@ impl<'q> Minimizer<'q> {
         {
             debug!("{id} has an accepting array index transition");
             attrs = attrs.has_array_transition_to_accepting();
+        }
+
+        // Unitarity check:
+        // 1. Fallback rejects.
+        // 2. Only one transition that can match at most one element in a JSON, either:
+        //   a) member transition; or
+        //   b) array transition that matches only one index.
+        let is_unitary = {
+            fallback == Self::rejecting_state()
+                && ((member_transitions.len() == 1 && array_transitions.is_empty())
+                    || (array_transitions.len() == 1
+                        && member_transitions.is_empty()
+                        && array_transitions[0].label.matches_at_most_once()))
+        };
+        if is_unitary {
+            debug!("{id} is unitary");
+            attrs = attrs.unitary();
         }
 
         attrs.into()
@@ -1253,6 +1267,48 @@ mod tests {
                         | StateAttributes::TRANSITIONS_TO_ACCEPTING
                         | StateAttributes::HAS_ARRAY_TRANSITION_TO_ACCEPTING
                         | StateAttributes::ACCEPTING,
+                },
+            ],
+        };
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn direct_slice() {
+        // Query = $[1:3]
+        let label = SimpleSlice::new(1.into(), Some(3.into()), 1.into());
+
+        let nfa = NondeterministicAutomaton {
+            ordered_states: vec![
+                NfaState::Direct(nfa::Transition::Array(label.into())),
+                NfaState::Accepting,
+            ],
+        };
+
+        let mut result = minimize(nfa).unwrap();
+        make_canonical(&mut result);
+        let expected = Automaton {
+            states: vec![
+                StateTable {
+                    array_transitions: smallvec![],
+                    member_transitions: smallvec![],
+                    fallback_state: State(0),
+                    attributes: StateAttributes::REJECTING,
+                },
+                StateTable {
+                    array_transitions: smallvec![ArrayTransition::new(ArrayTransitionLabel::Slice(label), State(2)),],
+                    member_transitions: smallvec![],
+                    fallback_state: State(0),
+                    attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING
+                        | StateAttributes::HAS_ARRAY_TRANSITION
+                        | StateAttributes::HAS_ARRAY_TRANSITION_TO_ACCEPTING,
+                },
+                StateTable {
+                    array_transitions: smallvec![],
+                    member_transitions: smallvec![],
+                    fallback_state: State(0),
+                    attributes: StateAttributes::ACCEPTING,
                 },
             ],
         };
