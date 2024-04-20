@@ -8,20 +8,20 @@ mod state;
 
 pub use state::{State, StateAttributes};
 
-use crate::{automaton::error::CompilerError, debug};
+use crate::{automaton::error::CompilerError, debug, string_pattern::StringPattern};
 use nfa::NondeterministicAutomaton;
-use rsonpath_syntax::{num::JsonUInt, str::JsonString, JsonPathQuery};
+use rsonpath_syntax::{num::JsonUInt, JsonPathQuery};
 use smallvec::SmallVec;
-use std::{fmt::Display, ops::Index};
+use std::{fmt::Display, ops::Index, rc::Rc};
 
 /// A minimal, deterministic automaton representing a JSONPath query.
 #[derive(Debug, PartialEq, Eq)]
-pub struct Automaton<'q> {
-    states: Vec<StateTable<'q>>,
+pub struct Automaton {
+    states: Vec<StateTable>,
 }
 
-/// Transition when a JSON member name matches a [`JsonString`]i.
-pub type MemberTransition<'q> = (&'q JsonString, State);
+/// Transition when a JSON member name matches a [`StringPattern`].
+pub type MemberTransition = (Rc<StringPattern>, State);
 
 /// Transition on elements of an array with indices specified by either a single index
 /// or a simple slice expression.
@@ -45,9 +45,9 @@ pub(super) enum ArrayTransitionLabel {
 /// Contains transitions triggered by matching member names or array indices, and a fallback transition
 /// triggered when none of the labelled transitions match.
 #[derive(Debug)]
-pub struct StateTable<'q> {
+pub struct StateTable {
     attributes: StateAttributes,
-    member_transitions: SmallVec<[MemberTransition<'q>; 2]>,
+    member_transitions: SmallVec<[MemberTransition; 2]>,
     array_transitions: SmallVec<[ArrayTransition; 2]>,
     fallback_state: State,
 }
@@ -59,7 +59,7 @@ pub(crate) struct SimpleSlice {
     step: JsonUInt,
 }
 
-impl<'q> Default for StateTable<'q> {
+impl Default for StateTable {
     #[inline]
     fn default() -> Self {
         Self {
@@ -71,7 +71,7 @@ impl<'q> Default for StateTable<'q> {
     }
 }
 
-impl<'q> PartialEq for StateTable<'q> {
+impl PartialEq for StateTable {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
         return self.fallback_state == other.fallback_state
@@ -88,10 +88,10 @@ impl<'q> PartialEq for StateTable<'q> {
     }
 }
 
-impl<'q> Eq for StateTable<'q> {}
+impl Eq for StateTable {}
 
-impl<'q> Index<State> for Automaton<'q> {
-    type Output = StateTable<'q>;
+impl Index<State> for Automaton {
+    type Output = StateTable;
 
     #[inline(always)]
     fn index(&self, index: State) -> &Self::Output {
@@ -149,7 +149,7 @@ impl From<SimpleSlice> for ArrayTransitionLabel {
     }
 }
 
-impl<'q> Automaton<'q> {
+impl Automaton {
     /// Convert a [`JsonPathQuery`] into a minimal deterministic automaton.
     ///
     /// # Errors
@@ -158,7 +158,7 @@ impl<'q> Automaton<'q> {
     /// - [`CompilerError::NotSupported`] raised if the query contains elements
     /// not yet supported by the compiler.
     #[inline]
-    pub fn new(query: &'q JsonPathQuery) -> Result<Self, CompilerError> {
+    pub fn new(query: &JsonPathQuery) -> Result<Self, CompilerError> {
         let nfa = NondeterministicAutomaton::new(query)?;
         debug!("NFA: {}", nfa);
         Automaton::minimize(nfa)
@@ -389,12 +389,12 @@ impl<'q> Automaton<'q> {
         self[state].attributes.is_unitary()
     }
 
-    fn minimize(nfa: NondeterministicAutomaton<'q>) -> Result<Self, CompilerError> {
+    fn minimize(nfa: NondeterministicAutomaton) -> Result<Self, CompilerError> {
         minimizer::minimize(nfa)
     }
 }
 
-impl<'q> StateTable<'q> {
+impl StateTable {
     /// Returns the state to which a fallback transition leads.
     ///
     /// A fallback transition is the catch-all transition triggered
@@ -421,7 +421,7 @@ impl<'q> StateTable<'q> {
     /// to the contained [`State`].
     #[must_use]
     #[inline(always)]
-    pub fn member_transitions(&self) -> &[MemberTransition<'q>] {
+    pub fn member_transitions(&self) -> &[MemberTransition] {
         &self.member_transitions
     }
 }
@@ -442,7 +442,7 @@ impl Display for ArrayTransitionLabel {
     }
 }
 
-impl<'q> Display for Automaton<'q> {
+impl Display for Automaton {
     #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "digraph {{")?;
@@ -503,7 +503,12 @@ impl<'q> Display for Automaton<'q> {
                 }
             }
             for (label, state) in &transitions.member_transitions {
-                writeln!(f, "  {i} -> {} [label=\"{}\"]", state.0, label.unquoted())?
+                writeln!(
+                    f,
+                    "  {i} -> {} [label=\"{}\"]",
+                    state.0,
+                    std::str::from_utf8(label.unquoted()).expect("labels to be valid utf8")
+                )?
             }
             writeln!(f, "  {i} -> {} [label=\"*\"]", transitions.fallback_state.0)?;
         }

@@ -19,8 +19,6 @@ query = "$..['This is meant to force the buffered input to have to read ahead to
 
 # Short descritpion of the query semantics.
 description = "select the long key"
-disabled.issue = "https://github.com/V0ldek/rsonpath/issues/117"
-disabled.reason = "we do not handle escapes correctly yet"
 
 [queries.results]
 # Number of expected matches.

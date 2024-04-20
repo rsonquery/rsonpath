@@ -59,22 +59,23 @@ use crate::{
         approx_span::ApproxSpanRecorder, count::CountRecorder, index::IndexRecorder, nodes::NodesRecorder, Match,
         MatchCount, MatchIndex, MatchSpan, MatchedNodeType, Recorder, Sink,
     },
+    string_pattern::StringPattern,
     FallibleIterator, MaskType, BLOCK_SIZE,
 };
-use rsonpath_syntax::{num::JsonUInt, str::JsonString, JsonPathQuery};
+use rsonpath_syntax::{num::JsonUInt, JsonPathQuery};
 use smallvec::{smallvec, SmallVec};
 
 /// Main engine for a fixed JSONPath query.
 ///
 /// The engine is stateless, meaning that it can be executed
 /// on any number of separate inputs, even on separate threads.
-pub struct MainEngine<'q> {
-    automaton: Automaton<'q>,
+pub struct MainEngine {
+    automaton: Automaton,
     simd: SimdConfiguration,
 }
 
-impl Compiler for MainEngine<'_> {
-    type E<'q> = MainEngine<'q>;
+impl Compiler for MainEngine {
+    type E<'q> = MainEngine;
 
     #[must_use = "compiling the query only creates an engine instance that should be used"]
     #[inline(always)]
@@ -87,7 +88,7 @@ impl Compiler for MainEngine<'_> {
     }
 
     #[inline(always)]
-    fn from_compiled_query(automaton: Automaton<'_>) -> Self::E<'_> {
+    fn from_compiled_query(automaton: Automaton) -> Self::E<'static> {
         let simd = simd::configure();
         log::info!("SIMD configuration:\n {}", simd);
         MainEngine { automaton, simd }
@@ -104,7 +105,7 @@ impl Compiler for MainEngine<'_> {
  * - we set up an appropriate Recorder impl for the result type.
  * - we configure SIMD and run the Executor in its context.
  */
-impl Engine for MainEngine<'_> {
+impl Engine for MainEngine {
     #[inline]
     fn count<I>(&self, input: &I) -> Result<MatchCount, EngineError>
     where
@@ -209,7 +210,7 @@ macro_rules! Classifier {
 }
 
 /// This is the heart of an Engine run that holds the entire execution state.
-struct Executor<'i, 'q, 'r, I, R, V> {
+struct Executor<'i, 'r, I, R, V> {
     /// Current depth in the JSON tree.
     depth: Depth,
     /// Current automaton state.
@@ -224,7 +225,7 @@ struct Executor<'i, 'q, 'r, I, R, V> {
     /// Execution stack.
     stack: SmallStack,
     /// Read-only access to the query automaton.
-    automaton: &'i Automaton<'q>,
+    automaton: &'i Automaton,
     /// Handle to the input.
     input: &'i I,
     /// Handle to the recorder.
@@ -234,12 +235,12 @@ struct Executor<'i, 'q, 'r, I, R, V> {
 }
 
 /// Initialize the [`Executor`] for the initial state of a query.
-fn query_executor<'i, 'q, 'r, I, R, V: Simd>(
-    automaton: &'i Automaton<'q>,
+fn query_executor<'i, 'r, I, R, V: Simd>(
+    automaton: &'i Automaton,
     input: &'i I,
     recorder: &'r R,
     simd: V,
-) -> Executor<'i, 'q, 'r, I, R, V>
+) -> Executor<'i, 'r, I, R, V>
 where
     I: Input,
     R: Recorder<I::Block<'i, BLOCK_SIZE>>,
@@ -258,7 +259,7 @@ where
     }
 }
 
-impl<'i, 'q, 'r, I, R, V> Executor<'i, 'q, 'r, I, R, V>
+impl<'i, 'r, I, R, V> Executor<'i, 'r, I, R, V>
 where
     'i: 'r,
     I: Input,
@@ -295,7 +296,7 @@ where
     /// Once the perceived depth of the document goes to zero, this method terminates.
     fn run_on_subtree(&mut self, classifier: &mut Classifier!()) -> Result<(), EngineError> {
         dispatch_simd!(self.simd; self, classifier =>
-        fn<'i, 'q, 'r, I, R, V>(eng: &mut Executor<'i, 'q, 'r, I, R, V>, classifier: &mut Classifier!()) -> Result<(), EngineError>
+        fn<'i, 'r, I, R, V>(eng: &mut Executor<'i, 'r, I, R, V>, classifier: &mut Classifier!()) -> Result<(), EngineError>
         where
             'i: 'r,
             I: Input,
@@ -362,8 +363,8 @@ where
         // Look at accepting transitions and try to match them with the label.
         let mut any_matched = false;
 
-        for &(member_name, target) in self.automaton[self.state].member_transitions() {
-            if self.automaton.is_accepting(target) && self.is_match(idx, member_name)? {
+        for (member_name, target) in self.automaton[self.state].member_transitions() {
+            if self.automaton.is_accepting(*target) && self.is_match(idx, member_name.as_ref())? {
                 self.record_match_detected_at(idx + 1, NodeType::Atomic)?;
                 any_matched = true;
                 break;
@@ -470,12 +471,12 @@ where
         } else {
             let colon_idx = self.find_preceding_colon(idx);
 
-            for &(member_name, target) in self.automaton[self.state].member_transitions() {
+            for (member_name, target) in self.automaton[self.state].member_transitions() {
                 if let Some(colon_idx) = colon_idx {
-                    if self.is_match(colon_idx, member_name)? {
+                    if self.is_match(colon_idx, member_name.as_ref())? {
                         any_matched = true;
-                        self.transition_to(target, bracket_type);
-                        if self.automaton.is_accepting(target) {
+                        self.transition_to(*target, bracket_type);
+                        if self.automaton.is_accepting(*target) {
                             debug!("Accept {idx}");
                             self.record_match_detected_at(colon_idx + 1, NodeType::Complex(bracket_type))?;
                         }
@@ -651,10 +652,10 @@ where
         }
     }
 
-    /// Check if the label ended with a colon at index `idx` matches the `member_name`.
+    /// Check if the label ended with a colon at index `idx` matches the `pattern`.
     #[inline(always)]
-    fn is_match(&self, idx: usize, member_name: &JsonString) -> Result<bool, EngineError> {
-        let len = member_name.quoted().len();
+    fn is_match(&self, idx: usize, pattern: &StringPattern) -> Result<bool, EngineError> {
+        let len = pattern.quoted().len();
 
         // The colon can be preceded by whitespace before the actual label.
         let closing_quote_idx = match self.input.seek_backward(idx - 1, b'"') {
@@ -668,9 +669,9 @@ where
         }
 
         // Do the expensive memcmp.
-        let start_idx = closing_quote_idx + 1 - len;
         self.input
-            .is_member_match(start_idx, closing_quote_idx + 1, member_name)
+            .pattern_match_to(closing_quote_idx + 1, pattern)
+            .map(|x| x.is_some())
             .map_err(|x| x.into().into())
     }
 
@@ -751,7 +752,7 @@ impl SmallStack {
     }
 }
 
-impl<'i, 'q, 'r, I, R, V> CanHeadSkip<'i, 'r, I, R, V> for Executor<'i, 'q, 'r, I, R, V>
+impl<'i, 'r, I, R, V> CanHeadSkip<'i, 'r, I, R, V> for Executor<'i, 'r, I, R, V>
 where
     I: Input,
     R: Recorder<I::Block<'i, BLOCK_SIZE>>,

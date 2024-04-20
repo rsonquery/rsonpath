@@ -17,14 +17,14 @@ use std::{
     path::Path,
 };
 
-pub struct Runner<'q, S> {
-    pub with_compiled_query: Automaton<'q>,
+pub struct Runner<S> {
+    pub with_compiled_query: Automaton,
     pub with_engine: ResolvedEngine,
     pub with_input: ResolvedInput<S>,
     pub with_output: ResolvedOutput,
 }
 
-impl<'q, S: AsRef<str>> Runner<'q, S> {
+impl<S: AsRef<str>> Runner<S> {
     pub fn run(self) -> Result<()> {
         match self.with_engine {
             ResolvedEngine::Main => {

@@ -26,8 +26,7 @@ pub use mmap::MmapInput;
 pub use owned::OwnedBytes;
 
 use self::error::InputError;
-use crate::result::InputRecorder;
-use rsonpath_syntax::str::JsonString;
+use crate::{result::InputRecorder, string_pattern::StringPattern};
 use std::ops::Deref;
 
 /// Make the struct repr(C) with alignment equal to [`MAX_BLOCK_SIZE`].
@@ -142,16 +141,22 @@ pub trait Input: Sized {
     fn seek_non_whitespace_backward(&self, from: usize) -> Option<(usize, u8)>;
 
     /// Decide whether the slice of input between `from` (inclusive)
-    /// and `to` (exclusive) matches the `member` (comparing bitwise,
-    /// including double quotes delimiters).
+    /// and `to` (exclusive) matches the string `pattern`.
     ///
     /// This will also check if the leading double quote is not
     /// escaped by a backslash character.
+    /// 
+    /// Comparison is done based on the `pattern`'s data and MUST be a proper JSON string
+    /// comparison as defined in the [JSONPath spec](https://www.rfc-editor.org/rfc/rfc9535#name-semantics-3).
     ///
     /// # Errors
     /// This function can read more data from the input if `to` falls beyond
     /// the range that was already read, and the read operation can fail.
-    fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> Result<bool, Self::Error>;
+    fn is_string_match(&self, from: usize, to: usize, pattern: &StringPattern) -> Result<bool, Self::Error>;
+
+    fn pattern_match_from(&self, from: usize, pattern: &StringPattern) -> Result<Option<usize>, Self::Error>;
+
+    fn pattern_match_to(&self, to: usize, pattern: &StringPattern) -> Result<Option<usize>, Self::Error>;
 }
 
 /// An iterator over blocks of input of size `N`.
@@ -211,7 +216,11 @@ impl<'i, const N: usize> InputBlock<'i, N> for &'i [u8] {
 }
 
 pub(super) trait SliceSeekable {
-    fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> bool;
+    fn is_member_match(&self, from: usize, to: usize, pattern: &StringPattern) -> bool;
+
+    fn pattern_match_from(&self, from: usize, pattern: &StringPattern) -> Option<usize>;
+
+    fn pattern_match_to(&self, to: usize, pattern: &StringPattern) -> Option<usize>;
 
     fn seek_backward(&self, from: usize, needle: u8) -> Option<usize>;
 

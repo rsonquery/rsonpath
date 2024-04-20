@@ -2,8 +2,8 @@ use pretty_assertions::assert_eq;
 use rsonpath::{
     input::{error::InputError, *},
     result::empty::EmptyRecorder,
+    StringPattern,
 };
-use rsonpath_syntax::str::JsonString;
 use std::{cmp, fs, fs::File, io::Read, iter};
 use test_case::test_case;
 
@@ -143,11 +143,15 @@ impl InMemoryTestInput {
         }
     }
 
-    fn test_positive_is_member_match(&self, bytes: &[u8], from: usize, to: usize, json_string: JsonString) {
+    fn test_positive_is_member_match(&self, bytes: &[u8], from: usize, to: usize, string_pattern: StringPattern) {
         match self {
-            InMemoryTestInput::Buffered => Self::test_positive_is_member_match_buffered(bytes, from, to, json_string),
-            InMemoryTestInput::Borrowed => Self::test_positive_is_member_match_borrowed(bytes, from, to, json_string),
-            InMemoryTestInput::Owned => Self::test_positive_is_member_match_owned(bytes, from, to, json_string),
+            InMemoryTestInput::Buffered => {
+                Self::test_positive_is_member_match_buffered(bytes, from, to, string_pattern)
+            }
+            InMemoryTestInput::Borrowed => {
+                Self::test_positive_is_member_match_borrowed(bytes, from, to, string_pattern)
+            }
+            InMemoryTestInput::Owned => Self::test_positive_is_member_match_owned(bytes, from, to, string_pattern),
         }
     }
 
@@ -269,33 +273,39 @@ impl InMemoryTestInput {
         assert_eq!(result, Some((expected, expected_byte)));
     }
 
-    fn test_positive_is_member_match_buffered(bytes: &[u8], from: usize, to: usize, json_string: JsonString) {
+    fn test_positive_is_member_match_buffered(bytes: &[u8], from: usize, to: usize, string_pattern: StringPattern) {
         let input = create_buffered(bytes);
 
-        let result = input.is_member_match(from, to, &json_string).expect("match succeeds");
+        let result = input
+            .is_string_match(from, to, &string_pattern)
+            .expect("match succeeds");
         // Buffered is never padded from the start.
 
         assert!(result);
     }
 
-    fn test_positive_is_member_match_borrowed(bytes: &[u8], from: usize, to: usize, json_string: JsonString) {
+    fn test_positive_is_member_match_borrowed(bytes: &[u8], from: usize, to: usize, string_pattern: StringPattern) {
         let input = BorrowedBytes::new(bytes);
 
         // Need to take padding into account.
         let from = from + input.leading_padding_len();
         let to = to + input.leading_padding_len();
-        let result = input.is_member_match(from, to, &json_string).expect("match succeeds");
+        let result = input
+            .is_string_match(from, to, &string_pattern)
+            .expect("match succeeds");
 
         assert!(result);
     }
 
-    fn test_positive_is_member_match_owned(bytes: &[u8], from: usize, to: usize, json_string: JsonString) {
+    fn test_positive_is_member_match_owned(bytes: &[u8], from: usize, to: usize, string_pattern: StringPattern) {
         let input = OwnedBytes::new(bytes);
 
         // Need to take padding into account.
         let from = from + input.leading_padding_len();
         let to = to + input.leading_padding_len();
-        let result = input.is_member_match(from, to, &json_string).expect("match succeeds");
+        let result = input
+            .is_string_match(from, to, &string_pattern)
+            .expect("match succeeds");
 
         assert!(result);
     }
@@ -417,6 +427,7 @@ impl<'a> Read for ReadBytes<'a> {
 mod in_memory_proptests {
     use crate::InMemoryTestInput;
     use proptest::prelude::*;
+    use rsonpath::StringPattern;
     use rsonpath_syntax::str::JsonString;
     const JSON_WHITESPACE_BYTES: [u8; 4] = [b' ', b'\t', b'\n', b'\r'];
 
@@ -501,18 +512,18 @@ mod in_memory_proptests {
         }
 
         #[test]
-        fn buffered_input_is_member_match_should_be_true((input, from, to, member) in positive_is_member_match_strategy()) {
-             InMemoryTestInput::Buffered.test_positive_is_member_match(&input, from, to, member)
+        fn buffered_input_is_member_match_should_be_true((input, from, to, pattern) in positive_is_member_match_strategy()) {
+             InMemoryTestInput::Buffered.test_positive_is_member_match(&input, from, to, pattern)
         }
 
         #[test]
-        fn borrowed_input_is_member_match_should_be_true((input, from, to, member) in positive_is_member_match_strategy()) {
-            InMemoryTestInput::Borrowed.test_positive_is_member_match(&input, from, to, member)
+        fn borrowed_input_is_member_match_should_be_true((input, from, to, pattern) in positive_is_member_match_strategy()) {
+            InMemoryTestInput::Borrowed.test_positive_is_member_match(&input, from, to, pattern)
         }
 
         #[test]
-        fn owned_input_is_member_match_should_be_true((input, from, to, member) in positive_is_member_match_strategy()) {
-            InMemoryTestInput::Owned.test_positive_is_member_match(&input, from, to, member)
+        fn owned_input_is_member_match_should_be_true((input, from, to, pattern) in positive_is_member_match_strategy()) {
+            InMemoryTestInput::Owned.test_positive_is_member_match(&input, from, to, pattern)
         }
     }
 
@@ -579,7 +590,7 @@ mod in_memory_proptests {
     prop_compose! {
         fn positive_is_member_match_strategy()
             (input in prop::collection::vec(prop::num::u8::ANY, 2..1024))
-            (mut from in 0..input.len(), mut to in 0..input.len(), mut input in Just(input)) -> (Vec<u8>, usize, usize, JsonString)
+            (mut from in 0..input.len(), mut to in 0..input.len(), mut input in Just(input)) -> (Vec<u8>, usize, usize, StringPattern)
         {
             if from > to {
                 std::mem::swap(&mut from, &mut to);
@@ -609,6 +620,7 @@ mod in_memory_proptests {
 
             let str = "x".repeat(to - from - 2);
             let json_string = JsonString::new(&str);
+            let pattern = StringPattern::new(&json_string);
             let slice = &mut input[from..to];
 
             slice.copy_from_slice(json_string.quoted().as_bytes());
@@ -617,7 +629,7 @@ mod in_memory_proptests {
                 input[from - 1] = 255;
             }
 
-            (input, from, to, json_string)
+            (input, from, to, pattern)
         }
     }
 }

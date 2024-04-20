@@ -1,0 +1,50 @@
+# Define the JSON input for all query test cases.
+[input]
+# Short description of the input structure.
+description = "Arrays of equivalent objects with different byte-encodings of labels"
+# Set to true only if your specific test input is fully compressed (no extraneous whitespace).
+is_compressed = false
+
+# Inline JSON document.
+[input.source]
+json_string = '''
+[
+  [
+    {"a":1},
+    {"\u0061":2},
+    {"filler":"this is filler long enough to fill a whole block of classification, so that the head-skipper has to go to the SIMD loop instead of doing just the first block"},
+    {"\u0061":3}
+  ]
+]
+'''
+
+# Define queries to test on the input.
+[[queries]]
+# Valid JSONPath query string.
+query = "$..['a']"
+# Short descritpion of the query semantics.
+description = "select all as"
+
+[queries.results]
+# Number of expected matches.
+count = 3
+# Byte locations of spans of all matches, in order.
+spans = [[15, 16], [33, 34], [227, 228]]
+# Stringified values of all matches, verbatim as in the input,
+# in the same order as above.
+nodes = ['1', '2', '3']
+
+[[queries]]
+# Valid JSONPath query string.
+query = "$..['\\u0061']"
+# Short descritpion of the query semantics.
+description = "select all as by unicode escape"
+
+[queries.results]
+# Number of expected matches.
+count = 3
+# Byte locations of spans of all matches, in order.
+spans = [[15, 16], [33, 34], [227, 228]]
+# Stringified values of all matches, verbatim as in the input,
+# in the same order as above.
+nodes = ['1', '2', '3']

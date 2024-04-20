@@ -24,8 +24,10 @@ use super::{
     padding::{PaddedBlock, TwoSidesPaddedInput},
     Input, SliceSeekable, MAX_BLOCK_SIZE,
 };
-use crate::result::InputRecorder;
-use rsonpath_syntax::str::JsonString;
+use crate::{
+    result::InputRecorder,
+    string_pattern::{self, StringPattern},
+};
 use std::borrow::Borrow;
 
 /// Input wrapping a buffer borrowable as a slice of bytes.
@@ -158,12 +160,28 @@ where
     }
 
     #[inline]
-    fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> Result<bool, Self::Error> {
+    fn is_string_match(&self, from: usize, to: usize, member: &StringPattern) -> Result<bool, Self::Error> {
         let offset = self.leading_padding_len();
         let Some(from) = from.checked_sub(offset) else {
             return Ok(false);
         };
 
         Ok(self.bytes.borrow().is_member_match(from, to - offset, member))
+    }
+
+    #[inline]
+    fn pattern_match_from(&self, from: usize, pattern: &StringPattern) -> Result<Option<usize>, Self::Error> {
+        let offset = self.leading_padding_len();
+        let Some(from) = from.checked_sub(offset) else {
+            return Ok(None);
+        };
+
+        Ok(self.bytes.borrow().pattern_match_from(from, pattern).map(|x| x + offset))
+    }
+
+    #[inline]
+    fn pattern_match_to(&self, to: usize, pattern: &StringPattern) -> Result<Option<usize>, Self::Error> {
+        let offset = self.leading_padding_len();
+        Ok(self.bytes.borrow().pattern_match_to(to - offset, pattern).map(|x| x + offset))
     }
 }

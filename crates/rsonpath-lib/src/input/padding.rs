@@ -1,6 +1,8 @@
 use super::{SliceSeekable, MAX_BLOCK_SIZE};
-use crate::JSON_SPACE_BYTE;
-use rsonpath_syntax::str::JsonString;
+use crate::{
+    string_pattern::{self, StringPattern},
+    JSON_SPACE_BYTE,
+};
 
 pub(super) struct PaddedBlock {
     bytes: [u8; MAX_BLOCK_SIZE],
@@ -102,10 +104,21 @@ impl<'a> SliceSeekable for EndPaddedInput<'a> {
 
     #[cold]
     #[inline(never)]
-    fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> bool {
+    fn is_member_match(&self, from: usize, to: usize, member: &StringPattern) -> bool {
         debug_assert!(from < to);
-        let other = member.quoted().as_bytes();
-        self.cold_member_match(other, from, to)
+        self.cold_member_match(member, from, to).is_some()
+    }
+
+    #[cold]
+    #[inline(never)]
+    fn pattern_match_from(&self, from: usize, pattern: &StringPattern) -> Option<usize> {
+        self.cold_pattern_match_forward(pattern, from, from + pattern.len_limit())
+    }
+
+    #[cold]
+    #[inline(never)]
+    fn pattern_match_to(&self, to: usize, pattern: &StringPattern) -> Option<usize> {
+        self.cold_pattern_match_backward(pattern, to.saturating_sub(pattern.len_limit()), to)
     }
 }
 
@@ -160,10 +173,21 @@ impl<'a> SliceSeekable for TwoSidesPaddedInput<'a> {
 
     #[cold]
     #[inline(never)]
-    fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> bool {
+    fn is_member_match(&self, from: usize, to: usize, pattern: &StringPattern) -> bool {
         debug_assert!(from < to);
-        let other = member.quoted().as_bytes();
-        self.cold_member_match(other, from, to)
+        self.cold_member_match(pattern, from, to).is_some()
+    }
+
+    #[cold]
+    #[inline(never)]
+    fn pattern_match_from(&self, from: usize, pattern: &StringPattern) -> Option<usize> {
+        self.cold_pattern_match_forward(pattern, from, from + pattern.len_limit())
+    }
+
+    #[cold]
+    #[inline(never)]
+    fn pattern_match_to(&self, to: usize, pattern: &StringPattern) -> Option<usize> {
+        self.cold_pattern_match_backward(pattern, to.saturating_sub(pattern.len_limit()), to)
     }
 }
 
@@ -292,13 +316,31 @@ impl<'a> EndPaddedInput<'a> {
         }
     }
 
-    fn cold_member_match(&self, other: &[u8], from: usize, to: usize) -> bool {
+    fn cold_member_match(&self, pattern: &StringPattern, from: usize, to: usize) -> Option<usize> {
         let (middle_self, last_self) = self.slice_parts(from, to);
-        let middle_other = &other[..middle_self.len()];
-        let last_other = &other[middle_self.len()..];
         let preceding_char = from.checked_sub(1).and_then(|x| self.get_at(x));
 
-        middle_self == middle_other && last_self == last_other && preceding_char.map_or(true, |x| x != b'\\')
+        if preceding_char.map_or(true, |x| x != b'\\') {
+            string_pattern::cmpeq_forward(pattern, (middle_self, last_self))
+        } else {
+            None
+        }
+    }
+
+    fn cold_pattern_match_forward(&self, pattern: &StringPattern, from: usize, to: usize) -> Option<usize> {
+        let (middle_self, last_self) = self.slice_parts(from, to);
+        let preceding_char = from.checked_sub(1).and_then(|x| self.get_at(x));
+
+        let idx = string_pattern::cmpeq_forward(pattern, (middle_self, last_self))?;
+        preceding_char.map_or(true, |x| x != b'\\').then_some(from + idx)
+    }
+
+    fn cold_pattern_match_backward(&self, pattern: &StringPattern, from: usize, to: usize) -> Option<usize> {
+        let (middle_self, last_self) = self.slice_parts(from, to);
+
+        let idx = string_pattern::cmpeq_backward(pattern, (middle_self, last_self))?;
+        let preceding_char = (from + idx).checked_sub(1).and_then(|x| self.get_at(x));
+        preceding_char.map_or(true, |x| x != b'\\').then_some(from + idx)
     }
 }
 
@@ -505,17 +547,31 @@ impl<'a> TwoSidesPaddedInput<'a> {
         }
     }
 
-    fn cold_member_match(&self, other: &[u8], from: usize, to: usize) -> bool {
+    fn cold_member_match(&self, pattern: &StringPattern, from: usize, to: usize) -> Option<usize> {
         let (first_self, middle_self, last_self) = self.slice_parts(from, to);
-        let first_other = &other[..first_self.len()];
-        let middle_other = &other[first_self.len()..first_self.len() + middle_self.len()];
-        let last_other = &other[first_self.len() + middle_self.len()..];
         let preceding_char = from.checked_sub(1).and_then(|x| self.get_at(x));
 
-        first_self == first_other
-            && middle_self == middle_other
-            && last_self == last_other
-            && preceding_char.map_or(true, |x| x != b'\\')
+        if preceding_char.map_or(true, |x| x != b'\\') {
+            string_pattern::cmpeq_forward(pattern, (first_self, middle_self, last_self))
+        } else {
+            None
+        }
+    }
+
+    fn cold_pattern_match_forward(&self, pattern: &StringPattern, from: usize, to: usize) -> Option<usize> {
+        let (first_self, middle_self, last_self) = self.slice_parts(from, to);
+        let preceding_char = from.checked_sub(1).and_then(|x| self.get_at(x));
+
+        let idx = string_pattern::cmpeq_forward(pattern, (first_self, middle_self, last_self))?;
+        preceding_char.map_or(Some(from + idx), |x| (x != b'\\').then_some(from + idx))
+    }
+
+    fn cold_pattern_match_backward(&self, pattern: &StringPattern, from: usize, to: usize) -> Option<usize> {
+        let (first_self, middle_self, last_self) = self.slice_parts(from, to);
+
+        let idx = string_pattern::cmpeq_backward(pattern, (first_self, middle_self, last_self))?;
+        let preceding_char = (from + idx).checked_sub(1).and_then(|x| self.get_at(x));
+        preceding_char.map_or(Some(from + idx), |x| (x != b'\\').then_some(from + idx))
     }
 }
 

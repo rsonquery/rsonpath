@@ -2,6 +2,7 @@ use super::{shared::mask_64, shared::vector_128, *};
 use crate::{
     classification::mask::m64,
     input::{error::InputErrorConvertible, InputBlock, InputBlockIterator},
+    string_pattern::StringPattern,
 };
 
 const SIZE: usize = 64;
@@ -53,9 +54,9 @@ where
     #[inline(always)]
     unsafe fn find_empty(
         &mut self,
-        label: &JsonString,
+        label: &StringPattern,
         mut offset: usize,
-    ) -> Result<Option<(usize, I::Block<'i, SIZE>)>, InputError> {
+    ) -> Result<Option<(usize, usize, I::Block<'i, SIZE>)>, InputError> {
         let classifier = vector_128::BlockClassifier128::new(b'"', b'"');
         let mut previous_block: u64 = 0;
 
@@ -82,12 +83,8 @@ where
             let mut result = (previous_block | (first_bitmask << 1)) & second_bitmask;
             while result != 0 {
                 let idx = result.trailing_zeros() as usize;
-                if self
-                    .input
-                    .is_member_match(offset + idx - 1, offset + idx + 1, label)
-                    .e()?
-                {
-                    return Ok(Some((offset + idx - 1, block)));
+                if let Some(to) = self.input.pattern_match_from(offset + idx - 1, label).e()? {
+                    return Ok(Some((offset + idx - 1, to, block)));
                 }
                 result &= !(1 << idx);
             }
@@ -105,10 +102,10 @@ where
     #[inline(always)]
     unsafe fn find_letter(
         &mut self,
-        label: &JsonString,
+        label: &StringPattern,
         mut offset: usize,
-    ) -> Result<Option<(usize, I::Block<'i, SIZE>)>, InputError> {
-        let classifier = vector_128::BlockClassifier128::new(label.unquoted().as_bytes()[0], b'"');
+    ) -> Result<Option<(usize, usize, I::Block<'i, SIZE>)>, InputError> {
+        let classifier = vector_128::BlockClassifier128::new(label.unquoted()[0], b'"');
         let mut previous_block: u64 = 0;
 
         while let Some(block) = self.iter.next().e()? {
@@ -130,15 +127,27 @@ where
                 classified3.second,
                 classified4.second,
             );
+            let slash_bitmask = m64::combine_16(
+                classified1.slashes,
+                classified2.slashes,
+                classified3.slashes,
+                classified4.slashes,
+            );
 
-            if let Some(res) =
-                mask_64::find_in_mask(self.input, label, previous_block, first_bitmask, second_bitmask, offset)?
-            {
-                return Ok(Some((res, block)));
+            if let Some((from, to)) = mask_64::find_in_mask(
+                self.input,
+                label,
+                previous_block,
+                first_bitmask,
+                second_bitmask,
+                slash_bitmask,
+                offset,
+            )? {
+                return Ok(Some((from, to, block)));
             }
 
             offset += SIZE;
-            previous_block = first_bitmask >> (SIZE - 1);
+            previous_block = (first_bitmask | slash_bitmask) >> (SIZE - 1);
         }
 
         Ok(None)
@@ -147,17 +156,16 @@ where
     #[inline(always)]
     unsafe fn find_label_sse2(
         &mut self,
-        label: &JsonString,
+        label: &StringPattern,
         mut offset: usize,
-    ) -> Result<Option<(usize, I::Block<'i, SIZE>)>, InputError> {
+    ) -> Result<Option<(usize, usize, I::Block<'i, SIZE>)>, InputError> {
         if label.unquoted().is_empty() {
             return self.find_empty(label, offset);
         } else if label.unquoted().len() == 1 {
             return self.find_letter(label, offset);
         }
 
-        let classifier =
-            vector_128::BlockClassifier128::new(label.unquoted().as_bytes()[0], label.unquoted().as_bytes()[1]);
+        let classifier = vector_128::BlockClassifier128::new(label.unquoted()[0], label.unquoted()[1]);
         let mut previous_block: u64 = 0;
 
         while let Some(block) = self.iter.next().e()? {
@@ -179,15 +187,27 @@ where
                 classified3.second,
                 classified4.second,
             );
+            let slash_bitmask = m64::combine_16(
+                classified1.slashes,
+                classified2.slashes,
+                classified3.slashes,
+                classified4.slashes,
+            );
 
-            if let Some(res) =
-                mask_64::find_in_mask(self.input, label, previous_block, first_bitmask, second_bitmask, offset)?
-            {
-                return Ok(Some((res, block)));
+            if let Some((from, to)) = mask_64::find_in_mask(
+                self.input,
+                label,
+                previous_block,
+                first_bitmask,
+                second_bitmask,
+                slash_bitmask,
+                offset,
+            )? {
+                return Ok(Some((from, to, block)));
             }
 
             offset += SIZE;
-            previous_block = first_bitmask >> (SIZE - 1);
+            previous_block = (first_bitmask | slash_bitmask) >> (SIZE - 1);
         }
 
         Ok(None)
@@ -205,8 +225,8 @@ where
         &mut self,
         first_block: Option<I::Block<'i, SIZE>>,
         start_idx: usize,
-        label: &JsonString,
-    ) -> Result<Option<(usize, I::Block<'i, SIZE>)>, InputError> {
+        label: &StringPattern,
+    ) -> Result<Option<(usize, usize, I::Block<'i, SIZE>)>, InputError> {
         if let Some(b) = first_block {
             if let Some(res) = shared::find_label_in_first_block(self.input, b, start_idx, label)? {
                 return Ok(Some(res));

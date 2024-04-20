@@ -50,7 +50,7 @@ where
     #[inline(always)]
     unsafe fn find_empty(
         &mut self,
-        label: &JsonString,
+        label: &StringPattern,
         mut offset: usize,
     ) -> Result<Option<(usize, I::Block<'i, SIZE>)>, InputError> {
         let classifier = vector_256::BlockClassifier256::new(b'"', b'"');
@@ -85,10 +85,10 @@ where
     #[inline(always)]
     unsafe fn find_letter(
         &mut self,
-        label: &JsonString,
+        label: &StringPattern,
         mut offset: usize,
     ) -> Result<Option<(usize, I::Block<'i, SIZE>)>, InputError> {
-        let classifier = vector_256::BlockClassifier256::new(label.unquoted().as_bytes()[0], b'"');
+        let classifier = vector_256::BlockClassifier256::new(label.unquoted()[0], b'"');
         let mut previous_block: u32 = 0;
 
         while let Some(block) = self.iter.next().e()? {
@@ -115,7 +115,7 @@ where
     #[inline(always)]
     unsafe fn find_label_avx2(
         &mut self,
-        label: &JsonString,
+        label: &StringPattern,
         mut offset: usize,
     ) -> Result<Option<(usize, I::Block<'i, SIZE>)>, InputError> {
         if label.unquoted().is_empty() {
@@ -125,7 +125,7 @@ where
         }
 
         let classifier =
-            vector_256::BlockClassifier256::new(label.unquoted().as_bytes()[0], label.unquoted().as_bytes()[1]);
+            vector_256::BlockClassifier256::new(label.unquoted()[0], label.unquoted()[1]);
         let mut previous_block: u32 = 0;
 
         while let Some(block) = self.iter.next().e()? {
@@ -161,7 +161,7 @@ where
         &mut self,
         first_block: Option<I::Block<'i, SIZE>>,
         start_idx: usize,
-        label: &JsonString,
+        label: &StringPattern,
     ) -> Result<Option<(usize, I::Block<'i, SIZE>)>, InputError> {
         if let Some(b) = first_block {
             if let Some(res) = shared::find_label_in_first_block(self.input, b, start_idx, label)? {

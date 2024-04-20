@@ -1,32 +1,30 @@
 use crate::{
-    debug,
     input::{
         error::{InputError, InputErrorConvertible},
         Input,
     },
+    string_pattern::StringPattern,
 };
-use rsonpath_syntax::str::JsonString;
 
 #[inline(always)]
 pub(crate) fn find_in_mask<I: Input>(
     input: &I,
-    label: &JsonString,
+    pattern: &StringPattern,
     previous_block: u64,
     first: u64,
     second: u64,
+    slash: u64,
     offset: usize,
-) -> Result<Option<usize>, InputError> {
-    let label_size = label.quoted().len();
-    let mut result = (previous_block | (first << 1)) & second;
+) -> Result<Option<(usize, usize)>, InputError> {
+    let slash_override = (previous_block | (slash << 1)) | slash;
+    let character_mask = (previous_block | (first << 1)) & second;
+    let mut result = slash_override | character_mask;
     while result != 0 {
         let idx = result.trailing_zeros() as usize;
-        debug!("{offset} + {idx} - 2 to {offset} + {idx} + {label_size} - 3");
-        if offset + idx > 1
-            && input
-                .is_member_match(offset + idx - 2, offset + idx + label_size - 2, label)
-                .e()?
-        {
-            return Ok(Some(offset + idx - 2));
+        if offset + idx > 1 {
+            if let Some(to) = input.pattern_match_from(offset + idx - 2, pattern).e()? {
+                return Ok(Some((offset + idx - 2, to)));
+            }
         }
         result &= !(1 << idx);
     }

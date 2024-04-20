@@ -1,40 +1,40 @@
 //! Definition of a nondeterministic automaton that can be directly
 //! obtained from a JsonPath query. This is then turned into
 //! a DFA with the minimizer.
-use crate::{automaton::SimpleSlice, error::UnsupportedFeatureError};
+use crate::{automaton::SimpleSlice, error::UnsupportedFeatureError, string_pattern::StringPattern};
 
 use super::{error::CompilerError, ArrayTransitionLabel};
 use rsonpath_syntax::{str::JsonString, JsonPathQuery, Step};
-use std::{fmt::Display, ops::Index};
+use std::{collections::HashMap, fmt::Display, ops::Index, rc::Rc};
 
 /// An NFA representing a query. It is always a directed path
 /// from an initial state to the unique accepting state at the end,
 /// where transitions are either self-loops or go forward to the immediate
 /// successor in the path.
 #[derive(Debug, PartialEq, Eq)]
-pub(super) struct NondeterministicAutomaton<'q> {
-    pub(super) ordered_states: Vec<NfaState<'q>>,
+pub(super) struct NondeterministicAutomaton {
+    pub(super) ordered_states: Vec<NfaState>,
 }
 
 /// Types of states allowed in an NFA directly mapped from a [`JsonPathQuery`].
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(super) enum NfaState<'q> {
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(super) enum NfaState {
     /// A state with a single forward [`Transition`] only.
-    Direct(Transition<'q>),
+    Direct(Transition),
     /// A state with a forward [`Transition`] and a wildcard self-loop.
-    Recursive(Transition<'q>),
+    Recursive(Transition),
     /// The final state in the NFA with no outgoing transitions.
     Accepting,
 }
 use NfaState::*;
 
 /// A transition in the NFA mapped from a [`JsonPathQuery`] selector.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(super) enum Transition<'q> {
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(super) enum Transition {
     /// A transition matching array indices.
     Array(ArrayTransitionLabel),
     /// A transition matching a specific member.
-    Member(&'q JsonString),
+    Member(Rc<StringPattern>),
     /// A transition matching anything.
     Wildcard,
 }
@@ -58,7 +58,7 @@ impl NfaStateId {
     }
 }
 
-impl<'q> NondeterministicAutomaton<'q> {
+impl NondeterministicAutomaton {
     /// Translate a [`JsonPathQuery`] into an NFA.
     ///
     /// # Errors
@@ -67,8 +67,11 @@ impl<'q> NondeterministicAutomaton<'q> {
     ///
     /// Returns a [`CompilerError::NotSupported`] if the query contains a construct
     /// not currently supported by rsonpath.
-    pub(super) fn new(query: &'q JsonPathQuery) -> Result<Self, CompilerError> {
+    pub(super) fn new<'q>(query: &'q JsonPathQuery) -> Result<Self, CompilerError> {
         use rsonpath_syntax::{Index, Selector};
+        use std::collections::hash_map::Entry;
+
+        let mut string_pattern_cache: HashMap<&'q JsonString, Rc<StringPattern>> = HashMap::new();
 
         let states_result: Result<Vec<NfaState>, CompilerError> = query
             .segments()
@@ -80,7 +83,17 @@ impl<'q> NondeterministicAutomaton<'q> {
                     Err(UnsupportedFeatureError::multiple_selectors().into())
                 } else {
                     let transition = match selectors.first() {
-                        Selector::Name(name) => Ok::<_, CompilerError>(Transition::Member(name)),
+                        Selector::Name(name) => {
+                            let pattern = match string_pattern_cache.entry(name) {
+                                Entry::Occupied(pat) => pat.get().clone(),
+                                Entry::Vacant(entry) => {
+                                    let pat = Rc::new(StringPattern::new(name));
+                                    entry.insert(pat.clone());
+                                    pat
+                                }
+                            };
+                            Ok::<_, CompilerError>(Transition::Member(pattern))
+                        }
                         Selector::Wildcard => Ok(Transition::Wildcard),
                         Selector::Index(Index::FromStart(index)) => Ok(Transition::Array((*index).into())),
                         Selector::Index(Index::FromEnd(_)) => Err(UnsupportedFeatureError::indexing_from_end().into()),
@@ -129,8 +142,8 @@ impl<'q> NondeterministicAutomaton<'q> {
     }
 }
 
-impl<'q> Index<NfaStateId> for NondeterministicAutomaton<'q> {
-    type Output = NfaState<'q>;
+impl Index<NfaStateId> for NondeterministicAutomaton {
+    type Output = NfaState;
 
     fn index(&self, index: NfaStateId) -> &Self::Output {
         &self.ordered_states[index.0 as usize]
@@ -143,7 +156,7 @@ impl Display for NfaStateId {
     }
 }
 
-impl<'q> Display for NondeterministicAutomaton<'q> {
+impl Display for NondeterministicAutomaton {
     // This is the format for https://paperman.name/semigroup/
     // for easy debugging of minimization.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -152,7 +165,7 @@ impl<'q> Display for NondeterministicAutomaton<'q> {
             .iter()
             .filter_map(|s| match s {
                 Direct(Transition::Member(label)) | Recursive(Transition::Member(label)) => {
-                    Some(label.unquoted().to_string())
+                    Some(stringify_label(label).to_string())
                 }
                 Direct(Transition::Array(label)) | Recursive(Transition::Array(label)) => Some(label.to_string()),
                 _ => None,
@@ -165,7 +178,7 @@ impl<'q> Display for NondeterministicAutomaton<'q> {
                     writeln!(f, "s{i}.{} -> s{};", label, i + 1)?;
                 }
                 Direct(Transition::Member(label)) => {
-                    writeln!(f, "s{i}.{} -> s{};", label.unquoted(), i + 1)?;
+                    writeln!(f, "s{i}.{} -> s{};", stringify_label(label), i + 1)?;
                 }
                 Direct(Transition::Wildcard) => {
                     for label in &all_labels {
@@ -174,8 +187,8 @@ impl<'q> Display for NondeterministicAutomaton<'q> {
                     writeln!(f, "s{i}.X -> s{};", i + 1)?;
                 }
                 Recursive(Transition::Member(label)) => {
-                    writeln!(f, "s{i}.{} -> s{i}, s{};", label.unquoted(), i + 1)?;
-                    for label in all_labels.iter().filter(|&l| l != label.unquoted()) {
+                    writeln!(f, "s{i}.{} -> s{i}, s{};", stringify_label(label), i + 1)?;
+                    for label in all_labels.iter().filter(|&l| l != stringify_label(label)) {
                         writeln!(f, "s{i}.{} -> s{i};", label)?;
                     }
                     writeln!(f, "s{i}.X -> s{i};")?;
@@ -196,14 +209,18 @@ impl<'q> Display for NondeterministicAutomaton<'q> {
                 Accepting => (),
             }
         }
-        Ok(())
+        return Ok(());
+
+        fn stringify_label(label: &StringPattern) -> &str {
+            std::str::from_utf8(label.unquoted()).expect("labels must be valid utf8")
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rsonpath_syntax::builder::JsonPathQueryBuilder;
+    use rsonpath_syntax::{builder::JsonPathQueryBuilder, str::JsonString};
 
     #[test]
     fn nfa_test() {
@@ -225,10 +242,10 @@ mod tests {
 
         let expected_automaton = NondeterministicAutomaton {
             ordered_states: vec![
-                NfaState::Direct(Transition::Member(&label_a)),
-                NfaState::Direct(Transition::Member(&label_b)),
-                NfaState::Recursive(Transition::Member(&label_c)),
-                NfaState::Recursive(Transition::Member(&label_d)),
+                NfaState::Direct(Transition::Member(Rc::new(StringPattern::new(&label_a)))),
+                NfaState::Direct(Transition::Member(Rc::new(StringPattern::new(&label_b)))),
+                NfaState::Recursive(Transition::Member(Rc::new(StringPattern::new(&label_c)))),
+                NfaState::Recursive(Transition::Member(Rc::new(StringPattern::new(&label_d)))),
                 NfaState::Direct(Transition::Wildcard),
                 NfaState::Direct(Transition::Wildcard),
                 NfaState::Recursive(Transition::Wildcard),

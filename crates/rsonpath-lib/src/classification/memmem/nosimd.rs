@@ -1,5 +1,8 @@
 use super::*;
-use crate::input::{error::InputErrorConvertible, InputBlockIterator};
+use crate::{
+    input::{error::InputErrorConvertible, InputBlockIterator},
+    string_pattern::StringPattern,
+};
 
 pub(crate) struct Constructor;
 
@@ -41,22 +44,23 @@ where
     #[inline]
     fn find_label_sequential(
         &mut self,
-        label: &JsonString,
+        label: &StringPattern,
         mut offset: usize,
-    ) -> Result<Option<(usize, I::Block<'i, N>)>, InputError> {
-        let label_size = label.quoted().len();
+    ) -> Result<Option<(usize, usize, I::Block<'i, N>)>, InputError> {
         let first_c = if label.unquoted().is_empty() {
             b'"'
         } else {
-            label.unquoted().as_bytes()[0]
+            label.unquoted()[0]
         };
 
         while let Some(block) = self.iter.next().e()? {
             for (i, c) in block.iter().copied().enumerate() {
                 let j = offset + i;
 
-                if c == first_c && j > 0 && self.input.is_member_match(j - 1, j + label_size - 1, label).e()? {
-                    return Ok(Some((j - 1, block)));
+                if (c == first_c || c == b'\\') && j > 0 {
+                    if let Some(to) = self.input.pattern_match_from(j - 1, label).e()? {
+                        return Ok(Some((j - 1, to, block)));
+                    }
                 }
             }
 
@@ -77,8 +81,8 @@ where
         &mut self,
         first_block: Option<I::Block<'i, N>>,
         start_idx: usize,
-        label: &JsonString,
-    ) -> Result<Option<(usize, I::Block<'i, N>)>, InputError> {
+        label: &StringPattern,
+    ) -> Result<Option<(usize, usize, I::Block<'i, N>)>, InputError> {
         if let Some(b) = first_block {
             if let Some(res) = shared::find_label_in_first_block(self.input, b, start_idx, label)? {
                 return Ok(Some(res));

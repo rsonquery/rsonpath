@@ -1,5 +1,7 @@
 //! Determinization and minimization of an NFA into the final DFA used by the engines.
 
+use std::rc::Rc;
+
 // NOTE: Some comments in this module are outdated, because the minimizer doesn't
 // actually produce minimal automata as of now - see #91.
 use super::{
@@ -10,8 +12,7 @@ use super::{
     state::StateAttributesBuilder,
     Automaton, NondeterministicAutomaton, State as DfaStateId, StateAttributes, StateTable,
 };
-use crate::{automaton::ArrayTransition, debug};
-use rsonpath_syntax::str::JsonString;
+use crate::{automaton::ArrayTransition, debug, string_pattern::StringPattern};
 use smallvec::{smallvec, SmallVec};
 use vector_map::VecMap;
 
@@ -31,9 +32,9 @@ pub(super) fn minimize(nfa: NondeterministicAutomaton) -> Result<Automaton, Comp
     minimizer.run()
 }
 
-pub(super) struct Minimizer<'q> {
+pub(super) struct Minimizer {
     /// The NFA being minimized.
-    nfa: NondeterministicAutomaton<'q>,
+    nfa: NondeterministicAutomaton,
     /// All superstates created thus far mapping to their index in the DFA being constructed.
     superstates: VecMap<SmallSet256, DfaStateId>,
     /// Map from superstates to the furthest reachable checkpoint on a path leading to that superstate.
@@ -41,15 +42,15 @@ pub(super) struct Minimizer<'q> {
     /// Superstates that have not been processed and expanded yet.
     active_superstates: SmallVec<[SmallSet256; 2]>,
     /// All superstates created thus far, in order matching the `superstates` map.
-    dfa_states: Vec<StateTable<'q>>,
+    dfa_states: Vec<StateTable>,
     /// Set of activated DFA states that are accepting.
     accepting: SmallSet256,
 }
 
 #[derive(Debug)]
-struct SuperstateTransitionTable<'q> {
+struct SuperstateTransitionTable {
     array: ArrayTransitionSet,
-    member: VecMap<&'q JsonString, SmallSet256>,
+    member: VecMap<Rc<StringPattern>, SmallSet256>,
     wildcard: SmallSet256,
 }
 
@@ -77,10 +78,10 @@ struct SuperstateTransitionTable<'q> {
  * Superstate number 0 is specifically designated as the rejecting state,
  * which is used when there is no available checkpoint to return to.
  **/
-impl<'q> Minimizer<'q> {
+impl Minimizer {
     /// Main loop of the algorithm. Initialize rejecting and initial states
     /// and perform expansion until we run out of active states.
-    fn run(mut self) -> Result<Automaton<'q>, CompilerError> {
+    fn run(mut self) -> Result<Automaton, CompilerError> {
         // Rejecting state has no outgoing transitions except for a self-loop.
         self.dfa_states.push(StateTable {
             array_transitions: smallvec![],
@@ -175,7 +176,7 @@ impl<'q> Minimizer<'q> {
         &self,
         id: DfaStateId,
         array_transitions: &[ArrayTransition],
-        member_transitions: &[(&JsonString, DfaStateId)],
+        member_transitions: &[(Rc<StringPattern>, DfaStateId)],
         fallback: DfaStateId,
     ) -> StateAttributes {
         let mut attrs = StateAttributesBuilder::new();
@@ -260,7 +261,7 @@ impl<'q> Minimizer<'q> {
         &self,
         current_superstate: SmallSet256,
         current_checkpoint: Option<NfaStateId>,
-    ) -> Result<SuperstateTransitionTable<'q>, CompilerError> {
+    ) -> Result<SuperstateTransitionTable, CompilerError> {
         let mut wildcard_targets = current_superstate
             .iter()
             .map(NfaStateId)
@@ -284,7 +285,7 @@ impl<'q> Minimizer<'q> {
         };
 
         for nfa_state in current_superstate.iter().map(NfaStateId) {
-            match self.nfa[nfa_state] {
+            match &self.nfa[nfa_state] {
                 // Direct states simply have a single transition to the next state in the NFA.
                 // Recursive transitions also have a self-loop, but that is handled by the
                 // checkpoints mechanism - here we only handle the forward transition.
@@ -292,17 +293,17 @@ impl<'q> Minimizer<'q> {
                 | NfaState::Recursive(nfa::Transition::Member(label)) => {
                     debug!(
                         "Considering member transition {nfa_state} --{}-> {}",
-                        label.unquoted(),
+                        std::str::from_utf8(label.unquoted()).unwrap_or("[invalid utf8]"),
                         nfa_state.next()?,
                     );
                     // Add the target NFA state to the target superstate, or create a singleton
                     // set if this is the first transition via this label encountered in the loop.
-                    if let Some(target) = transitions.member.get_mut(&label) {
+                    if let Some(target) = transitions.member.get_mut(label) {
                         target.insert(nfa_state.next()?.0);
                     } else {
                         let mut new_set = transitions.wildcard;
                         new_set.insert(nfa_state.next()?.0);
-                        transitions.member.insert(label, new_set);
+                        transitions.member.insert(label.clone(), new_set);
                     }
                 }
                 NfaState::Direct(nfa::Transition::Array(label))
@@ -335,7 +336,7 @@ impl<'q> Minimizer<'q> {
                     );
                     let mut new_set = transitions.wildcard;
                     new_set.insert(nfa_state.next()?.0);
-                    transitions.array.add_transition(label, new_set);
+                    transitions.array.add_transition(*label, new_set);
                 }
                 NfaState::Direct(nfa::Transition::Wildcard)
                 | NfaState::Recursive(nfa::Transition::Wildcard)
@@ -404,6 +405,7 @@ mod tests {
     use super::super::*;
     use super::*;
     use pretty_assertions::assert_eq;
+    use rsonpath_syntax::str::JsonString;
     use smallvec::smallvec;
 
     #[test]
@@ -551,16 +553,16 @@ mod tests {
     #[test]
     fn interstitial_descendant_wildcard() {
         // Query = $..a.b..*.a..b
-        let label_a = JsonString::new("a");
-        let label_b = JsonString::new("b");
+        let label_a = Rc::new(StringPattern::new(&JsonString::new("a")));
+        let label_b = Rc::new(StringPattern::new(&JsonString::new("b")));
 
         let nfa = NondeterministicAutomaton {
             ordered_states: vec![
-                NfaState::Recursive(nfa::Transition::Member(&label_a)),
-                NfaState::Direct(nfa::Transition::Member(&label_b)),
+                NfaState::Recursive(nfa::Transition::Member(label_a.clone())),
+                NfaState::Direct(nfa::Transition::Member(label_b.clone())),
                 NfaState::Recursive(nfa::Transition::Wildcard),
-                NfaState::Direct(nfa::Transition::Member(&label_a)),
-                NfaState::Recursive(nfa::Transition::Member(&label_b)),
+                NfaState::Direct(nfa::Transition::Member(label_a.clone())),
+                NfaState::Recursive(nfa::Transition::Member(label_b.clone())),
                 NfaState::Accepting,
             ],
         };
@@ -577,13 +579,13 @@ mod tests {
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label_a, State(2))],
+                    member_transitions: smallvec![(label_a.clone(), State(2))],
                     fallback_state: State(1),
                     attributes: StateAttributes::EMPTY,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label_a, State(2)), (&label_b, State(3))],
+                    member_transitions: smallvec![(label_a.clone(), State(2)), (label_b.clone(), State(3))],
                     fallback_state: State(1),
                     attributes: StateAttributes::EMPTY,
                 },
@@ -595,19 +597,19 @@ mod tests {
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label_a, State(5))],
+                    member_transitions: smallvec![(label_a, State(5))],
                     fallback_state: State(4),
                     attributes: StateAttributes::EMPTY,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label_b, State(6))],
+                    member_transitions: smallvec![(label_b.clone(), State(6))],
                     fallback_state: State(5),
                     attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label_b, State(6))],
+                    member_transitions: smallvec![(label_b, State(6))],
                     fallback_state: State(5),
                     attributes: StateAttributes::ACCEPTING | StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
@@ -620,16 +622,16 @@ mod tests {
     #[test]
     fn interstitial_nondescendant_wildcard() {
         // Query = $..a.b.*.a..b
-        let label_a = JsonString::new("a");
-        let label_b = JsonString::new("b");
+        let label_a = Rc::new(StringPattern::new(&JsonString::new("a")));
+        let label_b = Rc::new(StringPattern::new(&JsonString::new("b")));
 
         let nfa = NondeterministicAutomaton {
             ordered_states: vec![
-                NfaState::Recursive(nfa::Transition::Member(&label_a)),
-                NfaState::Direct(nfa::Transition::Member(&label_b)),
+                NfaState::Recursive(nfa::Transition::Member(label_a.clone())),
+                NfaState::Direct(nfa::Transition::Member(label_b.clone())),
                 NfaState::Direct(nfa::Transition::Wildcard),
-                NfaState::Direct(nfa::Transition::Member(&label_a)),
-                NfaState::Recursive(nfa::Transition::Member(&label_b)),
+                NfaState::Direct(nfa::Transition::Member(label_a.clone())),
+                NfaState::Recursive(nfa::Transition::Member(label_b.clone())),
                 NfaState::Accepting,
             ],
         };
@@ -646,43 +648,43 @@ mod tests {
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label_a, State(2))],
+                    member_transitions: smallvec![(label_a.clone(), State(2))],
                     fallback_state: State(1),
                     attributes: StateAttributes::EMPTY,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label_a, State(2)), (&label_b, State(3))],
+                    member_transitions: smallvec![(label_a.clone(), State(2)), (label_b.clone(), State(3))],
                     fallback_state: State(1),
                     attributes: StateAttributes::EMPTY,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label_a, State(4))],
+                    member_transitions: smallvec![(label_a.clone(), State(4))],
                     fallback_state: State(7),
                     attributes: StateAttributes::EMPTY,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label_a, State(5)), (&label_b, State(3))],
+                    member_transitions: smallvec![(label_a.clone(), State(5)), (label_b.clone(), State(3))],
                     fallback_state: State(1),
                     attributes: StateAttributes::EMPTY,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label_b, State(6))],
+                    member_transitions: smallvec![(label_b.clone(), State(6))],
                     fallback_state: State(5),
                     attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label_b, State(6))],
+                    member_transitions: smallvec![(label_b, State(6))],
                     fallback_state: State(5),
                     attributes: StateAttributes::ACCEPTING | StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label_a, State(5))],
+                    member_transitions: smallvec![(label_a, State(5))],
                     fallback_state: State(1),
                     attributes: StateAttributes::EMPTY,
                 },
@@ -695,11 +697,11 @@ mod tests {
     #[test]
     fn simple_multi_accepting() {
         // Query = $..a.*
-        let label = JsonString::new("a");
+        let label = Rc::new(StringPattern::new(&JsonString::new("a")));
 
         let nfa = NondeterministicAutomaton {
             ordered_states: vec![
-                NfaState::Recursive(nfa::Transition::Member(&label)),
+                NfaState::Recursive(nfa::Transition::Member(label.clone())),
                 NfaState::Direct(nfa::Transition::Wildcard),
                 NfaState::Accepting,
             ],
@@ -717,25 +719,25 @@ mod tests {
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label, State(2)),],
+                    member_transitions: smallvec![(label.clone(), State(2)),],
                     fallback_state: State(1),
                     attributes: StateAttributes::EMPTY,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label, State(3))],
+                    member_transitions: smallvec![(label.clone(), State(3))],
                     fallback_state: State(4),
                     attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label, State(3))],
+                    member_transitions: smallvec![(label.clone(), State(3))],
                     fallback_state: State(4),
                     attributes: StateAttributes::ACCEPTING | StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label, State(2))],
+                    member_transitions: smallvec![(label, State(2))],
                     fallback_state: State(1),
                     attributes: StateAttributes::ACCEPTING,
                 },
@@ -793,11 +795,11 @@ mod tests {
     #[test]
     fn chained_wildcard_children() {
         // Query = $.a.*.*.*
-        let label = JsonString::new("a");
+        let label = Rc::new(StringPattern::new(&JsonString::new("a")));
 
         let nfa = NondeterministicAutomaton {
             ordered_states: vec![
-                NfaState::Direct(nfa::Transition::Member(&label)),
+                NfaState::Direct(nfa::Transition::Member(label.clone())),
                 NfaState::Direct(nfa::Transition::Wildcard),
                 NfaState::Direct(nfa::Transition::Wildcard),
                 NfaState::Direct(nfa::Transition::Wildcard),
@@ -817,7 +819,7 @@ mod tests {
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label, State(2))],
+                    member_transitions: smallvec![(label, State(2))],
                     fallback_state: State(0),
                     attributes: StateAttributes::UNITARY,
                 },
@@ -854,11 +856,11 @@ mod tests {
     #[test]
     fn chained_wildcard_children_after_descendant() {
         // Query = $..a.*.*
-        let label = JsonString::new("a");
+        let label = Rc::new(StringPattern::new(&JsonString::new("a")));
 
         let nfa = NondeterministicAutomaton {
             ordered_states: vec![
-                NfaState::Recursive(nfa::Transition::Member(&label)),
+                NfaState::Recursive(nfa::Transition::Member(label.clone())),
                 NfaState::Direct(nfa::Transition::Wildcard),
                 NfaState::Direct(nfa::Transition::Wildcard),
                 NfaState::Accepting,
@@ -877,49 +879,49 @@ mod tests {
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label, State(2))],
+                    member_transitions: smallvec![(label.clone(), State(2))],
                     fallback_state: State(1),
                     attributes: StateAttributes::EMPTY,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label, State(3))],
+                    member_transitions: smallvec![(label.clone(), State(3))],
                     fallback_state: State(7),
                     attributes: StateAttributes::EMPTY,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label, State(4))],
+                    member_transitions: smallvec![(label.clone(), State(4))],
                     fallback_state: State(5),
                     attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label, State(4))],
+                    member_transitions: smallvec![(label.clone(), State(4))],
                     fallback_state: State(5),
                     attributes: StateAttributes::ACCEPTING | StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label, State(6))],
+                    member_transitions: smallvec![(label.clone(), State(6))],
                     fallback_state: State(8),
                     attributes: StateAttributes::ACCEPTING | StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label, State(3))],
+                    member_transitions: smallvec![(label.clone(), State(3))],
                     fallback_state: State(7),
                     attributes: StateAttributes::ACCEPTING,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label, State(6))],
+                    member_transitions: smallvec![(label.clone(), State(6))],
                     fallback_state: State(8),
                     attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label, State(2))],
+                    member_transitions: smallvec![(label, State(2))],
                     fallback_state: State(1),
                     attributes: StateAttributes::ACCEPTING,
                 },
@@ -932,21 +934,21 @@ mod tests {
     #[test]
     fn child_and_descendant() {
         // Query = $.x..a.b.a.b.c..d
-        let label_a = JsonString::new("a");
-        let label_b = JsonString::new("b");
-        let label_c = JsonString::new("c");
-        let label_d = JsonString::new("d");
-        let label_x = JsonString::new("x");
+        let label_a = Rc::new(StringPattern::new(&JsonString::new("a")));
+        let label_b = Rc::new(StringPattern::new(&JsonString::new("b")));
+        let label_c = Rc::new(StringPattern::new(&JsonString::new("c")));
+        let label_d = Rc::new(StringPattern::new(&JsonString::new("d")));
+        let label_x = Rc::new(StringPattern::new(&JsonString::new("x")));
 
         let nfa = NondeterministicAutomaton {
             ordered_states: vec![
-                NfaState::Direct(nfa::Transition::Member(&label_x)),
-                NfaState::Recursive(nfa::Transition::Member(&label_a)),
-                NfaState::Direct(nfa::Transition::Member(&label_b)),
-                NfaState::Direct(nfa::Transition::Member(&label_a)),
-                NfaState::Direct(nfa::Transition::Member(&label_b)),
-                NfaState::Direct(nfa::Transition::Member(&label_c)),
-                NfaState::Recursive(nfa::Transition::Member(&label_d)),
+                NfaState::Direct(nfa::Transition::Member(label_x.clone())),
+                NfaState::Recursive(nfa::Transition::Member(label_a.clone())),
+                NfaState::Direct(nfa::Transition::Member(label_b.clone())),
+                NfaState::Direct(nfa::Transition::Member(label_a.clone())),
+                NfaState::Direct(nfa::Transition::Member(label_b.clone())),
+                NfaState::Direct(nfa::Transition::Member(label_c.clone())),
+                NfaState::Recursive(nfa::Transition::Member(label_d.clone())),
                 NfaState::Accepting,
             ],
         };
@@ -963,49 +965,49 @@ mod tests {
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label_x, State(2))],
+                    member_transitions: smallvec![(label_x, State(2))],
                     fallback_state: State(0),
                     attributes: StateAttributes::UNITARY,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label_a, State(3))],
+                    member_transitions: smallvec![(label_a.clone(), State(3))],
                     fallback_state: State(2),
                     attributes: StateAttributes::EMPTY,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label_a, State(3)), (&label_b, State(4))],
+                    member_transitions: smallvec![(label_a.clone(), State(3)), (label_b.clone(), State(4))],
                     fallback_state: State(2),
                     attributes: StateAttributes::EMPTY,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label_a, State(5))],
+                    member_transitions: smallvec![(label_a.clone(), State(5))],
                     fallback_state: State(2),
                     attributes: StateAttributes::EMPTY,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label_a, State(3)), (&label_b, State(6))],
+                    member_transitions: smallvec![(label_a.clone(), State(3)), (label_b, State(6))],
                     fallback_state: State(2),
                     attributes: StateAttributes::EMPTY,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label_a, State(5)), (&label_c, State(7))],
+                    member_transitions: smallvec![(label_a, State(5)), (label_c, State(7))],
                     fallback_state: State(2),
                     attributes: StateAttributes::EMPTY,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label_d, State(8))],
+                    member_transitions: smallvec![(label_d.clone(), State(8))],
                     fallback_state: State(7),
                     attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label_d, State(8))],
+                    member_transitions: smallvec![(label_d, State(8))],
                     fallback_state: State(7),
                     attributes: StateAttributes::ACCEPTING | StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
@@ -1018,17 +1020,17 @@ mod tests {
     #[test]
     fn child_descendant_and_child_wildcard() {
         // Query = $.x.*..a.*.b
-        let label_a = JsonString::new("a");
-        let label_b = JsonString::new("b");
-        let label_x = JsonString::new("x");
+        let label_a = Rc::new(StringPattern::new(&JsonString::new("a")));
+        let label_b = Rc::new(StringPattern::new(&JsonString::new("b")));
+        let label_x = Rc::new(StringPattern::new(&JsonString::new("x")));
 
         let nfa = NondeterministicAutomaton {
             ordered_states: vec![
-                NfaState::Direct(nfa::Transition::Member(&label_x)),
+                NfaState::Direct(nfa::Transition::Member(label_x.clone())),
                 NfaState::Direct(nfa::Transition::Wildcard),
-                NfaState::Recursive(nfa::Transition::Member(&label_a)),
+                NfaState::Recursive(nfa::Transition::Member(label_a.clone())),
                 NfaState::Direct(nfa::Transition::Wildcard),
-                NfaState::Direct(nfa::Transition::Member(&label_b)),
+                NfaState::Direct(nfa::Transition::Member(label_b.clone())),
                 NfaState::Accepting,
             ],
         };
@@ -1045,7 +1047,7 @@ mod tests {
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label_x, State(2))],
+                    member_transitions: smallvec![(label_x, State(2))],
                     fallback_state: State(0),
                     attributes: StateAttributes::UNITARY,
                 },
@@ -1057,37 +1059,37 @@ mod tests {
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label_a, State(4))],
+                    member_transitions: smallvec![(label_a.clone(), State(4))],
                     fallback_state: State(3),
                     attributes: StateAttributes::EMPTY,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label_a, State(5))],
+                    member_transitions: smallvec![(label_a.clone(), State(5))],
                     fallback_state: State(8),
                     attributes: StateAttributes::EMPTY,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label_a, State(5)), (&label_b, State(6))],
+                    member_transitions: smallvec![(label_a.clone(), State(5)), (label_b.clone(), State(6))],
                     fallback_state: State(8),
                     attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label_a, State(4)), (&label_b, State(7))],
+                    member_transitions: smallvec![(label_a.clone(), State(4)), (label_b.clone(), State(7))],
                     fallback_state: State(3),
                     attributes: StateAttributes::ACCEPTING | StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label_a, State(4))],
+                    member_transitions: smallvec![(label_a.clone(), State(4))],
                     fallback_state: State(3),
                     attributes: StateAttributes::ACCEPTING,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label_a, State(4)), (&label_b, State(7))],
+                    member_transitions: smallvec![(label_a, State(4)), (label_b, State(7))],
                     fallback_state: State(3),
                     attributes: StateAttributes::TRANSITIONS_TO_ACCEPTING,
                 },
@@ -1100,17 +1102,17 @@ mod tests {
     #[test]
     fn all_name_and_wildcard_selectors() {
         // Query = $.a.b..c..d.*..*
-        let label_a = JsonString::new("a");
-        let label_b = JsonString::new("b");
-        let label_c = JsonString::new("c");
-        let label_d = JsonString::new("d");
+        let label_a = Rc::new(StringPattern::new(&JsonString::new("a")));
+        let label_b = Rc::new(StringPattern::new(&JsonString::new("b")));
+        let label_c = Rc::new(StringPattern::new(&JsonString::new("c")));
+        let label_d = Rc::new(StringPattern::new(&JsonString::new("d")));
 
         let nfa = NondeterministicAutomaton {
             ordered_states: vec![
-                NfaState::Direct(nfa::Transition::Member(&label_a)),
-                NfaState::Direct(nfa::Transition::Member(&label_b)),
-                NfaState::Recursive(nfa::Transition::Member(&label_c)),
-                NfaState::Recursive(nfa::Transition::Member(&label_d)),
+                NfaState::Direct(nfa::Transition::Member(label_a.clone())),
+                NfaState::Direct(nfa::Transition::Member(label_b.clone())),
+                NfaState::Recursive(nfa::Transition::Member(label_c.clone())),
+                NfaState::Recursive(nfa::Transition::Member(label_d.clone())),
                 NfaState::Direct(nfa::Transition::Wildcard),
                 NfaState::Recursive(nfa::Transition::Wildcard),
                 NfaState::Accepting,
@@ -1126,31 +1128,31 @@ mod tests {
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label_a, State(2)),],
+                    member_transitions: smallvec![(label_a, State(2)),],
                     fallback_state: State(0),
                     attributes: StateAttributes::UNITARY,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label_b, State(3))],
+                    member_transitions: smallvec![(label_b, State(3))],
                     fallback_state: State(0),
                     attributes: StateAttributes::UNITARY,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label_c, State(4))],
+                    member_transitions: smallvec![(label_c, State(4))],
                     fallback_state: State(3),
                     attributes: StateAttributes::EMPTY,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label_d, State(5))],
+                    member_transitions: smallvec![(label_d.clone(), State(5))],
                     fallback_state: State(4),
                     attributes: StateAttributes::EMPTY,
                 },
                 StateTable {
                     array_transitions: smallvec![],
-                    member_transitions: smallvec![(&label_d, State(6))],
+                    member_transitions: smallvec![(label_d, State(6))],
                     fallback_state: State(6),
                     attributes: StateAttributes::EMPTY,
                 },

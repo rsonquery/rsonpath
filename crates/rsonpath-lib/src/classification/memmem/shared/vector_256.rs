@@ -8,6 +8,11 @@ pub(crate) struct BlockClassifier256 {
     second: __m256i,
 }
 
+#[inline(always)]
+pub(crate) unsafe fn slash_mask() -> __m256i {
+    _mm256_set1_epi8(b'\\' as i8)
+}
+
 impl BlockClassifier256 {
     #[target_feature(enable = "avx2")]
     pub(crate) unsafe fn new(first: u8, second: u8) -> Self {
@@ -23,15 +28,18 @@ impl BlockClassifier256 {
 
         let first_cmp_vector = _mm256_cmpeq_epi8(byte_vector, self.first);
         let second_cmp_vector = _mm256_cmpeq_epi8(byte_vector, self.second);
+        let slash_cmp_vector = _mm256_cmpeq_epi8(byte_vector, slash_mask());
 
         let first = _mm256_movemask_epi8(first_cmp_vector) as u32;
         let second = _mm256_movemask_epi8(second_cmp_vector) as u32;
+        let slashes = _mm256_movemask_epi8(slash_cmp_vector) as u32;
 
-        BlockClassification256 { first, second }
+        BlockClassification256 { first, second, slashes }
     }
 }
 
 pub(crate) struct BlockClassification256 {
     pub(crate) first: u32,
     pub(crate) second: u32,
+    pub(crate) slashes: u32,
 }

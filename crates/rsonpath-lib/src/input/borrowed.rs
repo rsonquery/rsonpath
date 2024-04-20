@@ -18,8 +18,11 @@ use super::{
     padding::{EndPaddedInput, PaddedBlock, TwoSidesPaddedInput},
     Input, InputBlockIterator, SliceSeekable, MAX_BLOCK_SIZE,
 };
-use crate::{debug, result::InputRecorder};
-use rsonpath_syntax::str::JsonString;
+use crate::{
+    debug,
+    result::InputRecorder,
+    string_pattern::{self, StringPattern},
+};
 
 /// Input wrapping a borrowed [`[u8]`] buffer.
 pub struct BorrowedBytes<'a> {
@@ -215,7 +218,7 @@ impl<'a> Input for BorrowedBytes<'a> {
     }
 
     #[inline(always)]
-    fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> Result<bool, Self::Error> {
+    fn is_string_match(&self, from: usize, to: usize, pattern: &StringPattern) -> Result<bool, Self::Error> {
         debug_assert!(from < to);
         // The hot path is when we're checking fully within the middle section.
         // This has to be as fast as possible, so the "cold" path referring to the TwoSidesPaddedInput
@@ -226,10 +229,57 @@ impl<'a> Input for BorrowedBytes<'a> {
             let from = from - MAX_BLOCK_SIZE;
             let to = to - MAX_BLOCK_SIZE;
             let slice = &bytes[from..to];
-            Ok(member.quoted().as_bytes() == slice && (from == 0 || bytes[from - 1] != b'\\'))
+            Ok(string_pattern::cmpeq_forward(pattern, slice).is_some() && (from == 0 || bytes[from - 1] != b'\\'))
         } else {
             // This is a very expensive, cold path.
-            Ok(self.as_padded_input().is_member_match(from, to, member))
+            Ok(self.as_padded_input().is_member_match(from, to, pattern))
+        }
+    }
+
+    #[inline]
+    fn pattern_match_from(&self, from: usize, pattern: &StringPattern) -> Result<Option<usize>, Self::Error> {
+        let pessimistic_to = from + pattern.len_limit();
+        // The hot path is when we're checking fully within the middle section.
+        // This has to be as fast as possible, so the "cold" path referring to the TwoSidesPaddedInput
+        // impl is explicitly marked with #[cold].
+        if from > MAX_BLOCK_SIZE && pessimistic_to < self.middle_bytes.len() + MAX_BLOCK_SIZE {
+            // This is the hot path -- do the bounds check and memcmp.
+            let bytes = self.middle_bytes;
+            let from = from - MAX_BLOCK_SIZE;
+            let to = pessimistic_to - MAX_BLOCK_SIZE;
+            let slice = &bytes[from..to];
+            if let Some(idx) = string_pattern::cmpeq_forward(pattern, slice) {
+                Ok((from == 0 || bytes[from - 1] != b'\\').then_some(idx + from + MAX_BLOCK_SIZE))
+            } else {
+                Ok(None)
+            }
+        } else {
+            // This is a very expensive, cold path.
+            Ok(self.as_padded_input().pattern_match_from(from, pattern))
+        }
+    }
+
+    #[inline]
+    fn pattern_match_to(&self, to: usize, pattern: &StringPattern) -> Result<Option<usize>, Self::Error> {
+        let pessimistic_from = to.saturating_sub(pattern.len_limit());
+        // The hot path is when we're checking fully within the middle section.
+        // This has to be as fast as possible, so the "cold" path referring to the TwoSidesPaddedInput
+        // impl is explicitly marked with #[cold].
+        if pessimistic_from > MAX_BLOCK_SIZE && to < self.middle_bytes.len() + MAX_BLOCK_SIZE {
+            // This is the hot path -- do the bounds check and memcmp.
+            let bytes = self.middle_bytes;
+            let from = pessimistic_from - MAX_BLOCK_SIZE;
+            let to = to - MAX_BLOCK_SIZE;
+            let slice = &bytes[from..to];
+            if let Some(idx) = string_pattern::cmpeq_backward(pattern, slice) {
+                let in_bytes_idx = from + idx;
+                Ok((in_bytes_idx == 0 || bytes[in_bytes_idx - 1] != b'\\').then_some(in_bytes_idx + MAX_BLOCK_SIZE))
+            } else {
+                Ok(None)
+            }
+        } else {
+            // This is a very expensive, cold path.
+            Ok(self.as_padded_input().pattern_match_to(to, pattern))
         }
     }
 }
