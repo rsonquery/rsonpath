@@ -20,9 +20,10 @@ use super::{
     error::InputError, repr_align_block_size, Input, InputBlock, InputBlockIterator, SliceSeekable, MAX_BLOCK_SIZE,
 };
 use crate::{
+    classification::simd::Simd,
     error::InternalRsonpathError,
     result::InputRecorder,
-    string_pattern::{self, StringPattern},
+    string_pattern::{self, matcher::StringPatternMatcher, StringPattern},
     JSON_SPACE_BYTE,
 };
 use std::{cell::RefCell, cmp, io::Read, ops::Deref, slice};
@@ -217,23 +218,12 @@ impl<R: Read> Input for BufferedInput<R> {
         buf.as_slice().seek_non_whitespace_backward(from)
     }
 
-    #[inline(always)]
-    fn is_string_match(&self, from: usize, to: usize, member: &StringPattern) -> Result<bool, Self::Error> {
-        let mut buf = self.0.borrow_mut();
-
-        while buf.len() < to {
-            if !buf.read_more()? {
-                return Ok(false);
-            }
-        }
-
-        let bytes = buf.as_slice();
-        let slice = &bytes[from..to];
-        Ok(member.quoted() == slice && (from == 0 || bytes[from - 1] != b'\\'))
-    }
-
     #[inline]
-    fn pattern_match_from(&self, from: usize, pattern: &StringPattern) -> Result<Option<usize>, Self::Error> {
+    fn pattern_match_from<M: StringPatternMatcher>(
+        &self,
+        from: usize,
+        pattern: &StringPattern,
+    ) -> Result<Option<usize>, Self::Error> {
         let mut buf = self.0.borrow_mut();
         let pessimistic_to = from + pattern.len_limit();
 
@@ -246,7 +236,7 @@ impl<R: Read> Input for BufferedInput<R> {
         let bytes = buf.as_slice();
         let to = cmp::min(bytes.len(), pessimistic_to);
         let slice = &bytes[from..to];
-        if let Some(idx) = string_pattern::cmpeq_forward(pattern, slice) {
+        if let Some(idx) = M::pattern_match_forward(pattern, slice) {
             Ok((from == 0 || bytes[from - 1] != b'\\').then_some(idx + from))
         } else {
             Ok(None)
@@ -254,7 +244,11 @@ impl<R: Read> Input for BufferedInput<R> {
     }
 
     #[inline]
-    fn pattern_match_to(&self, to: usize, pattern: &StringPattern) -> Result<Option<usize>, Self::Error> {
+    fn pattern_match_to<M: StringPatternMatcher>(
+        &self,
+        to: usize,
+        pattern: &StringPattern,
+    ) -> Result<Option<usize>, Self::Error> {
         let mut buf = self.0.borrow_mut();
         let pessimistic_from = to.saturating_sub(pattern.len_limit());
 
@@ -266,11 +260,10 @@ impl<R: Read> Input for BufferedInput<R> {
 
         let bytes = buf.as_slice();
         let slice = &bytes[pessimistic_from..to];
-        if let Some(idx) = string_pattern::cmpeq_backward(pattern, slice) {
+        if let Some(idx) = M::pattern_match_backward(pattern, slice) {
             let in_bytes_idx = pessimistic_from + idx;
             Ok((in_bytes_idx == 0 || bytes[in_bytes_idx - 1] != b'\\').then_some(in_bytes_idx))
-        }
-        else {
+        } else {
             Ok(None)
         }
     }

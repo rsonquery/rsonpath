@@ -1,34 +1,28 @@
 use super::SliceSeekable;
-use crate::string_pattern::{self, StringPattern};
+use crate::string_pattern::{matcher::StringPatternMatcher, StringPattern};
 use std::cmp;
 
 impl<T: AsRef<[u8]>> SliceSeekable for T {
-    fn is_member_match(&self, from: usize, to: usize, member: &StringPattern) -> bool {
-        let bytes = self.as_ref();
-
-        if to > bytes.len() {
-            return false;
-        }
-        let slice = &bytes[from..to];
-        member.quoted() == slice && (from == 0 || bytes[from - 1] != b'\\')
-    }
-
-    fn pattern_match_from(&self, from: usize, pattern: &StringPattern) -> Option<usize> {
+    fn pattern_match_from<M: StringPatternMatcher>(&self, from: usize, pattern: &StringPattern) -> Option<usize> {
         let bytes = self.as_ref();
         let to = from + pattern.len_limit();
 
+        if from >= bytes.len() {
+            return None;
+        }
+
         let slice = &bytes[from..cmp::min(to, bytes.len())];
-        let res = string_pattern::cmpeq_forward(pattern, slice)?;
+        let res = M::pattern_match_forward(pattern, slice)?;
 
         (from == 0 || bytes[from - 1] != b'\\').then_some(from + res)
     }
 
-    fn pattern_match_to(&self, to: usize, pattern: &StringPattern) -> Option<usize> {
+    fn pattern_match_to<M: StringPatternMatcher>(&self, to: usize, pattern: &StringPattern) -> Option<usize> {
         let bytes = self.as_ref();
         let from = to.saturating_sub(pattern.len_limit());
 
         let slice = &bytes[from..to];
-        let idx = string_pattern::cmpeq_backward(pattern, slice)?;
+        let idx = M::pattern_match_backward(pattern, slice)?;
         let in_bytes_idx = from + idx;
 
         (in_bytes_idx == 0 || bytes[in_bytes_idx - 1] != b'\\').then_some(in_bytes_idx)
@@ -329,9 +323,9 @@ mod tests {
             assert_eq!(result, Some((4, b':')));
         }
     }
-
+    /*
     mod is_member_match {
-        use crate::{input::SliceSeekable, string_pattern::StringPattern};
+        use crate::string_pattern::StringPattern;
         use pretty_assertions::assert_eq;
         use rsonpath_syntax::str::JsonString;
 
@@ -371,5 +365,5 @@ mod tests {
 
             assert_eq!(result, true);
         }
-    }
+    }*/
 }

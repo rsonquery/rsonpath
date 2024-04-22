@@ -197,7 +197,7 @@ pub mod engine;
 pub mod error;
 pub mod input;
 pub mod result;
-mod string_pattern;
+pub(crate) mod string_pattern;
 
 pub use string_pattern::StringPattern;
 

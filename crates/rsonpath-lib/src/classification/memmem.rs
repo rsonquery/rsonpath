@@ -1,7 +1,10 @@
 //! Classification ignoring the structure of the JSON and looking for the occurrence
 //! of a specific member name as quickly as possible.
 use crate::{
-    input::{error::InputError, Input}, result::InputRecorder, string_pattern::StringPattern, BLOCK_SIZE
+    input::{error::InputError, Input},
+    result::InputRecorder,
+    string_pattern::{matcher::StringPatternMatcher, StringPattern},
+    BLOCK_SIZE,
 };
 
 /// Classifier that can quickly find a member name in a byte stream.
@@ -17,7 +20,7 @@ pub trait Memmem<'i, 'b, 'r, I: Input, const N: usize> {
     /// None if there was no match.
     /// Otherwise, Some((i, j, block)) where i and j delimit the match exactly, and block is the
     /// input block in which the start of the match occurred.
-    /// 
+    ///
     /// # Errors
     /// Errors when reading the underlying [`Input`] are propagated.
     fn find_label(
@@ -41,19 +44,21 @@ pub(crate) mod sse2_32;
 pub(crate) mod sse2_64;
 
 pub(crate) trait MemmemImpl {
-    type Classifier<'i, 'b, 'r, I, R>: Memmem<'i, 'b, 'r, I, BLOCK_SIZE>
+    type Classifier<'i, 'b, 'r, I, SM, R>: Memmem<'i, 'b, 'r, I, BLOCK_SIZE>
     where
         I: Input + 'i,
+        SM: StringPatternMatcher,
         <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>: 'b,
         R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>> + 'r,
         'i: 'r;
 
-    fn memmem<'i, 'b, 'r, I, R>(
+    fn memmem<'i, 'b, 'r, I, SM, R>(
         input: &'i I,
         iter: &'b mut <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>,
-    ) -> Self::Classifier<'i, 'b, 'r, I, R>
+    ) -> Self::Classifier<'i, 'b, 'r, I, SM, R>
     where
         I: Input,
+        SM: StringPatternMatcher,
         R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>>,
         'i: 'r;
 }

@@ -212,6 +212,7 @@ use super::{
 use crate::{
     input::{Input, InputBlockIterator},
     result::InputRecorder,
+    string_pattern::matcher::StringPatternMatcher,
     MaskType, BLOCK_SIZE,
 };
 use cfg_if::cfg_if;
@@ -241,6 +242,9 @@ pub(crate) trait Simd: Copy {
         <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>: 'b,
         R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>> + 'r,
         'i: 'r;
+
+    /// The implementation of [`StringPatternMatcher`] of this SIMD configuration.
+    type StringPatternMatcher: StringPatternMatcher;
 
     /// Get a unique descriptor of the enabled SIMD capabilities.
     ///
@@ -318,30 +322,31 @@ pub(crate) trait Simd: Copy {
         'i: 'r;
 }
 
-pub(crate) struct ResolvedSimd<Q, S, D, M, const TARGET: usize> {
-    phantom: PhantomData<(Q, S, D, M)>,
+pub(crate) struct ResolvedSimd<Q, S, D, M, SM, const TARGET: usize> {
+    phantom: PhantomData<(Q, S, D, M, SM)>,
 }
 
-impl<Q, S, D, M, const TARGET: usize> Clone for ResolvedSimd<Q, S, D, M, TARGET> {
+impl<Q, S, D, M, SM, const TARGET: usize> Clone for ResolvedSimd<Q, S, D, M, SM, TARGET> {
     fn clone(&self) -> Self {
         *self
     }
 }
 
-impl<Q, S, D, M, const TARGET: usize> Copy for ResolvedSimd<Q, S, D, M, TARGET> {}
+impl<Q, S, D, M, SM, const TARGET: usize> Copy for ResolvedSimd<Q, S, D, M, SM, TARGET> {}
 
-impl<Q, S, D, M, const TARGET: usize> ResolvedSimd<Q, S, D, M, TARGET> {
+impl<Q, S, D, M, SM, const TARGET: usize> ResolvedSimd<Q, S, D, M, SM, TARGET> {
     pub(crate) fn new() -> Self {
         Self { phantom: PhantomData }
     }
 }
 
-impl<Q, S, D, M, const TARGET: usize> Simd for ResolvedSimd<Q, S, D, M, TARGET>
+impl<Q, S, D, M, SM, const TARGET: usize> Simd for ResolvedSimd<Q, S, D, M, SM, TARGET>
 where
     Q: QuotesImpl,
     S: StructuralImpl,
     D: DepthImpl,
     M: MemmemImpl,
+    SM: StringPatternMatcher,
 {
     type QuotesClassifier<'i, I> = Q::Classifier<'i, I>
     where
@@ -355,12 +360,14 @@ where
     where
         I: InputBlockIterator<'i, BLOCK_SIZE>;
 
-    type MemmemClassifier<'i, 'b, 'r, I, R> = M::Classifier<'i, 'b, 'r, I, R>
+    type MemmemClassifier<'i, 'b, 'r, I, R> = M::Classifier<'i, 'b, 'r, I, SM, R>
     where
         I: Input + 'i,
         <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>: 'b,
         R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>> + 'r,
         'i: 'r;
+
+    type StringPatternMatcher = SM;
 
     #[inline(always)]
     fn dispatch_tag(self) -> usize {
@@ -682,6 +689,7 @@ cfg_if! {
                                 $crate::classification::structural::avx2_64::Constructor,
                                 $crate::classification::depth::avx2_64::Constructor,
                                 $crate::classification::memmem::avx2_64::Constructor,
+                                $crate::string_pattern::matcher::avx2_64::Avx2StringMatcher64,
                                 {$crate::classification::simd::AVX2_PCLMULQDQ_POPCNT},
                             >::new();
                             $b
@@ -695,6 +703,7 @@ cfg_if! {
                                         $crate::classification::structural::ssse3_64::Constructor,
                                         $crate::classification::depth::sse2_64::Constructor,
                                         $crate::classification::memmem::sse2_64::Constructor,
+                                        $crate::string_pattern::matcher::nosimd::NosimdStringMatcher,
                                         {$crate::classification::simd::SSSE3_PCLMULQDQ_POPCNT},
                                     >::new();
                                     $b
@@ -705,6 +714,7 @@ cfg_if! {
                                         $crate::classification::structural::ssse3_64::Constructor,
                                         $crate::classification::depth::nosimd::Constructor,
                                         $crate::classification::memmem::sse2_64::Constructor,
+                                        $crate::string_pattern::matcher::nosimd::NosimdStringMatcher,
                                         {$crate::classification::simd::SSSE3_PCLMULQDQ},
                                     >::new();
                                     $b
@@ -715,6 +725,7 @@ cfg_if! {
                                         $crate::classification::structural::ssse3_64::Constructor,
                                         $crate::classification::depth::sse2_64::Constructor,
                                         $crate::classification::memmem::sse2_64::Constructor,
+                                        $crate::string_pattern::matcher::nosimd::NosimdStringMatcher,
                                         {$crate::classification::simd::SSSE3_POPCNT},
                                     >::new();
                                     $b
@@ -725,6 +736,7 @@ cfg_if! {
                                         $crate::classification::structural::ssse3_64::Constructor,
                                         $crate::classification::depth::nosimd::Constructor,
                                         $crate::classification::memmem::sse2_64::Constructor,
+                                        $crate::string_pattern::matcher::nosimd::NosimdStringMatcher,
                                         {$crate::classification::simd::SSSE3},
                                     >::new();
                                     $b
@@ -741,6 +753,7 @@ cfg_if! {
                                         $crate::classification::structural::nosimd::Constructor,
                                         $crate::classification::depth::sse2_64::Constructor,
                                         $crate::classification::memmem::sse2_64::Constructor,
+                                        $crate::string_pattern::matcher::nosimd::NosimdStringMatcher,
                                         {$crate::classification::simd::SSE2_PCLMULQDQ_POPCNT},
                                     >::new();
                                     $b
@@ -751,6 +764,7 @@ cfg_if! {
                                         $crate::classification::structural::nosimd::Constructor,
                                         $crate::classification::depth::nosimd::Constructor,
                                         $crate::classification::memmem::sse2_64::Constructor,
+                                        $crate::string_pattern::matcher::nosimd::NosimdStringMatcher,
                                         {$crate::classification::simd::SSE2_PCLMULQDQ},
                                     >::new();
                                     $b
@@ -761,6 +775,7 @@ cfg_if! {
                                         $crate::classification::structural::nosimd::Constructor,
                                         $crate::classification::depth::sse2_64::Constructor,
                                         $crate::classification::memmem::sse2_64::Constructor,
+                                        $crate::string_pattern::matcher::nosimd::NosimdStringMatcher,
                                         {$crate::classification::simd::SSE2_POPCNT},
                                     >::new();
                                     $b
@@ -771,6 +786,7 @@ cfg_if! {
                                         $crate::classification::structural::nosimd::Constructor,
                                         $crate::classification::depth::nosimd::Constructor,
                                         $crate::classification::memmem::sse2_64::Constructor,
+                                        $crate::string_pattern::matcher::nosimd::NosimdStringMatcher,
                                         {$crate::classification::simd::SSE2},
                                     >::new();
                                     $b
@@ -784,6 +800,7 @@ cfg_if! {
                                 $crate::classification::structural::nosimd::Constructor,
                                 $crate::classification::depth::nosimd::Constructor,
                                 $crate::classification::memmem::nosimd::Constructor,
+                                $crate::string_pattern::matcher::nosimd::NosimdStringMatcher,
                                 {$crate::classification::simd::NOSIMD}
                             >::new();
                             $b
@@ -809,6 +826,7 @@ cfg_if! {
                                 $crate::classification::structural::avx2_32::Constructor,
                                 $crate::classification::depth::avx2_32::Constructor,
                                 $crate::classification::memmem::avx2_32::Constructor,
+                                $crate::string_pattern::matcher::nosimd::NosimdStringMatcher,
                                 {$crate::classification::simd::AVX2_PCLMULQDQ_POPCNT},
                             >::new();
                             $b
@@ -822,6 +840,7 @@ cfg_if! {
                                         $crate::classification::structural::ssse3_32::Constructor,
                                         $crate::classification::depth::sse2_32::Constructor,
                                         $crate::classification::memmem::sse2_32::Constructor,
+                                        $crate::string_pattern::matcher::nosimd::NosimdStringMatcher,
                                         {$crate::classification::simd::SSSE3_PCLMULQDQ_POPCNT}
                                     >::new();
                                     $b
@@ -832,6 +851,7 @@ cfg_if! {
                                         $crate::classification::structural::ssse3_32::Constructor,
                                         $crate::classification::depth::nosimd::Constructor,
                                         $crate::classification::memmem::sse2_32::Constructor,
+                                        $crate::string_pattern::matcher::nosimd::NosimdStringMatcher,
                                         {$crate::classification::simd::SSSE3_PCLMULQDQ}
                                     >::new();
                                     $b
@@ -842,6 +862,7 @@ cfg_if! {
                                         $crate::classification::structural::ssse3_32::Constructor,
                                         $crate::classification::depth::sse2_32::Constructor,
                                         $crate::classification::memmem::sse2_32::Constructor,
+                                        $crate::string_pattern::matcher::nosimd::NosimdStringMatcher,
                                         {$crate::classification::simd::SSSE3_POPCNT}
                                     >::new();
                                     $b
@@ -852,6 +873,7 @@ cfg_if! {
                                         $crate::classification::structural::ssse3_32::Constructor,
                                         $crate::classification::depth::nosimd::Constructor,
                                         $crate::classification::memmem::sse2_32::Constructor,
+                                        $crate::string_pattern::matcher::nosimd::NosimdStringMatcher,
                                         {$crate::classification::simd::SSSE3}
                                     >::new();
                                     $b
@@ -868,6 +890,7 @@ cfg_if! {
                                         $crate::classification::structural::nosimd::Constructor,
                                         $crate::classification::depth::sse2_32::Constructor,
                                         $crate::classification::memmem::sse2_32::Constructor,
+                                        $crate::string_pattern::matcher::nosimd::NosimdStringMatcher,
                                         {$crate::classification::simd::SSE2_PCLMULQDQ_POPCNT}
                                     >::new();
                                     $b
@@ -878,6 +901,7 @@ cfg_if! {
                                         $crate::classification::structural::nosimd::Constructor,
                                         $crate::classification::depth::nosimd::Constructor,
                                         $crate::classification::memmem::sse2_32::Constructor,
+                                        $crate::string_pattern::matcher::nosimd::NosimdStringMatcher,
                                         {$crate::classification::simd::SSE2_PCLMULQDQ}
                                     >::new();
                                     $b
@@ -888,6 +912,7 @@ cfg_if! {
                                         $crate::classification::structural::nosimd::Constructor,
                                         $crate::classification::depth::sse2_32::Constructor,
                                         $crate::classification::memmem::sse2_32::Constructor,
+                                        $crate::string_pattern::matcher::nosimd::NosimdStringMatcher,
                                         {$crate::classification::simd::SSE2_POPCNT}
                                     >::new();
                                     $b
@@ -898,6 +923,7 @@ cfg_if! {
                                         $crate::classification::structural::nosimd::Constructor,
                                         $crate::classification::depth::nosimd::Constructor,
                                         $crate::classification::memmem::sse2_32::Constructor,
+                                        $crate::string_pattern::matcher::nosimd::NosimdStringMatcher,
                                         {$crate::classification::simd::SSE2}
                                     >::new();
                                     $b
@@ -911,6 +937,7 @@ cfg_if! {
                                 $crate::classification::structural::nosimd::Constructor,
                                 $crate::classification::depth::nosimd::Constructor,
                                 $crate::classification::memmem::nosimd::Constructor,
+                                $crate::string_pattern::matcher::nosimd::NosimdStringMatcher,
                                 {$crate::classification::simd::NOSIMD}
                             >::new();
                             $b
@@ -933,6 +960,7 @@ cfg_if! {
                         $crate::classification::structural::nosimd::Constructor,
                         $crate::classification::depth::nosimd::Constructor,
                         $crate::classification::memmem::nosimd::Constructor,
+                        $crate::string_pattern::matcher::nosimd::NosimdStringMatcher,
                         {$crate::classification::simd::NOSIMD},
                     >::new();
                     $b

@@ -1,3 +1,5 @@
+use std::marker::PhantomData;
+
 use super::{shared::mask_64, shared::vector_128, *};
 use crate::{
     classification::mask::m64,
@@ -10,45 +12,57 @@ const SIZE: usize = 64;
 pub(crate) struct Constructor;
 
 impl MemmemImpl for Constructor {
-    type Classifier<'i, 'b, 'r, I, R> = Sse2MemmemClassifier64<'i, 'b, 'r, I, R>
+    type Classifier<'i, 'b, 'r, I, SM, R> = Sse2MemmemClassifier64<'i, 'b, 'r, I, SM, R>
     where
         I: Input + 'i,
+        SM: StringPatternMatcher,
         <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>: 'b,
         R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>> + 'r,
         'i: 'r;
 
-    fn memmem<'i, 'b, 'r, I, R>(
+    fn memmem<'i, 'b, 'r, I, SM, R>(
         input: &'i I,
         iter: &'b mut <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>,
-    ) -> Self::Classifier<'i, 'b, 'r, I, R>
+    ) -> Self::Classifier<'i, 'b, 'r, I, SM, R>
     where
         I: Input,
+        SM: StringPatternMatcher,
         R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>>,
         'i: 'r,
     {
-        Self::Classifier { input, iter }
+        Self::Classifier {
+            input,
+            iter,
+            phantom: PhantomData,
+        }
     }
 }
 
-pub(crate) struct Sse2MemmemClassifier64<'i, 'b, 'r, I, R>
+pub(crate) struct Sse2MemmemClassifier64<'i, 'b, 'r, I, SM, R>
 where
     I: Input,
     R: InputRecorder<I::Block<'i, SIZE>> + 'r,
 {
     input: &'i I,
     iter: &'b mut I::BlockIterator<'i, 'r, R, SIZE>,
+    phantom: PhantomData<SM>,
 }
 
-impl<'i, 'b, 'r, I, R> Sse2MemmemClassifier64<'i, 'b, 'r, I, R>
+impl<'i, 'b, 'r, I, SM, R> Sse2MemmemClassifier64<'i, 'b, 'r, I, SM, R>
 where
     I: Input,
+    SM: StringPatternMatcher,
     R: InputRecorder<I::Block<'i, SIZE>>,
     'i: 'r,
 {
     #[inline]
     #[allow(dead_code)]
     pub(crate) fn new(input: &'i I, iter: &'b mut I::BlockIterator<'i, 'r, R, SIZE>) -> Self {
-        Self { input, iter }
+        Self {
+            input,
+            iter,
+            phantom: PhantomData,
+        }
     }
 
     #[inline(always)]
@@ -83,7 +97,7 @@ where
             let mut result = (previous_block | (first_bitmask << 1)) & second_bitmask;
             while result != 0 {
                 let idx = result.trailing_zeros() as usize;
-                if let Some(to) = self.input.pattern_match_from(offset + idx - 1, label).e()? {
+                if let Some(to) = self.input.pattern_match_from::<SM>(offset + idx - 1, label).e()? {
                     return Ok(Some((offset + idx - 1, to, block)));
                 }
                 result &= !(1 << idx);
@@ -134,7 +148,7 @@ where
                 classified4.slashes,
             );
 
-            if let Some((from, to)) = mask_64::find_in_mask(
+            if let Some((from, to)) = mask_64::find_in_mask::<_, SM>(
                 self.input,
                 label,
                 previous_block,
@@ -194,7 +208,7 @@ where
                 classified4.slashes,
             );
 
-            if let Some((from, to)) = mask_64::find_in_mask(
+            if let Some((from, to)) = mask_64::find_in_mask::<_, SM>(
                 self.input,
                 label,
                 previous_block,
@@ -214,9 +228,10 @@ where
     }
 }
 
-impl<'i, 'b, 'r, I, R> Memmem<'i, 'b, 'r, I, SIZE> for Sse2MemmemClassifier64<'i, 'b, 'r, I, R>
+impl<'i, 'b, 'r, I, SM, R> Memmem<'i, 'b, 'r, I, SIZE> for Sse2MemmemClassifier64<'i, 'b, 'r, I, SM, R>
 where
     I: Input,
+    SM: StringPatternMatcher,
     R: InputRecorder<I::Block<'i, SIZE>>,
     'i: 'r,
 {
@@ -228,7 +243,7 @@ where
         label: &StringPattern,
     ) -> Result<Option<(usize, usize, I::Block<'i, SIZE>)>, InputError> {
         if let Some(b) = first_block {
-            if let Some(res) = shared::find_label_in_first_block(self.input, b, start_idx, label)? {
+            if let Some(res) = shared::find_label_in_first_block::<_, SM, SIZE>(self.input, b, start_idx, label)? {
                 return Ok(Some(res));
             }
         }

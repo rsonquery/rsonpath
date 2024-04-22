@@ -144,14 +144,13 @@ fn does_engine_support(tags: &[Tag]) -> bool {
 
     fn single(tag: &Tag) -> bool {
         match tag {
-            Tag::Basic => true,
+            Tag::Basic | Tag::ProperUnicode => true,
             Tag::Filter
             | Tag::Function
             | Tag::MultipleSelectors
             | Tag::IndexingFromEnd
             | Tag::BackwardStep
-            | Tag::StrictDescendantOrder
-            | Tag::ProperUnicode => false,
+            | Tag::StrictDescendantOrder => false,
         }
     }
 }

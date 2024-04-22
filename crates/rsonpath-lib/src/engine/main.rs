@@ -670,7 +670,7 @@ where
 
         // Do the expensive memcmp.
         self.input
-            .pattern_match_to(closing_quote_idx + 1, pattern)
+            .pattern_match_to::<V::StringPatternMatcher>(closing_quote_idx + 1, pattern)
             .map(|x| x.is_some())
             .map_err(|x| x.into().into())
     }

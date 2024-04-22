@@ -124,8 +124,7 @@ where
             return self.find_letter(label, offset);
         }
 
-        let classifier =
-            vector_256::BlockClassifier256::new(label.unquoted()[0], label.unquoted()[1]);
+        let classifier = vector_256::BlockClassifier256::new(label.unquoted()[0], label.unquoted()[1]);
         let mut previous_block: u32 = 0;
 
         while let Some(block) = self.iter.next().e()? {

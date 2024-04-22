@@ -1,3 +1,5 @@
+use std::marker::PhantomData;
+
 use super::*;
 use crate::{
     input::{error::InputErrorConvertible, InputBlockIterator},
@@ -7,38 +9,46 @@ use crate::{
 pub(crate) struct Constructor;
 
 impl MemmemImpl for Constructor {
-    type Classifier<'i, 'b, 'r, I, R> = SequentialMemmemClassifier<'i, 'b, 'r, I, R, BLOCK_SIZE>
+    type Classifier<'i, 'b, 'r, I, SM, R> = SequentialMemmemClassifier<'i, 'b, 'r, I, SM, R, BLOCK_SIZE>
     where
         I: Input + 'i,
+        SM: StringPatternMatcher,
         <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>: 'b,
         R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>> + 'r,
         'i: 'r;
 
-    fn memmem<'i, 'b, 'r, I, R>(
+    fn memmem<'i, 'b, 'r, I, SM, R>(
         input: &'i I,
         iter: &'b mut <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>,
-    ) -> Self::Classifier<'i, 'b, 'r, I, R>
+    ) -> Self::Classifier<'i, 'b, 'r, I, SM, R>
     where
         I: Input,
+        SM: StringPatternMatcher,
         R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>>,
         'i: 'r,
     {
-        Self::Classifier { input, iter }
+        Self::Classifier {
+            input,
+            iter,
+            phantom: PhantomData,
+        }
     }
 }
 
-pub(crate) struct SequentialMemmemClassifier<'i, 'b, 'r, I, R, const N: usize>
+pub(crate) struct SequentialMemmemClassifier<'i, 'b, 'r, I, SM, R, const N: usize>
 where
     I: Input,
     R: InputRecorder<I::Block<'i, N>> + 'r,
 {
     input: &'i I,
     iter: &'b mut I::BlockIterator<'i, 'r, R, N>,
+    phantom: PhantomData<SM>,
 }
 
-impl<'i, 'b, 'r, I, R, const N: usize> SequentialMemmemClassifier<'i, 'b, 'r, I, R, N>
+impl<'i, 'b, 'r, I, SM, R, const N: usize> SequentialMemmemClassifier<'i, 'b, 'r, I, SM, R, N>
 where
     I: Input,
+    SM: StringPatternMatcher,
     R: InputRecorder<I::Block<'i, N>> + 'r,
 {
     #[inline]
@@ -58,7 +68,7 @@ where
                 let j = offset + i;
 
                 if (c == first_c || c == b'\\') && j > 0 {
-                    if let Some(to) = self.input.pattern_match_from(j - 1, label).e()? {
+                    if let Some(to) = self.input.pattern_match_from::<SM>(j - 1, label).e()? {
                         return Ok(Some((j - 1, to, block)));
                     }
                 }
@@ -71,9 +81,11 @@ where
     }
 }
 
-impl<'i, 'b, 'r, I, R, const N: usize> Memmem<'i, 'b, 'r, I, N> for SequentialMemmemClassifier<'i, 'b, 'r, I, R, N>
+impl<'i, 'b, 'r, I, SM, R, const N: usize> Memmem<'i, 'b, 'r, I, N>
+    for SequentialMemmemClassifier<'i, 'b, 'r, I, SM, R, N>
 where
     I: Input,
+    SM: StringPatternMatcher,
     R: InputRecorder<I::Block<'i, N>> + 'r,
 {
     // Output the relative offsets
@@ -84,7 +96,7 @@ where
         label: &StringPattern,
     ) -> Result<Option<(usize, usize, I::Block<'i, N>)>, InputError> {
         if let Some(b) = first_block {
-            if let Some(res) = shared::find_label_in_first_block(self.input, b, start_idx, label)? {
+            if let Some(res) = shared::find_label_in_first_block::<_, SM, N>(self.input, b, start_idx, label)? {
                 return Ok(Some(res));
             }
         }

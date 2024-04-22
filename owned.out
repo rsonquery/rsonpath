@@ -1,0 +1,284 @@
+  [rq] Preparing query: `$['a']..['b']`
+
+[rsonpath::automaton] NFA: s0.a -> s1;
+s1.b -> s1, s2;
+s1.a -> s1;
+s1.X -> s1;
+
+[rsonpath::automaton::minimizer] New superstate created: {0} DFA(1)
+[rsonpath::automaton::minimizer] Expanding superstate: {0}, last checkpoint is None
+[rsonpath::automaton::minimizer] Wildcard target: {}
+[rsonpath::automaton::minimizer] Considering member transition NFA(0) --a-> NFA(1)
+[rsonpath::automaton::minimizer] Raw transitions: SuperstateTransitionTable { array: ArrayTransitionSet { transitions: {} }, member: {StringPattern { bytes: [b'"', b'a', b'"'], as_string: "\"a\"", alternatives: [None, SlashUSingle(0x31363030, 1), None] }: {1}}, wildcard: {} }
+[rsonpath::automaton::minimizer] New superstate created: {1} DFA(2)
+[rsonpath::automaton::minimizer] Normalized transitions: SuperstateTransitionTable { array: ArrayTransitionSet { transitions: {} }, member: {StringPattern { bytes: [b'"', b'a', b'"'], as_string: "\"a\"", alternatives: [None, SlashUSingle(0x31363030, 1), None] }: {1}}, wildcard: {} }
+[rsonpath::automaton::minimizer] Translated transitions (array): []
+[rsonpath::automaton::minimizer] Translated transitions (member): [(StringPattern { bytes: [b'"', b'a', b'"'], as_string: "\"a\"", alternatives: [None, SlashUSingle(0x31363030, 1), None] }, State(2))]
+[rsonpath::automaton::minimizer] DFA(1) is unitary
+[rsonpath::automaton::minimizer] Expanding superstate: {1}, last checkpoint is Some(NfaStateId(1))
+[rsonpath::automaton::minimizer] Wildcard target: {1}
+[rsonpath::automaton::minimizer] Considering member transition NFA(1) --b-> NFA(2)
+[rsonpath::automaton::minimizer] Raw transitions: SuperstateTransitionTable { array: ArrayTransitionSet { transitions: {} }, member: {StringPattern { bytes: [b'"', b'b', b'"'], as_string: "\"b\"", alternatives: [None, SlashUSingle(0x32363030, 1), None] }: {1, 2}}, wildcard: {1} }
+[rsonpath::automaton::minimizer] New superstate created: {1, 2} DFA(3)
+[rsonpath::automaton::minimizer] Normalized transitions: SuperstateTransitionTable { array: ArrayTransitionSet { transitions: {} }, member: {StringPattern { bytes: [b'"', b'b', b'"'], as_string: "\"b\"", alternatives: [None, SlashUSingle(0x32363030, 1), None] }: {1, 2}}, wildcard: {1} }
+[rsonpath::automaton::minimizer] Translated transitions (array): []
+[rsonpath::automaton::minimizer] Translated transitions (member): [(StringPattern { bytes: [b'"', b'b', b'"'], as_string: "\"b\"", alternatives: [None, SlashUSingle(0x32363030, 1), None] }, State(3))]
+[rsonpath::automaton::minimizer] DFA(2) has transitions to accepting
+[rsonpath::automaton::minimizer] Expanding superstate: {1, 2}, last checkpoint is Some(NfaStateId(1))
+[rsonpath::automaton::minimizer] Wildcard target: {1}
+[rsonpath::automaton::minimizer] Considering member transition NFA(1) --b-> NFA(2)
+[rsonpath::automaton::minimizer] Raw transitions: SuperstateTransitionTable { array: ArrayTransitionSet { transitions: {} }, member: {StringPattern { bytes: [b'"', b'b', b'"'], as_string: "\"b\"", alternatives: [None, SlashUSingle(0x32363030, 1), None] }: {1, 2}}, wildcard: {1} }
+[rsonpath::automaton::minimizer] Normalized transitions: SuperstateTransitionTable { array: ArrayTransitionSet { transitions: {} }, member: {StringPattern { bytes: [b'"', b'b', b'"'], as_string: "\"b\"", alternatives: [None, SlashUSingle(0x32363030, 1), None] }: {1, 2}}, wildcard: {1} }
+[rsonpath::automaton::minimizer] Translated transitions (array): []
+[rsonpath::automaton::minimizer] Translated transitions (member): [(StringPattern { bytes: [b'"', b'b', b'"'], as_string: "\"b\"", alternatives: [None, SlashUSingle(0x32363030, 1), None] }, State(3))]
+[rsonpath::automaton::minimizer] DFA(3) is accepting
+[rsonpath::automaton::minimizer] DFA(3) has transitions to accepting
+  [rq] Automaton: digraph {
+node [shape=circle style=filled gradientangle=45 fillcolor=gray ]; 0
+node [shape=circle style=filled gradientangle=45 fillcolor="darkgoldenrod2;0.5 :white"]; 1
+node [shape=circle style=filled gradientangle=45 fillcolor="white;0.5 :dodgerblue"]; 2
+node [shape=doublecircle style=filled gradientangle=45 fillcolor="white;0.5 :dodgerblue"]; 3
+  0 -> 0 [label="*"]
+  1 -> 2 [label="a"]
+  1 -> 0 [label="*"]
+  2 -> 3 [label="b"]
+  2 -> 2 [label="*"]
+  3 -> 3 [label="b"]
+  3 -> 2 [label="*"]
+}
+  [rsonpath::engine::main] SIMD configuration:
+ avx2;fast_quotes;fast_popcnt
+[rsonpath::input::borrowed] next!
+[rsonpath::result::nodes] New block, idx = 0
+[rsonpath::classification::quotes::avx2_64]                    block:                                                                 
+[rsonpath::classification::quotes::shared::mask_64]                  slashes: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::quotes::shared::mask_64]                   quotes: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::quotes::shared::mask_64]           prev_slash_bit: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::quotes::shared::mask_64]           prev_quote_bit: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::quotes::shared::mask_64]                  escaped: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::quotes::shared::mask_64]        quotes & !escaped: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::quotes::shared::mask_64]        nonescaped_quotes: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::quotes::shared::mask_64]            within_quotes: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::structural::avx2_64]               structural: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::structural::avx2_64]     nonquoted_structural: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::input::borrowed] next!
+[rsonpath::result::nodes] New block, idx = 64
+[rsonpath::classification::quotes::avx2_64]                    block: {     "a": [         {             "c": {                 "d": [
+[rsonpath::classification::quotes::shared::mask_64]                  slashes: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::quotes::shared::mask_64]                   quotes: 0000001010000000000000000000000000010100000000000000000000101000 (1441152052557250880)
+[rsonpath::classification::quotes::shared::mask_64]           prev_slash_bit: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::quotes::shared::mask_64]           prev_quote_bit: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::quotes::shared::mask_64]                  escaped: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::quotes::shared::mask_64]        quotes & !escaped: 0000001010000000000000000000000000010100000000000000000000101000 (1441152052557250880)
+[rsonpath::classification::quotes::shared::mask_64]        nonescaped_quotes: 0000001010000000000000000000000000010100000000000000000000101000 (1441152052557250880)
+[rsonpath::classification::quotes::shared::mask_64]            within_quotes: 0000001100000000000000000000000000011000000000000000000000110000 (864691231534350528)
+[rsonpath::classification::structural::avx2_64]               structural: 1000000000010000000001000000000000000000100000000000000000000001 (9223373136368502785)
+[rsonpath::classification::structural::avx2_64]     nonquoted_structural: 1000000000010000000001000000000000000000100000000000000000000001 (9223373136368502785)
+[rsonpath::input::borrowed] getting input iter 128
+[rsonpath::engine::main] ====================
+[rsonpath::engine::main] Event = Opening(Curly, 64)
+[rsonpath::engine::main] Depth = Depth(0)
+[rsonpath::engine::main] Stack = SmallStack { contents: [] }
+[rsonpath::engine::main] State = State(1)
+[rsonpath::engine::main] ====================
+[rsonpath::engine::main] Opening Curly, increasing depth and pushing stack.
+[rsonpath::input::borrowed] getting input iter 128
+[rsonpath::engine::main] ====================
+[rsonpath::engine::main] Event = Opening(Square, 75)
+[rsonpath::engine::main] Depth = Depth(1)
+[rsonpath::engine::main] Stack = SmallStack { contents: [] }
+[rsonpath::engine::main] State = State(1)
+[rsonpath::engine::main] ====================
+[rsonpath::engine::main] Opening Square, increasing depth and pushing stack.
+[rsonpath::engine::main] push DFA(1), goto DFA(2), is_list = true, array_count: 0
+[rsonpath::input::borrowed] getting input iter 128
+[rsonpath::engine::main] ====================
+[rsonpath::engine::main] Event = Opening(Curly, 85)
+[rsonpath::engine::main] Depth = Depth(2)
+[rsonpath::engine::main] Stack = SmallStack { contents: [StackFrame { depth: 1, state: State(1), is_list: false, array_count: JsonUInt(0) }] }
+[rsonpath::engine::main] State = State(2)
+[rsonpath::engine::main] ====================
+[rsonpath::engine::main] Opening Curly, increasing depth and pushing stack.
+[rsonpath::engine::main] Falling back to DFA(2)
+[rsonpath::engine::main] push DFA(2), goto DFA(2), is_list = false, array_count: 0
+[rsonpath::classification::structural::avx2_64] Turning both commas and colons on at 85.
+[rsonpath::classification::structural::avx2_64] relevant_idx is 86.
+[rsonpath::classification::structural::avx2_64] need to reclassify.
+[rsonpath::classification::structural::avx2_64]               structural: 1000000001010000000001000000000000000010100000000000000000000101 (11529216420460104193)
+[rsonpath::classification::structural::avx2_64]     nonquoted_structural: 1000000001010000000001000000000000000010100000000000000000000101 (11529216420460104193)
+[rsonpath::input::borrowed] getting input iter 128
+[rsonpath::engine::main] ====================
+[rsonpath::engine::main] Event = Colon(102)
+[rsonpath::engine::main] Depth = Depth(3)
+[rsonpath::engine::main] Stack = SmallStack { contents: [StackFrame { depth: 1, state: State(1), is_list: false, array_count: JsonUInt(0) }, StackFrame { depth: 2, state: State(2), is_list: true, array_count: JsonUInt(0) }] }
+[rsonpath::engine::main] State = State(2)
+[rsonpath::engine::main] ====================
+[rsonpath::engine::main] Colon
+[rsonpath::input::borrowed] getting input iter 128
+[rsonpath::engine::main] ====================
+[rsonpath::engine::main] Event = Opening(Curly, 104)
+[rsonpath::engine::main] Depth = Depth(3)
+[rsonpath::engine::main] Stack = SmallStack { contents: [StackFrame { depth: 1, state: State(1), is_list: false, array_count: JsonUInt(0) }, StackFrame { depth: 2, state: State(2), is_list: true, array_count: JsonUInt(0) }] }
+[rsonpath::engine::main] State = State(2)
+[rsonpath::engine::main] ====================
+[rsonpath::engine::main] Opening Curly, increasing depth and pushing stack.
+[rsonpath::engine::main] Falling back to DFA(2)
+[rsonpath::input::borrowed] getting input iter 128
+[rsonpath::engine::main] ====================
+[rsonpath::engine::main] Event = Colon(125)
+[rsonpath::engine::main] Depth = Depth(4)
+[rsonpath::engine::main] Stack = SmallStack { contents: [StackFrame { depth: 1, state: State(1), is_list: false, array_count: JsonUInt(0) }, StackFrame { depth: 2, state: State(2), is_list: true, array_count: JsonUInt(0) }] }
+[rsonpath::engine::main] State = State(2)
+[rsonpath::engine::main] ====================
+[rsonpath::engine::main] Colon
+[rsonpath::input::borrowed] getting input iter 128
+[rsonpath::engine::main] ====================
+[rsonpath::engine::main] Event = Opening(Square, 127)
+[rsonpath::engine::main] Depth = Depth(4)
+[rsonpath::engine::main] Stack = SmallStack { contents: [StackFrame { depth: 1, state: State(1), is_list: false, array_count: JsonUInt(0) }, StackFrame { depth: 2, state: State(2), is_list: true, array_count: JsonUInt(0) }] }
+[rsonpath::engine::main] State = State(2)
+[rsonpath::engine::main] ====================
+[rsonpath::engine::main] Opening Square, increasing depth and pushing stack.
+[rsonpath::engine::main] Falling back to DFA(2)
+[rsonpath::engine::main] push DFA(2), goto DFA(2), is_list = true, array_count: 0
+[rsonpath::classification::structural::avx2_64] Turning both commas and colons off.
+[rsonpath::input::borrowed] next!
+[rsonpath::result::nodes] New block, idx = 128
+[rsonpath::classification::quotes::avx2_64]                    block:                      42,                     43,                
+[rsonpath::classification::quotes::shared::mask_64]                  slashes: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::quotes::shared::mask_64]                   quotes: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::quotes::shared::mask_64]           prev_slash_bit: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::quotes::shared::mask_64]           prev_quote_bit: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::quotes::shared::mask_64]                  escaped: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::quotes::shared::mask_64]        quotes & !escaped: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::quotes::shared::mask_64]        nonescaped_quotes: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::quotes::shared::mask_64]            within_quotes: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::structural::avx2_64]               structural: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::structural::avx2_64]     nonquoted_structural: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::input::borrowed] next!
+[rsonpath::result::nodes] New block, idx = 192
+[rsonpath::classification::quotes::avx2_64]                    block:      44                 ],                 "b": 45             }
+[rsonpath::classification::quotes::shared::mask_64]                  slashes: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::quotes::shared::mask_64]                   quotes: 0000000000000000000000000000000000000000000101000000000000000000 (43980465111040)
+[rsonpath::classification::quotes::shared::mask_64]           prev_slash_bit: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::quotes::shared::mask_64]           prev_quote_bit: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::quotes::shared::mask_64]                  escaped: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::quotes::shared::mask_64]        quotes & !escaped: 0000000000000000000000000000000000000000000101000000000000000000 (43980465111040)
+[rsonpath::classification::quotes::shared::mask_64]        nonescaped_quotes: 0000000000000000000000000000000000000000000101000000000000000000 (43980465111040)
+[rsonpath::classification::quotes::shared::mask_64]            within_quotes: 0000000000000000000000000000000000000000000110000000000000000000 (26388279066624)
+[rsonpath::classification::structural::avx2_64]               structural: 0000000000000000000000001000000000000000000000000000000000000001 (9223372036871553024)
+[rsonpath::classification::structural::avx2_64]     nonquoted_structural: 0000000000000000000000001000000000000000000000000000000000000001 (9223372036871553024)
+[rsonpath::input::borrowed] getting input iter 256
+[rsonpath::engine::main] ====================
+[rsonpath::engine::main] Event = Closing(Square, 216)
+[rsonpath::engine::main] Depth = Depth(5)
+[rsonpath::engine::main] Stack = SmallStack { contents: [StackFrame { depth: 1, state: State(1), is_list: false, array_count: JsonUInt(0) }, StackFrame { depth: 2, state: State(2), is_list: true, array_count: JsonUInt(0) }, StackFrame { depth: 4, state: State(2), is_list: false, array_count: JsonUInt(0) }] }
+[rsonpath::engine::main] State = State(2)
+[rsonpath::engine::main] ====================
+[rsonpath::engine::main] Closing, decreasing depth and popping stack.
+[rsonpath::result::nodes] Value terminator at 216, depth 4
+[rsonpath::engine::main] Restored array count to 0
+[rsonpath::classification::structural::avx2_64] Turning both commas and colons on at 216.
+[rsonpath::classification::structural::avx2_64] relevant_idx is 217.
+[rsonpath::classification::structural::avx2_64] need to reclassify.
+[rsonpath::classification::structural::avx2_64]               structural: 0000000000000000000000001100000000000000000000100000000000000001 (9223442405649285120)
+[rsonpath::classification::structural::avx2_64]     nonquoted_structural: 0000000000000000000000001100000000000000000000100000000000000001 (9223442405649285120)
+[rsonpath::input::borrowed] getting input iter 256
+[rsonpath::engine::main] ====================
+[rsonpath::engine::main] Event = Comma(217)
+[rsonpath::engine::main] Depth = Depth(4)
+[rsonpath::engine::main] Stack = SmallStack { contents: [StackFrame { depth: 1, state: State(1), is_list: false, array_count: JsonUInt(0) }, StackFrame { depth: 2, state: State(2), is_list: true, array_count: JsonUInt(0) }] }
+[rsonpath::engine::main] State = State(2)
+[rsonpath::engine::main] ====================
+[rsonpath::engine::main] Comma
+[rsonpath::result::nodes] Value terminator at 217, depth 4
+[rsonpath::input::borrowed] getting input iter 256
+[rsonpath::engine::main] ====================
+[rsonpath::engine::main] Event = Colon(238)
+[rsonpath::engine::main] Depth = Depth(4)
+[rsonpath::engine::main] Stack = SmallStack { contents: [StackFrame { depth: 1, state: State(1), is_list: false, array_count: JsonUInt(0) }, StackFrame { depth: 2, state: State(2), is_list: true, array_count: JsonUInt(0) }] }
+[rsonpath::engine::main] State = State(2)
+[rsonpath::engine::main] ====================
+[rsonpath::engine::main] Colon
+[rsonpath::engine::main] Reporting result somewhere after 239 with node type Atomic
+[rsonpath::result::nodes] Recording match at 240
+[rsonpath::input::borrowed] getting input iter 256
+[rsonpath::engine::main] ====================
+[rsonpath::engine::main] Event = Closing(Curly, 255)
+[rsonpath::engine::main] Depth = Depth(4)
+[rsonpath::engine::main] Stack = SmallStack { contents: [StackFrame { depth: 1, state: State(1), is_list: false, array_count: JsonUInt(0) }, StackFrame { depth: 2, state: State(2), is_list: true, array_count: JsonUInt(0) }] }
+[rsonpath::engine::main] State = State(2)
+[rsonpath::engine::main] ====================
+[rsonpath::engine::main] Closing, decreasing depth and popping stack.
+[rsonpath::result::nodes] Value terminator at 255, depth 3
+[rsonpath::result::nodes] Mark node as ended at 256
+[rsonpath::result::nodes] src_start: 192, read_start: 240, read_end: 256
+[rsonpath::result::nodes] Finalizing node
+[rsonpath::result::nodes] Committing and outputting node
+45
+[rsonpath::input::borrowed] next!
+[rsonpath::result::nodes] New block, idx = 256
+[rsonpath::classification::quotes::avx2_64]                    block:          }     ] }                                              
+[rsonpath::classification::quotes::shared::mask_64]                  slashes: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::quotes::shared::mask_64]                   quotes: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::quotes::shared::mask_64]           prev_slash_bit: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::quotes::shared::mask_64]           prev_quote_bit: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::quotes::shared::mask_64]                  escaped: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::quotes::shared::mask_64]        quotes & !escaped: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::quotes::shared::mask_64]        nonescaped_quotes: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::quotes::shared::mask_64]            within_quotes: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::structural::avx2_64]               structural: 0000000001000001010000000000000000000000000000000000000000000000 (164352)
+[rsonpath::classification::structural::avx2_64]     nonquoted_structural: 0000000001000001010000000000000000000000000000000000000000000000 (164352)
+[rsonpath::input::borrowed] getting input iter 320
+[rsonpath::engine::main] ====================
+[rsonpath::engine::main] Event = Closing(Curly, 265)
+[rsonpath::engine::main] Depth = Depth(3)
+[rsonpath::engine::main] Stack = SmallStack { contents: [StackFrame { depth: 1, state: State(1), is_list: false, array_count: JsonUInt(0) }, StackFrame { depth: 2, state: State(2), is_list: true, array_count: JsonUInt(0) }] }
+[rsonpath::engine::main] State = State(2)
+[rsonpath::engine::main] ====================
+[rsonpath::engine::main] Closing, decreasing depth and popping stack.
+[rsonpath::result::nodes] Value terminator at 265, depth 2
+[rsonpath::engine::main] Restored array count to 0
+[rsonpath::classification::structural::avx2_64] Turning commas off.
+[rsonpath::input::borrowed] getting input iter 320
+[rsonpath::engine::main] ====================
+[rsonpath::engine::main] Event = Closing(Square, 271)
+[rsonpath::engine::main] Depth = Depth(2)
+[rsonpath::engine::main] Stack = SmallStack { contents: [StackFrame { depth: 1, state: State(1), is_list: false, array_count: JsonUInt(0) }] }
+[rsonpath::engine::main] State = State(2)
+[rsonpath::engine::main] ====================
+[rsonpath::engine::main] Closing, decreasing depth and popping stack.
+[rsonpath::result::nodes] Value terminator at 271, depth 1
+[rsonpath::engine::main] Restored array count to 0
+[rsonpath::engine::main] Skipping unique state from Curly
+[rsonpath::engine::tail_skipping] Skipping
+[rsonpath::engine::tail_skipping] Fetched vector, current depth is 1
+[rsonpath::engine::tail_skipping] Estimate: 0
+[rsonpath::classification::depth::shared::mask_64]             opening_mask: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::depth::shared::mask_64]             closing_mask: 0000000000000000010000000000000000000000000000000000000000000000 (131072)
+[rsonpath::classification::depth::shared::mask_64]         new opening_mask: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::depth::shared::mask_64]         new closing_mask: 0000000000000000000000000000000000000000000000000000000000000000 (0)
+[rsonpath::classification::depth::shared::mask_64] next_closing: 17
+[rsonpath::classification::depth::shared::mask_64] new_opening_count: 0
+[rsonpath::classification::depth::shared::mask_64] delta: -1
+[rsonpath::engine::tail_skipping] Encountered depth 0, breaking.
+[rsonpath::engine::tail_skipping] Skipping complete, resuming structural classification.
+[rsonpath::classification::depth::avx2_64] Depth iterator stopping at index 18
+[rsonpath::input::borrowed] getting input iter 320
+[rsonpath::classification] iter offset: 256, block idx: Some(18)
+[rsonpath::input::borrowed] getting input iter 320
+[rsonpath::engine::tail_skipping] Finished at 274
+[rsonpath::input::borrowed] getting input iter 320
+[rsonpath::classification] iter offset: 256, block idx: Some(18)
+[rsonpath::input::borrowed] getting input iter 320
+[rsonpath::classification::structural::avx2_64]               structural: 0000000001000001010000000000000000000000000000000000000000000000 (164352)
+[rsonpath::classification::structural::avx2_64]     nonquoted_structural: 0000000001000001010000000000000000000000000000000000000000000000 (164352)
+[rsonpath::engine::main] ====================
+[rsonpath::engine::main] Event = Closing(Curly, 274)
+[rsonpath::engine::main] Depth = Depth(1)
+[rsonpath::engine::main] Stack = SmallStack { contents: [] }
+[rsonpath::engine::main] State = State(1)
+[rsonpath::engine::main] ====================
+[rsonpath::engine::main] Closing, decreasing depth and popping stack.
+[rsonpath::result::nodes] Value terminator at 274, depth 0
+[rsonpath::classification::structural::avx2_64] Turning colons off.

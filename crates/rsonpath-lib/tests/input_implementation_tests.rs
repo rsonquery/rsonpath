@@ -143,7 +143,7 @@ impl InMemoryTestInput {
         }
     }
 
-    fn test_positive_is_member_match(&self, bytes: &[u8], from: usize, to: usize, string_pattern: StringPattern) {
+    /*fn test_positive_is_member_match(&self, bytes: &[u8], from: usize, to: usize, string_pattern: StringPattern) {
         match self {
             InMemoryTestInput::Buffered => {
                 Self::test_positive_is_member_match_buffered(bytes, from, to, string_pattern)
@@ -153,7 +153,7 @@ impl InMemoryTestInput {
             }
             InMemoryTestInput::Owned => Self::test_positive_is_member_match_owned(bytes, from, to, string_pattern),
         }
-    }
+    }*/
 
     fn test_seek_forward_buffered(bytes: &[u8], from: usize, needle: u8, expected: usize) {
         let input = create_buffered(bytes);
@@ -273,7 +273,7 @@ impl InMemoryTestInput {
         assert_eq!(result, Some((expected, expected_byte)));
     }
 
-    fn test_positive_is_member_match_buffered(bytes: &[u8], from: usize, to: usize, string_pattern: StringPattern) {
+    /*fn test_positive_is_member_match_buffered(bytes: &[u8], from: usize, to: usize, string_pattern: StringPattern) {
         let input = create_buffered(bytes);
 
         let result = input
@@ -308,7 +308,7 @@ impl InMemoryTestInput {
             .expect("match succeeds");
 
         assert!(result);
-    }
+    }*/
 
     fn test_padding_buffered(bytes: &[u8]) {
         let input = create_buffered(bytes);
@@ -511,7 +511,7 @@ mod in_memory_proptests {
             InMemoryTestInput::Owned.test_seek_non_whitespace_backward(&input, from, expected, 255)
         }
 
-        #[test]
+        /*#[test]
         fn buffered_input_is_member_match_should_be_true((input, from, to, pattern) in positive_is_member_match_strategy()) {
              InMemoryTestInput::Buffered.test_positive_is_member_match(&input, from, to, pattern)
         }
@@ -524,7 +524,7 @@ mod in_memory_proptests {
         #[test]
         fn owned_input_is_member_match_should_be_true((input, from, to, pattern) in positive_is_member_match_strategy()) {
             InMemoryTestInput::Owned.test_positive_is_member_match(&input, from, to, pattern)
-        }
+        }*/
     }
 
     prop_compose! {

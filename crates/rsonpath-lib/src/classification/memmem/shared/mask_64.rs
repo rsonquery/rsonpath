@@ -3,11 +3,11 @@ use crate::{
         error::{InputError, InputErrorConvertible},
         Input,
     },
-    string_pattern::StringPattern,
+    string_pattern::{matcher::StringPatternMatcher, StringPattern},
 };
 
 #[inline(always)]
-pub(crate) fn find_in_mask<I: Input>(
+pub(crate) fn find_in_mask<I: Input, SM: StringPatternMatcher>(
     input: &I,
     pattern: &StringPattern,
     previous_block: u64,
@@ -22,7 +22,7 @@ pub(crate) fn find_in_mask<I: Input>(
     while result != 0 {
         let idx = result.trailing_zeros() as usize;
         if offset + idx > 1 {
-            if let Some(to) = input.pattern_match_from(offset + idx - 2, pattern).e()? {
+            if let Some(to) = input.pattern_match_from::<SM>(offset + idx - 2, pattern).e()? {
                 return Ok(Some((offset + idx - 2, to)));
             }
         }
