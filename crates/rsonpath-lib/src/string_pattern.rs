@@ -4,10 +4,13 @@ pub(crate) mod matcher;
 use rsonpath_syntax::str::JsonString;
 use std::fmt::Debug;
 
+use crate::{BLOCK_SIZE, JSON_SPACE_BYTE};
+
 #[derive(Clone)]
 pub struct StringPattern {
     bytes: Vec<u8>,
     alternatives: Vec<AlternativeRepresentation>,
+    len: usize,
     len_limit: usize,
 }
 
@@ -53,6 +56,10 @@ struct StringPatternBuilder {
 }
 
 impl StringPattern {
+    pub fn bytes(&self) -> &[u8] {
+        &self.bytes[..self.len]
+    }
+
     pub fn unquoted(&self) -> &[u8] {
         &self.bytes[1..self.bytes.len() - 1]
     }
@@ -123,11 +130,16 @@ impl StringPatternBuilder {
         self.bytes.push(b'"');
         self.alternatives.push(AlternativeRepresentation::None);
         self.len_limit += 1;
+        let len = self.bytes.len();
+        for _ in 0..BLOCK_SIZE {
+            self.bytes.push(JSON_SPACE_BYTE);
+        }
 
         return StringPattern {
             bytes: self.bytes,
             alternatives: self.alternatives,
             len_limit: self.len_limit,
+            len,
         };
     }
 
