@@ -189,6 +189,7 @@
     warn(clippy::print_stderr, clippy::print_stdout, clippy::todo)
 )]
 #![cfg_attr(docsrs, feature(doc_cfg))]
+#![feature(avx512_target_feature)]
 
 pub mod automaton;
 pub mod classification;

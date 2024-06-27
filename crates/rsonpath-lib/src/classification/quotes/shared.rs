@@ -2,10 +2,16 @@
 pub(super) mod mask_32;
 #[cfg(target_arch = "x86_64")]
 pub(super) mod mask_64;
+#[cfg(target_arch = "aarch64")]
+pub(super) mod mask_neon;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub(super) mod vector_128;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub(super) mod vector_256;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+pub(super) mod vector_512;
+#[cfg(target_arch = "aarch64")]
+pub(super) mod vector_neon;
 
 #[allow(unused_macros)]
 macro_rules! quote_classifier {

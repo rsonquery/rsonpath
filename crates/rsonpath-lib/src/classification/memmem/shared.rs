@@ -6,12 +6,16 @@ use rsonpath_syntax::str::JsonString;
 
 #[cfg(target_arch = "x86")]
 pub(super) mod mask_32;
-#[cfg(target_arch = "x86_64")]
+#[cfg(any(target_arch = "x86_64", target_arch = "aarch64"))]
 pub(super) mod mask_64;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub(super) mod vector_128;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub(super) mod vector_256;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+pub(super) mod vector_512;
+#[cfg(any(target_arch = "aarch64"))]
+pub(super) mod vector_neon;
 
 pub(crate) fn find_label_in_first_block<'i, 'r, I, const N: usize>(
     input: &I,

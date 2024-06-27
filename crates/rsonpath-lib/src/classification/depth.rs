@@ -75,10 +75,15 @@ pub(crate) mod shared;
 pub(crate) mod avx2_32;
 #[cfg(target_arch = "x86_64")]
 pub(crate) mod avx2_64;
+#[cfg(target_arch = "x86_64")]
+pub(crate) mod avx512_64;
 #[cfg(target_arch = "x86")]
 pub(crate) mod sse2_32;
 #[cfg(target_arch = "x86_64")]
 pub(crate) mod sse2_64;
+#[cfg(target_arch = "aarch64")]
+pub(crate) mod neon_64;
+
 
 pub(crate) trait DepthImpl {
     type Classifier<'i, I, Q>: DepthIterator<'i, I, Q, MaskType, BLOCK_SIZE>
