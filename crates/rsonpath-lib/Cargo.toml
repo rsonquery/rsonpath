@@ -53,6 +53,7 @@ default = ["simd"]
 serde = ["dep:serde", "smallvec/serde", "rsonpath-syntax/serde"]
 simd = []
 
+
 [[example]]
 name = "approx_spans_usage"
 path = "examples/approx_spans_usage.rs"

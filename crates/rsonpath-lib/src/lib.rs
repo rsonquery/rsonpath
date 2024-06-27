@@ -144,6 +144,7 @@
 )]
 // Docs.rs config.
 #![cfg_attr(docsrs, feature(doc_cfg))]
+#![feature(avx512_target_feature)]
 
 pub mod automaton;
 pub mod classification;
