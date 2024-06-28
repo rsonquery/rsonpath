@@ -211,6 +211,7 @@ impl ParserBuilder {
     /// JSONPath queries are inherently recursive, since
     /// - [`LogicalExpr`] can be an arbitrarily deep tree of AND/OR operators;
     /// - the [`TestExpr`] in a filter can test arbitrary nested JSONPath queries.
+    ///
     /// Our parser implementation is recursive, so an excessively nested query could overflow the stack.
     ///
     /// The limit can be relaxed here, or removed entirely by passing [`None`].

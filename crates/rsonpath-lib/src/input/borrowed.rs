@@ -3,7 +3,7 @@
 //! Choose this implementation if:
 //!
 //! 1. You already have the data loaded in-memory and can borrow it while
-//! using the engine.
+//!    using the engine.
 //!
 //! ## Performance characteristics
 //!
