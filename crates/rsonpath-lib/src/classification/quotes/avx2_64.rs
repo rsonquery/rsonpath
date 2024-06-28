@@ -33,7 +33,7 @@ impl BlockAvx2Classifier {
     }
 }
 
-#[cfg(all(test, cfg = "avx_64"))]
+#[cfg(test)]
 mod tests {
     use super::Avx2QuoteClassifier64;
     use crate::{

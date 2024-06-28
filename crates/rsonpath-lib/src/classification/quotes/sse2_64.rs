@@ -46,7 +46,7 @@ impl BlockSse2Classifier {
     }
 }
 
-#[cfg(all(test, cfg = "ssse3_64"))]
+#[cfg(test)]
 mod tests {
     use super::Sse2QuoteClassifier64;
     use crate::{
