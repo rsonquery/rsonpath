@@ -3,6 +3,7 @@ use std::{arch::x86_64::*, hint::unreachable_unchecked};
 use super::{shared::AlternativeMatchResult, StringPatternMatcher};
 use crate::{
     classification::simd::dispatch_simd,
+    debug,
     string_pattern::{glibc_impls, AlternativeRepresentation},
     StringPattern,
 };
@@ -14,7 +15,7 @@ impl StringPatternMatcher for Avx2StringMatcher64 {
         unsafe {
             return impl_(pattern, input);
         }
-        /*let mut rem_pattern: &[u8] = &pattern.bytes;
+        /*let mut rem_pattern: &[u8] = &pattern.bytes();
         let mut input = input;
         let mut pat_idx = 0;
         let mut input_idx = 0;
@@ -54,20 +55,16 @@ impl StringPatternMatcher for Avx2StringMatcher64 {
         unsafe fn impl_(pattern: &StringPattern, input: &[u8]) -> Option<usize> {
             const SLASH_U_CODE: u16 = u16::from_ne_bytes([b'\\', b'u']);
 
-            let mut rem_pattern: &[u8] = &pattern.bytes();
+            let mut rem_pattern: &[u8] = &pattern.quoted();
             let mut input = input;
             let mut pat_idx = 0;
             let mut input_idx = 0;
+            debug!(
+                "{} cmpeq {}",
+                std::str::from_utf8(rem_pattern).unwrap_or("[invalid UTF8]"),
+                std::str::from_utf8(input).unwrap_or("[invalid UTF8]")
+            );
 
-            if let Some(mismatch) = glibc_impls::memcmpidx_avx2_64::cmpeq_forward(input, rem_pattern, rem_pattern.len())
-            {
-                rem_pattern = &rem_pattern[mismatch..];
-                input = &input[mismatch..];
-                input_idx += mismatch;
-                pat_idx += mismatch;
-            } else {
-                return Some(input_idx + rem_pattern.len() - 1);
-            }
             while !rem_pattern.is_empty() && rem_pattern.len() <= input.len() {
                 let rem_ptr = rem_pattern.as_ptr();
                 let in_ptr = input.as_ptr();
@@ -141,7 +138,7 @@ impl StringPatternMatcher for Avx2StringMatcher64 {
                             if xor == 0 {
                                 return Some(input_idx + rem_pattern.len() - 1);
                             } else {
-                                let mismatch = (xor.trailing_zeros() / 8) as usize | 4;
+                                let mismatch = (xor.trailing_zeros() / 8) as usize + offset;
                                 rem_pattern = &rem_pattern[mismatch..];
                                 input = &input[mismatch..];
                                 input_idx += mismatch;
@@ -183,7 +180,7 @@ impl StringPatternMatcher for Avx2StringMatcher64 {
                             if xor == 0 {
                                 return Some(input_idx + rem_pattern.len() - 1);
                             } else {
-                                let mismatch = (xor.trailing_zeros() / 8) as usize | 8;
+                                let mismatch = (xor.trailing_zeros() / 8) as usize + offset;
                                 rem_pattern = &rem_pattern[mismatch..];
                                 input = &input[mismatch..];
                                 input_idx += mismatch;
@@ -226,9 +223,9 @@ impl StringPatternMatcher for Avx2StringMatcher64 {
                             let cmpeq = _mm_cmpeq_epi8(rem_vec, in_vec);
                             let mask = _mm_movemask_epi8(cmpeq);
                             if mask == 0xFFFF {
-                                return Some(input_idx + input.len() - 1);
+                                return Some(input_idx + rem_pattern.len() - 1);
                             } else {
-                                let mismatch = mask.trailing_ones() as usize | 16;
+                                let mismatch = mask.trailing_ones() as usize + offset;
                                 rem_pattern = &rem_pattern[mismatch..];
                                 input = &input[mismatch..];
                                 input_idx += mismatch;
@@ -273,7 +270,7 @@ impl StringPatternMatcher for Avx2StringMatcher64 {
                             if mask == 0xFFFFFFFF {
                                 return Some(input_idx + rem_pattern.len() - 1);
                             } else {
-                                let mismatch = mask.trailing_ones() as usize | 32;
+                                let mismatch = mask.trailing_ones() as usize + offset;
                                 rem_pattern = &rem_pattern[mismatch..];
                                 input = &input[mismatch..];
                                 input_idx += mismatch;
@@ -372,7 +369,7 @@ impl StringPatternMatcher for Avx2StringMatcher64 {
 pub fn cmpeq_forward<I: CmpeqInput>(pattern: &StringPattern, input: I) -> Option<usize> {
     const SLASH_U_CODE: u16 = u16::from_ne_bytes([b'\\', b'u']);
 
-    let mut rem_pattern: &[u8] = &pattern.bytes;
+    let mut rem_pattern: &[u8] = &pattern.quoted();
     let mut input = input;
     let mut pat_idx = 0;
     let mut input_idx = 0;
@@ -459,7 +456,7 @@ pub fn cmpeq_forward<I: CmpeqInput>(pattern: &StringPattern, input: I) -> Option
 pub fn cmpeq_backward<I: CmpeqInput>(pattern: &StringPattern, input: I) -> Option<usize> {
     const SLASH_U_CODE: u16 = u16::from_ne_bytes([b'\\', b'u']);
 
-    let mut rem_pattern: &[u8] = &pattern.bytes;
+    let mut rem_pattern: &[u8] = &pattern.quoted();
     let mut input = input;
     let mut pat_len = rem_pattern.len();
     let mut input_len = input.len();

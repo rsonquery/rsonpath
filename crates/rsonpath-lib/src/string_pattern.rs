@@ -56,16 +56,12 @@ struct StringPatternBuilder {
 }
 
 impl StringPattern {
-    pub fn bytes(&self) -> &[u8] {
-        &self.bytes[..self.len]
-    }
-
     pub fn unquoted(&self) -> &[u8] {
-        &self.bytes[1..self.bytes.len() - 1]
+        &self.quoted()[1..self.len - 1]
     }
 
     pub fn quoted(&self) -> &[u8] {
-        &self.bytes
+        &self.bytes[..self.len]
     }
 
     pub fn len_limit(&self) -> usize {
@@ -240,8 +236,11 @@ impl Debug for StringPattern {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         return f
             .debug_struct("StringPattern")
-            .field("bytes", &self.bytes.iter().copied().map(DebugByte).collect::<Vec<_>>())
-            .field("as_string", &std::str::from_utf8(&self.bytes).unwrap())
+            .field(
+                "bytes",
+                &self.quoted().iter().copied().map(DebugByte).collect::<Vec<_>>(),
+            )
+            .field("as_string", &String::from_utf8_lossy(&self.quoted()))
             .field("alternatives", &self.alternatives)
             .finish();
     }

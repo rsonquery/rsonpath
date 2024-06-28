@@ -212,6 +212,9 @@ impl<'b, I: Input, V: Simd> HeadSkip<'b, I, V, BLOCK_SIZE> {
                                 }
                             }
 
+                            debug!("is accepting? {}", head_skip.is_accepting);
+                            debug!("next_c is {next_c}");
+
                             classifier_state = match next_c {
                                 b'{' | b'[' => {
                                     debug!("resuming");
@@ -232,6 +235,7 @@ impl<'b, I: Input, V: Simd> HeadSkip<'b, I, V, BLOCK_SIZE> {
                                         .0
                                 }
                                 _ if head_skip.is_accepting => {
+                                    debug!("recording atomic match at {next_idx}");
                                     engine.recorder().record_match(
                                         next_idx,
                                         Depth::ZERO,

@@ -120,7 +120,9 @@ where
         mut offset: usize,
     ) -> Result<Option<(usize, usize, I::Block<'i, SIZE>)>, InputError> {
         let classifier = vector_128::BlockClassifier128::new(label.unquoted()[0], b'"');
-        let mut previous_block: u64 = 0;
+        let mut previous_slash: u64 = 0;
+        let mut previous_first: u64 = 0;
+        let mut previous_quote: u64 = 0;
 
         while let Some(block) = self.iter.next().e()? {
             let (block1, block2, block3, block4) = block.quarters();
@@ -147,21 +149,32 @@ where
                 classified3.slashes,
                 classified4.slashes,
             );
+            let quote_bitmask = m64::combine_16(
+                classified1.quotes,
+                classified2.quotes,
+                classified3.quotes,
+                classified4.quotes,
+            );
 
             if let Some((from, to)) = mask_64::find_in_mask::<_, SM>(
                 self.input,
                 label,
-                previous_block,
+                previous_slash,
+                previous_quote,
+                previous_first,
                 first_bitmask,
                 second_bitmask,
                 slash_bitmask,
+                quote_bitmask,
                 offset,
             )? {
                 return Ok(Some((from, to, block)));
             }
 
             offset += SIZE;
-            previous_block = (first_bitmask | slash_bitmask) >> (SIZE - 1);
+            previous_slash = (slash_bitmask & (quote_bitmask << 1)) >> (SIZE - 1);
+            previous_first = (first_bitmask & (quote_bitmask << 1)) >> (SIZE - 1);
+            previous_quote = quote_bitmask >> (SIZE - 2);
         }
 
         Ok(None)
@@ -180,7 +193,9 @@ where
         }
 
         let classifier = vector_128::BlockClassifier128::new(label.unquoted()[0], label.unquoted()[1]);
-        let mut previous_block: u64 = 0;
+        let mut previous_slash: u64 = 0;
+        let mut previous_first: u64 = 0;
+        let mut previous_quote: u64 = 0;
 
         while let Some(block) = self.iter.next().e()? {
             let (block1, block2, block3, block4) = block.quarters();
@@ -207,21 +222,32 @@ where
                 classified3.slashes,
                 classified4.slashes,
             );
+            let quote_bitmask = m64::combine_16(
+                classified1.quotes,
+                classified2.quotes,
+                classified3.quotes,
+                classified4.quotes,
+            );
 
             if let Some((from, to)) = mask_64::find_in_mask::<_, SM>(
                 self.input,
                 label,
-                previous_block,
+                previous_slash,
+                previous_quote,
+                previous_first,
                 first_bitmask,
                 second_bitmask,
                 slash_bitmask,
+                quote_bitmask,
                 offset,
             )? {
                 return Ok(Some((from, to, block)));
             }
 
             offset += SIZE;
-            previous_block = (first_bitmask | slash_bitmask) >> (SIZE - 1);
+            previous_slash = (slash_bitmask & (quote_bitmask << 1)) >> (SIZE - 1);
+            previous_first = (first_bitmask & (quote_bitmask << 1)) >> (SIZE - 1);
+            previous_quote = quote_bitmask >> (SIZE - 2);
         }
 
         Ok(None)

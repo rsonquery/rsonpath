@@ -2,6 +2,7 @@ use std::marker::PhantomData;
 
 use super::{shared::mask_64, shared::vector_256, *};
 use crate::{
+    bin_u64,
     classification::mask::m64,
     input::{error::InputErrorConvertible, InputBlock, InputBlockIterator},
     string_pattern::StringPattern,
@@ -109,6 +110,9 @@ where
     ) -> Result<Option<(usize, usize, I::Block<'i, SIZE>)>, InputError> {
         let classifier = vector_256::BlockClassifier256::new(label.unquoted()[0], b'"');
         let mut previous_block: u64 = 0;
+        let mut previous_slash: u64 = 0;
+        let mut previous_first: u64 = 0;
+        let mut previous_quote: u64 = 0;
 
         while let Some(block) = self.iter.next().e()? {
             let (block1, block2) = block.halves();
@@ -118,21 +122,35 @@ where
             let first_bitmask = m64::combine_32(classified1.first, classified2.first);
             let second_bitmask = m64::combine_32(classified1.second, classified2.second);
             let slash_bitmask = m64::combine_32(classified1.slashes, classified2.slashes);
+            let quote_bitmask = m64::combine_32(classified1.quotes, classified2.quotes);
+
+            bin_u64!("first_bitmask", first_bitmask);
+            bin_u64!("second_bitmask", second_bitmask);
+            bin_u64!("slash_bitmask", slash_bitmask);
+            bin_u64!("quote_bitmask", quote_bitmask);
+            bin_u64!("previous_slash", previous_slash);
+            bin_u64!("previous_first", previous_first);
+            bin_u64!("previous_quote", previous_quote);
 
             if let Some((from, to)) = mask_64::find_in_mask::<_, SM>(
                 self.input,
                 label,
-                previous_block,
+                previous_slash,
+                previous_quote,
+                previous_first,
                 first_bitmask,
                 second_bitmask,
                 slash_bitmask,
+                quote_bitmask,
                 offset,
             )? {
                 return Ok(Some((from, to, block)));
             }
 
             offset += SIZE;
-            previous_block = (first_bitmask | slash_bitmask) >> (SIZE - 1);
+            previous_slash = (slash_bitmask & (quote_bitmask << 1)) >> (SIZE - 1);
+            previous_first = (first_bitmask & (quote_bitmask << 1)) >> (SIZE - 1);
+            previous_quote = quote_bitmask >> (SIZE - 2);
         }
 
         Ok(None)
@@ -151,7 +169,10 @@ where
         }
 
         let classifier = vector_256::BlockClassifier256::new(label.unquoted()[0], label.unquoted()[1]);
-        let mut previous_block: u64 = 0;
+        let mut previous_or: u64 = 0;
+        let mut previous_slash: u64 = 0;
+        let mut previous_first: u64 = 0;
+        let mut previous_quote: u64 = 0;
 
         while let Some(block) = self.iter.next().e()? {
             let (block1, block2) = block.halves();
@@ -161,21 +182,27 @@ where
             let first_bitmask = m64::combine_32(classified1.first, classified2.first);
             let second_bitmask = m64::combine_32(classified1.second, classified2.second);
             let slash_bitmask = m64::combine_32(classified1.slashes, classified2.slashes);
+            let quote_bitmask = m64::combine_32(classified1.quotes, classified2.quotes);
 
             if let Some((from, to)) = mask_64::find_in_mask::<_, SM>(
                 self.input,
                 label,
-                previous_block,
+                previous_slash,
+                previous_quote,
+                previous_first,
                 first_bitmask,
                 second_bitmask,
                 slash_bitmask,
+                quote_bitmask,
                 offset,
             )? {
                 return Ok(Some((from, to, block)));
             }
 
             offset += SIZE;
-            previous_block = (first_bitmask | slash_bitmask) >> (SIZE - 1);
+            previous_slash = (slash_bitmask & (quote_bitmask << 1)) >> (SIZE - 1);
+            previous_first = (first_bitmask & (quote_bitmask << 1)) >> (SIZE - 1);
+            previous_quote = quote_bitmask >> (SIZE - 2);
         }
 
         Ok(None)

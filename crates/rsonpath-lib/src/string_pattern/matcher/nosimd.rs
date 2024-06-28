@@ -5,7 +5,7 @@ pub(crate) struct NosimdStringMatcher;
 
 impl NosimdStringMatcher {
     pub(crate) fn pattern_match_forward<I: MatcherInput>(pattern: &crate::StringPattern, input: I) -> Option<usize> {
-        let mut rem_pattern: &[u8] = &pattern.bytes;
+        let mut rem_pattern: &[u8] = &pattern.quoted();
         let mut input = input;
         let mut pat_idx = 0;
         let mut input_idx = 0;
@@ -38,7 +38,7 @@ impl NosimdStringMatcher {
     }
 
     pub(crate) fn pattern_match_backward<I: MatcherInput>(pattern: &crate::StringPattern, input: I) -> Option<usize> {
-        let mut rem_pattern: &[u8] = &pattern.bytes;
+        let mut rem_pattern: &[u8] = &pattern.quoted();
         let mut input = input;
         let mut pat_len = rem_pattern.len();
         let mut input_len = input.len();
