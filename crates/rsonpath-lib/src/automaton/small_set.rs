@@ -191,7 +191,9 @@ macro_rules! native_small_set {
     };
 }
 
-native_small_set!(SmallSet64, SmallSet64Iter, u64, 64);
+// If a SmallSet64 is ever needed it can be constructed with the macro.
+// native_small_set!(SmallSet64, SmallSet64Iter, u64, 64);
+// Currently we only use SmallSet256 which relies on SmallSet128.
 native_small_set!(SmallSet128, SmallSet128Iter, u128, 128);
 
 impl<const N: usize> From<[u8; N]> for SmallSet256 {

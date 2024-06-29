@@ -154,9 +154,9 @@ impl<'q> Automaton<'q> {
     ///
     /// # Errors
     /// - [`CompilerError::QueryTooComplex`] raised if the query is too complex
-    /// and the automaton size was exceeded.
+    ///   and the automaton size was exceeded.
     /// - [`CompilerError::NotSupported`] raised if the query contains elements
-    /// not yet supported by the compiler.
+    ///   not yet supported by the compiler.
     #[inline]
     pub fn new(query: &'q JsonPathQuery) -> Result<Self, CompilerError> {
         let nfa = NondeterministicAutomaton::new(query)?;

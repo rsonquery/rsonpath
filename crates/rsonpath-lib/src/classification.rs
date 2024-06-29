@@ -1,11 +1,11 @@
 //! Classifiers working on the input stream.
 //!
 //! - [`quotes`] contains the low-level [`QuoteClassifiedIterator`](`quotes::QuoteClassifiedIterator`)
-//! computing basic information on which characters are escaped or within quotes.
+//!   computing basic information on which characters are escaped or within quotes.
 //! - [`structural`] contains the [`StructuralIterator`](`structural::StructuralIterator`)
-//! that wraps over a quote classifier to extract a stream of [`Structural`](`structural::Structural`) characters.
+//!   that wraps over a quote classifier to extract a stream of [`Structural`](`structural::Structural`) characters.
 //! - [`depth`] contains the [`DepthIterator`](`depth::DepthIterator`) that works on top of a quote classifier
-//! to provide quick fast-forwarding over the stream while keeping track of the depth.
+//!   to provide quick fast-forwarding over the stream while keeping track of the depth.
 //!
 //! This base module provides the [`ResumeClassifierState`] struct common between all
 //! higher-level classifiers that work on top of a [`QuoteClassifiedIterator`](`quotes::QuoteClassifiedIterator`).

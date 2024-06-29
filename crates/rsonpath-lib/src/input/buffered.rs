@@ -4,7 +4,7 @@
 //! Choose this implementation if:
 //!
 //! 1. You have a [`Read`] source that might contain relatively large amounts
-//! of data.
+//!    of data.
 //! 2. You want to run the JSONPath query on the input and then discard it.
 //!
 //! ## Performance characteristics

@@ -4,7 +4,7 @@
 //!
 //! 1. You already have the data loaded in-memory.
 //! 2. You don't want to deal with ownership and would rather have the input
-//! take ownership of the bytes.
+//!    take ownership of the bytes.
 //!
 //! ## Performance characteristics
 //!

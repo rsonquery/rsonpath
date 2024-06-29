@@ -28,6 +28,7 @@
 //! * {prio. 2} over X intersect Y to S+{t}
 //! * {prio. 1} over X to S
 //! * {prio. 1} over Y to {t}
+//!
 //! The semantics are correct as long as the transitions are taken in non-increasing order of priorities.
 //!
 //! Intersection of two linear sets is always a linear set. Finding such intersection is not trivial,

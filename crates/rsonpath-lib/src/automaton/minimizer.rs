@@ -60,9 +60,10 @@ struct SuperstateTransitionTable<'q> {
  * Every state with a self-loop becomes a checkpoint. They have two crucial properties:
  *   1. Any path from the initial to the accepting state goes through each checkpoint.
  *   2. Each superstate containing
- *        a) a checkpoint and;
- *        b) some states on the path from the initial state to that checkpoint,
- *      is equivalent to a superstate without the b) states.
+ *      a) a checkpoint and;
+ *      b) some states on the path from the initial state to that checkpoint,
+ *         is equivalent to a superstate without the b) states.
+ *
  * This allows on-the-fly minimization with the `normalize` function, vastly reducing
  * the number of superstates to consider.
  *
