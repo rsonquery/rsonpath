@@ -197,6 +197,7 @@ pub mod engine;
 pub mod error;
 pub mod input;
 pub mod result;
+pub mod ricardo;
 
 cfg_if::cfg_if! {
     if #[cfg(target_pointer_width = "32")] {
