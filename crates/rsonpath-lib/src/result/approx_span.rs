@@ -1,4 +1,5 @@
 //! [`Recorder`] implementation finding the starts and approximate ends of all matches.
+//!
 //! Faster than a full [`NodesRecorder`](super::nodes::NodesRecorder), but the span
 //! may include trailing whitespace after the actual matched value.
 use super::{output_queue::OutputQueue, *};
