@@ -12,7 +12,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     rsonpath::lut_counter::run(&file)?;
 
-    lut_naive::example_usage(".a_ricardo/output/lut_naive.json");
+    lut_naive::example_usage(".a_ricardo/output/lut_naive.json", "json");
+    lut_naive::example_usage(".a_ricardo/output/lut_naive.cbor", "cbor");
 
     Ok(())
 }
