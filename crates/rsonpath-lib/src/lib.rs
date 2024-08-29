@@ -145,8 +145,8 @@ mod depth;
 pub mod engine;
 pub mod error;
 pub mod input;
+pub mod lut_counter;
 pub mod result;
-pub mod ricardo;
 pub(crate) mod string_pattern;
 
 pub use string_pattern::StringPattern;

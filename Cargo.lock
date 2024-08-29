@@ -1216,6 +1216,8 @@ dependencies = [
  "pretty_assertions",
  "proptest",
  "rsonpath-syntax",
+ "serde",
+ "serde_json",
  "smallvec",
  "static_assertions",
  "test-case",

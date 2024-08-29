@@ -212,6 +212,8 @@ dependencies = [
  "log",
  "memmap2",
  "rsonpath-syntax",
+ "serde",
+ "serde_json",
  "smallvec",
  "static_assertions",
  "thiserror",
