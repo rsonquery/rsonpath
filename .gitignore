@@ -1,2 +1,6 @@
 /target/*
 /.vscode/*.log
+
+# Added by Ricardo
+/.a_ricardo/*
+Cargo.lock
