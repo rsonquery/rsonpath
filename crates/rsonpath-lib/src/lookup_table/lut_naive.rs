@@ -89,36 +89,3 @@ impl LutNaive {
         }
     }
 }
-
-pub fn example_usage(path: &str, format: &str) {
-    let mut lut_naive = LutNaive::init(Some(10));
-
-    // Add Data
-    lut_naive.put(1, 100);
-    lut_naive.put(2, 200);
-
-    for i in 1..=100 {
-        lut_naive.put(i, i * 100);
-    }
-
-    if let Some(value) = lut_naive.get(&50) {
-        println!("Value for key '50': {}", value);
-    }
-
-    // Serialize with specified format
-    // lut_naive
-    //     .serialize(path)
-    //     .expect("Failed to serialize the LutNaive");
-
-    // Deserialize with specified format
-    let lut_naive_des = LutNaive::deserialize(path).expect("Failed to deserialize the LutNaive");
-
-    if let Some(value) = lut_naive_des.get(&50) {
-        println!("Deserialized value for key '50': {}", value);
-    }
-    if let Some(value) = lut_naive_des.get(&100) {
-        println!("Deserialized value for key '100': {}", value);
-    }
-
-    lut_naive.overview();
-}

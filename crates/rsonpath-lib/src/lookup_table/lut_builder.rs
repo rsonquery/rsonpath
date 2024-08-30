@@ -9,14 +9,13 @@ use crate::{
         structural::{BracketType, Structural, StructuralIterator},
     },
     input::{self, error, Input},
+    lookup_table::lut_naive,
     result::empty::EmptyRecorder,
     FallibleIterator,
 };
 
-use crate::lookup_table::lut_naive;
-
 #[inline]
-pub fn run(file: &File) -> Result<(), Box<dyn Error>> {
+pub fn run(file: &File) -> Result<lut_naive::LutNaive, Box<dyn Error>> {
     // SAFETY: We keep the file open throughout the entire duration.
     let input = unsafe { input::MmapInput::map_file(file)? };
     let simd_c = classification::simd::configure();
@@ -25,18 +24,17 @@ pub fn run(file: &File) -> Result<(), Box<dyn Error>> {
         classification::simd::dispatch_simd!(simd; input, simd => fn<I, V>(
             input: I,
             simd: V,
-        ) -> Result<(), error::InputError> where
+        ) -> Result<lut_naive::LutNaive, error::InputError> where
         I: Input,
         V: Simd,{
                 run_impl::<I, V>(&input, simd)
             })
-    })?;
-
-    Ok(())
+    })
+    .map_err(|e| Box::new(e) as Box<dyn Error>)
 }
 
 #[inline(always)]
-fn run_impl<I, V>(input: &I, simd: V) -> Result<(), error::InputError>
+fn run_impl<I, V>(input: &I, simd: V) -> Result<lut_naive::LutNaive, error::InputError>
 where
     I: Input,
     V: Simd,
@@ -60,12 +58,12 @@ where
             Structural::Closing(b, idx_close) => match b {
                 BracketType::Square => {
                     let idx_open = square_bracket_stack.pop_back().expect("Unmatched closing ]");
-                    println!("[ at index {idx_open} AND ] at index {idx_close}");
+                    // println!("[ at index {idx_open} AND ] at index {idx_close}");
                     lut_naive.put(idx_open, idx_close);
                 }
                 BracketType::Curly => {
                     let idx_open = curly_bracket_stack.pop_back().expect("Unmatched closing }");
-                    println!("{{ at index {idx_open} AND }} at index {idx_close}");
+                    // println!("{{ at index {idx_open} AND }} at index {idx_close}");
                     lut_naive.put(idx_open, idx_close);
                 }
             },
@@ -73,10 +71,5 @@ where
         }
     }
 
-    let filename = "test_a";
-    lut_naive.overview();
-    lut_naive.serialize(&format!(".a_ricardo/output/{}.json", filename))?;
-    lut_naive.serialize(&format!(".a_ricardo/output/{}.cbor", filename))?;
-
-    Ok(())
+    Ok(lut_naive)
 }
