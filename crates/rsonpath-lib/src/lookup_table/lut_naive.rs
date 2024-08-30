@@ -4,7 +4,8 @@ use serde_json;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{Read, Write};
-use std::path::Path;
+
+use crate::lookup_table::util;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct LutNaive {
@@ -28,7 +29,7 @@ impl LutNaive {
     }
 
     pub fn serialize(&self, path: &str) -> std::io::Result<()> {
-        let serialized_data = match extract_filetype_from_path(path).as_str() {
+        let serialized_data = match util::get_filetype_from_path(path).as_str() {
             "json" => serde_json::to_vec(&self).expect("Serialize failed."),
             "cbor" => serde_cbor::to_vec(&self).expect("Serialize failed."),
             _ => panic!("Serialize: Unsupported format"), // TODO return error here
@@ -38,15 +39,14 @@ impl LutNaive {
         Ok(())
     }
 
-    // Deserialize the data structure from a .json or .cbor file based on the given format
-    pub fn deserialize(path: &str, format: &str) -> std::io::Result<Self> {
+    pub fn deserialize(path: &str) -> std::io::Result<Self> {
         let mut file = File::open(path)?;
         let mut contents = Vec::new();
         file.read_to_end(&mut contents)?;
-        let deserialized: LutNaive = match format {
+        let deserialized: LutNaive = match util::get_filetype_from_path(path).as_str() {
             "json" => serde_json::from_slice(&contents).expect("Deserialize: Data has no JSON format."),
             "cbor" => serde_cbor::from_slice(&contents).expect("Deserialize: Data has no CBOR format."),
-            _ => panic!("Unsupported format"), // TODO return error here
+            _ => panic!("Deserialize: Unsupported format"), // TODO return error here
         };
         Ok(deserialized)
     }
@@ -90,14 +90,6 @@ impl LutNaive {
     }
 }
 
-fn extract_filetype_from_path(path: &str) -> String {
-    let path = Path::new(path);
-    match path.extension() {
-        Some(ext) => ext.to_string_lossy().into_owned(),
-        None => String::new(), // Return an empty string if there's no extension
-    }
-}
-
 pub fn example_usage(path: &str, format: &str) {
     let mut lut_naive = LutNaive::init(Some(10));
 
@@ -119,7 +111,7 @@ pub fn example_usage(path: &str, format: &str) {
     //     .expect("Failed to serialize the LutNaive");
 
     // Deserialize with specified format
-    let lut_naive_des = LutNaive::deserialize(path, format).expect("Failed to deserialize the LutNaive");
+    let lut_naive_des = LutNaive::deserialize(path).expect("Failed to deserialize the LutNaive");
 
     if let Some(value) = lut_naive_des.get(&50) {
         println!("Deserialized value for key '50': {}", value);

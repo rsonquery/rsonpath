@@ -35,12 +35,6 @@ pub fn run(file: &File) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn extract_filename_from_path(path: &str) -> String {
-    let path = std::path::Path::new(path);
-    let filename = path.file_stem().expect("Failed to extract filename");
-    filename.to_string_lossy().into_owned()
-}
-
 #[inline(always)]
 fn run_impl<I, V>(input: &I, simd: V) -> Result<(), error::InputError>
 where
@@ -81,8 +75,8 @@ where
 
     let filename = "test_a";
     lut_naive.overview();
-    // lut_naive.serialize(&format!(".a_ricardo/output/{}.json", filename))?;
-    // lut_naive.serialize(&format!(".a_ricardo/output/{}.cbor", filename))?;
+    lut_naive.serialize(&format!(".a_ricardo/output/{}.json", filename))?;
+    lut_naive.serialize(&format!(".a_ricardo/output/{}.cbor", filename))?;
 
     Ok(())
 }
