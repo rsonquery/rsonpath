@@ -2,37 +2,36 @@ use serde::{Deserialize, Serialize};
 use serde_cbor;
 use serde_json;
 use std::collections::HashMap;
-use std::env;
 use std::fs::File;
 use std::io::{Read, Write};
+use std::path::Path;
 
 #[derive(Serialize, Deserialize, Debug)]
-struct LutNaive {
-    table: HashMap<u64, u64>,
+pub struct LutNaive {
+    table: HashMap<usize, usize>,
 }
 
 impl LutNaive {
-    fn init(start_capacity: Option<usize>) -> Self {
+    pub fn init(start_capacity: Option<usize>) -> Self {
         let mut size = start_capacity.unwrap_or(0);
         LutNaive {
             table: HashMap::with_capacity(size),
         }
     }
 
-    fn put(&mut self, key: u64, value: u64) {
+    pub fn put(&mut self, key: usize, value: usize) {
         self.table.insert(key, value);
     }
 
-    fn get(&self, key: &u64) -> Option<&u64> {
+    pub fn get(&self, key: &usize) -> Option<&usize> {
         self.table.get(key)
     }
 
-    // Serialize this data structure into a .json or .cbor file based on the given format
-    fn serialize(&self, path: &str, format: &str) -> std::io::Result<()> {
-        let serialized_data = match format {
-            "json" => serde_json::to_vec(&self).expect("Serialize: Data has no JSON format."),
-            "cbor" => serde_cbor::to_vec(&self).expect("Serialize: Data has no CBOR format. Abort."),
-            _ => panic!("Unsupported format"),
+    pub fn serialize(&self, path: &str) -> std::io::Result<()> {
+        let serialized_data = match extract_filetype_from_path(path).as_str() {
+            "json" => serde_json::to_vec(&self).expect("Serialize failed."),
+            "cbor" => serde_cbor::to_vec(&self).expect("Serialize failed."),
+            _ => panic!("Serialize: Unsupported format"), // TODO return error here
         };
         let mut file = File::create(path)?;
         file.write_all(&serialized_data)?;
@@ -40,19 +39,19 @@ impl LutNaive {
     }
 
     // Deserialize the data structure from a .json or .cbor file based on the given format
-    fn deserialize(path: &str, format: &str) -> std::io::Result<Self> {
+    pub fn deserialize(path: &str, format: &str) -> std::io::Result<Self> {
         let mut file = File::open(path)?;
         let mut contents = Vec::new();
         file.read_to_end(&mut contents)?;
         let deserialized: LutNaive = match format {
             "json" => serde_json::from_slice(&contents).expect("Deserialize: Data has no JSON format."),
             "cbor" => serde_cbor::from_slice(&contents).expect("Deserialize: Data has no CBOR format."),
-            _ => panic!("Unsupported format"),
+            _ => panic!("Unsupported format"), // TODO return error here
         };
         Ok(deserialized)
     }
 
-    fn overview(&self) {
+    pub fn overview(&self) {
         if !self.table.is_empty() {
             println!("lut-naive Overview:");
             println!("  #Entries: {}", self.table.len());
@@ -64,13 +63,21 @@ impl LutNaive {
             println!("  JSON: {} bytes", json_data.len());
             println!("  CBOR: {} bytes", cbor_data.len());
 
-            // Calculate and print the average of (value - key) called the distance
-            let mut total_distance = 0u64;
+            // Calculate and print the average, maximum, and minimum of (value - key) called the distance
+            let mut total_distance = 0usize;
+            let mut max_distance = usize::MIN;
+            let mut min_distance = usize::MAX;
             for (key, value) in self.table.iter() {
-                total_distance += value - key;
+                let distance = (*value).saturating_sub(*key); // Ensures non-negative distances
+                total_distance += distance;
+                max_distance = max_distance.max(distance);
+                min_distance = min_distance.min(distance);
             }
             let average_distance = total_distance as f64 / self.table.len() as f64;
+
             println!("  Average distance (value - key): {:.2}", average_distance);
+            println!("  MAX distance (value - key): {}", max_distance);
+            println!("  MIN distance (value - key): {}", min_distance);
 
             // Print up to the first 10 pairs
             println!("  First 10 pairs:");
@@ -80,6 +87,14 @@ impl LutNaive {
         } else {
             println!("The table is empty.");
         }
+    }
+}
+
+fn extract_filetype_from_path(path: &str) -> String {
+    let path = Path::new(path);
+    match path.extension() {
+        Some(ext) => ext.to_string_lossy().into_owned(),
+        None => String::new(), // Return an empty string if there's no extension
     }
 }
 
@@ -99,9 +114,9 @@ pub fn example_usage(path: &str, format: &str) {
     }
 
     // Serialize with specified format
-    lut_naive
-        .serialize(path, format)
-        .expect("Failed to serialize the LutNaive");
+    // lut_naive
+    //     .serialize(path)
+    //     .expect("Failed to serialize the LutNaive");
 
     // Deserialize with specified format
     let lut_naive_des = LutNaive::deserialize(path, format).expect("Failed to deserialize the LutNaive");
