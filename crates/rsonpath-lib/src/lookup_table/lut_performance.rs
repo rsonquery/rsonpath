@@ -1,3 +1,5 @@
+use std::io;
+use std::process::Command;
 use std::{error::Error, fs, io::Write, time::Instant};
 
 use crate::lookup_table::{lut_builder, util};
@@ -15,6 +17,8 @@ pub fn performance_test(json_path: &str, csv_path: &str) -> Result<(), Box<dyn E
                 measure_time_and_size(path.to_str().unwrap(), &csv_path)?;
             }
         }
+
+        run_python_statistics_builder(&csv_path)?;
     }
 
     Ok(())
@@ -58,6 +62,21 @@ fn measure_time_and_size(json_path: &str, csv_path: &str) -> Result<(), Box<dyn 
         )?;
 
         lut_naive.overview()
+    }
+
+    Ok(())
+}
+
+fn run_python_statistics_builder(csv_path: &str) -> io::Result<()> {
+    let output = Command::new("python")
+        .arg("crates/rsonpath-lib/src/lookup_table/python_statistic/main.py")
+        .arg(csv_path)
+        .output()?;
+
+    if output.status.success() {
+        io::stdout().write_all(&output.stdout)?;
+    } else {
+        eprintln!("Error: {}", String::from_utf8_lossy(&output.stderr));
     }
 
     Ok(())
