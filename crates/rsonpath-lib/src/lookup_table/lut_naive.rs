@@ -51,6 +51,26 @@ impl LutNaive {
         Ok(deserialized)
     }
 
+    // Returns number of bytes or 0 when table is empty
+    pub fn estimate_json_size(&self) -> usize {
+        if !self.table.is_empty() {
+            return serde_json::to_vec(&self).expect("Failed to serialize to JSON.").len();
+        } else {
+            println!("The table is empty.");
+            return 0;
+        }
+    }
+
+    // Returns number of bytes or 0 when table is empty
+    pub fn estimate_cbor_size(&self) -> usize {
+        if !self.table.is_empty() {
+            return serde_cbor::to_vec(&self).expect("Failed to serialize to JSON.").len();
+        } else {
+            println!("The table is empty.");
+            return 0;
+        }
+    }
+
     pub fn overview(&self) {
         if !self.table.is_empty() {
             println!("lut-naive Overview:");
@@ -58,10 +78,8 @@ impl LutNaive {
             println!("  Capacity: {}", self.table.capacity());
 
             // Serialize to JSON and CBOR to estimate file sizes
-            let json_data = serde_json::to_vec(&self).expect("Failed to serialize to JSON.");
-            let cbor_data = serde_cbor::to_vec(&self).expect("Failed to serialize to CBOR.");
-            println!("  JSON: {} bytes", json_data.len());
-            println!("  CBOR: {} bytes", cbor_data.len());
+            println!("  CBOR: {} bytes", self.estimate_cbor_size());
+            println!("  JSON: {} bytes", self.estimate_json_size());
 
             // Calculate and print the average, maximum, and minimum of (value - key) called the distance
             let mut total_distance = 0usize;
