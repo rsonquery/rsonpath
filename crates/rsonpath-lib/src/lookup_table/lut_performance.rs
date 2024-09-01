@@ -4,23 +4,24 @@ use std::{error::Error, fs, io::Write, time::Instant};
 
 use crate::lookup_table::{lut_builder, util};
 
+#[inline]
 pub fn performance_test(json_path: &str, csv_path: &str) -> Result<(), Box<dyn Error>> {
     let metadata = fs::metadata(json_path)?;
     if metadata.is_file() {
         println!("Saving stats to {}", csv_path);
-        measure_time_and_size(json_path, &csv_path)?;
+        measure_time_and_size(json_path, csv_path)?;
     } else if metadata.is_dir() {
-        for entry in fs::read_dir(&json_path)? {
+        for entry in fs::read_dir(json_path)? {
             let entry = entry?;
             let path = entry.path();
 
             if path.extension().and_then(|s| s.to_str()) == Some("json") {
-                measure_time_and_size(path.to_str().unwrap(), &csv_path)?;
+                measure_time_and_size(path.to_str().expect("Failed to convert path to string"), csv_path)?;
             }
         }
 
         println!("Saving stats to {}", csv_path);
-        run_python_statistics_builder(&csv_path)?;
+        run_python_statistics_builder(csv_path)?;
     }
 
     Ok(())
@@ -28,7 +29,7 @@ pub fn performance_test(json_path: &str, csv_path: &str) -> Result<(), Box<dyn E
 
 fn measure_time_and_size(json_path: &str, csv_path: &str) -> Result<(), Box<dyn Error>> {
     let file = fs::File::open(json_path)?;
-    let filename = util::get_filename_from_path(&json_path);
+    let filename = util::get_filename_from_path(json_path);
     println!("Processing: {}", filename);
 
     // Measure build duration
