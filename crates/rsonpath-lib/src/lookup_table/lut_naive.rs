@@ -39,7 +39,7 @@ impl LutNaive {
         Ok(())
     }
 
-    pub fn deserialize(path: &str) -> std::io::Result<Self> {
+    pub fn deserialize(&self, path: &str) -> std::io::Result<Self> {
         let mut file = File::open(path)?;
         let mut contents = Vec::new();
         file.read_to_end(&mut contents)?;

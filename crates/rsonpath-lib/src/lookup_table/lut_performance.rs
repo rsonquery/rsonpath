@@ -7,6 +7,7 @@ use crate::lookup_table::{lut_builder, util};
 pub fn performance_test(json_path: &str, csv_path: &str) -> Result<(), Box<dyn Error>> {
     let metadata = fs::metadata(json_path)?;
     if metadata.is_file() {
+        println!("Saving stats to {}", csv_path);
         measure_time_and_size(json_path, &csv_path)?;
     } else if metadata.is_dir() {
         for entry in fs::read_dir(&json_path)? {
@@ -18,6 +19,7 @@ pub fn performance_test(json_path: &str, csv_path: &str) -> Result<(), Box<dyn E
             }
         }
 
+        println!("Saving stats to {}", csv_path);
         run_python_statistics_builder(&csv_path)?;
     }
 
@@ -29,39 +31,57 @@ fn measure_time_and_size(json_path: &str, csv_path: &str) -> Result<(), Box<dyn 
     let filename = util::get_filename_from_path(&json_path);
     println!("Processing: {}", filename);
 
+    // Measure build duration
     let start_build = Instant::now();
     if let Ok(lut_naive) = lut_builder::run(&file) {
         let build_duration = start_build.elapsed();
 
+        // Measure JSON serialization duration
         let start_json = Instant::now();
         lut_naive.serialize(&format!(".a_ricardo/output/{}.json", filename))?;
         let json_duration = start_json.elapsed() + build_duration;
 
+        // Measure CBOR serialization duration
         let start_cbor = Instant::now();
         lut_naive.serialize(&format!(".a_ricardo/output/{}.cbor", filename))?;
         let cbor_duration = start_cbor.elapsed() + build_duration;
 
+        // Measure JSON deserialization duration
+        let start_json_deserialize = Instant::now();
+        lut_naive.deserialize(&format!(".a_ricardo/output/{}.json", filename))?;
+        let json_deserialize_duration = start_json_deserialize.elapsed() + json_duration;
+
+        // Measure CBOR deserialization duration
+        let start_cbor_deserialize = Instant::now();
+        lut_naive.deserialize(&format!(".a_ricardo/output/{}.cbor", filename))?;
+        let cbor_deserialize_duration = start_cbor_deserialize.elapsed() + cbor_duration;
+
+        // Open or create the CSV file for appending
         let mut csv_file = fs::OpenOptions::new().append(true).create(true).open(csv_path)?;
 
-        // If the file is freshly created add the head row
+        // If the file is freshly created, add the header row
         if csv_file.metadata()?.len() == 0 {
-            writeln!(csv_file, "name,build,cbor,json_total,cbor_size,json_size")?;
+            writeln!(
+                csv_file,
+                "name,build,cbor_serialize,json_serialize,json_deserialize,cbor_deserialize,cbor_size,json_size"
+            )?;
         }
 
-        // Round durations to 2 decimal places
-        let build_duration = build_duration.as_secs_f64();
-        let json_duration = json_duration.as_secs_f64();
-        let cbor_duration = cbor_duration.as_secs_f64();
-        let cbor_size = lut_naive.estimate_cbor_size();
-        let json_size = lut_naive.estimate_json_size();
-
+        // Write the results to the CSV file with durations rounded to 5 decimal places
         writeln!(
             csv_file,
-            "{},{:.5},{:.5},{:.5},{},{}",
-            filename, build_duration, cbor_duration, json_duration, cbor_size, json_size
+            "{},{:.5},{:.5},{:.5},{:.5},{:.5},{},{}",
+            filename,
+            build_duration.as_secs_f64(),
+            cbor_duration.as_secs_f64(),
+            json_duration.as_secs_f64(),
+            json_deserialize_duration.as_secs_f64(),
+            cbor_deserialize_duration.as_secs_f64(),
+            lut_naive.estimate_cbor_size(),
+            lut_naive.estimate_json_size(),
         )?;
 
-        lut_naive.overview()
+        // lut_naive.overview()
     }
 
     Ok(())
