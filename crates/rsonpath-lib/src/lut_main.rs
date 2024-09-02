@@ -35,7 +35,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     lut_performance::performance_test(json_path, &csv_path)?;
 
-
     // lut_perfect_hashing::demo_perfect_hashing();
     // lut_perfect_hashing::test_perfect_hashing();
 

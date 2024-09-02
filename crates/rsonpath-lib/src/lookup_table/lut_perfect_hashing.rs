@@ -17,7 +17,7 @@
 //     #[inline]
 //     pub fn init(keys: Vec<usize>, values: Vec<usize>) -> Self {
 //         assert_eq!(keys.len(), values.len(), "Keys and values must have the same length.");
-        
+
 //         // Create the MPHF for the given keys
 //         let hash_function = fmph::Function::from_slice(&keys).expect("Failed to create the MPHF.");
 
@@ -103,17 +103,16 @@
 //     }
 // }
 
-
 // // source: https://crates.io/crates/ph
 // pub fn demo_perfect_hashing(){
 //     let keys = ['a', 'b', 'z'];
 //     let f = fmph::Function::from(keys.as_ref());
-    
+
 //     // f assigns each key a unique number from the set {0, 1, 2}
-//     for k in keys { 
-//         println!("The key {} is assigned the value {}.", k, f.get(&k).unwrap()); 
+//     for k in keys {
+//         println!("The key {} is assigned the value {}.", k, f.get(&k).unwrap());
 //     }
-    
+
 //     let mut values = [f.get(&'a').unwrap(), f.get(&'b').unwrap(), f.get(&'z').unwrap()];
 //     values.sort();
 //     assert_eq!(values, [0, 1, 2]);
@@ -123,7 +122,7 @@
 //     println!("###########");
 //     let char_keys = ['w', 'e', 'r', 't'];
 //     let char_function = fmph::Function::from(&char_keys[..]);
-    
+
 //     println!("Key, Value:");
 //     for k in char_keys {
 //         println!("{}, {}", k, char_function.get(&k).unwrap());
@@ -132,7 +131,7 @@
 //     println!("###########");
 //     let str_keys = ["www", "eee", "rrr", "ttt"];
 //     let str_function = fmph::Function::from(&str_keys[..]);
-    
+
 //     println!("Key, Value:");
 //     for k in str_keys {
 //         println!("{}, {}", k, str_function.get(k).unwrap());

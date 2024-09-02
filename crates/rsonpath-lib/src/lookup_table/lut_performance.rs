@@ -63,10 +63,7 @@ fn measure_time_and_size(json_path: &str, csv_path: &str) -> Result<(), Box<dyn 
         let cbor_deserialize_duration = start_cbor_deserialize.elapsed() + cbor_serialize_duration;
 
         // Open or create the CSV file for appending
-        let mut csv_file = std::fs::OpenOptions::new()
-            .append(true)
-            .create(true)
-            .open(csv_path)?;
+        let mut csv_file = std::fs::OpenOptions::new().append(true).create(true).open(csv_path)?;
 
         // If the file is freshly created, add the header row
         if csv_file.metadata()?.len() == 0 {
