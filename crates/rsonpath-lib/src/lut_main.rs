@@ -1,6 +1,6 @@
 use std::{error::Error, fs, path::Path};
 
-use rsonpath::lookup_table::{lut_performance, util};
+use rsonpath::lookup_table::{lut_perfect_hashing, lut_performance, util};
 
 // For example run with:
 // cargo run --bin lut --release -- .a_ricardo/test_data/memory_test/small .a_ricardo/performance
@@ -34,6 +34,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     lut_performance::performance_test(json_path, &csv_path)?;
+
+
+    // lut_perfect_hashing::demo_perfect_hashing();
+    // lut_perfect_hashing::test_perfect_hashing();
 
     Ok(())
 }
