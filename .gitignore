@@ -2,5 +2,5 @@
 /.vscode/*.log
 
 # Added by Ricardo
-/.a_ricardo/*
+/.a_lut_tests/*
 Cargo.lock

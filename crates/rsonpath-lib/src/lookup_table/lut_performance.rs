@@ -1,22 +1,23 @@
 use std::io;
 use std::process::Command;
-use std::{error::Error, fs, io::Write, time::Instant};
+use std::{error::Error, fs, io::Write};
 
 use crate::lookup_table::{lut_builder, util};
 
 #[inline]
-pub fn performance_test(json_path: &str, csv_path: &str) -> Result<(), Box<dyn Error>> {
+pub fn performance_test(json_path: &str, output_path: &str, csv_path: &str) -> Result<(), Box<dyn Error>> {
     let metadata = fs::metadata(json_path)?;
     if metadata.is_file() {
         println!("Saving stats to {}", csv_path);
-        measure_time_and_size(json_path, csv_path)?;
+        measure_time_and_size(json_path, output_path, csv_path)?;
     } else if metadata.is_dir() {
         for entry in fs::read_dir(json_path)? {
             let entry = entry?;
             let path = entry.path();
 
             if path.extension().and_then(|s| s.to_str()) == Some("json") {
-                measure_time_and_size(path.to_str().expect("Failed to convert path to string"), csv_path)?;
+                let sub_json_path = path.to_str().expect("Failed to convert path to string");
+                measure_time_and_size(sub_json_path, output_path, csv_path)?;
             }
         }
 
@@ -27,7 +28,7 @@ pub fn performance_test(json_path: &str, csv_path: &str) -> Result<(), Box<dyn E
     Ok(())
 }
 
-fn measure_time_and_size(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Error>> {
+fn measure_time_and_size(json_path: &str, output_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Error>> {
     // Open the input JSON file
     let file = std::fs::File::open(json_path)?;
     let filename = util::get_filename_from_path(json_path);
@@ -42,24 +43,26 @@ fn measure_time_and_size(json_path: &str, csv_path: &str) -> Result<(), Box<dyn 
     if let Ok(lut_naive) = lut_builder::run(&file) {
         let build_duration = start_build.elapsed();
 
-        // Measure JSON serialization duration
+        // Measure JSON serialization & deserialization duration
+        let lut_json_path = &format!("{}/{}.json", output_path, filename);
+
         let start_json = std::time::Instant::now();
-        lut_naive.serialize(&format!(".a_ricardo/output/{}.json", filename))?;
+        lut_naive.serialize(lut_json_path)?;
         let json_serialize_duration = start_json.elapsed() + build_duration;
 
-        // Measure CBOR serialization duration
-        let start_cbor = std::time::Instant::now();
-        lut_naive.serialize(&format!(".a_ricardo/output/{}.cbor", filename))?;
-        let cbor_serialize_duration = start_cbor.elapsed() + build_duration;
-
-        // Measure JSON deserialization duration
         let start_json_deserialize = std::time::Instant::now();
-        lut_naive.deserialize(&format!(".a_ricardo/output/{}.json", filename))?;
+        lut_naive.deserialize(lut_json_path)?;
         let json_deserialize_duration = start_json_deserialize.elapsed() + json_serialize_duration;
 
-        // Measure CBOR deserialization duration
+        // Measure CBOR serialization & deserialization duration
+        let lut_cbor_path = &format!("{}/{}.cbor", output_path, filename);
+
+        let start_cbor = std::time::Instant::now();
+        lut_naive.serialize(lut_cbor_path)?;
+        let cbor_serialize_duration = start_cbor.elapsed() + build_duration;
+
         let start_cbor_deserialize = std::time::Instant::now();
-        lut_naive.deserialize(&format!(".a_ricardo/output/{}.cbor", filename))?;
+        lut_naive.deserialize(lut_cbor_path)?;
         let cbor_deserialize_duration = start_cbor_deserialize.elapsed() + cbor_serialize_duration;
 
         // Open or create the CSV file for appending
