@@ -7,13 +7,16 @@ use std::io::{Error, ErrorKind, Read, Write};
 
 use crate::lookup_table::util;
 
+/// A naive lookup table implementation using a hash map.
 #[derive(Serialize, Deserialize, Debug)]
 pub struct LutNaive {
     table: HashMap<usize, usize>,
 }
 
 impl LutNaive {
+    /// Initializes the `LutNaive` with optional initial capacity.
     #[inline]
+    #[must_use]
     pub fn init(start_capacity: Option<usize>) -> Self {
         let size = start_capacity.unwrap_or(0);
         Self {
@@ -21,16 +24,20 @@ impl LutNaive {
         }
     }
 
+    /// Inserts a key-value pair into the `LutNaive`.
     #[inline]
     pub fn put(&mut self, key: usize, value: usize) {
         self.table.insert(key, value);
     }
 
+    /// Retrieves a reference to the value associated with the key.
     #[inline]
+    #[must_use]
     pub fn get(&self, key: &usize) -> Option<&usize> {
         self.table.get(key)
     }
 
+    /// Serializes the `LutNaive` to a file in JSON or CBOR format.
     #[inline]
     pub fn serialize(&self, path: &str) -> std::io::Result<()> {
         let serialized_data = match util::get_filetype_from_path(path).as_str() {
@@ -43,6 +50,7 @@ impl LutNaive {
         Ok(())
     }
 
+    /// Deserializes a `LutNaive` from a file in JSON or CBOR format.
     #[inline]
     pub fn deserialize(&self, path: &str) -> std::io::Result<Self> {
         let mut file = File::open(path)?;
@@ -56,8 +64,9 @@ impl LutNaive {
         Ok(deserialized)
     }
 
-    // Returns number of bytes or 0 when table is empty
+    /// Estimates the size of the `LutNaive` in JSON format.
     #[inline]
+    #[must_use]
     pub fn estimate_json_size(&self) -> usize {
         if !self.table.is_empty() {
             return serde_json::to_vec(&self).expect("Failed to serialize to JSON.").len();
@@ -67,8 +76,9 @@ impl LutNaive {
         0
     }
 
-    // Returns number of bytes or 0 when table is empty
+    /// Estimates the size of the `LutNaive` in CBOR format.
     #[inline]
+    #[must_use]
     pub fn estimate_cbor_size(&self) -> usize {
         if !self.table.is_empty() {
             return serde_cbor::to_vec(&self).expect("Failed to serialize to JSON.").len();
@@ -78,6 +88,7 @@ impl LutNaive {
         0
     }
 
+    /// Prints an overview of the `LutNaive`, including size estimates and statistics.
     #[inline]
     pub fn overview(&self) {
         if !self.table.is_empty() {

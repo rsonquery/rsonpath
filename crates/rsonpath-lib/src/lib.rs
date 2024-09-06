@@ -145,6 +145,7 @@ mod depth;
 pub mod engine;
 pub mod error;
 pub mod input;
+/// Crate for the lookup-tables
 pub mod lookup_table;
 pub mod result;
 pub(crate) mod string_pattern;

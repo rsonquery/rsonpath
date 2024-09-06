@@ -4,14 +4,21 @@ use std::{error::Error, fs, io::Write};
 
 use crate::lookup_table::{lut_builder, util};
 
+/// Runs performance tests on directory of JSON files and saves the results to a CSV file.
+///
+/// # Arguments
+/// * `json_path` - Path to the JSON file or directory containing JSON files.
+/// * `output_path` - Directory path to save the output files.
+/// * `csv_path` - Path to the CSV file where the results will be saved.
+///
+/// # Returns
+/// * `Result<(), Box<dyn Error>>` - Returns `Ok` if successful, or an error if something goes wrong.
 #[inline]
-pub fn performance_test(json_path: &str, output_path: &str, csv_path: &str) -> Result<(), Box<dyn Error>> {
-    let metadata = fs::metadata(json_path)?;
-    if metadata.is_file() {
-        println!("Saving stats to {}", csv_path);
-        measure_time_and_size(json_path, output_path, csv_path)?;
-    } else if metadata.is_dir() {
-        for entry in fs::read_dir(json_path)? {
+pub fn performance_test(json_folder: &str, output_path: &str, csv_path: &str) -> Result<(), Box<dyn Error>> {
+    let metadata = fs::metadata(json_folder)?;
+
+    if metadata.is_dir() {
+        for entry in fs::read_dir(json_folder)? {
             let entry = entry?;
             let path = entry.path();
 
@@ -28,6 +35,15 @@ pub fn performance_test(json_path: &str, output_path: &str, csv_path: &str) -> R
     Ok(())
 }
 
+/// Measures and records time and size metrics for building and serializing a lookup table from a JSON file.
+///
+/// # Arguments
+/// * `json_path` - Path to the input JSON file.
+/// * `output_path` - Directory path to save the output files.
+/// * `csv_path` - Path to the CSV file where the results will be recorded.
+///
+/// # Returns
+/// * `Result<(), Box<dyn Error>>` - Returns `Ok` if successful, or an error if something goes wrong.
 fn measure_time_and_size(json_path: &str, output_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Error>> {
     // Open the input JSON file
     let file = std::fs::File::open(json_path)?;
@@ -95,6 +111,13 @@ fn measure_time_and_size(json_path: &str, output_path: &str, csv_path: &str) -> 
     Ok(())
 }
 
+/// Executes a Python script to process the CSV file and generate statistics.
+///
+/// # Arguments
+/// * `csv_path` - Path to the CSV file that will be processed by the Python script.
+///
+/// # Returns
+/// * `io::Result<()>` - Returns `Ok` if successful, or an I/O error if something goes wrong.
 fn run_python_statistics_builder(csv_path: &str) -> io::Result<()> {
     let output = Command::new("python")
         .arg("crates/rsonpath-lib/src/lookup_table/python_statistic/main.py")

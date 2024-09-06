@@ -1,11 +1,11 @@
 use std::{error::Error, fs, path::Path};
 
-use rsonpath::lookup_table::{lut_perfect_hashing, lut_performance, util};
+use rsonpath::lookup_table::{lut_performance, util};
 
 /// Main function that processes command-line arguments, validates paths,
 /// and runs performance tests.
 fn main() -> Result<(), Box<dyn Error>> {
-    calc_max_digits();
+    // calc_max_digits();
 
     let args: Vec<String> = std::env::args().collect();
 
@@ -22,42 +22,28 @@ fn main() -> Result<(), Box<dyn Error>> {
         print_bad_input_error_msg();
     }
 
-    let json_path = &args[1];
+    let json_folder = &args[1];
     let output_folder = &args[2];
     let csv_folder = &args[3];
 
-    // Check if json_path is an existing folder or an existing .json file
-    if !fs::metadata(json_path)?.is_dir() && (!json_path.ends_with(".json") || !fs::metadata(json_path)?.is_file()) {
-        eprintln!("Error: The provided json_path is not a valid .json file or folder.");
-        std::process::exit(1);
-    }
-
-    // Check if output_folder is an existing folder path
-    if !fs::metadata(output_folder)?.is_dir() {
-        eprintln!("Error: The provided output_folder is not a valid folder path.");
-        std::process::exit(1);
-    }
-
-    // Check if csv_folder is an existing folder path
-    if !fs::metadata(csv_folder)?.is_dir() {
-        eprintln!("Error: The provided csv_folder is not a valid folder path.");
-        std::process::exit(1);
-    }
+    check_if_folder_exists(json_folder);
+    check_if_folder_exists(output_folder);
+    check_if_folder_exists(csv_folder);
 
     // Check if csv_path already exists and if it does rename it with a unique number
-    let mut csv_path = format!("{}/{}_stats.csv", csv_folder, util::get_filename_from_path(json_path));
+    let mut csv_path = format!("{}/{}_stats.csv", csv_folder, util::get_filename_from_path(json_folder));
     let mut counter = 1;
     while Path::new(&csv_path).exists() {
         csv_path = format!(
             "{}/{}_stats({}).csv",
             csv_folder,
-            util::get_filename_from_path(json_path),
+            util::get_filename_from_path(json_folder),
             counter
         );
         counter += 1;
     }
 
-    lut_performance::performance_test(json_path, output_folder, &csv_path)?;
+    lut_performance::performance_test(json_folder, output_folder, &csv_path)?;
 
     // lut_perfect_hashing::demo_perfect_hashing();
     // lut_perfect_hashing::test_perfect_hashing();
@@ -98,7 +84,18 @@ fn print_bad_input_error_msg() {
     std::process::exit(1);
 }
 
+fn check_if_folder_exists(path: &str) {
+    if fs::metadata(path).is_err() {
+        eprintln!("Error: The provided folder '{}' does not exist.", path);
+        std::process::exit(1);
+    } else if !Path::new(path).is_dir() {
+        eprintln!("Error: The provided folder '{}' is not a directory.", path);
+        std::process::exit(1);
+    }
+}
+
 // Assume every single character is a '{' character. This is of course an upper bound calculation then.
+#[allow(dead_code)]
 fn calc_max_digits() {
     // We iterate from 1 to 64 bits
     for bit in 1..=64 {

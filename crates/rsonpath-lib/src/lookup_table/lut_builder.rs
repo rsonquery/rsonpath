@@ -14,6 +14,14 @@ use crate::{
     FallibleIterator,
 };
 
+/// Processes a file to generate a `LutNaive` lookup table using SIMD classification.
+///
+/// # Arguments
+/// * `file` - A reference to the file to be processed.
+///
+/// # Returns
+/// * `Result<lut_naive::LutNaive, Box<dyn Error>>` - Returns the generated `LutNaive` lookup table if successful, or an
+/// error if something goes wrong.
 #[inline]
 pub fn run(file: &File) -> Result<lut_naive::LutNaive, Box<dyn Error>> {
     // SAFETY: We keep the file open throughout the entire duration.
@@ -33,6 +41,15 @@ pub fn run(file: &File) -> Result<lut_naive::LutNaive, Box<dyn Error>> {
     .map_err(|e| Box::new(e) as Box<dyn Error>)
 }
 
+/// Implements the logic for generating a `LutNaive` lookup table from input data using SIMD.
+///
+/// # Arguments
+/// * `input` - A reference to the input data.
+/// * `simd` - SIMD configuration used for classification.
+///
+/// # Returns
+/// * `Result<lut_naive::LutNaive, error::InputError>` - Returns the generated `LutNaive` lookup table if successful, or
+/// an input error if something goes wrong.
 #[inline(always)]
 fn run_impl<I, V>(input: &I, simd: V) -> Result<lut_naive::LutNaive, error::InputError>
 where
