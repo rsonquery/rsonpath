@@ -13,21 +13,18 @@ use crate::{
         structural::{BracketType, Structural, StructuralIterator},
     },
     input::{self, error, Input},
-    lookup_table::lut_naive,
     result::empty::EmptyRecorder,
     FallibleIterator,
 };
 
 use crate::lookup_table::util;
 
-/// A naive lookup table implementation using a hash map.
 #[derive(Serialize, Deserialize, Debug)]
-pub struct LutNaive {
+pub struct LutDistance {
     table: HashMap<usize, usize>,
 }
 
-impl LutNaive {
-    /// Initializes the `LutNaive` with optional initial capacity.
+impl LutDistance {
     #[inline]
     #[must_use]
     pub fn init(start_capacity: Option<usize>) -> Self {
@@ -37,20 +34,17 @@ impl LutNaive {
         }
     }
 
-    /// Inserts a key-value pair into the `LutNaive`.
     #[inline]
     pub fn put(&mut self, key: usize, value: usize) {
         self.table.insert(key, value);
     }
 
-    /// Retrieves a reference to the value associated with the key and adds the key to the value.
     #[inline]
     #[must_use]
     pub fn get(&self, key: &usize) -> Option<usize> {
         self.table.get(key).map(|&value| value + key)
     }
 
-    /// Serializes the `LutNaive` to a file in JSON or CBOR format.
     #[inline]
     pub fn serialize(&self, path: &str) -> std::io::Result<()> {
         let serialized_data = match util::get_filetype_from_path(path).as_str() {
@@ -68,7 +62,6 @@ impl LutNaive {
         Ok(())
     }
 
-    /// Deserializes a `LutNaive` from a file in JSON or CBOR format.
     #[inline]
     pub fn deserialize(&self, path: &str) -> std::io::Result<Self> {
         let mut file = File::open(path)?;
@@ -82,7 +75,6 @@ impl LutNaive {
         Ok(deserialized)
     }
 
-    /// Estimates the size of the `LutNaive` in JSON format.
     #[inline]
     #[must_use]
     pub fn estimate_json_size(&self) -> usize {
@@ -145,16 +137,8 @@ impl LutNaive {
     }
 }
 
-/// Processes a JSON file to generate a `LutNaive` lookup table using SIMD classification.
-///
-/// # Arguments
-/// * `file` - A reference to the JSON file to be processed.
-///
-/// # Returns
-/// * `Result<lut_naive::LutNaive, Box<dyn Error>>` - Returns the generated `LutNaive` lookup table if successful, or an
-/// error if something goes wrong.
 #[inline]
-pub fn build(file: &File) -> Result<lut_naive::LutNaive, Box<dyn std::error::Error>> {
+pub fn build(file: &File) -> Result<LutDistance, Box<dyn std::error::Error>> {
     // SAFETY: We keep the file open throughout the entire duration.
     let input = unsafe { input::MmapInput::map_file(file)? };
     let simd_c = classification::simd::configure();
@@ -163,7 +147,7 @@ pub fn build(file: &File) -> Result<lut_naive::LutNaive, Box<dyn std::error::Err
         classification::simd::dispatch_simd!(simd; input, simd => fn<I, V>(
             input: I,
             simd: V,
-        ) -> Result<lut_naive::LutNaive, error::InputError> where
+        ) -> Result<LutDistance, error::InputError> where
         I: Input,
         V: Simd,{
                 fill::<I, V>(&input, simd)
@@ -172,17 +156,8 @@ pub fn build(file: &File) -> Result<lut_naive::LutNaive, Box<dyn std::error::Err
     .map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
 }
 
-/// Implements the logic for generating a `LutNaive` lookup table from input data using SIMD.
-///
-/// # Arguments
-/// * `input` - A reference to the input data.
-/// * `simd` - SIMD configuration used for classification.
-///
-/// # Returns
-/// * `Result<lut_naive::LutNaive, error::InputError>` - Returns the generated `LutNaive` lookup table if successful, or
-/// an input error if something goes wrong.
 #[inline(always)]
-fn fill<I, V>(input: &I, simd: V) -> Result<lut_naive::LutNaive, error::InputError>
+fn fill<I, V>(input: &I, simd: V) -> Result<LutDistance, error::InputError>
 where
     I: Input,
     V: Simd,
@@ -195,7 +170,7 @@ where
     // Initialize two empty stacks: one for "[" and one for "{"
     let mut square_bracket_stack: VecDeque<usize> = VecDeque::new();
     let mut curly_bracket_stack: VecDeque<usize> = VecDeque::new();
-    let mut lut_naive = lut_naive::LutNaive::init(Some(10));
+    let mut lut_distance = LutDistance::init(Some(10));
 
     while let Some(event) = structural_classifier.next()? {
         match event {
@@ -207,17 +182,17 @@ where
                 BracketType::Square => {
                     let idx_open = square_bracket_stack.pop_back().expect("Unmatched closing ]");
                     // println!("[ at index {idx_open} AND ] at index {idx_close}");
-                    lut_naive.put(idx_open, idx_close - idx_open);
+                    lut_distance.put(idx_open, idx_close - idx_open);
                 }
                 BracketType::Curly => {
                     let idx_open = curly_bracket_stack.pop_back().expect("Unmatched closing }");
                     // println!("{{ at index {idx_open} AND }} at index {idx_close}");
-                    lut_naive.put(idx_open, idx_close - idx_open);
+                    lut_distance.put(idx_open, idx_close - idx_open);
                 }
             },
             Structural::Colon(_) | Structural::Comma(_) => unreachable!(),
         }
     }
 
-    Ok(lut_naive)
+    Ok(lut_distance)
 }

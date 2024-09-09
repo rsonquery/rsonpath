@@ -81,6 +81,8 @@ fn measure_time_and_size(json_path: &str, output_path: &str, csv_path: &str) -> 
     if let Ok(lut_naive) = lut_naive::build(&file) {
         let build_duration = start_build.elapsed();
 
+        lut_naive.overview();
+
         // Measure JSON serialization & deserialization duration
         let lut_json_path = &format!("{}/{}.json", output_path, filename);
 
