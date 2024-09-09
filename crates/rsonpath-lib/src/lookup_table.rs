@@ -1,6 +1,4 @@
-/// Module for building lookup tables with various strategies.
-pub mod lut_builder;
-
+pub mod lut_distance;
 /// Module for a naive approach to lookup tables.
 pub mod lut_naive;
 

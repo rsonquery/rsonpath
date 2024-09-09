@@ -30,23 +30,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     check_if_folder_exists(output_folder);
     check_if_folder_exists(csv_folder);
 
-    // Check if csv_path already exists and if it does rename it with a unique number
-    let mut csv_path = format!("{}/{}_stats.csv", csv_folder, util::get_filename_from_path(json_folder));
-    let mut counter = 1;
-    while Path::new(&csv_path).exists() {
-        csv_path = format!(
-            "{}/{}_stats({}).csv",
-            csv_folder,
-            util::get_filename_from_path(json_folder),
-            counter
-        );
-        counter += 1;
-    }
-
-    lut_performance::performance_test(json_folder, output_folder, &csv_path)?;
-
-    // lut_perfect_hashing::demo_perfect_hashing();
-    // lut_perfect_hashing::test_perfect_hashing();
+    lut_performance::performance_test(json_folder, output_folder, &csv_folder)?;
 
     Ok(())
 }

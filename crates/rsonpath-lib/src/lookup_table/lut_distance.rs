@@ -43,11 +43,11 @@ impl LutNaive {
         self.table.insert(key, value);
     }
 
-    /// Retrieves a reference to the value associated with the key.
+    /// Retrieves a reference to the value associated with the key and adds the key to the value.
     #[inline]
     #[must_use]
-    pub fn get(&self, key: &usize) -> Option<&usize> {
-        self.table.get(key)
+    pub fn get(&self, key: &usize) -> Option<usize> {
+        self.table.get(key).map(|&value| value + key)
     }
 
     /// Serializes the `LutNaive` to a file in JSON or CBOR format.
@@ -207,12 +207,12 @@ where
                 BracketType::Square => {
                     let idx_open = square_bracket_stack.pop_back().expect("Unmatched closing ]");
                     // println!("[ at index {idx_open} AND ] at index {idx_close}");
-                    lut_naive.put(idx_open, idx_close);
+                    lut_naive.put(idx_open, idx_close - idx_open);
                 }
                 BracketType::Curly => {
                     let idx_open = curly_bracket_stack.pop_back().expect("Unmatched closing }");
                     // println!("{{ at index {idx_open} AND }} at index {idx_close}");
-                    lut_naive.put(idx_open, idx_close);
+                    lut_naive.put(idx_open, idx_close - idx_open);
                 }
             },
             Structural::Colon(_) | Structural::Comma(_) => unreachable!(),

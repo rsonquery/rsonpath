@@ -4,3 +4,4 @@
 # Added by Ricardo
 /.a_lut_tests/*
 Cargo.lock
+**/__pycache__/
