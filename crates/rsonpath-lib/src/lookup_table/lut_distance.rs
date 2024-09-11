@@ -86,7 +86,6 @@ impl LutDistance {
         0
     }
 
-    /// Estimates the size of the `LutNaive` in CBOR format.
     #[inline]
     #[must_use]
     pub fn estimate_cbor_size(&self) -> usize {
@@ -98,7 +97,6 @@ impl LutDistance {
         0
     }
 
-    /// Prints an overview of the `LutNaive`, including size estimates and statistics.
     #[inline]
     pub fn overview(&self) {
         if !self.table.is_empty() {

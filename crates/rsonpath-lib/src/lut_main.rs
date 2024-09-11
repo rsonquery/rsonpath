@@ -1,12 +1,8 @@
 use std::{error::Error, fs, path::Path};
 
-use rsonpath::lookup_table::{lut_performance, util};
+use rsonpath::lookup_table::lut_performance;
 
-/// Main function that processes command-line arguments, validates paths,
-/// and runs performance tests.
 fn main() -> Result<(), Box<dyn Error>> {
-    // calc_max_digits();
-
     let args: Vec<String> = std::env::args().collect();
 
     if args.len() == 2 {
@@ -84,7 +80,7 @@ fn calc_max_digits() {
     // We iterate from 1 to 64 bits
     for bit in 1..=64 {
         // Calculate the maximum JSON size based on the number of bits
-        let max_json_size = (1_u64 << bit) * 8;
+        let max_json_size = 1_u64 << bit;
 
         // Determine the size in appropriate units
         let size_in_kb = max_json_size as f64 / 1024.0;

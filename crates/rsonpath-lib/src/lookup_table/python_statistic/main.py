@@ -10,11 +10,11 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         # Load the CSV file
         file_path = sys.argv[1]
-        df_stats = pd.read_csv(file_path)
         directory, file_name = os.path.split(file_path)
         file_base_name = os.path.splitext(file_name)[0]
 
         # Plot naive stats
+        df_stats = pd.read_csv(file_path)
         stats.plot_time(df_stats, os.path.join(directory, f"{file_base_name}_stats_time.png"))
         stats.plot_size(df_stats, os.path.join(directory, f"{file_base_name}_stats_size.png"))
         stats.plot_speed(df_stats, os.path.join(directory, f"{file_base_name}_stats_speed.png"))

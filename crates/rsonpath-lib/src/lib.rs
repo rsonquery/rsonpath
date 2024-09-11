@@ -126,7 +126,8 @@
 // Documentation lints, enabled only on --release.
 #![cfg_attr(
     not(debug_assertions),
-    warn(missing_docs, clippy::missing_errors_doc, clippy::missing_panics_doc,)
+    // warn(missing_docs, clippy::missing_errors_doc, clippy::missing_panics_doc,)
+    warn(clippy::missing_errors_doc, clippy::missing_panics_doc,) // Changed by Ricardo
 )]
 #![cfg_attr(not(debug_assertions), warn(rustdoc::missing_crate_level_docs))]
 // Panic-free lints (disabled for tests).
@@ -145,7 +146,6 @@ mod depth;
 pub mod engine;
 pub mod error;
 pub mod input;
-/// Crate for the lookup-tables
 pub mod lookup_table;
 pub mod result;
 pub(crate) mod string_pattern;

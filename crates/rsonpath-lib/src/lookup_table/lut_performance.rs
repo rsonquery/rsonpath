@@ -58,15 +58,6 @@ fn check_counter(json_folder: &str, csv_folder: &str) -> String {
     }
 }
 
-/// Measures and records time and size metrics for building and serializing a lookup table from a JSON file.
-///
-/// # Arguments
-/// * `json_path` - Path to the input JSON file.
-/// * `output_path` - Directory path to save the output files.
-/// * `csv_path` - Path to the CSV file where the results will be recorded.
-///
-/// # Returns
-/// * `Result<(), Box<dyn Error>>` - Returns `Ok` if successful, or an error if something goes wrong.
 fn measure_time_and_size(json_path: &str, output_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Error>> {
     // Open the input JSON file
     let file = std::fs::File::open(json_path)?;
@@ -80,8 +71,6 @@ fn measure_time_and_size(json_path: &str, output_path: &str, csv_path: &str) -> 
     let start_build = std::time::Instant::now();
     if let Ok(lut_naive) = lut_naive::build(&file) {
         let build_duration = start_build.elapsed();
-
-        lut_naive.overview();
 
         // Measure JSON serialization & deserialization duration
         let lut_json_path = &format!("{}/{}.json", output_path, filename);
