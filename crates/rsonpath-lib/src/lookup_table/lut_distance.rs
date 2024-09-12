@@ -17,7 +17,7 @@ use crate::{
     FallibleIterator,
 };
 
-use crate::lookup_table::util;
+use crate::lookup_table::util_path;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct LutDistance {
@@ -47,7 +47,7 @@ impl LutDistance {
 
     #[inline]
     pub fn serialize(&self, path: &str) -> std::io::Result<()> {
-        let serialized_data = match util::get_filetype_from_path(path).as_str() {
+        let serialized_data = match util_path::get_filetype_from_path(path).as_str() {
             "json" => serde_json::to_vec(&self).expect("Serialize failed."),
             "cbor" => serde_cbor::to_vec(&self).expect("Serialize failed."),
             _ => {
@@ -67,7 +67,7 @@ impl LutDistance {
         let mut file = File::open(path)?;
         let mut contents = Vec::new();
         file.read_to_end(&mut contents)?;
-        let deserialized: Self = match util::get_filetype_from_path(path).as_str() {
+        let deserialized: Self = match util_path::get_filetype_from_path(path).as_str() {
             "json" => serde_json::from_slice(&contents).expect("Deserialize: Data has no JSON format."),
             "cbor" => serde_cbor::from_slice(&contents).expect("Deserialize: Data has no CBOR format."),
             _ => return Err(Error::new(ErrorKind::InvalidInput, "Deserialize: Unsupported format")),

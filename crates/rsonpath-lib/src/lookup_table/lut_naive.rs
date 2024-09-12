@@ -13,12 +13,11 @@ use crate::{
         structural::{BracketType, Structural, StructuralIterator},
     },
     input::{self, error, Input},
-    lookup_table::lut_naive,
     result::empty::EmptyRecorder,
     FallibleIterator,
 };
 
-use crate::lookup_table::util;
+use crate::lookup_table::util_path;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct LutNaive {
@@ -26,6 +25,25 @@ pub struct LutNaive {
 }
 
 impl LutNaive {
+    #[inline]
+    pub fn build_with_json(file: &File) -> Result<Self, Box<dyn std::error::Error>> {
+        // SAFETY: We keep the file open throughout the entire duration.
+        let input = unsafe { input::MmapInput::map_file(file)? };
+        let simd_c = classification::simd::configure();
+
+        classification::simd::config_simd!(simd_c => |simd| {
+            classification::simd::dispatch_simd!(simd; input, simd => fn<I, V>(
+                input: I,
+                simd: V,
+            ) -> Result<LutNaive, error::InputError> where
+            I: Input,
+            V: Simd,{
+                    LutNaive::find_pairs_and_build_lut::<I, V>(&input, simd)
+                })
+        })
+        .map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
+    }
+
     #[inline]
     #[must_use]
     pub fn init(start_capacity: Option<usize>) -> Self {
@@ -46,13 +64,15 @@ impl LutNaive {
         self.table.get(key).copied()
     }
 
+    #[inline]
+    #[must_use]
     pub fn get_keys(&self) -> Vec<usize> {
-        self.table.keys().cloned().collect()
+        self.table.keys().copied().collect()
     }
 
     #[inline]
     pub fn serialize(&self, path: &str) -> std::io::Result<()> {
-        let serialized_data = match util::get_filetype_from_path(path).as_str() {
+        let serialized_data = match util_path::get_filetype_from_path(path).as_str() {
             "json" => serde_json::to_vec(&self).expect("Serialize failed."),
             "cbor" => serde_cbor::to_vec(&self).expect("Serialize failed."),
             _ => {
@@ -68,11 +88,11 @@ impl LutNaive {
     }
 
     #[inline]
-    pub fn deserialize(&self, path: &str) -> std::io::Result<Self> {
+    pub fn deserialize(path: &str) -> std::io::Result<Self> {
         let mut file = File::open(path)?;
         let mut contents = Vec::new();
         file.read_to_end(&mut contents)?;
-        let deserialized: Self = match util::get_filetype_from_path(path).as_str() {
+        let deserialized: Self = match util_path::get_filetype_from_path(path).as_str() {
             "json" => serde_json::from_slice(&contents).expect("Deserialize: Data has no JSON format."),
             "cbor" => serde_cbor::from_slice(&contents).expect("Deserialize: Data has no CBOR format."),
             _ => return Err(Error::new(ErrorKind::InvalidInput, "Deserialize: Unsupported format")),
@@ -138,64 +158,45 @@ impl LutNaive {
             println!("The table is empty.");
         }
     }
-}
 
-#[inline]
-pub fn build(file: &File) -> Result<lut_naive::LutNaive, Box<dyn std::error::Error>> {
-    // SAFETY: We keep the file open throughout the entire duration.
-    let input = unsafe { input::MmapInput::map_file(file)? };
-    let simd_c = classification::simd::configure();
-
-    classification::simd::config_simd!(simd_c => |simd| {
-        classification::simd::dispatch_simd!(simd; input, simd => fn<I, V>(
-            input: I,
-            simd: V,
-        ) -> Result<lut_naive::LutNaive, error::InputError> where
+    #[inline(always)]
+    fn find_pairs_and_build_lut<I, V>(input: &I, simd: V) -> Result<Self, error::InputError>
+    where
         I: Input,
-        V: Simd,{
-                fill::<I, V>(&input, simd)
-            })
-    })
-    .map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
-}
+        V: Simd,
+    {
+        let iter = input.iter_blocks::<_, 64>(&EmptyRecorder);
+        let quote_classifier = simd.classify_quoted_sequences(iter);
+        let mut structural_classifier = simd.classify_structural_characters(quote_classifier);
+        structural_classifier.turn_colons_and_commas_off();
 
-#[inline(always)]
-fn fill<I, V>(input: &I, simd: V) -> Result<lut_naive::LutNaive, error::InputError>
-where
-    I: Input,
-    V: Simd,
-{
-    let iter = input.iter_blocks::<_, 64>(&EmptyRecorder);
-    let quote_classifier = simd.classify_quoted_sequences(iter);
-    let mut structural_classifier = simd.classify_structural_characters(quote_classifier);
-    structural_classifier.turn_colons_and_commas_off();
+        // Initialize two empty stacks: one for "[" and one for "{"
+        let mut square_bracket_stack: VecDeque<usize> = VecDeque::new();
+        let mut curly_bracket_stack: VecDeque<usize> = VecDeque::new();
+        let mut lut_naive = Self::init(Some(10));
 
-    // Initialize two empty stacks: one for "[" and one for "{"
-    let mut square_bracket_stack: VecDeque<usize> = VecDeque::new();
-    let mut curly_bracket_stack: VecDeque<usize> = VecDeque::new();
-    let mut lut_naive = lut_naive::LutNaive::init(Some(10));
-
-    while let Some(event) = structural_classifier.next()? {
-        match event {
-            Structural::Opening(b, idx_open) => match b {
-                BracketType::Square => square_bracket_stack.push_back(idx_open),
-                BracketType::Curly => curly_bracket_stack.push_back(idx_open),
-            },
-            Structural::Closing(b, idx_close) => match b {
-                BracketType::Square => {
-                    let idx_open = square_bracket_stack.pop_back().expect("Unmatched closing ]");
-                    // println!("[ at index {idx_open} AND ] at index {idx_close}");
-                    lut_naive.put(idx_open, idx_close);
-                }
-                BracketType::Curly => {
-                    let idx_open = curly_bracket_stack.pop_back().expect("Unmatched closing }");
-                    // println!("{{ at index {idx_open} AND }} at index {idx_close}");
-                    lut_naive.put(idx_open, idx_close);
-                }
-            },
-            Structural::Colon(_) | Structural::Comma(_) => unreachable!(),
+        while let Some(event) = structural_classifier.next()? {
+            match event {
+                Structural::Opening(b, idx_open) => match b {
+                    BracketType::Square => square_bracket_stack.push_back(idx_open),
+                    BracketType::Curly => curly_bracket_stack.push_back(idx_open),
+                },
+                Structural::Closing(b, idx_close) => match b {
+                    BracketType::Square => {
+                        let idx_open = square_bracket_stack.pop_back().expect("Unmatched closing ]");
+                        // println!("[ at index {idx_open} AND ] at index {idx_close}");
+                        lut_naive.put(idx_open, idx_close);
+                    }
+                    BracketType::Curly => {
+                        let idx_open = curly_bracket_stack.pop_back().expect("Unmatched closing }");
+                        // println!("{{ at index {idx_open} AND }} at index {idx_close}");
+                        lut_naive.put(idx_open, idx_close);
+                    }
+                },
+                Structural::Colon(_) | Structural::Comma(_) => unreachable!(),
+            }
         }
-    }
 
-    Ok(lut_naive)
+        Ok(lut_naive)
+    }
 }

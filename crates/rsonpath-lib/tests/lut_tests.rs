@@ -1,10 +1,6 @@
 use std::fs;
 
-use rsonpath::lookup_table::{
-    lut_distance::{self},
-    lut_naive::{self},
-    lut_perfect_naive,
-};
+use rsonpath::lookup_table::{lut_naive::LutNaive, lut_perfect_naive::LutPerfectNaive, util_path};
 
 #[test]
 fn naive_john() {
@@ -37,7 +33,7 @@ fn test_lut_naive(json_path: &str, keys: Vec<usize>, expected_values: Vec<usize>
     assert_eq!(keys.len(), expected_values.len());
     let file = fs::File::open(json_path).expect("Failed to open file");
 
-    let lut_naive = lut_naive::build(&file).expect("Failed to build lookup table");
+    let lut_naive = LutNaive::build_with_json(&file).expect("Failed to build lookup table");
 
     for (key, &expected_value) in keys.iter().zip(expected_values.iter()) {
         let actual_value = lut_naive.get(&key).expect("Key not found in lut_naive");
@@ -69,12 +65,23 @@ fn perfect_naive_twitter_short_80mb() {
 fn test_lut_perfect_naive(json_path: &str) {
     let file = fs::File::open(json_path).expect(&format!("Failed to open file {}", json_path));
 
-    let lut_naive = lut_naive::build(&file).expect("Failed to build lut_naive");
-    let lut_perfect_naive = lut_perfect_naive::build(&file).expect("Failed to build lut_perfect_naive");
+    let lut_naive = LutNaive::build_with_json(&file).expect("Failed to build lut_naive");
+    let lut_perfect_naive = LutPerfectNaive::build_with_json(&file).expect("Failed to build lut_perfect_naive");
+
+    let path = format!(
+        "tests/json/serialize/{}_lut_perfect_naive_.cbor",
+        util_path::get_filename_from_path(json_path)
+    );
+    let _ = lut_perfect_naive.serialize(&path);
+    let lut_perfect_naive_deserialized =
+        LutPerfectNaive::deserialize(&path).expect(&format!("Could not find {}", path));
 
     let keys: Vec<usize> = lut_naive.get_keys();
 
     for key in keys {
-        assert_eq!(lut_naive.get(&key), lut_perfect_naive.get(&key));
+        let value = lut_naive.get(&key);
+
+        assert_eq!(lut_perfect_naive.get(&key), value);
+        assert_eq!(lut_perfect_naive_deserialized.get(&key), value);
     }
 }

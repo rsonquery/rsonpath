@@ -1,6 +1,6 @@
 use std::{error::Error, fs, path::Path};
 
-use rsonpath::lookup_table::lut_performance;
+use rsonpath::lookup_table::performance;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = std::env::args().collect();
@@ -26,7 +26,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     check_if_folder_exists(output_folder);
     check_if_folder_exists(csv_folder);
 
-    lut_performance::performance_test(json_folder, output_folder, &csv_folder)?;
+    performance::performance_test(json_folder, output_folder, csv_folder)?;
 
     Ok(())
 }
