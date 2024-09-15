@@ -739,8 +739,8 @@ fn int(q: &str) -> IResult<&str, &str, InternalParseError> {
     Ok((rest, int))
 }
 
-fn string<'a>(mode: StringParseMode) -> impl FnMut(&'a str) -> IResult<&'a str, JsonString, InternalParseError> {
-    move |q: &'a str| {
+fn string(mode: StringParseMode) -> impl FnMut(&str) -> IResult<&str, JsonString, InternalParseError> {
+    move |q: &str| {
         let mut builder = JsonStringBuilder::new();
         let mut syntax_errors = vec![];
         let mut stream = q.char_indices().peekable();
