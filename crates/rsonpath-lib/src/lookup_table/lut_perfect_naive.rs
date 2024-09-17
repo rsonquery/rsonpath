@@ -16,13 +16,16 @@ use crate::{
 
 #[derive(Clone, Serialize, Deserialize)]
 pub enum Entry {
+    #[serde(rename = "n")]
     Number(usize),
+
+    #[serde(rename = "b")]
     Bucket(Bucket),
 }
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct LutPerfectNaive {
-    buckets: Vec<Entry>, // Removed Option<Entry>
+    buckets: Vec<Entry>,
     size: usize,
 }
 
@@ -53,9 +56,9 @@ impl LutPerfectNaive {
         let size = keys.len() * 2;
         let mut helper_table = vec![vec![]; size];
 
-        for (key, value) in keys.iter().zip(values.iter()) {
+        for (key, value) in keys.into_iter().zip(values.into_iter()) {
             let hash = key % size;
-            helper_table[hash].push((*key, *value));
+            helper_table[hash].push((key, value));
         }
 
         // Initialize with a default value, e.g., Entry::Number(0)
@@ -69,7 +72,7 @@ impl LutPerfectNaive {
                 } else {
                     let keys: Vec<usize> = sub_table.iter().map(|(k, _)| *k).collect();
                     let values: Vec<usize> = sub_table.iter().map(|(_, v)| *v).collect();
-                    buckets[i] = Entry::Bucket(Bucket::new(keys, values));
+                    buckets[i] = Entry::Bucket(Bucket::new(&keys, &values));
                 }
             }
         }
@@ -170,7 +173,7 @@ pub struct Bucket {
 impl Bucket {
     #[inline]
     #[must_use]
-    pub fn new(keys: Vec<usize>, values: Vec<usize>) -> Self {
+    pub fn new(keys: &Vec<usize>, values: &Vec<usize>) -> Self {
         let mut size = keys.len() * 2;
 
         let elements = loop {

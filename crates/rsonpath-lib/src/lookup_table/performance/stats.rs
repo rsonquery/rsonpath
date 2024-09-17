@@ -60,6 +60,8 @@ pub fn measure_stats(json_path: &str, output_path: &str, csv_path: &str) -> Resu
         lut_naive.estimate_json_size(),
     )?;
 
+    run_python_statistics_builder(csv_path);
+
     Ok(())
 }
 

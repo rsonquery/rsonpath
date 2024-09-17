@@ -1,6 +1,6 @@
 use std::{error::Error, fs, path::Path};
 
-use rsonpath::lookup_table::performance;
+use rsonpath::lookup_table::{count_distances, performance};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = std::env::args().collect();
@@ -8,6 +8,15 @@ fn main() -> Result<(), Box<dyn Error>> {
     if args.len() == 2 {
         if args[1] == "setup" {
             create_folder_setup()?;
+            return Ok(());
+        } else {
+            print_bad_input_error_msg();
+        }
+    }
+
+    if args.len() == 3 {
+        if args[1] == "distances" {
+            count_distances::count_distance_for_each_json_in_folder(&args[2]);
             return Ok(());
         } else {
             print_bad_input_error_msg();
@@ -36,6 +45,7 @@ fn create_folder_setup() -> std::io::Result<()> {
     let dirs = [
         ".a_lut_tests",
         ".a_lut_tests/performance",
+        ".a_lut_tests/distances",
         ".a_lut_tests/output",
         ".a_lut_tests/test_data",
     ];
