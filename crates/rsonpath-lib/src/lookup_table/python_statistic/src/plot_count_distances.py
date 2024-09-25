@@ -12,6 +12,7 @@ def plot_binned_frequencies(df: pd.DataFrame, save_path: str) -> None:
     binned_df['frequency'] = binned_df['frequency'].fillna(0)
 
     # Calculate total frequency
+    max_distance = df["distance"].max()
     total_frequency = binned_df['frequency'].sum()
     binned_df['percentage'] = (binned_df['frequency'] / total_frequency) * 100
 
@@ -22,7 +23,7 @@ def plot_binned_frequencies(df: pd.DataFrame, save_path: str) -> None:
     plt.xlabel('Distance (Binned)')
     plt.ylabel('Percentage of Total Frequency')
     plt.title(f'Distance vs Percentage of Total Frequency\n'
-              f'Sum of all Frequencies: {total_frequency}, Max Distance: {df['distance'].max()}')
+              f'Sum of all Frequencies: {total_frequency}, Max Distance: {max_distance}')
     plt.grid(True)
 
     # Add labels over each bar
@@ -34,6 +35,10 @@ def plot_binned_frequencies(df: pd.DataFrame, save_path: str) -> None:
     # Add vertical red line
     index_2_17 = binned_df[binned_df['binned_distance'].astype(str).str.contains('131072')].index[0]
     plt.axvline(x=index_2_17 - 0.5, color='red', linestyle='--', linewidth=2, label='2^17')
+    
+    # Add vertical red line
+    index_2_33 = binned_df[binned_df['binned_distance'].astype(str).str.contains('8589934592')].index[0]
+    plt.axvline(x=index_2_33 - 0.5, color='orange', linestyle='--', linewidth=2, label='2^33')
 
     plt.legend()
 

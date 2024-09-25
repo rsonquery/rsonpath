@@ -1,6 +1,6 @@
 use std::{error::Error, fs, path::Path};
 
-use rsonpath::lookup_table::{count_distances, performance};
+use rsonpath::lookup_table::{count_distances, lut_phf, performance};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = std::env::args().collect();
@@ -8,6 +8,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     if args.len() == 2 {
         if args[1] == "setup" {
             create_folder_setup()?;
+            return Ok(());
+        } else if args[1] == "phf" {
+            lut_phf::build_and_test();
+            lut_phf::build_and_test_large();
             return Ok(());
         } else {
             print_bad_input_error_msg();

@@ -45,9 +45,12 @@ vector-map = "1.0.1"
 # Added by Ricardo
 serde = { version = "1.0.209", features = ["derive"] }
 serde_json = { version = "1.0"}
-serde_cbor = "0.11.2" # Warning: PROJECT IS ARCHIVED
+serde_cbor = "0.11.2" # for saving lookup-tables in the cbor format. Warning: PROJECT IS ARCHIVED
 ph = "0.8.3" # for perfect hashing
 csv = "1.3.0"
+stats_alloc = "0.1.10" # for measuring heap size of runtime datastructures such as the lookup-table
+rand = { version = "0.8", default-features = false, features = ["small_rng"] } # for randomizing the hashfunctions of the lookup-tables
+siphasher = "1.0" # for the phf_crate code
 
 [dev-dependencies]
 itertools = { workspace = true }

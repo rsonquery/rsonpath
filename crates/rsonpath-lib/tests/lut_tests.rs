@@ -23,8 +23,8 @@ fn naive_john_big() {
 #[test]
 fn naive_pokemon() {
     let json_path = "tests/json/pokemon_(6MB).json";
-    let keys = vec![18, 814];
-    let expected_values = vec![11878, 894];
+    let keys = vec![18, 816];
+    let expected_values = vec![11880, 895];
 
     test_lut_naive(json_path, keys, expected_values);
 }
