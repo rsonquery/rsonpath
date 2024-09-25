@@ -6,7 +6,9 @@ use std::{
 
 use stats_alloc::{Region, StatsAlloc, INSTRUMENTED_SYSTEM};
 
-use crate::lookup_table::{lut_distance, lut_naive::LutNaive, lut_perfect_naive::LutPerfectNaive, util_path};
+use crate::lookup_table::{
+    lut_distance, lut_naive::LutNaive, lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF, util_path,
+};
 
 #[global_allocator]
 static GLOBAL: &StatsAlloc<System> = &INSTRUMENTED_SYSTEM;
@@ -21,7 +23,6 @@ pub fn compare_heap_size(json_path: &str, csv_path: &str) -> Result<(), Box<dyn 
     let reg = Region::new(&GLOBAL);
     let lut_naive = LutNaive::build_with_json(&file)?;
     let stats_naive = reg.change();
-    println!("Stats at 1: {:#?}", reg.change());
 
     // lut_distance
     let reg = Region::new(&GLOBAL);
@@ -33,41 +34,45 @@ pub fn compare_heap_size(json_path: &str, csv_path: &str) -> Result<(), Box<dyn 
     let lut_perfect_naive = LutPerfectNaive::build_with_json(&file)?;
     let stats_perfect_naive = reg.change();
 
+    // lut_phf
+    let reg = Region::new(&GLOBAL);
+    let lut_phf = LutPHF::build_with_json(&file)?;
+    let stats_phf = reg.change();
+
     // Open or create the CSV file for appending
     let mut csv_file = std::fs::OpenOptions::new().append(true).create(true).open(csv_path)?;
     if csv_file.metadata()?.len() == 0 {
         writeln!(
             csv_file,
             "{},{},{},{},{},{}",
+            "name",
+            "input_size",
             "naive_allocations",
             "distance_allocations",
             "perfect_naive_allocations",
-            "naive_cbor",
-            "distance_cbor",
-            "perfect_naive_cbor"
+            "phf_allocations"
         )?;
     }
 
     writeln!(
         csv_file,
-        "{},{},{},{},{},{},{}",
+        "{},{},{},{},{},{}",
         filename,
+        file.metadata().expect("Can't open file").len(),
         stats_naive.bytes_allocated.to_string(),
         stats_distance.bytes_allocated.to_string(),
         stats_perfect_naive.bytes_allocated.to_string(),
-        lut_naive.estimate_cbor_size(),
-        lut_distance.estimate_cbor_size(),
-        lut_perfect_naive.estimate_cbor_size(),
+        stats_phf.bytes_allocated.to_string(),
     )?;
 
-    // run_python_statistics_builder(csv_path);
+    run_python_statistics_builder(csv_path);
 
     Ok(())
 }
 
 fn run_python_statistics_builder(csv_path: &str) {
     let output = Command::new("python")
-        .arg("crates/rsonpath-lib/src/lookup_table/python_statistic/compare.py")
+        .arg("crates/rsonpath-lib/src/lookup_table/python_statistic/heap_size.py")
         .arg(csv_path)
         .output()
         .expect(&format!("Failed to open csv_path: {}", csv_path));

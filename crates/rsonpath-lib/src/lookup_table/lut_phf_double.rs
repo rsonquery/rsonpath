@@ -20,43 +20,43 @@ use std::io::{Error, ErrorKind, Read, Write};
 use crate::lookup_table::lut_phf::phf_generator;
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct LutDoubleHash {
+pub struct LutPHFDouble {
     table: HashMap<usize, u16>,
 }
 
 const THRESHOLD_16_BITS: usize = 65536;
 
-impl LutDoubleHash {
-    #[inline]
-    pub fn build_with_json(json_file: &File) -> Result<Self, Box<dyn std::error::Error>> {
-        // SAFETY: We keep the file open throughout the entire duration.
-        let input = unsafe { input::MmapInput::map_file(json_file)? };
-        let simd_c = classification::simd::configure();
+impl LutPHFDouble {
+    // #[inline]
+    // pub fn build_with_json(json_file: &File) -> Result<Self, Box<dyn std::error::Error>> {
+    //     // SAFETY: We keep the file open throughout the entire duration.
+    //     let input = unsafe { input::MmapInput::map_file(json_file)? };
+    //     let simd_c = classification::simd::configure();
 
-        let lut_perfect_naive = classification::simd::config_simd!(simd_c => |simd| {
-            classification::simd::dispatch_simd!(simd; input, simd => fn<I, V>(
-                input: I,
-                simd: V,
-            ) -> Result<LutDoubleHash, error::InputError> where
-            I: Input,
-            V: Simd,{
-                    let (keys_16, values_16, keys_64, values_64) = LutDoubleHash::find_all_pairs::<I, V>(&input, simd)?;
-                    Ok(LutDoubleHash::build_with_keys_and_values(keys_16, values_16, keys_64, values_64))
-                })
-        });
-        lut_perfect_naive.map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
-    }
+    //     let lut_perfect_naive = classification::simd::config_simd!(simd_c => |simd| {
+    //         classification::simd::dispatch_simd!(simd; input, simd => fn<I, V>(
+    //             input: I,
+    //             simd: V,
+    //         ) -> Result<LutDoubleHash, error::InputError> where
+    //         I: Input,
+    //         V: Simd,{
+    //                 let (keys_16, values_16, keys_64, values_64) = LutDoubleHash::find_all_pairs::<I, V>(&input, simd)?;
+    //                 Ok(LutDoubleHash::build_with_keys_and_values(keys_16, values_16, keys_64, values_64))
+    //             })
+    //     });
+    //     lut_perfect_naive.map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
+    // }
 
-    #[inline]
-    #[must_use]
-    pub fn build_with_keys_and_values(
-        keys_16: Vec<usize>,
-        values_16: Vec<u16>,
-        keys_64: Vec<usize>,
-        values_64: Vec<usize>,
-    ) -> Self {
-        // TODO
-    }
+    // #[inline]
+    // #[must_use]
+    // pub fn build_with_keys_and_values(
+    //     keys_16: Vec<usize>,
+    //     values_16: Vec<u16>,
+    //     keys_64: Vec<usize>,
+    //     values_64: Vec<usize>,
+    // ) -> Self {
+    //     // TODO
+    // }
 
     pub fn get() {
         // TODO

@@ -1,6 +1,5 @@
 use std::fmt;
 
-use proptest::char::range;
 use rand::distributions::Standard;
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
