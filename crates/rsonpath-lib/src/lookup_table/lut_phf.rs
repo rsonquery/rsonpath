@@ -1,4 +1,5 @@
 pub mod phf_generator;
+pub mod phf_generator_double_hash;
 pub mod phf_shared;
 
 pub fn build_and_test() {
