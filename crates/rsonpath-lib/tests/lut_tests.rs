@@ -1,6 +1,8 @@
 use std::fs;
 
-use rsonpath::lookup_table::{lut_naive::LutNaive, lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF, util_path};
+use rsonpath::lookup_table::{
+    lut_naive::LutNaive, lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF, lut_phf_double::LutPHFDouble, util_path,
+};
 
 #[test]
 fn naive_john() {
@@ -110,5 +112,32 @@ fn test_lut_phf(json_path: &str) {
     let keys: Vec<usize> = lut_naive.get_keys();
     for key in keys {
         assert_eq!(lut_phf.get(&key), lut_naive.get(&key));
+    }
+}
+
+#[test]
+fn phf_double_john() {
+    test_lut_phf_double("tests/json/john.json");
+}
+
+#[test]
+fn phf_double_pokemon_6mb() {
+    test_lut_phf_double("tests/json/pokemon_(6MB).json");
+}
+
+#[test]
+fn phf_double_short_80mb() {
+    test_lut_phf_double("tests/json/twitter_short_(80MB).json");
+}
+
+fn test_lut_phf_double(json_path: &str) {
+    let file = fs::File::open(json_path).expect(&format!("Failed to open file {}", json_path));
+
+    let lut_naive = LutNaive::build_with_json(&file).expect("Failed to build lut_naive");
+    let lut_phf_double = LutPHFDouble::build_with_json(&file).expect("Failed to build lut_phf");
+
+    let keys: Vec<usize> = lut_naive.get_keys();
+    for key in keys {
+        assert_eq!(lut_phf_double.get(&key), lut_naive.get(&key));
     }
 }

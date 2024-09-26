@@ -1,46 +1,29 @@
-use std::fmt;
-
-use rand::distributions::Standard;
-use rand::rngs::SmallRng;
-use rand::{Rng, SeedableRng};
-
 use crate::lookup_table::lut_phf::phf_shared;
 use crate::lookup_table::lut_phf::phf_shared::{HashKey, PhfHash};
 
 const DEFAULT_LAMBDA: usize = 5;
-const FIXED_SEED: u64 = 1234567890;
-
+pub const FIXED_SEED: u64 = 1234567890;
 pub struct HashState {
-    pub key: HashKey,
+    pub hash_key: HashKey,
     pub displacements: Vec<(u32, u32)>,
-    pub map: Vec<usize>, // This will be transformed later to either u16 or u64 depending on `values`
+    pub map: Vec<usize>,
 }
 
-// Generic function to generate hash with either Vec<u16> or Vec<u64>
-pub fn generate_hash<H, T>(entries: &[H], values: Vec<T>) -> HashState
-where
-    H: PhfHash,
-    T: Into<usize> + Copy, // T must be convertible into usize, and we need Copy to clone elements
-{
-    let mut hash_state = SmallRng::seed_from_u64(FIXED_SEED)
-        .sample_iter(Standard)
-        .find_map(|key| try_generate_hash(entries, key))
-        .expect("failed to solve PHF");
+impl HashState {
+    pub fn get_index<T: ?Sized + PhfHash>(&self, key: &T) -> Option<usize> {
+        let hashes = phf_shared::hash(key, &self.hash_key);
+        let index = phf_shared::get_index(&hashes, &self.displacements, self.map.len()) as usize;
 
-    // Replace indexes in the map with values based on T (u16 or u64)
-    let new_map: Vec<T> = hash_state
-        .map
-        .iter()
-        .map(|&idx| values.get(idx).expect("Index out of bounds").to_owned())
-        .collect();
-
-    // Replace the map with the new map
-    hash_state.map = new_map.into_iter().map(|v| v.into()).collect();
-
-    hash_state
+        if index < self.map.len() {
+            Some(self.map[index])
+        } else {
+            None
+        }
+    }
 }
 
-fn try_generate_hash<H: PhfHash>(entries: &[H], key: HashKey) -> Option<HashState> {
+// THIS METHOD IS FROM A LIBRARY: https://docs.rs/phf_generator/0.11.2/src/phf_generator/lib.rs.html#1-109
+pub fn try_generate_hash<H: PhfHash>(entries: &[H], key: HashKey) -> Option<HashState> {
     struct Bucket {
         idx: usize,
         keys: Vec<usize>,
@@ -109,39 +92,8 @@ fn try_generate_hash<H: PhfHash>(entries: &[H], key: HashKey) -> Option<HashStat
     }
 
     Some(HashState {
-        key,
+        hash_key: key,
         displacements: disps,
         map: map.into_iter().map(|i| i.unwrap()).collect(),
     })
-}
-
-// ##############################
-// #      Added by Ricardo      #
-// ##############################
-
-impl fmt::Display for HashState {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "HashState {{\n  key: {},\n  displacements: {:?},\n  map: {:?}\n}}",
-            self.key, self.displacements, self.map
-        )
-    }
-}
-
-impl HashState {
-    pub fn get_index<T: ?Sized + phf_shared::PhfHash>(&self, key: &T) -> Option<usize> {
-        // Calculate the hashes using the provided key and hash function
-        let hashes = phf_shared::hash(key, &self.key);
-
-        // Get the index from the displacement map
-        let index = phf_shared::get_index(&hashes, &self.displacements, self.map.len()) as usize;
-
-        // Retrieve the value from the map, if the index is within bounds
-        if index < self.map.len() {
-            Some(self.map[index])
-        } else {
-            None
-        }
-    }
 }
