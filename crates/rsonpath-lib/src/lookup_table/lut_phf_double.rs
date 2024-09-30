@@ -1,6 +1,9 @@
-use super::lut_phf::{
-    phf_generator_double_hash::{self, HashState},
-    phf_shared,
+use super::{
+    lut_phf::{
+        phf_generator_double_hash::{self, HashState},
+        phf_shared,
+    },
+    LookUpTable,
 };
 use crate::{
     classification::{
@@ -14,8 +17,11 @@ use crate::{
 };
 use rand::{distributions::Standard, rngs::SmallRng};
 use rand::{Rng, SeedableRng};
-use std::collections::{HashMap, VecDeque};
 use std::fs::File;
+use std::{
+    collections::{HashMap, VecDeque},
+    fs,
+};
 
 pub struct LutPHFDouble {
     pub hash_state_16: HashState,
@@ -24,11 +30,12 @@ pub struct LutPHFDouble {
 
 const THRESHOLD_16_BITS: usize = 65536;
 
-impl LutPHFDouble {
+impl LookUpTable for LutPHFDouble {
     #[inline]
-    pub fn build_with_json(json_file: &File) -> Result<Self, Box<dyn std::error::Error>> {
+    fn build(json_path: &str) -> Result<Self, Box<dyn std::error::Error>> {
         // SAFETY: We keep the file open throughout the entire duration.
-        let input = unsafe { input::MmapInput::map_file(json_file)? };
+        let file = fs::File::open(json_path).expect("Failed to open file");
+        let input = unsafe { input::MmapInput::map_file(&file)? };
         let simd_c = classification::simd::configure();
 
         let lut_perfect_naive = classification::simd::config_simd!(simd_c => |simd| {
@@ -45,6 +52,17 @@ impl LutPHFDouble {
         lut_perfect_naive.map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
     }
 
+    fn get(&self, key: &usize) -> Option<usize> {
+        if let Some(value_16) = self.hash_state_16.get_index(&key) {
+            if value_16 != 0 {
+                return Some(key + value_16);
+            }
+        }
+        self.hash_state_64.get_index(&key).map(|distance| key + distance)
+    }
+}
+
+impl LutPHFDouble {
     #[inline]
     #[must_use]
     pub fn build_with_keys_and_values(
@@ -98,15 +116,6 @@ impl LutPHFDouble {
             hash_state_16,
             hash_state_64,
         }
-    }
-
-    pub fn get(&self, key: &usize) -> Option<usize> {
-        if let Some(value_16) = self.hash_state_16.get_index(&key) {
-            if value_16 != 0 {
-                return Some(key + value_16);
-            }
-        }
-        self.hash_state_64.get_index(&key).map(|distance| key + distance)
     }
 
     fn generate_hash_single(keys: Vec<usize>, values: Vec<usize>) -> HashState {

@@ -1,8 +1,4 @@
-use serde::{Deserialize, Serialize};
-use std::fs::File;
-use std::io::Read;
-use std::{collections::VecDeque, io::Write};
-
+use super::LookUpTable;
 use crate::{
     classification::{
         self,
@@ -13,13 +9,14 @@ use crate::{
     result::empty::EmptyRecorder,
     FallibleIterator,
 };
+use serde::{Deserialize, Serialize};
+use std::fs::{self, File};
+use std::io::Read;
+use std::{collections::VecDeque, io::Write};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub enum Entry {
-    #[serde(rename = "n")]
     Number(usize),
-
-    #[serde(rename = "b")]
     Bucket(Bucket),
 }
 
@@ -29,11 +26,12 @@ pub struct LutPerfectNaive {
     size: usize,
 }
 
-impl LutPerfectNaive {
+impl LookUpTable for LutPerfectNaive {
     #[inline]
-    pub fn build_with_json(json_file: &File) -> Result<Self, Box<dyn std::error::Error>> {
+    fn build(json_path: &str) -> Result<Self, Box<dyn std::error::Error>> {
         // SAFETY: We keep the file open throughout the entire duration.
-        let input = unsafe { input::MmapInput::map_file(json_file)? };
+        let file = fs::File::open(json_path).expect("Failed to open file");
+        let input = unsafe { input::MmapInput::map_file(&file)? };
         let simd_c = classification::simd::configure();
 
         let lut_perfect_naive = classification::simd::config_simd!(simd_c => |simd| {
@@ -50,6 +48,17 @@ impl LutPerfectNaive {
         lut_perfect_naive.map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
     }
 
+    #[inline]
+    #[must_use]
+    fn get(&self, key: &usize) -> Option<usize> {
+        match &self.buckets[key % self.size] {
+            Entry::Number(v) => Some(*v),
+            Entry::Bucket(bucket) => bucket.get(key),
+        }
+    }
+}
+
+impl LutPerfectNaive {
     #[inline]
     #[must_use]
     pub fn build_with_keys_and_values(keys: Vec<usize>, values: Vec<usize>) -> Self {
@@ -78,15 +87,6 @@ impl LutPerfectNaive {
         }
 
         Self { buckets, size }
-    }
-
-    #[inline]
-    #[must_use]
-    pub fn get(&self, key: &usize) -> Option<usize> {
-        match &self.buckets[key % self.size] {
-            Entry::Number(v) => Some(*v),
-            Entry::Bucket(bucket) => bucket.get(key),
-        }
     }
 
     #[inline]
@@ -166,7 +166,7 @@ impl LutPerfectNaive {
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Bucket {
-    elements: Vec<usize>, // No more Option<usize>, just usize
+    elements: Vec<usize>,
     size: usize,
 }
 

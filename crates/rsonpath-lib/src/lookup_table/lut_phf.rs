@@ -9,8 +9,10 @@ use crate::{
     FallibleIterator,
 };
 use phf_generator::HashState;
-use std::collections::VecDeque;
 use std::fs::File;
+use std::{collections::VecDeque, fs};
+
+use super::LookUpTable;
 
 pub mod phf_generator;
 pub mod phf_generator_double_hash;
@@ -21,11 +23,12 @@ pub struct LutPHF {
     pub values: Vec<usize>,
 }
 
-impl LutPHF {
+impl LookUpTable for LutPHF {
     #[inline]
-    pub fn build_with_json(json_file: &File) -> Result<Self, Box<dyn std::error::Error>> {
+    fn build(json_path: &str) -> Result<Self, Box<dyn std::error::Error>> {
         // SAFETY: We keep the file open throughout the entire duration.
-        let input = unsafe { input::MmapInput::map_file(json_file)? };
+        let file = fs::File::open(json_path).expect("Failed to open file");
+        let input = unsafe { input::MmapInput::map_file(&file)? };
         let simd_c = classification::simd::configure();
 
         let lut_perfect_naive = classification::simd::config_simd!(simd_c => |simd| {
@@ -44,17 +47,19 @@ impl LutPHF {
 
     #[inline]
     #[must_use]
-    pub fn build_with_keys_and_values(keys: Vec<usize>, values: Vec<usize>) -> Self {
-        let hash_state = phf_generator::generate_hash(&keys);
-        Self { hash_state, values }
-    }
-
-    #[inline]
-    #[must_use]
-    pub fn get(&self, key: &usize) -> Option<usize> {
+    fn get(&self, key: &usize) -> Option<usize> {
         self.hash_state
             .get_index(key)
             .and_then(|index| self.values.get(index).map(|&value| key + value))
+    }
+}
+
+impl LutPHF {
+    #[inline]
+    #[must_use]
+    pub fn build_with_keys_and_values(keys: Vec<usize>, values: Vec<usize>) -> Self {
+        let hash_state = phf_generator::generate_hash(&keys);
+        Self { hash_state, values }
     }
 
     fn find_all_pairs<I, V>(input: &I, simd: V) -> Result<(Vec<usize>, Vec<usize>), error::InputError>

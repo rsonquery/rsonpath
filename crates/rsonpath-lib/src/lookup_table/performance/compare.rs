@@ -4,7 +4,10 @@ use std::{
 };
 
 use crate::lookup_table::{
-    lut_distance, lut_naive::LutNaive, lut_perfect_naive::LutPerfectNaive, util_path, LookUpTable,
+    lut_distance::{self, LutDistance},
+    lut_naive::LutNaive,
+    lut_perfect_naive::LutPerfectNaive,
+    util_path, LookUpTable,
 };
 
 pub fn compare_luts_in_speed_and_size(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Error>> {
@@ -20,12 +23,12 @@ pub fn compare_luts_in_speed_and_size(json_path: &str, csv_path: &str) -> Result
 
     // lut_distance
     let start_build = std::time::Instant::now();
-    let lut_distance = lut_distance::build(&file)?;
+    let lut_distance = LutDistance::build(&json_path)?;
     let distance_build_time = start_build.elapsed();
 
     // lut_perfect_naive
     let start_build = std::time::Instant::now();
-    let lut_perfect_naive = LutPerfectNaive::build_with_json(&file)?;
+    let lut_perfect_naive = LutPerfectNaive::build(&json_path)?;
     let perfect_naive_build_time = start_build.elapsed();
 
     // Open or create the CSV file for appending
