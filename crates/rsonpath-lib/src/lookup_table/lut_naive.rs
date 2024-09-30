@@ -1,11 +1,5 @@
-use serde::{Deserialize, Serialize};
-use serde_cbor;
-use serde_json;
-use std::collections::HashMap;
-use std::collections::VecDeque;
-use std::fs::File;
-use std::io::{Error, ErrorKind, Read, Write};
-
+use super::LookUpTable;
+use crate::lookup_table::util_path;
 use crate::{
     classification::{
         self,
@@ -16,19 +10,26 @@ use crate::{
     result::empty::EmptyRecorder,
     FallibleIterator,
 };
-
-use crate::lookup_table::util_path;
+use serde::{Deserialize, Serialize};
+use serde_cbor;
+use serde_json;
+use std::collections::HashMap;
+use std::collections::VecDeque;
+use std::fs;
+use std::fs::File;
+use std::io::{Error, ErrorKind, Read, Write};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct LutNaive {
     table: HashMap<usize, usize>,
 }
 
-impl LutNaive {
+impl LookUpTable for LutNaive {
     #[inline]
-    pub fn build_with_json(file: &File) -> Result<Self, Box<dyn std::error::Error>> {
+    fn build(json_path: &str) -> Result<Self, Box<dyn std::error::Error>> {
         // SAFETY: We keep the file open throughout the entire duration.
-        let input = unsafe { input::MmapInput::map_file(file)? };
+        let file = fs::File::open(json_path).expect("Failed to open file");
+        let input = unsafe { input::MmapInput::map_file(&file)? };
         let simd_c = classification::simd::configure();
 
         classification::simd::config_simd!(simd_c => |simd| {
@@ -46,6 +47,14 @@ impl LutNaive {
 
     #[inline]
     #[must_use]
+    fn get(&self, key: &usize) -> Option<usize> {
+        self.table.get(key).copied()
+    }
+}
+
+impl LutNaive {
+    #[inline]
+    #[must_use]
     pub fn init(start_capacity: Option<usize>) -> Self {
         let size = start_capacity.unwrap_or(0);
         Self {
@@ -56,12 +65,6 @@ impl LutNaive {
     #[inline]
     pub fn put(&mut self, key: usize, value: usize) {
         self.table.insert(key, value);
-    }
-
-    #[inline]
-    #[must_use]
-    pub fn get(&self, key: &usize) -> Option<usize> {
-        self.table.get(key).copied()
     }
 
     #[inline]

@@ -1,5 +1,7 @@
-use rand::{distributions::Standard, rngs::SmallRng};
-
+use super::lut_phf::{
+    phf_generator_double_hash::{self, HashState},
+    phf_shared,
+};
 use crate::{
     classification::{
         self,
@@ -10,14 +12,10 @@ use crate::{
     result::empty::EmptyRecorder,
     FallibleIterator,
 };
+use rand::{distributions::Standard, rngs::SmallRng};
 use rand::{Rng, SeedableRng};
 use std::collections::{HashMap, VecDeque};
 use std::fs::File;
-
-use super::lut_phf::{
-    phf_generator_double_hash::{self, HashState},
-    phf_shared,
-};
 
 pub struct LutPHFDouble {
     pub hash_state_16: HashState,

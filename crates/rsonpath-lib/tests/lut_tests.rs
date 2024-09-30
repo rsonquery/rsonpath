@@ -1,8 +1,11 @@
-use std::fs;
-
+use proptest::char::range;
 use rsonpath::lookup_table::{
-    lut_naive::LutNaive, lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF, lut_phf_double::LutPHFDouble, util_path,
+    lut_naive::{self, LutNaive},
+    lut_perfect_naive::LutPerfectNaive,
+    lut_phf::LutPHF,
+    pair_finder, util_path, LookUpTable,
 };
+use std::{fmt::format, fs};
 
 #[test]
 fn naive_john() {
@@ -33,9 +36,8 @@ fn naive_pokemon() {
 
 fn test_lut_naive(json_path: &str, keys: Vec<usize>, expected_values: Vec<usize>) {
     assert_eq!(keys.len(), expected_values.len());
-    let file = fs::File::open(json_path).expect("Failed to open file");
 
-    let lut_naive = LutNaive::build_with_json(&file).expect("Failed to build lookup table");
+    let lut_naive = LutNaive::build(&json_path).expect("Failed to build lookup table");
 
     for (key, &expected_value) in keys.iter().zip(expected_values.iter()) {
         let actual_value = lut_naive.get(&key).expect("Key not found in lut_naive");
@@ -67,7 +69,7 @@ fn perfect_naive_twitter_short_80mb() {
 fn test_lut_perfect_naive(json_path: &str) {
     let file = fs::File::open(json_path).expect(&format!("Failed to open file {}", json_path));
 
-    let lut_naive = LutNaive::build_with_json(&file).expect("Failed to build lut_naive");
+    let lut_naive = LutNaive::build(&json_path).expect("Failed to build lut_naive");
     let lut_perfect_naive = LutPerfectNaive::build_with_json(&file).expect("Failed to build lut_perfect_naive");
 
     let path = format!(
@@ -106,7 +108,7 @@ fn phf_short_80mb() {
 fn test_lut_phf(json_path: &str) {
     let file = fs::File::open(json_path).expect(&format!("Failed to open file {}", json_path));
 
-    let lut_naive = LutNaive::build_with_json(&file).expect("Failed to build lut_naive");
+    let lut_naive = LutNaive::build(&json_path).expect("Failed to build lut_naive");
     let lut_phf = LutPHF::build_with_json(&file).expect("Failed to build lut_phf");
 
     let keys: Vec<usize> = lut_naive.get_keys();
@@ -115,29 +117,56 @@ fn test_lut_phf(json_path: &str) {
     }
 }
 
+// #[test]
+// fn phf_double_john_big() {
+//     test_lut_phf_double("tests/json/john_big.json");
+// }
+
+// #[test]
+// fn phf_double_pokemon_6mb() {
+//     test_lut_phf_double("tests/json/pokemon_(6MB).json");
+// }
+
+// #[test]
+// fn phf_double_short_80mb() {
+//     test_lut_phf_double("tests/json/twitter_short_(80MB).json");
+// }
+
+// #[test]
+// fn phf_double_crossref0_320mb() {
+//     test_lut_phf_double("tests/json/crossref0_(320MB).json");
+// }
+
+// #[test]
+// fn phf_double_google_map_large_record_1_gb() {
+//     // This took ~30 min
+//     test_lut_phf_double("tests/json/google_map_large_record_(1.1GB).json");
+// }
+
 #[test]
-fn phf_double_john() {
-    test_lut_phf_double("tests/json/john.json");
+fn test_lut_naive_john_big() {
+    compare_lut_naive("tests/json/john_big.json");
 }
 
 #[test]
-fn phf_double_pokemon_6mb() {
-    test_lut_phf_double("tests/json/pokemon_(6MB).json");
+fn test_lut_naive_pokemon() {
+    compare_lut_naive("tests/json/pokemon_(6MB).json");
 }
 
 #[test]
-fn phf_double_short_80mb() {
-    test_lut_phf_double("tests/json/twitter_short_(80MB).json");
+fn test_lut_naive_google_map_large_record() {
+    compare_lut_naive("tests/json/google_map_large_record_(1.1GB).json");
 }
 
-fn test_lut_phf_double(json_path: &str) {
-    let file = fs::File::open(json_path).expect(&format!("Failed to open file {}", json_path));
+fn compare_lut_naive(json_path: &str) {
+    let lut_naive = LutNaive::build(&json_path).expect(&format!("Fail @ building lut_naive. Input = {}", json_path));
+    compare_valid(&lut_naive, json_path);
+}
 
-    let lut_naive = LutNaive::build_with_json(&file).expect("Failed to build lut_naive");
-    let lut_phf_double = LutPHFDouble::build_with_json(&file).expect("Failed to build lut_phf");
+fn compare_valid(lut: &dyn LookUpTable, json_path: &str) {
+    let (keys, values) = pair_finder::get_keys_and_values(&json_path).expect("Fail @ finding pairs.");
 
-    let keys: Vec<usize> = lut_naive.get_keys();
-    for key in keys {
-        assert_eq!(lut_phf_double.get(&key), lut_naive.get(&key));
+    for (i, key) in keys.iter().enumerate() {
+        assert_eq!(values[i], lut.get(key).expect("Fail at getting value."));
     }
 }

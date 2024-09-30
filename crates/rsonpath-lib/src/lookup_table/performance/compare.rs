@@ -3,7 +3,9 @@ use std::{
     process::Command,
 };
 
-use crate::lookup_table::{lut_distance, lut_naive::LutNaive, lut_perfect_naive::LutPerfectNaive, util_path};
+use crate::lookup_table::{
+    lut_distance, lut_naive::LutNaive, lut_perfect_naive::LutPerfectNaive, util_path, LookUpTable,
+};
 
 pub fn compare_luts_in_speed_and_size(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Error>> {
     println!("- compare");
@@ -13,7 +15,7 @@ pub fn compare_luts_in_speed_and_size(json_path: &str, csv_path: &str) -> Result
 
     // lut_naive
     let start_build = std::time::Instant::now();
-    let lut_naive = LutNaive::build_with_json(&file)?;
+    let lut_naive = LutNaive::build(&json_path)?;
     let naive_build_time = start_build.elapsed();
 
     // lut_distance

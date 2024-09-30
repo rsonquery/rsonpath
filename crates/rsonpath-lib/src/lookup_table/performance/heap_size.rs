@@ -7,7 +7,7 @@ use std::{
 use stats_alloc::{Region, StatsAlloc, INSTRUMENTED_SYSTEM};
 
 use crate::lookup_table::{
-    lut_distance, lut_naive::LutNaive, lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF, util_path,
+    lut_distance, lut_naive::LutNaive, lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF, util_path, LookUpTable,
 };
 
 #[global_allocator]
@@ -21,22 +21,22 @@ pub fn compare_heap_size(json_path: &str, csv_path: &str) -> Result<(), Box<dyn 
 
     // lut_naive
     let reg = Region::new(&GLOBAL);
-    let lut_naive = LutNaive::build_with_json(&file)?;
+    let _ = LutNaive::build(&json_path)?;
     let stats_naive = reg.change();
 
     // lut_distance
     let reg = Region::new(&GLOBAL);
-    let lut_distance = lut_distance::build(&file)?;
+    let _ = lut_distance::build(&file)?;
     let stats_distance = reg.change();
 
     // lut_perfect_naive
     let reg = Region::new(&GLOBAL);
-    let lut_perfect_naive = LutPerfectNaive::build_with_json(&file)?;
+    let _ = LutPerfectNaive::build_with_json(&file)?;
     let stats_perfect_naive = reg.change();
 
     // lut_phf
     let reg = Region::new(&GLOBAL);
-    let lut_phf = LutPHF::build_with_json(&file)?;
+    let _ = LutPHF::build_with_json(&file)?;
     let stats_phf = reg.change();
 
     // Open or create the CSV file for appending
