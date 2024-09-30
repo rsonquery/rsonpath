@@ -1,8 +1,8 @@
+use itertools::enumerate;
 use rsonpath::lookup_table::{
     lut_distance::LutDistance, lut_naive::LutNaive, lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF,
     lut_phf_double::LutPHFDouble, pair_finder, LookUpTable,
 };
-use std::fmt::format;
 
 const TEST_JSON_FILES: [&str; 3] = [
     "tests/json/john_big.json",
@@ -40,4 +40,40 @@ fn compare_valid(lut: &dyn LookUpTable, json_path: &str) {
     for (i, key) in keys.iter().enumerate() {
         assert_eq!(values[i], lut.get(key).expect("Fail at getting value."));
     }
+}
+
+#[test]
+fn debug_lut_phf_double() {
+    let json_path = "tests/json/pokemon_(6MB).json";
+    // let json_path = "tests/json/twitter_short_(80MB).json";
+
+    let (keys, values) = pair_finder::get_keys_and_values(json_path).expect("Fail @ finding pairs.");
+    let lut = LutPHFDouble::build(json_path).expect("Fail @ building lut_phf_double");
+
+    let mut count_correct = 0;
+    let mut count_incorrect = 0;
+    for (i, key) in keys.iter().enumerate() {
+        let left = values[i];
+        let right = lut.get(key).expect("fail");
+        if left != right {
+            let distance = left - key;
+            println!(
+                "Key: {}, Expected: {}, Found: {}, Expected Dist. {}",
+                key, left, right, distance
+            );
+            count_incorrect += 1;
+        } else {
+            count_correct += 1;
+        }
+    }
+
+    let conflict_keys = vec![5659806, 5895100, 0, 12];
+    for (i, key) in conflict_keys.iter().enumerate() {
+        println!("({}, {})", key, lut.get(key).expect("Fail"));
+    }
+
+    let total = count_correct + count_incorrect;
+    println!("Correct: {}/{}", count_correct, total);
+    println!("Incorrect: {}/{}", count_incorrect, total);
+    assert_eq!(count_incorrect, 0);
 }

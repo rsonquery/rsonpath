@@ -1,7 +1,7 @@
 use crate::lookup_table::lut_phf::phf_shared;
 use crate::lookup_table::lut_phf::phf_shared::{HashKey, PhfHash};
 
-const DEFAULT_LAMBDA: usize = 5;
+const DEFAULT_LAMBDA: usize = 1;
 pub const FIXED_SEED: u64 = 1234567890;
 pub struct HashState {
     pub hash_key: HashKey,
@@ -10,15 +10,11 @@ pub struct HashState {
 }
 
 impl HashState {
-    pub fn get_index<T: ?Sized + PhfHash>(&self, key: &T) -> Option<usize> {
+    pub fn get<T: ?Sized + PhfHash>(&self, key: &T) -> Option<usize> {
         let hashes = phf_shared::hash(key, &self.hash_key);
         let index = phf_shared::get_index(&hashes, &self.displacements, self.map.len()) as usize;
 
-        if index < self.map.len() {
-            Some(self.map[index])
-        } else {
-            None
-        }
+        Some(self.map[index])
     }
 }
 
