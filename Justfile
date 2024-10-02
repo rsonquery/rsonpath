@@ -56,7 +56,7 @@ doc $RUSTDOCFLAGS="--cfg docsrs":
 
 # Run the codegen for rsonpath-test, generating the E2E tests and JSONs.
 gen-tests:
-    RSONPATH_ENABLE_TEST_CODEGEN=1 cargo build --package rsonpath-test
+    RSONPATH_ENABLE_TEST_CODEGEN=1 cargo build --manifest-path ./crates/rsonpath-test/Cargo.toml
 
 # === RUN ===
 

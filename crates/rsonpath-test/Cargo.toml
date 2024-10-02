@@ -8,7 +8,6 @@ license = "MIT"
 keywords = ["json", "jsonpath", "query", "simd", "parser"]
 categories = ["text-processing"]
 repository = "https://github.com/V0ldek/rsonpath"
-workspace = "../.."
 edition = "2021"
 rust-version = "1.70.0"
 publish = false
