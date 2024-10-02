@@ -100,11 +100,11 @@ impl Input for MmapInput {
 
     #[inline]
     fn seek_backward(&self, from: usize, needle: u8) -> Option<usize> {
-        return if from < self.last_block_start {
+        if from < self.last_block_start {
             self.mmap.seek_backward(from, needle)
         } else {
             self.as_padded_input().seek_backward(from, needle)
-        };
+        }
     }
 
     #[inline]
@@ -153,11 +153,11 @@ impl Input for MmapInput {
 
     #[inline]
     fn seek_non_whitespace_backward(&self, from: usize) -> Option<(usize, u8)> {
-        return if from < self.last_block_start {
+        if from < self.last_block_start {
             self.mmap.seek_non_whitespace_backward(from)
         } else {
             self.as_padded_input().seek_non_whitespace_backward(from)
-        };
+        }
     }
 
     #[inline]

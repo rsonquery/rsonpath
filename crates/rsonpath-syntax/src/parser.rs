@@ -514,7 +514,7 @@ fn logical_expr<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, LogicalExpr, 
                         return fail(SyntaxErrorKind::NonSingularQueryInComparison, q.len(), query_len, rest);
                     };
                     if negated {
-                        return fail(SyntaxErrorKind::InvalidNegation, q.len(), 1, rest);
+                        fail(SyntaxErrorKind::InvalidNegation, q.len(), 1, rest)
                     } else {
                         Ok((
                             rest,
