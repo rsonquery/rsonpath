@@ -50,6 +50,12 @@ fn debug_lut_phf_double() {
     let (keys, values) = pair_finder::get_keys_and_values(json_path).expect("Fail @ finding pairs.");
     let lut = LutPHFDouble::build(json_path).expect("Fail @ building lut_phf_double");
 
+    println!("Current map:");
+    let conflict_keys = vec![0, 12];
+    for (i, key) in conflict_keys.iter().enumerate() {
+        println!("  ({}, {})", key, lut.get(key).expect("Fail"));
+    }
+
     let mut count_correct = 0;
     let mut count_incorrect = 0;
     for (i, key) in keys.iter().enumerate() {
@@ -65,11 +71,6 @@ fn debug_lut_phf_double() {
         } else {
             count_correct += 1;
         }
-    }
-
-    let conflict_keys = vec![5659806, 5895100, 0, 12];
-    for (i, key) in conflict_keys.iter().enumerate() {
-        println!("({}, {})", key, lut.get(key).expect("Fail"));
     }
 
     let total = count_correct + count_incorrect;

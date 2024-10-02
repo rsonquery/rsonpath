@@ -53,12 +53,20 @@ impl LookUpTable for LutPHFDouble {
     }
 
     fn get(&self, key: &usize) -> Option<usize> {
-        if let Some(value_16) = self.hash_state_16.get(&key) {
+        // Hashmap u16
+        if let Some(value_16) = self.hash_state_16.get(key) {
             if value_16 != 0 {
                 return Some(key + value_16);
             }
         }
-        self.hash_state_64.get(&key).map(|distance| key + distance)
+
+        // Hashmap usize
+        if let Some(value_64) = self.hash_state_64.get(key) {
+            println!("  GET:({}, {})", key, value_64);
+            return Some(key + value_64);
+        }
+
+        None
     }
 }
 
@@ -83,6 +91,7 @@ impl LutPHFDouble {
             let hashes = phf_shared::hash(key_64, &hash_state_16.hash_key);
             let idx = phf_shared::get_index(&hashes, &hash_state_16.displacements, hash_state_16.map.len()) as usize;
 
+            println!("Conflict key: {} , value: {}", key_64, values_16[idx]);
             conflict_indexes.insert(idx, values_16[idx]);
             values_16[idx] = 0; // Set conflict position to 0
         }
@@ -106,15 +115,24 @@ impl LutPHFDouble {
         conflict_keys.append(&mut keys_64);
         conflict_values.append(&mut values_64);
 
-        println!("Conflict (key, value):");
-        for (i, _) in conflict_keys.iter().enumerate() {
-            println!("  ({}, {})", conflict_keys[i], conflict_values[i]);
-        }
+        let conflict_keys_clone = conflict_keys.clone();
+        let conflict_values_clone = conflict_values.clone();
 
         let hash_state_64 = Self::generate_hash_single(conflict_keys, conflict_values);
 
         // Replace indexes with values
+        // TODO: fix the mapping of usize to u16
         hash_state_16.map = hash_state_16.map.iter().map(|&idx| values_16[idx].into()).collect();
+
+        println!("hash_state_64");
+        for (i, key) in conflict_keys_clone.iter().enumerate() {
+            println!(
+                "  ({}, {}, {})",
+                key,
+                conflict_values_clone[i],
+                hash_state_64.get(&key).expect("Fail @ getting key")
+            );
+        }
 
         LutPHFDouble {
             hash_state_16,
@@ -178,8 +196,8 @@ impl LutPHFDouble {
                         BracketType::Curly => curly_bracket_stack.pop_back().expect("Unmatched closing }"),
                     };
 
-                    let distance = idx_close - idx_open;
                     // Check if distance can be represented with 16 or less bits
+                    let distance = idx_close - idx_open;
                     if distance < THRESHOLD_16_BITS {
                         keys_16.push(idx_open);
                         values_16.push(distance.try_into().unwrap());
