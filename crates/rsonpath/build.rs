@@ -1,16 +1,23 @@
 use std::error::Error;
-use vergen::EmitBuilder;
+use vergen::{CargoBuilder, Emitter, RustcBuilder};
+use vergen_git2::Git2Builder;
 
 const CODEGEN_ENV_KEY: &str = "RSONPATH_CODEGEN_FLAGS";
 
 fn main() -> Result<(), Box<dyn Error>> {
-    EmitBuilder::builder()
+    let cargo = CargoBuilder::default()
+        .features(true)
+        .opt_level(true)
+        .target_triple(true)
+        .build()?;
+    let git = Git2Builder::default().sha(false).build()?;
+    let rustc = RustcBuilder::all_rustc()?;
+
+    Emitter::new()
         .idempotent()
-        .git_sha(false)
-        .cargo_features()
-        .cargo_opt_level()
-        .cargo_target_triple()
-        .all_rustc()
+        .add_instructions(&cargo)?
+        .add_instructions(&git)?
+        .add_instructions(&rustc)?
         .emit()?;
 
     let codegen_flags = concat_codegen_flags();

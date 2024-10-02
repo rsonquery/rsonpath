@@ -425,11 +425,7 @@ fn append_block(dest: &mut Vec<u8>, src: &[u8], src_start: usize, read_start: us
 fn append_final_block(dest: &mut Vec<u8>, src: &[u8], src_start: usize, read_start: usize, read_end: usize) {
     debug!("src_start: {src_start}, read_start: {read_start}, read_end: {read_end}");
     debug_assert!(read_end >= src_start);
-    let in_block_start = if read_start > src_start {
-        read_start - src_start
-    } else {
-        0
-    };
+    let in_block_start = read_start.saturating_sub(src_start);
     let in_block_end = read_end - src_start;
 
     dest.extend(&src[in_block_start..in_block_end]);

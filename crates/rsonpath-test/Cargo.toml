@@ -8,17 +8,16 @@ license = "MIT"
 keywords = ["json", "jsonpath", "query", "simd", "parser"]
 categories = ["text-processing"]
 repository = "https://github.com/V0ldek/rsonpath"
-workspace = "../.."
 edition = "2021"
 rust-version = "1.70.0"
 publish = false
 
 [dependencies]
-serde = { version = "1.0.197", features = ["derive"] }
-serde_json = "1.0.114"
+serde = { version = "1.0.210", features = ["derive"] }
+serde_json = "1.0.128"
 
 [dev-dependencies]
-pretty_assertions = "1.4.0"
+pretty_assertions = "1.4.1"
 rsonpath-lib = { version = "0.9.1", path = "../rsonpath-lib" }
 rsonpath-syntax = { version = "0.3.0", path = "../rsonpath-syntax" }
 

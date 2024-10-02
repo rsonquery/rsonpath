@@ -4,13 +4,10 @@ members = [
     "crates/rsonpath",
     "crates/rsonpath-lib",
     "crates/rsonpath-syntax",
-    "crates/rsonpath-test"
+    "crates/rsonpath-test",
 ]
 
-exclude = [
-    "crates/rsonpath-benchmarks",
-    "crates/rsonpath-test-codegen"
-]
+exclude = ["crates/rsonpath-benchmarks", "crates/rsonpath-test-codegen"]
 
 resolver = "2"
 
@@ -28,10 +25,10 @@ debug = 1
 # The time impact of build is not large (~33% time increase).
 [profile.distribution]
 inherits = "release"
-lto = "fat"         # Better codegen, much slower compile time.
-codegen-units = 1   # Better codegen, much slower compile time.
-debug = 0           # Smaller binary size.
-strip = "debuginfo" # Smaller binary size.
+lto = "fat"          # Better codegen, much slower compile time.
+codegen-units = 1    # Better codegen, much slower compile time.
+debug = 0            # Smaller binary size.
+strip = "debuginfo"  # Smaller binary size.
 
 [patch.crates-io]
 rsonpath-lib = { path = "./crates/rsonpath-lib" }
