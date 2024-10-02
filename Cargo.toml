@@ -1,12 +1,13 @@
 [workspace]
 
-members = ["crates/rsonpath", "crates/rsonpath-lib", "crates/rsonpath-syntax"]
-
-exclude = [
-    "crates/rsonpath-benchmarks",
-    "crates/rsonpath-test-codegen",
+members = [
+    "crates/rsonpath",
+    "crates/rsonpath-lib",
+    "crates/rsonpath-syntax",
     "crates/rsonpath-test",
 ]
+
+exclude = ["crates/rsonpath-benchmarks", "crates/rsonpath-test-codegen"]
 
 resolver = "2"
 
