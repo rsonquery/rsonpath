@@ -64,7 +64,7 @@ jobs:
           key: x86_64-unknown-linux-gnu-x86_64-unknown-linux-gnu--cargo-${{ hashFiles('**/Cargo.toml') }}
       - name: Build with test codegen
         id: build-test-codegen
-        run: cargo build -p rsonpath-test -vv
+        run: cargo build --manifest-path ./crates/rsonpath-test/Cargo.toml -vv
       - name: Upload generated tests as artifact
         uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         with:
