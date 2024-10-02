@@ -19,7 +19,7 @@ serde = { version = "1.0.210", features = ["derive"] }
 toml = "0.8.19"
 proc-macro2 = "1.0.86"
 quote = "1.0.37"
-heck = { version = "0.4.1", features = ["unicode"] }
+heck = { version = "0.5.0" }
 walkdir = "2.5.0"
 
 [dev-dependencies]
