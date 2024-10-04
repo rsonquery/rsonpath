@@ -9,7 +9,6 @@ use crate::{
     FallibleIterator,
 };
 use phf_generator::HashState;
-use std::fs::File;
 use std::{collections::VecDeque, fs};
 
 use super::LookUpTable;

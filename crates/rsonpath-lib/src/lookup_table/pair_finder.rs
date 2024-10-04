@@ -13,8 +13,8 @@ use std::collections::VecDeque;
 /// key = position of the opening bracket, value = position of the closing bracket
 #[inline]
 pub fn get_keys_and_values(json_path: &str) -> Result<(Vec<usize>, Vec<usize>), Box<dyn std::error::Error>> {
-    // SAFETY: We keep the file open throughout the entire duration.
     let file = std::fs::File::open(json_path).expect("Fail at opening file");
+    // SAFETY: We keep the file open throughout the entire duration.
     let input = unsafe { input::MmapInput::map_file(&file)? };
     let simd_c = classification::simd::configure();
 

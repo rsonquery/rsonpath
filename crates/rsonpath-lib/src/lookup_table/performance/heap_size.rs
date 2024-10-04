@@ -7,16 +7,14 @@ use std::{
 use stats_alloc::{Region, StatsAlloc, INSTRUMENTED_SYSTEM};
 
 use crate::lookup_table::{
-    lut_distance::{self, LutDistance},
-    lut_naive::LutNaive,
-    lut_perfect_naive::LutPerfectNaive,
-    lut_phf::LutPHF,
-    util_path, LookUpTable,
+    lut_distance::LutDistance, lut_naive::LutNaive, lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF, util_path,
+    LookUpTable,
 };
 
 #[global_allocator]
 static GLOBAL: &StatsAlloc<System> = &INSTRUMENTED_SYSTEM;
 
+#[inline]
 pub fn compare_heap_size(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Error>> {
     println!("- heap_size");
 
@@ -24,23 +22,23 @@ pub fn compare_heap_size(json_path: &str, csv_path: &str) -> Result<(), Box<dyn 
     let filename = util_path::get_filename_from_path(json_path);
 
     // lut_naive
-    let reg = Region::new(&GLOBAL);
+    let reg = Region::new(GLOBAL);
     let _ = LutNaive::build(&json_path)?;
     let stats_naive = reg.change();
 
     // lut_distance
-    let reg = Region::new(&GLOBAL);
-    let _ = LutDistance::build(&json_path)?;
+    let reg = Region::new(GLOBAL);
+    let _ = LutDistance::build(json_path)?;
     let stats_distance = reg.change();
 
     // lut_perfect_naive
-    let reg = Region::new(&GLOBAL);
-    let _ = LutPerfectNaive::build(&json_path)?;
+    let reg = Region::new(GLOBAL);
+    let _ = LutPerfectNaive::build(json_path)?;
     let stats_perfect_naive = reg.change();
 
     // lut_phf
-    let reg = Region::new(&GLOBAL);
-    let _ = LutPHF::build(&json_path)?;
+    let reg = Region::new(GLOBAL);
+    let _ = LutPHF::build(json_path)?;
     let stats_phf = reg.change();
 
     // Open or create the CSV file for appending
@@ -63,10 +61,10 @@ pub fn compare_heap_size(json_path: &str, csv_path: &str) -> Result<(), Box<dyn 
         "{},{},{},{},{},{}",
         filename,
         file.metadata().expect("Can't open file").len(),
-        stats_naive.bytes_allocated.to_string(),
-        stats_distance.bytes_allocated.to_string(),
-        stats_perfect_naive.bytes_allocated.to_string(),
-        stats_phf.bytes_allocated.to_string(),
+        stats_naive.bytes_allocated,
+        stats_distance.bytes_allocated,
+        stats_perfect_naive.bytes_allocated,
+        stats_phf.bytes_allocated,
     )?;
 
     run_python_statistics_builder(csv_path);

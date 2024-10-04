@@ -160,7 +160,7 @@ impl LutDistance {
     }
 
     #[inline(always)]
-    fn fill<I, V>(input: &I, simd: V) -> Result<LutDistance, error::InputError>
+    fn fill<I, V>(input: &I, simd: V) -> Result<Self, error::InputError>
     where
         I: Input,
         V: Simd,
@@ -173,7 +173,7 @@ impl LutDistance {
         // Initialize two empty stacks: one for "[" and one for "{"
         let mut square_bracket_stack: VecDeque<usize> = VecDeque::new();
         let mut curly_bracket_stack: VecDeque<usize> = VecDeque::new();
-        let mut lut_distance = LutDistance::init(Some(10));
+        let mut lut_distance = Self::init(Some(10));
 
         while let Some(event) = structural_classifier.next()? {
             match event {

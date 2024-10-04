@@ -1,8 +1,5 @@
 use super::{
-    lut_phf::{
-        phf_generator_double_hash::{self, HashState},
-        phf_shared,
-    },
+    lut_phf::phf_generator_double_hash::{self, HashState},
     LookUpTable,
 };
 use crate::{
@@ -15,9 +12,6 @@ use crate::{
     result::empty::EmptyRecorder,
     FallibleIterator,
 };
-use rand::{distributions::Standard, rngs::SmallRng};
-use rand::{Rng, SeedableRng};
-use std::fs::File;
 use std::{
     collections::{HashMap, VecDeque},
     fs,
@@ -52,6 +46,7 @@ impl LookUpTable for LutPHFDouble {
         lut_perfect_naive.map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
     }
 
+    #[inline]
     fn get(&self, key: &usize) -> Option<usize> {
         // Hashmap u16
         if let Some(value_16) = self.hash_state_16.get(key) {
@@ -79,10 +74,7 @@ impl LutPHFDouble {
         values_64: Vec<usize>,
     ) -> Self {
         // 1) Build hash_state for the values of size u16
-        let hash_state_16_usize: HashState<usize> = SmallRng::seed_from_u64(phf_generator_double_hash::FIXED_SEED)
-            .sample_iter(Standard)
-            .find_map(|hash_key| phf_generator_double_hash::try_generate_hash(&keys_16, hash_key))
-            .expect("failed to solve PHF");
+        let hash_state_16_usize = phf_generator_double_hash::build(&keys_16);
 
         // 2) Find conflicts and set conflict positions to 0 in `values_16`, save (index, value) in conflict_indexes
         let mut conflict_indexes: HashMap<usize, u16> = HashMap::with_capacity(keys_64.len());
@@ -124,20 +116,17 @@ impl LutPHFDouble {
             map: map_16,
         };
 
-        LutPHFDouble {
+        Self {
             hash_state_16,
             hash_state_64,
         }
     }
 
     fn build_single(keys: Vec<usize>, values: Vec<usize>) -> HashState<usize> {
-        let mut hash_state = SmallRng::seed_from_u64(phf_generator_double_hash::FIXED_SEED)
-            .sample_iter(Standard)
-            .find_map(|hash_key| phf_generator_double_hash::try_generate_hash(&keys, hash_key))
-            .expect("failed to solve PHF");
+        let mut hash_state = phf_generator_double_hash::build(&keys);
 
         // Replace indexes with values
-        hash_state.map = hash_state.map.iter().map(|&idx| values[idx]).collect();
+        hash_state.map = hash_state.map.into_iter().map(|idx| values[idx]).collect();
 
         hash_state
     }
@@ -185,7 +174,7 @@ impl LutPHFDouble {
                     if distance < THRESHOLD_16_BITS {
                         // Can fit into 16 bit
                         keys_16.push(idx_open);
-                        values_16.push(distance.try_into().unwrap());
+                        values_16.push(distance.try_into().expect("Fail at pushing value."));
                     } else {
                         // Cannot fit into 16 bit
                         keys_64.push(idx_open);

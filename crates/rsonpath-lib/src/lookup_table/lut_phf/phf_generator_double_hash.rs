@@ -1,8 +1,10 @@
 use crate::lookup_table::lut_phf::phf_shared;
 use crate::lookup_table::lut_phf::phf_shared::{HashKey, PhfHash};
+use rand::{distributions::Standard, rngs::SmallRng};
+use rand::{Rng, SeedableRng};
 
 const DEFAULT_LAMBDA: usize = 1;
-pub const FIXED_SEED: u64 = 1234567890;
+pub const FIXED_SEED: u64 = 1_234_567_890;
 
 // Trait to convert from usize to U
 pub trait FromUsize {
@@ -10,20 +12,23 @@ pub trait FromUsize {
 }
 
 impl FromUsize for usize {
+    #[inline]
     fn from_usize(val: usize) -> Self {
         val
     }
 }
 
 impl FromUsize for u16 {
+    #[inline]
     fn from_usize(val: usize) -> Self {
-        val as u16
+        val as Self
     }
 }
 
 impl FromUsize for u64 {
+    #[inline]
     fn from_usize(val: usize) -> Self {
-        val as u64
+        val as Self
     }
 }
 
@@ -34,6 +39,7 @@ pub struct HashState<U> {
 }
 
 impl<U: Copy> HashState<U> {
+    #[inline]
     pub fn get<T: ?Sized + PhfHash>(&self, key: &T) -> Option<U> {
         let hashes = phf_shared::hash(key, &self.hash_key);
         let index = phf_shared::get_index(&hashes, &self.displacements, self.map.len()) as usize;
@@ -42,7 +48,15 @@ impl<U: Copy> HashState<U> {
     }
 }
 
-pub fn try_generate_hash<H: PhfHash>(entries: &[H], key: HashKey) -> Option<HashState<usize>> {
+pub fn build<H: PhfHash>(keys: &[H]) -> HashState<usize> {
+    SmallRng::seed_from_u64(FIXED_SEED)
+        .sample_iter(Standard)
+        .find_map(|hash_key| try_generate_hash(&keys, hash_key))
+        .expect("failed to solve PHF")
+}
+
+// THIS METHOD IS FROM A LIBRARY: https://docs.rs/phf_generator/0.11.2/src/phf_generator/lib.rs.html#1-109
+fn try_generate_hash<H: PhfHash>(entries: &[H], key: HashKey) -> Option<HashState<usize>> {
     struct Bucket {
         idx: usize,
         keys: Vec<usize>,
@@ -64,10 +78,10 @@ pub fn try_generate_hash<H: PhfHash>(entries: &[H], key: HashKey) -> Option<Hash
 
     let table_len = hashes.len();
     let mut map: Vec<Option<usize>> = vec![None; table_len];
-    let mut disps = vec![(0u32, 0u32); buckets_len];
+    let mut disps = vec![(0_u32, 0_u32); buckets_len];
 
-    let mut try_map = vec![0u64; table_len];
-    let mut generation = 0u64;
+    let mut try_map = vec![0_u64; table_len];
+    let mut generation = 0_u64;
     let mut values_to_add = vec![];
 
     'buckets: for bucket in &buckets {

@@ -8,7 +8,7 @@ use crate::lookup_table::lut_phf::phf_shared;
 use crate::lookup_table::lut_phf::phf_shared::{HashKey, PhfHash};
 
 const DEFAULT_LAMBDA: usize = 5;
-const FIXED_SEED: u64 = 1234567890;
+const FIXED_SEED: u64 = 1_234_567_890;
 
 pub struct HashState {
     pub key: HashKey,
@@ -45,7 +45,7 @@ fn try_generate_hash<H: PhfHash>(entries: &[H], key: HashKey) -> Option<HashStat
 
     let table_len = hashes.len();
     let mut map = vec![None; table_len];
-    let mut disps = vec![(0u32, 0u32); buckets_len];
+    let mut disps = vec![(0_u32, 0_u32); buckets_len];
 
     // store whether an element from the bucket being placed is
     // located at a certain position, to allow for efficient overlap
@@ -54,8 +54,8 @@ fn try_generate_hash<H: PhfHash>(entries: &[H], key: HashKey) -> Option<HashStat
     // if this is legitimately full by checking that the generations
     // are equal. (A u64 is far too large to overflow in a reasonable
     // time for current hardware.)
-    let mut try_map = vec![0u64; table_len];
-    let mut generation = 0u64;
+    let mut try_map = vec![0_u64; table_len];
+    let mut generation = 0_u64;
 
     // the actual values corresponding to the markers above, as
     // (index, key) pairs, for adding to the main map once we've
@@ -94,7 +94,7 @@ fn try_generate_hash<H: PhfHash>(entries: &[H], key: HashKey) -> Option<HashStat
     Some(HashState {
         key,
         displacements: disps,
-        map: map.into_iter().map(|i| i.unwrap()).collect(),
+        map: map.into_iter().map(|i| i.expect("Fail at collecting map")).collect(),
     })
 }
 
@@ -103,6 +103,7 @@ fn try_generate_hash<H: PhfHash>(entries: &[H], key: HashKey) -> Option<HashStat
 // ##############################
 
 impl fmt::Display for HashState {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,

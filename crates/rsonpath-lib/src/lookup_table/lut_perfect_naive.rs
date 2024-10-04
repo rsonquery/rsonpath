@@ -29,8 +29,8 @@ pub struct LutPerfectNaive {
 impl LookUpTable for LutPerfectNaive {
     #[inline]
     fn build(json_path: &str) -> Result<Self, Box<dyn std::error::Error>> {
-        // SAFETY: We keep the file open throughout the entire duration.
         let file = fs::File::open(json_path).expect("Failed to open file");
+        // SAFETY: We keep the file open throughout the entire duration.
         let input = unsafe { input::MmapInput::map_file(&file)? };
         let simd_c = classification::simd::configure();
 
@@ -173,7 +173,7 @@ pub struct Bucket {
 impl Bucket {
     #[inline]
     #[must_use]
-    pub fn new(keys: &Vec<usize>, values: &Vec<usize>) -> Self {
+    pub fn new(keys: &[usize], values: &[usize]) -> Self {
         let mut size = keys.len() * 2;
 
         let elements = loop {

@@ -1,4 +1,3 @@
-use itertools::enumerate;
 use rsonpath::lookup_table::{
     lut_distance::LutDistance, lut_naive::LutNaive, lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF,
     lut_phf_double::LutPHFDouble, pair_finder, LookUpTable,
@@ -31,7 +30,7 @@ macro_rules! test_lut {
 test_lut!(LutNaive, lut_naive);
 test_lut!(LutDistance, lut_distance);
 test_lut!(LutPHF, lut_phf);
-test_lut!(LutPHFDouble, test_lut_phf_double);
+test_lut!(LutPHFDouble, lut_phf_double);
 test_lut!(LutPerfectNaive, lut_perfect_naive);
 
 fn compare_valid(lut: &dyn LookUpTable, json_path: &str) {

@@ -5,6 +5,7 @@ use std::{
 
 use crate::lookup_table::{lut_naive::LutNaive, util_path, LookUpTable};
 
+#[inline]
 pub fn measure_stats(json_path: &str, output_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Error>> {
     println!("- stats");
     let file = std::fs::File::open(json_path)?;
@@ -12,7 +13,7 @@ pub fn measure_stats(json_path: &str, output_path: &str, csv_path: &str) -> Resu
 
     // Measure build duration
     let start_build = std::time::Instant::now();
-    let lut_naive = LutNaive::build(&json_path).expect("Unable to build lut_naive");
+    let lut_naive = LutNaive::build(json_path).expect("Unable to build lut_naive");
     let build_time = start_build.elapsed();
 
     // Measure JSON serialization & deserialization duration

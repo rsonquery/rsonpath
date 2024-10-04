@@ -122,6 +122,7 @@ pub trait PhfBorrow<B: ?Sized> {
 macro_rules! delegate_debug (
     ($ty:ty) => {
         impl FmtConst for $ty {
+            #[inline]
             fn fmt_const(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 write!(f, "{:?}", self)
             }
@@ -149,6 +150,7 @@ delegate_debug!(bool);
 macro_rules! impl_reflexive(
     ($($t:ty),*) => (
         $(impl PhfBorrow<$t> for $t {
+            #[inline]
             fn borrow(&self) -> &$t {
                 self
             }
@@ -175,58 +177,29 @@ impl_reflexive!(
     [u8]
 );
 
-#[cfg(feature = "std")]
-impl PhfBorrow<str> for String {
-    fn borrow(&self) -> &str {
-        self
-    }
-}
-
-#[cfg(feature = "std")]
-impl PhfBorrow<[u8]> for Vec<u8> {
-    fn borrow(&self) -> &[u8] {
-        self
-    }
-}
-
-#[cfg(feature = "std")]
-delegate_debug!(String);
-
-#[cfg(feature = "std")]
-impl PhfHash for String {
-    #[inline]
-    fn phf_hash<H: Hasher>(&self, state: &mut H) {
-        (**self).phf_hash(state)
-    }
-}
-
-#[cfg(feature = "std")]
-impl PhfHash for Vec<u8> {
-    #[inline]
-    fn phf_hash<H: Hasher>(&self, state: &mut H) {
-        (**self).phf_hash(state)
-    }
-}
-
 impl<'a, T: 'a + PhfHash + ?Sized> PhfHash for &'a T {
+    #[inline]
     fn phf_hash<H: Hasher>(&self, state: &mut H) {
         (*self).phf_hash(state)
     }
 }
 
 impl<'a, T: 'a + FmtConst + ?Sized> FmtConst for &'a T {
+    #[inline]
     fn fmt_const(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         (*self).fmt_const(f)
     }
 }
 
 impl<'a> PhfBorrow<str> for &'a str {
+    #[inline]
     fn borrow(&self) -> &str {
         self
     }
 }
 
 impl<'a> PhfBorrow<[u8]> for &'a [u8] {
+    #[inline]
     fn borrow(&self) -> &[u8] {
         self
     }
@@ -251,65 +224,6 @@ impl FmtConst for [u8] {
     fn fmt_const(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         // slices need a leading reference
         write!(f, "&{:?}", self)
-    }
-}
-
-#[cfg(feature = "unicase")]
-impl<S> PhfHash for unicase::UniCase<S>
-where
-    unicase::UniCase<S>: Hash,
-{
-    #[inline]
-    fn phf_hash<H: Hasher>(&self, state: &mut H) {
-        self.hash(state)
-    }
-}
-
-#[cfg(feature = "unicase")]
-impl<S> FmtConst for unicase::UniCase<S>
-where
-    S: AsRef<str>,
-{
-    fn fmt_const(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.is_ascii() {
-            f.write_str("UniCase::ascii(")?;
-        } else {
-            f.write_str("UniCase::unicode(")?;
-        }
-
-        self.as_ref().fmt_const(f)?;
-        f.write_str(")")
-    }
-}
-
-#[cfg(feature = "unicase")]
-impl<'b, 'a: 'b, S: ?Sized + 'a> PhfBorrow<unicase::UniCase<&'b S>> for unicase::UniCase<&'a S> {
-    fn borrow(&self) -> &unicase::UniCase<&'b S> {
-        self
-    }
-}
-
-#[cfg(feature = "uncased")]
-impl PhfHash for uncased::UncasedStr {
-    #[inline]
-    fn phf_hash<H: Hasher>(&self, state: &mut H) {
-        self.hash(state)
-    }
-}
-
-#[cfg(feature = "uncased")]
-impl FmtConst for uncased::UncasedStr {
-    fn fmt_const(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("UncasedStr::new(")?;
-        self.as_str().fmt_const(f)?;
-        f.write_str(")")
-    }
-}
-
-#[cfg(feature = "uncased")]
-impl PhfBorrow<uncased::UncasedStr> for &uncased::UncasedStr {
-    fn borrow(&self) -> &uncased::UncasedStr {
-        self
     }
 }
 
@@ -370,12 +284,14 @@ macro_rules! array_impl (
         }
 
         impl<const N: usize> FmtConst for [$t; N] {
+            #[inline]
             fn fmt_const(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 fmt_array(self, f)
             }
         }
 
         impl<const N: usize> PhfBorrow<[$t]> for [$t; N] {
+            #[inline]
             fn borrow(&self) -> &[$t] {
                 self
             }
