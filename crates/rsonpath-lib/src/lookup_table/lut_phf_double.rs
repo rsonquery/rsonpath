@@ -24,8 +24,8 @@ use std::{
 };
 
 pub struct LutPHFDouble {
-    pub hash_state_16: HashState,
-    pub hash_state_64: HashState,
+    pub hash_state_16: HashState<u16>,
+    pub hash_state_64: HashState<usize>,
 }
 
 const THRESHOLD_16_BITS: usize = 65536; // = 2^16
@@ -56,7 +56,7 @@ impl LookUpTable for LutPHFDouble {
         // Hashmap u16
         if let Some(value_16) = self.hash_state_16.get(key) {
             if value_16 != 0 {
-                return Some(key + value_16);
+                return Some(key + (value_16 as usize));
             }
         }
 
@@ -78,16 +78,16 @@ impl LutPHFDouble {
         keys_64: Vec<usize>,
         values_64: Vec<usize>,
     ) -> Self {
-        // Build hash_state for the values of size u16
-        let mut hash_state_16 = SmallRng::seed_from_u64(phf_generator_double_hash::FIXED_SEED)
+        // 1) Build hash_state for the values of size u16
+        let hash_state_16_usize: HashState<usize> = SmallRng::seed_from_u64(phf_generator_double_hash::FIXED_SEED)
             .sample_iter(Standard)
             .find_map(|hash_key| phf_generator_double_hash::try_generate_hash(&keys_16, hash_key))
             .expect("failed to solve PHF");
 
-        // 1) Find conflicts and set conflict positions to 0 in `values_16`, save (index, value) in conflict_indexes
+        // 2) Find conflicts and set conflict positions to 0 in `values_16`, save (index, value) in conflict_indexes
         let mut conflict_indexes: HashMap<usize, u16> = HashMap::with_capacity(keys_64.len());
         for key_64 in &keys_64 {
-            let idx = hash_state_16
+            let idx = hash_state_16_usize
                 .get(key_64)
                 .expect("Fail @ getting idx from hash_state_16");
 
@@ -95,13 +95,13 @@ impl LutPHFDouble {
             values_16[idx] = 0; // Set conflict position to 0
         }
 
-        // 2) Init conflict_keys and conflict_values
+        // 3) Init conflict_keys and conflict_values
         let mut conflict_keys: Vec<usize> = keys_64.clone();
         let mut conflict_values: Vec<usize> = values_64.clone();
 
-        // 3) Collect all conflict keys and values from keys_16
+        // 4) Collect all conflict keys and values from keys_16
         for key_16 in &keys_16 {
-            let idx = hash_state_16
+            let idx = hash_state_16_usize
                 .get(key_16)
                 .expect("Fail @ getting idx from hash_state_16");
             let value_16 = values_16[idx];
@@ -113,12 +113,16 @@ impl LutPHFDouble {
             }
         }
 
-        // 4) Build hast_state_64
+        // 5) Build hash_state_64
         let hash_state_64 = Self::build_single(conflict_keys, conflict_values);
 
-        // 5) Replace indexes with values
-        // TODO: fix the mapping of usize to u16 -> make HashState generic to support usize and u16
-        hash_state_16.map = hash_state_16.map.iter().map(|&idx| values_16[idx].into()).collect();
+        // 6) Replace indexes with actual values from values_16
+        let map_16: Vec<u16> = hash_state_16_usize.map.into_iter().map(|idx| values_16[idx]).collect();
+        let hash_state_16: HashState<u16> = HashState {
+            hash_key: hash_state_16_usize.hash_key,
+            displacements: hash_state_16_usize.displacements,
+            map: map_16,
+        };
 
         LutPHFDouble {
             hash_state_16,
@@ -126,14 +130,14 @@ impl LutPHFDouble {
         }
     }
 
-    fn build_single(keys: Vec<usize>, values: Vec<usize>) -> HashState {
+    fn build_single(keys: Vec<usize>, values: Vec<usize>) -> HashState<usize> {
         let mut hash_state = SmallRng::seed_from_u64(phf_generator_double_hash::FIXED_SEED)
             .sample_iter(Standard)
             .find_map(|hash_key| phf_generator_double_hash::try_generate_hash(&keys, hash_key))
             .expect("failed to solve PHF");
 
         // Replace indexes with values
-        hash_state.map = hash_state.map.iter().map(|&idx| values[idx].into()).collect();
+        hash_state.map = hash_state.map.iter().map(|&idx| values[idx]).collect();
 
         hash_state
     }

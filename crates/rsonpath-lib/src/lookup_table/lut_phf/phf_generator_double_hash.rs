@@ -3,14 +3,38 @@ use crate::lookup_table::lut_phf::phf_shared::{HashKey, PhfHash};
 
 const DEFAULT_LAMBDA: usize = 1;
 pub const FIXED_SEED: u64 = 1234567890;
-pub struct HashState {
-    pub hash_key: HashKey,
-    pub displacements: Vec<(u32, u32)>,
-    pub map: Vec<usize>,
+
+// Trait to convert from usize to U
+pub trait FromUsize {
+    fn from_usize(val: usize) -> Self;
 }
 
-impl HashState {
-    pub fn get<T: ?Sized + PhfHash>(&self, key: &T) -> Option<usize> {
+impl FromUsize for usize {
+    fn from_usize(val: usize) -> Self {
+        val
+    }
+}
+
+impl FromUsize for u16 {
+    fn from_usize(val: usize) -> Self {
+        val as u16
+    }
+}
+
+impl FromUsize for u64 {
+    fn from_usize(val: usize) -> Self {
+        val as u64
+    }
+}
+
+pub struct HashState<U> {
+    pub hash_key: HashKey,
+    pub displacements: Vec<(u32, u32)>,
+    pub map: Vec<U>,
+}
+
+impl<U: Copy> HashState<U> {
+    pub fn get<T: ?Sized + PhfHash>(&self, key: &T) -> Option<U> {
         let hashes = phf_shared::hash(key, &self.hash_key);
         let index = phf_shared::get_index(&hashes, &self.displacements, self.map.len()) as usize;
 
@@ -18,8 +42,7 @@ impl HashState {
     }
 }
 
-// THIS METHOD IS FROM A LIBRARY: https://docs.rs/phf_generator/0.11.2/src/phf_generator/lib.rs.html#1-109
-pub fn try_generate_hash<H: PhfHash>(entries: &[H], key: HashKey) -> Option<HashState> {
+pub fn try_generate_hash<H: PhfHash>(entries: &[H], key: HashKey) -> Option<HashState<usize>> {
     struct Bucket {
         idx: usize,
         keys: Vec<usize>,
@@ -40,22 +63,11 @@ pub fn try_generate_hash<H: PhfHash>(entries: &[H], key: HashKey) -> Option<Hash
     buckets.sort_by(|a, b| a.keys.len().cmp(&b.keys.len()).reverse());
 
     let table_len = hashes.len();
-    let mut map = vec![None; table_len];
+    let mut map: Vec<Option<usize>> = vec![None; table_len];
     let mut disps = vec![(0u32, 0u32); buckets_len];
 
-    // store whether an element from the bucket being placed is
-    // located at a certain position, to allow for efficient overlap
-    // checks. It works by storing the generation in each cell and
-    // each new placement-attempt is a new generation, so you can tell
-    // if this is legitimately full by checking that the generations
-    // are equal. (A u64 is far too large to overflow in a reasonable
-    // time for current hardware.)
     let mut try_map = vec![0u64; table_len];
     let mut generation = 0u64;
-
-    // the actual values corresponding to the markers above, as
-    // (index, key) pairs, for adding to the main map once we've
-    // chosen the right disps.
     let mut values_to_add = vec![];
 
     'buckets: for bucket in &buckets {
@@ -74,7 +86,6 @@ pub fn try_generate_hash<H: PhfHash>(entries: &[H], key: HashKey) -> Option<Hash
                     values_to_add.push((idx, key));
                 }
 
-                // We've picked a good set of disps
                 disps[bucket.idx] = (d1, d2);
                 for &(idx, key) in &values_to_add {
                     map[idx] = Some(key);
@@ -83,7 +94,6 @@ pub fn try_generate_hash<H: PhfHash>(entries: &[H], key: HashKey) -> Option<Hash
             }
         }
 
-        // Unable to find displacements for a bucket
         return None;
     }
 

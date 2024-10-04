@@ -44,8 +44,8 @@ fn compare_valid(lut: &dyn LookUpTable, json_path: &str) {
 
 #[test]
 fn debug_lut_phf_double() {
-    // let json_path = "tests/json/pokemon_(6MB).json";
-    let json_path = "tests/json/twitter_short_(80MB).json";
+    let json_path = "tests/json/pokemon_(6MB).json";
+    // let json_path = "tests/json/twitter_short_(80MB).json";
 
     let (keys, values) = pair_finder::get_keys_and_values(json_path).expect("Fail @ finding pairs.");
     let lut = LutPHFDouble::build(json_path).expect("Fail @ building lut_phf_double");
