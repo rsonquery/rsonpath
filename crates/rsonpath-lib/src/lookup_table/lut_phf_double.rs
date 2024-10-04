@@ -179,9 +179,11 @@ impl LutPHFDouble {
                     // Check if distance can be represented with 16 or less bits
                     let distance = idx_close - idx_open;
                     if distance < THRESHOLD_16_BITS {
+                        // Can fit into 16 bit
                         keys_16.push(idx_open);
                         values_16.push(distance.try_into().unwrap());
                     } else {
+                        // Cannot fit into 16 bit
                         keys_64.push(idx_open);
                         values_64.push(distance);
                     }
