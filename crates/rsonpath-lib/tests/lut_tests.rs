@@ -1,6 +1,6 @@
 use rsonpath::lookup_table::{
     lut_distance::LutDistance, lut_naive::LutNaive, lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF,
-    lut_phf_double::LutPHFDouble, pair_finder, LookUpTable,
+    lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup, pair_finder, LookUpTable,
 };
 
 // JSON files
@@ -58,6 +58,10 @@ test_lut_with_json!(
     TWITTER_SHORT_JSON
 );
 test_lut_with_json!(LutPerfectNaive, test_lut_perfect_naive_crossref0, CROSSREF0_JSON);
+
+// Generate test functions for LutPHFGroup
+test_lut_with_json!(LutPHFGroup, test_lut_phf_group_pokemon, POKEMON_JSON);
+test_lut_with_json!(LutPHFGroup, test_lut_phf_group_crossref0, CROSSREF0_JSON);
 
 fn compare_valid(lut: &dyn LookUpTable, json_path: &str) {
     let (keys, values) = pair_finder::get_keys_and_values(json_path).expect("Fail @ finding pairs.");

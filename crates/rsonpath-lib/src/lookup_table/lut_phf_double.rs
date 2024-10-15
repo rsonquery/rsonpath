@@ -22,7 +22,7 @@ pub struct LutPHFDouble {
     pub hash_state_64: HashState<usize>,
 }
 
-const THRESHOLD_16_BITS: usize = 65536; // = 2^16
+pub const THRESHOLD_16_BITS: usize = 65536; // = 2^16
 
 impl LookUpTable for LutPHFDouble {
     #[inline]
@@ -32,7 +32,7 @@ impl LookUpTable for LutPHFDouble {
         let input = unsafe { input::MmapInput::map_file(&file)? };
         let simd_c = classification::simd::configure();
 
-        let lut_perfect_naive = classification::simd::config_simd!(simd_c => |simd| {
+        let lut_phf_double = classification::simd::config_simd!(simd_c => |simd| {
             classification::simd::dispatch_simd!(simd; input, simd => fn<I, V>(
                 input: I,
                 simd: V,
@@ -43,7 +43,7 @@ impl LookUpTable for LutPHFDouble {
                     Ok(LutPHFDouble::build_double(keys_16, values_16, keys_64, values_64))
                 })
         });
-        lut_perfect_naive.map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
+        lut_phf_double.map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
     }
 
     #[inline]
