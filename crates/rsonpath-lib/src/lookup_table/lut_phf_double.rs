@@ -27,8 +27,8 @@ const THRESHOLD_16_BITS: usize = 65536; // = 2^16
 impl LookUpTable for LutPHFDouble {
     #[inline]
     fn build(json_path: &str) -> Result<Self, Box<dyn std::error::Error>> {
-        // SAFETY: We keep the file open throughout the entire duration.
         let file = fs::File::open(json_path).expect("Failed to open file");
+        // SAFETY: We keep the file open throughout the entire duration.
         let input = unsafe { input::MmapInput::map_file(&file)? };
         let simd_c = classification::simd::configure();
 
@@ -88,8 +88,8 @@ impl LutPHFDouble {
         }
 
         // 3) Init conflict_keys and conflict_values
-        let mut conflict_keys: Vec<usize> = keys_64.clone();
-        let mut conflict_values: Vec<usize> = values_64.clone();
+        let mut conflict_keys: Vec<usize> = keys_64.to_owned();
+        let mut conflict_values: Vec<usize> = values_64.to_owned();
 
         // 4) Collect all conflict keys and values from keys_16
         for key_16 in &keys_16 {

@@ -41,6 +41,7 @@ pub fn hash<T: ?Sized + PhfHash>(x: &T, key: &HashKey) -> Hashes {
 /// * `disps` is from `phf_generator::HashState::disps`.
 /// * `len` is the length of `phf_generator::HashState::map`.
 #[inline]
+#[must_use]
 pub fn get_index(hashes: &Hashes, disps: &[(u32, u32)], len: usize) -> u32 {
     let (d1, d2) = disps[(hashes.g % (disps.len() as u32)) as usize];
     displace(hashes.f1, hashes.f2, d1, d2) % (len as u32)
@@ -56,6 +57,7 @@ pub trait PhfHash {
     fn phf_hash<H: Hasher>(&self, state: &mut H);
 
     /// Feeds a slice of this type into the state provided.
+    #[inline]
     fn phf_hash_slice<H: Hasher>(data: &[Self], state: &mut H)
     where
         Self: Sized,

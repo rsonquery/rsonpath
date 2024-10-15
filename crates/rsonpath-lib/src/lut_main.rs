@@ -67,8 +67,9 @@ fn create_folder_setup() -> std::io::Result<()> {
 fn print_bad_input_error_msg() {
     eprintln!(
         "Usage:\n
-    cargo run --bin lut --release -- <json_path> <output_folder> <csv_folder>\n
     cargo run --bin lut --release -- setup\n
+    cargo run --bin lut --release -- <json_folder> <output_folder> <csv_folder>\n
+    cargo run --bin lut --release -- distances .<json_folder>
     "
     );
     std::process::exit(1);
@@ -82,33 +83,4 @@ fn check_if_folder_exists(path: &str) {
         eprintln!("Error: The provided folder '{}' is not a directory.", path);
         std::process::exit(1);
     }
-}
-
-// Assume every single character is a '{' character. This is of course an upper bound calculation then.
-#[allow(dead_code)]
-fn calc_max_digits() {
-    // We iterate from 1 to 64 bits
-    for bit in 1..=64 {
-        // Calculate the maximum JSON size based on the number of bits
-        let max_json_size = 1_u64 << bit;
-
-        // Determine the size in appropriate units
-        let size_in_kb = max_json_size as f64 / 1024.0;
-        let size_in_mb = size_in_kb / 1024.0;
-        let size_in_gb = size_in_mb / 1024.0;
-        let size_in_tb = size_in_gb / 1024.0;
-
-        // Print the size in different units based on the magnitude
-        println!(
-            "Bit: {}, Max JSON size: {} B, {:.2} kB, {:.2} MB, {:.2} GB, {:.2} TB",
-            bit, max_json_size, size_in_kb, size_in_mb, size_in_gb, size_in_tb
-        );
-    }
-
-    // Idea: At 43 bits the input json is 64TB
-    // 1) what if instead of usize we use u_43_bits since the other bits will always be 0
-    // 2) 64 - 43 = 21 . We have 21 bits where we could save more structural data per key.
-    //      - maybe the usage counter? This way we know which values to cache, because high counter means often skipped?
-    //      - the deepness, but I am not sure what value this brings
-    // 3) When the input JSON is < 32GB we can even use 32bit per key
 }
