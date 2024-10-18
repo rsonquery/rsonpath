@@ -10,9 +10,9 @@ use crate::{
     result::empty::EmptyRecorder,
     FallibleIterator,
 };
+use itertools::izip;
 use std::{collections::VecDeque, fs};
 
-const BUCKETS_SIZE: usize = 16;
 const BIT_MASK: usize = 0xF; // Keeps the lower 4 bit
 
 pub struct LutPHFGroup {
@@ -51,24 +51,16 @@ impl LookUpTable for LutPHFGroup {
 
 impl LutPHFGroup {
     fn build_buckets(
-        mut bucket_keys_16: Vec<Vec<usize>>, // `mut` to allow in-place consumption
-        mut bucket_values_16: Vec<Vec<u16>>,
-        mut bucket_keys_64: Vec<Vec<usize>>,
-        mut bucket_values_64: Vec<Vec<usize>>,
+        bucket_keys_16: Vec<Vec<usize>>,
+        bucket_values_16: Vec<Vec<u16>>,
+        bucket_keys_64: Vec<Vec<usize>>,
+        bucket_values_64: Vec<Vec<usize>>,
     ) -> Self {
-        let mut buckets: Vec<LutPHFDouble> = Vec::with_capacity(16); // Size 16
-
-        // Building each bucket using LutPHFDouble
-        // TODO: do this in parallel
-        for i in 0..BUCKETS_SIZE {
-            let lut_phf_double = LutPHFDouble::build_double(
-                bucket_keys_16.remove(i),
-                bucket_values_16.remove(i),
-                bucket_keys_64.remove(i),
-                bucket_values_64.remove(i),
-            );
-            buckets.push(lut_phf_double);
-        }
+        let buckets = izip!(bucket_keys_16, bucket_values_16, bucket_keys_64, bucket_values_64)
+            .map(|(keys_16, values_16, keys_64, values_64)| {
+                LutPHFDouble::build_double(keys_16, values_16, keys_64, values_64)
+            })
+            .collect();
 
         LutPHFGroup { buckets }
     }

@@ -7,8 +7,8 @@ use std::{
 use stats_alloc::{Region, StatsAlloc, INSTRUMENTED_SYSTEM};
 
 use crate::lookup_table::{
-    lut_distance::LutDistance, lut_naive::LutNaive, lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF, util_path,
-    LookUpTable,
+    lut_distance::LutDistance, lut_naive::LutNaive, lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF,
+    lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup, util_path, LookUpTable,
 };
 
 #[global_allocator]
@@ -16,8 +16,6 @@ static GLOBAL: &StatsAlloc<System> = &INSTRUMENTED_SYSTEM;
 
 #[inline]
 pub fn compare_heap_size(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Error>> {
-    println!("- heap_size");
-
     let file = std::fs::File::open(json_path)?;
     let filename = util_path::extract_filename(json_path);
 
@@ -41,30 +39,37 @@ pub fn compare_heap_size(json_path: &str, csv_path: &str) -> Result<(), Box<dyn 
     let _ = LutPHF::build(json_path)?;
     let stats_phf = reg.change();
 
+    // lut_phf_double
+    let reg = Region::new(GLOBAL);
+    let _ = LutPHFDouble::build(json_path)?;
+    let stats_phf_double = reg.change();
+
+    // lut_phf_group
+    let reg = Region::new(GLOBAL);
+    let _ = LutPHFGroup::build(json_path)?;
+    let stats_phf_group = reg.change();
+
     // Open or create the CSV file for appending
     let mut csv_file = std::fs::OpenOptions::new().append(true).create(true).open(csv_path)?;
     if csv_file.metadata()?.len() == 0 {
         writeln!(
             csv_file,
-            "{},{},{},{},{},{}",
-            "name",
-            "input_size",
-            "naive_allocations",
-            "distance_allocations",
-            "perfect_naive_allocations",
-            "phf_allocations"
+            "{},{},{},{},{},{},{},{}",
+            "name", "input_size", "naive", "distance", "perfect_naive", "phf", "phf_double", "phf_group"
         )?;
     }
 
     writeln!(
         csv_file,
-        "{},{},{},{},{},{}",
+        "{},{},{},{},{},{},{},{}",
         filename,
         file.metadata().expect("Can't open file").len(),
         stats_naive.bytes_allocated,
         stats_distance.bytes_allocated,
         stats_perfect_naive.bytes_allocated,
         stats_phf.bytes_allocated,
+        stats_phf_double.bytes_allocated,
+        stats_phf_group.bytes_allocated,
     )?;
 
     run_python_statistics_builder(csv_path);
@@ -74,7 +79,7 @@ pub fn compare_heap_size(json_path: &str, csv_path: &str) -> Result<(), Box<dyn 
 
 fn run_python_statistics_builder(csv_path: &str) {
     let output = Command::new("python")
-        .arg("crates/rsonpath-lib/src/lookup_table/python_statistic/heap_size.py")
+        .arg("crates/rsonpath-lib/src/lookup_table/python_statistic/heap_eval.py")
         .arg(csv_path)
         .output()
         .expect(&format!("Failed to open csv_path: {}", csv_path));

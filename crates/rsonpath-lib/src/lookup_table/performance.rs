@@ -1,7 +1,7 @@
 use crate::lookup_table::util_path;
 use std::{error::Error, fs, path::Path};
 
-pub mod heap_size;
+pub mod heap_eval;
 pub mod stats;
 pub mod time_eval;
 
@@ -57,7 +57,7 @@ fn time_evaluation(json_dir: &str, csv_dir: &str) {
 }
 
 fn heap_evaluation(json_dir: &str, csv_dir: &str) {
-    evaluate(json_dir, csv_dir, HEAP_EVAL_DIR, heap_size::compare_heap_size);
+    evaluate(json_dir, csv_dir, HEAP_EVAL_DIR, heap_eval::compare_heap_size);
 }
 
 /// Check if csv_path already exists and if it does rename it with a unique number

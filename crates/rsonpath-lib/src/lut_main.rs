@@ -17,19 +17,13 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Setup the required folder structure
-    Setup {
-        /// Path to the folder holding the structure
-        dir_path: String,
-    },
-
     /// Measure distances for each JSON in the folder
     Distances {
         /// Path to the folder containing JSON files
         json_dir: String,
 
-        /// Path to the output CSV folder
-        csv_dir: String,
+        /// Path to the output directory
+        out_dir: String,
     },
 
     /// Run performance tests
@@ -37,8 +31,8 @@ enum Commands {
         /// Path to the input JSON folder
         json_dir: String,
 
-        /// Path to the output CSV folder
-        csv_dir: String,
+        /// Path to the output directory
+        out_dir: String,
 
         /// Task to run: 0 for time eval, 1 for heap eval, 2 for both
         tasks: u16,
@@ -49,20 +43,23 @@ fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
 
     match &cli.command {
-        Commands::Setup { dir_path } => {
-            create_folder_setup(dir_path)?;
-        }
-        Commands::Distances { json_dir, csv_dir } => {
-            count_distances::count_distances_in_dir(json_dir, csv_dir);
+        Commands::Distances { json_dir, out_dir } => {
+            check_if_dir_exists(json_dir);
+            create_folder_setup(out_dir)?;
+            let csv_dir = format!("{}/{}", out_dir, "performance");
+
+            count_distances::count_distances_in_dir(json_dir, &csv_dir);
         }
         Commands::Performance {
             json_dir,
-            csv_dir,
+            out_dir,
             tasks,
         } => {
             check_if_dir_exists(json_dir);
-            check_if_dir_exists(csv_dir);
-            performance::performance_test(json_dir, csv_dir, *tasks);
+            create_folder_setup(out_dir)?;
+            let csv_dir = format!("{}/{}", out_dir, "performance");
+
+            performance::performance_test(json_dir, &csv_dir, *tasks);
         }
     }
 
