@@ -40,7 +40,7 @@ impl LookUpTable for LutPHFDouble {
             I: Input,
             V: Simd,{
                     let (keys_16, values_16, keys_64, values_64) = LutPHFDouble::find_all_pairs::<I, V>(&input, simd)?;
-                    Ok(LutPHFDouble::build_double(keys_16, values_16, keys_64, values_64))
+                    Ok(LutPHFDouble::build_double(&keys_16, values_16, &keys_64, &values_64))
                 })
         });
         lut_phf_double.map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
@@ -68,17 +68,17 @@ impl LutPHFDouble {
     #[inline]
     #[must_use]
     pub fn build_double(
-        keys_16: Vec<usize>,
+        keys_16: &Vec<usize>,
         mut values_16: Vec<u16>,
-        keys_64: Vec<usize>,
-        values_64: Vec<usize>,
+        keys_64: &Vec<usize>,
+        values_64: &Vec<usize>,
     ) -> Self {
         // 1) Build hash_state for the values of size u16
-        let hash_state_16_usize = phf_generator_double_hash::build(&keys_16);
+        let hash_state_16_usize = phf_generator_double_hash::build(keys_16);
 
         // 2) Find conflicts and set conflict positions to 0 in `values_16`, save (index, value) in conflict_indexes
         let mut conflict_indexes: HashMap<usize, u16> = HashMap::with_capacity(keys_64.len());
-        for key_64 in &keys_64 {
+        for key_64 in keys_64 {
             let idx = hash_state_16_usize
                 .get(key_64)
                 .expect("Fail @ getting idx from hash_state_16");
@@ -92,7 +92,7 @@ impl LutPHFDouble {
         let mut conflict_values: Vec<usize> = values_64.to_owned();
 
         // 4) Collect all conflict keys and values from keys_16
-        for key_16 in &keys_16 {
+        for key_16 in keys_16 {
             let idx = hash_state_16_usize
                 .get(key_16)
                 .expect("Fail @ getting idx from hash_state_16");
@@ -106,7 +106,9 @@ impl LutPHFDouble {
         }
 
         // 5) Build hash_state_64
-        let hash_state_64 = Self::build_single(conflict_keys, conflict_values);
+        let hash_state_64 = Self::build_single(&conflict_keys, &conflict_values);
+        drop(conflict_keys);
+        drop(conflict_values);
 
         // 6) Replace indexes with actual values from values_16
         let map_16: Vec<u16> = hash_state_16_usize.map.into_iter().map(|idx| values_16[idx]).collect();
@@ -122,8 +124,8 @@ impl LutPHFDouble {
         }
     }
 
-    fn build_single(keys: Vec<usize>, values: Vec<usize>) -> HashState<usize> {
-        let mut hash_state = phf_generator_double_hash::build(&keys);
+    fn build_single(keys: &[usize], values: &[usize]) -> HashState<usize> {
+        let mut hash_state = phf_generator_double_hash::build(keys);
 
         // Replace indexes with values
         hash_state.map = hash_state.map.into_iter().map(|idx| values[idx]).collect();

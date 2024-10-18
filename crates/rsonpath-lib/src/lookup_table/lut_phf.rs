@@ -25,8 +25,8 @@ pub struct LutPHF {
 impl LookUpTable for LutPHF {
     #[inline]
     fn build(json_path: &str) -> Result<Self, Box<dyn std::error::Error>> {
-        // SAFETY: We keep the file open throughout the entire duration.
         let file = fs::File::open(json_path).expect("Failed to open file");
+        // SAFETY: We keep the file open throughout the entire duration.
         let input = unsafe { input::MmapInput::map_file(&file)? };
         let simd_c = classification::simd::configure();
 
@@ -36,9 +36,10 @@ impl LookUpTable for LutPHF {
                 simd: V,
             ) -> Result<LutPHF, error::InputError> where
             I: Input,
-            V: Simd,{
+            V: Simd,
+            {
                     let (keys, values) = LutPHF::find_all_pairs::<I, V>(&input, simd)?;
-                    Ok(LutPHF::build_with_keys_and_values(keys, values))
+                    Ok(LutPHF::build_with_keys_and_values(&keys, values))
                 })
         });
         lut_perfect_naive.map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
@@ -56,8 +57,8 @@ impl LookUpTable for LutPHF {
 impl LutPHF {
     #[inline]
     #[must_use]
-    pub fn build_with_keys_and_values(keys: Vec<usize>, values: Vec<usize>) -> Self {
-        let hash_state = phf_generator::generate_hash(&keys);
+    pub fn build_with_keys_and_values(keys: &[usize], values: Vec<usize>) -> Self {
+        let hash_state = phf_generator::generate_hash(keys);
         Self { hash_state, values }
     }
 

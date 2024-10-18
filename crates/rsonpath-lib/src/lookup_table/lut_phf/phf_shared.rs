@@ -16,6 +16,7 @@ pub struct Hashes {
 pub type HashKey = u64;
 
 #[inline]
+#[must_use]
 pub fn displace(f1: u32, f2: u32, d1: u32, d2: u32) -> u32 {
     (Wrapping(d2) + Wrapping(f1) * Wrapping(d1) + Wrapping(f2)).0
 }
@@ -79,7 +80,7 @@ pub trait FmtConst {
 ///
 /// The same semantic requirements apply:
 ///
-/// > In particular `Eq`, `Ord` and `Hash` must be equivalent for borrowed and owned values:
+/// \> In particular `Eq`, `Ord` and `Hash` must be equivalent for borrowed and owned values:
 /// `x.borrow() == y.borrow()` should give the same result as `x == y`.
 ///
 /// (This crate's API only requires `Eq` and `PhfHash`, however.)

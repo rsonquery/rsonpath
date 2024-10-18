@@ -63,11 +63,11 @@ impl LutPHFGroup {
             .zip(bucket_keys_64.into_par_iter())
             .zip(bucket_values_64.into_par_iter())
             .map(|(((keys_16, values_16), keys_64), values_64)| {
-                LutPHFDouble::build_double(keys_16, values_16, keys_64, values_64)
+                LutPHFDouble::build_double(&keys_16, values_16, &keys_64, &values_64)
             })
             .collect();
 
-        LutPHFGroup { buckets }
+        Self { buckets }
     }
 
     fn find_all_pairs<I, V>(

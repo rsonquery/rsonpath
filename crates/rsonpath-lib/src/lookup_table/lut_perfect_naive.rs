@@ -203,10 +203,7 @@ impl Bucket {
     pub fn get(&self, key: &usize) -> Option<usize> {
         let hash = key % self.size;
         let value = self.elements[hash];
-        if value != usize::MAX {
-            Some(value)
-        } else {
-            None
-        }
+
+        (value != usize::MAX).then_some(value)
     }
 }

@@ -20,6 +20,7 @@ use crate::{
 pub const DISTANCE_EVAL_DIR: &str = "distance_distribution";
 
 /// Count the distances for each json file of the given directory
+#[inline]
 pub fn count_distances_in_dir(dir_path: &str, csv_path: &str) {
     let dir = fs::read_dir(dir_path).expect("Failed to read directory");
 
@@ -62,7 +63,7 @@ fn count_distances_with_simd(json_path: &str, csv_path: &str) {
     // Save in CSV: First column = distance, second column = frequency
     let path = format!("{}/{}/{}_distances.csv", csv_path, DISTANCE_EVAL_DIR, filename);
     let mut wtr = csv::Writer::from_writer(File::create(&path).expect("Failed to create CSV file"));
-    wtr.write_record(&["distance", "frequency"])
+    wtr.write_record(["distance", "frequency"])
         .expect("Failed to write CSV header");
     for (distance, frequency) in distance_frequencies {
         wtr.write_record(&[distance.to_string(), frequency.to_string()])
@@ -120,11 +121,12 @@ where
 }
 
 fn run_python_statistics_builder(csv_path: &str) {
+    let msg = format!("Failed to open csv_path: {}", csv_path);
     let output = Command::new("python")
         .arg("crates/rsonpath-lib/src/lookup_table/python_statistic/count_distances.py")
         .arg(csv_path)
         .output()
-        .expect(&format!("Failed to open csv_path: {}", csv_path));
+        .expect(&msg);
 
     if output.status.success() {
         if let Err(e) = io::stdout().write_all(&output.stdout) {

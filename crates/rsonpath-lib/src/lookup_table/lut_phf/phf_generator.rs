@@ -16,6 +16,7 @@ pub struct HashState {
     pub map: Vec<usize>,
 }
 
+#[inline]
 pub fn generate_hash<H: PhfHash>(entries: &[H]) -> HashState {
     SmallRng::seed_from_u64(FIXED_SEED)
         .sample_iter(Standard)
@@ -114,6 +115,7 @@ impl fmt::Display for HashState {
 }
 
 impl HashState {
+    #[inline]
     pub fn get_index<T: ?Sized + phf_shared::PhfHash>(&self, key: &T) -> Option<usize> {
         // Calculate the hashes using the provided key and hash function
         let hashes = phf_shared::hash(key, &self.key);
@@ -122,10 +124,6 @@ impl HashState {
         let index = phf_shared::get_index(&hashes, &self.displacements, self.map.len()) as usize;
 
         // Retrieve the value from the map, if the index is within bounds
-        if index < self.map.len() {
-            Some(self.map[index])
-        } else {
-            None
-        }
+        (index < self.map.len()).then(|| self.map[index])
     }
 }

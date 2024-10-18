@@ -55,10 +55,10 @@ pub fn compare_get_time(json_path: &str, csv_path: &str) -> Result<(), Box<dyn s
     if csv_file.metadata()?.len() == 0 {
         writeln!(
             csv_file,
-            "{},{},{},{},{},{},{},{}",
-            "name", "input_size", "naive", "distance", "perfect_naive", "phf", "phf_double", "phf_group"
+            "name, input_size, naive, distance, perfect_naive, phf, phf_double, phf_group"
         )?;
     }
+
     writeln!(
         csv_file,
         "{},{},{:.5},{:.5},{:.5},{:.5},{:.5},{:.5}",
@@ -84,11 +84,12 @@ fn get_every_key_once(lut: &dyn LookUpTable, keys: &[usize]) {
 }
 
 fn run_python_statistics_builder(csv_path: &str) {
+    let msg = format!("Failed to open csv_path: {}", csv_path);
     let output = Command::new("python")
         .arg("crates/rsonpath-lib/src/lookup_table/python_statistic/get_time_eval.py")
         .arg(csv_path)
         .output()
-        .expect(&format!("Failed to open csv_path: {}", csv_path));
+        .expect(&msg);
 
     if output.status.success() {
         if let Err(e) = io::stdout().write_all(&output.stdout) {

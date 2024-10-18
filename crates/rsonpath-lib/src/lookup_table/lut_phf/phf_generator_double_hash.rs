@@ -48,10 +48,11 @@ impl<U: Copy> HashState<U> {
     }
 }
 
+#[inline]
 pub fn build<H: PhfHash>(keys: &[H]) -> HashState<usize> {
     SmallRng::seed_from_u64(FIXED_SEED)
         .sample_iter(Standard)
-        .find_map(|hash_key| try_generate_hash(&keys, hash_key))
+        .find_map(|hash_key| try_generate_hash(keys, hash_key))
         .expect("failed to solve PHF")
 }
 
@@ -114,6 +115,6 @@ fn try_generate_hash<H: PhfHash>(entries: &[H], key: HashKey) -> Option<HashStat
     Some(HashState {
         hash_key: key,
         displacements: disps,
-        map: map.into_iter().map(|i| i.unwrap()).collect(),
+        map: map.into_iter().map(|i| i.expect("Fail @ transform")).collect(),
     })
 }

@@ -67,11 +67,12 @@ pub fn measure_stats(json_path: &str, output_path: &str, csv_path: &str) -> Resu
 }
 
 fn run_python_statistics_builder(csv_path: &str) {
+    let msg = format!("Failed to open csv_path: {}", csv_path);
     let output = Command::new("python")
         .arg("crates/rsonpath-lib/src/lookup_table/python_statistic/stats.py")
         .arg(csv_path)
         .output()
-        .expect(&format!("Failed to open csv_path: {}", csv_path));
+        .expect(&msg);
 
     if output.status.success() {
         if let Err(e) = io::stdout().write_all(&output.stdout) {

@@ -21,7 +21,7 @@ pub fn compare_heap_size(json_path: &str, csv_path: &str) -> Result<(), Box<dyn 
 
     // lut_naive
     let reg = Region::new(GLOBAL);
-    let _lut = LutNaive::build(&json_path)?;
+    let _lut = LutNaive::build(json_path)?;
     let stats_naive = reg.change();
     drop(_lut);
 
@@ -60,33 +60,10 @@ pub fn compare_heap_size(json_path: &str, csv_path: &str) -> Result<(), Box<dyn 
     if csv_file.metadata()?.len() == 0 {
         writeln!(
             csv_file,
-            "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}",
-            "name",
-            "input_size",
-            "naive",
-            "distance",
-            "perfect_naive",
-            "phf",
-            "phf_double",
-            "phf_group",
-            "naive1",
-            "distance1",
-            "perfect_naive1",
-            "phf1",
-            "phf_double1",
-            "phf_group1",
-            "naive2",
-            "distance2",
-            "perfect_naive2",
-            "phf2",
-            "phf_double2",
-            "phf_group2",
-            "naive3",
-            "distance3",
-            "perfect_naive3",
-            "phf3",
-            "phf_double3",
-            "phf_group3"
+            "name,input_size,naive,distance,perfect_naive,phf,phf_double,phf_group, \
+            naive1,distance1,perfect_naive1,phf1,phf_double1,phf_group1, \
+            naive2,distance2,perfect_naive2,phf2,phf_double2,phf_group2, \
+            naive3,distance3,perfect_naive3,phf3,phf_double3,phf_group3"
         )?;
     }
 
@@ -131,11 +108,12 @@ fn heap_value(stats: stats_alloc::Stats) -> isize {
 }
 
 fn run_python_statistics_builder(csv_path: &str) {
+    let msg = format!("Failed to open csv_path: {}", csv_path);
     let output = Command::new("python")
         .arg("crates/rsonpath-lib/src/lookup_table/python_statistic/heap_eval.py")
         .arg(csv_path)
         .output()
-        .expect(&format!("Failed to open csv_path: {}", csv_path));
+        .expect(&msg);
 
     if output.status.success() {
         if let Err(e) = io::stdout().write_all(&output.stdout) {
