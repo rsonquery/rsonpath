@@ -51,6 +51,7 @@ csv = "1.3.0"
 stats_alloc = "0.1.10" # for measuring heap size of runtime datastructures such as the lookup-table
 rand = { version = "0.8", default-features = false, features = ["small_rng"] } # for randomizing the hashfunctions of the lookup-tables
 siphasher = "1.0" # for the phf_crate code
+clap = { version = "4.5.20", features = ["derive"]}
 
 [dev-dependencies]
 itertools = { workspace = true }

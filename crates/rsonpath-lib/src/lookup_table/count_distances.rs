@@ -17,10 +17,14 @@ use crate::{
     FallibleIterator,
 };
 
-pub fn count_distance_for_each_json_in_folder(folder_path: &str) {
-    let folder = fs::read_dir(folder_path).expect("Failed to read directory");
+pub const DISTANCE_EVAL_DIR: &str = "distance_distribution";
 
-    for file in folder {
+/// Count the distances for each json file of the given directory
+pub fn count_distances_in_dir(dir_path: &str, csv_path: &str) {
+    let dir = fs::read_dir(dir_path).expect("Failed to read directory");
+
+    println!("Counting Distances:");
+    for file in dir {
         let file = file.expect("Failed to get entry");
         let path = file.path();
 
@@ -28,15 +32,15 @@ pub fn count_distance_for_each_json_in_folder(folder_path: &str) {
             if let Some(extension) = path.extension() {
                 if extension == "json" {
                     let json_path = path.to_str().expect("Failed to convert path to string");
-                    println!("Processing file: {}", json_path);
-                    count_distances_with_simd(json_path);
+                    println!("  Processing: {}", json_path);
+                    count_distances_with_simd(json_path, csv_path);
                 }
             }
         }
     }
 }
 
-pub fn count_distances_with_simd(json_path: &str) {
+fn count_distances_with_simd(json_path: &str, csv_path: &str) {
     let file = std::fs::File::open(json_path).expect("Fail to open file");
     let filename = util_path::extract_filename(json_path);
 
@@ -56,7 +60,7 @@ pub fn count_distances_with_simd(json_path: &str) {
     });
 
     // Save in CSV: First column = distance, second column = frequency
-    let path = format!(".a_lut_tests/distances/{}_distances.csv", filename);
+    let path = format!("{}/{}/{}_distances.csv", csv_path, DISTANCE_EVAL_DIR, filename);
     let mut wtr = csv::Writer::from_writer(File::create(&path).expect("Failed to create CSV file"));
     wtr.write_record(&["distance", "frequency"])
         .expect("Failed to write CSV header");

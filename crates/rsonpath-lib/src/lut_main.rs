@@ -1,54 +1,85 @@
+use clap::{Parser, Subcommand};
+use rsonpath::lookup_table::{
+    count_distances::{self, DISTANCE_EVAL_DIR},
+    performance::{self, HEAP_EVAL_DIR, TIME_EVAL_DIR},
+};
 use std::{error::Error, fs, path::Path};
 
-use rsonpath::lookup_table::{count_distances, performance};
+#[derive(Parser)]
+#[command(
+    name = "LUT Performance Tool",
+    about = "A tool for evaluating performance and distances."
+)]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    /// Setup the required folder structure
+    Setup {
+        /// Path to the folder holding the structure
+        dir_path: String,
+    },
+
+    /// Measure distances for each JSON in the folder
+    Distances {
+        /// Path to the folder containing JSON files
+        json_dir: String,
+
+        /// Path to the output CSV folder
+        csv_dir: String,
+    },
+
+    /// Run performance tests
+    Performance {
+        /// Path to the input JSON folder
+        json_dir: String,
+
+        /// Path to the output CSV folder
+        csv_dir: String,
+
+        /// Task to run: 0 for time eval, 1 for heap eval, 2 for both
+        tasks: u16,
+    },
+}
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let args: Vec<String> = std::env::args().collect();
+    let cli = Cli::parse();
 
-    if args.len() == 2 {
-        if args[1] == "setup" {
-            create_folder_setup()?;
-            return Ok(());
-        } else {
-            print_bad_input_error_msg();
+    match &cli.command {
+        Commands::Setup { dir_path } => {
+            create_folder_setup(dir_path)?;
+        }
+        Commands::Distances { json_dir, csv_dir } => {
+            count_distances::count_distances_in_dir(json_dir, csv_dir);
+        }
+        Commands::Performance {
+            json_dir,
+            csv_dir,
+            tasks,
+        } => {
+            check_if_dir_exists(json_dir);
+            check_if_dir_exists(csv_dir);
+            performance::performance_test(json_dir, csv_dir, *tasks);
         }
     }
-
-    if args.len() == 3 {
-        if args[1] == "distances" {
-            count_distances::count_distance_for_each_json_in_folder(&args[2]);
-            return Ok(());
-        } else {
-            print_bad_input_error_msg();
-        }
-    }
-
-    if args.len() != 4 {
-        print_bad_input_error_msg();
-    }
-
-    let input_json_dir = &args[1];
-    let output_performance_dir = &args[2];
-    let tasks = &args[3].parse::<u16>().unwrap();
-    check_if_dir_exists(input_json_dir);
-    check_if_dir_exists(output_performance_dir);
-
-    performance::performance_test(input_json_dir, output_performance_dir, *tasks);
 
     Ok(())
 }
 
 /// Creates the required folder structure if it does not exist.
-fn create_folder_setup() -> std::io::Result<()> {
+fn create_folder_setup(dir_name: &str) -> std::io::Result<()> {
     let dirs = [
-        ".a_lut_tests",
-        ".a_lut_tests/performance",
-        ".a_lut_tests/distances",
-        ".a_lut_tests/output",
-        ".a_lut_tests/test_data",
+        dir_name,
+        &format!("{}/performance", dir_name),
+        &format!("{}/performance/{}", dir_name, HEAP_EVAL_DIR),
+        &format!("{}/performance/{}", dir_name, TIME_EVAL_DIR),
+        &format!("{}/performance/{}", dir_name, DISTANCE_EVAL_DIR),
+        &format!("{}/test_data", dir_name),
     ];
 
-    // Iterate over each path and create the directory if it doesn't exist
     for dir in &dirs {
         let path = Path::new(dir);
         if !path.exists() {
@@ -60,17 +91,6 @@ fn create_folder_setup() -> std::io::Result<()> {
     }
 
     Ok(())
-}
-
-fn print_bad_input_error_msg() {
-    eprintln!(
-        "Usage:\n
-    cargo run --bin lut --release -- setup\n
-    cargo run --bin lut --release -- <json_folder> <csv_folder> <tasks>\n
-    cargo run --bin lut --release -- distances .<json_folder>
-    "
-    );
-    std::process::exit(1);
 }
 
 fn check_if_dir_exists(path: &str) {

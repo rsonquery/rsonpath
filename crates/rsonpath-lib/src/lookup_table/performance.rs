@@ -5,8 +5,8 @@ pub mod compare;
 pub mod heap_size;
 pub mod stats;
 
-const HEAP_EVAL_DIR: &str = "heap_evaluation";
-const TIME_EVAL_DIR: &str = "time_evaluation";
+pub const HEAP_EVAL_DIR: &str = "heap_evaluation";
+pub const TIME_EVAL_DIR: &str = "time_evaluation";
 
 /// INPUT: json_dir, OUTPUT: csv_dir
 #[inline]
