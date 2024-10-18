@@ -53,6 +53,7 @@ rand = { version = "0.8", default-features = false, features = ["small_rng"] } #
 siphasher = "1.0" # for the phf_crate code
 clap = { version = "4.5.20", features = ["derive"]}
 itertools = "0.13.0"
+rayon = {version = "1.10"}
 
 [dev-dependencies]
 itertools = { workspace = true }

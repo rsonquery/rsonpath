@@ -4,7 +4,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 def plot_build_time(df: pd.DataFrame, save_path: str) -> None:
-    # Sort the dataframe by input_size
     df = df.sort_values(by='input_size')
 
     # Set the plot size
@@ -33,7 +32,6 @@ def plot_build_time(df: pd.DataFrame, save_path: str) -> None:
     # Automatically adjust layout to prevent label cut-off
     plt.tight_layout()
 
-    # Save the plot
     plt.savefig(save_path)
 
 if __name__ == "__main__":

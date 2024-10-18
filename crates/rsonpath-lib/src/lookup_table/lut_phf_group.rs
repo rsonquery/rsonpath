@@ -10,13 +10,13 @@ use crate::{
     result::empty::EmptyRecorder,
     FallibleIterator,
 };
-use itertools::izip;
+use rayon::prelude::*;
 use std::{collections::VecDeque, fs};
 
 const BIT_MASK: usize = 0xF; // Keeps the lower 4 bit
 
 pub struct LutPHFGroup {
-    pub buckets: Vec<LutPHFDouble>, // always size = BUCKETS_SIZE
+    pub buckets: Vec<LutPHFDouble>, // size is always 16 at the moment
 }
 
 impl LookUpTable for LutPHFGroup {
@@ -56,8 +56,13 @@ impl LutPHFGroup {
         bucket_keys_64: Vec<Vec<usize>>,
         bucket_values_64: Vec<Vec<usize>>,
     ) -> Self {
-        let buckets = izip!(bucket_keys_16, bucket_values_16, bucket_keys_64, bucket_values_64)
-            .map(|(keys_16, values_16, keys_64, values_64)| {
+        // Parallel
+        let buckets: Vec<LutPHFDouble> = bucket_keys_16
+            .into_par_iter()
+            .zip(bucket_values_16.into_par_iter())
+            .zip(bucket_keys_64.into_par_iter())
+            .zip(bucket_values_64.into_par_iter())
+            .map(|(((keys_16, values_16), keys_64), values_64)| {
                 LutPHFDouble::build_double(keys_16, values_16, keys_64, values_64)
             })
             .collect();

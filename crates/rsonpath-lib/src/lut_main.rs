@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 use rsonpath::lookup_table::{
     count_distances::{self, DISTANCE_EVAL_DIR},
-    performance::{self, HEAP_EVAL_DIR, TIME_EVAL_DIR},
+    performance::{self, BUILD_TIME_EVAL_DIR, GET_TIME_EVAL_DIR, HEAP_EVAL_DIR},
 };
 use std::{error::Error, fs, path::Path};
 
@@ -34,7 +34,7 @@ enum Commands {
         /// Path to the output directory
         out_dir: String,
 
-        /// Task to run: 0 for time eval, 1 for heap eval, 2 for both
+        /// Task to run: 0 for time eval, 1 for get eval, 2 for heap eval, 2 for both
         tasks: u16,
     },
 }
@@ -72,7 +72,8 @@ fn create_folder_setup(dir_name: &str) -> std::io::Result<()> {
         dir_name,
         &format!("{}/performance", dir_name),
         &format!("{}/performance/{}", dir_name, HEAP_EVAL_DIR),
-        &format!("{}/performance/{}", dir_name, TIME_EVAL_DIR),
+        &format!("{}/performance/{}", dir_name, BUILD_TIME_EVAL_DIR),
+        &format!("{}/performance/{}", dir_name, GET_TIME_EVAL_DIR),
         &format!("{}/performance/{}", dir_name, DISTANCE_EVAL_DIR),
         &format!("{}/test_data", dir_name),
     ];
@@ -82,8 +83,6 @@ fn create_folder_setup(dir_name: &str) -> std::io::Result<()> {
         if !path.exists() {
             fs::create_dir_all(path)?;
             println!("Created directory: {}", dir);
-        } else {
-            println!("Directory already exists: {}", dir);
         }
     }
 

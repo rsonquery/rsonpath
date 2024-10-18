@@ -72,7 +72,7 @@ pub fn compare_build_time(json_path: &str, csv_path: &str) -> Result<(), Box<dyn
 
 fn run_python_statistics_builder(csv_path: &str) {
     let output = Command::new("python")
-        .arg("crates/rsonpath-lib/src/lookup_table/python_statistic/time_eval.py")
+        .arg("crates/rsonpath-lib/src/lookup_table/python_statistic/build_time_eval.py")
         .arg(csv_path)
         .output()
         .expect(&format!("Failed to open csv_path: {}", csv_path));

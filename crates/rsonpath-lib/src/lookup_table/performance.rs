@@ -1,22 +1,26 @@
 use crate::lookup_table::util_path;
 use std::{error::Error, fs, path::Path};
 
+pub mod build_time_eval;
+pub mod get_time_eval;
 pub mod heap_eval;
 pub mod stats;
-pub mod time_eval;
 
 pub const HEAP_EVAL_DIR: &str = "heap_evaluation";
-pub const TIME_EVAL_DIR: &str = "time_evaluation";
+pub const BUILD_TIME_EVAL_DIR: &str = "build_time_evaluation";
+pub const GET_TIME_EVAL_DIR: &str = "get_time_evaluation";
 
 /// INPUT: json_dir, OUTPUT: csv_dir
 #[inline]
 pub fn performance_test(json_dir: &str, csv_dir: &str, tasks: u16) {
     match tasks {
-        0 => time_evaluation(json_dir, csv_dir),
+        0 => build_time_evaluation(json_dir, csv_dir),
         1 => heap_evaluation(json_dir, csv_dir),
-        2 => {
-            time_evaluation(json_dir, csv_dir);
+        2 => get_time_evaluation(json_dir, csv_dir),
+        3 => {
+            build_time_evaluation(json_dir, csv_dir);
             heap_evaluation(json_dir, csv_dir);
+            get_time_evaluation(json_dir, csv_dir);
         }
         _ => eprintln!("Invalid task selection"),
     }
@@ -52,12 +56,21 @@ fn evaluate(
     }
 }
 
-fn time_evaluation(json_dir: &str, csv_dir: &str) {
-    evaluate(json_dir, csv_dir, TIME_EVAL_DIR, time_eval::compare_build_time);
+fn build_time_evaluation(json_dir: &str, csv_dir: &str) {
+    evaluate(
+        json_dir,
+        csv_dir,
+        BUILD_TIME_EVAL_DIR,
+        build_time_eval::compare_build_time,
+    );
 }
 
 fn heap_evaluation(json_dir: &str, csv_dir: &str) {
     evaluate(json_dir, csv_dir, HEAP_EVAL_DIR, heap_eval::compare_heap_size);
+}
+
+fn get_time_evaluation(json_dir: &str, csv_dir: &str) {
+    evaluate(json_dir, csv_dir, GET_TIME_EVAL_DIR, get_time_eval::compare_get_time);
 }
 
 /// Check if csv_path already exists and if it does rename it with a unique number

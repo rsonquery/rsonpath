@@ -1310,6 +1310,7 @@ dependencies = [
  "pretty_assertions",
  "proptest",
  "rand 0.8.5",
+ "rayon",
  "rsonpath-syntax",
  "serde",
  "serde_cbor",
