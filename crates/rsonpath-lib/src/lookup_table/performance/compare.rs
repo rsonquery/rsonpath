@@ -8,11 +8,9 @@ use crate::lookup_table::{
 };
 
 #[inline]
-pub fn compare_luts_in_speed_and_size(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Error>> {
-    println!("- compare");
-
+pub fn compare_build_time(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Error>> {
     let file = std::fs::File::open(json_path)?;
-    let filename = util_path::get_filename_from_path(json_path);
+    let filename = util_path::extract_filename(json_path);
 
     // lut_naive
     let start_build = std::time::Instant::now();

@@ -9,7 +9,7 @@ use crate::lookup_table::{lut_naive::LutNaive, util_path, LookUpTable};
 pub fn measure_stats(json_path: &str, output_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Error>> {
     println!("- stats");
     let file = std::fs::File::open(json_path)?;
-    let filename = util_path::get_filename_from_path(json_path);
+    let filename = util_path::extract_filename(json_path);
 
     // Measure build duration
     let start_build = std::time::Instant::now();

@@ -38,7 +38,7 @@ pub fn count_distance_for_each_json_in_folder(folder_path: &str) {
 
 pub fn count_distances_with_simd(json_path: &str) {
     let file = std::fs::File::open(json_path).expect("Fail to open file");
-    let filename = util_path::get_filename_from_path(json_path);
+    let filename = util_path::extract_filename(json_path);
 
     // SAFETY: We keep the file open throughout the entire duration.
     let input = unsafe { input::MmapInput::map_file(&file).expect("Failed to map file") };

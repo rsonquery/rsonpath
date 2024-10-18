@@ -1,57 +1,72 @@
-use std::path::Path;
-use std::{error::Error, fs};
-
 use crate::lookup_table::util_path;
+use std::{error::Error, fs, path::Path};
 
 pub mod compare;
 pub mod heap_size;
 pub mod stats;
 
+const HEAP_EVAL_DIR: &str = "heap_evaluation";
+const TIME_EVAL_DIR: &str = "time_evaluation";
+
+/// INPUT: json_dir, OUTPUT: csv_dir
 #[inline]
-pub fn performance_test(json_folder: &str, output_path: &str, csv_folder: &str) -> Result<(), Box<dyn Error>> {
-    let metadata = fs::metadata(json_folder)?;
+pub fn performance_test(json_dir: &str, csv_dir: &str, tasks: u16) {
+    match tasks {
+        0 => time_evaluation(json_dir, csv_dir),
+        1 => heap_evaluation(json_dir, csv_dir),
+        2 => {
+            time_evaluation(json_dir, csv_dir);
+            heap_evaluation(json_dir, csv_dir);
+        }
+        _ => eprintln!("Invalid task selection"),
+    }
+}
 
+fn evaluate(
+    json_dir: &str,
+    csv_dir: &str,
+    eval_type: &str,
+    eval_fn: impl Fn(&str, &str) -> Result<(), Box<dyn Error>>,
+) {
+    let evaluation_dir = format!("{}/{}", csv_dir, eval_type);
+    fs::create_dir_all(&evaluation_dir).expect("Failed to create output directory");
+
+    let metadata = fs::metadata(json_dir).expect("Can't open json_dir");
     if metadata.is_dir() {
-        let folder_name = util_path::get_filename_from_path(json_folder);
-        let suffix = get_next_valid_filename(json_folder, csv_folder);
-        let csv_path_stats = format!("{}/{}_stats{}.csv", csv_folder, folder_name, suffix);
-        let csv_path_compare = format!("{}/{}_compare{}.csv", csv_folder, folder_name, suffix);
-        let csv_path_heap_size = format!("{}/{}_heap_size{}.csv", csv_folder, folder_name, suffix);
+        let dir_name = util_path::extract_filename(json_dir);
+        let suffix = get_next_valid_filename(json_dir, csv_dir);
+        let csv_path = format!("{}/{}/{}_compare{}.csv", csv_dir, eval_type, dir_name, suffix);
 
-        for entry in fs::read_dir(json_folder)? {
-            let entry = entry?;
-            let path = entry.path();
-
+        for entry in fs::read_dir(json_dir).expect("Can't build iterator") {
+            let path = entry.expect("Can't open file").path();
             if path.extension().and_then(|s| s.to_str()) == Some("json") {
                 let sub_json_path = path.to_str().expect("Failed to convert path to string");
-
-                println!("Processing: {}", util_path::get_filename_from_path(sub_json_path));
-                // stats::measure_stats(sub_json_path, output_path, &csv_path_stats)?;
-                // compare::compare_luts_in_speed_and_size(sub_json_path, &csv_path_compare)?;
-                heap_size::compare_heap_size(sub_json_path, &csv_path_heap_size)?;
+                println!(
+                    "Measuring {}: {}",
+                    eval_type,
+                    util_path::extract_filename(sub_json_path)
+                );
+                eval_fn(sub_json_path, &csv_path).expect("Failed at measuring");
             }
         }
     }
-
-    Ok(())
 }
 
-// Check if csv_path already exists and if it does rename it with a unique number
+fn time_evaluation(json_dir: &str, csv_dir: &str) {
+    evaluate(json_dir, csv_dir, TIME_EVAL_DIR, compare::compare_build_time);
+}
+
+fn heap_evaluation(json_dir: &str, csv_dir: &str) {
+    evaluate(json_dir, csv_dir, HEAP_EVAL_DIR, heap_size::compare_heap_size);
+}
+
+/// Check if csv_path already exists and if it does rename it with a unique number
 fn get_next_valid_filename(json_folder: &str, csv_folder: &str) -> String {
-    let mut csv_path = format!(
-        "{}/{}_stats.csv",
-        csv_folder,
-        util_path::get_filename_from_path(json_folder)
-    );
+    let base_path = format!("{}/{}_stats", csv_folder, util_path::extract_filename(json_folder));
     let mut counter = 0;
-    while Path::new(&csv_path).exists() {
+
+    while Path::new(&format!("{}.csv", base_path)).exists() {
         counter += 1;
-        csv_path = format!(
-            "{}/{}_stats({}).csv",
-            csv_folder,
-            util_path::get_filename_from_path(json_folder),
-            counter
-        );
     }
 
     if counter > 0 {

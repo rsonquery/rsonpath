@@ -27,15 +27,13 @@ fn main() -> Result<(), Box<dyn Error>> {
         print_bad_input_error_msg();
     }
 
-    let json_folder = &args[1];
-    let output_folder = &args[2];
-    let csv_folder = &args[3];
+    let input_json_dir = &args[1];
+    let output_performance_dir = &args[2];
+    let tasks = &args[3].parse::<u16>().unwrap();
+    check_if_dir_exists(input_json_dir);
+    check_if_dir_exists(output_performance_dir);
 
-    check_if_folder_exists(json_folder);
-    check_if_folder_exists(output_folder);
-    check_if_folder_exists(csv_folder);
-
-    performance::performance_test(json_folder, output_folder, csv_folder)?;
+    performance::performance_test(input_json_dir, output_performance_dir, *tasks);
 
     Ok(())
 }
@@ -68,14 +66,14 @@ fn print_bad_input_error_msg() {
     eprintln!(
         "Usage:\n
     cargo run --bin lut --release -- setup\n
-    cargo run --bin lut --release -- <json_folder> <output_folder> <csv_folder>\n
+    cargo run --bin lut --release -- <json_folder> <csv_folder> <tasks>\n
     cargo run --bin lut --release -- distances .<json_folder>
     "
     );
     std::process::exit(1);
 }
 
-fn check_if_folder_exists(path: &str) {
+fn check_if_dir_exists(path: &str) {
     if fs::metadata(path).is_err() {
         eprintln!("Error: The provided folder '{}' does not exist.", path);
         std::process::exit(1);

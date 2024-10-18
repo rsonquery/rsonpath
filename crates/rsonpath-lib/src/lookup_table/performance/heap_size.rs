@@ -19,7 +19,7 @@ pub fn compare_heap_size(json_path: &str, csv_path: &str) -> Result<(), Box<dyn 
     println!("- heap_size");
 
     let file = std::fs::File::open(json_path)?;
-    let filename = util_path::get_filename_from_path(json_path);
+    let filename = util_path::extract_filename(json_path);
 
     // lut_naive
     let reg = Region::new(GLOBAL);

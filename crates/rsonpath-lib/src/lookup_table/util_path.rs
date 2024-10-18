@@ -2,7 +2,7 @@ use std::path::Path;
 
 #[inline]
 #[must_use]
-pub fn get_filename_from_path(path: &str) -> String {
+pub fn extract_filename(path: &str) -> String {
     let path = std::path::Path::new(path);
     let filename = path.file_stem().expect("Failed to extract filename");
     filename.to_string_lossy().into_owned()
