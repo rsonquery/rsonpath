@@ -4,7 +4,8 @@ use std::{
 };
 
 use crate::lookup_table::{
-    lut_distance::LutDistance, lut_naive::LutNaive, lut_perfect_naive::LutPerfectNaive, util_path, LookUpTable,
+    lut_distance::LutDistance, lut_naive::LutNaive, lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF,
+    lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup, util_path, LookUpTable,
 };
 
 #[inline]
@@ -14,35 +15,54 @@ pub fn compare_build_time(json_path: &str, csv_path: &str) -> Result<(), Box<dyn
 
     // lut_naive
     let start_build = std::time::Instant::now();
-    let lut_naive = LutNaive::build(json_path)?;
+    let _ = LutNaive::build(json_path)?;
     let naive_build_time = start_build.elapsed();
 
     // lut_distance
     let start_build = std::time::Instant::now();
-    let lut_distance = LutDistance::build(json_path)?;
+    let _ = LutDistance::build(json_path)?;
     let distance_build_time = start_build.elapsed();
 
     // lut_perfect_naive
     let start_build = std::time::Instant::now();
-    let lut_perfect_naive = LutPerfectNaive::build(json_path)?;
+    let _ = LutPerfectNaive::build(json_path)?;
     let perfect_naive_build_time = start_build.elapsed();
+
+    // lut_phf
+    let start_build = std::time::Instant::now();
+    let _ = LutPHF::build(json_path)?;
+    let phf_build_time = start_build.elapsed();
+
+    // lut_phf_double
+    let start_build = std::time::Instant::now();
+    let _ = LutPHFDouble::build(json_path)?;
+    let phf_double_build_time = start_build.elapsed();
+
+    // lut_phf_group
+    let start_build = std::time::Instant::now();
+    let _ = LutPHFGroup::build(json_path)?;
+    let phf_group_build_time = start_build.elapsed();
 
     // Open or create the CSV file for appending
     let mut csv_file = std::fs::OpenOptions::new().append(true).create(true).open(csv_path)?;
     if csv_file.metadata()?.len() == 0 {
-        writeln!(csv_file, "name,input_size,build_naive,build_distance,build_perfect_naive,naive_size,distance_size,perfect_naive_size")?;
+        writeln!(
+            csv_file,
+            "{},{},{},{},{},{},{},{}",
+            "name", "input_size", "naive", "distance", "perfect_naive", "phf", "phf_double", "phf_group"
+        )?;
     }
     writeln!(
         csv_file,
-        "{},{},{:.5},{:.5},{:.5},{},{},{}",
+        "{},{},{:.5},{:.5},{:.5},{:.5},{:.5},{:.5}",
         filename,
         file.metadata().expect("Can't open file").len(),
         naive_build_time.as_secs_f64(),
         distance_build_time.as_secs_f64(),
         perfect_naive_build_time.as_secs_f64(),
-        lut_naive.estimate_cbor_size(),
-        lut_distance.estimate_cbor_size(),
-        lut_perfect_naive.estimate_cbor_size(),
+        phf_build_time.as_secs_f64(),
+        phf_double_build_time.as_secs_f64(),
+        phf_group_build_time.as_secs_f64(),
     )?;
 
     run_python_statistics_builder(csv_path);
@@ -52,7 +72,7 @@ pub fn compare_build_time(json_path: &str, csv_path: &str) -> Result<(), Box<dyn
 
 fn run_python_statistics_builder(csv_path: &str) {
     let output = Command::new("python")
-        .arg("crates/rsonpath-lib/src/lookup_table/python_statistic/compare.py")
+        .arg("crates/rsonpath-lib/src/lookup_table/python_statistic/time_eval.py")
         .arg(csv_path)
         .output()
         .expect(&format!("Failed to open csv_path: {}", csv_path));

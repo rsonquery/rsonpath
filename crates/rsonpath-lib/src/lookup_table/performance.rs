@@ -1,9 +1,9 @@
 use crate::lookup_table::util_path;
 use std::{error::Error, fs, path::Path};
 
-pub mod compare;
 pub mod heap_size;
 pub mod stats;
+pub mod time_eval;
 
 pub const HEAP_EVAL_DIR: &str = "heap_evaluation";
 pub const TIME_EVAL_DIR: &str = "time_evaluation";
@@ -53,7 +53,7 @@ fn evaluate(
 }
 
 fn time_evaluation(json_dir: &str, csv_dir: &str) {
-    evaluate(json_dir, csv_dir, TIME_EVAL_DIR, compare::compare_build_time);
+    evaluate(json_dir, csv_dir, TIME_EVAL_DIR, time_eval::compare_build_time);
 }
 
 fn heap_evaluation(json_dir: &str, csv_dir: &str) {

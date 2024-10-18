@@ -1,9 +1,12 @@
 import sys
 import os
 import pandas as pd
+import matplotlib.pyplot as plt
 
-import src.plot_compare as compare
-
+def plot_build_time(df: pd.DataFrame, save_path: str) -> None:
+    # TODO
+    print("TODO")
+    
 if __name__ == "__main__":
     # Load the CSV file
     file_path = sys.argv[1]
@@ -12,5 +15,4 @@ if __name__ == "__main__":
 
     # Plot
     df = pd.read_csv(sys.argv[1])
-    compare.plot_size(df, os.path.join(directory, f"{file_base_name}_vs_size.png"))
-    compare.plot_speed(df, os.path.join(directory, f"{file_base_name}_vs_speed.png"))
+    plot_build_time(df, os.path.join(directory, f"{file_base_name}_build_time.png"))
