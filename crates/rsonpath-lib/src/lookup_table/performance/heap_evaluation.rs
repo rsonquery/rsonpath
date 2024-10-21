@@ -32,10 +32,10 @@ pub fn compare_heap_size(json_path: &str, csv_path: &str) -> Result<(), Box<dyn 
     drop(_lut);
 
     // lut_perfect_naive
-    let reg = Region::new(GLOBAL);
-    let _lut = LutPerfectNaive::build(json_path)?;
-    let stats_perfect_naive = reg.change();
-    drop(_lut);
+    // let reg = Region::new(GLOBAL);
+    // let _lut = LutPerfectNaive::build(json_path)?;
+    // let stats_perfect_naive = reg.change();
+    // drop(_lut);
 
     // lut_phf
     let reg = Region::new(GLOBAL);
@@ -69,30 +69,30 @@ pub fn compare_heap_size(json_path: &str, csv_path: &str) -> Result<(), Box<dyn 
 
     writeln!(
         csv_file,
-        "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}",
+        "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}",
         filename,
         file.metadata().expect("Can't open file").len(),
         heap_value(stats_naive),
         heap_value(stats_distance),
-        heap_value(stats_perfect_naive),
+        // heap_value(stats_perfect_naive),
         heap_value(stats_phf),
         heap_value(stats_phf_double),
         heap_value(stats_phf_group),
         stats_naive.bytes_allocated,
         stats_distance.bytes_allocated,
-        stats_perfect_naive.bytes_allocated,
+        // stats_perfect_naive.bytes_allocated,
         stats_phf.bytes_allocated,
         stats_phf_double.bytes_allocated,
         stats_phf_group.bytes_allocated,
         stats_naive.bytes_deallocated,
         stats_distance.bytes_deallocated,
-        stats_perfect_naive.bytes_deallocated,
+        // stats_perfect_naive.bytes_deallocated,
         stats_phf.bytes_deallocated,
         stats_phf_double.bytes_deallocated,
         stats_phf_group.bytes_deallocated,
         stats_naive.bytes_reallocated,
         stats_distance.bytes_reallocated,
-        stats_perfect_naive.bytes_reallocated,
+        // stats_perfect_naive.bytes_reallocated,
         stats_phf.bytes_reallocated,
         stats_phf_double.bytes_reallocated,
         stats_phf_group.bytes_reallocated,
@@ -104,7 +104,8 @@ pub fn compare_heap_size(json_path: &str, csv_path: &str) -> Result<(), Box<dyn 
 }
 
 fn heap_value(stats: stats_alloc::Stats) -> isize {
-    stats.bytes_allocated as isize - stats.bytes_deallocated as isize + stats.bytes_reallocated
+    // stats.bytes_allocated as isize - stats.bytes_deallocated as isize + stats.bytes_reallocated
+    stats.bytes_allocated as isize - stats.bytes_deallocated as isize
 }
 
 fn run_python_statistics_builder(csv_path: &str) {

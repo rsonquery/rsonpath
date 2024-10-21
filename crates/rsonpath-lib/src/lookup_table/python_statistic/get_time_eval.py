@@ -44,4 +44,4 @@ if __name__ == "__main__":
     df = pd.read_csv(file_path)
 
     # Plot and save the build time graph
-    plot_get_time(df, os.path.join(directory, f"{file_base_name}_build_time.png"))
+    plot_get_time(df, os.path.join(directory, f"{file_base_name}_get_time.png"))

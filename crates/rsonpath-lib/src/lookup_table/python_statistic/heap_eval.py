@@ -10,7 +10,7 @@ def plot_size(df: pd.DataFrame, save_path: str) -> None:
     plt.figure(figsize=(10, 6))
     plt.plot(df_sorted['name'], df_sorted['naive'], marker='o', label='Naive')
     plt.plot(df_sorted['name'], df_sorted['distance'], marker='o', label='Distance')
-    plt.plot(df_sorted['name'], df_sorted['perfect_naive'], marker='o', label='Perfect Naive')
+    # plt.plot(df_sorted['name'], df_sorted['perfect_naive'], marker='o', label='Perfect Naive')
     plt.plot(df_sorted['name'], df_sorted['phf'], marker='o', label='PHF')
     plt.plot(df_sorted['name'], df_sorted['phf_double'], marker='o', label='PHF Double')
     plt.plot(df_sorted['name'], df_sorted['phf_group'], marker='o', label='PHF Group')

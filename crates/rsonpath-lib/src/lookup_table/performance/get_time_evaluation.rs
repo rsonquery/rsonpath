@@ -55,7 +55,7 @@ pub fn compare_get_time(json_path: &str, csv_path: &str) -> Result<(), Box<dyn s
     if csv_file.metadata()?.len() == 0 {
         writeln!(
             csv_file,
-            "name, input_size, naive, distance, perfect_naive, phf, phf_double, phf_group"
+            "name,input_size,naive,distance,perfect_naive,phf,phf_double,phf_group"
         )?;
     }
 
