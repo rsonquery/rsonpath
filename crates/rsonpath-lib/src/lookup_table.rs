@@ -1,5 +1,4 @@
 pub mod count_distances;
-pub mod lut_distance;
 pub mod lut_naive;
 pub mod lut_perfect_naive;
 pub mod lut_phf;
@@ -15,4 +14,6 @@ pub trait LookUpTable {
         Self: Sized;
 
     fn get(&self, key: &usize) -> Option<usize>;
+
+    fn allocated_bytes(&self) -> usize;
 }

@@ -1,6 +1,6 @@
 use crate::lookup_table::{
-    lut_distance::LutDistance, lut_naive::LutNaive, lut_phf::LutPHF, lut_phf_double::LutPHFDouble,
-    lut_phf_group::LutPHFGroup, util_path, LookUpTable,
+    count_distances, lut_naive::LutNaive, lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF,
+    lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup, util_path, LookUpTable,
 };
 use stats_alloc::{Region, StatsAlloc, INSTRUMENTED_SYSTEM};
 use std::{
@@ -17,83 +17,71 @@ pub fn compare_heap_size(json_path: &str, csv_path: &str) -> Result<(), Box<dyn 
     let file = std::fs::File::open(json_path)?;
     let filename = util_path::extract_filename(json_path);
 
+    let num_keys = count_distances::count_num_pairs(json_path);
+
     // lut_naive
     let reg = Region::new(GLOBAL);
-    let _lut = LutNaive::build(json_path)?;
+    let lut = LutNaive::build(json_path)?;
     let stats_naive = reg.change();
-    drop(_lut);
-
-    // lut_distance
-    let reg = Region::new(GLOBAL);
-    let _lut = LutDistance::build(json_path)?;
-    let stats_distance = reg.change();
-    drop(_lut);
+    let naive_capacity = lut.allocated_bytes();
+    drop(lut);
 
     // lut_perfect_naive
-    // let reg = Region::new(GLOBAL);
-    // let _lut = LutPerfectNaive::build(json_path)?;
-    // let stats_perfect_naive = reg.change();
-    // drop(_lut);
+    let reg = Region::new(GLOBAL);
+    let lut = LutPerfectNaive::build(json_path)?;
+    let stats_perfect_naive = reg.change();
+    let perfect_naive_capacity = lut.allocated_bytes();
+    drop(lut);
 
     // lut_phf
     let reg = Region::new(GLOBAL);
-    let _lut = LutPHF::build(json_path)?;
+    let lut = LutPHF::build(json_path)?;
     let stats_phf = reg.change();
-    drop(_lut);
+    let phf_capacity = lut.allocated_bytes();
+    drop(lut);
 
     // lut_phf_double
     let reg = Region::new(GLOBAL);
-    let _lut = LutPHFDouble::build(json_path)?;
+    let lut = LutPHFDouble::build(json_path)?;
     let stats_phf_double = reg.change();
-    drop(_lut);
+    let phf_double_capacity = lut.allocated_bytes();
+    drop(lut);
 
     // lut_phf_group
     let reg = Region::new(GLOBAL);
-    let _lut = LutPHFGroup::build(json_path)?;
+    let lut = LutPHFGroup::build(json_path)?;
     let stats_phf_group = reg.change();
-    drop(_lut);
+    let phf_group_capacity = lut.allocated_bytes();
+    drop(lut);
 
     // Open or create the CSV file for appending
     let mut csv_file = std::fs::OpenOptions::new().append(true).create(true).open(csv_path)?;
     if csv_file.metadata()?.len() == 0 {
         writeln!(
             csv_file,
-            "name,input_size,naive,distance,perfect_naive,phf,phf_double,phf_group, \
-            naive1,distance1,perfect_naive1,phf1,phf_double1,phf_group1, \
-            naive2,distance2,perfect_naive2,phf2,phf_double2,phf_group2, \
-            naive3,distance3,perfect_naive3,phf3,phf_double3,phf_group3"
+            "name,input_size,num_keys,\
+            naive,perfect_naive,phf,phf_double,phf_group,\
+            naive_capacity,perfect_naive_capacity,phf_capacity,phf_double_capacity,phf_group_capacity,\
+            "
         )?;
     }
 
     writeln!(
         csv_file,
-        "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}",
+        "{},{},{},{},{},{},{},{},{},{},{},{},{}",
         filename,
         file.metadata().expect("Can't open file").len(),
+        num_keys,
         heap_value(stats_naive),
-        heap_value(stats_distance),
-        // heap_value(stats_perfect_naive),
+        heap_value(stats_perfect_naive),
         heap_value(stats_phf),
         heap_value(stats_phf_double),
         heap_value(stats_phf_group),
-        stats_naive.bytes_allocated,
-        stats_distance.bytes_allocated,
-        // stats_perfect_naive.bytes_allocated,
-        stats_phf.bytes_allocated,
-        stats_phf_double.bytes_allocated,
-        stats_phf_group.bytes_allocated,
-        stats_naive.bytes_deallocated,
-        stats_distance.bytes_deallocated,
-        // stats_perfect_naive.bytes_deallocated,
-        stats_phf.bytes_deallocated,
-        stats_phf_double.bytes_deallocated,
-        stats_phf_group.bytes_deallocated,
-        stats_naive.bytes_reallocated,
-        stats_distance.bytes_reallocated,
-        // stats_perfect_naive.bytes_reallocated,
-        stats_phf.bytes_reallocated,
-        stats_phf_double.bytes_reallocated,
-        stats_phf_group.bytes_reallocated,
+        naive_capacity,
+        perfect_naive_capacity,
+        phf_capacity,
+        phf_double_capacity,
+        phf_group_capacity
     )?;
 
     run_python_statistics_builder(csv_path);

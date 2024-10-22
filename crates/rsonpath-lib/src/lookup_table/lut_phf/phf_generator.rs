@@ -1,11 +1,9 @@
-use std::fmt;
-
+use crate::lookup_table::lut_phf::phf_shared;
+use crate::lookup_table::lut_phf::phf_shared::{HashKey, PhfHash};
 use rand::distributions::Standard;
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
-
-use crate::lookup_table::lut_phf::phf_shared;
-use crate::lookup_table::lut_phf::phf_shared::{HashKey, PhfHash};
+use std::fmt;
 
 const DEFAULT_LAMBDA: usize = 5;
 const FIXED_SEED: u64 = 1_234_567_890;
@@ -102,7 +100,6 @@ fn try_generate_hash<H: PhfHash>(entries: &[H], key: HashKey) -> Option<HashStat
 // ##############################
 // #      Added by Ricardo      #
 // ##############################
-
 impl fmt::Display for HashState {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -125,5 +122,14 @@ impl HashState {
 
         // Retrieve the value from the map, if the index is within bounds
         (index < self.map.len()).then(|| self.map[index])
+    }
+
+    #[inline]
+    pub fn allocated_bytes(&self) -> usize {
+        let mut total_size = std::mem::size_of::<Self>();
+        total_size += std::mem::size_of::<HashKey>();
+        total_size += self.displacements.capacity() * std::mem::size_of::<(u32, u32)>();
+        total_size += self.map.capacity() * std::mem::size_of::<usize>();
+        total_size
     }
 }

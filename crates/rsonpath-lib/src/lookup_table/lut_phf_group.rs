@@ -16,7 +16,7 @@ use std::{collections::VecDeque, fs};
 const BIT_MASK: usize = 0xF; // Keeps the lower 4 bit
 
 pub struct LutPHFGroup {
-    pub buckets: Vec<LutPHFDouble>, // size is always 16 at the moment
+    pub lut_doubles: Vec<LutPHFDouble>, // size is always 16 at the moment
 }
 
 impl LookUpTable for LutPHFGroup {
@@ -36,7 +36,7 @@ impl LookUpTable for LutPHFGroup {
             V: Simd,{
                 let (bucket_keys_16, bucket_values_16, bucket_keys_64, bucket_values_64) =
                     LutPHFGroup::find_all_pairs::<I, V>(&input, simd)?;
-                Ok(LutPHFGroup::build_buckets(bucket_keys_16, bucket_values_16, bucket_keys_64, bucket_values_64))
+                Ok(LutPHFGroup::build_lut_doubles(bucket_keys_16, bucket_values_16, bucket_keys_64, bucket_values_64))
             })
         });
         lut_perfect_naive.map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
@@ -45,12 +45,21 @@ impl LookUpTable for LutPHFGroup {
     #[inline]
     fn get(&self, key: &usize) -> Option<usize> {
         let bucket_index = key & BIT_MASK; // Logical AND with BIT_MASK to get the bucket index
-        self.buckets[bucket_index].get(key)
+        self.lut_doubles[bucket_index].get(key)
+    }
+
+    #[inline]
+    fn allocated_bytes(&self) -> usize {
+        let mut total_size = std::mem::size_of::<Self>();
+        for bucket in &self.lut_doubles {
+            total_size += bucket.allocated_bytes();
+        }
+        total_size
     }
 }
 
 impl LutPHFGroup {
-    fn build_buckets(
+    fn build_lut_doubles(
         bucket_keys_16: Vec<Vec<usize>>,
         bucket_values_16: Vec<Vec<u16>>,
         bucket_keys_64: Vec<Vec<usize>>,
@@ -67,7 +76,7 @@ impl LutPHFGroup {
             })
             .collect();
 
-        Self { buckets }
+        Self { lut_doubles: buckets }
     }
 
     fn find_all_pairs<I, V>(

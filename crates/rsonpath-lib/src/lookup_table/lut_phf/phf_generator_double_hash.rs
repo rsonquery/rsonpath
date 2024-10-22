@@ -46,6 +46,15 @@ impl<U: Copy> HashState<U> {
 
         Some(self.map[index])
     }
+
+    #[inline]
+    pub fn allocated_bytes(&self) -> usize {
+        let mut total_size = std::mem::size_of::<Self>();
+        total_size += std::mem::size_of::<HashKey>();
+        total_size += self.displacements.capacity() * std::mem::size_of::<(u32, u32)>();
+        total_size += self.map.capacity() * std::mem::size_of::<U>();
+        total_size
+    }
 }
 
 #[inline]

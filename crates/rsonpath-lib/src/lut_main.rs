@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 use rsonpath::lookup_table::{
     count_distances::{self, DISTANCE_EVAL_DIR},
-    performance::{self, BUILD_TIME_EVAL_DIR, GET_TIME_EVAL_DIR, HEAP_EVAL_DIR},
+    performance::{self, BUILD_TIME_EVAL_DIR, HEAP_EVAL_DIR},
 };
 use std::{error::Error, fs, path::Path};
 
@@ -73,7 +73,6 @@ fn create_folder_setup(dir_name: &str) -> std::io::Result<()> {
         &format!("{}/performance", dir_name),
         &format!("{}/performance/{}", dir_name, HEAP_EVAL_DIR),
         &format!("{}/performance/{}", dir_name, BUILD_TIME_EVAL_DIR),
-        &format!("{}/performance/{}", dir_name, GET_TIME_EVAL_DIR),
         &format!("{}/performance/{}", dir_name, DISTANCE_EVAL_DIR),
         &format!("{}/test_data", dir_name),
     ];

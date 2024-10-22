@@ -52,6 +52,14 @@ impl LookUpTable for LutPHF {
             .get_index(key)
             .and_then(|index| self.values.get(index).map(|&value| key + value))
     }
+
+    #[inline]
+    fn allocated_bytes(&self) -> usize {
+        let mut total_size = std::mem::size_of::<Self>();
+        total_size += self.hash_state.allocated_bytes();
+        total_size += self.values.capacity() * std::mem::size_of::<usize>();
+        total_size
+    }
 }
 
 impl LutPHF {

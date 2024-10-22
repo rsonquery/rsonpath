@@ -62,6 +62,15 @@ impl LookUpTable for LutPHFDouble {
 
         None
     }
+
+    #[inline]
+    fn allocated_bytes(&self) -> usize {
+        let mut total_size = std::mem::size_of::<Self>();
+        total_size += self.hash_state_16.allocated_bytes();
+        total_size += self.hash_state_64.allocated_bytes();
+
+        total_size
+    }
 }
 
 impl LutPHFDouble {

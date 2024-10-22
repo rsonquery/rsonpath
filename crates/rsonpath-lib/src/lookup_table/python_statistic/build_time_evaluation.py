@@ -14,7 +14,6 @@ def plot_build_time(df: pd.DataFrame, save_path: str) -> None:
 
     # Plot each column against the 'label' on x-axis
     plt.plot(df['label'], df['naive'], label='Naive', marker='o')
-    plt.plot(df['label'], df['distance'], label='Distance', marker='o')
     plt.plot(df['label'], df['perfect_naive'], label='Perfect Naive', marker='o')
     plt.plot(df['label'], df['phf'], label='PHF', marker='o')
     plt.plot(df['label'], df['phf_double'], label='PHF Double', marker='o')
@@ -49,7 +48,6 @@ def plot_build_time_per_key(df: pd.DataFrame, save_path: str) -> None:
 
     # Plot each column against the 'label' on x-axis
     plt.plot(df['label'], df['naive'] / df['num_keys'], label='Naive', marker='o')
-    plt.plot(df['label'], df['distance'] / df['num_keys'], label='Distance', marker='o')
     plt.plot(df['label'], df['perfect_naive'] / df['num_keys'], label='Perfect Naive', marker='o')
     plt.plot(df['label'], df['phf'] / df['num_keys'], label='PHF', marker='o')
     plt.plot(df['label'], df['phf_double'] / df['num_keys'], label='PHF Double', marker='o')
@@ -83,7 +81,6 @@ def plot_get_time(df: pd.DataFrame, save_path: str) -> None:
 
     # Plot each column against the 'name' on x-axis
     plt.plot(df['label'], df['naive_query'], label='Naive', marker='o')
-    plt.plot(df['label'], df['distance_query'], label='Distance', marker='o')
     plt.plot(df['label'], df['perfect_naive_query'], label='Perfect Naive', marker='o')
     plt.plot(df['label'], df['phf_query'], label='PHF', marker='o')
     plt.plot(df['label'], df['phf_double_query'], label='PHF Double', marker='o')

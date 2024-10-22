@@ -50,6 +50,12 @@ impl LookUpTable for LutNaive {
     fn get(&self, key: &usize) -> Option<usize> {
         self.table.get(key).copied()
     }
+
+    fn allocated_bytes(&self) -> usize {
+        let mut total_size = std::mem::size_of::<Self>();
+        total_size += self.table.capacity() * (std::mem::size_of::<usize>() + std::mem::size_of::<usize>());
+        total_size
+    }
 }
 
 impl LutNaive {
