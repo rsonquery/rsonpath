@@ -14,14 +14,14 @@ pub const GET_TIME_EVAL_DIR: &str = "get_time_evaluation";
 #[inline]
 pub fn performance_test(json_dir: &str, csv_dir: &str, tasks: u16) {
     match tasks {
-        0 => build_time_evaluation(json_dir, csv_dir),
-        1 => heap_evaluation(json_dir, csv_dir),
-        2 => get_time_evaluation(json_dir, csv_dir),
-        3 => {
+        0 => {
             build_time_evaluation(json_dir, csv_dir);
             heap_evaluation(json_dir, csv_dir);
             get_time_evaluation(json_dir, csv_dir);
         }
+        1 => build_time_evaluation(json_dir, csv_dir),
+        2 => heap_evaluation(json_dir, csv_dir),
+        3 => get_time_evaluation(json_dir, csv_dir),
         _ => eprintln!("Invalid task selection"),
     }
 }
@@ -79,11 +79,11 @@ fn get_time_evaluation(json_dir: &str, csv_dir: &str) {
 
 /// Check if csv_path already exists and if it does rename it with a unique number
 fn get_next_valid_csv_path(csv_dir: &str, eval_type: &str, json_dir_name: &str) -> String {
-    let mut csv_path = format!("{}/{}/{}_compare.csv", csv_dir, eval_type, json_dir_name);
+    let mut csv_path = format!("{}/{}/{}.csv", csv_dir, eval_type, json_dir_name);
 
     let mut counter = 1;
     while Path::new(&csv_path).exists() {
-        csv_path = format!("{}/{}/{}_compare({}).csv", csv_dir, eval_type, json_dir_name, counter);
+        csv_path = format!("{}/{}/{}({}).csv", csv_dir, eval_type, json_dir_name, counter);
         counter += 1;
     }
 

@@ -109,7 +109,7 @@ fn heap_value(stats: stats_alloc::Stats) -> isize {
 fn run_python_statistics_builder(csv_path: &str) {
     let msg = format!("Failed to open csv_path: {}", csv_path);
     let output = Command::new("python")
-        .arg("crates/rsonpath-lib/src/lookup_table/python_statistic/heap_eval.py")
+        .arg("crates/rsonpath-lib/src/lookup_table/python_statistic/heap_evaluation.py")
         .arg(csv_path)
         .output()
         .expect(&msg);

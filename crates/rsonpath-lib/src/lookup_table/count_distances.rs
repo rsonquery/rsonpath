@@ -41,6 +41,27 @@ pub fn count_distances_in_dir(dir_path: &str, csv_path: &str) {
     }
 }
 
+pub fn count_num_pairs(json_path: &str) -> usize {
+    let file = std::fs::File::open(json_path).expect("Fail to open file");
+
+    // SAFETY: We keep the file open throughout the entire duration.
+    let input = unsafe { input::MmapInput::map_file(&file).expect("Failed to map file") };
+    let simd_c = classification::simd::configure();
+
+    let distance_frequencies = classification::simd::config_simd!(simd_c => |simd| {
+        classification::simd::dispatch_simd!(simd; input, simd => fn<I, V>(
+            input: I,
+            simd: V,
+        ) -> HashMap<usize, usize> where
+        I: Input,
+        V: Simd,{
+                count_distances::<I, V>(&input, simd)
+            })
+    });
+
+    distance_frequencies.values().sum()
+}
+
 fn count_distances_with_simd(json_path: &str, csv_path: &str) {
     let file = std::fs::File::open(json_path).expect("Fail to open file");
     let filename = util_path::extract_filename(json_path);
