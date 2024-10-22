@@ -37,9 +37,8 @@ fn evaluate(
 
     let metadata = fs::metadata(json_dir).expect("Can't open json_dir");
     if metadata.is_dir() {
-        let dir_name = util_path::extract_filename(json_dir);
-        let suffix = get_next_valid_filename(json_dir, csv_dir);
-        let csv_path = format!("{}/{}/{}_compare{}.csv", csv_dir, eval_type, dir_name, suffix);
+        let json_dir_name = util_path::extract_filename(json_dir);
+        let csv_path = get_next_valid_csv_path(csv_dir, eval_type, &json_dir_name);
 
         for entry in fs::read_dir(json_dir).expect("Can't build iterator") {
             let path = entry.expect("Can't open file").path();
@@ -79,17 +78,14 @@ fn get_time_evaluation(json_dir: &str, csv_dir: &str) {
 }
 
 /// Check if csv_path already exists and if it does rename it with a unique number
-fn get_next_valid_filename(json_folder: &str, csv_folder: &str) -> String {
-    let base_path = format!("{}/{}_stats", csv_folder, util_path::extract_filename(json_folder));
-    let mut counter = 0;
+fn get_next_valid_csv_path(csv_dir: &str, eval_type: &str, json_dir_name: &str) -> String {
+    let mut csv_path = format!("{}/{}/{}_compare.csv", csv_dir, eval_type, json_dir_name);
 
-    while Path::new(&format!("{}.csv", base_path)).exists() {
+    let mut counter = 1;
+    while Path::new(&csv_path).exists() {
+        csv_path = format!("{}/{}/{}_compare({}).csv", csv_dir, eval_type, json_dir_name, counter);
         counter += 1;
     }
 
-    if counter > 0 {
-        format!("({})", counter)
-    } else {
-        String::new()
-    }
+    csv_path
 }

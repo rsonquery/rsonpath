@@ -1,14 +1,12 @@
+use crate::lookup_table::{
+    lut_distance::LutDistance, lut_naive::LutNaive, lut_phf::LutPHF, lut_phf_double::LutPHFDouble,
+    lut_phf_group::LutPHFGroup, util_path, LookUpTable,
+};
+use stats_alloc::{Region, StatsAlloc, INSTRUMENTED_SYSTEM};
 use std::{
     alloc::System,
     io::{self, Write},
     process::Command,
-};
-
-use stats_alloc::{Region, StatsAlloc, INSTRUMENTED_SYSTEM};
-
-use crate::lookup_table::{
-    lut_distance::LutDistance, lut_naive::LutNaive, lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF,
-    lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup, util_path, LookUpTable,
 };
 
 #[global_allocator]
