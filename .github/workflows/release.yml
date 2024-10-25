@@ -25,7 +25,7 @@ jobs:
           egress-policy: audit
 
       - name: Checkout source
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           submodules: true
       - name: Remove config
@@ -112,7 +112,7 @@ jobs:
         if: matrix.needs-mingw != ''
         run: echo "C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw32\bin" >> $env:GITHUB_PATH
       - name: Checkout source
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           submodules: true
       - name: Install lld (Unix)
@@ -211,7 +211,7 @@ jobs:
           egress-policy: audit
 
       - name: Checkout sources
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Install Rust toolchain (stable)
         uses: dtolnay/rust-toolchain@1482605bfc5719782e1267fd0c0cc350fe7646b8 # stable
         with:
