@@ -87,7 +87,7 @@ jobs:
     name: Clippy (nightly)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3    
+    - uses: actions/checkout@v3
     - name: Force remove rsonpath-lib patch from Cargo.toml
       run: sed -i '/^\[patch.crates-io\]/d' ./Cargo.toml && sed -i '/^rsonpath-lib = { path = .*$/d' ./Cargo.toml
     - name: Install lld
@@ -126,22 +126,4 @@ jobs:
       uses: actions-rs/clippy-check@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        args: --all-features -- --deny warnings  
-
-  format:
-    name: Format
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Rustup stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          components: rustfmt
-          override: true
-          default: true
-      - name: Format
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
+        args: --all-features -- --deny warnings

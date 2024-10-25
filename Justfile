@@ -204,7 +204,7 @@ verify-doc $RUSTDOCFLAGS="--cfg docsrs -D warnings":
 
 # Verify formatting rules are not violated.
 verify-fmt:
-    cargo fmt -- --check
+    cargo fmt --all --check
 
 # === CLEAN ===
 
