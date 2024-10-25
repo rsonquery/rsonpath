@@ -43,7 +43,7 @@ updates:
           - minor
 
   - package-ecosystem: cargo
-    directory: /crates/rsonpath-test
+    directory: /crates/rsonpath-benchmarks
     schedule:
       interval: weekly
       day: monday

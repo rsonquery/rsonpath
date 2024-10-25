@@ -111,8 +111,7 @@ impl DocumentName {
 
         if self.is_compressed {
             Path::join(&PathBuf::from("compressed"), s)
-        }
-        else {
+        } else {
             s
         }
     }

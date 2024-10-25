@@ -1,0 +1,129 @@
+name: Benchmarks
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_PATCH_CRATES_IO_RSONPATH_LIB_GIT: https://github.com/V0ldek/rsonpath.git
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Force remove rsonpath-lib patch from Cargo.toml
+      run: sed -i '/^\[patch.crates-io\]/d' ./Cargo.toml && sed -i '/^rsonpath-lib = { path = .*$/d' ./Cargo.toml
+    - name: Install lld
+      run: sudo apt install lld
+    - uses: actions/setup-java@v3.6.0
+      name: Setup Java JDK
+      with:
+        distribution: temurin
+        java-version: 17
+    - name: Cache restore
+      id: cache-restore
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: cargo-${{ hashFiles('**/Cargo.toml') }}
+    - name: Build all features
+      uses: actions-rs/cargo@v1
+      with:
+        command: build
+        args: --all-features
+
+  clippy:
+    permissions:
+      checks: write
+    name: Clippy (stable)
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Force remove rsonpath-lib patch from Cargo.toml
+      run: sed -i '/^\[patch.crates-io\]/d' ./Cargo.toml && sed -i '/^rsonpath-lib = { path = .*$/d' ./Cargo.toml
+    - name: Install lld
+      run: sudo apt install lld
+    - uses: actions/setup-java@v3.6.0
+      name: Setup Java JDK
+      with:
+        distribution: temurin
+        java-version: 17
+    - name: Cache restore
+      id: cache-restore
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: cargo-${{ hashFiles('**/Cargo.toml') }}
+    - name: Build all features
+      uses: actions-rs/cargo@v1
+      with:
+        command: build
+        args: --all-features
+      env:
+        RUSTFLAGS: "--deny warnings"
+    - name: Clippy all features
+      uses: actions-rs/clippy-check@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        args: --all-features -- --deny warnings
+
+  clippy-nightly:
+    permissions:
+      checks: write
+    name: Clippy (nightly)
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Force remove rsonpath-lib patch from Cargo.toml
+      run: sed -i '/^\[patch.crates-io\]/d' ./Cargo.toml && sed -i '/^rsonpath-lib = { path = .*$/d' ./Cargo.toml
+    - name: Install lld
+      run: sudo apt install lld
+    - uses: actions/setup-java@v3.6.0
+      name: Setup Java JDK
+      with:
+        distribution: temurin
+        java-version: 17
+    - name: Cache restore
+      id: cache-restore
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: cargo-${{ hashFiles('**/Cargo.toml') }}
+    - name: Rustup nightly toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: nightly
+        components: clippy, rustfmt
+        override: true
+        default: true
+    - name: Build all features
+      uses: actions-rs/cargo@v1
+      with:
+        command: build
+        args: --all-features
+      env:
+        RUSTFLAGS: "--deny warnings"
+    - name: Clippy all features
+      uses: actions-rs/clippy-check@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        args: --all-features -- --deny warnings

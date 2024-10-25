@@ -1,0 +1,81 @@
+[package]
+name = "rsonpath-benchmarks"
+authors = [
+    "Mateusz Gienieczko <mat@gienieczko.com>",
+    "Charles Paperman <charles.paperman@inria.fr>",
+]
+version = "0.9.1"
+edition = "2021"
+description = "Benchmark suite for the `rsonpath` project."
+readme = "./README.md"
+license = "MIT"
+keywords = ["rsonpath", "jsonpath", "query", "simd", "benchmark"]
+exclude = ["/data"]
+categories = ["text-processing", "development-tools"]
+repository = "https://github.com/V0ldek/rsonpath-benchmarks"
+
+[[bin]]
+path = "src/main.rs"
+name = "pathimpl"
+
+[dependencies]
+cfg-if = "1.0.0"
+clap = { version = "4.5.19", features = ["derive", "wrap_help"] }
+color-eyre = { version = "0.6.2", default-features = false }
+criterion = "0.5.1"
+eyre = "0.6.12"
+flate2 = "1.0.34"
+hex-literal = "0.4.1"
+indicatif = "0.17.8"
+jni = { version = "0.21.1", features = ["invocation", "default"] }
+jsonpath-rust = "0.7.1"
+libc = "0.2.159"
+lazy_static = "1.5.0"
+serde_json = "1.0.128"
+sha2 = "0.10.8"
+ouroboros = "0.18.4"
+reqwest = { version = "0.12.8", features = ["blocking"] }
+rsonpath-lib = { version = "0.9.1", default-features = false }
+rsonpath-syntax = { version = "0.3.1", default-features = false }
+serde_json_path = "0.6.7"
+tar = "0.4.42"
+thiserror = "1.0.64"
+
+[patch.crates-io]
+rsonpath-lib = { path = "../rsonpath-lib" }
+rsonpath-syntax = { path = "../rsonpath-syntax" }
+
+[dev-dependencies]
+itertools = "0.13.0"
+regex = "1.11.0"
+memchr = "2.7.4"
+
+[features]
+default = ["simd"]
+simd = ["rsonpath-lib/simd"]
+
+[build-dependencies]
+eyre = "0.6.12"
+
+[profile.dev]
+lto = false
+
+[profile.release]
+lto = "thin"
+debug = 1
+
+[[bench]]
+name = "main"
+harness = false
+
+[[bench]]
+name = "main_micro"
+harness = false
+
+[[bench]]
+name = "rsonpath_query_compilation"
+harness = false
+
+[[bench]]
+name = "rust_native"
+harness = false
