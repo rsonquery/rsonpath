@@ -458,6 +458,16 @@ impl JsonUInt {
 }
 
 impl JsonNonZeroUInt {
+    /// A constant value of one.
+    ///
+    /// # Examples
+    /// ```
+    /// # use rsonpath_syntax::num::JsonNonZeroUInt;
+    /// assert_eq!(JsonNonZeroUInt::ONE.as_u64(), 1);
+    /// assert_eq!(JsonNonZeroUInt::ONE.as_non_zero_u64(), std::num::NonZeroU64::try_from(1).unwrap());
+    /// ```
+    pub const ONE: Self = Self(NonZeroU64::MIN);
+
     #[must_use]
     const fn new(value: NonZeroU64) -> Self {
         Self(value)

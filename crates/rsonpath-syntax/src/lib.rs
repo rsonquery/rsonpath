@@ -542,7 +542,8 @@ pub struct Slice {
 }
 
 impl Slice {
-    const DEFAULT_START: Index = Index::FromStart(num::JsonUInt::ZERO);
+    const DEFAULT_START_FORWARDS: Index = Index::FromStart(num::JsonUInt::ZERO);
+    const DEFAULT_START_BACKWARDS: Index = Index::FromEnd(num::JsonNonZeroUInt::ONE);
     const DEFAULT_STEP: Step = Step::Forward(num::JsonUInt::ONE);
 
     /// Create a new [`Slice`] from given bounds and step.
@@ -1180,7 +1181,9 @@ impl Display for Step {
 impl Display for Slice {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.start != Self::DEFAULT_START {
+        if (self.step.is_forward() && self.start != Self::DEFAULT_START_FORWARDS)
+            || (self.step.is_backward() && self.start != Self::DEFAULT_START_BACKWARDS)
+        {
             write!(f, "{}", self.start)?;
         }
         write!(f, ":")?;
