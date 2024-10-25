@@ -19,7 +19,7 @@ impl<'s, S> IndexRecorder<'s, S> {
     }
 }
 
-impl<'s, B: Deref<Target = [u8]>, S> InputRecorder<B> for IndexRecorder<'s, S>
+impl<B: Deref<Target = [u8]>, S> InputRecorder<B> for IndexRecorder<'_, S>
 where
     S: Sink<MatchIndex>,
 {
@@ -29,7 +29,7 @@ where
     }
 }
 
-impl<'s, B: Deref<Target = [u8]>, S> Recorder<B> for IndexRecorder<'s, S>
+impl<B: Deref<Target = [u8]>, S> Recorder<B> for IndexRecorder<'_, S>
 where
     S: Sink<MatchIndex>,
 {

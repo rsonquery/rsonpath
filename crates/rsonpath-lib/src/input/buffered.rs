@@ -229,7 +229,7 @@ impl<R: Read> Input for BufferedInput<R> {
     }
 }
 
-impl<'a, 'r, R: Read, IR, const N: usize> InputBlockIterator<'a, N> for BufferedInputBlockIterator<'a, 'r, R, IR, N>
+impl<'a, R: Read, IR, const N: usize> InputBlockIterator<'a, N> for BufferedInputBlockIterator<'a, '_, R, IR, N>
 where
     IR: InputRecorder<BufferedInputBlock<N>>,
 {
@@ -284,7 +284,7 @@ impl<const N: usize> Deref for BufferedInputBlock<N> {
     }
 }
 
-impl<'a, const N: usize> InputBlock<'a, N> for BufferedInputBlock<N> {
+impl<const N: usize> InputBlock<'_, N> for BufferedInputBlock<N> {
     #[inline(always)]
     fn halves(&self) -> (&[u8], &[u8]) {
         assert_eq!(N % 2, 0);

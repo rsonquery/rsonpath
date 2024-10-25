@@ -33,7 +33,7 @@ where
     iter: &'b mut I::BlockIterator<'i, 'r, R, N>,
 }
 
-impl<'i, 'b, 'r, I, R, const N: usize> SequentialMemmemClassifier<'i, 'b, 'r, I, R, N>
+impl<'i, 'r, I, R, const N: usize> SequentialMemmemClassifier<'i, '_, 'r, I, R, N>
 where
     I: Input,
     R: InputRecorder<I::Block<'i, N>> + 'r,

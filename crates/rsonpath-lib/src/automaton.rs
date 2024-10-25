@@ -59,7 +59,7 @@ pub(crate) struct SimpleSlice {
     step: JsonUInt,
 }
 
-impl<'q> Default for StateTable<'q> {
+impl Default for StateTable<'_> {
     #[inline]
     fn default() -> Self {
         Self {
@@ -71,7 +71,7 @@ impl<'q> Default for StateTable<'q> {
     }
 }
 
-impl<'q> PartialEq for StateTable<'q> {
+impl PartialEq for StateTable<'_> {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
         return self.fallback_state == other.fallback_state
@@ -88,7 +88,7 @@ impl<'q> PartialEq for StateTable<'q> {
     }
 }
 
-impl<'q> Eq for StateTable<'q> {}
+impl Eq for StateTable<'_> {}
 
 impl<'q> Index<State> for Automaton<'q> {
     type Output = StateTable<'q>;
@@ -442,7 +442,7 @@ impl Display for ArrayTransitionLabel {
     }
 }
 
-impl<'q> Display for Automaton<'q> {
+impl Display for Automaton<'_> {
     #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "digraph {{")?;
