@@ -191,7 +191,7 @@ trait Target {
     ) -> Result<Box<dyn BenchFn>, BenchmarkError>;
 }
 
-impl<'a> Target for BenchTarget<'a> {
+impl Target for BenchTarget<'_> {
     fn to_bench_fn(
         self,
         file_path: &str,

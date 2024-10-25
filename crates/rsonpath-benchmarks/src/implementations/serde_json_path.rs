@@ -46,7 +46,7 @@ impl Implementation for SerdeJsonPath {
     }
 }
 
-impl<'a> Display for SerdeJsonPathResult<'a> {
+impl Display for SerdeJsonPathResult<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for res in self.0.iter() {
             writeln!(f, "{res}")?;

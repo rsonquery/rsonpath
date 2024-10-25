@@ -103,7 +103,7 @@ impl Jvm {
 
 struct EnvWrap<'a, 'j>(MutexGuard<'a, AttachGuard<'j>>);
 
-impl<'a, 'j> Deref for EnvWrap<'a, 'j> {
+impl<'j> Deref for EnvWrap<'_, 'j> {
     type Target = JNIEnv<'j>;
 
     fn deref(&self) -> &Self::Target {
@@ -111,7 +111,7 @@ impl<'a, 'j> Deref for EnvWrap<'a, 'j> {
     }
 }
 
-impl<'a, 'j> DerefMut for EnvWrap<'a, 'j> {
+impl DerefMut for EnvWrap<'_, '_> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
@@ -139,7 +139,7 @@ impl<'j> JSurferContext<'j> {
     }
 }
 
-impl<'a, 'j> Overhead<'a, 'j> {
+impl Overhead<'_, '_> {
     pub fn run(&self, loaded_file: &LoadedFile) -> Result<i64, JSurferError> {
         let result =
             self.ctx
@@ -252,7 +252,7 @@ pub enum JSurferError {
         expected: String,
         actual: String,
         #[source]
-        source: jni::errors::Error,
+        source: Box<jni::errors::Error>,
     },
     #[error("received result outside of u64 range: {value}")]
     ResultOutOfRange {
@@ -267,6 +267,6 @@ fn type_error(source: jni::errors::Error, method: &str, expected: &str, actual: 
         method: method.to_owned(),
         expected: expected.to_owned(),
         actual: actual.to_owned(),
-        source,
+        source: Box::new(source),
     }
 }

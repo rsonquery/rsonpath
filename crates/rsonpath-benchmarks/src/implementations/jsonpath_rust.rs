@@ -49,7 +49,7 @@ impl Implementation for JsonpathRust {
     }
 }
 
-impl<'a> Display for JsonpathRustResult<'a> {
+impl Display for JsonpathRustResult<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for res in &self.0 {
             let val = res.clone().to_data();
