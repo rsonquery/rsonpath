@@ -336,6 +336,11 @@ fn slice_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
         };
     }
 
+    // Fixup the bounds - if start was not given and step is negative, the default must be reversed.
+    if slice.step.is_backward() && opt_start.is_none() {
+        slice.start = crate::Slice::default_start_backwards();
+    }
+
     Ok((rest, Selector::Slice(slice)))
 }
 
@@ -1020,8 +1025,8 @@ mod tests {
     #[test_case("-3:-4:-5", Index::FromEnd(3.try_into().unwrap()), Some(Index::FromEnd(4.try_into().unwrap())), Step::Backward(5.try_into().unwrap()); "test m3cm4cm5")]
     #[test_case(":4:5", Index::FromStart(0.into()), Some(Index::FromStart(4.into())), Step::Forward(5.into()); "test c4c5")]
     #[test_case(":-4:5", Index::FromStart(0.into()), Some(Index::FromEnd(4.try_into().unwrap())), Step::Forward(5.into()); "test cm4c5")]
-    #[test_case(":4:-5", Index::FromStart(0.into()), Some(Index::FromStart(4.into())), Step::Backward(5.try_into().unwrap()); "test c4cm5")]
-    #[test_case(":-4:-5", Index::FromStart(0.into()), Some(Index::FromEnd(4.try_into().unwrap())), Step::Backward(5.try_into().unwrap()); "test cm4cm5")]
+    #[test_case(":4:-5", Index::FromEnd(1.try_into().unwrap()), Some(Index::FromStart(4.into())), Step::Backward(5.try_into().unwrap()); "test c4cm5")]
+    #[test_case(":-4:-5", Index::FromEnd(1.try_into().unwrap()), Some(Index::FromEnd(4.try_into().unwrap())), Step::Backward(5.try_into().unwrap()); "test cm4cm5")]
     #[test_case("3::5", Index::FromStart(3.into()), None, Step::Forward(5.into()); "test 3cc5")]
     #[test_case("-3::5", Index::FromEnd(3.try_into().unwrap()), None, Step::Forward(5.into()); "test m3cc5")]
     #[test_case("3::-5", Index::FromStart(3.into()), None, Step::Backward(5.try_into().unwrap()); "test 3ccm5")]
@@ -1039,9 +1044,12 @@ mod tests {
     #[test_case(":4", Index::FromStart(0.into()), Some(Index::FromStart(4.into())), Step::Forward(1.into()); "test c4")]
     #[test_case(":-4", Index::FromStart(0.into()), Some(Index::FromEnd(4.try_into().unwrap())), Step::Forward(1.into()); "test cm4")]
     #[test_case("::5", Index::FromStart(0.into()), None, Step::Forward(5.into()); "test cc5")]
-    #[test_case("::-5", Index::FromStart(0.into()), None, Step::Backward(5.try_into().unwrap()); "test ccm5")]
+    #[test_case("::-5", Index::FromEnd(1.try_into().unwrap()), None, Step::Backward(5.try_into().unwrap()); "test ccm5")]
     #[test_case("::", Index::FromStart(0.into()), None, Step::Forward(1.into()); "test cc")]
-    fn full_positive_slice(input: &str, exp_start: Index, exp_end: Option<Index>, exp_step: Step) {
+    #[test_case("::-1", Index::FromEnd(1.try_into().unwrap()), None, Step::Backward(1.try_into().unwrap()); "test ccm1")]
+    #[test_case("0::-1", Index::FromStart(0.into()), None, Step::Backward(1.try_into().unwrap()); "test 0ccm1")]
+    #[test_case("0:0:-1", Index::FromStart(0.into()), Some(Index::FromStart(0.into())), Step::Backward(1.try_into().unwrap()); "test 0c0cm1")]
+    fn slice(input: &str, exp_start: Index, exp_end: Option<Index>, exp_step: Step) {
         let (rest, selector) = super::slice_selector(input).expect("should parse");
         assert_eq!("", rest);
         match selector {
