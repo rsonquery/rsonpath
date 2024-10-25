@@ -1,0 +1,1272 @@
+[
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "efd467ef-238c-42bb-b009-c450baec2d42",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "Delta-November-01",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "a1ffc958-d2c7-493e-9f1e-125a0477f536",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "ALPHA-kilo-05-JULIETT-Romeo",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "b74d5345-100f-408a-a7ca-47abb52ba60d",
+      "isDefault": false,
+      "managedByTenants": [
+        {
+          "tenantId": "86331ceb-bf0d-4d55-a02c-3f028e454fe7"
+        }
+      ],
+      "name": "SIERRA victor",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "52942f45-54fd-4fd9-b730-03d518fedf35",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "Echo-November-TANGO",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "dad45786-32e5-4ef3-b90e-8e0838fbadb6",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "echo.DELTA.Golf",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "8c4b5b03-3b24-4ed0-91f5-a703cd91b412",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "VICTOR_delta\u0026quebec_victor_Foxtrot_100200",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "dd4c2dac-db51-4cd0-b734-684c6cc360c1",
+      "isDefault": false,
+      "managedByTenants": [
+        {
+          "tenantId": "86331ceb-bf0d-4d55-a02c-3f028e454fe7"
+        }
+      ],
+      "name": "india bravo UNIFORM Papa Kilo (X-ray)",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "bac420ed-c6fc-4a05-8ac1-8c0c52da1d6e",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "Romeo Sierra CHARLIE",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "c6ce990d-11c5-4299-adb2-7fe877104098",
+      "isDefault": true,
+      "managedByTenants": [],
+      "name": "Sierra_OSCAR_victor_SIERRA_ECHO",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "751c6376-3de4-448a-ad1c-5870c4a3a52a",
+      "isDefault": false,
+      "managedByTenants": [
+        {
+          "tenantId": "86331ceb-bf0d-4d55-a02c-3f028e454fe7"
+        }
+      ],
+      "name": "FOXTROT kilo kilo QUEBEC sierra INDIA zulu QUEBEC WHISKEY LIMA",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "54b875cc-a81a-4914-8bfd-1a36bc7ddf4d",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "Quebec-Mike-01",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "e1418c6a-b45d-4eb1-b994-c754e2792d55",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "ROMEO_FOXTROT_november",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "588845a8-a4a7-4ab1-83a1-1388452e8c0c",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "sierra YANKEE NOVEMBER november GOLF",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "407ff5d7-0113-4c5c-8534-f5cfb09298f5",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "golf.Delta.romeo.YANKEE.kilo",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "c3547baf-332f-4d8f-96bd-0659b39c7a59",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "tango Uniform romeo",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "f30787b9-82a8-4e74-bb0f-f12d64ecc496",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "romeo TANGO",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "26596251-f2f3-4e31-8a1b-f0754e32ad73",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "foxtrot-QUEBEC-Quebec-Delta-x-ray",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "482e1993-01d4-4b16-bff4-1866929176a1",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "uniform-X-RAY-ALPHA-Quebec",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "4115b323-4aac-47f4-bb13-22af265ed58b",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "DELTA-INDIA-WHISKEY-SIERRA-UNIFORM",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "9ec1d932-0f3f-486c-acc6-e7d78b358f9b",
+      "isDefault": false,
+      "managedByTenants": [
+        {
+          "tenantId": "86331ceb-bf0d-4d55-a02c-3f028e454fe7"
+        }
+      ],
+      "name": "PAPA",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "e686ef8c-d35d-4e9b-92f8-caaaa7948c0a",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "Oscar SIERRA Alpha Whiskey",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "8c2c7b23-848d-40fe-b817-690d79ad9dfd",
+      "isDefault": false,
+      "managedByTenants": [
+        {
+          "tenantId": "86331ceb-bf0d-4d55-a02c-3f028e454fe7"
+        },
+        {
+          "tenantId": "a48abe87-79a1-43cf-be4c-cb1ba62e691b"
+        }
+      ],
+      "name": "Charlie_NOVEMBER_FOXTROT",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "cb9eb375-570a-4e75-b83a-77dd942bee9f",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "sierra_romeo_x-ray_Uniform",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "6f53185c-ea09-4fc3-9075-318dec805303",
+      "isDefault": false,
+      "managedByTenants": [
+        {
+          "tenantId": "0d2a6a5b-bd71-4c52-a2e8-2f502e12f0d6"
+        }
+      ],
+      "name": "Lima UNIFORM lima",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "1278a874-89fc-418c-b6b9-ac763b000415",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "november ZULU Charlie Victor (Sierra)",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "29de2cfc-f00a-43bb-bdc8-3108795bd282",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "ECHO-Golf QUEBEC-NOVEMBER Victor-hotel00",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "dcbdac96-1896-478d-89fc-c95ed43f4596",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "LIMA CHARLIE",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "2145a411-d149-4010-84d4-40fe8a55db44",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "golf Mike India",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "7afc2d66-d5b4-4e84-970b-a782e3e4cc46",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "LIMA-juliett-yankee-01",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "3b2fda06-3ef6-454a-9dd5-994a548243e9",
+      "isDefault": false,
+      "managedByTenants": [
+        {
+          "tenantId": "86331ceb-bf0d-4d55-a02c-3f028e454fe7"
+        }
+      ],
+      "name": "echo Foxtrot \u0026 Quebec Lima",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "0368444d-756e-4ca6-9ecd-e964248c227a",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "HOTEL-INDIA",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "4dc2cd39-7a89-43d8-bebe-8bb501359891",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "Foxtrot_india_INDIA_Charlie",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "5a7084cb-3357-4ee0-b28f-a3230de8b337",
+      "isDefault": false,
+      "managedByTenants": [
+        {
+          "tenantId": "86331ceb-bf0d-4d55-a02c-3f028e454fe7"
+        }
+      ],
+      "name": "ALPHA OSCAR Kilo",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "227531a4-d775-435b-a878-963ed8d0d18f",
+      "isDefault": false,
+      "managedByTenants": [
+        {
+          "tenantId": "1cbaa500-c410-44f7-bbc6-5368a9a4f7db"
+        },
+        {
+          "tenantId": "86331ceb-bf0d-4d55-a02c-3f028e454fe7"
+        }
+      ],
+      "name": "LIMA-1ROMEO-INDIA",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "2998c1d7-09ae-4b08-b6d0-9c2ee5a84c35",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "HOTEL-yankee-quebec-sierra-UNIFORM",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "432a7068-99ae-4975-ad38-d96b71172cdf",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "TANGO HOTEL - tango",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "4628298e-882d-4f12-abf4-a9f9654960bb",
+      "isDefault": false,
+      "managedByTenants": [
+        {
+          "tenantId": "86331ceb-bf0d-4d55-a02c-3f028e454fe7"
+        }
+      ],
+      "name": "Oscar_X-RAY_NOVEMBER",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "0cd6095b-b140-41ec-ad1d-32f2f7493386",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "1KILO - UNIFORM Kilo MIKE - DELTA",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "f455dda6-5a9b-4d71-8d51-7afc3b459039",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "TANGO YANKEE Tango",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "b65b516b-415b-4c68-a254-bfa7411275f8",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "Yankee lima Zulu hotel - X-RAY",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "b68b2f37-1d37-4c2f-80f6-c23de402792e",
+      "isDefault": false,
+      "managedByTenants": [
+        {
+          "tenantId": "86331ceb-bf0d-4d55-a02c-3f028e454fe7"
+        }
+      ],
+      "name": "Zulu Tango CHARLIE\u0026NOVEMBER Romeo 1",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "f1d79e73-f8e3-4b10-bfdb-4207ca0723ed",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "romeo Bravo - bravo echo",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "c0620f27-ac38-468c-a26b-264009fe7c41",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "Lima-hotel00",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "1163fbbe-27e7-4b0f-8466-195fe5417043",
+      "isDefault": false,
+      "managedByTenants": [
+        {
+          "tenantId": "86331ceb-bf0d-4d55-a02c-3f028e454fe7"
+        },
+        {
+          "tenantId": "6b845774-982c-4658-acee-d4fe4b75f68f"
+        },
+        {
+          "tenantId": "025f27b5-e298-455c-8b0d-eafcff1311d6"
+        },
+        {
+          "tenantId": "ea3046b1-e0ad-4b06-beae-13e5692de203"
+        }
+      ],
+      "name": "X-ray_WHISKEY_Uniform_Foxtrot_victor_DELTA",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "eef8b6d5-94da-4b36-9327-a662f2674efb",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "Yankee-KILO-01",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "3cd95ff9-ac62-4b5c-8240-0cd046687ea0",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "foxtrot Uniform Lima foxtrot uniform november",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "8cff5d56-95fb-4a74-ab9d-079edb45313e",
+      "isDefault": false,
+      "managedByTenants": [
+        {
+          "tenantId": "1cbaa500-c410-44f7-bbc6-5368a9a4f7db"
+        }
+      ],
+      "name": "November-Yankee-x-ray",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "eec2de82-6ab2-4a84-ae5f-57e9a10bf661",
+      "isDefault": false,
+      "managedByTenants": [
+        {
+          "tenantId": "86331ceb-bf0d-4d55-a02c-3f028e454fe7"
+        }
+      ],
+      "name": "WHISKEY YANKEE",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "e0fd569c-e34a-4249-8c24-e8d723c7f054",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "hotel - X-ray ALPHA Mike\u0026victor",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "e75c95f3-27b4-410f-a40e-2b9153a807dd",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "Golf Foxtrot",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "3905431d-c062-4c17-8fd9-c51f89f334c4",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "foxtrot Echo",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "13723929-6644-4060-a50a-cc38ebc5e8b1",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "mike GOLF",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "ca38bc19-cf50-48e2-bbe6-8c35b40212d8",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "Lima Foxtrot MIKE",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "8ae1955e-f748-4273-a507-10159ba940f9",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "india-VICTOR",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "21d8f407-c4c4-452e-87a4-e609bfb86248",
+      "isDefault": false,
+      "managedByTenants": [
+        {
+          "tenantId": "86331ceb-bf0d-4d55-a02c-3f028e454fe7"
+        },
+        {
+          "tenantId": "cc816ff6-6e86-40dd-b2f0-30dc13fd81d4"
+        }
+      ],
+      "name": "INDIA",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "ae71ef11-a03f-4b4f-a0e6-ef144727c711",
+      "isDefault": false,
+      "managedByTenants": [
+        {
+          "tenantId": "86331ceb-bf0d-4d55-a02c-3f028e454fe7"
+        }
+      ],
+      "name": "INDIA yankee X-ray",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "9b4236fe-df75-4289-bf00-40628ed41fd9",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "Whiskey UNIFORM charlie QUEBEC romeo",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "85b3dbca-5974-4067-9669-67a141095a76",
+      "isDefault": false,
+      "managedByTenants": [
+        {
+          "tenantId": "430b809f-f7ea-4d63-931d-8076342c32f1"
+        }
+      ],
+      "name": "Foxtrot oscar TANGO DELTA UNIFORM UNIFORM = 2 MIKE",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "a1920ebd-59b7-4f19-af9f-5e80599e88e4",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "November",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "d2c9544f-4329-4642-b73d-020e7fef844f",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "OSCAR1",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "e72e5254-f265-4e95-9bd2-9ee8e7329051",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "MIKE Mike - charlie - ROMEO (JULIETT)",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "bac044cf-49e1-4843-8dda-1ce9662606c8",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "uniform INDIA",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "a1c3dc6b-8630-4bb7-a29e-4ed4407c329b",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "Oscar Juliett - Uniform2",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "79f57c16-00fe-48da-87d4-5192e86cd047",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "LIMA",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "9372b318-ed3a-4504-95a6-941201300f78",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "Bravo-Sierra echo november - QUEBEC - bravo",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "09fa8e83-d677-474f-8f73-2a954a0b0ea4",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "romeo - zulu UNIFORM sierra - Tango",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "948d4068-cee2-492b-8f82-e00a844e059b",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "GOLF - tango sierra 2",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "40dd91f6-ead1-40dd-a291-2ae37717981b",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "x-ray echo",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "4f80d6c7-3b04-4854-9f1a-2d7c587d4f64",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "PAPA_zulu_ZULU_KILO",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "2e131dbf-96b3-4377-9c8e-de5d3047f566",
+      "isDefault": false,
+      "managedByTenants": [
+        {
+          "tenantId": "86331ceb-bf0d-4d55-a02c-3f028e454fe7"
+        }
+      ],
+      "name": "Tango_romeo_Oscar",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "664c7857-b611-43c5-9bdb-8d4595a8c515",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "Quebec X-ray Echo",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "b2a328a7-ffff-4c09-b643-a4758cf170bc",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "Foxtrot-LIMA-02",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "ec6f35fa-c805-4254-b10b-03a5e0536b69",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "quebec-Bravo",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "4bbecc02-f2c3-402a-8e01-1dfb1ffef499",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "X-ray QUEBEC zulu alpha",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "50ff7bc0-cd15-49d5-abb2-e975184c2f65",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "sierra oscar quebec Uniform",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "c6dcd830-359f-44d0-b4d4-c1ba95e86f48",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "echo_QUEBEC_Victor_062020",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "0ee78edb-a0ad-456c-a0a2-901bf542c102",
+      "isDefault": false,
+      "managedByTenants": [
+        {
+          "tenantId": "86331ceb-bf0d-4d55-a02c-3f028e454fe7"
+        }
+      ],
+      "name": "SIERRA kilo Kilo - Uniform yankee Foxtrot2",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "8168a4f2-74d6-4663-9951-8e3a454937b7",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "Foxtrot - golf QUEBEC",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "84ca48fe-c942-42e5-b492-d56681d058fa",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "ROMEO_foxtrot_golf_delta",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "2686cb8a-d887-452c-a8d1-0f10a285ecaf",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "delta-ALPHA-X-RAY-WHISKEY",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "cd0fa82d-b6b6-4361-b002-050c32f71353",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "golf quebec",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "f1251103-af5a-44b7-ac2a-4e5538e80cde",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "zulu365 Quebec - MIKE India (Kilo)",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "52a442a2-31e9-42f9-8e3e-4b27dbf82673",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "quebec-zulu-juliett",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    },
+    {
+      "cloudName": "AzureCloud",
+      "homeTenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "id": "6d17b59e-06c4-4203-89d2-de793ebf5452",
+      "isDefault": false,
+      "managedByTenants": [],
+      "name": "PAPA-1Victor Golf - NOVEMBER - Tango",
+      "state": "Enabled",
+      "tenantId": "3aec9a1f-cbea-4c91-a0cb-121b3ac02c7b",
+      "user": {
+        "name": "user@domain.com",
+        "type": "user"
+      }
+    }
+  ]
