@@ -194,6 +194,7 @@ verify-bench:
 verify-clippy: (build-all "release")
     cargo +nightly clippy --workspace --no-default-features --release -- --deny warnings
     cargo +nightly clippy --workspace --all-features --release -- --deny warnings
+    cargo +nightly clippy --manifest-path ./crates/rsonpath-benchmarks/Cargo.toml --release -- --deny warnings
 
 # Verify that documentation successfully builds for rsonpath-lib.
 verify-doc $RUSTDOCFLAGS="--cfg docsrs -D warnings":
