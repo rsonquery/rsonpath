@@ -88,7 +88,7 @@ where
     }
 }
 
-impl<'a> Input for BorrowedBytes<'a> {
+impl Input for BorrowedBytes<'_> {
     type BlockIterator<'b, 'r, R, const N: usize> = BorrowedBytesBlockIterator<'r, TwoSidesPaddedInput<'b>, R, N>
     where Self: 'b,
           R: InputRecorder<&'b [u8]> + 'r;

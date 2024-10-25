@@ -32,7 +32,7 @@ where
     }
 }
 
-impl<'s, B, S> InputRecorder<B> for NodesRecorder<'s, B, S>
+impl<B, S> InputRecorder<B> for NodesRecorder<'_, B, S>
 where
     B: Deref<Target = [u8]>,
     S: Sink<Match>,
@@ -43,7 +43,7 @@ where
     }
 }
 
-impl<'s, B, S> Recorder<B> for NodesRecorder<'s, B, S>
+impl<B, S> Recorder<B> for NodesRecorder<'_, B, S>
 where
     B: Deref<Target = [u8]>,
     S: Sink<Match>,
@@ -330,7 +330,7 @@ struct PartialNode {
     ty: MatchedNodeType,
 }
 
-impl<'s, B, S> StackRecorder<'s, B, S>
+impl<B, S> StackRecorder<'_, B, S>
 where
     B: Deref<Target = [u8]>,
     S: Sink<Match>,

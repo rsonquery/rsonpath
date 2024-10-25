@@ -24,7 +24,7 @@ pub struct Runner<'q, S> {
     pub with_output: ResolvedOutput,
 }
 
-impl<'q, S: AsRef<str>> Runner<'q, S> {
+impl<S: AsRef<str>> Runner<'_, S> {
     pub fn run(self) -> Result<()> {
         match self.with_engine {
             ResolvedEngine::Main => {

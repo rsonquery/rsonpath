@@ -400,7 +400,7 @@ struct ResultInput {
 
 struct ReadBytes<'a>(&'a [u8], usize);
 
-impl<'a> Read for ReadBytes<'a> {
+impl Read for ReadBytes<'_> {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         let rem = self.0.len() - self.1;
         if rem > 0 {

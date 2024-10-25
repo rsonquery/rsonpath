@@ -35,7 +35,7 @@ impl<'s, S> ApproxSpanRecorder<'s, S> {
     }
 }
 
-impl<'s, B: Deref<Target = [u8]>, S> InputRecorder<B> for ApproxSpanRecorder<'s, S>
+impl<B: Deref<Target = [u8]>, S> InputRecorder<B> for ApproxSpanRecorder<'_, S>
 where
     S: Sink<MatchSpan>,
 {
@@ -45,7 +45,7 @@ where
     }
 }
 
-impl<'s, B: Deref<Target = [u8]>, S> Recorder<B> for ApproxSpanRecorder<'s, S>
+impl<B: Deref<Target = [u8]>, S> Recorder<B> for ApproxSpanRecorder<'_, S>
 where
     S: Sink<MatchSpan>,
 {
@@ -73,7 +73,7 @@ impl<'s, S> InternalRecorder<'s, S> {
     }
 }
 
-impl<'s, S> InternalRecorder<'s, S>
+impl<S> InternalRecorder<'_, S>
 where
     S: Sink<MatchSpan>,
 {

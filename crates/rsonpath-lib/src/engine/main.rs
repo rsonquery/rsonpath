@@ -258,7 +258,7 @@ where
     }
 }
 
-impl<'i, 'q, 'r, I, R, V> Executor<'i, 'q, 'r, I, R, V>
+impl<'i, 'r, I, R, V> Executor<'i, '_, 'r, I, R, V>
 where
     'i: 'r,
     I: Input,
@@ -751,7 +751,7 @@ impl SmallStack {
     }
 }
 
-impl<'i, 'q, 'r, I, R, V> CanHeadSkip<'i, 'r, I, R, V> for Executor<'i, 'q, 'r, I, R, V>
+impl<'i, 'r, I, R, V> CanHeadSkip<'i, 'r, I, R, V> for Executor<'i, '_, 'r, I, R, V>
 where
     I: Input,
     R: Recorder<I::Block<'i, BLOCK_SIZE>>,

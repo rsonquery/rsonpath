@@ -143,7 +143,7 @@ impl Display for NfaStateId {
     }
 }
 
-impl<'q> Display for NondeterministicAutomaton<'q> {
+impl Display for NondeterministicAutomaton<'_> {
     // This is the format for https://paperman.name/semigroup/
     // for easy debugging of minimization.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

@@ -59,7 +59,7 @@ impl PaddedBlock {
     }
 }
 
-impl<'a> SliceSeekable for EndPaddedInput<'a> {
+impl SliceSeekable for EndPaddedInput<'_> {
     #[cold]
     #[inline(never)]
     fn seek_backward(&self, from: usize, needle: u8) -> Option<usize> {
@@ -109,7 +109,7 @@ impl<'a> SliceSeekable for EndPaddedInput<'a> {
     }
 }
 
-impl<'a> SliceSeekable for TwoSidesPaddedInput<'a> {
+impl SliceSeekable for TwoSidesPaddedInput<'_> {
     #[cold]
     #[inline(never)]
     fn seek_backward(&self, from: usize, needle: u8) -> Option<usize> {
