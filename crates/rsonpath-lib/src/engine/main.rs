@@ -39,6 +39,7 @@
  */
 
 #![allow(clippy::type_complexity)] // The private Classifier type is very complex, but we specifically macro it out.
+use crate::input::SeekableBackwardsInput;
 use crate::{
     automaton::{error::CompilerError, Automaton, State},
     classification::{
@@ -52,7 +53,7 @@ use crate::{
         head_skipping::{CanHeadSkip, HeadSkip, ResumeState},
         select_root_query,
         tail_skipping::TailSkip,
-        Compiler, Engine, Input,
+        Compiler, Engine,
     },
     input::error::InputErrorConvertible,
     result::{
@@ -108,7 +109,7 @@ impl Engine for MainEngine<'_> {
     #[inline]
     fn count<I>(&self, input: &I) -> Result<MatchCount, EngineError>
     where
-        I: Input,
+        I: SeekableBackwardsInput,
     {
         if self.automaton.is_select_root_query() {
             return select_root_query::count(input);
@@ -129,7 +130,7 @@ impl Engine for MainEngine<'_> {
     #[inline]
     fn indices<I, S>(&self, input: &I, sink: &mut S) -> Result<(), EngineError>
     where
-        I: Input,
+        I: SeekableBackwardsInput,
         S: Sink<MatchIndex>,
     {
         if self.automaton.is_select_root_query() {
@@ -151,7 +152,7 @@ impl Engine for MainEngine<'_> {
     #[inline]
     fn approximate_spans<I, S>(&self, input: &I, sink: &mut S) -> Result<(), EngineError>
     where
-        I: Input,
+        I: SeekableBackwardsInput,
         S: Sink<MatchSpan>,
     {
         if self.automaton.is_select_root_query() {
@@ -173,7 +174,7 @@ impl Engine for MainEngine<'_> {
     #[inline]
     fn matches<I, S>(&self, input: &I, sink: &mut S) -> Result<(), EngineError>
     where
-        I: Input,
+        I: SeekableBackwardsInput,
         S: Sink<Match>,
     {
         if self.automaton.is_select_root_query() {
@@ -241,7 +242,7 @@ fn query_executor<'i, 'q, 'r, I, R, V: Simd>(
     simd: V,
 ) -> Executor<'i, 'q, 'r, I, R, V>
 where
-    I: Input,
+    I: SeekableBackwardsInput,
     R: Recorder<I::Block<'i, BLOCK_SIZE>>,
 {
     Executor {
@@ -261,7 +262,7 @@ where
 impl<'i, 'r, I, R, V> Executor<'i, '_, 'r, I, R, V>
 where
     'i: 'r,
-    I: Input,
+    I: SeekableBackwardsInput,
     R: Recorder<I::Block<'i, BLOCK_SIZE>>,
     V: Simd,
 {
@@ -298,7 +299,7 @@ where
         fn<'i, 'q, 'r, I, R, V>(eng: &mut Executor<'i, 'q, 'r, I, R, V>, classifier: &mut Classifier!()) -> Result<(), EngineError>
         where
             'i: 'r,
-            I: Input,
+            I: SeekableBackwardsInput,
             R: Recorder<I::Block<'i, BLOCK_SIZE>>,
             V: Simd
         {
@@ -753,7 +754,7 @@ impl SmallStack {
 
 impl<'i, 'r, I, R, V> CanHeadSkip<'i, 'r, I, R, V> for Executor<'i, '_, 'r, I, R, V>
 where
-    I: Input,
+    I: SeekableBackwardsInput,
     R: Recorder<I::Block<'i, BLOCK_SIZE>>,
     V: Simd,
     'i: 'r,

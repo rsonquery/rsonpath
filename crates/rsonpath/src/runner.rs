@@ -5,10 +5,11 @@ use crate::{
 };
 use eyre::{Result, WrapErr};
 use log::warn;
+use rsonpath_lib::input::SeekableBackwardsInput;
 use rsonpath_lib::{
     automaton::Automaton,
     engine::{error::EngineError, main::MainEngine, Compiler, Engine},
-    input::{BorrowedBytes, BufferedInput, Input, MmapInput, OwnedBytes},
+    input::{BorrowedBytes, BufferedInput, MmapInput, OwnedBytes},
     result::MatchWriter,
 };
 use std::{
@@ -145,8 +146,12 @@ impl<S: AsRef<str>> ResolvedInput<S> {
 }
 
 impl ResolvedOutput {
-    fn run_and_output<E: Engine, I: Input>(self, engine: E, input: I) -> Result<()> {
-        fn run_impl<E: Engine, I: Input>(out: ResolvedOutput, engine: E, input: I) -> Result<(), EngineError> {
+    fn run_and_output<E: Engine, I: SeekableBackwardsInput>(self, engine: E, input: I) -> Result<()> {
+        fn run_impl<E: Engine, I: SeekableBackwardsInput>(
+            out: ResolvedOutput,
+            engine: E,
+            input: I,
+        ) -> Result<(), EngineError> {
             match out {
                 ResolvedOutput::Count => {
                     let result = engine.count(&input)?;

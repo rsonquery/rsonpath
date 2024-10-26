@@ -16,7 +16,7 @@ use super::{
     align_to,
     error::Infallible,
     padding::{EndPaddedInput, PaddedBlock, TwoSidesPaddedInput},
-    Input, InputBlockIterator, SliceSeekable, MAX_BLOCK_SIZE,
+    Input, InputBlockIterator, SeekableBackwardsInput, SliceSeekable, MAX_BLOCK_SIZE,
 };
 use crate::{debug, result::InputRecorder};
 use rsonpath_syntax::str::JsonString;
@@ -126,24 +126,6 @@ impl Input for BorrowedBytes<'_> {
     }
 
     #[inline]
-    fn seek_backward(&self, from: usize, needle: u8) -> Option<usize> {
-        return if from >= MAX_BLOCK_SIZE && from < self.middle_bytes.len() + MAX_BLOCK_SIZE {
-            match self.middle_bytes.seek_backward(from - MAX_BLOCK_SIZE, needle) {
-                Some(x) => Some(x + MAX_BLOCK_SIZE),
-                None => handle_first(&self.first_block, needle),
-            }
-        } else {
-            self.as_padded_input().seek_backward(from, needle)
-        };
-
-        #[cold]
-        #[inline(never)]
-        fn handle_first(first_block: &PaddedBlock, needle: u8) -> Option<usize> {
-            first_block.bytes().seek_backward(first_block.len() - 1, needle)
-        }
-    }
-
-    #[inline]
     fn seek_forward<const N: usize>(&self, from: usize, needles: [u8; N]) -> Result<Option<(usize, u8)>, Infallible> {
         return Ok(
             if from >= MAX_BLOCK_SIZE && from < self.middle_bytes.len() + MAX_BLOCK_SIZE {
@@ -196,24 +178,6 @@ impl Input for BorrowedBytes<'_> {
         }
     }
 
-    #[inline]
-    fn seek_non_whitespace_backward(&self, from: usize) -> Option<(usize, u8)> {
-        return if from >= MAX_BLOCK_SIZE && from < self.middle_bytes.len() + MAX_BLOCK_SIZE {
-            match self.middle_bytes.seek_non_whitespace_backward(from - MAX_BLOCK_SIZE) {
-                Some((x, y)) => Some((x + MAX_BLOCK_SIZE, y)),
-                None => handle_first(&self.first_block),
-            }
-        } else {
-            self.as_padded_input().seek_non_whitespace_backward(from)
-        };
-
-        #[cold]
-        #[inline(never)]
-        fn handle_first(first_block: &PaddedBlock) -> Option<(usize, u8)> {
-            first_block.bytes().seek_non_whitespace_backward(first_block.len() - 1)
-        }
-    }
-
     #[inline(always)]
     fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> Result<bool, Self::Error> {
         debug_assert!(from < to);
@@ -230,6 +194,43 @@ impl Input for BorrowedBytes<'_> {
         } else {
             // This is a very expensive, cold path.
             Ok(self.as_padded_input().is_member_match(from, to, member))
+        }
+    }
+}
+
+impl SeekableBackwardsInput for BorrowedBytes<'_> {
+    #[inline]
+    fn seek_backward(&self, from: usize, needle: u8) -> Option<usize> {
+        return if from >= MAX_BLOCK_SIZE && from < self.middle_bytes.len() + MAX_BLOCK_SIZE {
+            match self.middle_bytes.seek_backward(from - MAX_BLOCK_SIZE, needle) {
+                Some(x) => Some(x + MAX_BLOCK_SIZE),
+                None => handle_first(&self.first_block, needle),
+            }
+        } else {
+            self.as_padded_input().seek_backward(from, needle)
+        };
+
+        #[cold]
+        #[inline(never)]
+        fn handle_first(first_block: &PaddedBlock, needle: u8) -> Option<usize> {
+            first_block.bytes().seek_backward(first_block.len() - 1, needle)
+        }
+    }
+    #[inline]
+    fn seek_non_whitespace_backward(&self, from: usize) -> Option<(usize, u8)> {
+        return if from >= MAX_BLOCK_SIZE && from < self.middle_bytes.len() + MAX_BLOCK_SIZE {
+            match self.middle_bytes.seek_non_whitespace_backward(from - MAX_BLOCK_SIZE) {
+                Some((x, y)) => Some((x + MAX_BLOCK_SIZE, y)),
+                None => handle_first(&self.first_block),
+            }
+        } else {
+            self.as_padded_input().seek_non_whitespace_backward(from)
+        };
+
+        #[cold]
+        #[inline(never)]
+        fn handle_first(first_block: &PaddedBlock) -> Option<(usize, u8)> {
+            first_block.bytes().seek_non_whitespace_backward(first_block.len() - 1)
         }
     }
 }

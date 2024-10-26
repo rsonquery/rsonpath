@@ -51,7 +51,7 @@ pub(crate) use repr_align_block_size;
 pub const MAX_BLOCK_SIZE: usize = 128;
 
 /// UTF-8 encoded bytes representing a JSON document that support
-/// block-by-block iteration and basic seeking procedures.
+/// block-by-block iteration and basic forward-seeking procedures.
 pub trait Input: Sized {
     /// Type of the iterator used by [`iter_blocks`](Input::iter_blocks), parameterized
     /// by the lifetime of source input and the size of the block.
@@ -109,12 +109,6 @@ pub trait Input: Sized {
     where
         R: InputRecorder<Self::Block<'i, N>>;
 
-    /// Search for an occurrence of `needle` in the input,
-    /// starting from `from` and looking back. Returns the index
-    /// of the first occurrence or `None` if the `needle` was not found.
-    #[must_use]
-    fn seek_backward(&self, from: usize, needle: u8) -> Option<usize>;
-
     /// Search for an occurrence of any of the `needles` in the input,
     /// starting from `from` and looking forward. Returns the index
     /// of the first occurrence and the needle found, or `None` if none of the `needles` were not found.
@@ -134,13 +128,6 @@ pub trait Input: Sized {
     /// in the current buffer, which can fail.
     fn seek_non_whitespace_forward(&self, from: usize) -> Result<Option<(usize, u8)>, Self::Error>;
 
-    /// Search for the first byte in the input that is not ASCII whitespace
-    /// starting from `from` and looking back. Returns a pair:
-    /// the index of first such byte, and the byte itself;
-    /// or `None` if no non-whitespace characters were found.
-    #[must_use]
-    fn seek_non_whitespace_backward(&self, from: usize) -> Option<(usize, u8)>;
-
     /// Decide whether the slice of input between `from` (inclusive)
     /// and `to` (exclusive) matches the `member` (comparing bitwise,
     /// including double quotes delimiters).
@@ -152,6 +139,22 @@ pub trait Input: Sized {
     /// This function can read more data from the input if `to` falls beyond
     /// the range that was already read, and the read operation can fail.
     fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> Result<bool, Self::Error>;
+}
+
+/// Extension of [`Input`] that allows seeking backwards.
+pub trait SeekableBackwardsInput: Input {
+    /// Search for an occurrence of `needle` in the input,
+    /// starting from `from` and looking back. Returns the index
+    /// of the first occurrence or `None` if the `needle` was not found.
+    #[must_use]
+    fn seek_backward(&self, from: usize, needle: u8) -> Option<usize>;
+
+    /// Search for the first byte in the input that is not ASCII whitespace
+    /// starting from `from` and looking back. Returns a pair:
+    /// the index of first such byte, and the byte itself;
+    /// or `None` if no non-whitespace characters were found.
+    #[must_use]
+    fn seek_non_whitespace_backward(&self, from: usize) -> Option<(usize, u8)>;
 }
 
 /// An iterator over blocks of input of size `N`.

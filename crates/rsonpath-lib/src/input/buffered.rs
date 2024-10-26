@@ -17,7 +17,8 @@
 //! reallocating the internal buffers.
 
 use super::{
-    error::InputError, repr_align_block_size, Input, InputBlock, InputBlockIterator, SliceSeekable, MAX_BLOCK_SIZE,
+    error::InputError, repr_align_block_size, Input, InputBlock, InputBlockIterator, SeekableBackwardsInput,
+    SliceSeekable, MAX_BLOCK_SIZE,
 };
 use crate::{error::InternalRsonpathError, result::InputRecorder, JSON_SPACE_BYTE};
 use rsonpath_syntax::str::JsonString;
@@ -165,12 +166,6 @@ impl<R: Read> Input for BufferedInput<R> {
         }
     }
 
-    #[inline(always)]
-    fn seek_backward(&self, from: usize, needle: u8) -> Option<usize> {
-        let buf = self.0.borrow();
-        buf.as_slice().seek_backward(from, needle)
-    }
-
     #[inline]
     fn seek_forward<const N: usize>(&self, from: usize, needles: [u8; N]) -> Result<Option<(usize, u8)>, InputError> {
         let mut buf = self.0.borrow_mut();
@@ -208,12 +203,6 @@ impl<R: Read> Input for BufferedInput<R> {
     }
 
     #[inline(always)]
-    fn seek_non_whitespace_backward(&self, from: usize) -> Option<(usize, u8)> {
-        let buf = self.0.borrow();
-        buf.as_slice().seek_non_whitespace_backward(from)
-    }
-
-    #[inline(always)]
     fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> Result<bool, Self::Error> {
         let mut buf = self.0.borrow_mut();
 
@@ -226,6 +215,20 @@ impl<R: Read> Input for BufferedInput<R> {
         let bytes = buf.as_slice();
         let slice = &bytes[from..to];
         Ok(member.quoted().as_bytes() == slice && (from == 0 || bytes[from - 1] != b'\\'))
+    }
+}
+
+impl<R: Read> SeekableBackwardsInput for BufferedInput<R> {
+    #[inline(always)]
+    fn seek_non_whitespace_backward(&self, from: usize) -> Option<(usize, u8)> {
+        let buf = self.0.borrow();
+        buf.as_slice().seek_non_whitespace_backward(from)
+    }
+
+    #[inline(always)]
+    fn seek_backward(&self, from: usize, needle: u8) -> Option<usize> {
+        let buf = self.0.borrow();
+        buf.as_slice().seek_backward(from, needle)
     }
 }
 

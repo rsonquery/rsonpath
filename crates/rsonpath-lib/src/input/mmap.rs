@@ -19,7 +19,7 @@ use super::{
     borrowed::BorrowedBytesBlockIterator,
     error::{Infallible, InputError},
     padding::PaddedBlock,
-    Input, SliceSeekable, MAX_BLOCK_SIZE,
+    Input, SeekableBackwardsInput, SliceSeekable, MAX_BLOCK_SIZE,
 };
 use crate::{input::padding::EndPaddedInput, result::InputRecorder};
 use memmap2::{Mmap, MmapAsRawDesc};
@@ -99,15 +99,6 @@ impl Input for MmapInput {
     }
 
     #[inline]
-    fn seek_backward(&self, from: usize, needle: u8) -> Option<usize> {
-        if from < self.last_block_start {
-            self.mmap.seek_backward(from, needle)
-        } else {
-            self.as_padded_input().seek_backward(from, needle)
-        }
-    }
-
-    #[inline]
     fn seek_forward<const N: usize>(&self, from: usize, needles: [u8; N]) -> Result<Option<(usize, u8)>, Infallible> {
         return Ok(if from < self.last_block_start {
             self.mmap
@@ -152,15 +143,6 @@ impl Input for MmapInput {
     }
 
     #[inline]
-    fn seek_non_whitespace_backward(&self, from: usize) -> Option<(usize, u8)> {
-        if from < self.last_block_start {
-            self.mmap.seek_non_whitespace_backward(from)
-        } else {
-            self.as_padded_input().seek_non_whitespace_backward(from)
-        }
-    }
-
-    #[inline]
     fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> Result<bool, Self::Error> {
         debug_assert!(from < to);
         // The hot path is when we're checking fully within the middle section.
@@ -174,6 +156,25 @@ impl Input for MmapInput {
         } else {
             // This is a very expensive, cold path.
             Ok(self.as_padded_input().is_member_match(from, to, member))
+        }
+    }
+}
+
+impl SeekableBackwardsInput for MmapInput {
+    #[inline]
+    fn seek_backward(&self, from: usize, needle: u8) -> Option<usize> {
+        if from < self.last_block_start {
+            self.mmap.seek_backward(from, needle)
+        } else {
+            self.as_padded_input().seek_backward(from, needle)
+        }
+    }
+    #[inline]
+    fn seek_non_whitespace_backward(&self, from: usize) -> Option<(usize, u8)> {
+        if from < self.last_block_start {
+            self.mmap.seek_non_whitespace_backward(from)
+        } else {
+            self.as_padded_input().seek_non_whitespace_backward(from)
         }
     }
 }

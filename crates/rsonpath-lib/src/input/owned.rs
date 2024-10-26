@@ -22,7 +22,7 @@ use super::{
     borrowed::BorrowedBytesBlockIterator,
     error::Infallible,
     padding::{PaddedBlock, TwoSidesPaddedInput},
-    Input, SliceSeekable, MAX_BLOCK_SIZE,
+    Input, SeekableBackwardsInput, SliceSeekable, MAX_BLOCK_SIZE,
 };
 use crate::result::InputRecorder;
 use rsonpath_syntax::str::JsonString;
@@ -115,14 +115,6 @@ where
     }
 
     #[inline]
-    fn seek_backward(&self, from: usize, needle: u8) -> Option<usize> {
-        let offset = self.leading_padding_len();
-        let from = from.checked_sub(offset)?;
-
-        self.bytes.borrow().seek_backward(from, needle).map(|x| x + offset)
-    }
-
-    #[inline]
     fn seek_forward<const N: usize>(&self, from: usize, needles: [u8; N]) -> Result<Option<(usize, u8)>, Self::Error> {
         let offset = self.leading_padding_len();
         let from = from.saturating_sub(offset);
@@ -147,6 +139,29 @@ where
     }
 
     #[inline]
+    fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> Result<bool, Self::Error> {
+        let offset = self.leading_padding_len();
+        let Some(from) = from.checked_sub(offset) else {
+            return Ok(false);
+        };
+
+        Ok(self.bytes.borrow().is_member_match(from, to - offset, member))
+    }
+}
+
+impl<B> SeekableBackwardsInput for OwnedBytes<B>
+where
+    B: Borrow<[u8]>,
+{
+    #[inline]
+    fn seek_backward(&self, from: usize, needle: u8) -> Option<usize> {
+        let offset = self.leading_padding_len();
+        let from = from.checked_sub(offset)?;
+
+        self.bytes.borrow().seek_backward(from, needle).map(|x| x + offset)
+    }
+
+    #[inline]
     fn seek_non_whitespace_backward(&self, from: usize) -> Option<(usize, u8)> {
         let offset = self.leading_padding_len();
         let from = from.checked_sub(offset)?;
@@ -155,15 +170,5 @@ where
             .borrow()
             .seek_non_whitespace_backward(from)
             .map(|(x, y)| (x + self.leading_padding_len(), y))
-    }
-
-    #[inline]
-    fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> Result<bool, Self::Error> {
-        let offset = self.leading_padding_len();
-        let Some(from) = from.checked_sub(offset) else {
-            return Ok(false);
-        };
-
-        Ok(self.bytes.borrow().is_member_match(from, to - offset, member))
     }
 }
