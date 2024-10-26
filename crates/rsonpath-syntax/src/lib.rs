@@ -542,8 +542,13 @@ pub struct Slice {
 }
 
 impl Slice {
-    const DEFAULT_START: Index = Index::FromStart(num::JsonUInt::ZERO);
-    const DEFAULT_STEP: Step = Step::Forward(num::JsonUInt::ONE);
+    pub(crate) const DEFAULT_START_FORWARDS: Index = Index::FromStart(num::JsonUInt::ZERO);
+    /// This is not const because the required NonZeroU64::MIN is from Rust 1.70.
+    #[inline(always)]
+    pub(crate) fn default_start_backwards() -> Index {
+        Index::FromEnd(1.try_into().expect("const 1 is nonzero"))
+    }
+    pub(crate) const DEFAULT_STEP: Step = Step::Forward(num::JsonUInt::ONE);
 
     /// Create a new [`Slice`] from given bounds and step.
     #[inline(always)]
@@ -1180,7 +1185,9 @@ impl Display for Step {
 impl Display for Slice {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.start != Self::DEFAULT_START {
+        if (self.step.is_forward() && self.start != Self::DEFAULT_START_FORWARDS)
+            || (self.step.is_backward() && self.start != Self::default_start_backwards())
+        {
             write!(f, "{}", self.start)?;
         }
         write!(f, ":")?;

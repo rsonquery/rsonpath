@@ -417,6 +417,8 @@ impl From<JsonPathQueryBuilder> for JsonPathQuery {
 /// ```
 pub struct SliceBuilder {
     inner: Slice,
+    /// We need to track if start is explicit because the default depends on step sign.
+    start_was_explicitly_given: bool,
 }
 
 impl SliceBuilder {
@@ -432,6 +434,7 @@ impl SliceBuilder {
     pub fn new() -> Self {
         Self {
             inner: Slice::default(),
+            start_was_explicitly_given: false,
         }
     }
 
@@ -439,6 +442,7 @@ impl SliceBuilder {
     #[inline]
     pub fn with_start<N: Into<JsonInt>>(&mut self, start: N) -> &mut Self {
         self.inner.start = start.into().into();
+        self.start_was_explicitly_given = true;
         self
     }
 
@@ -462,6 +466,14 @@ impl SliceBuilder {
     #[inline]
     #[must_use]
     pub fn to_slice(&mut self) -> Slice {
+        if !self.start_was_explicitly_given {
+            if self.inner.step.is_forward() {
+                self.inner.start = Slice::DEFAULT_START_FORWARDS;
+            } else {
+                self.inner.start = Slice::default_start_backwards();
+            }
+        }
+
         self.inner.clone()
     }
 }
@@ -469,8 +481,8 @@ impl SliceBuilder {
 impl From<SliceBuilder> for Slice {
     #[inline]
     #[must_use]
-    fn from(value: SliceBuilder) -> Self {
-        value.inner
+    fn from(mut value: SliceBuilder) -> Self {
+        value.to_slice()
     }
 }
 
@@ -803,5 +815,33 @@ impl From<LogicalExprBuilder> for LogicalExpr {
     #[inline(always)]
     fn from(value: LogicalExprBuilder) -> Self {
         value.current
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::SliceBuilder;
+    use crate::{Index, Slice, Step};
+
+    #[test]
+    fn slice_builder_default_start_forward() {
+        let mut builder = SliceBuilder::new();
+        builder.with_end(3).with_step(4);
+        let slice: Slice = builder.into();
+
+        assert_eq!(slice.start(), Index::FromStart(0.into()));
+        assert_eq!(slice.end(), Some(Index::FromStart(3.into())));
+        assert_eq!(slice.step(), Step::Forward(4.into()));
+    }
+
+    #[test]
+    fn slice_builder_default_start_backward() {
+        let mut builder = SliceBuilder::new();
+        builder.with_end(3).with_step(-4);
+        let slice: Slice = builder.into();
+
+        assert_eq!(slice.start(), Index::FromEnd(1.try_into().unwrap()));
+        assert_eq!(slice.end(), Some(Index::FromStart(3.into())));
+        assert_eq!(slice.step(), Step::Backward(4.try_into().unwrap()));
     }
 }
