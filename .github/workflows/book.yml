@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+        uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
         with:
           disable-sudo: true
           egress-policy: block
@@ -65,14 +65,14 @@ jobs:
             target/
           key: book-cargo-${{ hashFiles('**/Cargo.toml') }}
       - name: cargo install mdbook
-        uses: baptiste0928/cargo-install@94e1849646e5797d0c8b34d8e525124ae9ae1d86 # v3.0.1
+        uses: baptiste0928/cargo-install@904927dbe77864e0f2281519fe9d5bd097a220b3 # v3.1.1
         with:
           # Name of the crate to install
           crate: mdbook
         env:
           CARGO_TARGET_DIR: target/
       - name: cargo install mdbook-katex
-        uses: baptiste0928/cargo-install@94e1849646e5797d0c8b34d8e525124ae9ae1d86 # v3.0.1
+        uses: baptiste0928/cargo-install@904927dbe77864e0f2281519fe9d5bd097a220b3 # v3.1.1
         with:
           # Name of the crate to install
           crate: mdbook-katex
@@ -88,4 +88,4 @@ jobs:
           path: "./book/wwwroot"
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@decdde0ac072f6dcbe43649d82d9c635fff5b4e4 # v4.0.4
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
