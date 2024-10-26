@@ -95,7 +95,7 @@ jobs:
       - name: Cache restore (MinGW)
         id: cache-restore-mingw
         if: matrix.needs-mingw != ''
-        uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319 # v4.0.1
+        uses: actions/cache@6849a6489940f00c2f30c0fb92c6274307ccb58a # v4.1.2
         with:
           path: |
             C:\ProgramData\chocolatey\lib\mingw
@@ -116,7 +116,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: sudo apt install lld
       - name: Checkout sources
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           submodules: true
       - name: Install Rust toolchain (${{ matrix.toolchain }})
@@ -267,7 +267,7 @@ jobs:
         env:
           RUSTFLAGS: "-C link-arg=-fuse-ld=lld --deny warnings"
       - name: Clippy all features
-        uses: auguwu/clippy-action@a1f4eaac010d8f420818674bdd5eb9937e7efe26 # v1.3.0
+        uses: auguwu/clippy-action@8dc2ea8f7d624bf06a22145cc62fd8bc7d6b0a3e # v1.3.0
         with:
           deny: warnings
           all-features: true
