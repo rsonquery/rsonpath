@@ -1,8 +1,6 @@
 //! Type definitions and serde support for the TOML configuration files.
-use std::{cmp, error::Error, fmt::Display, path::PathBuf};
-
-use quote::TokenStreamExt;
 use serde::{Deserialize, Serialize};
+use std::{cmp, error::Error, fmt::Display, path::PathBuf};
 
 /// Top-level test configuration.
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -128,35 +126,36 @@ impl<'de> Deserialize<'de> for ResultSpan {
 
 impl quote::ToTokens for ResultApproximateSpan {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        use proc_macro2::{Ident, Punct, Spacing, Span};
-        tokens.append(Punct::new('(', Spacing::Alone));
-        self.start.to_tokens(tokens);
-        tokens.append(Punct::new(',', Spacing::Alone));
-        self.end_lower_bound.to_tokens(tokens);
-        tokens.append(Punct::new(',', Spacing::Alone));
+        use proc_macro2::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream};
+        let mut outer_group = TokenStream::new();
+
+        self.start.to_tokens(&mut outer_group);
+        Punct::new(',', Spacing::Alone).to_tokens(&mut outer_group);
+        self.end_lower_bound.to_tokens(&mut outer_group);
+        Punct::new(',', Spacing::Alone).to_tokens(&mut outer_group);
 
         match self.end_upper_bound {
             Some(x) => {
-                tokens.append(Ident::new("Some", Span::call_site()));
-                tokens.append(Punct::new('(', Spacing::Alone));
-                x.to_tokens(tokens);
-                tokens.append(Punct::new(')', Spacing::Alone));
+                Ident::new("Some", Span::call_site()).to_tokens(&mut outer_group);
+                Group::new(Delimiter::Parenthesis, x.to_token_stream()).to_tokens(&mut outer_group);
             }
-            None => tokens.append(Ident::new("None", Span::call_site())),
+            None => Ident::new("None", Span::call_site()).to_tokens(&mut outer_group),
         }
 
-        tokens.append(Punct::new(')', Spacing::Alone));
+        Group::new(Delimiter::Parenthesis, outer_group).to_tokens(tokens);
     }
 }
 
 impl quote::ToTokens for ResultSpan {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        use proc_macro2::{Punct, Spacing};
-        tokens.append(Punct::new('(', Spacing::Alone));
-        self.start.to_tokens(tokens);
-        tokens.append(Punct::new(',', Spacing::Alone));
-        self.end.to_tokens(tokens);
-        tokens.append(Punct::new(')', Spacing::Alone));
+        use proc_macro2::{Delimiter, Group, Punct, Spacing, TokenStream};
+        let mut group = TokenStream::new();
+
+        self.start.to_tokens(&mut group);
+        Punct::new(',', Spacing::Alone).to_tokens(&mut group);
+        self.end.to_tokens(&mut group);
+
+        Group::new(Delimiter::Parenthesis, group).to_tokens(tokens);
     }
 }
 
