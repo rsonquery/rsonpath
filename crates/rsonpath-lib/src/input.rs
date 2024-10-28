@@ -52,26 +52,24 @@ pub const MAX_BLOCK_SIZE: usize = 128;
 
 /// UTF-8 encoded bytes representing a JSON document that support
 /// block-by-block iteration and basic forward-seeking procedures.
-pub trait Input: Sized {
+pub trait Input<'i, 'r, R, const N: usize>: Sized
+where
+    R: InputRecorder<Self::Block>,
+{
     /// Type of the iterator used by [`iter_blocks`](Input::iter_blocks), parameterized
     /// by the lifetime of source input and the size of the block.
-    type BlockIterator<'i, 'r, R, const N: usize>: InputBlockIterator<
+    type BlockIterator: InputBlockIterator<
         'i,
         N,
-        Block = Self::Block<'i, N>,
+        Block = Self::Block,
         Error = Self::Error,
-    >
-    where
-        Self: 'i,
-        R: InputRecorder<Self::Block<'i, N>> + 'r;
+    >;
 
     /// Type of errors that can occur when operating on this [`Input`].
     type Error: Into<InputError>;
 
     /// Type of the blocks returned by the `BlockIterator`.
-    type Block<'i, const N: usize>: InputBlock<'i, N>
-    where
-        Self: 'i;
+    type Block: InputBlock<'i, N>;
 
     /// Return the length of the entire input, if known.
     ///
@@ -105,9 +103,7 @@ pub trait Input: Sized {
     /// Iterate over blocks of size `N` of the input.
     /// `N` has to be a power of two larger than 1.
     #[must_use]
-    fn iter_blocks<'i, 'r, R, const N: usize>(&'i self, recorder: &'r R) -> Self::BlockIterator<'i, 'r, R, N>
-    where
-        R: InputRecorder<Self::Block<'i, N>>;
+    fn iter_blocks(&'i self, recorder: &'r R) -> Self::BlockIterator;
 
     /// Search for an occurrence of any of the `needles` in the input,
     /// starting from `from` and looking forward. Returns the index
@@ -116,7 +112,7 @@ pub trait Input: Sized {
     /// # Errors
     /// This function can read more data from the input if no relevant characters are found
     /// in the current buffer, which can fail.
-    fn seek_forward<const N: usize>(&self, from: usize, needles: [u8; N]) -> Result<Option<(usize, u8)>, Self::Error>;
+    fn seek_forward<const M: usize>(&self, from: usize, needles: [u8; M]) -> Result<Option<(usize, u8)>, Self::Error>;
 
     /// Search for the first byte in the input that is not ASCII whitespace
     /// starting from `from`. Returns a pair: the index of first such byte,
@@ -142,7 +138,11 @@ pub trait Input: Sized {
 }
 
 /// Extension of [`Input`] that allows seeking backwards.
-pub trait SeekableBackwardsInput: Input {
+pub trait SeekableBackwardsInput<'i, 'r, R, const N: usize>: Input<'i, 'r, R, N>
+where
+    R: InputRecorder<Self::Block> + 'r,
+    Self: 'i
+{
     /// Search for an occurrence of `needle` in the input,
     /// starting from `from` and looking back. Returns the index
     /// of the first occurrence or `None` if the `needle` was not found.

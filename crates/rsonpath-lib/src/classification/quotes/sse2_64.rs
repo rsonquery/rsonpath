@@ -71,7 +71,7 @@ mod tests {
         let owned_str = str.to_owned();
         let input = OwnedBytes::from(owned_str);
         let mut leading_padding = input.leading_padding_len() as u64;
-        let iter = input.iter_blocks::<_, 64>(&EmptyRecorder);
+        let iter = input.iter_blocks(&EmptyRecorder);
         let mut classifier = Constructor::new(iter);
 
         // Drop padding-only blocks.

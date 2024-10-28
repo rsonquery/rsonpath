@@ -64,6 +64,7 @@ use crate::{
 };
 use rsonpath_syntax::{num::JsonUInt, str::JsonString, JsonPathQuery};
 use smallvec::{smallvec, SmallVec};
+use crate::result::InputRecorder;
 
 /// Main engine for a fixed JSONPath query.
 ///
@@ -107,9 +108,10 @@ impl Compiler for MainEngine<'_> {
  */
 impl Engine for MainEngine<'_> {
     #[inline]
-    fn count<I>(&self, input: &I) -> Result<MatchCount, EngineError>
+    fn count<'i, 'r, I, R, const N: usize>(&self, input: &I) -> Result<MatchCount, EngineError>
     where
-        I: SeekableBackwardsInput,
+        I: SeekableBackwardsInput<'i, 'r, R, N>,
+        R: InputRecorder<I::Block> +'r,
     {
         if self.automaton.is_select_root_query() {
             return select_root_query::count(input);
@@ -128,9 +130,10 @@ impl Engine for MainEngine<'_> {
     }
 
     #[inline]
-    fn indices<I, S>(&self, input: &I, sink: &mut S) -> Result<(), EngineError>
+    fn indices<'i, 'r, I, R, S, const N: usize>(&self, input: &I, sink: &mut S) -> Result<(), EngineError>
     where
-        I: SeekableBackwardsInput,
+        I: SeekableBackwardsInput<'i, 'r, R, N>,
+        R: InputRecorder<I::Block> + 'r,
         S: Sink<MatchIndex>,
     {
         if self.automaton.is_select_root_query() {
@@ -150,9 +153,10 @@ impl Engine for MainEngine<'_> {
     }
 
     #[inline]
-    fn approximate_spans<I, S>(&self, input: &I, sink: &mut S) -> Result<(), EngineError>
+    fn approximate_spans<'i, 'r, I, R, S, const N: usize>(&self, input: &I, sink: &mut S) -> Result<(), EngineError>
     where
-        I: SeekableBackwardsInput,
+        I: SeekableBackwardsInput<'i, 'r, R, N>,
+        R: InputRecorder<I::Block> + 'r,
         S: Sink<MatchSpan>,
     {
         if self.automaton.is_select_root_query() {
@@ -172,9 +176,10 @@ impl Engine for MainEngine<'_> {
     }
 
     #[inline]
-    fn matches<I, S>(&self, input: &I, sink: &mut S) -> Result<(), EngineError>
+    fn matches<'i, 'r, I, R, S, const N: usize>(&self, input: &I, sink: &mut S) -> Result<(), EngineError>
     where
-        I: SeekableBackwardsInput,
+        I: SeekableBackwardsInput<'i, 'r, R, N>,
+        R: InputRecorder<I::Block> + 'r,
         S: Sink<Match>,
     {
         if self.automaton.is_select_root_query() {
@@ -201,9 +206,9 @@ macro_rules! Classifier {
     () => {
         TailSkip<
             'i,
-            I::BlockIterator<'i, 'r, R, BLOCK_SIZE>,
-            V::QuotesClassifier<'i, I::BlockIterator<'i, 'r, R, BLOCK_SIZE>>,
-            V::StructuralClassifier<'i, I::BlockIterator<'i, 'r, R, BLOCK_SIZE>>,
+            I::BlockIterator,
+            V::QuotesClassifier<'i, I::BlockIterator>,
+            V::StructuralClassifier<'i, I::BlockIterator>,
             V,
             BLOCK_SIZE>
     };
@@ -242,8 +247,8 @@ fn query_executor<'i, 'q, 'r, I, R, V: Simd>(
     simd: V,
 ) -> Executor<'i, 'q, 'r, I, R, V>
 where
-    I: SeekableBackwardsInput,
-    R: Recorder<I::Block<'i, BLOCK_SIZE>>,
+    I: SeekableBackwardsInput<'i, 'r, R, BLOCK_SIZE>,
+    R: Recorder<I::Block>,
 {
     Executor {
         depth: Depth::ZERO,
@@ -262,8 +267,8 @@ where
 impl<'i, 'r, I, R, V> Executor<'i, '_, 'r, I, R, V>
 where
     'i: 'r,
-    I: SeekableBackwardsInput,
-    R: Recorder<I::Block<'i, BLOCK_SIZE>>,
+    I: SeekableBackwardsInput<'i, 'r, R, BLOCK_SIZE>,
+    R: Recorder<I::Block>,
     V: Simd,
 {
     fn run(mut self) -> Result<(), EngineError> {
@@ -299,8 +304,8 @@ where
         fn<'i, 'q, 'r, I, R, V>(eng: &mut Executor<'i, 'q, 'r, I, R, V>, classifier: &mut Classifier!()) -> Result<(), EngineError>
         where
             'i: 'r,
-            I: SeekableBackwardsInput,
-            R: Recorder<I::Block<'i, BLOCK_SIZE>>,
+            I: SeekableBackwardsInput<'i, 'r, R, BLOCK_SIZE>,
+            R: Recorder<I::Block>,
             V: Simd
         {
             loop {
@@ -754,8 +759,8 @@ impl SmallStack {
 
 impl<'i, 'r, I, R, V> CanHeadSkip<'i, 'r, I, R, V> for Executor<'i, '_, 'r, I, R, V>
 where
-    I: SeekableBackwardsInput,
-    R: Recorder<I::Block<'i, BLOCK_SIZE>>,
+    I: SeekableBackwardsInput<'i, 'r, R, BLOCK_SIZE>,
+    R: Recorder<I::Block>,
     V: Simd,
     'i: 'r,
 {
@@ -763,8 +768,8 @@ where
         &mut self,
         next_event: Structural,
         state: State,
-        structural_classifier: V::StructuralClassifier<'i, I::BlockIterator<'i, 'r, R, BLOCK_SIZE>>,
-    ) -> Result<ResumeState<'i, I::BlockIterator<'i, 'r, R, BLOCK_SIZE>, V, MaskType>, EngineError> {
+        structural_classifier: V::StructuralClassifier<'i, I::BlockIterator>,
+    ) -> Result<ResumeState<'i, I::BlockIterator, V, MaskType>, EngineError> {
         let mut classifier = TailSkip::new(structural_classifier, self.simd);
 
         self.state = state;

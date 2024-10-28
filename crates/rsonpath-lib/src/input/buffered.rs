@@ -131,13 +131,16 @@ impl<R: Read> BufferedInput<R> {
     }
 }
 
-impl<R: Read> Input for BufferedInput<R> {
-    type BlockIterator<'a, 'r, IR, const N: usize> = BufferedInputBlockIterator<'a, 'r, R, IR, N>
-        where Self: 'a,
-              IR: InputRecorder<BufferedInputBlock<N>> + 'r;
+impl<'a, 'r, IR, R, const N: usize> Input<'a, 'r, IR, N> for BufferedInput<R>
+where
+    Self: 'a,
+    R: Read,
+    IR: InputRecorder<BufferedInputBlock<N>> + 'r
+{
+    type BlockIterator = BufferedInputBlockIterator<'a, 'r, R, IR, N>;
 
     type Error = InputError;
-    type Block<'a, const N: usize> = BufferedInputBlock<N> where Self: 'a;
+    type Block = BufferedInputBlock<N> where Self: 'a;
 
     #[inline(always)]
     fn leading_padding_len(&self) -> usize {
@@ -155,9 +158,7 @@ impl<R: Read> Input for BufferedInput<R> {
     }
 
     #[inline(always)]
-    fn iter_blocks<'i, 'r, IR, const N: usize>(&'i self, recorder: &'r IR) -> Self::BlockIterator<'i, 'r, IR, N>
-    where
-        IR: InputRecorder<Self::Block<'i, N>>,
+    fn iter_blocks(&'a self, recorder: &'r IR) -> Self::BlockIterator
     {
         BufferedInputBlockIterator {
             input: self,
@@ -167,7 +168,7 @@ impl<R: Read> Input for BufferedInput<R> {
     }
 
     #[inline]
-    fn seek_forward<const N: usize>(&self, from: usize, needles: [u8; N]) -> Result<Option<(usize, u8)>, InputError> {
+    fn seek_forward<const M: usize>(&self, from: usize, needles: [u8; M]) -> Result<Option<(usize, u8)>, InputError> {
         let mut buf = self.0.borrow_mut();
         let mut moving_from = from;
 
@@ -218,7 +219,12 @@ impl<R: Read> Input for BufferedInput<R> {
     }
 }
 
-impl<R: Read> SeekableBackwardsInput for BufferedInput<R> {
+impl<'a, 'r, IR, R, const N: usize> SeekableBackwardsInput<'a, 'r, IR, N> for BufferedInput<R>
+where
+    Self: 'a,
+    IR: InputRecorder<BufferedInputBlock<N>> + 'r,
+    R: Read,
+{
     #[inline(always)]
     fn seek_non_whitespace_backward(&self, from: usize) -> Option<(usize, u8)> {
         let buf = self.0.borrow();

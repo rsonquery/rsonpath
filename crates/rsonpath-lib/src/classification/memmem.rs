@@ -8,7 +8,11 @@ use crate::{
 use rsonpath_syntax::str::JsonString;
 
 /// Classifier that can quickly find a member name in a byte stream.
-pub trait Memmem<'i, 'b, 'r, I: Input, const N: usize> {
+pub trait Memmem<'i, 'b, 'r, I, R, const N: usize>
+where
+    I: Input<'i, 'r, R, N>,
+    R: InputRecorder<I::Block> + 'r,
+{
     /// Find a member key identified by a given [`JsonString`].
     ///
     /// - `first_block` &ndash; optional first block to search; if not provided,
@@ -20,10 +24,10 @@ pub trait Memmem<'i, 'b, 'r, I: Input, const N: usize> {
     /// Errors when reading the underlying [`Input`] are propagated.
     fn find_label(
         &mut self,
-        first_block: Option<I::Block<'i, N>>,
+        first_block: Option<I::Block>,
         start_idx: usize,
         label: &JsonString,
-    ) -> Result<Option<(usize, I::Block<'i, N>)>, InputError>;
+    ) -> Result<Option<(usize, I::Block)>, InputError>;
 }
 
 pub(crate) mod nosimd;
@@ -39,19 +43,19 @@ pub(crate) mod sse2_32;
 pub(crate) mod sse2_64;
 
 pub(crate) trait MemmemImpl {
-    type Classifier<'i, 'b, 'r, I, R>: Memmem<'i, 'b, 'r, I, BLOCK_SIZE>
+    type Classifier<'i, 'b, 'r, I, R>: Memmem<'i, 'b, 'r, I, R, BLOCK_SIZE>
     where
-        I: Input + 'i,
-        <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>: 'b,
-        R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>> + 'r,
+        I: Input<'i, 'r, R, BLOCK_SIZE> + 'i,
+        I::BlockIterator: 'b,
+        R: InputRecorder<I::Block> + 'r,
         'i: 'r;
 
     fn memmem<'i, 'b, 'r, I, R>(
         input: &'i I,
-        iter: &'b mut <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>,
+        iter: &'b mut I::BlockIterator,
     ) -> Self::Classifier<'i, 'b, 'r, I, R>
     where
-        I: Input,
-        R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>>,
+        I: Input<'i, 'r, R, BLOCK_SIZE>,
+        R: InputRecorder<I::Block>,
         'i: 'r;
 }

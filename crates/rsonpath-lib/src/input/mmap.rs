@@ -65,13 +65,14 @@ impl MmapInput {
     }
 }
 
-impl Input for MmapInput {
-    type BlockIterator<'a, 'r, R, const N: usize> = BorrowedBytesBlockIterator<'r, EndPaddedInput<'a>, R, N>
-    where
-        R: InputRecorder<&'a [u8]> + 'r;
+impl<'a, 'r, R, const N: usize> Input<'a, 'r, R, N> for MmapInput
+where
+R: InputRecorder<&'a [u8]> + 'r
+{
+    type BlockIterator = BorrowedBytesBlockIterator<'r, EndPaddedInput<'a>, R, N>;
 
     type Error = Infallible;
-    type Block<'a, const N: usize> = &'a [u8];
+    type Block = &'a [u8];
 
     #[inline(always)]
     fn leading_padding_len(&self) -> usize {
@@ -89,9 +90,7 @@ impl Input for MmapInput {
     }
 
     #[inline(always)]
-    fn iter_blocks<'a, 'r, R, const N: usize>(&'a self, recorder: &'r R) -> Self::BlockIterator<'a, 'r, R, N>
-    where
-        R: InputRecorder<&'a [u8]>,
+    fn iter_blocks(&'a self, recorder: &'r R) -> Self::BlockIterator
     {
         let padded_input = EndPaddedInput::new(&self.mmap[..self.last_block_start], &self.last_block);
 
@@ -99,7 +98,7 @@ impl Input for MmapInput {
     }
 
     #[inline]
-    fn seek_forward<const N: usize>(&self, from: usize, needles: [u8; N]) -> Result<Option<(usize, u8)>, Infallible> {
+    fn seek_forward<const M: usize>(&self, from: usize, needles: [u8; M]) -> Result<Option<(usize, u8)>, Infallible> {
         return Ok(if from < self.last_block_start {
             self.mmap
                 .seek_forward(from, needles)
@@ -160,7 +159,10 @@ impl Input for MmapInput {
     }
 }
 
-impl SeekableBackwardsInput for MmapInput {
+impl<'a, 'r, R, const N: usize> SeekableBackwardsInput<'a, 'r, R, N> for MmapInput
+where
+    R: InputRecorder<&'a [u8]> + 'r,
+{
     #[inline]
     fn seek_backward(&self, from: usize, needle: u8) -> Option<usize> {
         if from < self.last_block_start {

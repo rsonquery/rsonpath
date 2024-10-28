@@ -1,6 +1,8 @@
 //! Engine decorator that performs **head skipping** &ndash; an extremely optimized search for
 //! the first matching member name in a query starting with a self-looping state.
 //! This happens in queries starting with a descendant selector.
+
+use std::marker::PhantomData;
 use crate::{
     automaton::{Automaton, State},
     classification::{
@@ -22,12 +24,13 @@ use crate::{
     FallibleIterator, MaskType, BLOCK_SIZE,
 };
 use rsonpath_syntax::str::JsonString;
+use crate::result::InputRecorder;
 
 /// Trait that needs to be implemented by an [`Engine`](`super::Engine`) to use this submodule.
 pub(super) trait CanHeadSkip<'i, 'r, I, R, V>
 where
-    I: Input + 'i,
-    R: Recorder<I::Block<'i, BLOCK_SIZE>>,
+    I: Input<'i, 'r, R, BLOCK_SIZE> + 'i,
+    R: Recorder<I::Block> + 'r,
     V: Simd,
 {
     /// Function called when head-skipping finds a member name at which normal query execution
@@ -47,8 +50,8 @@ where
         &mut self,
         next_event: Structural,
         state: State,
-        structural_classifier: V::StructuralClassifier<'i, I::BlockIterator<'i, 'r, R, BLOCK_SIZE>>,
-    ) -> Result<ResumeState<'i, I::BlockIterator<'i, 'r, R, BLOCK_SIZE>, V, MaskType>, EngineError>;
+        structural_classifier: V::StructuralClassifier<'i, I::BlockIterator>,
+    ) -> Result<ResumeState<'i, I::BlockIterator, V, MaskType>, EngineError>;
 
     fn recorder(&mut self) -> &'r R;
 }
@@ -61,15 +64,25 @@ where
     V: Simd;
 
 /// Configuration of the head-skipping decorator.
-pub(super) struct HeadSkip<'b, 'q, I, V, const N: usize> {
+pub(super) struct HeadSkip<'b, 'q, 'r, I, R, V, const N: usize>
+where
+    I: Input<'b, 'r, R, N> + 'b,
+    R: InputRecorder<I::Block> + 'r,
+{
     bytes: &'b I,
     state: State,
     is_accepting: bool,
     member_name: &'q JsonString,
     simd: V,
+    _recorder: PhantomData<&'r R>,
 }
 
-impl<'b, 'q, I: Input, V: Simd> HeadSkip<'b, 'q, I, V, BLOCK_SIZE> {
+impl<'b, 'q, 'r, I, R, V> HeadSkip<'b, 'q, 'r, I, R, V, BLOCK_SIZE>
+where
+    I: Input<'b, 'r, R, BLOCK_SIZE>,
+    R: Recorder<I::Block>,
+    V: Simd
+{
     /// Create a new instance of the head-skipping decorator over a given input
     /// and for a compiled query [`Automaton`].
     ///
@@ -109,6 +122,7 @@ impl<'b, 'q, I: Input, V: Simd> HeadSkip<'b, 'q, I, V, BLOCK_SIZE> {
                 is_accepting: automaton.is_accepting(target_state),
                 member_name,
                 simd,
+                _recorder: PhantomData,
             });
         }
 
@@ -117,19 +131,19 @@ impl<'b, 'q, I: Input, V: Simd> HeadSkip<'b, 'q, I, V, BLOCK_SIZE> {
 
     /// Run a preconfigured [`HeadSkip`] using the given `engine` and reporting
     /// to the `result`.
-    pub(super) fn run_head_skipping<'r, E, R>(&self, engine: &mut E) -> Result<(), EngineError>
+    pub(super) fn run_head_skipping<E>(&self, engine: &mut E) -> Result<(), EngineError>
     where
         'b: 'r,
         E: CanHeadSkip<'b, 'r, I, R, V>,
-        R: Recorder<I::Block<'b, BLOCK_SIZE>> + 'r,
+        R: Recorder<I::Block> + 'r,
     {
         dispatch_simd!(self.simd; self, engine =>
-        fn<'b, 'q, 'r, I, V, E, R>(head_skip: &HeadSkip<'b, 'q, I, V, BLOCK_SIZE>, engine: &mut E) -> Result<(), EngineError>
+        fn<'b, 'q, 'r, I, V, E, R>(head_skip: &HeadSkip<'b, 'q, 'r, I, R, V, BLOCK_SIZE>, engine: &mut E) -> Result<(), EngineError>
         where
             'b: 'r,
             E: CanHeadSkip<'b, 'r, I, R, V>,
-            R: Recorder<I::Block<'b, BLOCK_SIZE>> + 'r,
-            I: Input,
+            R: Recorder<I::Block> + 'r,
+            I: Input<'b, 'r, R, BLOCK_SIZE>,
             V: Simd
         {
             let mut input_iter = head_skip.bytes.iter_blocks(engine.recorder());

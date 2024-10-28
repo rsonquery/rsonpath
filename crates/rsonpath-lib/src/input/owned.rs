@@ -27,6 +27,7 @@ use super::{
 use crate::result::InputRecorder;
 use rsonpath_syntax::str::JsonString;
 use std::borrow::Borrow;
+use crate::input;
 
 /// Input wrapping a buffer borrowable as a slice of bytes.
 pub struct OwnedBytes<B> {
@@ -76,20 +77,16 @@ impl From<String> for OwnedBytes<Vec<u8>> {
     }
 }
 
-impl<B> Input for OwnedBytes<B>
+impl<'b, 'r, B, R, const N: usize> Input<'b, 'r, R, N> for OwnedBytes<B>
 where
-    B: Borrow<[u8]>,
+    B: Borrow<[u8]> + 'b,
+    R: InputRecorder<&'b [u8]> + 'r,
 {
-    type BlockIterator<'i, 'r, R, const N: usize> = BorrowedBytesBlockIterator<'r, TwoSidesPaddedInput<'i>, R, N>
-    where
-        Self: 'i,
-        R: InputRecorder<Self::Block<'i, N>> + 'r;
+    type BlockIterator = BorrowedBytesBlockIterator<'r, TwoSidesPaddedInput<'b>, R, N>;
 
     type Error = Infallible;
 
-    type Block<'i, const N: usize> = &'i [u8]
-    where
-        Self: 'i;
+    type Block = &'b [u8];
 
     #[inline(always)]
     fn leading_padding_len(&self) -> usize {
@@ -102,9 +99,9 @@ where
     }
 
     #[inline]
-    fn iter_blocks<'i, 'r, R, const N: usize>(&'i self, recorder: &'r R) -> Self::BlockIterator<'i, 'r, R, N>
+    fn iter_blocks(&'b self, recorder: &'r R) -> Self::BlockIterator
     where
-        R: InputRecorder<Self::Block<'i, N>>,
+        R: InputRecorder<&'b [u8]>,
     {
         let (_, middle, _) = align_to::<MAX_BLOCK_SIZE>(self.bytes.borrow());
         assert_eq!(middle.len(), self.middle_len);
@@ -115,32 +112,32 @@ where
     }
 
     #[inline]
-    fn seek_forward<const N: usize>(&self, from: usize, needles: [u8; N]) -> Result<Option<(usize, u8)>, Self::Error> {
-        let offset = self.leading_padding_len();
+    fn seek_forward<const M: usize>(&self, from: usize, needles: [u8; M]) -> Result<Option<(usize, u8)>, Self::Error> {
+        let offset = <OwnedBytes<B> as Input<'_, '_, R, N>>::leading_padding_len(self);
         let from = from.saturating_sub(offset);
 
         Ok(self
             .bytes
             .borrow()
             .seek_forward(from, needles)
-            .map(|(x, y)| (x + self.leading_padding_len(), y)))
+            .map(|(x, y)| (x + <OwnedBytes<B> as Input<'_, '_, R, N>>::leading_padding_len(self), y)))
     }
 
     #[inline]
     fn seek_non_whitespace_forward(&self, from: usize) -> Result<Option<(usize, u8)>, Self::Error> {
-        let offset = self.leading_padding_len();
+        let offset = <OwnedBytes<B> as input::Input<'_, '_, R, N>>::leading_padding_len(self);
         let from = from.saturating_sub(offset);
 
         Ok(self
             .bytes
             .borrow()
             .seek_non_whitespace_forward(from)
-            .map(|(x, y)| (x + self.leading_padding_len(), y)))
+            .map(|(x, y)| (x + <OwnedBytes<B> as input::Input<'_, '_, R, N>>::leading_padding_len(self), y)))
     }
 
     #[inline]
     fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> Result<bool, Self::Error> {
-        let offset = self.leading_padding_len();
+        let offset = <OwnedBytes<B> as input::Input<'_, '_, R, N>>::leading_padding_len(self);
         let Some(from) = from.checked_sub(offset) else {
             return Ok(false);
         };
@@ -149,13 +146,14 @@ where
     }
 }
 
-impl<B> SeekableBackwardsInput for OwnedBytes<B>
+impl<'b, 'r, B, R, const N: usize> SeekableBackwardsInput<'b, 'r, R, N> for OwnedBytes<B>
 where
-    B: Borrow<[u8]>,
+    B: Borrow<[u8]> + 'b,
+    R: InputRecorder<&'b [u8]> + 'r,
 {
     #[inline]
     fn seek_backward(&self, from: usize, needle: u8) -> Option<usize> {
-        let offset = self.leading_padding_len();
+        let offset = <OwnedBytes<B> as input::Input<'_, '_, R, N>>::leading_padding_len(self);
         let from = from.checked_sub(offset)?;
 
         self.bytes.borrow().seek_backward(from, needle).map(|x| x + offset)
@@ -163,12 +161,12 @@ where
 
     #[inline]
     fn seek_non_whitespace_backward(&self, from: usize) -> Option<(usize, u8)> {
-        let offset = self.leading_padding_len();
+        let offset = <OwnedBytes<B> as input::Input<'_, '_, R, N>>::leading_padding_len(self);
         let from = from.checked_sub(offset)?;
 
         self.bytes
             .borrow()
             .seek_non_whitespace_backward(from)
-            .map(|(x, y)| (x + self.leading_padding_len(), y))
+            .map(|(x, y)| (x + <OwnedBytes<B> as input::Input<'_, '_, R, N>>::leading_padding_len(self), y))
     }
 }

@@ -235,11 +235,11 @@ pub(crate) trait Simd: Copy {
         I: InputBlockIterator<'i, BLOCK_SIZE>;
 
     /// The implementation of [`Memmem`] of this SIMD configuration.
-    type MemmemClassifier<'i, 'b, 'r, I, R>: Memmem<'i, 'b, 'r, I, BLOCK_SIZE>
+    type MemmemClassifier<'i, 'b, 'r, I, R>: Memmem<'i, 'b, 'r, I, R, BLOCK_SIZE>
     where
-        I: Input + 'i,
-        <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>: 'b,
-        R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>> + 'r,
+        I: Input<'i, 'r, R, BLOCK_SIZE> + 'i,
+        I::BlockIterator: 'b,
+        R: InputRecorder<I::Block> + 'r,
         'i: 'r;
 
     /// Get a unique descriptor of the enabled SIMD capabilities.
@@ -310,11 +310,11 @@ pub(crate) trait Simd: Copy {
     fn memmem<'i, 'b, 'r, I, R>(
         self,
         input: &'i I,
-        iter: &'b mut <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>,
+        iter: &'b mut I::BlockIterator,
     ) -> Self::MemmemClassifier<'i, 'b, 'r, I, R>
     where
-        I: Input,
-        R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>>,
+        I: Input<'i, 'r, R, BLOCK_SIZE>,
+        R: InputRecorder<I::Block>,
         'i: 'r;
 }
 
@@ -357,9 +357,9 @@ where
 
     type MemmemClassifier<'i, 'b, 'r, I, R> = M::Classifier<'i, 'b, 'r, I, R>
     where
-        I: Input + 'i,
-        <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>: 'b,
-        R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>> + 'r,
+        I: Input<'i, 'r, R, BLOCK_SIZE> + 'i,
+        I::BlockIterator: 'b,
+        R: InputRecorder<I::Block> + 'r,
         'i: 'r;
 
     #[inline(always)]
@@ -432,11 +432,11 @@ where
     fn memmem<'i, 'b, 'r, I, R>(
         self,
         input: &'i I,
-        iter: &'b mut <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>,
+        iter: &'b mut I::BlockIterator,
     ) -> Self::MemmemClassifier<'i, 'b, 'r, I, R>
     where
-        I: Input,
-        R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>>,
+        I: Input<'i, 'r, R, BLOCK_SIZE>,
+        R: InputRecorder<I::Block>,
         'i: 'r,
     {
         M::memmem(input, iter)

@@ -3,6 +3,7 @@ use crate::input::{
     Input,
 };
 use rsonpath_syntax::str::JsonString;
+use crate::result::InputRecorder;
 
 #[cfg(target_arch = "x86")]
 pub(super) mod mask_32;
@@ -13,14 +14,15 @@ pub(super) mod vector_128;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub(super) mod vector_256;
 
-pub(crate) fn find_label_in_first_block<'i, 'r, I, const N: usize>(
+pub(crate) fn find_label_in_first_block<'i, 'r, I, R, const N: usize>(
     input: &I,
-    first_block: I::Block<'i, N>,
+    first_block: I::Block,
     start_idx: usize,
     label: &JsonString,
-) -> Result<Option<(usize, I::Block<'i, N>)>, InputError>
+) -> Result<Option<(usize, I::Block)>, InputError>
 where
-    I: Input,
+    I: Input<'i, 'r, R, N>,
+    R: InputRecorder<I::Block> + 'r,
     'i: 'r,
 {
     let block_idx = start_idx % N;

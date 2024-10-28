@@ -11,11 +11,13 @@ use crate::{
     result::{empty::EmptyRecorder, Match, MatchCount, MatchIndex, MatchSpan, Sink},
     BLOCK_SIZE,
 };
+use crate::result::InputRecorder;
 
 /// Count for an empty query &ndash; determine if the root exists.
-pub(super) fn count<I>(input: &I) -> Result<MatchCount, EngineError>
+pub(super) fn count<'i, 'r, I, R, const N: usize>(input: &I) -> Result<MatchCount, EngineError>
 where
-    I: Input,
+    I: Input<'i, 'r, R, N>,
+    R: InputRecorder<I::Block> + 'r
 {
     // Assuming a correct JSON, there is either one root if any non-whitespace character
     // occurs in the document, or the document is empty.
@@ -27,9 +29,10 @@ where
 }
 
 /// Index for an empty query &ndash; determine the first index of the root.
-pub(super) fn index<I, S>(input: &I, sink: &mut S) -> Result<(), EngineError>
+pub(super) fn index<'i, 'r, I, R, S, const N: usize>(input: &I, sink: &mut S) -> Result<(), EngineError>
 where
-    I: Input,
+    I: Input<'i, 'r, R, N>,
+    R: InputRecorder<I::Block> + 'r,
     S: Sink<MatchIndex>,
 {
     // Assuming a correct JSON, the root starts at the first non-whitespace character, if any.
@@ -42,9 +45,10 @@ where
 }
 
 /// Approximate span for an empty query &ndash; determine the first index and the length of the root.
-pub(super) fn approx_span<I, S>(input: &I, sink: &mut S) -> Result<(), EngineError>
+pub(super) fn approx_span<'i, 'r, I, R, S, const N: usize>(input: &I, sink: &mut S) -> Result<(), EngineError>
 where
-    I: Input,
+    I: Input<'i, 'r, R, N>,
+    R: InputRecorder<I::Block> + 'r,
     S: Sink<MatchSpan>,
 {
     // The root spans the entire document, by definition, with the exception of whitespace.
@@ -59,7 +63,7 @@ where
             Some(end_idx) => end_idx, // Known length, just take it.
             None => {
                 // Unknown length, iterate and count.
-                let mut iter = input.iter_blocks::<_, BLOCK_SIZE>(&EmptyRecorder);
+                let mut iter = input.iter_blocks(&EmptyRecorder);
                 let mut end_idx = 0;
 
                 while (iter.next().e()?).is_some() {
@@ -81,15 +85,16 @@ where
 }
 
 /// Match for an empty query &ndash; copy the entire document, trimming whitespace.
-pub(super) fn match_<I, S>(input: &I, sink: &mut S) -> Result<(), EngineError>
+pub(super) fn match_<'i, 'r, I, R, S, const N: usize>(input: &I, sink: &mut S) -> Result<(), EngineError>
 where
-    I: Input,
+    I: Input<'i, 'r, R, N>,
+    R: InputRecorder<I::Block> + 'r,
     S: Sink<Match>,
 {
     // For a full match we need to copy the entire input starting from first non-whitespace,
     // and then trim the whitespace from the end. This might be slow if the document is excessively
     // padded with whitespace at start and/or end, but that's a pathological case.
-    let mut iter = input.iter_blocks::<_, BLOCK_SIZE>(&EmptyRecorder);
+    let mut iter = input.iter_blocks(&EmptyRecorder);
     let mut res: Vec<u8> = vec![];
     let mut first_significant_idx = None;
     let mut offset = 0;

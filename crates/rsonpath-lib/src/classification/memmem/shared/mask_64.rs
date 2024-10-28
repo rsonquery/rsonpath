@@ -6,16 +6,21 @@ use crate::{
     },
 };
 use rsonpath_syntax::str::JsonString;
+use crate::result::InputRecorder;
 
 #[inline(always)]
-pub(crate) fn find_in_mask<I: Input>(
+pub(crate) fn find_in_mask<'i, 'r, I, R, const N: usize>(
     input: &I,
     label: &JsonString,
     previous_block: u64,
     first: u64,
     second: u64,
     offset: usize,
-) -> Result<Option<usize>, InputError> {
+) -> Result<Option<usize>, InputError>
+where
+    R: InputRecorder<I::Block> + 'r,
+    I: Input<'i, 'r, R, N>
+{
     let label_size = label.quoted().len();
     let mut result = (previous_block | (first << 1)) & second;
     while result != 0 {

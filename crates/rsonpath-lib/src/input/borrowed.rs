@@ -88,13 +88,14 @@ where
     }
 }
 
-impl Input for BorrowedBytes<'_> {
-    type BlockIterator<'b, 'r, R, const N: usize> = BorrowedBytesBlockIterator<'r, TwoSidesPaddedInput<'b>, R, N>
-    where Self: 'b,
-          R: InputRecorder<&'b [u8]> + 'r;
+impl<'b, 'r, R, const N: usize> Input<'b, 'r, R, N> for BorrowedBytes<'b>
+    where
+        R: InputRecorder<Self::Block> + 'r
+{
+    type BlockIterator = BorrowedBytesBlockIterator<'r, TwoSidesPaddedInput<'b>, R, N>;
 
     type Error = Infallible;
-    type Block<'b, const N: usize> = &'b [u8] where Self: 'b;
+    type Block = &'b [u8];
 
     #[inline(always)]
     fn leading_padding_len(&self) -> usize {
@@ -112,9 +113,7 @@ impl Input for BorrowedBytes<'_> {
     }
 
     #[inline(always)]
-    fn iter_blocks<'b, 'r, R, const N: usize>(&'b self, recorder: &'r R) -> Self::BlockIterator<'b, 'r, R, N>
-    where
-        R: InputRecorder<&'b [u8]>,
+    fn iter_blocks(&'b self, recorder: &'r R) -> Self::BlockIterator
     {
         let padded_input = TwoSidesPaddedInput::new(&self.first_block, self.middle_bytes, &self.last_block);
 
@@ -126,7 +125,7 @@ impl Input for BorrowedBytes<'_> {
     }
 
     #[inline]
-    fn seek_forward<const N: usize>(&self, from: usize, needles: [u8; N]) -> Result<Option<(usize, u8)>, Infallible> {
+    fn seek_forward<const M: usize>(&self, from: usize, needles: [u8; M]) -> Result<Option<(usize, u8)>, Infallible> {
         return Ok(
             if from >= MAX_BLOCK_SIZE && from < self.middle_bytes.len() + MAX_BLOCK_SIZE {
                 match self.middle_bytes.seek_forward(from - MAX_BLOCK_SIZE, needles) {
@@ -198,7 +197,11 @@ impl Input for BorrowedBytes<'_> {
     }
 }
 
-impl SeekableBackwardsInput for BorrowedBytes<'_> {
+impl<'b, 'r, R, const N: usize> SeekableBackwardsInput<'b, 'r, R, N> for BorrowedBytes<'b>
+where
+    R: InputRecorder<Self::Block> + 'r,
+    Self: 'b
+{
     #[inline]
     fn seek_backward(&self, from: usize, needle: u8) -> Option<usize> {
         return if from >= MAX_BLOCK_SIZE && from < self.middle_bytes.len() + MAX_BLOCK_SIZE {
@@ -238,7 +241,7 @@ impl SeekableBackwardsInput for BorrowedBytes<'_> {
 impl<'a, 'r, R, const N: usize> InputBlockIterator<'a, N>
     for BorrowedBytesBlockIterator<'r, TwoSidesPaddedInput<'a>, R, N>
 where
-    R: InputRecorder<&'a [u8]> + 'r,
+    R: InputRecorder<Self::Block> + 'r,
 {
     type Block = &'a [u8];
     type Error = Infallible;

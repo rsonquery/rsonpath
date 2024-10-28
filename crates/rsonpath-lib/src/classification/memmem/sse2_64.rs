@@ -11,18 +11,18 @@ pub(crate) struct Constructor;
 impl MemmemImpl for Constructor {
     type Classifier<'i, 'b, 'r, I, R> = Sse2MemmemClassifier64<'i, 'b, 'r, I, R>
     where
-        I: Input + 'i,
-        <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>: 'b,
-        R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>> + 'r,
+        I: Input<'i, 'r, R, BLOCK_SIZE> + 'i,
+        I::BlockIterator: 'b,
+        R: InputRecorder<I::Block> + 'r,
         'i: 'r;
 
     fn memmem<'i, 'b, 'r, I, R>(
         input: &'i I,
-        iter: &'b mut <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>,
+        iter: &'b mut I::BlockIterator,
     ) -> Self::Classifier<'i, 'b, 'r, I, R>
     where
-        I: Input,
-        R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>>,
+        I: Input<'i, 'r, R, BLOCK_SIZE>,
+        R: InputRecorder<I::Block>,
         'i: 'r,
     {
         Self::Classifier { input, iter }
@@ -31,22 +31,22 @@ impl MemmemImpl for Constructor {
 
 pub(crate) struct Sse2MemmemClassifier64<'i, 'b, 'r, I, R>
 where
-    I: Input,
-    R: InputRecorder<I::Block<'i, SIZE>> + 'r,
+    I: Input<'i, 'r, R, SIZE>,
+    R: InputRecorder<I::Block> + 'r,
 {
     input: &'i I,
-    iter: &'b mut I::BlockIterator<'i, 'r, R, SIZE>,
+    iter: &'b mut I::BlockIterator,
 }
 
 impl<'i, 'b, 'r, I, R> Sse2MemmemClassifier64<'i, 'b, 'r, I, R>
 where
-    I: Input,
-    R: InputRecorder<I::Block<'i, SIZE>>,
+    I: Input<'i, 'r, R, SIZE>,
+    R: InputRecorder<I::Block>,
     'i: 'r,
 {
     #[inline]
     #[allow(dead_code)]
-    pub(crate) fn new(input: &'i I, iter: &'b mut I::BlockIterator<'i, 'r, R, SIZE>) -> Self {
+    pub(crate) fn new(input: &'i I, iter: &'b mut I::BlockIterator) -> Self {
         Self { input, iter }
     }
 
@@ -55,7 +55,7 @@ where
         &mut self,
         label: &JsonString,
         mut offset: usize,
-    ) -> Result<Option<(usize, I::Block<'i, SIZE>)>, InputError> {
+    ) -> Result<Option<(usize, I::Block)>, InputError> {
         let classifier = vector_128::BlockClassifier128::new(b'"', b'"');
         let mut previous_block: u64 = 0;
 
@@ -107,7 +107,7 @@ where
         &mut self,
         label: &JsonString,
         mut offset: usize,
-    ) -> Result<Option<(usize, I::Block<'i, SIZE>)>, InputError> {
+    ) -> Result<Option<(usize, I::Block)>, InputError> {
         let classifier = vector_128::BlockClassifier128::new(label.unquoted().as_bytes()[0], b'"');
         let mut previous_block: u64 = 0;
 
@@ -149,7 +149,7 @@ where
         &mut self,
         label: &JsonString,
         mut offset: usize,
-    ) -> Result<Option<(usize, I::Block<'i, SIZE>)>, InputError> {
+    ) -> Result<Option<(usize, I::Block)>, InputError> {
         if label.unquoted().is_empty() {
             return self.find_empty(label, offset);
         } else if label.unquoted().len() == 1 {
@@ -194,19 +194,19 @@ where
     }
 }
 
-impl<'i, 'b, 'r, I, R> Memmem<'i, 'b, 'r, I, SIZE> for Sse2MemmemClassifier64<'i, 'b, 'r, I, R>
+impl<'i, 'b, 'r, I, R> Memmem<'i, 'b, 'r, I, R, SIZE> for Sse2MemmemClassifier64<'i, 'b, 'r, I, R>
 where
-    I: Input,
-    R: InputRecorder<I::Block<'i, SIZE>>,
+    I: Input<'i, 'r, R, SIZE>,
+    R: InputRecorder<I::Block>,
     'i: 'r,
 {
     #[inline(always)]
     fn find_label(
         &mut self,
-        first_block: Option<I::Block<'i, SIZE>>,
+        first_block: Option<I::Block>,
         start_idx: usize,
         label: &JsonString,
-    ) -> Result<Option<(usize, I::Block<'i, SIZE>)>, InputError> {
+    ) -> Result<Option<(usize, I::Block)>, InputError> {
         if let Some(b) = first_block {
             if let Some(res) = shared::find_label_in_first_block(self.input, b, start_idx, label)? {
                 return Ok(Some(res));

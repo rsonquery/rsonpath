@@ -18,6 +18,7 @@ use crate::{
     result::{Match, MatchCount, MatchIndex, MatchSpan, Sink},
 };
 use rsonpath_syntax::JsonPathQuery;
+use crate::result::InputRecorder;
 
 /// An engine that can run its query on a given input.
 pub trait Engine {
@@ -34,9 +35,10 @@ pub trait Engine {
     /// Some glaring errors like mismatched braces or double quotes are raised,
     /// but in general **the result of an engine run on an invalid JSON is undefined**.
     /// It _is_ guaranteed that the computation terminates and does not panic.
-    fn count<I>(&self, input: &I) -> Result<MatchCount, EngineError>
+    fn count<'i, 'r, I, R, const N: usize>(&self, input: &I) -> Result<MatchCount, EngineError>
     where
-        I: SeekableBackwardsInput;
+        R: InputRecorder<I::Block> + 'r,
+        I: SeekableBackwardsInput<'i, 'r, R, N>;
 
     /// Find the starting indices of matches on the given [`Input`] and write them to the [`Sink`].
     ///
@@ -52,9 +54,10 @@ pub trait Engine {
     /// Some glaring errors like mismatched braces or double quotes are raised,
     /// but in general **the result of an engine run on an invalid JSON is undefined**.
     /// It _is_ guaranteed that the computation terminates and does not panic.
-    fn indices<I, S>(&self, input: &I, sink: &mut S) -> Result<(), EngineError>
+    fn indices<'i, 'r, I, R, S, const N: usize>(&self, input: &I, sink: &mut S) -> Result<(), EngineError>
     where
-        I: SeekableBackwardsInput,
+        I: SeekableBackwardsInput<'i, 'r, R, N>,
+        R: InputRecorder<I::Block> + 'r,
         S: Sink<MatchIndex>;
 
     /// Find the approximate spans of matches on the given [`Input`] and write them to the [`Sink`].
@@ -77,9 +80,10 @@ pub trait Engine {
     /// Some glaring errors like mismatched braces or double quotes are raised,
     /// but in general **the result of an engine run on an invalid JSON is undefined**.
     /// It _is_ guaranteed that the computation terminates and does not panic.
-    fn approximate_spans<I, S>(&self, input: &I, sink: &mut S) -> Result<(), EngineError>
+    fn approximate_spans<'i, 'r, I, R, S, const N: usize>(&self, input: &I, sink: &mut S) -> Result<(), EngineError>
     where
-        I: SeekableBackwardsInput,
+        I: SeekableBackwardsInput<'i, 'r, R, N>,
+        R: InputRecorder<I::Block> + 'r,
         S: Sink<MatchSpan>;
 
     /// Find all matches on the given [`Input`] and write them to the [`Sink`].
@@ -92,9 +96,10 @@ pub trait Engine {
     /// Some glaring errors like mismatched braces or double quotes are raised,
     /// but in general **the result of an engine run on an invalid JSON is undefined**.
     /// It _is_ guaranteed that the computation terminates and does not panic.
-    fn matches<I, S>(&self, input: &I, sink: &mut S) -> Result<(), EngineError>
+    fn matches<'i, 'r, I, R, S, const N: usize>(&self, input: &I, sink: &mut S) -> Result<(), EngineError>
     where
-        I: SeekableBackwardsInput,
+        I: SeekableBackwardsInput<'i, 'r, R, N>,
+        R: InputRecorder<I::Block> + 'r,
         S: Sink<Match>;
 }
 
