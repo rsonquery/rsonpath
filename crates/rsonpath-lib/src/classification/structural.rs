@@ -219,10 +219,10 @@ mod tests {
         config_simd!(simd => |simd| {
             let json = r#"{"a": [42, 36, { "b": { "c": 1, "d": 2 } }]}"#;
             let json_string = json.to_owned();
-            let input = BorrowedBytes::new(json_string.as_bytes());
+            let input: BorrowedBytes<'_> = BorrowedBytes::new(json_string.as_bytes());
             let iter = input.iter_blocks(&EmptyRecorder);
             let quotes = simd.classify_quoted_sequences(iter);
-            let offset = input.leading_padding_len();
+            let offset = <BorrowedBytes<'_> as Input<'_, '_, EmptyRecorder, BLOCK_SIZE>>::leading_padding_len(&input);
 
             let mut classifier = simd.classify_structural_characters(quotes);
 

@@ -89,8 +89,8 @@ where
 }
 
 impl<'b, 'r, R, const N: usize> Input<'b, 'r, R, N> for BorrowedBytes<'b>
-    where
-        R: InputRecorder<Self::Block> + 'r
+where
+    R: InputRecorder<&'b [u8]> + 'r,
 {
     type BlockIterator = BorrowedBytesBlockIterator<'r, TwoSidesPaddedInput<'b>, R, N>;
 
@@ -113,8 +113,7 @@ impl<'b, 'r, R, const N: usize> Input<'b, 'r, R, N> for BorrowedBytes<'b>
     }
 
     #[inline(always)]
-    fn iter_blocks(&'b self, recorder: &'r R) -> Self::BlockIterator
-    {
+    fn iter_blocks(&'b self, recorder: &'r R) -> Self::BlockIterator {
         let padded_input = TwoSidesPaddedInput::new(&self.first_block, self.middle_bytes, &self.last_block);
 
         Self::BlockIterator {
@@ -199,8 +198,8 @@ impl<'b, 'r, R, const N: usize> Input<'b, 'r, R, N> for BorrowedBytes<'b>
 
 impl<'b, 'r, R, const N: usize> SeekableBackwardsInput<'b, 'r, R, N> for BorrowedBytes<'b>
 where
-    R: InputRecorder<Self::Block> + 'r,
-    Self: 'b
+    R: InputRecorder<&'b [u8]> + 'r,
+    Self: 'b,
 {
     #[inline]
     fn seek_backward(&self, from: usize, needle: u8) -> Option<usize> {
@@ -241,7 +240,7 @@ where
 impl<'a, 'r, R, const N: usize> InputBlockIterator<'a, N>
     for BorrowedBytesBlockIterator<'r, TwoSidesPaddedInput<'a>, R, N>
 where
-    R: InputRecorder<Self::Block> + 'r,
+    R: InputRecorder<&'a [u8]> + 'r,
 {
     type Block = &'a [u8];
     type Error = Infallible;
