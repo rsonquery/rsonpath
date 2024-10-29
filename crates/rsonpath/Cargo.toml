@@ -39,7 +39,7 @@ vergen-git2 = "1.0.1"
 vergen-gitcl = "1.0.1"
 
 [dev-dependencies]
-trycmd = "0.15.7"
+trycmd = "0.15.8"
 
 [features]
 default = ["simd"]
