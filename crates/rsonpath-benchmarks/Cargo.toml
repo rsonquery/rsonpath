@@ -37,7 +37,7 @@ ouroboros = "0.18.4"
 reqwest = { version = "0.12.8", features = ["blocking"] }
 rsonpath-lib = { version = "0.9.1", default-features = false }
 rsonpath-syntax = { version = "0.3.1", default-features = false }
-serde_json_path = "0.6.7"
+serde_json_path = "0.7.1"
 tar = "0.4.42"
 thiserror = "1.0.64"
 
