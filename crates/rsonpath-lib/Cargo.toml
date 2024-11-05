@@ -27,7 +27,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 all-features = true
 
 [dependencies]
-arbitrary = { version = "1.3.2", features = ["derive"], optional = true }
+arbitrary = { version = "1.4.1", features = ["derive"], optional = true }
 cfg-if = "1.0.0"
 log = "0.4.22"
 memmap2 = "0.9.5"
@@ -35,7 +35,7 @@ nom = "7.1.3"
 rsonpath-syntax = { version = "0.3.1", path = "../rsonpath-syntax" }
 smallvec = { version = "1.13.2", features = ["union"] }
 static_assertions = "1.1.0"
-thiserror = "1.0.66"
+thiserror = "1.0.68"
 vector-map = "1.0.1"
 
 [dev-dependencies]
