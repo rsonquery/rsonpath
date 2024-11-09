@@ -2,7 +2,7 @@
 //! the first matching member name in a query starting with a self-looping state.
 //! This happens in queries starting with a descendant selector.
 
-use std::marker::PhantomData;
+use crate::result::InputRecorder;
 use crate::{
     automaton::{Automaton, State},
     classification::{
@@ -24,7 +24,7 @@ use crate::{
     FallibleIterator, MaskType, BLOCK_SIZE,
 };
 use rsonpath_syntax::str::JsonString;
-use crate::result::InputRecorder;
+use std::marker::PhantomData;
 
 /// Trait that needs to be implemented by an [`Engine`](`super::Engine`) to use this submodule.
 pub(super) trait CanHeadSkip<'i, 'r, I, R, V>
@@ -81,7 +81,7 @@ impl<'b, 'q, 'r, I, R, V> HeadSkip<'b, 'q, 'r, I, R, V, BLOCK_SIZE>
 where
     I: Input<'b, 'r, R, BLOCK_SIZE>,
     R: Recorder<I::Block>,
-    V: Simd
+    V: Simd,
 {
     /// Create a new instance of the head-skipping decorator over a given input
     /// and for a compiled query [`Automaton`].

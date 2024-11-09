@@ -4,6 +4,7 @@
 //! we assume the root opening was already read. This makes it incompatible with
 //! an empty query. Instead of rewriting the engine we provide fast-path implementations
 //! here.
+use crate::result::InputRecorder;
 use crate::{
     engine::{error::EngineError, Input},
     input::{error::InputErrorConvertible, InputBlockIterator},
@@ -11,13 +12,12 @@ use crate::{
     result::{empty::EmptyRecorder, Match, MatchCount, MatchIndex, MatchSpan, Sink},
     BLOCK_SIZE,
 };
-use crate::result::InputRecorder;
 
 /// Count for an empty query &ndash; determine if the root exists.
 pub(super) fn count<'i, 'r, I, R, const N: usize>(input: &I) -> Result<MatchCount, EngineError>
 where
     I: Input<'i, 'r, R, N>,
-    R: InputRecorder<I::Block> + 'r
+    R: InputRecorder<I::Block> + 'r,
 {
     // Assuming a correct JSON, there is either one root if any non-whitespace character
     // occurs in the document, or the document is empty.

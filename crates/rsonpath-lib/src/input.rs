@@ -58,12 +58,7 @@ where
 {
     /// Type of the iterator used by [`iter_blocks`](Input::iter_blocks), parameterized
     /// by the lifetime of source input and the size of the block.
-    type BlockIterator: InputBlockIterator<
-        'i,
-        N,
-        Block = Self::Block,
-        Error = Self::Error,
-    >;
+    type BlockIterator: InputBlockIterator<'i, N, Block = Self::Block, Error = Self::Error>;
 
     /// Type of errors that can occur when operating on this [`Input`].
     type Error: Into<InputError>;
@@ -141,7 +136,7 @@ where
 pub trait SeekableBackwardsInput<'i, 'r, R, const N: usize>: Input<'i, 'r, R, N>
 where
     R: InputRecorder<Self::Block> + 'r,
-    Self: 'i
+    Self: 'i,
 {
     /// Search for an occurrence of `needle` in the input,
     /// starting from `from` and looking back. Returns the index

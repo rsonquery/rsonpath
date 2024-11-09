@@ -67,7 +67,7 @@ impl MmapInput {
 
 impl<'a, 'r, R, const N: usize> Input<'a, 'r, R, N> for MmapInput
 where
-R: InputRecorder<&'a [u8]> + 'r
+    R: InputRecorder<&'a [u8]> + 'r,
 {
     type BlockIterator = BorrowedBytesBlockIterator<'r, EndPaddedInput<'a>, R, N>;
 
@@ -90,8 +90,7 @@ R: InputRecorder<&'a [u8]> + 'r
     }
 
     #[inline(always)]
-    fn iter_blocks(&'a self, recorder: &'r R) -> Self::BlockIterator
-    {
+    fn iter_blocks(&'a self, recorder: &'r R) -> Self::BlockIterator {
         let padded_input = EndPaddedInput::new(&self.mmap[..self.last_block_start], &self.last_block);
 
         BorrowedBytesBlockIterator::new(padded_input, recorder)

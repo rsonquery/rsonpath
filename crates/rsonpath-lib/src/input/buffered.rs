@@ -135,7 +135,7 @@ impl<'a, 'r, IR, R, const N: usize> Input<'a, 'r, IR, N> for BufferedInput<R>
 where
     Self: 'a,
     R: Read,
-    IR: InputRecorder<BufferedInputBlock<N>> + 'r
+    IR: InputRecorder<BufferedInputBlock<N>> + 'r,
 {
     type BlockIterator = BufferedInputBlockIterator<'a, 'r, R, IR, N>;
 
@@ -158,8 +158,7 @@ where
     }
 
     #[inline(always)]
-    fn iter_blocks(&'a self, recorder: &'r IR) -> Self::BlockIterator
-    {
+    fn iter_blocks(&'a self, recorder: &'r IR) -> Self::BlockIterator {
         BufferedInputBlockIterator {
             input: self,
             idx: 0,

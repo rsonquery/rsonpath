@@ -24,10 +24,10 @@ use super::{
     padding::{PaddedBlock, TwoSidesPaddedInput},
     Input, SeekableBackwardsInput, SliceSeekable, MAX_BLOCK_SIZE,
 };
+use crate::input;
 use crate::result::InputRecorder;
 use rsonpath_syntax::str::JsonString;
 use std::borrow::Borrow;
-use crate::input;
 
 /// Input wrapping a buffer borrowable as a slice of bytes.
 pub struct OwnedBytes<B> {
@@ -128,11 +128,12 @@ where
         let offset = <OwnedBytes<B> as input::Input<'_, '_, R, N>>::leading_padding_len(self);
         let from = from.saturating_sub(offset);
 
-        Ok(self
-            .bytes
-            .borrow()
-            .seek_non_whitespace_forward(from)
-            .map(|(x, y)| (x + <OwnedBytes<B> as input::Input<'_, '_, R, N>>::leading_padding_len(self), y)))
+        Ok(self.bytes.borrow().seek_non_whitespace_forward(from).map(|(x, y)| {
+            (
+                x + <OwnedBytes<B> as input::Input<'_, '_, R, N>>::leading_padding_len(self),
+                y,
+            )
+        }))
     }
 
     #[inline]
@@ -164,9 +165,11 @@ where
         let offset = <OwnedBytes<B> as input::Input<'_, '_, R, N>>::leading_padding_len(self);
         let from = from.checked_sub(offset)?;
 
-        self.bytes
-            .borrow()
-            .seek_non_whitespace_backward(from)
-            .map(|(x, y)| (x + <OwnedBytes<B> as input::Input<'_, '_, R, N>>::leading_padding_len(self), y))
+        self.bytes.borrow().seek_non_whitespace_backward(from).map(|(x, y)| {
+            (
+                x + <OwnedBytes<B> as input::Input<'_, '_, R, N>>::leading_padding_len(self),
+                y,
+            )
+        })
     }
 }

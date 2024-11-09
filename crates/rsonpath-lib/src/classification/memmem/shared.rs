@@ -2,8 +2,8 @@ use crate::input::{
     error::{InputError, InputErrorConvertible},
     Input,
 };
-use rsonpath_syntax::str::JsonString;
 use crate::result::InputRecorder;
+use rsonpath_syntax::str::JsonString;
 
 #[cfg(target_arch = "x86")]
 pub(super) mod mask_32;

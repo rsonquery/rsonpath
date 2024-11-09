@@ -16,10 +16,7 @@ impl MemmemImpl for Constructor {
         R: InputRecorder<I::Block> + 'r,
         'i: 'r;
 
-    fn memmem<'i, 'b, 'r, I, R>(
-        input: &'i I,
-        iter: &'b mut I::BlockIterator,
-    ) -> Self::Classifier<'i, 'b, 'r, I, R>
+    fn memmem<'i, 'b, 'r, I, R>(input: &'i I, iter: &'b mut I::BlockIterator) -> Self::Classifier<'i, 'b, 'r, I, R>
     where
         I: Input<'i, 'r, R, BLOCK_SIZE>,
         R: InputRecorder<I::Block>,
