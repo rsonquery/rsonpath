@@ -9,7 +9,7 @@ use crate::lookup_table::{
 };
 
 #[inline]
-pub fn compare_build_time(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub fn run(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Error>> {
     let file = std::fs::File::open(json_path)?;
     let filename = util_path::extract_filename(json_path);
 

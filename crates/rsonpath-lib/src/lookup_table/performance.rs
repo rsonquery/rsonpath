@@ -52,16 +52,11 @@ fn evaluate(
 }
 
 fn build_time_evaluation(json_dir: &str, csv_dir: &str) {
-    evaluate(
-        json_dir,
-        csv_dir,
-        BUILD_TIME_EVAL_DIR,
-        build_time_evaluation::compare_build_time,
-    );
+    evaluate(json_dir, csv_dir, BUILD_TIME_EVAL_DIR, build_time_evaluation::run);
 }
 
 fn heap_evaluation(json_dir: &str, csv_dir: &str) {
-    evaluate(json_dir, csv_dir, HEAP_EVAL_DIR, heap_evaluation::compare_heap_size);
+    evaluate(json_dir, csv_dir, HEAP_EVAL_DIR, heap_evaluation::run);
 }
 
 /// Check if csv_path already exists and if it does rename it with a unique number
