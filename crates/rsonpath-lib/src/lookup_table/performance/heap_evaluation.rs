@@ -23,45 +23,23 @@ pub fn run(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Er
     let mut csv_head_line = String::from("name,input_size_bytes,num_keys,");
     let mut csv_info_line = format!("{},{},{},", filename, file.metadata()?.len(), num_keys);
 
-    // lut_naive
-    let reg = Region::new(GLOBAL);
-    let lut = LutNaive::build(json_path)?;
-    let stats = heap_value(reg.change());
-    csv_head_line.push_str("naive_heap,naive_capacity,");
-    csv_info_line.push_str(&format!("{},{},", stats, lut.allocated_bytes()));
-    drop(lut);
+    macro_rules! measure_heap_and_capacity {
+        ($lut_type:ty, $heap_label:expr, $capacity_label:expr) => {{
+            let reg = Region::new(GLOBAL);
+            let lut = <$lut_type>::build(json_path)?;
+            let stats = heap_value(reg.change());
+            csv_head_line.push_str(&format!("{},{},", $heap_label, $capacity_label));
+            csv_info_line.push_str(&format!("{},{},", stats, lut.allocated_bytes()));
+            drop(lut);
+        }};
+    }
 
-    // lut_perfect_naive
-    // let reg = Region::new(GLOBAL);
-    // let lut = LutPerfectNaive::build(json_path)?;
-    // let stats = heap_value(reg.change());
-    // csv_head_line.push_str("perfect_naive_heap,perfect_naive_capacity,");
-    // csv_info_line.push_str(&format!("{},{},", stats, lut.allocated_bytes()));
-    // drop(lut);
-
-    // lut_phf
-    let reg = Region::new(GLOBAL);
-    let lut = LutPHF::build(json_path)?;
-    let stats = heap_value(reg.change());
-    csv_head_line.push_str("phf_heap,phf_capacity,");
-    csv_info_line.push_str(&format!("{},{},", stats, lut.allocated_bytes()));
-    drop(lut);
-
-    // lut_phf_double
-    let reg = Region::new(GLOBAL);
-    let lut = LutPHFDouble::build(json_path)?;
-    let stats = heap_value(reg.change());
-    csv_head_line.push_str("phf_double_heap,phf_double_capacity,");
-    csv_info_line.push_str(&format!("{},{},", stats, lut.allocated_bytes()));
-    drop(lut);
-
-    // lut_phf_group
-    let reg = Region::new(GLOBAL);
-    let lut = LutPHFGroup::build(json_path)?;
-    let stats = heap_value(reg.change());
-    csv_head_line.push_str("phf_group_heap,phf_group_capacity,");
-    csv_info_line.push_str(&format!("{},{},", stats, lut.allocated_bytes()));
-    drop(lut);
+    // Process each LUT
+    measure_heap_and_capacity!(LutNaive, "naive_heap", "naive_capacity");
+    measure_heap_and_capacity!(LutPerfectNaive, "perfect_naive_heap", "perfect_naive_capacity");
+    measure_heap_and_capacity!(LutPHF, "phf_heap", "phf_capacity");
+    measure_heap_and_capacity!(LutPHFDouble, "phf_double_heap", "phf_double_capacity");
+    measure_heap_and_capacity!(LutPHFGroup, "phf_group_heap", "phf_group_capacity");
 
     // Write CSV header and data
     let mut csv_file = std::fs::OpenOptions::new().append(true).create(true).open(csv_path)?;
@@ -70,6 +48,7 @@ pub fn run(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Er
     }
     writeln!(csv_file, "{}", csv_info_line)?;
 
+    // Build statistics
     run_python_statistics_builder(csv_path);
 
     Ok(())
