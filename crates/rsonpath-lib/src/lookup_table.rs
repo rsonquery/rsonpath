@@ -17,3 +17,9 @@ pub trait LookUpTable {
 
     fn allocated_bytes(&self) -> usize;
 }
+
+pub trait LookUpTableLambda: LookUpTable {
+    fn build_with_lambda(lambda: usize, json_path: &str) -> Result<Self, Box<dyn std::error::Error>>
+    where
+        Self: Sized;
+}

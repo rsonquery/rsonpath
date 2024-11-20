@@ -1,11 +1,12 @@
 use crate::lookup_table::{
     count_distances, lut_naive::LutNaive, lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF,
-    lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup, util_path, LookUpTable,
+    lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup, util_path, LookUpTable, LookUpTableLambda,
 };
 use stats_alloc::{Region, StatsAlloc, INSTRUMENTED_SYSTEM};
+use std::io::Write;
 use std::{
     alloc::System,
-    io::{self, Write},
+    io::{self},
     process::Command,
 };
 
@@ -14,44 +15,59 @@ static GLOBAL: &StatsAlloc<System> = &INSTRUMENTED_SYSTEM;
 
 #[inline]
 pub fn run(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Error>> {
-    use std::io::Write;
-
     let file = std::fs::File::open(json_path)?;
     let filename = util_path::extract_filename(json_path);
     let num_keys = count_distances::count_num_pairs(json_path);
 
-    let mut csv_head_line = String::from("name,input_size_bytes,num_keys,");
-    let mut csv_info_line = format!("{},{},{},", filename, file.metadata()?.len(), num_keys);
+    let mut head_line = String::from("name,input_size_bytes,num_keys,");
+    let mut data_line = format!("{},{},{},", filename, file.metadata()?.len(), num_keys);
 
-    macro_rules! measure_heap_and_capacity {
-        ($lut_type:ty, $heap_label:expr, $capacity_label:expr) => {{
-            let reg = Region::new(GLOBAL);
-            let lut = <$lut_type>::build(json_path)?;
-            let stats = heap_value(reg.change());
-            csv_head_line.push_str(&format!("{},{},", $heap_label, $capacity_label));
-            csv_info_line.push_str(&format!("{},{},", stats, lut.allocated_bytes()));
-            drop(lut);
-        }};
+    // Measure LUTs without lambda parameter
+    measure_ram::<LutNaive>(json_path, "naive", &mut head_line, &mut data_line);
+    // measure_ram::<LutPerfectNaive>(json_path, "perfect_naive", &mut head_line, &mut data_line);
+    // measure_ram::<LutPHF>(json_path, "phf", &mut head_line, &mut data_line);
+
+    // Process each LUT that has a lambda parameter with lambda [1, ..., 5]
+    for lambda in vec![1, 5] {
+        // measure_ram_lambda::<LutPHFDouble>(lambda, json_path, "double", &mut head_line, &mut data_line);
+        measure_ram_lambda::<LutPHFGroup>(lambda, json_path, "group", &mut head_line, &mut data_line);
     }
-
-    // Process each LUT
-    measure_heap_and_capacity!(LutNaive, "naive_heap", "naive_capacity");
-    measure_heap_and_capacity!(LutPerfectNaive, "perfect_naive_heap", "perfect_naive_capacity");
-    measure_heap_and_capacity!(LutPHF, "phf_heap", "phf_capacity");
-    measure_heap_and_capacity!(LutPHFDouble, "phf_double_heap", "phf_double_capacity");
-    measure_heap_and_capacity!(LutPHFGroup, "phf_group_heap", "phf_group_capacity");
 
     // Write CSV header and data
     let mut csv_file = std::fs::OpenOptions::new().append(true).create(true).open(csv_path)?;
     if csv_file.metadata()?.len() == 0 {
-        writeln!(csv_file, "{}", csv_head_line)?;
+        writeln!(csv_file, "{}", head_line)?;
     }
-    writeln!(csv_file, "{}", csv_info_line)?;
+    writeln!(csv_file, "{}", data_line)?;
 
     // Build statistics
     run_python_statistics_builder(csv_path);
 
     Ok(())
+}
+
+fn measure_ram<T: LookUpTable>(json_path: &str, name: &str, head_line: &mut String, data_line: &mut String) {
+    println!("  - {}", name);
+    let reg = Region::new(GLOBAL);
+    let lut = T::build(json_path).expect("Fail @ build lut");
+    let stats = heap_value(reg.change());
+    head_line.push_str(&format!("{}_heap,{}_capacity,", name, name));
+    data_line.push_str(&format!("{},{},", stats, lut.allocated_bytes()));
+}
+
+fn measure_ram_lambda<T: LookUpTableLambda>(
+    lambda: usize,
+    json_path: &str,
+    name: &str,
+    head_line: &mut String,
+    data_line: &mut String,
+) {
+    println!("  - {}", name);
+    let reg = Region::new(GLOBAL);
+    let lut = T::build_with_lambda(lambda, json_path).expect("Fail @ build with lambda");
+    let stats = heap_value(reg.change());
+    head_line.push_str(&format!("λ={}:{}_heap,λ={}:{}_capacity,", lambda, name, lambda, name));
+    data_line.push_str(&format!("{},{},", stats, lut.allocated_bytes()));
 }
 
 fn heap_value(stats: stats_alloc::Stats) -> isize {

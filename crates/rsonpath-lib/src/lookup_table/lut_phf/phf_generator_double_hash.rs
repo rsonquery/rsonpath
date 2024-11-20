@@ -33,6 +33,7 @@ impl FromUsize for u64 {
 }
 
 pub struct HashState<U> {
+    pub lambda: usize,
     pub hash_key: HashKey,
     pub displacements: Vec<(u32, u32)>,
     pub map: Vec<U>,
@@ -58,15 +59,17 @@ impl<U: Copy> HashState<U> {
 }
 
 #[inline]
-pub fn build<H: PhfHash>(keys: &[H]) -> HashState<usize> {
+pub fn build<H: PhfHash>(lambda: usize, keys: &[H]) -> HashState<usize> {
     SmallRng::seed_from_u64(FIXED_SEED)
         .sample_iter(Standard)
-        .find_map(|hash_key| try_generate_hash(keys, hash_key))
+        .find_map(|hash_key| try_generate_hash(lambda, keys, hash_key))
         .expect("failed to solve PHF")
 }
 
 // THIS METHOD IS FROM A LIBRARY: https://docs.rs/phf_generator/0.11.2/src/phf_generator/lib.rs.html#1-109
-fn try_generate_hash<H: PhfHash>(entries: &[H], key: HashKey) -> Option<HashState<usize>> {
+// slightly edited to fit our code base: 1 extra parameter for lambda
+// Allowed range for lambda = [1, ..., 5]
+fn try_generate_hash<H: PhfHash>(lambda: usize, entries: &[H], key: HashKey) -> Option<HashState<usize>> {
     struct Bucket {
         idx: usize,
         keys: Vec<usize>,
@@ -74,7 +77,7 @@ fn try_generate_hash<H: PhfHash>(entries: &[H], key: HashKey) -> Option<HashStat
 
     let hashes: Vec<_> = entries.iter().map(|entry| phf_shared::hash(entry, &key)).collect();
 
-    let buckets_len = (hashes.len() + DEFAULT_LAMBDA - 1) / DEFAULT_LAMBDA;
+    let buckets_len = (hashes.len() + lambda - 1) / lambda;
     let mut buckets = (0..buckets_len)
         .map(|i| Bucket { idx: i, keys: vec![] })
         .collect::<Vec<_>>();
@@ -122,6 +125,7 @@ fn try_generate_hash<H: PhfHash>(entries: &[H], key: HashKey) -> Option<HashStat
     }
 
     Some(HashState {
+        lambda,
         hash_key: key,
         displacements: disps,
         map: map.into_iter().map(|i| i.expect("Fail @ transform")).collect(),

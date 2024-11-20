@@ -1,4 +1,5 @@
-use super::lut_phf_double::LutPHFDouble;
+use super::lut_phf_double::{LutPHFDouble, PairData, BUILD_LAMBDA};
+use super::LookUpTableLambda;
 use super::{lut_phf_double::THRESHOLD_16_BITS, LookUpTable};
 use crate::{
     classification::{
@@ -10,79 +11,77 @@ use crate::{
     result::empty::EmptyRecorder,
     FallibleIterator,
 };
+use nom::sequence::pair;
 use rayon::prelude::*;
 use std::{collections::VecDeque, fs};
 
-const BIT_MASK: usize = 0xF; // Keeps the lower 4 bit
+// Keeps the lower 4 bit
+const BIT_MASK: usize = 0xF;
+const NUM_LUT_DOUBLES: usize = 16;
 
 pub struct LutPHFGroup {
-    pub lut_doubles: Vec<LutPHFDouble>, // size is always 16 at the moment
+    // Vector length is always 16 at the moment
+    pub lut_doubles: Vec<LutPHFDouble>,
 }
 
 impl LookUpTable for LutPHFGroup {
     #[inline]
     fn build(json_path: &str) -> Result<Self, Box<dyn std::error::Error>> {
+        LutPHFGroup::build_with_lambda(BUILD_LAMBDA, json_path)
+    }
+
+    #[inline]
+    fn get(&self, key: &usize) -> Option<usize> {
+        // Logical AND with BIT_MASK to get the correct index
+        let lut_double_index = key & BIT_MASK;
+        self.lut_doubles[lut_double_index].get(key)
+    }
+
+    #[inline]
+    fn allocated_bytes(&self) -> usize {
+        let mut total_size = std::mem::size_of::<Self>();
+        for lut_double in &self.lut_doubles {
+            total_size += lut_double.allocated_bytes();
+        }
+        total_size
+    }
+}
+
+impl LookUpTableLambda for LutPHFGroup {
+    #[inline]
+    fn build_with_lambda(lambda: usize, json_path: &str) -> Result<Self, Box<dyn std::error::Error>> {
         let file = fs::File::open(json_path).expect("Failed to open file");
         // SAFETY: We keep the file open throughout the entire duration.
         let input = unsafe { input::MmapInput::map_file(&file)? };
         let simd_c = classification::simd::configure();
 
         let lut_perfect_naive = classification::simd::config_simd!(simd_c => |simd| {
-            classification::simd::dispatch_simd!(simd; input, simd => fn<I, V>(
+            classification::simd::dispatch_simd!(simd; input, simd, lambda => fn<I, V>(
                 input: I,
                 simd: V,
+                lambda: usize
             ) -> Result<LutPHFGroup, error::InputError> where
             I: Input,
             V: Simd,{
-                let (bucket_keys_16, bucket_values_16, bucket_keys_64, bucket_values_64) =
-                    LutPHFGroup::find_all_pairs::<I, V>(&input, simd)?;
-                Ok(LutPHFGroup::build_lut_doubles(bucket_keys_16, bucket_values_16, bucket_keys_64, bucket_values_64))
+                let lut_doubles_pair_data = LutPHFGroup::find_all_pairs::<I, V>(&input, simd)?;
+                Ok(LutPHFGroup::build_lut_doubles(lambda, lut_doubles_pair_data))
             })
         });
         lut_perfect_naive.map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
     }
-
-    #[inline]
-    fn get(&self, key: &usize) -> Option<usize> {
-        let bucket_index = key & BIT_MASK; // Logical AND with BIT_MASK to get the bucket index
-        self.lut_doubles[bucket_index].get(key)
-    }
-
-    #[inline]
-    fn allocated_bytes(&self) -> usize {
-        let mut total_size = std::mem::size_of::<Self>();
-        for bucket in &self.lut_doubles {
-            total_size += bucket.allocated_bytes();
-        }
-        total_size
-    }
 }
 
 impl LutPHFGroup {
-    fn build_lut_doubles(
-        bucket_keys_16: Vec<Vec<usize>>,
-        bucket_values_16: Vec<Vec<u16>>,
-        bucket_keys_64: Vec<Vec<usize>>,
-        bucket_values_64: Vec<Vec<usize>>,
-    ) -> Self {
-        // Parallel
-        let buckets: Vec<LutPHFDouble> = bucket_keys_16
+    fn build_lut_doubles(lambda: usize, lut_doubles_pair_data: Vec<PairData>) -> Self {
+        let lut_doubles: Vec<LutPHFDouble> = lut_doubles_pair_data
             .into_par_iter()
-            .zip(bucket_values_16.into_par_iter())
-            .zip(bucket_keys_64.into_par_iter())
-            .zip(bucket_values_64.into_par_iter())
-            .map(|(((keys_16, values_16), keys_64), values_64)| {
-                LutPHFDouble::build_double(&keys_16, values_16, &keys_64, &values_64)
-            })
+            .map(|pair_data| LutPHFDouble::build_double(lambda, pair_data))
             .collect();
 
-        Self { lut_doubles: buckets }
+        Self { lut_doubles }
     }
 
-    fn find_all_pairs<I, V>(
-        input: &I,
-        simd: V,
-    ) -> Result<(Vec<Vec<usize>>, Vec<Vec<u16>>, Vec<Vec<usize>>, Vec<Vec<usize>>), error::InputError>
+    fn find_all_pairs<I, V>(input: &I, simd: V) -> Result<Vec<PairData>, error::InputError>
     where
         I: Input,
         V: Simd,
@@ -92,15 +91,20 @@ impl LutPHFGroup {
         let mut structural_classifier = simd.classify_structural_characters(quote_classifier);
         structural_classifier.turn_colons_and_commas_off();
 
-        // Initialize two empty stacks: one for "[" and one for "{"
+        // Initialize a vector of PairData for each lut_double used
+        let mut lut_doubles_pair_data: Vec<PairData> = vec![
+            PairData {
+                keys_16: vec![],
+                values_16: vec![],
+                keys_64: vec![],
+                values_64: vec![],
+            };
+            NUM_LUT_DOUBLES
+        ];
+
+        // Stacks for open brackets
         let mut square_bracket_stack: VecDeque<usize> = VecDeque::new();
         let mut curly_bracket_stack: VecDeque<usize> = VecDeque::new();
-
-        // Create for each bucket a keys_16, values_16, keys_64, values_64. Init them as empty vectors
-        let mut bucket_keys_16: Vec<Vec<usize>> = vec![vec![]; 16];
-        let mut bucket_values_16: Vec<Vec<u16>> = vec![vec![]; 16];
-        let mut bucket_keys_64: Vec<Vec<usize>> = vec![vec![]; 16];
-        let mut bucket_values_64: Vec<Vec<usize>> = vec![vec![]; 16];
 
         while let Some(event) = structural_classifier.next()? {
             match event {
@@ -114,24 +118,26 @@ impl LutPHFGroup {
                         BracketType::Curly => curly_bracket_stack.pop_back().expect("Unmatched closing }"),
                     };
 
-                    let bucket_index = idx_open & BIT_MASK; // AND with BIT_MASK to get the bucket index
+                    // Map to correct lut_double
+                    let lut_double = &mut lut_doubles_pair_data[idx_open & BIT_MASK];
 
                     let distance = idx_close - idx_open;
                     if distance < THRESHOLD_16_BITS {
                         // Can fit into 16 bits
-                        bucket_keys_16[bucket_index].push(idx_open);
-                        bucket_values_16[bucket_index]
-                            .push(distance.try_into().expect("Failed to convert distance to 16 bits"));
+                        lut_double.keys_16.push(idx_open);
+                        lut_double
+                            .values_16
+                            .push(distance.try_into().expect("Fail @ convert to 16 bit"));
                     } else {
                         // Needs 64 bits
-                        bucket_keys_64[bucket_index].push(idx_open);
-                        bucket_values_64[bucket_index].push(distance);
+                        lut_double.keys_64.push(idx_open);
+                        lut_double.values_64.push(distance);
                     }
                 }
                 Structural::Colon(_) | Structural::Comma(_) => unreachable!(),
             }
         }
 
-        Ok((bucket_keys_16, bucket_values_16, bucket_keys_64, bucket_values_64))
+        Ok(lut_doubles_pair_data)
     }
 }

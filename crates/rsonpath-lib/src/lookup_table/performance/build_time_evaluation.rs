@@ -5,98 +5,93 @@ use std::{
 
 use crate::lookup_table::{
     count_distances, lut_naive::LutNaive, lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF,
-    lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup, pair_finder, util_path, LookUpTable,
+    lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup, pair_finder, util_path, LookUpTable, LookUpTableLambda,
 };
 
 #[inline]
 pub fn run(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Error>> {
     let file = std::fs::File::open(json_path)?;
     let filename = util_path::extract_filename(json_path);
-
     let num_keys = count_distances::count_num_pairs(json_path);
+
+    let mut head_line = String::from("name,input_size_bytes,num_keys,");
+    let mut data_line = format!("{},{},{},", filename, file.metadata()?.len(), num_keys);
+
     let (keys, _) = pair_finder::get_keys_and_values(json_path).expect("Fail @ finding pairs.");
 
-    // lut_naive
-    let start_build = std::time::Instant::now();
-    let lut = LutNaive::build(json_path)?;
-    let naive_build_time = start_build.elapsed();
+    // Measure LUTs without lambda parameter
+    measure_time::<LutNaive>(json_path, &keys, "naive", &mut head_line, &mut data_line);
+    // measure_time::<LutPerfectNaive>(json_path, &keys, "perfect_naive", &mut head_line, &mut data_line);
+    // measure_time::<LutPHF>(json_path, &keys, "phf", &mut head_line, &mut data_line);
 
-    let start_build = std::time::Instant::now();
-    let sum = get_every_key_once(&lut, &keys);
-    let naive_query_time = start_build.elapsed();
-    println!("{}", sum);
+    // Measure LUTs with lambda parameter
+    for lambda in vec![1, 5] {
+        // measure_time_lambda::<LutPHFDouble>(lambda, json_path, &keys, "double", &mut head_line, &mut data_line);
+        measure_time_lambda::<LutPHFGroup>(lambda, json_path, &keys, "group", &mut head_line, &mut data_line);
+    }
 
-    // lut_perfect_naive
-    let start_build = std::time::Instant::now();
-    let lut = LutPerfectNaive::build(json_path)?;
-    let perfect_naive_build_time = start_build.elapsed();
-
-    let start_build = std::time::Instant::now();
-    let sum = get_every_key_once(&lut, &keys);
-    let perfect_naive_query_time = start_build.elapsed();
-    println!("{}", sum);
-
-    // lut_phf
-    let start_build = std::time::Instant::now();
-    let lut = LutPHF::build(json_path)?;
-    let phf_build_time = start_build.elapsed();
-
-    let start_build = std::time::Instant::now();
-    let sum = get_every_key_once(&lut, &keys);
-    let phf_query_time = start_build.elapsed();
-    println!("{}", sum);
-
-    // lut_phf_double
-    let start_build = std::time::Instant::now();
-    let lut = LutPHFDouble::build(json_path)?;
-    let phf_double_build_time = start_build.elapsed();
-
-    let start_build = std::time::Instant::now();
-    let sum = get_every_key_once(&lut, &keys);
-    let phf_double_query_time = start_build.elapsed();
-    println!("{}", sum);
-
-    // lut_phf_group
-    let start_build = std::time::Instant::now();
-    let lut = LutPHFGroup::build(json_path)?;
-    let phf_group_build_time = start_build.elapsed();
-
-    let start_build = std::time::Instant::now();
-    let sum = get_every_key_once(&lut, &keys);
-    let phf_group_query_time = start_build.elapsed();
-    println!("{}", sum);
-
-    // Open or create the CSV file for appending
+    // Write CSV header and data
     let mut csv_file = std::fs::OpenOptions::new().append(true).create(true).open(csv_path)?;
     if csv_file.metadata()?.len() == 0 {
-        writeln!(
-            csv_file,
-            "name,input_size,num_keys,\
-            naive,perfect_naive,phf,phf_double,phf_group,\
-            naive_query,perfect_naive_query,phf_query,phf_double_query,phf_group_query"
-        )?;
+        writeln!(csv_file, "{}", head_line)?;
     }
-    writeln!(
-        csv_file,
-        "{},{},{},{:.5},{:.5},{:.5},{:.5},{:.5},{:.5},{:.5},{:.5},{:.5},{:.5}",
-        filename,
-        file.metadata().expect("Can't open file").len(),
-        num_keys,
-        naive_build_time.as_secs_f64(),
-        perfect_naive_build_time.as_secs_f64(),
-        phf_build_time.as_secs_f64(),
-        phf_double_build_time.as_secs_f64(),
-        phf_group_build_time.as_secs_f64(),
-        naive_query_time.as_secs_f64(),
-        perfect_naive_query_time.as_secs_f64(),
-        phf_query_time.as_secs_f64(),
-        phf_double_query_time.as_secs_f64(),
-        phf_group_query_time.as_secs_f64(),
-    )?;
+    writeln!(csv_file, "{}", data_line)?;
 
     run_python_statistics_builder(csv_path);
 
     Ok(())
+}
+
+fn measure_time<T: LookUpTable>(
+    json_path: &str,
+    keys: &Vec<usize>,
+    name: &str,
+    head_line: &mut String,
+    data_line: &mut String,
+) {
+    println!("  - {}", name);
+
+    // Build time
+    let start_build = std::time::Instant::now();
+    let lut = T::build(json_path).expect("Fail @ build lut");
+    let build_time = start_build.elapsed().as_secs_f64();
+
+    // Query time
+    let start_build = std::time::Instant::now();
+    let sum = get_every_key_once(&lut, &keys);
+    let query_time = start_build.elapsed().as_secs_f64();
+    println!("Sum: {sum}");
+
+    head_line.push_str(&format!("{}_build_time,{}_query_time,", name, name));
+    data_line.push_str(&format!("{},{},", build_time, query_time));
+}
+
+fn measure_time_lambda<T: LookUpTableLambda>(
+    lambda: usize,
+    json_path: &str,
+    keys: &Vec<usize>,
+    name: &str,
+    head_line: &mut String,
+    data_line: &mut String,
+) {
+    println!("  - {}", name);
+
+    // Build time
+    let start_build = std::time::Instant::now();
+    let lut = T::build_with_lambda(lambda, json_path).expect("Fail @ build lut");
+    let build_time = start_build.elapsed().as_secs_f64();
+
+    // Query time
+    let start_build = std::time::Instant::now();
+    let sum = get_every_key_once(&lut, &keys);
+    let query_time = start_build.elapsed().as_secs_f64();
+    println!("Sum: {sum}");
+
+    head_line.push_str(&format!(
+        "λ={}:{}_build_time,λ={}:{}_query_time,",
+        lambda, name, lambda, name
+    ));
+    data_line.push_str(&format!("{},{},", build_time, query_time));
 }
 
 fn get_every_key_once(lut: &dyn LookUpTable, keys: &[usize]) -> usize {
