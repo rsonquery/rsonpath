@@ -170,7 +170,7 @@ impl LutPHFDouble {
     /// We count the distances between the opening and closing brackets. We save the start position as key and
     /// distance to the closing bracket in the value. Creates a key-value list for values which fit in a 16 bit
     /// representation and another key-value list for the ones that do not.
-    fn find_all_pairs<I, V>(input: &I, simd: V) -> Result<PairData, error::InputError>
+    pub fn find_all_pairs<I, V>(input: &I, simd: V) -> Result<PairData, error::InputError>
     where
         I: Input,
         V: Simd,

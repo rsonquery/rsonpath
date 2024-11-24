@@ -2,6 +2,7 @@ use clap::{Parser, Subcommand};
 use rsonpath::lookup_table::{
     count_distances::{self, DISTANCE_EVAL_DIR},
     performance::{self, BUILD_TIME_EVAL_DIR, HEAP_EVAL_DIR},
+    sichash_test_data_generator::{self, SICHASH_DATA_DIR},
 };
 use std::{error::Error, fs, path::Path};
 
@@ -19,6 +20,14 @@ struct Cli {
 enum Commands {
     /// Measure distances for each JSON in the folder
     Distances {
+        /// Path to the folder containing JSON files
+        json_dir: String,
+
+        /// Path to the output directory
+        out_dir: String,
+    },
+
+    Sichash {
         /// Path to the folder containing JSON files
         json_dir: String,
 
@@ -50,6 +59,13 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             count_distances::count_distances_in_dir(json_dir, &csv_dir);
         }
+        Commands::Sichash { json_dir, out_dir } => {
+            check_if_dir_exists(json_dir);
+            create_folder_setup(out_dir)?;
+            let csv_dir = format!("{}/{}", out_dir, "performance");
+
+            sichash_test_data_generator::generate_test_data_for_sichash(json_dir, &csv_dir);
+        }
         Commands::Performance {
             json_dir,
             out_dir,
@@ -74,6 +90,7 @@ fn create_folder_setup(dir_name: &str) -> std::io::Result<()> {
         &format!("{}/performance/{}", dir_name, HEAP_EVAL_DIR),
         &format!("{}/performance/{}", dir_name, BUILD_TIME_EVAL_DIR),
         &format!("{}/performance/{}", dir_name, DISTANCE_EVAL_DIR),
+        &format!("{}/performance/{}", dir_name, SICHASH_DATA_DIR),
         &format!("{}/test_data", dir_name),
     ];
 

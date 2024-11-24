@@ -1,11 +1,13 @@
 pub mod count_distances;
-pub mod lut_naive;
+pub mod lut_hash_map;
+pub mod lut_hash_map_double;
 pub mod lut_perfect_naive;
 pub mod lut_phf;
 pub mod lut_phf_double;
 pub mod lut_phf_group;
 pub mod pair_finder;
 pub mod performance;
+pub mod sichash_test_data_generator;
 pub mod util_path;
 
 pub trait LookUpTable {

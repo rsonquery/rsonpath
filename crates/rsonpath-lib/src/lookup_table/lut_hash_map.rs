@@ -20,11 +20,11 @@ use std::fs::File;
 use std::io::{Error, ErrorKind, Read, Write};
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct LutNaive {
-    table: HashMap<usize, usize>,
+pub struct LutHashMap {
+    hash_map: HashMap<usize, usize>,
 }
 
-impl LookUpTable for LutNaive {
+impl LookUpTable for LutHashMap {
     #[inline]
     fn build(json_path: &str) -> Result<Self, Box<dyn std::error::Error>> {
         let file = fs::File::open(json_path).expect("Failed to open file");
@@ -36,10 +36,10 @@ impl LookUpTable for LutNaive {
             classification::simd::dispatch_simd!(simd; input, simd => fn<I, V>(
                 input: I,
                 simd: V,
-            ) -> Result<LutNaive, error::InputError> where
+            ) -> Result<LutHashMap, error::InputError> where
             I: Input,
             V: Simd,{
-                    LutNaive::find_pairs_and_build_lut::<I, V>(&input, simd)
+                    LutHashMap::find_pairs_and_build_lut::<I, V>(&input, simd)
                 })
         })
         .map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
@@ -48,35 +48,35 @@ impl LookUpTable for LutNaive {
     #[inline]
     #[must_use]
     fn get(&self, key: &usize) -> Option<usize> {
-        self.table.get(key).copied()
+        self.hash_map.get(key).copied()
     }
 
     fn allocated_bytes(&self) -> usize {
         let mut total_size = std::mem::size_of::<Self>();
-        total_size += self.table.capacity() * (std::mem::size_of::<usize>() + std::mem::size_of::<usize>());
+        total_size += self.hash_map.capacity() * (std::mem::size_of::<usize>() + std::mem::size_of::<usize>());
         total_size
     }
 }
 
-impl LutNaive {
+impl LutHashMap {
     #[inline]
     #[must_use]
     pub fn init(start_capacity: Option<usize>) -> Self {
         let size = start_capacity.unwrap_or(0);
         Self {
-            table: HashMap::with_capacity(size),
+            hash_map: HashMap::with_capacity(size),
         }
     }
 
     #[inline]
     pub fn put(&mut self, key: usize, value: usize) {
-        self.table.insert(key, value);
+        self.hash_map.insert(key, value);
     }
 
     #[inline]
     #[must_use]
     pub fn get_keys(&self) -> Vec<usize> {
-        self.table.keys().copied().collect()
+        self.hash_map.keys().copied().collect()
     }
 
     #[inline]
@@ -112,7 +112,7 @@ impl LutNaive {
     #[inline]
     #[must_use]
     pub fn estimate_json_size(&self) -> usize {
-        if !self.table.is_empty() {
+        if !self.hash_map.is_empty() {
             return serde_json::to_vec(&self).expect("Failed to serialize to JSON.").len();
         }
 
@@ -123,7 +123,7 @@ impl LutNaive {
     #[inline]
     #[must_use]
     pub fn estimate_cbor_size(&self) -> usize {
-        if !self.table.is_empty() {
+        if !self.hash_map.is_empty() {
             return serde_cbor::to_vec(&self).expect("Failed to serialize to JSON.").len();
         }
 
@@ -133,10 +133,10 @@ impl LutNaive {
 
     #[inline]
     pub fn overview(&self) {
-        if !self.table.is_empty() {
+        if !self.hash_map.is_empty() {
             println!("lut-naive Overview:");
-            println!("  #Entries: {}", self.table.len());
-            println!("  Capacity: {}", self.table.capacity());
+            println!("  #Entries: {}", self.hash_map.len());
+            println!("  Capacity: {}", self.hash_map.capacity());
 
             // Serialize to JSON and CBOR to estimate file sizes
             println!("  CBOR: {} bytes", self.estimate_cbor_size());
@@ -146,13 +146,13 @@ impl LutNaive {
             let mut total_distance = 0_usize;
             let mut max_distance = usize::MIN;
             let mut min_distance = usize::MAX;
-            for (key, value) in &self.table {
+            for (key, value) in &self.hash_map {
                 let distance = (*value).saturating_sub(*key); // Ensures non-negative distances
                 total_distance += distance;
                 max_distance = max_distance.max(distance);
                 min_distance = min_distance.min(distance);
             }
-            let average_distance = total_distance as f64 / self.table.len() as f64;
+            let average_distance = total_distance as f64 / self.hash_map.len() as f64;
 
             println!("  Average distance (value - key): {:.2}", average_distance);
             println!("  MAX distance (value - key): {}", max_distance);
@@ -160,7 +160,7 @@ impl LutNaive {
 
             // Print up to the first 10 pairs
             println!("  First 10 pairs:");
-            for (i, (key, value)) in self.table.iter().take(10).enumerate() {
+            for (i, (key, value)) in self.hash_map.iter().take(10).enumerate() {
                 println!("    {}. Key: {}, Value: {}", i + 1, key, value);
             }
         } else {

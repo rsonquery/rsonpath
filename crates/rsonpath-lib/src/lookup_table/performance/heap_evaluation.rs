@@ -1,5 +1,5 @@
 use crate::lookup_table::{
-    count_distances, lut_naive::LutNaive, lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF,
+    count_distances, lut_hash_map::LutHashMap, lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF,
     lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup, util_path, LookUpTable, LookUpTableLambda,
 };
 use stats_alloc::{Region, StatsAlloc, INSTRUMENTED_SYSTEM};
@@ -23,13 +23,13 @@ pub fn run(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Er
     let mut data_line = format!("{},{},{},", filename, file.metadata()?.len(), num_keys);
 
     // Measure LUTs without lambda parameter
-    measure_ram::<LutNaive>(json_path, "naive", &mut head_line, &mut data_line);
+    measure_ram::<LutHashMap>(json_path, "naive", &mut head_line, &mut data_line);
     // measure_ram::<LutPerfectNaive>(json_path, "perfect_naive", &mut head_line, &mut data_line);
-    // measure_ram::<LutPHF>(json_path, "phf", &mut head_line, &mut data_line);
+    measure_ram::<LutPHF>(json_path, "phf", &mut head_line, &mut data_line);
 
     // Process each LUT that has a lambda parameter with lambda [1, ..., 5]
     for lambda in vec![1, 5] {
-        // measure_ram_lambda::<LutPHFDouble>(lambda, json_path, "double", &mut head_line, &mut data_line);
+        measure_ram_lambda::<LutPHFDouble>(lambda, json_path, "double", &mut head_line, &mut data_line);
         measure_ram_lambda::<LutPHFGroup>(lambda, json_path, "group", &mut head_line, &mut data_line);
     }
 

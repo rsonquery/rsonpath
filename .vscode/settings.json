@@ -73,6 +73,7 @@
         "rustfmt",
         "Seedable",
         "Seekable",
+        "sichash",
         "SIMD",
         "smallvec",
         "snaks",

@@ -2,6 +2,7 @@ use crate::lookup_table::lut_phf::phf_shared;
 use crate::lookup_table::lut_phf::phf_shared::{HashKey, PhfHash};
 use rand::{distributions::Standard, rngs::SmallRng};
 use rand::{Rng, SeedableRng};
+use rayon::prelude::*;
 
 const DEFAULT_LAMBDA: usize = 1;
 pub const FIXED_SEED: u64 = 1_234_567_890;
@@ -59,10 +60,11 @@ impl<U: Copy> HashState<U> {
 }
 
 #[inline]
-pub fn build<H: PhfHash>(lambda: usize, keys: &[H]) -> HashState<usize> {
+pub fn build<H: PhfHash + Send + Sync>(lambda: usize, keys: &[H]) -> HashState<usize> {
     SmallRng::seed_from_u64(FIXED_SEED)
         .sample_iter(Standard)
-        .find_map(|hash_key| try_generate_hash(lambda, keys, hash_key))
+        .par_bridge()
+        .find_map_any(|hash_key| try_generate_hash(lambda, keys, hash_key))
         .expect("failed to solve PHF")
 }
 

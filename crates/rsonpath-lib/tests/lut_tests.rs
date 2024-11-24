@@ -1,6 +1,6 @@
 use rsonpath::lookup_table::{
-    lut_distance::LutDistance, lut_naive::LutNaive, lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF,
-    lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup, pair_finder, LookUpTable,
+    lut_hash_map::LutHashMap, lut_hash_map_double::LutHashMapDouble, lut_perfect_naive::LutPerfectNaive,
+    lut_phf::LutPHF, lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup, pair_finder, LookUpTable,
 };
 
 // JSON files
@@ -25,17 +25,15 @@ macro_rules! test_lut_with_json {
     };
 }
 
-// Generate test functions for LutNaive
-test_lut_with_json!(LutNaive, test_lut_naive_john_big, JOHN_BIG_JSON);
-test_lut_with_json!(LutNaive, test_lut_naive_pokemon, POKEMON_JSON);
-test_lut_with_json!(LutNaive, test_lut_naive_twitter_short, TWITTER_SHORT_JSON);
-test_lut_with_json!(LutNaive, test_lut_naive_crossref0, CROSSREF0_JSON);
+// Generate test functions for LutHashMap
+test_lut_with_json!(LutHashMap, hash_map_john_big, JOHN_BIG_JSON);
+test_lut_with_json!(LutHashMap, hash_map_pokemon, POKEMON_JSON);
+test_lut_with_json!(LutHashMap, hash_map_twitter_short, TWITTER_SHORT_JSON);
+test_lut_with_json!(LutHashMap, hash_map_crossref0, CROSSREF0_JSON);
 
-// Generate test functions for LutDistance
-test_lut_with_json!(LutDistance, test_lut_distance_john_big, JOHN_BIG_JSON);
-test_lut_with_json!(LutDistance, test_lut_distance_pokemon, POKEMON_JSON);
-test_lut_with_json!(LutDistance, test_lut_distance_twitter_short, TWITTER_SHORT_JSON);
-test_lut_with_json!(LutDistance, test_lut_distance_crossref0, CROSSREF0_JSON);
+// Generate test functions for LutHashMapDouble
+test_lut_with_json!(LutHashMapDouble, hash_map_double_twitter_short, TWITTER_SHORT_JSON);
+test_lut_with_json!(LutHashMapDouble, hash_map_double_crossref0, CROSSREF0_JSON);
 
 // Generate test functions for LutPHF
 test_lut_with_json!(LutPHF, test_lut_phf_john_big, JOHN_BIG_JSON);

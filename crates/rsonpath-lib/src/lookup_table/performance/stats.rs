@@ -3,7 +3,7 @@ use std::{
     process::Command,
 };
 
-use crate::lookup_table::{lut_naive::LutNaive, util_path, LookUpTable};
+use crate::lookup_table::{lut_hash_map::LutHashMap, util_path, LookUpTable};
 
 #[inline]
 pub fn measure_stats(json_path: &str, output_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Error>> {
@@ -13,7 +13,7 @@ pub fn measure_stats(json_path: &str, output_path: &str, csv_path: &str) -> Resu
 
     // Measure build duration
     let start_build = std::time::Instant::now();
-    let lut_naive = LutNaive::build(json_path).expect("Unable to build lut_naive");
+    let lut_naive = LutHashMap::build(json_path).expect("Unable to build lut_naive");
     let build_time = start_build.elapsed();
 
     // Measure JSON serialization & deserialization duration
@@ -24,7 +24,7 @@ pub fn measure_stats(json_path: &str, output_path: &str, csv_path: &str) -> Resu
     let json_serialize_time = start_json.elapsed() + build_time;
 
     let start_json_deserialize = std::time::Instant::now();
-    let _ = LutNaive::deserialize(lut_json_path)?;
+    let _ = LutHashMap::deserialize(lut_json_path)?;
     let json_deserialize_time = start_json_deserialize.elapsed() + json_serialize_time;
 
     // Measure CBOR serialization & deserialization duration
@@ -35,7 +35,7 @@ pub fn measure_stats(json_path: &str, output_path: &str, csv_path: &str) -> Resu
     let cbor_serialize_time = start_cbor.elapsed() + build_time;
 
     let start_cbor_deserialize = std::time::Instant::now();
-    LutNaive::deserialize(lut_cbor_path)?;
+    LutHashMap::deserialize(lut_cbor_path)?;
     let cbor_deserialize_time = start_cbor_deserialize.elapsed() + cbor_serialize_time;
 
     // Write the results to the CSV file with durations rounded to 5 decimal places
