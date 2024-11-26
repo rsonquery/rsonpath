@@ -7,7 +7,7 @@ use rsonpath::lookup_table::{
 const JOHN_BIG_JSON: &str = "tests/json/john_big.json";
 const POKEMON_JSON: &str = "tests/json/pokemon_(6MB).json";
 const TWITTER_SHORT_JSON: &str = "tests/json/twitter_short_(80MB).json";
-const CROSSREF0_JSON: &str = "tests/json/crossref0_(320MB).json";
+const BESTBUY_JSON: &str = "tests/json/bestbuy_short_(103MB).json";
 
 // Macro to generate individual test functions for each (lut_type, json_file) combination
 macro_rules! test_lut_with_json {
@@ -29,37 +29,37 @@ macro_rules! test_lut_with_json {
 test_lut_with_json!(LutHashMap, hash_map_john_big, JOHN_BIG_JSON);
 test_lut_with_json!(LutHashMap, hash_map_pokemon, POKEMON_JSON);
 test_lut_with_json!(LutHashMap, hash_map_twitter_short, TWITTER_SHORT_JSON);
-test_lut_with_json!(LutHashMap, hash_map_crossref0, CROSSREF0_JSON);
+test_lut_with_json!(LutHashMap, hash_map_crossref0, BESTBUY_JSON);
 
 // Generate test functions for LutHashMapDouble
+test_lut_with_json!(LutHashMapDouble, hash_map_double_john_big, JOHN_BIG_JSON);
+test_lut_with_json!(LutHashMapDouble, hash_map_double_pokemon, POKEMON_JSON);
 test_lut_with_json!(LutHashMapDouble, hash_map_double_twitter_short, TWITTER_SHORT_JSON);
-test_lut_with_json!(LutHashMapDouble, hash_map_double_crossref0, CROSSREF0_JSON);
-
-// Generate test functions for LutPHF
-test_lut_with_json!(LutPHF, test_lut_phf_john_big, JOHN_BIG_JSON);
-test_lut_with_json!(LutPHF, test_lut_phf_pokemon, POKEMON_JSON);
-test_lut_with_json!(LutPHF, test_lut_phf_twitter_short, TWITTER_SHORT_JSON);
-test_lut_with_json!(LutPHF, test_lut_phf_crossref0, CROSSREF0_JSON);
-
-// Generate test functions for LutPHFDouble
-test_lut_with_json!(LutPHFDouble, test_lut_phf_double_john_big, JOHN_BIG_JSON);
-test_lut_with_json!(LutPHFDouble, test_lut_phf_double_pokemon, POKEMON_JSON);
-test_lut_with_json!(LutPHFDouble, test_lut_phf_double_twitter_short, TWITTER_SHORT_JSON);
-test_lut_with_json!(LutPHFDouble, test_lut_phf_double_crossref0, CROSSREF0_JSON);
+test_lut_with_json!(LutHashMapDouble, hash_map_double_crossref0, BESTBUY_JSON);
 
 // Generate test functions for LutPerfectNaive
-test_lut_with_json!(LutPerfectNaive, test_lut_perfect_naive_john_big, JOHN_BIG_JSON);
-test_lut_with_json!(LutPerfectNaive, test_lut_perfect_naive_pokemon, POKEMON_JSON);
-test_lut_with_json!(
-    LutPerfectNaive,
-    test_lut_perfect_naive_twitter_short,
-    TWITTER_SHORT_JSON
-);
-test_lut_with_json!(LutPerfectNaive, test_lut_perfect_naive_crossref0, CROSSREF0_JSON);
+test_lut_with_json!(LutPerfectNaive, perfect_naive_john_big, JOHN_BIG_JSON);
+test_lut_with_json!(LutPerfectNaive, perfect_naive_pokemon, POKEMON_JSON);
+test_lut_with_json!(LutPerfectNaive, perfect_naive_twitter_short, TWITTER_SHORT_JSON);
+test_lut_with_json!(LutPerfectNaive, perfect_naive_crossref0, BESTBUY_JSON);
+
+// Generate test functions for LutPHF
+test_lut_with_json!(LutPHF, phf_john_big, JOHN_BIG_JSON);
+test_lut_with_json!(LutPHF, phf_pokemon, POKEMON_JSON);
+test_lut_with_json!(LutPHF, phf_twitter_short, TWITTER_SHORT_JSON);
+test_lut_with_json!(LutPHF, phf_crossref0, BESTBUY_JSON);
+
+// Generate test functions for LutPHFDouble
+test_lut_with_json!(LutPHFDouble, phf_double_john_big, JOHN_BIG_JSON);
+test_lut_with_json!(LutPHFDouble, phf_double_pokemon, POKEMON_JSON);
+test_lut_with_json!(LutPHFDouble, phf_double_twitter_short, TWITTER_SHORT_JSON);
+test_lut_with_json!(LutPHFDouble, phf_double_crossref0, BESTBUY_JSON);
 
 // Generate test functions for LutPHFGroup
-test_lut_with_json!(LutPHFGroup, test_lut_phf_group_pokemon, POKEMON_JSON);
-test_lut_with_json!(LutPHFGroup, test_lut_phf_group_crossref0, CROSSREF0_JSON);
+test_lut_with_json!(LutPHFGroup, phf_group_john_big, JOHN_BIG_JSON);
+test_lut_with_json!(LutPHFGroup, phf_group_pokemon, POKEMON_JSON);
+test_lut_with_json!(LutPHFGroup, phf_group_twitter_short, TWITTER_SHORT_JSON);
+test_lut_with_json!(LutPHFGroup, phf_group_crossref0, BESTBUY_JSON);
 
 fn compare_valid(lut: &dyn LookUpTable, json_path: &str) {
     let (keys, values) = pair_finder::get_keys_and_values(json_path).expect("Fail @ finding pairs.");
@@ -75,8 +75,9 @@ fn compare_valid(lut: &dyn LookUpTable, json_path: &str) {
 
 #[test]
 fn debug_lut_phf_double() {
-    // let json_path = "tests/json/pokemon_(6MB).json";
-    let json_path = "tests/json/twitter_short_(80MB).json";
+    let json_path = "tests/json/pokemon_(6MB).json";
+    // let json_path = "tests/json/john_big.json";
+    // let json_path = "tests/json/twitter_short_(80MB).json";
 
     let (keys, values) = pair_finder::get_keys_and_values(json_path).expect("Fail @ finding pairs.");
     let lut = LutPHFDouble::build(json_path).expect("Fail @ building lut_phf_double");

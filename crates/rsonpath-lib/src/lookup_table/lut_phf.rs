@@ -30,7 +30,8 @@ impl LookUpTable for LutPHF {
     fn get(&self, key: &usize) -> Option<usize> {
         self.hash_state
             .get(key)
-            .and_then(|index| self.values.get(index).map(|&value| key + value))
+            .and_then(|index| self.values.get(index))
+            .copied()
     }
 
     #[inline]
@@ -59,7 +60,7 @@ impl LookUpTableLambda for LutPHF {
             I: Input,
             V: Simd, {
                     let (keys, values) = LutHashMap::find_all_pairs::<I, V>(&input, simd)?;
-                    let hash_state = phf_generator_double_hash::build(lambda, &keys);
+                    let hash_state = phf_generator_double_hash::build_multi_thread(lambda, &keys);
                     Ok(LutPHF { hash_state, values })
                 })
         });

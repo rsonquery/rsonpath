@@ -93,7 +93,7 @@ impl LutHashMap {
                     };
 
                     keys.push(idx_open);
-                    values.push(idx_close - idx_open);
+                    values.push(idx_close);
                 }
                 Structural::Colon(_) | Structural::Comma(_) => unreachable!(),
             }

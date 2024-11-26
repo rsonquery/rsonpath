@@ -60,7 +60,15 @@ impl<U: Copy> HashState<U> {
 }
 
 #[inline]
-pub fn build<H: PhfHash + Send + Sync>(lambda: usize, keys: &[H]) -> HashState<usize> {
+pub fn build_single_thread<H: PhfHash>(lambda: usize, keys: &[H]) -> HashState<usize> {
+    SmallRng::seed_from_u64(FIXED_SEED)
+        .sample_iter(Standard)
+        .find_map(|hash_key| try_generate_hash(lambda, keys, hash_key))
+        .expect("failed to solve PHF")
+}
+
+#[inline]
+pub fn build_multi_thread<H: PhfHash + Send + Sync>(lambda: usize, keys: &[H]) -> HashState<usize> {
     SmallRng::seed_from_u64(FIXED_SEED)
         .sample_iter(Standard)
         .par_bridge()
