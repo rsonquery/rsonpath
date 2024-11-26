@@ -1,6 +1,6 @@
-use super::lut_phf_double::{LutPHFDouble, PairData, BUILD_LAMBDA};
-use super::LookUpTableLambda;
-use super::{lut_phf_double::THRESHOLD_16_BITS, LookUpTable};
+use super::lut_hash_map_double::{PairData, THRESHOLD_16_BITS};
+use super::{lut_phf::BUILD_LAMBDA, lut_phf_double::LutPHFDouble};
+use super::{LookUpTable, LookUpTableLambda};
 use crate::{
     classification::{
         self,
@@ -11,16 +11,15 @@ use crate::{
     result::empty::EmptyRecorder,
     FallibleIterator,
 };
-use nom::sequence::pair;
 use rayon::prelude::*;
 use std::{collections::VecDeque, fs};
 
-// Keeps the lower 4 bit
-const BIT_MASK: usize = 0xF;
+// A bit map that only keeps the lower 4 bit because we currently have 16 lut in the group. 16 is represented by 4 bits.
+const BIT_MASK_4: usize = 0xF;
 const NUM_LUT_DOUBLES: usize = 16;
 
 pub struct LutPHFGroup {
-    // Vector length is always 16 at the moment
+    // Vector length is always 16 at the moment because we did not the add the parameter for it yet
     pub lut_doubles: Vec<LutPHFDouble>,
 }
 
@@ -33,7 +32,7 @@ impl LookUpTable for LutPHFGroup {
     #[inline]
     fn get(&self, key: &usize) -> Option<usize> {
         // Logical AND with BIT_MASK to get the correct index
-        let lut_double_index = key & BIT_MASK;
+        let lut_double_index = key & BIT_MASK_4;
         self.lut_doubles[lut_double_index].get(key)
     }
 
@@ -118,8 +117,8 @@ impl LutPHFGroup {
                         BracketType::Curly => curly_bracket_stack.pop_back().expect("Unmatched closing }"),
                     };
 
-                    // Map to correct lut_double
-                    let lut_double = &mut lut_doubles_pair_data[idx_open & BIT_MASK];
+                    // Map to correct lut_double using the bit mask on the idx_open (= key)
+                    let lut_double = &mut lut_doubles_pair_data[idx_open & BIT_MASK_4];
 
                     let distance = idx_close - idx_open;
                     if distance < THRESHOLD_16_BITS {

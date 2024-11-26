@@ -24,10 +24,10 @@ pub fn run(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Er
     measure_time::<LutHashMap>(json_path, &keys, "hash_map", &mut head_line, &mut data_line);
     measure_time::<LutHashMapDouble>(json_path, &keys, "hash_map_double", &mut head_line, &mut data_line);
     // measure_time::<LutPerfectNaive>(json_path, &keys, "perfect_naive", &mut head_line, &mut data_line);
-    measure_time::<LutPHF>(json_path, &keys, "phf", &mut head_line, &mut data_line);
 
     // Measure LUTs with lambda parameter
     for lambda in vec![1, 5] {
+        measure_time_lambda::<LutPHF>(lambda, json_path, &keys, "phf", &mut head_line, &mut data_line);
         measure_time_lambda::<LutPHFDouble>(lambda, json_path, &keys, "phf_double", &mut head_line, &mut data_line);
         measure_time_lambda::<LutPHFGroup>(lambda, json_path, &keys, "phf_group", &mut head_line, &mut data_line);
     }
@@ -121,5 +121,7 @@ fn run_python_statistics_builder(csv_path: &str) {
     }
 }
 
+// A black box function so that the compiler will not optimize away the values passed into here. Mainly used when
+// running tests.
 #[inline(never)]
 fn my_black_box<T>(whatever: T) {}

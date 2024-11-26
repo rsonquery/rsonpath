@@ -3,7 +3,6 @@ use std::{error::Error, fs, path::Path};
 
 pub mod build_time_evaluation;
 pub mod heap_evaluation;
-pub mod stats;
 
 pub const HEAP_EVAL_DIR: &str = "heap_evaluation";
 pub const BUILD_TIME_EVAL_DIR: &str = "build_time_evaluation";

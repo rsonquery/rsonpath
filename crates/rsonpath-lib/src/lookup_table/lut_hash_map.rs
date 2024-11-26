@@ -39,7 +39,9 @@ impl LookUpTable for LutHashMap {
             ) -> Result<LutHashMap, error::InputError> where
             I: Input,
             V: Simd,{
-                    LutHashMap::find_pairs_and_build_lut::<I, V>(&input, simd)
+                    let (keys, values) = LutHashMap::find_all_pairs::<I, V>(&input, simd)?;
+                    let hash_map: HashMap<usize, usize> = keys.into_iter().zip(values.into_iter()).collect();
+                    Ok(LutHashMap{ hash_map })
                 })
         })
         .map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
@@ -53,126 +55,14 @@ impl LookUpTable for LutHashMap {
 
     fn allocated_bytes(&self) -> usize {
         let mut total_size = 0;
-
         total_size += std::mem::size_of::<Self>();
         total_size += self.hash_map.capacity() * (std::mem::size_of::<usize>() + std::mem::size_of::<usize>());
-
         total_size
     }
 }
 
 impl LutHashMap {
-    #[inline]
-    #[must_use]
-    pub fn init(start_capacity: Option<usize>) -> Self {
-        let size = start_capacity.unwrap_or(0);
-        Self {
-            hash_map: HashMap::with_capacity(size),
-        }
-    }
-
-    #[inline]
-    pub fn put(&mut self, key: usize, value: usize) {
-        self.hash_map.insert(key, value);
-    }
-
-    #[inline]
-    #[must_use]
-    pub fn get_keys(&self) -> Vec<usize> {
-        self.hash_map.keys().copied().collect()
-    }
-
-    #[inline]
-    pub fn serialize(&self, path: &str) -> std::io::Result<()> {
-        let serialized_data = match util_path::get_filetype_from_path(path).as_str() {
-            "json" => serde_json::to_vec(&self).expect("Serialize failed."),
-            "cbor" => serde_cbor::to_vec(&self).expect("Serialize failed."),
-            _ => {
-                return Err(std::io::Error::new(
-                    ErrorKind::InvalidInput,
-                    "Serialize: Unsupported format",
-                ))
-            }
-        };
-        let mut file = File::create(path)?;
-        file.write_all(&serialized_data)?;
-        Ok(())
-    }
-
-    #[inline]
-    pub fn deserialize(path: &str) -> std::io::Result<Self> {
-        let mut file = File::open(path)?;
-        let mut contents = Vec::new();
-        file.read_to_end(&mut contents)?;
-        let deserialized: Self = match util_path::get_filetype_from_path(path).as_str() {
-            "json" => serde_json::from_slice(&contents).expect("Deserialize: Data has no JSON format."),
-            "cbor" => serde_cbor::from_slice(&contents).expect("Deserialize: Data has no CBOR format."),
-            _ => return Err(Error::new(ErrorKind::InvalidInput, "Deserialize: Unsupported format")),
-        };
-        Ok(deserialized)
-    }
-
-    #[inline]
-    #[must_use]
-    pub fn estimate_json_size(&self) -> usize {
-        if !self.hash_map.is_empty() {
-            return serde_json::to_vec(&self).expect("Failed to serialize to JSON.").len();
-        }
-
-        println!("The table is empty.");
-        0
-    }
-
-    #[inline]
-    #[must_use]
-    pub fn estimate_cbor_size(&self) -> usize {
-        if !self.hash_map.is_empty() {
-            return serde_cbor::to_vec(&self).expect("Failed to serialize to JSON.").len();
-        }
-
-        println!("The table is empty.");
-        0
-    }
-
-    #[inline]
-    pub fn overview(&self) {
-        if !self.hash_map.is_empty() {
-            println!("lut-naive Overview:");
-            println!("  #Entries: {}", self.hash_map.len());
-            println!("  Capacity: {}", self.hash_map.capacity());
-
-            // Serialize to JSON and CBOR to estimate file sizes
-            println!("  CBOR: {} bytes", self.estimate_cbor_size());
-            println!("  JSON: {} bytes", self.estimate_json_size());
-
-            // Calculate and print the average, maximum, and minimum of (value - key) called the distance
-            let mut total_distance = 0_usize;
-            let mut max_distance = usize::MIN;
-            let mut min_distance = usize::MAX;
-            for (key, value) in &self.hash_map {
-                let distance = (*value).saturating_sub(*key); // Ensures non-negative distances
-                total_distance += distance;
-                max_distance = max_distance.max(distance);
-                min_distance = min_distance.min(distance);
-            }
-            let average_distance = total_distance as f64 / self.hash_map.len() as f64;
-
-            println!("  Average distance (value - key): {:.2}", average_distance);
-            println!("  MAX distance (value - key): {}", max_distance);
-            println!("  MIN distance (value - key): {}", min_distance);
-
-            // Print up to the first 10 pairs
-            println!("  First 10 pairs:");
-            for (i, (key, value)) in self.hash_map.iter().take(10).enumerate() {
-                println!("    {}. Key: {}, Value: {}", i + 1, key, value);
-            }
-        } else {
-            println!("The table is empty.");
-        }
-    }
-
-    #[inline(always)]
-    fn find_pairs_and_build_lut<I, V>(input: &I, simd: V) -> Result<Self, error::InputError>
+    pub fn find_all_pairs<I, V>(input: &I, simd: V) -> Result<(Vec<usize>, Vec<usize>), error::InputError>
     where
         I: Input,
         V: Simd,
@@ -185,7 +75,10 @@ impl LutHashMap {
         // Initialize two empty stacks: one for "[" and one for "{"
         let mut square_bracket_stack: VecDeque<usize> = VecDeque::new();
         let mut curly_bracket_stack: VecDeque<usize> = VecDeque::new();
-        let mut lut_naive = Self::init(Some(10));
+
+        // keys[i] and values[i] form a pair
+        let mut keys: Vec<usize> = vec![];
+        let mut values: Vec<usize> = vec![];
 
         while let Some(event) = structural_classifier.next()? {
             match event {
@@ -193,22 +86,19 @@ impl LutHashMap {
                     BracketType::Square => square_bracket_stack.push_back(idx_open),
                     BracketType::Curly => curly_bracket_stack.push_back(idx_open),
                 },
-                Structural::Closing(b, idx_close) => match b {
-                    BracketType::Square => {
-                        let idx_open = square_bracket_stack.pop_back().expect("Unmatched closing ]");
-                        // println!("[ at index {idx_open} AND ] at index {idx_close}");
-                        lut_naive.put(idx_open, idx_close);
-                    }
-                    BracketType::Curly => {
-                        let idx_open = curly_bracket_stack.pop_back().expect("Unmatched closing }");
-                        // println!("{{ at index {idx_open} AND }} at index {idx_close}");
-                        lut_naive.put(idx_open, idx_close);
-                    }
-                },
+                Structural::Closing(b, idx_close) => {
+                    let idx_open = match b {
+                        BracketType::Square => square_bracket_stack.pop_back().expect("Unmatched closing }"),
+                        BracketType::Curly => curly_bracket_stack.pop_back().expect("Unmatched closing }"),
+                    };
+
+                    keys.push(idx_open);
+                    values.push(idx_close - idx_open);
+                }
                 Structural::Colon(_) | Structural::Comma(_) => unreachable!(),
             }
         }
 
-        Ok(lut_naive)
+        Ok((keys, values))
     }
 }

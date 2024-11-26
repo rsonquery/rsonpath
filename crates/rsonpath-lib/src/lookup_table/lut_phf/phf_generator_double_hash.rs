@@ -7,7 +7,7 @@ use rayon::prelude::*;
 const DEFAULT_LAMBDA: usize = 1;
 pub const FIXED_SEED: u64 = 1_234_567_890;
 
-// Trait to convert from usize to U
+// Trait to convert from usize and u16 to U, because otherwise we do not support usize and u16 in HashState<U> for U
 pub trait FromUsize {
     fn from_usize(val: usize) -> Self;
 }
@@ -45,13 +45,13 @@ impl<U: Copy> HashState<U> {
     pub fn get<T: ?Sized + PhfHash>(&self, key: &T) -> Option<U> {
         let hashes = phf_shared::hash(key, &self.hash_key);
         let index = phf_shared::get_index(&hashes, &self.displacements, self.map.len()) as usize;
-
         Some(self.map[index])
     }
 
     #[inline]
     pub fn allocated_bytes(&self) -> usize {
-        let mut total_size = std::mem::size_of::<Self>();
+        let mut total_size = 0;
+        total_size += std::mem::size_of::<Self>();
         total_size += std::mem::size_of::<HashKey>();
         total_size += self.displacements.capacity() * std::mem::size_of::<(u32, u32)>();
         total_size += self.map.capacity() * std::mem::size_of::<U>();
@@ -69,8 +69,8 @@ pub fn build<H: PhfHash + Send + Sync>(lambda: usize, keys: &[H]) -> HashState<u
 }
 
 // THIS METHOD IS FROM A LIBRARY: https://docs.rs/phf_generator/0.11.2/src/phf_generator/lib.rs.html#1-109
-// slightly edited to fit our code base: 1 extra parameter for lambda
-// Allowed range for lambda = [1, ..., 5]
+// slightly edited to fit our code base: 1 extra parameter for lambda, because the orignal code set lambda = 1 always
+// Allowed range for lambda = [1, ..., 5] because that is what the original paper does
 fn try_generate_hash<H: PhfHash>(lambda: usize, entries: &[H], key: HashKey) -> Option<HashState<usize>> {
     struct Bucket {
         idx: usize,
