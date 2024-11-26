@@ -1,3 +1,4 @@
+use crate::lookup_table::lut_hash_map_double::LutHashMapDouble;
 use crate::lookup_table::{
     count_distances, lut_hash_map::LutHashMap, lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF,
     lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup, util_path, LookUpTable, LookUpTableLambda,
@@ -23,7 +24,8 @@ pub fn run(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Er
     let mut data_line = format!("{},{},{},", filename, file.metadata()?.len(), num_keys);
 
     // Measure LUTs without lambda parameter
-    measure_ram::<LutHashMap>(json_path, "naive", &mut head_line, &mut data_line);
+    measure_ram::<LutHashMap>(json_path, "hash_map", &mut head_line, &mut data_line);
+    measure_ram::<LutHashMapDouble>(json_path, "hash_map_double", &mut head_line, &mut data_line);
     // measure_ram::<LutPerfectNaive>(json_path, "perfect_naive", &mut head_line, &mut data_line);
     measure_ram::<LutPHF>(json_path, "phf", &mut head_line, &mut data_line);
 
@@ -62,7 +64,7 @@ fn measure_ram_lambda<T: LookUpTableLambda>(
     head_line: &mut String,
     data_line: &mut String,
 ) {
-    println!("  - {}", name);
+    println!("  - {}:λ={}", name, lambda);
     let reg = Region::new(GLOBAL);
     let lut = T::build_with_lambda(lambda, json_path).expect("Fail @ build with lambda");
     let stats = heap_value(reg.change());
@@ -71,8 +73,12 @@ fn measure_ram_lambda<T: LookUpTableLambda>(
 }
 
 fn heap_value(stats: stats_alloc::Stats) -> isize {
-    // stats.bytes_allocated as isize - stats.bytes_deallocated as isize + stats.bytes_reallocated
+    // We take the allocated bytes minus the deallocated and ignore the reallocated bytes because we are interested
+    // in the total heap space taken
     stats.bytes_allocated as isize - stats.bytes_deallocated as isize
+
+    // Alternative line that should not be used:
+    // stats.bytes_allocated as isize - stats.bytes_deallocated as isize + stats.bytes_reallocated
 }
 
 fn run_python_statistics_builder(csv_path: &str) {

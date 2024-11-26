@@ -1,3 +1,4 @@
+use super::LookUpTable;
 use crate::{
     classification::{
         self,
@@ -10,8 +11,6 @@ use crate::{
 };
 use phf_generator::HashState;
 use std::{collections::VecDeque, fs};
-
-use super::LookUpTable;
 
 pub mod phf_generator;
 pub mod phf_generator_double_hash;

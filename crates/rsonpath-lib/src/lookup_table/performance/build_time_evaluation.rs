@@ -4,8 +4,9 @@ use std::{
 };
 
 use crate::lookup_table::{
-    count_distances, lut_hash_map::LutHashMap, lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF,
-    lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup, pair_finder, util_path, LookUpTable, LookUpTableLambda,
+    count_distances, lut_hash_map::LutHashMap, lut_hash_map_double::LutHashMapDouble,
+    lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF, lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup,
+    pair_finder, util_path, LookUpTable, LookUpTableLambda,
 };
 
 #[inline]
@@ -20,14 +21,15 @@ pub fn run(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Er
     let (keys, _) = pair_finder::get_keys_and_values(json_path).expect("Fail @ finding pairs.");
 
     // Measure LUTs without lambda parameter
-    measure_time::<LutHashMap>(json_path, &keys, "naive", &mut head_line, &mut data_line);
+    measure_time::<LutHashMap>(json_path, &keys, "hash_map", &mut head_line, &mut data_line);
+    measure_time::<LutHashMapDouble>(json_path, &keys, "hash_map_double", &mut head_line, &mut data_line);
     // measure_time::<LutPerfectNaive>(json_path, &keys, "perfect_naive", &mut head_line, &mut data_line);
     measure_time::<LutPHF>(json_path, &keys, "phf", &mut head_line, &mut data_line);
 
     // Measure LUTs with lambda parameter
     for lambda in vec![1, 5] {
-        measure_time_lambda::<LutPHFDouble>(lambda, json_path, &keys, "double", &mut head_line, &mut data_line);
-        measure_time_lambda::<LutPHFGroup>(lambda, json_path, &keys, "group", &mut head_line, &mut data_line);
+        measure_time_lambda::<LutPHFDouble>(lambda, json_path, &keys, "phf_double", &mut head_line, &mut data_line);
+        measure_time_lambda::<LutPHFGroup>(lambda, json_path, &keys, "phf_group", &mut head_line, &mut data_line);
     }
 
     // Write CSV header and data
@@ -58,15 +60,13 @@ fn measure_time<T: LookUpTable>(
 
     // Query time
     let start_build = std::time::Instant::now();
+    // Call a black box function that does nothing so that the compiler does not optimize away get_every_key_once
     my_black_box(get_every_key_once(&lut, &keys));
     let query_time = start_build.elapsed().as_secs_f64();
 
     head_line.push_str(&format!("{}_build_time,{}_query_time,", name, name));
     data_line.push_str(&format!("{},{},", build_time, query_time));
 }
-
-#[inline(never)]
-fn my_black_box<T>(whatever: T) {}
 
 fn measure_time_lambda<T: LookUpTableLambda>(
     lambda: usize,
@@ -76,7 +76,7 @@ fn measure_time_lambda<T: LookUpTableLambda>(
     head_line: &mut String,
     data_line: &mut String,
 ) {
-    println!("  - {}", name);
+    println!("  - {}:λ={}", name, lambda);
 
     // Build time
     let start_build = std::time::Instant::now();
@@ -85,9 +85,9 @@ fn measure_time_lambda<T: LookUpTableLambda>(
 
     // Query time
     let start_build = std::time::Instant::now();
-    let sum = get_every_key_once(&lut, &keys);
+    // Call a black box function that does nothing so that the compiler does not optimize away get_every_key_once
+    my_black_box(get_every_key_once(&lut, &keys));
     let query_time = start_build.elapsed().as_secs_f64();
-    println!("Sum: {sum}");
 
     head_line.push_str(&format!(
         "λ={}:{}_build_time,λ={}:{}_query_time,",
@@ -120,3 +120,6 @@ fn run_python_statistics_builder(csv_path: &str) {
         eprintln!("Error: {}", String::from_utf8_lossy(&output.stderr));
     }
 }
+
+#[inline(never)]
+fn my_black_box<T>(whatever: T) {}

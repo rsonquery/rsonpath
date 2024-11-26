@@ -1,23 +1,10 @@
-use super::{
-    lut_phf::phf_generator_double_hash::{self, HashState},
-    lut_phf_double::{PairData, THRESHOLD_16_BITS},
-    LookUpTable, LookUpTableLambda,
-};
+use super::{lut_phf_double::PairData, LookUpTable};
 use crate::{
-    classification::{
-        self,
-        simd::Simd,
-        structural::{BracketType, Structural, StructuralIterator},
-    },
+    classification::{self, simd::Simd},
     input::{self, error, Input},
     lookup_table::lut_phf_double::LutPHFDouble,
-    result::empty::EmptyRecorder,
-    FallibleIterator,
 };
-use std::{
-    collections::{HashMap, VecDeque},
-    fs,
-};
+use std::{collections::HashMap, fs};
 
 pub struct LutHashMapDouble {
     pub hash_map_16: HashMap<usize, u16>,
@@ -48,6 +35,7 @@ impl LookUpTable for LutHashMapDouble {
 
     #[inline]
     fn get(&self, key: &usize) -> Option<usize> {
+        // Look for a value for a given key, search first in hash_map_16 since it represents usually >99% of the keys
         if let Some(&value_16) = self.hash_map_16.get(key) {
             // key in hash_map_16
             Some(*key + value_16 as usize)
@@ -55,7 +43,7 @@ impl LookUpTable for LutHashMapDouble {
             // key in hash_map_64
             Some(*key + value_64)
         } else {
-            // Neither map contains the key
+            // Neither map contains the key which should never happen because we added all keys and values at build
             None
         }
     }
