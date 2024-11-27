@@ -23,7 +23,7 @@ pub struct LutPHF {
 impl LookUpTable for LutPHF {
     #[inline]
     fn build(json_path: &str) -> Result<Self, Box<dyn std::error::Error>> {
-        LutPHF::build_with_lambda(DEFAULT_LAMBDA, json_path, DEFAULT_THREADED)
+        LutPHF::build_lambda(DEFAULT_LAMBDA, json_path, DEFAULT_THREADED)
     }
 
     #[inline]
@@ -46,7 +46,7 @@ impl LookUpTable for LutPHF {
 
 impl LookUpTableLambda for LutPHF {
     #[inline]
-    fn build_with_lambda(lambda: usize, json_path: &str, threaded: bool) -> Result<Self, Box<dyn std::error::Error>> {
+    fn build_lambda(lambda: usize, json_path: &str, threaded: bool) -> Result<Self, Box<dyn std::error::Error>> {
         let file = fs::File::open(json_path).expect("Failed to open file");
         // SAFETY: We keep the file open throughout the entire duration.
         let input = unsafe { input::MmapInput::map_file(&file)? };

@@ -25,29 +25,31 @@ pub fn run(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Er
     let mut data_line = format!("{},{},{},", filename, file.metadata()?.len(), num_keys);
 
     // Measure LUTs without lambda parameter
-    // eval_ram::<LutHashMap>(json_path, "hash_map", &mut head_line, &mut data_line);
-    // eval_ram::<LutHashMapDouble>(json_path, "hash_map_double", &mut head_line, &mut data_line);
-    // eval_ram::<LutPerfectNaive>(json_path, "perfect_naive", &mut head_line, &mut data_line);
+    // eval::<LutHashMap>(json_path, "hash_map", &mut head_line, &mut data_line);
+    // eval::<LutHashMapDouble>(json_path, "hash_map_double", &mut head_line, &mut data_line);
+    // eval::<LutPerfectNaive>(json_path, "perfect_naive", &mut head_line, &mut data_line);
 
     // Process each LUT that has a lambda parameter with lambda [1, ..., 5]
-    for lambda in vec![1, 5] {
-        let threaded = false;
-        eval_ram_lambda::<LutPHF>(lambda, json_path, "phf", &mut head_line, &mut data_line, threaded);
-        eval_ram_lambda::<LutPHFDouble>(
-            lambda,
-            json_path,
-            "phf_double",
-            &mut head_line,
-            &mut data_line,
-            threaded,
-        );
-        eval_ram_lambda::<LutPHFGroup>(lambda, json_path, "phf_group", &mut head_line, &mut data_line, threaded);
+    // for l in vec![1, 5] {
+    //     let t = false;
+    //     eval_lambda::<LutPHF>(l, json_path, "phf", &mut head_line, &mut data_line, t);
+    //     eval_lambda::<LutPHFDouble>(l, json_path, "phf_double", &mut head_line, &mut data_line, t);
+    //     eval_lambda::<LutPHFGroup>(l, json_path, "phf_group", &mut head_line, &mut data_line, t);
 
-        // let threaded = true;
-        // eval_ram_lambda::<LutPHF>(lambda, json_path, "phf(T)", &mut head_line, &mut data_line, threaded);
-        // eval_ram_lambda::<LutPHFDouble>(lambda, json_path, "phf_double(T)", &mut head_line, &mut data_line, threaded);
-        // eval_ram_lambda::<LutPHFGroup>(lambda, json_path, "phf_group(T)", &mut head_line, &mut data_line, threaded);
-    }
+    //     let t = true;
+    //     eval_lambda::<LutPHF>(l, json_path, "phf(T)", &mut head_line, &mut data_line, t);
+    //     eval_lambda::<LutPHFDouble>(l, json_path, "phf_double(T)", &mut head_line, &mut data_line, t);
+    //     eval_lambda::<LutPHFGroup>(l, json_path, "phf_group(T)", &mut head_line, &mut data_line, t);
+    // }
+
+    let l = 5;
+    let t = false;
+    eval_bucket(l, json_path, "phf_group", 3, &mut head_line, &mut data_line, t);
+    eval_bucket(l, json_path, "phf_group", 7, &mut head_line, &mut data_line, t);
+    eval_bucket(l, json_path, "phf_group", 15, &mut head_line, &mut data_line, t);
+    eval_bucket(l, json_path, "phf_group", 31, &mut head_line, &mut data_line, t);
+    eval_bucket(l, json_path, "phf_group", 63, &mut head_line, &mut data_line, t);
+    eval_bucket(l, json_path, "phf_group", 127, &mut head_line, &mut data_line, t);
 
     // Write CSV header and data
     let mut csv_file = std::fs::OpenOptions::new().append(true).create(true).open(csv_path)?;
@@ -62,7 +64,7 @@ pub fn run(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Er
     Ok(())
 }
 
-fn eval_ram<T: LookUpTable>(json_path: &str, name: &str, head_line: &mut String, data_line: &mut String) {
+fn eval<T: LookUpTable>(json_path: &str, name: &str, head_line: &mut String, data_line: &mut String) {
     println!("  - {}", name);
     let reg = Region::new(GLOBAL);
     let lut = T::build(json_path).expect("Fail @ build lut");
@@ -71,7 +73,7 @@ fn eval_ram<T: LookUpTable>(json_path: &str, name: &str, head_line: &mut String,
     data_line.push_str(&format!("{},{},", stats, lut.allocated_bytes()));
 }
 
-fn eval_ram_lambda<T: LookUpTableLambda>(
+fn eval_lambda<T: LookUpTableLambda>(
     lambda: usize,
     json_path: &str,
     name: &str,
@@ -81,9 +83,34 @@ fn eval_ram_lambda<T: LookUpTableLambda>(
 ) {
     println!("  - {}:λ={},T={}", name, lambda, threaded);
     let reg = Region::new(GLOBAL);
-    let lut = T::build_with_lambda(lambda, json_path, threaded).expect("Fail @ build with lambda");
+    let lut = T::build_lambda(lambda, json_path, threaded).expect("Fail @ build with lambda");
     let stats = heap_value(reg.change());
     head_line.push_str(&format!("λ={}:{}_heap,λ={}:{}_capacity,", lambda, name, lambda, name));
+    data_line.push_str(&format!("{},{},", stats, lut.allocated_bytes()));
+}
+
+fn eval_bucket(
+    lambda: usize,
+    json_path: &str,
+    name: &str,
+    bit_mask: usize,
+    head_line: &mut String,
+    data_line: &mut String,
+    threaded: bool,
+) {
+    println!("  - {}:#{}_λ={},T={}", name, bit_mask + 1, lambda, threaded);
+    let reg = Region::new(GLOBAL);
+    let lut = LutPHFGroup::build_buckets(lambda, json_path, bit_mask, threaded).expect("Fail @ build with lambda");
+    let stats = heap_value(reg.change());
+    head_line.push_str(&format!(
+        "#{}_λ={}:{}_heap,#{}_λ={}:{}_capacity,",
+        bit_mask + 1,
+        lambda,
+        name,
+        bit_mask + 1,
+        lambda,
+        name
+    ));
     data_line.push_str(&format!("{},{},", stats, lut.allocated_bytes()));
 }
 

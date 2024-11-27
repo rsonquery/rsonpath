@@ -74,6 +74,38 @@ fn compare_valid(lut: &dyn LookUpTable, json_path: &str) {
 }
 
 #[test]
+fn debug_lut_group_buckets() {
+    let json_path = "tests/json/pokemon_(6MB).json";
+    // let json_path = "tests/json/john_big.json";
+    // let json_path = "tests/json/twitter_short_(80MB).json";
+
+    let (keys, values) = pair_finder::get_keys_and_values(json_path).expect("Fail @ finding pairs.");
+    let lut = LutPHFGroup::build_buckets(1, json_path, 63, false).expect("Fail @ building lut_phf_double");
+
+    let mut count_correct = 0;
+    let mut count_incorrect = 0;
+    for (i, key) in keys.iter().enumerate() {
+        let left = values[i];
+        let right = lut.get(key).expect("fail");
+        if left != right {
+            let distance = left - key;
+            println!(
+                "Key: {}, Expected: {}, Found: {}, Expected Dist. {}",
+                key, left, right, distance
+            );
+            count_incorrect += 1;
+        } else {
+            count_correct += 1;
+        }
+    }
+
+    let total = count_correct + count_incorrect;
+    println!("Correct: {}/{}", count_correct, total);
+    println!("Incorrect: {}/{}", count_incorrect, total);
+    assert_eq!(count_incorrect, 0);
+}
+
+#[test]
 fn debug_lut_phf_double() {
     let json_path = "tests/json/pokemon_(6MB).json";
     // let json_path = "tests/json/john_big.json";

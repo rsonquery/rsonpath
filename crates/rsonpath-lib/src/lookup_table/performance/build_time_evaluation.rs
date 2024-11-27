@@ -21,46 +21,31 @@ pub fn run(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Er
     let (keys, _) = pair_finder::get_keys_and_values(json_path).expect("Fail @ finding pairs.");
 
     // Measure LUTs without lambda parameter
-    // eval_time::<LutHashMap>(json_path, &keys, "hash_map", &mut head_line, &mut data_line);
-    // eval_time::<LutHashMapDouble>(json_path, &keys, "hash_map_double", &mut head_line, &mut data_line);
-    // eval_time::<LutPerfectNaive>(json_path, &keys, "perfect_naive", &mut head_line, &mut data_line);
+    // eval::<LutHashMap>(json_path, &keys, "hash_map", &mut head_line, &mut data_line);
+    // eval::<LutHashMapDouble>(json_path, &keys, "hash_map_double", &mut head_line, &mut data_line);
+    // eval::<LutPerfectNaive>(json_path, &keys, "perfect_naive", &mut head_line, &mut data_line);
 
     // Measure LUTs with lambda parameter
-    for lambda in vec![1, 5] {
-        let threaded = false;
-        eval_time_lambda::<LutPHF>(
-            lambda,
-            json_path,
-            &keys,
-            "phf",
-            &mut head_line,
-            &mut data_line,
-            threaded,
-        );
-        eval_time_lambda::<LutPHFDouble>(
-            lambda,
-            json_path,
-            &keys,
-            "phf_double",
-            &mut head_line,
-            &mut data_line,
-            threaded,
-        );
-        eval_time_lambda::<LutPHFGroup>(
-            lambda,
-            json_path,
-            &keys,
-            "phf_group",
-            &mut head_line,
-            &mut data_line,
-            threaded,
-        );
+    for l in vec![1, 5] {
+        let t = false;
+        // eval_lambda::<LutPHF>(l, json_path, &keys, "phf", &mut head_line, &mut data_line, t);
+        // eval_lambda::<LutPHFDouble>(l, json_path, &keys, "phf_double", &mut head_line, &mut data_line, t);
+        // eval_lambda::<LutPHFGroup>(l, json_path, &keys, "phf_group", &mut head_line, &mut data_line, t);
 
         // let threaded = true;
-        // eval_time_lambda::<LutPHF>(lambda, json_path, &keys, "phf(T)", &mut head_line, &mut data_line, threaded);
-        // eval_time_lambda::<LutPHFDouble>(lambda, json_path, &keys, "phf_double(T)", &mut head_line, &mut data_line, threaded);
-        // eval_time_lambda::<LutPHFGroup>(lambda, json_path, &keys, "phf_group(T)", &mut head_line, &mut data_line, threaded);
+        // eval_lambda::<LutPHF>(l, json_path, &keys, "phf(T)", &mut head_line, &mut data_line, t);
+        // eval_lambda::<LutPHFDouble>(l, json_path, &keys, "phf_double(T)", &mut head_line, &mut data_line, t);
+        // eval_lambda::<LutPHFGroup>(l, json_path, &keys, "phf_group(T)", &mut head_line, &mut data_line, t);
     }
+
+    let l = 5;
+    let t = false;
+    eval_bucket(l, json_path, &keys, 3, "phf_group", &mut head_line, &mut data_line, t);
+    eval_bucket(l, json_path, &keys, 7, "phf_group", &mut head_line, &mut data_line, t);
+    eval_bucket(l, json_path, &keys, 15, "phf_group", &mut head_line, &mut data_line, t);
+    eval_bucket(l, json_path, &keys, 31, "phf_group", &mut head_line, &mut data_line, t);
+    eval_bucket(l, json_path, &keys, 63, "phf_group", &mut head_line, &mut data_line, t);
+    eval_bucket(l, json_path, &keys, 127, "phf_group", &mut head_line, &mut data_line, t);
 
     // Write CSV header and data
     let mut csv_file = std::fs::OpenOptions::new().append(true).create(true).open(csv_path)?;
@@ -74,7 +59,7 @@ pub fn run(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Er
     Ok(())
 }
 
-fn eval_time<T: LookUpTable>(
+fn eval<T: LookUpTable>(
     json_path: &str,
     keys: &Vec<usize>,
     name: &str,
@@ -98,7 +83,7 @@ fn eval_time<T: LookUpTable>(
     data_line.push_str(&format!("{},{},", build_time, query_time));
 }
 
-fn eval_time_lambda<T: LookUpTableLambda>(
+fn eval_lambda<T: LookUpTableLambda>(
     lambda: usize,
     json_path: &str,
     keys: &Vec<usize>,
@@ -111,7 +96,7 @@ fn eval_time_lambda<T: LookUpTableLambda>(
 
     // Build time
     let start_build = std::time::Instant::now();
-    let lut = T::build_with_lambda(lambda, json_path, threaded).expect("Fail @ build lut");
+    let lut = T::build_lambda(lambda, json_path, threaded).expect("Fail @ build lut");
     let build_time = start_build.elapsed().as_secs_f64();
 
     // Query time
@@ -123,6 +108,41 @@ fn eval_time_lambda<T: LookUpTableLambda>(
     head_line.push_str(&format!(
         "λ={}:{}_build_time,λ={}:{}_query_time,",
         lambda, name, lambda, name
+    ));
+    data_line.push_str(&format!("{},{},", build_time, query_time));
+}
+
+fn eval_bucket(
+    lambda: usize,
+    json_path: &str,
+    keys: &Vec<usize>,
+    bit_mask: usize,
+    name: &str,
+    head_line: &mut String,
+    data_line: &mut String,
+    threaded: bool,
+) {
+    println!("  - {}:#{}_λ={}", name, bit_mask + 1, lambda);
+
+    // Build time
+    let start_build = std::time::Instant::now();
+    let lut = LutPHFGroup::build_buckets(lambda, json_path, bit_mask, threaded).expect("Fail @ build lut");
+    let build_time = start_build.elapsed().as_secs_f64();
+
+    // Query time
+    let start_build = std::time::Instant::now();
+    // Call a black box function that does nothing so that the compiler does not optimize away get_every_key_once
+    my_black_box(get_every_key_once(&lut, &keys));
+    let query_time = start_build.elapsed().as_secs_f64();
+
+    head_line.push_str(&format!(
+        "#{}_λ={}:{}_build_time,#{}_λ={}:{}_query_time,",
+        bit_mask + 1,
+        lambda,
+        name,
+        bit_mask + 1,
+        lambda,
+        name
     ));
     data_line.push_str(&format!("{},{},", build_time, query_time));
 }
