@@ -25,31 +25,33 @@ pub fn run(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Er
     let mut data_line = format!("{},{},{},", filename, file.metadata()?.len(), num_keys);
 
     // Measure LUTs without lambda parameter
-    // eval::<LutHashMap>(json_path, "hash_map", &mut head_line, &mut data_line);
-    // eval::<LutHashMapDouble>(json_path, "hash_map_double", &mut head_line, &mut data_line);
+    eval::<LutHashMap>(json_path, "hash_map", &mut head_line, &mut data_line);
+    eval::<LutHashMapDouble>(json_path, "hash_map_double", &mut head_line, &mut data_line);
     // eval::<LutPerfectNaive>(json_path, "perfect_naive", &mut head_line, &mut data_line);
 
     // Process each LUT that has a lambda parameter with lambda [1, ..., 5]
-    // for l in vec![1, 5] {
-    //     let t = false;
-    //     eval_lambda::<LutPHF>(l, json_path, "phf", &mut head_line, &mut data_line, t);
-    //     eval_lambda::<LutPHFDouble>(l, json_path, "phf_double", &mut head_line, &mut data_line, t);
-    //     eval_lambda::<LutPHFGroup>(l, json_path, "phf_group", &mut head_line, &mut data_line, t);
+    for l in vec![1, 5] {
+        let t = false;
+        // eval_lambda::<LutPHF>(l, json_path, "phf", &mut head_line, &mut data_line, t);
+        // eval_lambda::<LutPHFDouble>(l, json_path, "phf_double", &mut head_line, &mut data_line, t);
+        // eval_lambda::<LutPHFGroup>(l, json_path, "phf_group", &mut head_line, &mut data_line, t);
 
-    //     let t = true;
-    //     eval_lambda::<LutPHF>(l, json_path, "phf(T)", &mut head_line, &mut data_line, t);
-    //     eval_lambda::<LutPHFDouble>(l, json_path, "phf_double(T)", &mut head_line, &mut data_line, t);
-    //     eval_lambda::<LutPHFGroup>(l, json_path, "phf_group(T)", &mut head_line, &mut data_line, t);
-    // }
+        let t = true;
+        // eval_lambda::<LutPHF>(l, json_path, "phf(T)", &mut head_line, &mut data_line, t);
+        // eval_lambda::<LutPHFDouble>(l, json_path, "phf_double(T)", &mut head_line, &mut data_line, t);
+        // eval_lambda::<LutPHFGroup>(l, json_path, "phf_group(T)", &mut head_line, &mut data_line, t);
+    }
 
-    let l = 5;
-    let t = false;
-    eval_bucket(l, json_path, "phf_group", 3, &mut head_line, &mut data_line, t);
-    eval_bucket(l, json_path, "phf_group", 7, &mut head_line, &mut data_line, t);
-    eval_bucket(l, json_path, "phf_group", 15, &mut head_line, &mut data_line, t);
-    eval_bucket(l, json_path, "phf_group", 31, &mut head_line, &mut data_line, t);
-    eval_bucket(l, json_path, "phf_group", 63, &mut head_line, &mut data_line, t);
-    eval_bucket(l, json_path, "phf_group", 127, &mut head_line, &mut data_line, t);
+    for l in vec![1, 5] {
+        let t = false;
+
+        // eval_bucket(l, json_path, "phf_group", 3, &mut head_line, &mut data_line, t);
+        // eval_bucket(l, json_path, "phf_group", 7, &mut head_line, &mut data_line, t);
+        // eval_bucket(l, json_path, "phf_group", 15, &mut head_line, &mut data_line, t);
+        // eval_bucket(l, json_path, "phf_group", 31, &mut head_line, &mut data_line, t);
+        eval_bucket(l, json_path, "phf_group", 63, &mut head_line, &mut data_line, t);
+        eval_bucket(l, json_path, "phf_group", 127, &mut head_line, &mut data_line, t);
+    }
 
     // Write CSV header and data
     let mut csv_file = std::fs::OpenOptions::new().append(true).create(true).open(csv_path)?;

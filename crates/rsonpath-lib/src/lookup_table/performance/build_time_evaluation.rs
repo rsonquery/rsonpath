@@ -3,6 +3,8 @@ use std::{
     process::Command,
 };
 
+use rayon::vec;
+
 use crate::lookup_table::{
     count_distances, lut_hash_map::LutHashMap, lut_hash_map_double::LutHashMapDouble,
     lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF, lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup,
@@ -21,8 +23,8 @@ pub fn run(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Er
     let (keys, _) = pair_finder::get_keys_and_values(json_path).expect("Fail @ finding pairs.");
 
     // Measure LUTs without lambda parameter
-    // eval::<LutHashMap>(json_path, &keys, "hash_map", &mut head_line, &mut data_line);
-    // eval::<LutHashMapDouble>(json_path, &keys, "hash_map_double", &mut head_line, &mut data_line);
+    eval::<LutHashMap>(json_path, &keys, "hash_map", &mut head_line, &mut data_line);
+    eval::<LutHashMapDouble>(json_path, &keys, "hash_map_double", &mut head_line, &mut data_line);
     // eval::<LutPerfectNaive>(json_path, &keys, "perfect_naive", &mut head_line, &mut data_line);
 
     // Measure LUTs with lambda parameter
@@ -38,14 +40,16 @@ pub fn run(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Er
         // eval_lambda::<LutPHFGroup>(l, json_path, &keys, "phf_group(T)", &mut head_line, &mut data_line, t);
     }
 
-    let l = 5;
-    let t = false;
-    eval_bucket(l, json_path, &keys, 3, "phf_group", &mut head_line, &mut data_line, t);
-    eval_bucket(l, json_path, &keys, 7, "phf_group", &mut head_line, &mut data_line, t);
-    eval_bucket(l, json_path, &keys, 15, "phf_group", &mut head_line, &mut data_line, t);
-    eval_bucket(l, json_path, &keys, 31, "phf_group", &mut head_line, &mut data_line, t);
-    eval_bucket(l, json_path, &keys, 63, "phf_group", &mut head_line, &mut data_line, t);
-    eval_bucket(l, json_path, &keys, 127, "phf_group", &mut head_line, &mut data_line, t);
+    for l in vec![1, 5] {
+        let t = false;
+
+        // eval_bucket(l, json_path, &keys, 3, "phf_group", &mut head_line, &mut data_line, t);
+        // eval_bucket(l, json_path, &keys, 7, "phf_group", &mut head_line, &mut data_line, t);
+        // eval_bucket(l, json_path, &keys, 15, "phf_group", &mut head_line, &mut data_line, t);
+        // eval_bucket(l, json_path, &keys, 31, "phf_group", &mut head_line, &mut data_line, t);
+        eval_bucket(l, json_path, &keys, 63, "phf_group", &mut head_line, &mut data_line, t);
+        eval_bucket(l, json_path, &keys, 127, "phf_group", &mut head_line, &mut data_line, t);
+    }
 
     // Write CSV header and data
     let mut csv_file = std::fs::OpenOptions::new().append(true).create(true).open(csv_path)?;
