@@ -4,7 +4,6 @@ use rand::{distributions::Standard, rngs::SmallRng};
 use rand::{Rng, SeedableRng};
 use rayon::prelude::*;
 
-const DEFAULT_LAMBDA: usize = 1;
 pub const FIXED_SEED: u64 = 1_234_567_890;
 
 // Trait to convert from usize and u16 to U, because otherwise we do not support usize and u16 in HashState<U> for U
@@ -60,20 +59,19 @@ impl<U: Copy> HashState<U> {
 }
 
 #[inline]
-pub fn build_single_thread<H: PhfHash>(lambda: usize, keys: &[H]) -> HashState<usize> {
-    SmallRng::seed_from_u64(FIXED_SEED)
-        .sample_iter(Standard)
-        .find_map(|hash_key| try_generate_hash(lambda, keys, hash_key))
-        .expect("failed to solve PHF")
-}
-
-#[inline]
-pub fn build_multi_thread<H: PhfHash + Send + Sync>(lambda: usize, keys: &[H]) -> HashState<usize> {
-    SmallRng::seed_from_u64(FIXED_SEED)
-        .sample_iter(Standard)
-        .par_bridge()
-        .find_map_any(|hash_key| try_generate_hash(lambda, keys, hash_key))
-        .expect("failed to solve PHF")
+pub fn build<H: PhfHash + Send + Sync>(lambda: usize, keys: &[H], threaded: bool) -> HashState<usize> {
+    if threaded {
+        SmallRng::seed_from_u64(FIXED_SEED)
+            .sample_iter(Standard)
+            .par_bridge()
+            .find_map_any(|hash_key| try_generate_hash(lambda, keys, hash_key))
+            .expect("failed to solve PHF")
+    } else {
+        SmallRng::seed_from_u64(FIXED_SEED)
+            .sample_iter(Standard)
+            .find_map(|hash_key| try_generate_hash(lambda, keys, hash_key))
+            .expect("failed to solve PHF")
+    }
 }
 
 // THIS METHOD IS FROM A LIBRARY: https://docs.rs/phf_generator/0.11.2/src/phf_generator/lib.rs.html#1-109

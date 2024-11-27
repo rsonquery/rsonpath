@@ -21,15 +21,45 @@ pub fn run(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Er
     let (keys, _) = pair_finder::get_keys_and_values(json_path).expect("Fail @ finding pairs.");
 
     // Measure LUTs without lambda parameter
-    measure_time::<LutHashMap>(json_path, &keys, "hash_map", &mut head_line, &mut data_line);
-    measure_time::<LutHashMapDouble>(json_path, &keys, "hash_map_double", &mut head_line, &mut data_line);
-    // measure_time::<LutPerfectNaive>(json_path, &keys, "perfect_naive", &mut head_line, &mut data_line);
+    // eval_time::<LutHashMap>(json_path, &keys, "hash_map", &mut head_line, &mut data_line);
+    // eval_time::<LutHashMapDouble>(json_path, &keys, "hash_map_double", &mut head_line, &mut data_line);
+    // eval_time::<LutPerfectNaive>(json_path, &keys, "perfect_naive", &mut head_line, &mut data_line);
 
     // Measure LUTs with lambda parameter
     for lambda in vec![1, 5] {
-        measure_time_lambda::<LutPHF>(lambda, json_path, &keys, "phf", &mut head_line, &mut data_line);
-        measure_time_lambda::<LutPHFDouble>(lambda, json_path, &keys, "phf_double", &mut head_line, &mut data_line);
-        measure_time_lambda::<LutPHFGroup>(lambda, json_path, &keys, "phf_group", &mut head_line, &mut data_line);
+        let threaded = false;
+        eval_time_lambda::<LutPHF>(
+            lambda,
+            json_path,
+            &keys,
+            "phf",
+            &mut head_line,
+            &mut data_line,
+            threaded,
+        );
+        eval_time_lambda::<LutPHFDouble>(
+            lambda,
+            json_path,
+            &keys,
+            "phf_double",
+            &mut head_line,
+            &mut data_line,
+            threaded,
+        );
+        eval_time_lambda::<LutPHFGroup>(
+            lambda,
+            json_path,
+            &keys,
+            "phf_group",
+            &mut head_line,
+            &mut data_line,
+            threaded,
+        );
+
+        // let threaded = true;
+        // eval_time_lambda::<LutPHF>(lambda, json_path, &keys, "phf(T)", &mut head_line, &mut data_line, threaded);
+        // eval_time_lambda::<LutPHFDouble>(lambda, json_path, &keys, "phf_double(T)", &mut head_line, &mut data_line, threaded);
+        // eval_time_lambda::<LutPHFGroup>(lambda, json_path, &keys, "phf_group(T)", &mut head_line, &mut data_line, threaded);
     }
 
     // Write CSV header and data
@@ -44,7 +74,7 @@ pub fn run(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Er
     Ok(())
 }
 
-fn measure_time<T: LookUpTable>(
+fn eval_time<T: LookUpTable>(
     json_path: &str,
     keys: &Vec<usize>,
     name: &str,
@@ -68,19 +98,20 @@ fn measure_time<T: LookUpTable>(
     data_line.push_str(&format!("{},{},", build_time, query_time));
 }
 
-fn measure_time_lambda<T: LookUpTableLambda>(
+fn eval_time_lambda<T: LookUpTableLambda>(
     lambda: usize,
     json_path: &str,
     keys: &Vec<usize>,
     name: &str,
     head_line: &mut String,
     data_line: &mut String,
+    threaded: bool,
 ) {
     println!("  - {}:λ={}", name, lambda);
 
     // Build time
     let start_build = std::time::Instant::now();
-    let lut = T::build_with_lambda(lambda, json_path).expect("Fail @ build lut");
+    let lut = T::build_with_lambda(lambda, json_path, threaded).expect("Fail @ build lut");
     let build_time = start_build.elapsed().as_secs_f64();
 
     // Query time

@@ -2,7 +2,7 @@ use super::{
     lut_hash_map_double::PairData,
     lut_phf::{
         phf_generator_double_hash::{self, HashState},
-        BUILD_LAMBDA,
+        DEFAULT_LAMBDA, DEFAULT_THREADED,
     },
     LookUpTable, LookUpTableLambda,
 };
@@ -22,28 +22,24 @@ pub struct LutPHFDouble {
 impl LookUpTable for LutPHFDouble {
     #[inline]
     fn build(json_path: &str) -> Result<Self, Box<dyn std::error::Error>> {
-        LutPHFDouble::build_with_lambda(BUILD_LAMBDA, json_path)
+        LutPHFDouble::build_with_lambda(DEFAULT_LAMBDA, json_path, DEFAULT_THREADED)
     }
 
     #[inline]
     fn get(&self, key: &usize) -> Option<usize> {
         // Look for a value for a given key. Search first in `hash_state_16` because it represents
-        // >99% of the keys. On rare misses (indicated by value == 0), check `hash_state_64`.
+        // >99% of the keys. On rare misses (indicated by value == 0), check `hash_state_64`. If the hash_state
+        // None the key was never part of the original key set at build time
         if let Some(value_16) = self.hash_state_16.get(key) {
             if value_16 == 0 {
-                // Key miss in `hash_state_16`, look into `hash_state_64`.
                 if let Some(value_64) = self.hash_state_64.get(key) {
                     return Some(*key + value_64);
                 } else {
-                    // Neither map contains the key; key was not in initial key set
                     return None;
                 }
             }
-            // Key found in `hash_state_16`.
             return Some(*key + value_16 as usize);
         }
-
-        // Key not found in `hash_state_16` or `hash_state_64`.
         None
     }
 
@@ -59,22 +55,23 @@ impl LookUpTable for LutPHFDouble {
 
 impl LookUpTableLambda for LutPHFDouble {
     #[inline]
-    fn build_with_lambda(lambda: usize, json_path: &str) -> Result<Self, Box<dyn std::error::Error>> {
+    fn build_with_lambda(lambda: usize, json_path: &str, threaded: bool) -> Result<Self, Box<dyn std::error::Error>> {
         let file = fs::File::open(json_path).expect("Failed to open file");
         // SAFETY: We keep the file open throughout the entire duration.
         let input = unsafe { input::MmapInput::map_file(&file)? };
         let simd_c = classification::simd::configure();
 
         let lut_phf_double = classification::simd::config_simd!(simd_c => |simd| {
-            classification::simd::dispatch_simd!(simd; input, simd, lambda => fn<I, V>(
+            classification::simd::dispatch_simd!(simd; input, simd, lambda, threaded => fn<I, V>(
                 input: I,
                 simd: V,
                 lambda: usize,
+                threaded: bool,
             ) -> Result<LutPHFDouble, error::InputError> where
             I: Input,
             V: Simd, {
                     let pair_data = LutHashMapDouble::find_all_pairs::<I, V>(&input, simd)?;
-                    Ok(LutPHFDouble::build_double(lambda, pair_data))
+                    Ok(LutPHFDouble::build_double(lambda, pair_data, threaded))
                 })
         });
         lut_phf_double.map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
@@ -82,9 +79,9 @@ impl LookUpTableLambda for LutPHFDouble {
 }
 
 impl LutPHFDouble {
-    pub fn build_double(lambda: usize, pair_data: PairData) -> Self {
+    pub fn build_double(lambda: usize, pair_data: PairData, threaded: bool) -> Self {
         // 1) Build hash_state for the values of size u16
-        let hash_state_16_usize = phf_generator_double_hash::build_multi_thread(lambda, &pair_data.keys_16);
+        let hash_state_16_usize = phf_generator_double_hash::build(lambda, &pair_data.keys_16, threaded);
 
         // 2) Find conflicts and set conflict positions to 0 in `values_16`, save (index, value) in conflict_indexes
         // We set the conflict position to 0, because the distance = 0 never naturally appears. This is because the
@@ -120,7 +117,9 @@ impl LutPHFDouble {
         }
 
         // 5) Build hash_state_64
-        let hash_state_64 = Self::build_single(lambda, &conflict_keys, &conflict_values);
+        let mut hash_state_64 = phf_generator_double_hash::build(lambda, &conflict_keys, threaded);
+        // Replace indexes with values, since otherwise we would map to a index position and not the actual value
+        hash_state_64.map = hash_state_64.map.into_iter().map(|idx| conflict_values[idx]).collect();
 
         // 6) Replace indexes with actual values from values_16
         let map_16: Vec<u16> = hash_state_16_usize.map.into_iter().map(|idx| values_16[idx]).collect();
@@ -136,14 +135,5 @@ impl LutPHFDouble {
             hash_state_16,
             hash_state_64,
         }
-    }
-
-    fn build_single(lambda: usize, keys: &[usize], values: &[usize]) -> HashState<usize> {
-        let mut hash_state = phf_generator_double_hash::build_multi_thread(lambda, keys);
-
-        // Replace indexes with values, since otherwise we would map to a index position and not the actual value
-        hash_state.map = hash_state.map.into_iter().map(|idx| values[idx]).collect();
-
-        hash_state
     }
 }

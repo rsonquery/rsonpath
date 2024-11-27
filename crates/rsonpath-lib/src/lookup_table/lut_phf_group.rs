@@ -1,5 +1,6 @@
 use super::lut_hash_map_double::{PairData, THRESHOLD_16_BITS};
-use super::{lut_phf::BUILD_LAMBDA, lut_phf_double::LutPHFDouble};
+use super::lut_phf::DEFAULT_THREADED;
+use super::{lut_phf::DEFAULT_LAMBDA, lut_phf_double::LutPHFDouble};
 use super::{LookUpTable, LookUpTableLambda};
 use crate::{
     classification::{
@@ -26,7 +27,7 @@ pub struct LutPHFGroup {
 impl LookUpTable for LutPHFGroup {
     #[inline]
     fn build(json_path: &str) -> Result<Self, Box<dyn std::error::Error>> {
-        LutPHFGroup::build_with_lambda(BUILD_LAMBDA, json_path)
+        LutPHFGroup::build_with_lambda(DEFAULT_LAMBDA, json_path, DEFAULT_THREADED)
     }
 
     #[inline]
@@ -48,22 +49,23 @@ impl LookUpTable for LutPHFGroup {
 
 impl LookUpTableLambda for LutPHFGroup {
     #[inline]
-    fn build_with_lambda(lambda: usize, json_path: &str) -> Result<Self, Box<dyn std::error::Error>> {
+    fn build_with_lambda(lambda: usize, json_path: &str, threaded: bool) -> Result<Self, Box<dyn std::error::Error>> {
         let file = fs::File::open(json_path).expect("Failed to open file");
         // SAFETY: We keep the file open throughout the entire duration.
         let input = unsafe { input::MmapInput::map_file(&file)? };
         let simd_c = classification::simd::configure();
 
         let lut_perfect_naive = classification::simd::config_simd!(simd_c => |simd| {
-            classification::simd::dispatch_simd!(simd; input, simd, lambda => fn<I, V>(
+            classification::simd::dispatch_simd!(simd; input, simd, lambda, threaded => fn<I, V>(
                 input: I,
                 simd: V,
-                lambda: usize
+                lambda: usize,
+                threaded: bool,
             ) -> Result<LutPHFGroup, error::InputError> where
             I: Input,
             V: Simd,{
                 let lut_doubles_pair_data = LutPHFGroup::find_all_pairs::<I, V>(&input, simd)?;
-                Ok(LutPHFGroup::build_lut_doubles(lambda, lut_doubles_pair_data))
+                Ok(LutPHFGroup::build_lut_doubles(lambda, lut_doubles_pair_data, threaded))
             })
         });
         lut_perfect_naive.map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
@@ -71,10 +73,10 @@ impl LookUpTableLambda for LutPHFGroup {
 }
 
 impl LutPHFGroup {
-    fn build_lut_doubles(lambda: usize, lut_doubles_pair_data: Vec<PairData>) -> Self {
+    fn build_lut_doubles(lambda: usize, lut_doubles_pair_data: Vec<PairData>, threaded: bool) -> Self {
         let lut_doubles: Vec<LutPHFDouble> = lut_doubles_pair_data
             .into_par_iter()
-            .map(|pair_data| LutPHFDouble::build_double(lambda, pair_data))
+            .map(|pair_data| LutPHFDouble::build_double(lambda, pair_data, threaded))
             .collect();
 
         Self { lut_doubles }

@@ -5,13 +5,14 @@ use crate::{
     lookup_table::lut_hash_map::LutHashMap,
 };
 use phf_generator_double_hash::HashState;
-use std::fs;
+use std::{default, fs};
 
 pub mod phf_generator;
 pub mod phf_generator_double_hash;
 pub mod phf_shared;
 
-pub const BUILD_LAMBDA: usize = 1; // Range = [1, ... , 5]
+pub const DEFAULT_LAMBDA: usize = 1; // Range = [1, ... , 5]
+pub const DEFAULT_THREADED: bool = false;
 pub const MAX_LAMBDA: usize = 5; // 5 because the source paper did so
 
 pub struct LutPHF {
@@ -22,7 +23,7 @@ pub struct LutPHF {
 impl LookUpTable for LutPHF {
     #[inline]
     fn build(json_path: &str) -> Result<Self, Box<dyn std::error::Error>> {
-        LutPHF::build_with_lambda(BUILD_LAMBDA, json_path)
+        LutPHF::build_with_lambda(DEFAULT_LAMBDA, json_path, DEFAULT_THREADED)
     }
 
     #[inline]
@@ -45,22 +46,23 @@ impl LookUpTable for LutPHF {
 
 impl LookUpTableLambda for LutPHF {
     #[inline]
-    fn build_with_lambda(lambda: usize, json_path: &str) -> Result<Self, Box<dyn std::error::Error>> {
+    fn build_with_lambda(lambda: usize, json_path: &str, threaded: bool) -> Result<Self, Box<dyn std::error::Error>> {
         let file = fs::File::open(json_path).expect("Failed to open file");
         // SAFETY: We keep the file open throughout the entire duration.
         let input = unsafe { input::MmapInput::map_file(&file)? };
         let simd_c = classification::simd::configure();
 
         let lut_phf_double = classification::simd::config_simd!(simd_c => |simd| {
-            classification::simd::dispatch_simd!(simd; input, simd, lambda => fn<I, V>(
+            classification::simd::dispatch_simd!(simd; input, simd, lambda, threaded => fn<I, V>(
                 input: I,
                 simd: V,
                 lambda: usize,
+                threaded: bool,
             ) -> Result<LutPHF, error::InputError> where
             I: Input,
             V: Simd, {
                     let (keys, values) = LutHashMap::find_all_pairs::<I, V>(&input, simd)?;
-                    let hash_state = phf_generator_double_hash::build_multi_thread(lambda, &keys);
+                    let hash_state = phf_generator_double_hash::build(lambda, &keys, threaded);
                     Ok(LutPHF { hash_state, values })
                 })
         });

@@ -21,7 +21,7 @@ pub trait LookUpTable {
 }
 
 pub trait LookUpTableLambda: LookUpTable {
-    fn build_with_lambda(lambda: usize, json_path: &str) -> Result<Self, Box<dyn std::error::Error>>
+    fn build_with_lambda(lambda: usize, json_path: &str, threaded: bool) -> Result<Self, Box<dyn std::error::Error>>
     where
         Self: Sized;
 }
