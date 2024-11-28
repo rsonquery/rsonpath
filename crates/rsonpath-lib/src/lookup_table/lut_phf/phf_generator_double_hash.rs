@@ -78,6 +78,8 @@ pub fn build<H: PhfHash + Send + Sync>(lambda: usize, keys: &[H], threaded: bool
 // slightly edited to fit our code base: 1 extra parameter for lambda, because the orignal code set lambda = 1 always
 // Allowed range for lambda = [1, ..., 5] because that is what the original paper does
 fn try_generate_hash<H: PhfHash>(lambda: usize, entries: &[H], key: HashKey) -> Option<HashState<usize>> {
+    // TODO print counter of how many times this function is called
+
     struct Bucket {
         idx: usize,
         keys: Vec<usize>,
