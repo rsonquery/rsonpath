@@ -10,6 +10,7 @@ use crate::{
     debug,
     engine::error::EngineError,
     input::InputBlockIterator,
+    lookup_table::LookUpTableImpl,
     FallibleIterator, MaskType, BLOCK_SIZE,
 };
 use std::marker::PhantomData;
@@ -33,7 +34,22 @@ where
         }
     }
 
-    pub(crate) fn skip(&mut self, opening: BracketType) -> Result<usize, EngineError> {
+    pub(crate) fn skip(
+        &mut self,
+        opening_idx: usize,
+        opening: BracketType,
+        jump_table: Option<&LookUpTableImpl>,
+    ) -> Result<usize, EngineError> {
+        // RICARDO TODO
+        // 1. Tell the Structural Classifier (self.classifier) to jump
+        // 2. S tells its quote classifier to jump
+        // 3. Q tells the InputIterator to jump
+        // 4. Implement jump in InputBlockIterators
+        // 5. Q needs to reclassify the new current block.
+        // 6. S needs to reclassify the new current block.
+        // 7. This function returns the skipped-to index.
+        // todo!();
+
         dispatch_simd!(self.simd; self, opening =>
         fn <'i, I, V>(
             tail_skip: &mut TailSkip<'i, I, V::QuotesClassifier<'i, I>, V::StructuralClassifier<'i, I>, V, BLOCK_SIZE>,

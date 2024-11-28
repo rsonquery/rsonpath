@@ -14,6 +14,7 @@ use self::error::EngineError;
 use crate::{
     automaton::{error::CompilerError, Automaton},
     input::Input,
+    lookup_table::LookUpTableImpl,
     result::{Match, MatchCount, MatchIndex, MatchSpan, Sink},
 };
 use rsonpath_syntax::JsonPathQuery;
@@ -92,6 +93,11 @@ pub trait Engine {
     /// but in general **the result of an engine run on an invalid JSON is undefined**.
     /// It _is_ guaranteed that the computation terminates and does not panic.
     fn matches<I, S>(&self, input: &I, sink: &mut S) -> Result<(), EngineError>
+    where
+        I: Input,
+        S: Sink<Match>;
+
+    fn matches_with_lut<I, S>(&self, input: &I, lut: LookUpTableImpl, sink: &mut S) -> Result<(), EngineError>
     where
         I: Input,
         S: Sink<Match>;

@@ -33,6 +33,7 @@ pub struct MatchSpan {
 
 /// Full information of a query match &ndash; its span and the input bytes
 /// in that span.
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Match {
     /// JSON contents of the match.
     bytes: Vec<u8>,
