@@ -15,6 +15,7 @@ use crate::{
 };
 use std::marker::PhantomData;
 
+
 pub(crate) struct TailSkip<'i, I, Q, S, V, const N: usize> {
     classifier: Option<S>,
     simd: V,
@@ -42,13 +43,17 @@ where
     ) -> Result<usize, EngineError> {
         // RICARDO TODO
         // 1. Tell the Structural Classifier (self.classifier) to jump
+        // let closing_idx = jump_table.expect("Wrong character").get(opening_idx);
+        // debug!("Found opening_idx -> closing_idx: {} -> {}", opening_idx, closing_idx);
+
+        println!("SKIPPING");
+
         // 2. S tells its quote classifier to jump
         // 3. Q tells the InputIterator to jump
         // 4. Implement jump in InputBlockIterators
         // 5. Q needs to reclassify the new current block.
         // 6. S needs to reclassify the new current block.
         // 7. This function returns the skipped-to index.
-        // todo!();
 
         dispatch_simd!(self.simd; self, opening =>
         fn <'i, I, V>(

@@ -61,6 +61,9 @@ pretty_assertions = { workspace = true }
 proptest = { workspace = true }
 test-case = { workspace = true }
 
+# Added by Ricardo
+test-log = "0.2.16"
+
 [features]
 default = ["simd"]
 arbitrary = ["dep:arbitrary"]

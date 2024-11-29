@@ -4,6 +4,7 @@ use std::{
     io::{BufReader, Read},
 };
 
+use log::debug;
 use rsonpath::{
     engine::{Compiler, Engine, RsonpathEngine},
     input::{Input, OwnedBytes},
@@ -22,13 +23,32 @@ const POKEMON_JSON: &str = "tests/json/pokemon_(6MB).json";
 const TWITTER_SHORT_JSON: &str = "tests/json/twitter_short_(80MB).json";
 const BESTBUY_JSON: &str = "tests/json/bestbuy_short_(103MB).json";
 
-#[test]
-fn query_john_big() -> Result<(), Box<dyn Error>> {
-    let lut = LookUpTableImpl::build(JOHN_BIG_JSON)?;
+#[test_log::test]
+fn query_john_big_log() -> Result<(), Box<dyn Error>> {
+    debug!("Starting test for query_john_big");
+    // query_with_lut(JOHN_BIG_JSON, "$.person.spouse.person.phoneNumber[*]", vec![858, 996])
+    query_with_lut(JOHN_BIG_JSON, "$.person.spouse.person.phoneNumber[*]", vec![858, 1000])
+}
 
-    let query = rsonpath_syntax::parse("$.person.spouse.person.phoneNumber[*]")?;
+// #[test]
+// fn query_john_big() -> Result<(), Box<dyn Error>> {
+//     query_with_lut(JOHN_BIG_JSON, "$.person.spouse.person.phoneNumber[*]", vec![858, 996])
+// }
+
+#[test]
+fn query_pokemon() -> Result<(), Box<dyn Error>> {
+    query_with_lut(POKEMON_JSON, "$.cfgs[0].Name", vec![858, 996])
+}
+
+fn query_with_lut(json_path: &str, query_text: &str, expected_result: Vec<usize>) -> Result<(), Box<dyn Error>> {
+    // Build lut
+    let lut = LookUpTableImpl::build(json_path)?;
+
+    // Build query
+    let query = rsonpath_syntax::parse(query_text)?;
     let engine = RsonpathEngine::compile_query(&query)?;
 
+    // Get results
     let input = {
         let mut file = BufReader::new(fs::File::open(JOHN_BIG_JSON)?);
         let mut buf = vec![];
@@ -36,12 +56,11 @@ fn query_john_big() -> Result<(), Box<dyn Error>> {
         OwnedBytes::new(buf)
     };
     let mut sink = vec![];
-
     engine.matches_with_lut(&input, lut, &mut sink)?;
-
     let results = sink.into_iter().map(|m| m.span().start_idx()).collect::<Vec<_>>();
 
-    assert_eq!(vec![858, 996], results);
+    // Compare expected result with result
+    assert_eq!(expected_result, results);
 
     Ok(())
 }
