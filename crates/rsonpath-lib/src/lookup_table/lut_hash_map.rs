@@ -1,4 +1,5 @@
 use super::LookUpTable;
+use crate::debug;
 use crate::lookup_table::util_path;
 use crate::{
     classification::{
@@ -97,6 +98,11 @@ impl LutHashMap {
                 }
                 Structural::Colon(_) | Structural::Comma(_) => unreachable!(),
             }
+        }
+
+        debug!("Found keys and values:");
+        for (key, value) in keys.iter().zip(values.iter()) {
+            debug!("({}, {})", key, value);
         }
 
         Ok((keys, values))

@@ -23,17 +23,12 @@ const POKEMON_JSON: &str = "tests/json/pokemon_(6MB).json";
 const TWITTER_SHORT_JSON: &str = "tests/json/twitter_short_(80MB).json";
 const BESTBUY_JSON: &str = "tests/json/bestbuy_short_(103MB).json";
 
+/// Run this with:
 #[test]
 fn query_john_big_log() -> Result<(), Box<dyn Error>> {
     debug!("Starting test for query_john_big");
     query_with_lut(JOHN_BIG_JSON, "$.person.spouse.person.phoneNumber[*]", vec![858, 996])
-    // query_with_lut(JOHN_BIG_JSON, "$.person.spouse.person.phoneNumber[*]", vec![858, 1000])
 }
-
-// #[test]
-// fn query_john_big() -> Result<(), Box<dyn Error>> {
-//     query_with_lut(JOHN_BIG_JSON, "$.person.spouse.person.phoneNumber[*]", vec![858, 996])
-// }
 
 #[test]
 fn query_pokemon() -> Result<(), Box<dyn Error>> {
@@ -66,6 +61,8 @@ fn query_with_lut(json_path: &str, query_text: &str, expected_result: Vec<usize>
     let results = sink.into_iter().map(|m| m.span().start_idx()).collect::<Vec<_>>();
 
     // Compare expected result with result
+    debug!("Found:    {:?}", results);
+    debug!("Expected: {:?}", expected_result);
     assert_eq!(expected_result, results);
 
     Ok(())

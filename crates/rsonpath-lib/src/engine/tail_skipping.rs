@@ -35,23 +35,37 @@ where
         }
     }
 
+    /// Returns the index position where the parser skips to. Given the a opening bracket this returns the position of
+    /// the closing bracket.
+    ///
+    /// The skip is based either on opening_idx + lut to find goal position via a data structure OR given just the
+    /// BracketType the parser iteratively reads blocks until the closing bracket is found.
     pub(crate) fn skip(
         &mut self,
         opening_idx: usize,
-        opening: BracketType,
-        jump_table: Option<&LookUpTableImpl>,
+        bracket_type: BracketType,
+        lut: Option<&LookUpTableImpl>,
+        padding: usize,
+    ) -> Result<usize, EngineError> {
+        // debug!("Skipping BracketType: {:?} from {}", bracket_type, opening_idx);
+        if let Some(lut) = lut {
+            self.skip_with_lut(opening_idx, bracket_type, &lut, padding)
+        } else {
+            debug!("Skipping without LUT");
+            self.skip_without_lut(bracket_type)
+        }
+    }
+
+    fn skip_with_lut(
+        &mut self,
+        opening_idx: usize,
+        bracket_type: BracketType,
+        lut: &LookUpTableImpl,
+        padding: usize,
     ) -> Result<usize, EngineError> {
         // RICARDO TODO
+        // 0. Use LUT to get opening -> closing index
         // 1. Tell the Structural Classifier (self.classifier) to jump
-
-        if let Some(lut) = jump_table {
-            let closing_idx = lut.get(&opening_idx);
-            debug!("Found opening_idx -> closing_idx: {} -> {:?}", opening_idx, closing_idx);
-        }
-
-        // for loop current idx to jump_idx
-        // self.classifier.jump_to_idx(closing_idx);
-
         // 2. S tells its quote classifier to jump
         // 3. Q tells the InputIterator to jump
         // 4. Implement jump in InputBlockIterators
@@ -59,7 +73,30 @@ where
         // 6. S needs to reclassify the new current block.
         // 7. This function returns the skipped-to index.
 
-        dispatch_simd!(self.simd; self, opening =>
+        // TODO consider padding AND when the " jump happens skip to the normal code
+        if let Some(closing_idx) = lut.get(&opening_idx) {
+            // Can fail if the padding index is needed
+            // TODO: Problem here since this can be a random hit! Make sure you know when to use padding
+            debug!("LUT: {} -> {}", opening_idx, closing_idx);
+            Ok(closing_idx.into())
+        } else if let Some(closing_idx) = lut.get(&(opening_idx - padding)) {
+            // Can fail if key is not in lut
+            debug!("PAD: {} -> {} -> {}", opening_idx, opening_idx - padding, closing_idx);
+            Ok(closing_idx.into())
+        } else {
+            // Do this when you were not able to find any hits in the lut
+            let closing_idx = self.skip_without_lut(bracket_type)?;
+            debug!("ITE: {} -> {}", opening_idx, closing_idx);
+            Ok(closing_idx)
+        }
+        // else {
+        //     debug!("Error at skipping! Should never reach here.");
+        //     std::process::exit(0);
+        // }
+    }
+
+    fn skip_without_lut(&mut self, bracket_type: BracketType) -> Result<usize, EngineError> {
+        dispatch_simd!(self.simd; self, bracket_type =>
         fn <'i, I, V>(
             tail_skip: &mut TailSkip<'i, I, V::QuotesClassifier<'i, I>, V::StructuralClassifier<'i, I>, V, BLOCK_SIZE>,
             opening: BracketType) -> Result<usize, EngineError>
@@ -67,7 +104,6 @@ where
             I: InputBlockIterator<'i, BLOCK_SIZE>,
             V: Simd
         {
-            debug!("Skipping");
             let mut idx = 0;
             let mut err = None;
 
@@ -94,13 +130,15 @@ where
                 'outer: while let Some(ref mut vector) = current_vector {
                     vector.add_depth(current_depth);
 
-                    debug!("Fetched vector, current depth is {current_depth}");
-                    debug!("Estimate: {}", vector.estimate_lowest_possible_depth());
+                    // TODO uncomment later
+                    // debug!("Fetched vector, current depth is {current_depth}");
+                    // debug!("Estimate: {}", vector.estimate_lowest_possible_depth());
 
                     if vector.estimate_lowest_possible_depth() <= 0 {
                         while vector.advance_to_next_depth_decrease() {
                             if vector.get_depth() == 0 {
-                                debug!("Encountered depth 0, breaking.");
+                                // TODO uncomment later
+                                // debug!("Encountered depth 0, breaking.");
                                 break 'outer;
                             }
                         }
@@ -117,9 +155,11 @@ where
                     };
                 }
 
-                debug!("Skipping complete, resuming structural classification.");
+                // TODO uncomment later
+                // debug!("Skipping complete, resuming structural classification.");
                 let resume_state = depth_classifier.stop(current_vector);
-                debug!("Finished at {}", resume_state.get_idx());
+                // TODO uncomment later
+                // debug!("Finished at {}", resume_state.get_idx());
                 idx = resume_state.get_idx();
                 tail_skip.simd.resume_structural_classification(resume_state)
             });
