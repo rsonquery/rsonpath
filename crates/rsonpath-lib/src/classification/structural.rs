@@ -167,6 +167,9 @@ where
     /// [`turn_commas_on`](`StructuralIterator::turn_commas_off`)
     /// in sequence.
     fn turn_colons_and_commas_off(&mut self);
+
+    // TODO RICARDO
+    fn jump_to_idx(&mut self, idx: usize);
 }
 
 pub(crate) mod nosimd;

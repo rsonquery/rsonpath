@@ -66,6 +66,9 @@ pub trait QuoteClassifiedIterator<'i, I: InputBlockIterator<'i, N>, M, const N: 
     /// This should be done only in very specific circumstances where the previous-block
     /// state could have been damaged due to stopping and resuming the classification at a later point.
     fn flip_quotes_bit(&mut self);
+
+    // TODO Ricardo
+    fn jump_to_idx(&mut self, idx: usize);
 }
 
 /// Higher-level classifier that can be consumed to retrieve the inner

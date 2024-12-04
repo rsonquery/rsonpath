@@ -137,4 +137,13 @@ where
     fn flip_quotes_bit(&mut self) {
         self.in_quotes = !self.in_quotes;
     }
+
+    fn jump_to_idx(&mut self, idx: usize) {
+        // TODO Ricardo Quoteclassifier
+        // todo!()
+
+        // self.iter.jump_to_idx(1);
+
+        // 5. Q needs to reclassify the new current block.
+    }
 }

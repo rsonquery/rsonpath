@@ -180,6 +180,9 @@ pub trait InputBlockIterator<'i, const N: usize> {
     ///
     /// The `count` parameter must be greater than 0.
     fn offset(&mut self, count: isize);
+
+    // TODO Ricardo
+    fn jump_to_idx(&self, idx: usize);
 }
 
 /// A block of bytes of size `N` returned from [`InputBlockIterator`].

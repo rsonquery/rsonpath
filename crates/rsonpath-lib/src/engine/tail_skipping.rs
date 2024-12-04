@@ -10,11 +10,11 @@ use crate::{
     debug,
     engine::error::EngineError,
     input::InputBlockIterator,
+    lookup_table::LookUpTable,
     lookup_table::LookUpTableImpl,
     FallibleIterator, MaskType, BLOCK_SIZE,
 };
 use std::marker::PhantomData;
-
 
 pub(crate) struct TailSkip<'i, I, Q, S, V, const N: usize> {
     classifier: Option<S>,
@@ -43,10 +43,14 @@ where
     ) -> Result<usize, EngineError> {
         // RICARDO TODO
         // 1. Tell the Structural Classifier (self.classifier) to jump
-        // let closing_idx = jump_table.expect("Wrong character").get(opening_idx);
-        // debug!("Found opening_idx -> closing_idx: {} -> {}", opening_idx, closing_idx);
 
-        println!("SKIPPING");
+        if let Some(lut) = jump_table {
+            let closing_idx = lut.get(&opening_idx);
+            debug!("Found opening_idx -> closing_idx: {} -> {:?}", opening_idx, closing_idx);
+        }
+
+        // for loop current idx to jump_idx
+        // self.classifier.jump_to_idx(closing_idx);
 
         // 2. S tells its quote classifier to jump
         // 3. Q tells the InputIterator to jump

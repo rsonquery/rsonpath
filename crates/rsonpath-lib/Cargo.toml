@@ -62,7 +62,7 @@ proptest = { workspace = true }
 test-case = { workspace = true }
 
 # Added by Ricardo
-test-log = "0.2.16"
+simple_logger = "4.3.3"
 
 [features]
 default = ["simd"]

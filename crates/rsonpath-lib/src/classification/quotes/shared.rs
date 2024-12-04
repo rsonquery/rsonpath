@@ -120,6 +120,11 @@ macro_rules! quote_classifier {
             fn flip_quotes_bit(&mut self) {
                 self.classifier.internal_classifier.flip_prev_quote_mask();
             }
+
+            fn jump_to_idx(&mut self, idx: usize) {
+                // TODO Ricardo copy the nosimd implementation
+                // todo()
+            }
         }
 
         impl<'i, I> InnerIter<I> for $name<'i, I>

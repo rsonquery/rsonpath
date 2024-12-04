@@ -251,4 +251,13 @@ where
             are_colons_on: state.are_colons_on,
         }
     }
+
+    fn jump_to_idx(&mut self, idx: usize) {
+        // TODO Ricardo
+        todo!()
+
+        // self.iter.jump_to_idx();
+
+        // 6. S needs to reclassify the new current block.
+    }
 }

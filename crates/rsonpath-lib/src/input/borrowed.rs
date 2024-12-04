@@ -292,6 +292,11 @@ where
         debug!("getting input iter {}", self.idx);
         self.idx
     }
+
+    fn jump_to_idx(&self, idx: usize) {
+        // TODO Ricardo
+        // todo!()
+    }
 }
 
 impl<'a, 'r, R, const N: usize> InputBlockIterator<'a, N> for BorrowedBytesBlockIterator<'r, EndPaddedInput<'a>, R, N>
@@ -346,5 +351,10 @@ where
     fn get_offset(&self) -> usize {
         debug!("getting input iter {}", self.idx);
         self.idx
+    }
+
+    fn jump_to_idx(&self, idx: usize) {
+        // TODO Ricardo
+        // todo!()
     }
 }
