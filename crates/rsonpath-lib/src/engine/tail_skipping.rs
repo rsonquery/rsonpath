@@ -47,7 +47,7 @@ where
         lut: Option<&LookUpTableImpl>,
         padding: usize,
     ) -> Result<usize, EngineError> {
-        debug!("Skipping BracketType: {:?} from {}", bracket_type, opening_idx_padded);
+        // debug!("Skipping BracketType: {:?} from {}", bracket_type, opening_idx_padded);
         if let Some(lut) = lut {
             self.skip_with_lut(opening_idx_padded, bracket_type, &lut, padding)
         } else {
@@ -89,30 +89,30 @@ where
         if let Some(idx_close) = lut.get(&(opening_idx_padded - padding)) {
             // Shift index by 1 or its off aligned TODO: fix lut
             let idx_close = idx_close + 1;
+            let idx_close_pad = padding + idx_close as usize;
 
             // 1. Tell the Structural Classifier (self.classifier) to jump
             self.classifier
                 .as_mut()
                 .expect("tail skip must always hold a classifier")
-                .jump_to_idx(idx_close)?;
+                .jump_to_idx(idx_close_pad)?;
 
-            // 7. This function returns the skipped-to index.
-            let idx_close_pad = padding + idx_close as usize;
             debug!(
                 "LUT:({},{}) No-PAD:({},{})",
                 opening_idx_padded, idx_close_pad, opening_idx, idx_close
             );
+            // 7. This function returns the skipped-to index.
             Ok(idx_close_pad)
         } else {
             // Do this when you were not able to find any hits in the lut
-            let closing_idx_pad = self.skip_without_lut(bracket_type)?;
-            let closing_idx = padding + closing_idx_pad as usize;
+            let closing_idx_padded = self.skip_without_lut(bracket_type)?;
+            let closing_idx = closing_idx_padded - padding;
             debug!(
                 "ITE:({},{}) No-PAD:({},{})",
-                opening_idx_padded, closing_idx_pad, opening_idx, closing_idx
+                opening_idx_padded, closing_idx_padded, opening_idx, closing_idx
             );
 
-            Ok(closing_idx)
+            Ok(closing_idx_padded)
         }
     }
 
