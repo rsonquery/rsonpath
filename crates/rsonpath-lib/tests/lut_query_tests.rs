@@ -54,6 +54,7 @@ fn query_with_lut(json_path: &str, query_text: &str, expected_result: Vec<usize>
         let mut file = BufReader::new(fs::File::open(json_path)?);
         let mut buf = vec![];
         file.read_to_end(&mut buf)?;
+        // Here you can define whether to use OwnedBytes (padding), Mmap (padding = 0)  or Borrowed (padding)
         OwnedBytes::new(buf)
     };
     let mut sink = vec![];

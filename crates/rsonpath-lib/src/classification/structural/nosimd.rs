@@ -1,4 +1,5 @@
 use super::*;
+use crate::classification::quotes::QuoteIterResult;
 use crate::classification::{quotes::QuoteClassifiedBlock, ResumeClassifierBlockState};
 use crate::debug;
 
@@ -252,12 +253,13 @@ where
         }
     }
 
-    fn jump_to_idx(&mut self, idx: usize) {
-        // TODO Ricardo
-        todo!()
-
-        // self.iter.jump_to_idx();
-
-        // 6. S needs to reclassify the new current block.
+    // TODO Ricardo
+    fn jump_to_idx(&mut self, idx: usize) -> Result<(), InputError> {
+        // 2. S tells its quote classifier to jump and retrieve that new block
+        if let Some(jump_to_block) = self.iter.jump_to_idx(idx)? {
+            // 6. S needs to reclassify the new current block.
+            self.block = Some(Block::new(jump_to_block, self.are_colons_on, self.are_commas_on));
+        }
+        Ok(())
     }
 }

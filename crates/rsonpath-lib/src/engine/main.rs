@@ -421,8 +421,7 @@ where
             }
             let bracket_type = self.current_node_bracket_type();
             debug!("Skipping unique state from {bracket_type:?}");
-            let padding = self.input.leading_padding_len();
-            let stop_at = classifier.skip(idx, bracket_type, self.lut.as_ref(), padding)?;
+            let stop_at = classifier.skip(idx, bracket_type, self.lut.as_ref(), self.input.leading_padding_len())?;
             // Skipping stops at the closing character *and consumes it*. We still need the main loop to properly
             // handle a closing, so we set the lookahead to the correct character.
             self.next_event = Some(Structural::Closing(bracket_type, stop_at));
@@ -521,8 +520,8 @@ where
             if self.automaton.is_rejecting(fallback) {
                 // Tail skipping. Skip the entire subtree. The skipping consumes the closing character.
                 // We still need to notify the recorder - in case the value being skipped was actually accepted.
-                let padding = self.input.leading_padding_len();
-                let closing_idx = classifier.skip(idx, bracket_type, self.lut.as_ref(), padding)?;
+                let closing_idx =
+                    classifier.skip(idx, bracket_type, self.lut.as_ref(), self.input.leading_padding_len())?;
                 return self.recorder.record_value_terminator(closing_idx, self.depth);
             } else {
                 self.transition_to(fallback, bracket_type);
@@ -617,8 +616,8 @@ where
             if self.automaton.is_unitary(self.state) {
                 let bracket_type = self.current_node_bracket_type();
                 debug!("Skipping unique state from {bracket_type:?}");
-                let padding = self.input.leading_padding_len();
-                let close_idx = classifier.skip(idx, bracket_type, self.lut.as_ref(), padding)?;
+                let close_idx =
+                    classifier.skip(idx, bracket_type, self.lut.as_ref(), self.input.leading_padding_len())?;
                 // Skipping stops at the closing character *and consumes it*. We still need the main loop to properly
                 // handle a closing, so we set the lookahead to the correct character.
                 self.next_event = Some(Structural::Closing(bracket_type, close_idx));

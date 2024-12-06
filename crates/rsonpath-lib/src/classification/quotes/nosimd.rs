@@ -138,12 +138,28 @@ where
         self.in_quotes = !self.in_quotes;
     }
 
-    fn jump_to_idx(&mut self, idx: usize) {
-        // TODO Ricardo Quoteclassifier
-        // todo!()
+    // TODO Ricardo Quoteclassifier
+    fn jump_to_idx(&mut self, idx: usize) -> QuoteIterResult<I::Block, MaskType, N> {
+        let current_block = self.get_offset() / BLOCK_SIZE;
+        let jump_to_block = idx / BLOCK_SIZE;
+        let distance = jump_to_block - current_block;
 
-        // self.iter.jump_to_idx(1);
+        if distance > 0 {
+            debug!(
+                "Jump from block {} to block {} with distance {}",
+                current_block, jump_to_block, distance
+            );
 
-        // 5. Q needs to reclassify the new current block.
+            // 3. Q tells the InputIterator to jump
+            for _ in 0..distance - 1 {
+                self.iter.next().e()?;
+            }
+
+            // 5. Q needs to reclassify the new current block.
+            self.next()
+        } else {
+            debug!("Jump distance 0! No jump.");
+            Ok(None)
+        }
     }
 }

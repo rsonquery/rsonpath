@@ -41,6 +41,8 @@ pub enum Structural {
 }
 use Structural::*;
 
+use super::quotes::QuoteIterResult;
+
 impl Structural {
     /// Returns the index of the character in the document,
     /// i.e. which byte it is counting from 0.
@@ -168,8 +170,8 @@ where
     /// in sequence.
     fn turn_colons_and_commas_off(&mut self);
 
-    // TODO RICARDO
-    fn jump_to_idx(&mut self, idx: usize);
+    /// Added by Ricardo
+    fn jump_to_idx(&mut self, idx: usize) -> Result<(), InputError>;
 }
 
 pub(crate) mod nosimd;

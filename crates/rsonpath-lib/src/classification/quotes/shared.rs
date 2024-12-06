@@ -121,9 +121,9 @@ macro_rules! quote_classifier {
                 self.classifier.internal_classifier.flip_prev_quote_mask();
             }
 
-            fn jump_to_idx(&mut self, idx: usize) {
+            fn jump_to_idx(&mut self, idx: usize) -> QuoteIterResult<I::Block, MaskType, $size> {
                 // TODO Ricardo copy the nosimd implementation
-                // todo()
+                todo!()
             }
         }
 

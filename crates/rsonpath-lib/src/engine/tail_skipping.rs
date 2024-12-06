@@ -42,57 +42,78 @@ where
     /// BracketType the parser iteratively reads blocks until the closing bracket is found.
     pub(crate) fn skip(
         &mut self,
-        opening_idx: usize,
+        opening_idx_padded: usize,
         bracket_type: BracketType,
         lut: Option<&LookUpTableImpl>,
         padding: usize,
     ) -> Result<usize, EngineError> {
-        // debug!("Skipping BracketType: {:?} from {}", bracket_type, opening_idx);
+        debug!("Skipping BracketType: {:?} from {}", bracket_type, opening_idx_padded);
         if let Some(lut) = lut {
-            self.skip_with_lut(opening_idx, bracket_type, &lut, padding)
+            self.skip_with_lut(opening_idx_padded, bracket_type, &lut, padding)
         } else {
             debug!("Skipping without LUT");
             self.skip_without_lut(bracket_type)
         }
+
+        // let opening_idx = opening_idx_padded - padding;
+        // let closing_idx_pad = self.skip_without_lut(bracket_type)?;
+        // let closing_idx = padding + closing_idx_pad as usize;
+        // debug!(
+        //     "ITE:({},{}) No-PAD:({},{})",
+        //     opening_idx_padded, closing_idx_pad, opening_idx, closing_idx
+        // );
+        // Ok(closing_idx)
     }
 
+    // RICARDO TODO
+    // 0. Use LUT to get opening -> closing index
+    // 1. Tell the Structural Classifier (self.classifier) to jump
+    // 2. S tells its quote classifier to jump
+    // 3. Q tells the InputIterator to jump
+    // 4. Implement jump in InputBlockIterators
+    // 5. Q needs to reclassify the new current block.
+    // 6. S needs to reclassify the new current block.
+    // 7. This function returns the skipped-to index.
     fn skip_with_lut(
         &mut self,
-        opening_idx: usize,
+        opening_idx_padded: usize,
         bracket_type: BracketType,
         lut: &LookUpTableImpl,
         padding: usize,
     ) -> Result<usize, EngineError> {
-        // RICARDO TODO
-        // 0. Use LUT to get opening -> closing index
-        // 1. Tell the Structural Classifier (self.classifier) to jump
-        // 2. S tells its quote classifier to jump
-        // 3. Q tells the InputIterator to jump
-        // 4. Implement jump in InputBlockIterators
-        // 5. Q needs to reclassify the new current block.
-        // 6. S needs to reclassify the new current block.
-        // 7. This function returns the skipped-to index.
+        let opening_idx = opening_idx_padded - padding;
 
-        // TODO consider padding AND when the " jump happens skip to the normal code
-        if let Some(closing_idx) = lut.get(&opening_idx) {
-            // Can fail if the padding index is needed
-            // TODO: Problem here since this can be a random hit! Make sure you know when to use padding
-            debug!("LUT: {} -> {}", opening_idx, closing_idx);
-            Ok(closing_idx.into())
-        } else if let Some(closing_idx) = lut.get(&(opening_idx - padding)) {
-            // Can fail if key is not in lut
-            debug!("PAD: {} -> {} -> {}", opening_idx, opening_idx - padding, closing_idx);
-            Ok(closing_idx.into())
+        // 0. Use LUT to get opening -> closing index
+        // Can fail if key is not in lut
+        // TODO: think about random hits here
+        if let Some(idx_close) = lut.get(&(opening_idx_padded - padding)) {
+            // Shift index by 1 or its off aligned TODO: fix lut
+            let idx_close = idx_close + 1;
+
+            // 1. Tell the Structural Classifier (self.classifier) to jump
+            self.classifier
+                .as_mut()
+                .expect("tail skip must always hold a classifier")
+                .jump_to_idx(idx_close)?;
+
+            // 7. This function returns the skipped-to index.
+            let idx_close_pad = padding + idx_close as usize;
+            debug!(
+                "LUT:({},{}) No-PAD:({},{})",
+                opening_idx_padded, idx_close_pad, opening_idx, idx_close
+            );
+            Ok(idx_close_pad)
         } else {
             // Do this when you were not able to find any hits in the lut
-            let closing_idx = self.skip_without_lut(bracket_type)?;
-            debug!("ITE: {} -> {}", opening_idx, closing_idx);
+            let closing_idx_pad = self.skip_without_lut(bracket_type)?;
+            let closing_idx = padding + closing_idx_pad as usize;
+            debug!(
+                "ITE:({},{}) No-PAD:({},{})",
+                opening_idx_padded, closing_idx_pad, opening_idx, closing_idx
+            );
+
             Ok(closing_idx)
         }
-        // else {
-        //     debug!("Error at skipping! Should never reach here.");
-        //     std::process::exit(0);
-        // }
     }
 
     fn skip_without_lut(&mut self, bracket_type: BracketType) -> Result<usize, EngineError> {

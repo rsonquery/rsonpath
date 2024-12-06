@@ -278,7 +278,7 @@ where
         self.idx
     }
 
-    fn jump_to_idx(&self, idx: usize) {
+    fn jump_to_idx(&mut self, idx: usize) {
         // TODO Ricardo
         // todo!()
     }
