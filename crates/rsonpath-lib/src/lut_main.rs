@@ -1,6 +1,7 @@
 use clap::{Parser, Subcommand};
 use rsonpath::lookup_table::{
     count_distances::{self, DISTANCE_EVAL_DIR},
+    packed_stacked_frame::{test_packed_stacked_frame, PackedStackFrame},
     performance::{self, BUILD_TIME_EVAL_DIR, HEAP_EVAL_DIR},
     sichash_test_data_generator::{self, SICHASH_DATA_DIR},
 };
@@ -46,6 +47,8 @@ enum Commands {
         /// Task to run: 0 for time eval, 1 for get eval, 2 for heap eval, 2 for both
         tasks: u16,
     },
+
+    Test {},
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -76,6 +79,9 @@ fn main() -> Result<(), Box<dyn Error>> {
             let csv_dir = format!("{}/{}", out_dir, "performance");
 
             performance::performance_test(json_dir, &csv_dir, *tasks);
+        }
+        Commands::Test {} => {
+            test_packed_stacked_frame();
         }
     }
 

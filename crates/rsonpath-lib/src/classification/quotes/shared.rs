@@ -124,6 +124,8 @@ macro_rules! quote_classifier {
             fn jump_to_idx(&mut self, idx: usize) -> QuoteIterResult<I::Block, MaskType, $size> {
                 // TODO Ricardo copy the nosimd implementation
                 todo!()
+
+                // just copy the no simd code
             }
         }
 
