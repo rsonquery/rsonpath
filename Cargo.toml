@@ -11,6 +11,21 @@ exclude = ["crates/rsonpath-benchmarks", "crates/rsonpath-test-codegen"]
 
 resolver = "2"
 
+[workspace.dependencies]
+# Project crates
+rsonpath-lib = { version = "0.9.1", path = "./crates/rsonpath-lib", package = "rsonpath-lib", default-features = false }
+rsonpath-syntax = { version = "0.3.1", path = "./crates/rsonpath-syntax" }
+# Main dependencies
+arbitrary = { version = "1.4.1" }
+cfg-if = "1.0.0"
+log = "0.4.22"
+thiserror = "1.0.66"
+# Dev-dependencies
+itertools = "0.13.0"
+pretty_assertions = "1.4.1"
+proptest = "1.5.0"
+test-case = "3.3.1"
+
 [profile.dev]
 lto = false
 
@@ -29,7 +44,3 @@ lto = "fat"          # Better codegen, much slower compile time.
 codegen-units = 1    # Better codegen, much slower compile time.
 debug = 0            # Smaller binary size.
 strip = "debuginfo"  # Smaller binary size.
-
-[patch.crates-io]
-rsonpath-lib = { path = "./crates/rsonpath-lib" }
-rsonpath-syntax = { path = "./crates/rsonpath-syntax" }

@@ -17,17 +17,17 @@ rustdoc-args = ["--cfg", "docsrs"]
 all-features = true
 
 [dependencies]
-arbitrary = { version = "1.4.1", features = ["derive"], optional = true }
+arbitrary = { workspace = true, features = ["derive"], optional = true }
 owo-colors = { version = "4.1.0", default-features = false, optional = true }
 nom = "7.1.3"
-thiserror = "1.0.66"
+thiserror = { workspace = true }
 unicode-width = "0.2.0"
 
 [dev-dependencies]
 insta = "1.41.1"
-pretty_assertions = "1.4.1"
-proptest = "1.5.0"
-test-case = "3.3.1"
+pretty_assertions = { workspace = true }
+proptest = { workspace = true }
+test-case = { workspace = true }
 
 [features]
 default = []

@@ -5,7 +5,8 @@ use crate::debug;
 pub(crate) struct Constructor;
 
 impl StructuralImpl for Constructor {
-    type Classifier<'i, I, Q> = SequentialClassifier<'i, I, Q, BLOCK_SIZE>
+    type Classifier<'i, I, Q>
+        = SequentialClassifier<'i, I, Q, BLOCK_SIZE>
     where
         I: InputBlockIterator<'i, BLOCK_SIZE>,
         Q: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE>;

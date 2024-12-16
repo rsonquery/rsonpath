@@ -298,7 +298,7 @@ impl<'a> EndPaddedInput<'a> {
         let last_other = &other[middle_self.len()..];
         let preceding_char = from.checked_sub(1).and_then(|x| self.get_at(x));
 
-        middle_self == middle_other && last_self == last_other && preceding_char.map_or(true, |x| x != b'\\')
+        middle_self == middle_other && last_self == last_other && preceding_char != Some(b'\\')
     }
 }
 
@@ -515,7 +515,7 @@ impl<'a> TwoSidesPaddedInput<'a> {
         first_self == first_other
             && middle_self == middle_other
             && last_self == last_other
-            && preceding_char.map_or(true, |x| x != b'\\')
+            && preceding_char != Some(b'\\')
     }
 }
 

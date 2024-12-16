@@ -27,22 +27,21 @@ rustdoc-args = ["--cfg", "docsrs"]
 all-features = true
 
 [dependencies]
-arbitrary = { version = "1.4.1", features = ["derive"], optional = true }
-cfg-if = "1.0.0"
-log = "0.4.22"
+arbitrary = { workspace = true, features = ["derive"], optional = true }
+cfg-if = { workspace = true }
+log = { workspace = true }
 memmap2 = "0.9.5"
-nom = "7.1.3"
-rsonpath-syntax = { version = "0.3.1", path = "../rsonpath-syntax" }
+rsonpath-syntax = { workspace = true }
 smallvec = { version = "1.13.2", features = ["union"] }
 static_assertions = "1.1.0"
-thiserror = "1.0.66"
+thiserror = { workspace = true }
 vector-map = "1.0.1"
 
 [dev-dependencies]
-itertools = "0.13.0"
-pretty_assertions = "1.4.1"
-proptest = "1.5.0"
-test-case = "3.3.1"
+itertools = { workspace = true }
+pretty_assertions = { workspace = true }
+proptest = { workspace = true }
+test-case = { workspace = true }
 
 [features]
 default = ["simd"]
