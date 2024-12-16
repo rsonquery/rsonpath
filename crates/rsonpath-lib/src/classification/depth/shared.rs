@@ -13,8 +13,11 @@ macro_rules! depth_classifier {
         pub(crate) struct Constructor;
 
         impl DepthImpl for Constructor {
-            type Classifier<'i, I, Q> = $name<'i, I, Q>
-            where I: InputBlockIterator<'i, BLOCK_SIZE>, Q: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE>;
+            type Classifier<'i, I, Q>
+                = $name<'i, I, Q>
+            where
+                I: InputBlockIterator<'i, BLOCK_SIZE>,
+                Q: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE>;
         }
 
         pub(crate) struct $name<'i, I, Q> {

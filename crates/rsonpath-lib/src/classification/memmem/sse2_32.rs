@@ -9,7 +9,8 @@ const SIZE: usize = 32;
 pub(crate) struct Constructor;
 
 impl MemmemImpl for Constructor {
-    type Classifier<'i, 'b, 'r, I, R> = Sse2MemmemClassifier32<'i, 'b, 'r, I, R>
+    type Classifier<'i, 'b, 'r, I, R>
+        = Sse2MemmemClassifier32<'i, 'b, 'r, I, R>
     where
         I: Input + 'i,
         <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>: 'b,

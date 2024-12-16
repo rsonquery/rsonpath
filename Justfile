@@ -13,8 +13,8 @@ init: check-cargo hooks-init checkout-benchmarks
 @check-cargo:
     cargo --version || \
       (echo "Installing rustup from https://sh.rustup.rs" && \
-       curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y)
-    . ${HOME}/.cargo/env
+       curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
+       . ${HOME}/.cargo/env)
     rustup install stable
     rustup install nightly
 

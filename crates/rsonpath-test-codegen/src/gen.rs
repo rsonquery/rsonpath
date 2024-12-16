@@ -347,8 +347,8 @@ fn get_available_results(input: &model::InputSource, query: &model::Query) -> Re
 
 pub(crate) fn generate_imports() -> TokenStream {
     quote! {
-        use rsonpath::engine::{Compiler, Engine, main::MainEngine};
-        use rsonpath::input::*;
+        use rsonpath_lib::engine::{Compiler, Engine, main::MainEngine};
+        use rsonpath_lib::input::*;
         use pretty_assertions::assert_eq;
         use std::error::Error;
         use std::fs;

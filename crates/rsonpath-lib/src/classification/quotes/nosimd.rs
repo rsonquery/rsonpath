@@ -5,7 +5,8 @@ use std::marker::PhantomData;
 pub(crate) struct Constructor;
 
 impl QuotesImpl for Constructor {
-    type Classifier<'i, I> = SequentialQuoteClassifier<'i, I, BLOCK_SIZE>
+    type Classifier<'i, I>
+        = SequentialQuoteClassifier<'i, I, BLOCK_SIZE>
     where
         I: InputBlockIterator<'i, BLOCK_SIZE>;
 

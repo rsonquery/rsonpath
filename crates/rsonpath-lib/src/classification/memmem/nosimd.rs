@@ -4,7 +4,8 @@ use crate::input::{error::InputErrorConvertible, InputBlockIterator};
 pub(crate) struct Constructor;
 
 impl MemmemImpl for Constructor {
-    type Classifier<'i, 'b, 'r, I, R> = SequentialMemmemClassifier<'i, 'b, 'r, I, R, BLOCK_SIZE>
+    type Classifier<'i, 'b, 'r, I, R>
+        = SequentialMemmemClassifier<'i, 'b, 'r, I, R, BLOCK_SIZE>
     where
         I: Input + 'i,
         <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>: 'b,

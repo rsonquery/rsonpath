@@ -343,19 +343,23 @@ where
     D: DepthImpl,
     M: MemmemImpl,
 {
-    type QuotesClassifier<'i, I> = Q::Classifier<'i, I>
+    type QuotesClassifier<'i, I>
+        = Q::Classifier<'i, I>
     where
         I: InputBlockIterator<'i, BLOCK_SIZE>;
 
-    type StructuralClassifier<'i, I> = S::Classifier<'i, I, Self::QuotesClassifier<'i, I>>
+    type StructuralClassifier<'i, I>
+        = S::Classifier<'i, I, Self::QuotesClassifier<'i, I>>
     where
         I: InputBlockIterator<'i, BLOCK_SIZE>;
 
-    type DepthClassifier<'i, I> = D::Classifier<'i, I, Self::QuotesClassifier<'i, I>>
+    type DepthClassifier<'i, I>
+        = D::Classifier<'i, I, Self::QuotesClassifier<'i, I>>
     where
         I: InputBlockIterator<'i, BLOCK_SIZE>;
 
-    type MemmemClassifier<'i, 'b, 'r, I, R> = M::Classifier<'i, 'b, 'r, I, R>
+    type MemmemClassifier<'i, 'b, 'r, I, R>
+        = M::Classifier<'i, 'b, 'r, I, R>
     where
         I: Input + 'i,
         <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>: 'b,
