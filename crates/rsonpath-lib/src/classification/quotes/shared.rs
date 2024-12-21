@@ -14,9 +14,9 @@ macro_rules! quote_classifier {
 
         impl QuotesImpl for Constructor {
             type Classifier<'i, I>
-                                                                                = $name<'i, I>
-                                                                            where
-                                                                                I: InputBlockIterator<'i, BLOCK_SIZE>;
+                = $name<'i, I>
+            where
+                I: InputBlockIterator<'i, BLOCK_SIZE>;
 
             #[inline]
             #[allow(dead_code)]
