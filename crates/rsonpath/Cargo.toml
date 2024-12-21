@@ -16,7 +16,7 @@ homepage = "https://v0ldek.github.io/rsonpath/"
 build = "build.rs"
 workspace = "../.."
 edition = "2021"
-rust-version = "1.74.0"
+rust-version = "1.78.0"
 
 [[bin]]
 bench = false
@@ -34,9 +34,9 @@ simple_logger = "5.0.0"
 
 [build-dependencies]
 rustflags = { version = "0.1.6" }
-vergen = { version = "9.0.2", features = ["cargo", "rustc"] }
-vergen-git2 = "1.0.2"
-vergen-gitcl = "1.0.2"
+vergen = { version = "9.0.1", features = ["cargo", "rustc"] }
+vergen-git2 = "1.0.1"
+vergen-gitcl = "1.0.1"
 
 [dev-dependencies]
 trycmd = "0.15.8"

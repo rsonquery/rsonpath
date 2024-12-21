@@ -18,7 +18,7 @@ serde_json = "1.0.133"
 
 [dev-dependencies]
 pretty_assertions = { workspace = true }
-rsonpath-lib = { workspace = true, package = "rsonpath" }
+rsonpath-lib = { workspace = true }
 rsonpath-syntax = { workspace = true }
 
 [build-dependencies]
