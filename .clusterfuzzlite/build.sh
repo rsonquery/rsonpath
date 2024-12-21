@@ -1,6 +1,6 @@
 #!/bin/bash -eu
 
-cargo +nightly fuzz build -O --debug-assertions
+cargo fuzz build -O --debug-assertions
 
 FUZZ_TARGET_OUTPUT_DIR=fuzz/target/x86_64-unknown-linux-gnu/release
 
