@@ -1,4 +1,8 @@
-use rsonpath::engine::{Compiler, Engine};
+use rsonpath_lib::{
+    engine::{Compiler, Engine, RsonpathEngine},
+    input::OwnedBytes,
+    result::Match,
+};
 use rsonpath_test::{Tag, TaggedTestCase, TestCaseDetails};
 use serde_json::Value;
 use std::io;
@@ -57,10 +61,10 @@ fn test_one(def: TaggedTestCase) -> TestResult {
                     if !does_engine_support(&tags) {
                         TestResult::Ignored
                     } else {
-                        match rsonpath::engine::RsonpathEngine::compile_query(&query) {
+                        match RsonpathEngine::compile_query(&query) {
                             Ok(engine) => {
                                 let input_str = test_details.document.to_string();
-                                let input = rsonpath::input::OwnedBytes::from(input_str);
+                                let input = OwnedBytes::from(input_str);
                                 let mut results = vec![];
                                 match engine.matches(&input, &mut results) {
                                     Ok(()) => match compare_results(&results, &test_details.results) {
@@ -102,7 +106,7 @@ fn test_one(def: TaggedTestCase) -> TestResult {
     }
 }
 
-fn compare_results(matches: &[rsonpath::result::Match], variants: &Vec<Vec<Value>>) -> Result<(), String> {
+fn compare_results(matches: &[Match], variants: &Vec<Vec<Value>>) -> Result<(), String> {
     assert!(!variants.is_empty());
     let actual: Result<Vec<Value>, _> = matches.iter().map(|m| serde_json::from_slice(m.bytes())).collect();
     let actual = actual.map_err(|err| format!("matched value is not a valid JSON: {err}"))?;

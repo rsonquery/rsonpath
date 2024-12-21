@@ -8,7 +8,8 @@ use std::marker::PhantomData;
 pub(crate) struct Constructor;
 
 impl DepthImpl for Constructor {
-    type Classifier<'i, I, Q> = VectorIterator<'i, I, Q, BLOCK_SIZE>
+    type Classifier<'i, I, Q>
+        = VectorIterator<'i, I, Q, BLOCK_SIZE>
     where
         I: InputBlockIterator<'i, BLOCK_SIZE>,
         Q: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE>;

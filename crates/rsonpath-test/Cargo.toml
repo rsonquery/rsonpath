@@ -13,13 +13,13 @@ rust-version = "1.70.0"
 publish = false
 
 [dependencies]
-serde = { version = "1.0.215", features = ["derive"] }
-serde_json = "1.0.132"
+serde = { version = "1.0.216", features = ["derive"] }
+serde_json = "1.0.133"
 
 [dev-dependencies]
-pretty_assertions = "1.4.1"
-rsonpath-lib = { version = "0.9.1", path = "../rsonpath-lib" }
-rsonpath-syntax = { version = "0.3.0", path = "../rsonpath-syntax" }
+pretty_assertions = { workspace = true }
+rsonpath-lib = { workspace = true }
+rsonpath-syntax = { workspace = true }
 
 [build-dependencies]
 eyre = "0.6.12"
