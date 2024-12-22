@@ -17,7 +17,7 @@ fuzz_target!(|data: DisplayableBytes| {
 #[derive(Arbitrary)]
 pub struct DisplayableBytes<'a>(&'a [u8]);
 
-impl<'a> Debug for DisplayableBytes<'a> {
+impl Debug for DisplayableBytes<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = String::from_utf8_lossy(self.0);
         f.debug_struct("Bytes")
