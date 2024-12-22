@@ -31,7 +31,7 @@ jni = { version = "0.21.1", features = ["invocation", "default"] }
 jsonpath-rust = "0.7.3"
 libc = "0.2.168"
 lazy_static = "1.5.0"
-serde_json = "1.0.133"
+serde_json = "1.0.134"
 sha2 = "0.10.8"
 ouroboros = "0.18.4"
 reqwest = { version = "0.12.9", features = ["blocking"] }
@@ -39,7 +39,7 @@ rsonpath-lib = { version = "0.9.1", default-features = false }
 rsonpath-syntax = { version = "0.3.1", default-features = false }
 serde_json_path = "0.7.1"
 tar = "0.4.43"
-thiserror = "1.0.64"
+thiserror = "2.0.9"
 
 [patch.crates-io]
 rsonpath-lib = { path = "../rsonpath-lib" }

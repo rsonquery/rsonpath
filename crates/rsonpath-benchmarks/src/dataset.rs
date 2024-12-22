@@ -523,13 +523,13 @@ pub enum DatasetError {
     #[error(
         "Checksum validation failed. \
     The URL source might be corrupted. \
-    Expected JSON from {0} to have SHA2 checksum of {}, but it has {}.", format_hex_string(.1), format_hex_string(.2)
+    Expected JSON from {0} to have SHA2 checksum of {exp}, but it has {act}.", exp = format_hex_string(.1), act = format_hex_string(.2)
     )]
     InvalidJsonChecksum(&'static str, Sha256Digest, Sha256Digest),
     #[error(
         "Checksum validation failed. \
     The URL source might be corrupted. \
-    Expected archive from {0} to have SHA2 checksum of {}, but it has {}.", format_hex_string(.1), format_hex_string(.2)
+    Expected archive from {0} to have SHA2 checksum of {exp}, but it has {act}.", exp = format_hex_string(.1), act = format_hex_string(.2)
     )]
     InvalidArchiveChecksum(&'static str, Sha256Digest, Sha256Digest),
 }

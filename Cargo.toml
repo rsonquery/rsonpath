@@ -19,7 +19,7 @@ rsonpath-syntax = { version = "0.3.1", path = "./crates/rsonpath-syntax" }
 arbitrary = { version = "1.4.1" }
 cfg-if = "1.0.0"
 log = "0.4.22"
-thiserror = "1.0.66"
+thiserror = "2.0.9"
 # Dev-dependencies
 itertools = "0.13.0"
 pretty_assertions = "1.4.1"
