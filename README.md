@@ -216,17 +216,21 @@ cargo tree --package rsonpath --edges normal --depth 1
 
 <!-- rsonpath dependencies start -->
 ```ini
-rsonpath v0.9.1 (/home/mat/src/rsonpath/crates/rsonpath)
-├── clap v4.5.4
+rsonpath v0.9.2 (/home/mat/src/rsonpath/crates/rsonpath)
+├── clap v4.5.23
 ├── color-eyre v0.6.3
 ├── eyre v0.6.12
-├── log v0.4.21
-├── rsonpath-lib v0.9.1 (/home/mat/src/rsonpath/crates/rsonpath-lib)
+├── log v0.4.22
+├── rsonpath-lib v0.9.2 (/home/mat/src/rsonpath/crates/rsonpath-lib)
 ├── rsonpath-syntax v0.3.1 (/home/mat/src/rsonpath/crates/rsonpath-syntax)
-└── simple_logger v4.3.3
+└── simple_logger v5.0.0
 [build-dependencies]
-├── rustflags v0.1.5
-└── vergen v8.3.1
+├── rustflags v0.1.6
+├── vergen v9.0.2
+│   [build-dependencies]
+├── vergen-git2 v1.0.2
+│   [build-dependencies]
+└── vergen-gitcl v1.0.2
     [build-dependencies]
 ```
 <!-- rsonpath dependencies end -->
@@ -237,16 +241,15 @@ cargo tree --package rsonpath-lib --edges normal --depth 1
 
 <!-- rsonpath-lib dependencies start -->
 ```ini
-rsonpath-lib v0.9.1 (/home/mat/src/rsonpath/crates/rsonpath-lib)
-├── arbitrary v1.3.2
+rsonpath-lib v0.9.2 (/home/mat/src/rsonpath/crates/rsonpath-lib)
+├── arbitrary v1.4.1
 ├── cfg-if v1.0.0
-├── log v0.4.21
-├── memmap2 v0.9.4
-├── nom v7.1.3
+├── log v0.4.22
+├── memmap2 v0.9.5
 ├── rsonpath-syntax v0.3.1 (/home/mat/src/rsonpath/crates/rsonpath-syntax)
 ├── smallvec v1.13.2
 ├── static_assertions v1.1.0
-├── thiserror v1.0.58
+├── thiserror v2.0.9
 └── vector-map v1.0.1
 ```
 <!-- rsonpath-lib dependencies end -->
@@ -272,183 +275,328 @@ cargo tree --package rsonpath --edges normal
 
 <!-- rsonpath-full dependencies start -->
 ```ini
-rsonpath v0.9.1 (/home/mat/src/rsonpath/crates/rsonpath)
-├── clap v4.5.4
-│   ├── clap_builder v4.5.2
-│   │   ├── anstream v0.6.13
-│   │   │   ├── anstyle v1.0.6
-│   │   │   ├── anstyle-parse v0.2.3
-│   │   │   │   └── utf8parse v0.2.1
-│   │   │   ├── anstyle-query v1.0.2
-│   │   │   │   └── windows-sys v0.52.0
-│   │   │   │       └── windows-targets v0.52.4
-│   │   │   │           ├── windows_aarch64_gnullvm v0.52.4
-│   │   │   │           ├── windows_aarch64_msvc v0.52.4
-│   │   │   │           ├── windows_i686_gnu v0.52.4
-│   │   │   │           ├── windows_i686_msvc v0.52.4
-│   │   │   │           ├── windows_x86_64_gnu v0.52.4
-│   │   │   │           ├── windows_x86_64_gnullvm v0.52.4
-│   │   │   │           └── windows_x86_64_msvc v0.52.4
-│   │   │   ├── anstyle-wincon v3.0.2
-│   │   │   │   ├── anstyle v1.0.6
-│   │   │   │   └── windows-sys v0.52.0 (*)
-│   │   │   ├── colorchoice v1.0.0
-│   │   │   └── utf8parse v0.2.1
-│   │   ├── anstyle v1.0.6
-│   │   ├── clap_lex v0.7.0
+rsonpath v0.9.2 (/home/mat/src/rsonpath/crates/rsonpath)
+├── clap v4.5.23
+│   ├── clap_builder v4.5.23
+│   │   ├── anstream v0.6.18
+│   │   │   ├── anstyle v1.0.10
+│   │   │   ├── anstyle-parse v0.2.6
+│   │   │   │   └── utf8parse v0.2.2
+│   │   │   ├── anstyle-query v1.1.2
+│   │   │   │   └── windows-sys v0.59.0
+│   │   │   │       └── windows-targets v0.52.6
+│   │   │   │           ├── windows_aarch64_gnullvm v0.52.6
+│   │   │   │           ├── windows_aarch64_msvc v0.52.6
+│   │   │   │           ├── windows_i686_gnu v0.52.6
+│   │   │   │           ├── windows_i686_gnullvm v0.52.6
+│   │   │   │           ├── windows_i686_msvc v0.52.6
+│   │   │   │           ├── windows_x86_64_gnu v0.52.6
+│   │   │   │           ├── windows_x86_64_gnullvm v0.52.6
+│   │   │   │           └── windows_x86_64_msvc v0.52.6
+│   │   │   ├── anstyle-wincon v3.0.6
+│   │   │   │   ├── anstyle v1.0.10
+│   │   │   │   └── windows-sys v0.59.0 (*)
+│   │   │   ├── colorchoice v1.0.3
+│   │   │   ├── is_terminal_polyfill v1.70.1
+│   │   │   └── utf8parse v0.2.2
+│   │   ├── anstyle v1.0.10
+│   │   ├── clap_lex v0.7.4
 │   │   ├── strsim v0.11.1
-│   │   └── terminal_size v0.3.0
-│   │       ├── rustix v0.38.32
-│   │       │   ├── bitflags v2.5.0
-│   │       │   ├── errno v0.3.8
-│   │       │   │   ├── libc v0.2.153
-│   │       │   │   └── windows-sys v0.52.0 (*)
-│   │       │   ├── libc v0.2.153
-│   │       │   ├── linux-raw-sys v0.4.13
-│   │       │   └── windows-sys v0.52.0 (*)
-│   │       └── windows-sys v0.48.0
-│   │           └── windows-targets v0.48.5
-│   │               ├── windows_aarch64_gnullvm v0.48.5
-│   │               ├── windows_aarch64_msvc v0.48.5
-│   │               ├── windows_i686_gnu v0.48.5
-│   │               ├── windows_i686_msvc v0.48.5
-│   │               ├── windows_x86_64_gnu v0.48.5
-│   │               ├── windows_x86_64_gnullvm v0.48.5
-│   │               └── windows_x86_64_msvc v0.48.5
-│   └── clap_derive v4.5.4 (proc-macro)
+│   │   └── terminal_size v0.4.1
+│   │       ├── rustix v0.38.42
+│   │       │   ├── bitflags v2.6.0
+│   │       │   ├── errno v0.3.10
+│   │       │   │   ├── libc v0.2.169
+│   │       │   │   └── windows-sys v0.59.0 (*)
+│   │       │   ├── libc v0.2.169
+│   │       │   ├── linux-raw-sys v0.4.14
+│   │       │   └── windows-sys v0.59.0 (*)
+│   │       └── windows-sys v0.59.0 (*)
+│   └── clap_derive v4.5.18 (proc-macro)
 │       ├── heck v0.5.0
-│       ├── proc-macro2 v1.0.79
-│       │   └── unicode-ident v1.0.12
-│       ├── quote v1.0.35
-│       │   └── proc-macro2 v1.0.79 (*)
-│       └── syn v2.0.58
-│           ├── proc-macro2 v1.0.79 (*)
-│           ├── quote v1.0.35 (*)
-│           └── unicode-ident v1.0.12
+│       ├── proc-macro2 v1.0.92
+│       │   └── unicode-ident v1.0.14
+│       ├── quote v1.0.37
+│       │   └── proc-macro2 v1.0.92 (*)
+│       └── syn v2.0.91
+│           ├── proc-macro2 v1.0.92 (*)
+│           ├── quote v1.0.37 (*)
+│           └── unicode-ident v1.0.14
 ├── color-eyre v0.6.3
 │   ├── backtrace v0.3.71
 │   │   ├── addr2line v0.21.0
 │   │   │   └── gimli v0.28.1
 │   │   ├── cfg-if v1.0.0
-│   │   ├── libc v0.2.153
-│   │   ├── miniz_oxide v0.7.2
+│   │   ├── libc v0.2.169
+│   │   ├── miniz_oxide v0.7.4
 │   │   │   └── adler v1.0.2
 │   │   ├── object v0.32.2
-│   │   │   └── memchr v2.7.2
-│   │   └── rustc-demangle v0.1.23
+│   │   │   └── memchr v2.7.4
+│   │   └── rustc-demangle v0.1.24
 │   │   [build-dependencies]
-│   │   └── cc v1.0.90
+│   │   └── cc v1.2.5
+│   │       ├── jobserver v0.1.32
+│   │       │   └── libc v0.2.169
+│   │       ├── libc v0.2.169
+│   │       └── shlex v1.3.0
 │   ├── eyre v0.6.12
 │   │   ├── indenter v0.3.3
-│   │   └── once_cell v1.19.0
+│   │   └── once_cell v1.20.2
 │   ├── indenter v0.3.3
-│   ├── once_cell v1.19.0
+│   ├── once_cell v1.20.2
 │   └── owo-colors v3.5.0
 ├── eyre v0.6.12 (*)
-├── log v0.4.21
-├── rsonpath-lib v0.9.1 (/home/mat/src/rsonpath/crates/rsonpath-lib)
+├── log v0.4.22
+├── rsonpath-lib v0.9.2 (/home/mat/src/rsonpath/crates/rsonpath-lib)
 │   ├── cfg-if v1.0.0
-│   ├── log v0.4.21
-│   ├── memmap2 v0.9.4
-│   │   └── libc v0.2.153
-│   ├── nom v7.1.3
-│   │   ├── memchr v2.7.2
-│   │   └── minimal-lexical v0.2.1
+│   ├── log v0.4.22
+│   ├── memmap2 v0.9.5
+│   │   └── libc v0.2.169
 │   ├── rsonpath-syntax v0.3.1 (/home/mat/src/rsonpath/crates/rsonpath-syntax)
-│   │   ├── nom v7.1.3 (*)
-│   │   ├── owo-colors v4.0.0
-│   │   ├── thiserror v1.0.58
-│   │   │   └── thiserror-impl v1.0.58 (proc-macro)
-│   │   │       ├── proc-macro2 v1.0.79 (*)
-│   │   │       ├── quote v1.0.35 (*)
-│   │   │       └── syn v2.0.58 (*)
-│   │   └── unicode-width v0.1.11
+│   │   ├── nom v7.1.3
+│   │   │   ├── memchr v2.7.4
+│   │   │   └── minimal-lexical v0.2.1
+│   │   ├── owo-colors v4.1.0
+│   │   ├── thiserror v2.0.9
+│   │   │   └── thiserror-impl v2.0.9 (proc-macro)
+│   │   │       ├── proc-macro2 v1.0.92 (*)
+│   │   │       ├── quote v1.0.37 (*)
+│   │   │       └── syn v2.0.91 (*)
+│   │   └── unicode-width v0.2.0
 │   ├── smallvec v1.13.2
 │   ├── static_assertions v1.1.0
-│   ├── thiserror v1.0.58 (*)
+│   ├── thiserror v2.0.9 (*)
 │   └── vector-map v1.0.1
 │       ├── contracts v0.4.0 (proc-macro)
-│       │   ├── proc-macro2 v1.0.79 (*)
-│       │   ├── quote v1.0.35 (*)
+│       │   ├── proc-macro2 v1.0.92 (*)
+│       │   ├── quote v1.0.37 (*)
 │       │   └── syn v1.0.109
-│       │       ├── proc-macro2 v1.0.79 (*)
-│       │       ├── quote v1.0.35 (*)
-│       │       └── unicode-ident v1.0.12
+│       │       ├── proc-macro2 v1.0.92 (*)
+│       │       ├── quote v1.0.37 (*)
+│       │       └── unicode-ident v1.0.14
 │       └── rand v0.7.3
 │           ├── getrandom v0.1.16
 │           │   ├── cfg-if v1.0.0
-│           │   ├── libc v0.2.153
+│           │   ├── libc v0.2.169
 │           │   └── wasi v0.9.0+wasi-snapshot-preview1
-│           ├── libc v0.2.153
+│           ├── libc v0.2.169
 │           ├── rand_chacha v0.2.2
-│           │   ├── ppv-lite86 v0.2.17
+│           │   ├── ppv-lite86 v0.2.20
+│           │   │   └── zerocopy v0.7.35
+│           │   │       ├── byteorder v1.5.0
+│           │   │       └── zerocopy-derive v0.7.35 (proc-macro)
+│           │   │           ├── proc-macro2 v1.0.92 (*)
+│           │   │           ├── quote v1.0.37 (*)
+│           │   │           └── syn v2.0.91 (*)
 │           │   └── rand_core v0.5.1
 │           │       └── getrandom v0.1.16 (*)
 │           ├── rand_core v0.5.1 (*)
 │           └── rand_hc v0.2.0
 │               └── rand_core v0.5.1 (*)
 ├── rsonpath-syntax v0.3.1 (/home/mat/src/rsonpath/crates/rsonpath-syntax) (*)
-└── simple_logger v4.3.3
-    ├── colored v2.1.0
-    │   ├── lazy_static v1.4.0
-    │   └── windows-sys v0.48.0 (*)
-    ├── log v0.4.21
-    ├── time v0.3.34
+└── simple_logger v5.0.0
+    ├── colored v2.2.0
+    │   ├── lazy_static v1.5.0
+    │   └── windows-sys v0.59.0 (*)
+    ├── log v0.4.22
+    ├── time v0.3.37
     │   ├── deranged v0.3.11
     │   │   └── powerfmt v0.2.0
-    │   ├── itoa v1.0.11
-    │   ├── libc v0.2.153
+    │   ├── itoa v1.0.14
+    │   ├── libc v0.2.169
     │   ├── num-conv v0.1.0
     │   ├── num_threads v0.1.7
-    │   │   └── libc v0.2.153
+    │   │   └── libc v0.2.169
     │   ├── powerfmt v0.2.0
     │   ├── time-core v0.1.2
-    │   └── time-macros v0.2.17 (proc-macro)
+    │   └── time-macros v0.2.19 (proc-macro)
     │       ├── num-conv v0.1.0
     │       └── time-core v0.1.2
-    └── windows-sys v0.48.0 (*)
+    └── windows-sys v0.48.0
+        └── windows-targets v0.48.5
+            ├── windows_aarch64_gnullvm v0.48.5
+            ├── windows_aarch64_msvc v0.48.5
+            ├── windows_i686_gnu v0.48.5
+            ├── windows_i686_msvc v0.48.5
+            ├── windows_x86_64_gnu v0.48.5
+            ├── windows_x86_64_gnullvm v0.48.5
+            └── windows_x86_64_msvc v0.48.5
 [build-dependencies]
-├── rustflags v0.1.5
-└── vergen v8.3.1
-    ├── anyhow v1.0.81
-    ├── cargo_metadata v0.18.1
-    │   ├── camino v1.1.6
-    │   │   └── serde v1.0.197
-    │   │       └── serde_derive v1.0.197 (proc-macro)
-    │   │           ├── proc-macro2 v1.0.79 (*)
-    │   │           ├── quote v1.0.35 (*)
-    │   │           └── syn v2.0.58 (*)
-    │   ├── cargo-platform v0.1.8
-    │   │   └── serde v1.0.197 (*)
-    │   ├── semver v1.0.22
-    │   │   └── serde v1.0.197 (*)
-    │   ├── serde v1.0.197 (*)
-    │   ├── serde_json v1.0.115
-    │   │   ├── itoa v1.0.11
-    │   │   ├── ryu v1.0.17
-    │   │   └── serde v1.0.197 (*)
-    │   └── thiserror v1.0.58 (*)
-    ├── cfg-if v1.0.0
-    ├── regex v1.10.4
-    │   ├── aho-corasick v1.1.3
-    │   │   └── memchr v2.7.2
-    │   ├── memchr v2.7.2
-    │   ├── regex-automata v0.4.6
-    │   │   ├── aho-corasick v1.1.3 (*)
-    │   │   ├── memchr v2.7.2
-    │   │   └── regex-syntax v0.8.3
-    │   └── regex-syntax v0.8.3
-    ├── rustc_version v0.4.0
-    │   └── semver v1.0.22 (*)
-    └── time v0.3.34
-        ├── deranged v0.3.11 (*)
-        ├── itoa v1.0.11
-        ├── libc v0.2.153
-        ├── num-conv v0.1.0
-        ├── num_threads v0.1.7 (*)
-        ├── powerfmt v0.2.0
-        └── time-core v0.1.2
+├── rustflags v0.1.6
+├── vergen v9.0.2
+│   ├── anyhow v1.0.95
+│   ├── cargo_metadata v0.19.1
+│   │   ├── camino v1.1.9
+│   │   │   └── serde v1.0.216
+│   │   │       └── serde_derive v1.0.216 (proc-macro)
+│   │   │           ├── proc-macro2 v1.0.92 (*)
+│   │   │           ├── quote v1.0.37 (*)
+│   │   │           └── syn v2.0.91 (*)
+│   │   ├── cargo-platform v0.1.9
+│   │   │   └── serde v1.0.216 (*)
+│   │   ├── semver v1.0.24
+│   │   │   └── serde v1.0.216 (*)
+│   │   ├── serde v1.0.216 (*)
+│   │   ├── serde_json v1.0.134
+│   │   │   ├── itoa v1.0.14
+│   │   │   ├── memchr v2.7.4
+│   │   │   ├── ryu v1.0.18
+│   │   │   └── serde v1.0.216 (*)
+│   │   └── thiserror v2.0.9 (*)
+│   ├── derive_builder v0.20.2
+│   │   └── derive_builder_macro v0.20.2 (proc-macro)
+│   │       ├── derive_builder_core v0.20.2
+│   │       │   ├── darling v0.20.10
+│   │       │   │   ├── darling_core v0.20.10
+│   │       │   │   │   ├── fnv v1.0.7
+│   │       │   │   │   ├── ident_case v1.0.1
+│   │       │   │   │   ├── proc-macro2 v1.0.92 (*)
+│   │       │   │   │   ├── quote v1.0.37 (*)
+│   │       │   │   │   ├── strsim v0.11.1
+│   │       │   │   │   └── syn v2.0.91 (*)
+│   │       │   │   └── darling_macro v0.20.10 (proc-macro)
+│   │       │   │       ├── darling_core v0.20.10 (*)
+│   │       │   │       ├── quote v1.0.37 (*)
+│   │       │   │       └── syn v2.0.91 (*)
+│   │       │   ├── proc-macro2 v1.0.92 (*)
+│   │       │   ├── quote v1.0.37 (*)
+│   │       │   └── syn v2.0.91 (*)
+│   │       └── syn v2.0.91 (*)
+│   ├── regex v1.11.1
+│   │   ├── aho-corasick v1.1.3
+│   │   │   └── memchr v2.7.4
+│   │   ├── memchr v2.7.4
+│   │   ├── regex-automata v0.4.9
+│   │   │   ├── aho-corasick v1.1.3 (*)
+│   │   │   ├── memchr v2.7.4
+│   │   │   └── regex-syntax v0.8.5
+│   │   └── regex-syntax v0.8.5
+│   ├── rustc_version v0.4.1
+│   │   └── semver v1.0.24 (*)
+│   └── vergen-lib v0.1.5
+│       ├── anyhow v1.0.95
+│       └── derive_builder v0.20.2 (*)
+│       [build-dependencies]
+│       └── rustversion v1.0.18 (proc-macro)
+│   [build-dependencies]
+│   └── rustversion v1.0.18 (proc-macro)
+├── vergen-git2 v1.0.2
+│   ├── anyhow v1.0.95
+│   ├── derive_builder v0.20.2 (*)
+│   ├── git2 v0.19.0
+│   │   ├── bitflags v2.6.0
+│   │   ├── libc v0.2.169
+│   │   ├── libgit2-sys v0.17.0+1.8.1
+│   │   │   ├── libc v0.2.169
+│   │   │   └── libz-sys v1.1.20
+│   │   │       └── libc v0.2.169
+│   │   │       [build-dependencies]
+│   │   │       ├── cc v1.2.5 (*)
+│   │   │       ├── pkg-config v0.3.31
+│   │   │       └── vcpkg v0.2.15
+│   │   │   [build-dependencies]
+│   │   │   ├── cc v1.2.5 (*)
+│   │   │   └── pkg-config v0.3.31
+│   │   ├── log v0.4.22
+│   │   └── url v2.5.4
+│   │       ├── form_urlencoded v1.2.1
+│   │       │   └── percent-encoding v2.3.1
+│   │       ├── idna v1.0.3
+│   │       │   ├── idna_adapter v1.2.0
+│   │       │   │   ├── icu_normalizer v1.5.0
+│   │       │   │   │   ├── displaydoc v0.2.5 (proc-macro)
+│   │       │   │   │   │   ├── proc-macro2 v1.0.92 (*)
+│   │       │   │   │   │   ├── quote v1.0.37 (*)
+│   │       │   │   │   │   └── syn v2.0.91 (*)
+│   │       │   │   │   ├── icu_collections v1.5.0
+│   │       │   │   │   │   ├── displaydoc v0.2.5 (proc-macro) (*)
+│   │       │   │   │   │   ├── yoke v0.7.5
+│   │       │   │   │   │   │   ├── stable_deref_trait v1.2.0
+│   │       │   │   │   │   │   ├── yoke-derive v0.7.5 (proc-macro)
+│   │       │   │   │   │   │   │   ├── proc-macro2 v1.0.92 (*)
+│   │       │   │   │   │   │   │   ├── quote v1.0.37 (*)
+│   │       │   │   │   │   │   │   ├── syn v2.0.91 (*)
+│   │       │   │   │   │   │   │   └── synstructure v0.13.1
+│   │       │   │   │   │   │   │       ├── proc-macro2 v1.0.92 (*)
+│   │       │   │   │   │   │   │       ├── quote v1.0.37 (*)
+│   │       │   │   │   │   │   │       └── syn v2.0.91 (*)
+│   │       │   │   │   │   │   └── zerofrom v0.1.5
+│   │       │   │   │   │   │       └── zerofrom-derive v0.1.5 (proc-macro)
+│   │       │   │   │   │   │           ├── proc-macro2 v1.0.92 (*)
+│   │       │   │   │   │   │           ├── quote v1.0.37 (*)
+│   │       │   │   │   │   │           ├── syn v2.0.91 (*)
+│   │       │   │   │   │   │           └── synstructure v0.13.1 (*)
+│   │       │   │   │   │   ├── zerofrom v0.1.5 (*)
+│   │       │   │   │   │   └── zerovec v0.10.4
+│   │       │   │   │   │       ├── yoke v0.7.5 (*)
+│   │       │   │   │   │       ├── zerofrom v0.1.5 (*)
+│   │       │   │   │   │       └── zerovec-derive v0.10.3 (proc-macro)
+│   │       │   │   │   │           ├── proc-macro2 v1.0.92 (*)
+│   │       │   │   │   │           ├── quote v1.0.37 (*)
+│   │       │   │   │   │           └── syn v2.0.91 (*)
+│   │       │   │   │   ├── icu_normalizer_data v1.5.0
+│   │       │   │   │   ├── icu_properties v1.5.1
+│   │       │   │   │   │   ├── displaydoc v0.2.5 (proc-macro) (*)
+│   │       │   │   │   │   ├── icu_collections v1.5.0 (*)
+│   │       │   │   │   │   ├── icu_locid_transform v1.5.0
+│   │       │   │   │   │   │   ├── displaydoc v0.2.5 (proc-macro) (*)
+│   │       │   │   │   │   │   ├── icu_locid v1.5.0
+│   │       │   │   │   │   │   │   ├── displaydoc v0.2.5 (proc-macro) (*)
+│   │       │   │   │   │   │   │   ├── litemap v0.7.4
+│   │       │   │   │   │   │   │   ├── tinystr v0.7.6
+│   │       │   │   │   │   │   │   │   ├── displaydoc v0.2.5 (proc-macro) (*)
+│   │       │   │   │   │   │   │   │   └── zerovec v0.10.4 (*)
+│   │       │   │   │   │   │   │   ├── writeable v0.5.5
+│   │       │   │   │   │   │   │   └── zerovec v0.10.4 (*)
+│   │       │   │   │   │   │   ├── icu_locid_transform_data v1.5.0
+│   │       │   │   │   │   │   ├── icu_provider v1.5.0
+│   │       │   │   │   │   │   │   ├── displaydoc v0.2.5 (proc-macro) (*)
+│   │       │   │   │   │   │   │   ├── icu_locid v1.5.0 (*)
+│   │       │   │   │   │   │   │   ├── icu_provider_macros v1.5.0 (proc-macro)
+│   │       │   │   │   │   │   │   │   ├── proc-macro2 v1.0.92 (*)
+│   │       │   │   │   │   │   │   │   ├── quote v1.0.37 (*)
+│   │       │   │   │   │   │   │   │   └── syn v2.0.91 (*)
+│   │       │   │   │   │   │   │   ├── stable_deref_trait v1.2.0
+│   │       │   │   │   │   │   │   ├── tinystr v0.7.6 (*)
+│   │       │   │   │   │   │   │   ├── writeable v0.5.5
+│   │       │   │   │   │   │   │   ├── yoke v0.7.5 (*)
+│   │       │   │   │   │   │   │   ├── zerofrom v0.1.5 (*)
+│   │       │   │   │   │   │   │   └── zerovec v0.10.4 (*)
+│   │       │   │   │   │   │   ├── tinystr v0.7.6 (*)
+│   │       │   │   │   │   │   └── zerovec v0.10.4 (*)
+│   │       │   │   │   │   ├── icu_properties_data v1.5.0
+│   │       │   │   │   │   ├── icu_provider v1.5.0 (*)
+│   │       │   │   │   │   ├── tinystr v0.7.6 (*)
+│   │       │   │   │   │   └── zerovec v0.10.4 (*)
+│   │       │   │   │   ├── icu_provider v1.5.0 (*)
+│   │       │   │   │   ├── smallvec v1.13.2
+│   │       │   │   │   ├── utf16_iter v1.0.5
+│   │       │   │   │   ├── utf8_iter v1.0.4
+│   │       │   │   │   ├── write16 v1.0.0
+│   │       │   │   │   └── zerovec v0.10.4 (*)
+│   │       │   │   └── icu_properties v1.5.1 (*)
+│   │       │   ├── smallvec v1.13.2
+│   │       │   └── utf8_iter v1.0.4
+│   │       └── percent-encoding v2.3.1
+│   ├── time v0.3.37
+│   │   ├── deranged v0.3.11 (*)
+│   │   ├── itoa v1.0.14
+│   │   ├── libc v0.2.169
+│   │   ├── num-conv v0.1.0
+│   │   ├── num_threads v0.1.7 (*)
+│   │   ├── powerfmt v0.2.0
+│   │   └── time-core v0.1.2
+│   ├── vergen v9.0.2 (*)
+│   └── vergen-lib v0.1.5 (*)
+│   [build-dependencies]
+│   └── rustversion v1.0.18 (proc-macro)
+└── vergen-gitcl v1.0.2
+    ├── anyhow v1.0.95
+    ├── derive_builder v0.20.2 (*)
+    ├── time v0.3.37 (*)
+    ├── vergen v9.0.2 (*)
+    └── vergen-lib v0.1.5 (*)
     [build-dependencies]
-    └── rustversion v1.0.14 (proc-macro)
+    └── rustversion v1.0.18 (proc-macro)
 ```
 <!-- rsonpath-full dependencies end -->

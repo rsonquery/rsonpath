@@ -276,13 +276,19 @@ release ver:
     cargo build
     cargo +nightly fuzz build
 
+# Execute prerequisits for a release of `rsonpath-syntax` for the given version.
+release-syntax ver:
+    #!/usr/bin/env nu
+    let ver = "{{ver}}";
+    sed -i $'s/^version = "[^"]*"/version = "($ver)"/' "./crates/rsonpath-syntax/Cargo.toml"
+    sed -i $'s/^rsonpath-syntax = { version = "[^"]*"/rsonpath-syntax = { version = "($ver)"/' "./Cargo.toml"
+
 [private]
 release-patch ver:
     #!/usr/bin/env nu
     let ver = "{{ver}}";
     let paths = ["./Cargo.toml", "./crates/rsonpath-benchmarks/Cargo.toml", "./crates/rsonpath-test-codegen/Cargo.toml"];
     $paths | each { |path|
-        let path = $"./crates/($cr)/Cargo.toml";
         sed -i $'s/^version = "[^"]*"/version = "($ver)"/;s/^rsonpath-lib = { version = "[^"]*"/rsonpath-lib = { version = "($ver)"/;s/rsonpath-test-codegen = { version = "[^"]*"/rsonpath-test-codegen = { version = "($ver)"/' $path;
     };
 

@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.2] - 2024-12-22
+
+### Library
+
+- Added `StringPattern` and made `Automaton` no longer borrow the query. ([#117](https://github.com/V0ldek/rsonpath/issues/117)[#613](https://github.com/V0ldek/rsonpath/issues/613))
+
+  - The `Automaton` struct borrowed the source query, which also caused the Engine to carry the query's lifetime with it.
+    The actual data being borrowed were the `JsonString` values for member transitions.
+    In preparation for [#117](https://github.com/V0ldek/rsonpath/issues/117)we remove the borrowed `JsonString` and replace it
+    with `StringPattern`. For UTF-8 the `StringPattern` will be a more complex struct that precomputes some stuff for efficient matching later.
+    For now, it's a thin wrapper over a `JsonString`.
+  - During construction we may create many transitions over the same pattern.
+    To reduce the size of the automaton we cache the patterns and put them into an `Rc`.
+    This may get optimised later to instead use some kind of inline storage, but it's unlike to actually matter.
+    I ran the benchmarks and saw no measurable difference between the previous version and this one.
+
+### Dependencies
+
+- Bump arbitrary from 1.3.1 to 1.4.1
+- Bump clap from 4.5.2 to 4.5.23
+- Bump color-eyre from 0.6.2 to 0.6.3
+- Bump log from 0.4.21 to 0.4.22
+- Bump memmap2 from 0.9.4 to 0.9.5
+- Bump simple_logger from 4.3.3 to 5.0.0
+- Bump smallvec from 1.13.1 to 1.13.2
+- Bump thiserror from 1.0.58 to 2.0.9 (#617). ([#617](https://github.com/V0ldek/rsonpath/issues/617))
+- Remove `nom` as a direct dependency of `rsonpath-lib`
+
 ## [0.9.1] - 2024-04-03
 
 ### Bug Fixes
