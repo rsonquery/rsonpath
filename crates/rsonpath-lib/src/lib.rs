@@ -197,6 +197,9 @@ pub mod engine;
 pub mod error;
 pub mod input;
 pub mod result;
+pub(crate) mod string_pattern;
+
+pub use string_pattern::StringPattern;
 
 cfg_if::cfg_if! {
     if #[cfg(target_pointer_width = "32")] {

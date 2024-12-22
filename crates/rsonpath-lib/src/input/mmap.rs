@@ -21,9 +21,8 @@ use super::{
     padding::PaddedBlock,
     Input, SliceSeekable, MAX_BLOCK_SIZE,
 };
-use crate::{input::padding::EndPaddedInput, result::InputRecorder};
+use crate::{input::padding::EndPaddedInput, result::InputRecorder, string_pattern::StringPattern};
 use memmap2::{Mmap, MmapAsRawDesc};
-use rsonpath_syntax::str::JsonString;
 
 /// Input wrapping a memory mapped file.
 pub struct MmapInput {
@@ -162,7 +161,7 @@ impl Input for MmapInput {
     }
 
     #[inline]
-    fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> Result<bool, Self::Error> {
+    fn is_member_match(&self, from: usize, to: usize, member: &StringPattern) -> Result<bool, Self::Error> {
         debug_assert!(from < to);
         // The hot path is when we're checking fully within the middle section.
         // This has to be as fast as possible, so the "cold" path referring to the TwoSidesPaddedInput
@@ -171,7 +170,7 @@ impl Input for MmapInput {
             // This is the hot path -- do the bounds check and memcmp.
             let bytes = &self.mmap;
             let slice = &bytes[from..to];
-            Ok(member.quoted().as_bytes() == slice && (from == 0 || bytes[from - 1] != b'\\'))
+            Ok(member.quoted() == slice && (from == 0 || bytes[from - 1] != b'\\'))
         } else {
             // This is a very expensive, cold path.
             Ok(self.as_padded_input().is_member_match(from, to, member))

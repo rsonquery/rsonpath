@@ -101,15 +101,15 @@ pub trait Engine {
 pub trait Compiler {
     /// Concrete type of the [`Engines`](`Engine`) created,
     /// parameterized with the lifetime of the input query.
-    type E<'q>: Engine + 'q;
+    type E: Engine;
 
     /// Compile a [`JsonPathQuery`] into an [`Engine`].c
     ///
     /// # Errors
     /// An appropriate [`CompilerError`] is returned if the compiler
     /// cannot handle the query.
-    fn compile_query(query: &JsonPathQuery) -> Result<Self::E<'_>, CompilerError>;
+    fn compile_query(query: &JsonPathQuery) -> Result<Self::E, CompilerError>;
 
     /// Turn a compiled [`Automaton`] into an [`Engine`].
-    fn from_compiled_query(automaton: Automaton<'_>) -> Self::E<'_>;
+    fn from_compiled_query(automaton: Automaton) -> Self::E;
 }

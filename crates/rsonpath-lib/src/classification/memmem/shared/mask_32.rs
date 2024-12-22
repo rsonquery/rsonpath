@@ -1,13 +1,16 @@
-use crate::input::{
-    error::{InputError, InputErrorConvertible},
-    Input,
+use crate::{
+    debug,
+    input::{
+        error::{InputError, InputErrorConvertible},
+        Input,
+    },
+    string_pattern::StringPattern,
 };
-use rsonpath_syntax::str::JsonString;
 
 #[inline(always)]
 pub(crate) fn find_in_mask<I: Input>(
     input: &I,
-    label: &JsonString,
+    label: &StringPattern,
     previous_block: u32,
     first: u32,
     second: u32,

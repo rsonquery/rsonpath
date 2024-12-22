@@ -26,8 +26,7 @@ pub use mmap::MmapInput;
 pub use owned::OwnedBytes;
 
 use self::error::InputError;
-use crate::result::InputRecorder;
-use rsonpath_syntax::str::JsonString;
+use crate::{result::InputRecorder, string_pattern::StringPattern};
 use std::ops::Deref;
 
 /// Make the struct repr(C) with alignment equal to [`MAX_BLOCK_SIZE`].
@@ -151,7 +150,7 @@ pub trait Input: Sized {
     /// # Errors
     /// This function can read more data from the input if `to` falls beyond
     /// the range that was already read, and the read operation can fail.
-    fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> Result<bool, Self::Error>;
+    fn is_member_match(&self, from: usize, to: usize, member: &StringPattern) -> Result<bool, Self::Error>;
 }
 
 /// An iterator over blocks of input of size `N`.
@@ -211,7 +210,7 @@ impl<'i, const N: usize> InputBlock<'i, N> for &'i [u8] {
 }
 
 pub(super) trait SliceSeekable {
-    fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> bool;
+    fn is_member_match(&self, from: usize, to: usize, member: &StringPattern) -> bool;
 
     fn seek_backward(&self, from: usize, needle: u8) -> Option<usize>;
 

@@ -42,14 +42,14 @@ where
     #[inline]
     fn find_label_sequential(
         &mut self,
-        label: &JsonString,
+        label: &StringPattern,
         mut offset: usize,
     ) -> Result<Option<(usize, I::Block<'i, N>)>, InputError> {
         let label_size = label.quoted().len();
         let first_c = if label.unquoted().is_empty() {
             b'"'
         } else {
-            label.unquoted().as_bytes()[0]
+            label.unquoted()[0]
         };
 
         while let Some(block) = self.iter.next().e()? {
@@ -78,7 +78,7 @@ where
         &mut self,
         first_block: Option<I::Block<'i, N>>,
         start_idx: usize,
-        label: &JsonString,
+        label: &StringPattern,
     ) -> Result<Option<(usize, I::Block<'i, N>)>, InputError> {
         if let Some(b) = first_block {
             if let Some(res) = shared::find_label_in_first_block(self.input, b, start_idx, label)? {

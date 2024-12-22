@@ -18,8 +18,7 @@ use super::{
     padding::{EndPaddedInput, PaddedBlock, TwoSidesPaddedInput},
     Input, InputBlockIterator, SliceSeekable, MAX_BLOCK_SIZE,
 };
-use crate::{debug, result::InputRecorder};
-use rsonpath_syntax::str::JsonString;
+use crate::{debug, result::InputRecorder, string_pattern::StringPattern};
 
 /// Input wrapping a borrowed [`[u8]`] buffer.
 pub struct BorrowedBytes<'a> {
@@ -220,7 +219,7 @@ impl Input for BorrowedBytes<'_> {
     }
 
     #[inline(always)]
-    fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> Result<bool, Self::Error> {
+    fn is_member_match(&self, from: usize, to: usize, member: &StringPattern) -> Result<bool, Self::Error> {
         debug_assert!(from < to);
         // The hot path is when we're checking fully within the middle section.
         // This has to be as fast as possible, so the "cold" path referring to the TwoSidesPaddedInput
@@ -231,7 +230,7 @@ impl Input for BorrowedBytes<'_> {
             let from = from - MAX_BLOCK_SIZE;
             let to = to - MAX_BLOCK_SIZE;
             let slice = &bytes[from..to];
-            Ok(member.quoted().as_bytes() == slice && (from == 0 || bytes[from - 1] != b'\\'))
+            Ok(member.quoted() == slice && (from == 0 || bytes[from - 1] != b'\\'))
         } else {
             // This is a very expensive, cold path.
             Ok(self.as_padded_input().is_member_match(from, to, member))

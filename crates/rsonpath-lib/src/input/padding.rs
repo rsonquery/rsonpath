@@ -1,6 +1,5 @@
 use super::{SliceSeekable, MAX_BLOCK_SIZE};
-use crate::JSON_SPACE_BYTE;
-use rsonpath_syntax::str::JsonString;
+use crate::{string_pattern::StringPattern, JSON_SPACE_BYTE};
 
 pub(super) struct PaddedBlock {
     bytes: [u8; MAX_BLOCK_SIZE],
@@ -102,9 +101,9 @@ impl SliceSeekable for EndPaddedInput<'_> {
 
     #[cold]
     #[inline(never)]
-    fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> bool {
+    fn is_member_match(&self, from: usize, to: usize, member: &StringPattern) -> bool {
         debug_assert!(from < to);
-        let other = member.quoted().as_bytes();
+        let other = member.quoted();
         self.cold_member_match(other, from, to)
     }
 }
@@ -160,9 +159,9 @@ impl SliceSeekable for TwoSidesPaddedInput<'_> {
 
     #[cold]
     #[inline(never)]
-    fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> bool {
+    fn is_member_match(&self, from: usize, to: usize, member: &StringPattern) -> bool {
         debug_assert!(from < to);
-        let other = member.quoted().as_bytes();
+        let other = member.quoted();
         self.cold_member_match(other, from, to)
     }
 }
