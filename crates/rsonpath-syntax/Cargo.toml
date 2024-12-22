@@ -1,15 +1,16 @@
 [package]
+authors = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+homepage = { workspace = true }
+edition = { workspace = true }
 name = "rsonpath-syntax"
 version = "0.3.1"
-authors = ["Mateusz Gienieczko <mat@gienieczko.com>"]
 description = "A JSONPath parser."
 readme = "README.md"
-license = "MIT"
 keywords = ["json", "jsonpath", "query", "search", "parser"]
 exclude = ["tests", "src/cli.rs"]
 categories = ["parser-implementations", "text-processing"]
-repository = "https://github.com/V0ldek/rsonpath"
-edition = "2021"
 rust-version = "1.67.1"
 
 [package.metadata.docs.rs]
@@ -33,3 +34,6 @@ test-case = { workspace = true }
 default = []
 arbitrary = ["dep:arbitrary"]
 color = ["dep:owo-colors"]
+
+[lints]
+workspace = true

@@ -17,7 +17,7 @@ use std::{
     path::Path,
 };
 
-pub struct Runner<S> {
+pub(super) struct Runner<S> {
     pub with_compiled_query: Automaton,
     pub with_engine: ResolvedEngine,
     pub with_input: ResolvedInput<S>,
@@ -25,7 +25,7 @@ pub struct Runner<S> {
 }
 
 impl<S: AsRef<str>> Runner<S> {
-    pub fn run(self) -> Result<()> {
+    pub(super) fn run(self) -> Result<()> {
         match self.with_engine {
             ResolvedEngine::Main => {
                 let engine = MainEngine::from_compiled_query(self.with_compiled_query);
@@ -37,7 +37,7 @@ impl<S: AsRef<str>> Runner<S> {
     }
 }
 
-pub fn resolve_input<P: AsRef<Path>, S: AsRef<str>>(
+pub(super) fn resolve_input<P: AsRef<Path>, S: AsRef<str>>(
     file_path: Option<P>,
     inline_json: Option<S>,
     force_input: Option<&InputArg>,
@@ -58,7 +58,7 @@ pub fn resolve_input<P: AsRef<Path>, S: AsRef<str>>(
     })
 }
 
-pub fn resolve_output(result_arg: ResultArg) -> ResolvedOutput {
+pub(super) fn resolve_output(result_arg: ResultArg) -> ResolvedOutput {
     match result_arg {
         ResultArg::Indices => ResolvedOutput::Index,
         ResultArg::Count => ResolvedOutput::Count,
@@ -66,21 +66,21 @@ pub fn resolve_output(result_arg: ResultArg) -> ResolvedOutput {
     }
 }
 
-pub fn resolve_engine() -> ResolvedEngine {
+pub(super) fn resolve_engine() -> ResolvedEngine {
     ResolvedEngine::Main
 }
 
-pub enum ResolvedEngine {
+pub(super) enum ResolvedEngine {
     Main,
 }
 
-pub struct ResolvedInput<S> {
+pub(super) struct ResolvedInput<S> {
     file: JsonSource<S>,
     kind: ResolvedInputKind,
     fallback_kind: Option<ResolvedInputKind>,
 }
 
-pub enum ResolvedOutput {
+pub(super) enum ResolvedOutput {
     Count,
     Index,
     Nodes,
@@ -94,17 +94,19 @@ impl<S: AsRef<str>> ResolvedInput<S> {
                     .file
                     .try_as_raw_desc()
                     .ok_or_else(|| eyre::eyre!("Attempt to create a memory map on inline JSON input."))?;
+                // SAFETY: The file is open for at least as long as self exists, so the fd should remain valid
+                // throughout this function.
                 let mmap_result = unsafe { MmapInput::map_file(raw_desc) };
 
                 match mmap_result {
-                    Ok(input) => with_output.run_and_output(engine, input),
+                    Ok(input) => with_output.run_and_output(&engine, &input),
                     Err(err) => match self.fallback_kind {
                         Some(fallback_kind) => {
                             warn!(
                                 "Creating a memory map failed: '{}'. Falling back to a slower input strategy.",
                                 err
                             );
-                            let new_input = ResolvedInput {
+                            let new_input = Self {
                                 kind: fallback_kind,
                                 fallback_kind: None,
                                 file: self.file,
@@ -120,16 +122,16 @@ impl<S: AsRef<str>> ResolvedInput<S> {
                 JsonSource::File(f) => {
                     let contents = get_contents(f)?;
                     let input = OwnedBytes::new(contents.into_bytes());
-                    with_output.run_and_output(engine, input)
+                    with_output.run_and_output(&engine, &input)
                 }
                 JsonSource::Stdin(s) => {
                     let contents = get_contents(s)?;
                     let input = OwnedBytes::new(contents.into_bytes());
-                    with_output.run_and_output(engine, input)
+                    with_output.run_and_output(&engine, &input)
                 }
                 JsonSource::Inline(j) => {
                     let input = BorrowedBytes::new(j.as_ref().as_bytes());
-                    with_output.run_and_output(engine, input)
+                    with_output.run_and_output(&engine, &input)
                 }
             },
             ResolvedInputKind::Buffered => {
@@ -138,34 +140,34 @@ impl<S: AsRef<str>> ResolvedInput<S> {
                     .try_as_read()
                     .ok_or_else(|| eyre::eyre!("Attempt to buffer reads on inline JSON input."))?;
                 let input = BufferedInput::new(read);
-                with_output.run_and_output(engine, input)
+                with_output.run_and_output(&engine, &input)
             }
         }
     }
 }
 
 impl ResolvedOutput {
-    fn run_and_output<E: Engine, I: Input>(self, engine: E, input: I) -> Result<()> {
-        fn run_impl<E: Engine, I: Input>(out: ResolvedOutput, engine: E, input: I) -> Result<(), EngineError> {
+    fn run_and_output<E: Engine, I: Input>(self, engine: &E, input: &I) -> Result<()> {
+        fn run_impl<E: Engine, I: Input>(out: &ResolvedOutput, engine: &E, input: &I) -> Result<(), EngineError> {
             match out {
                 ResolvedOutput::Count => {
-                    let result = engine.count(&input)?;
+                    let result = engine.count(input)?;
                     print!("{result}");
                 }
                 ResolvedOutput::Index => {
                     let mut sink = MatchWriter::from(io::stdout().lock());
-                    engine.indices(&input, &mut sink)?;
+                    engine.indices(input, &mut sink)?;
                 }
                 ResolvedOutput::Nodes => {
                     let mut sink = MatchWriter::from(io::stdout().lock());
-                    engine.matches(&input, &mut sink)?;
+                    engine.matches(input, &mut sink)?;
                 }
             }
 
             Ok(())
         }
 
-        run_impl(self, engine, input).map_err(|err| report_engine_error(err).wrap_err("Error executing the query."))
+        run_impl(&self, engine, input).map_err(|err| report_engine_error(err).wrap_err("Error executing the query."))
     }
 }
 

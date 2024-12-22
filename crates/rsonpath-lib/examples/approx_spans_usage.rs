@@ -18,6 +18,7 @@ fn main() -> Result<ExitCode, Box<dyn Error>> {
 
     let query = rsonpath_syntax::parse(query_arg)?;
     let file = fs::File::open(file_path)?;
+    // SAFETY: File is kept open until end of the run.
     let input = unsafe { MmapInput::map_file(&file)? };
     let stdout_lock = io::stdout().lock();
     let mut sink = MatchWriter::from(stdout_lock);

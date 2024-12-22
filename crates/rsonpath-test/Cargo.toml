@@ -1,14 +1,15 @@
 [package]
+version = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+homepage = { workspace = true }
+edition = { workspace = true }
 name = "rsonpath-test"
-version = "0.9.1"
-authors = ["Mateusz Gienieczko <mat@gienieczko.com>"]
 description = "Just a build script for the auto test generation."
 readme = "README.md"
-license = "MIT"
 keywords = ["json", "jsonpath", "query", "simd", "parser"]
 categories = ["text-processing"]
-repository = "https://github.com/V0ldek/rsonpath"
-edition = "2021"
 rust-version = "1.70.0"
 publish = false
 

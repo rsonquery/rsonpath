@@ -11,6 +11,15 @@ exclude = ["crates/rsonpath-benchmarks", "crates/rsonpath-test-codegen"]
 
 resolver = "2"
 
+[workspace.package]
+version = "0.9.1"
+authors = ["Mateusz Gienieczko <mat@gienieczko.com>"]
+readme = "README.md"
+license = "MIT"
+repository = "https://github.com/rsonquery/rsonpath"
+homepage = "https://rsonquery.github.io/rsonpath/"
+edition = "2021"
+
 [workspace.dependencies]
 # Project crates
 rsonpath-lib = { version = "0.9.1", path = "./crates/rsonpath-lib", package = "rsonpath-lib", default-features = false }
@@ -25,6 +34,56 @@ itertools = "0.13.0"
 pretty_assertions = "1.4.1"
 proptest = "1.5.0"
 test-case = "3.3.1"
+
+[workspace.lints.rust]
+explicit_outlives_requirements = "warn"
+semicolon_in_expressions_from_macros = "warn"
+unreachable_pub = "warn"
+unused_import_braces = "warn"
+unused_lifetimes = "warn"
+
+[workspace.lints.clippy]
+allow_attributes_without_reason = "warn"
+cargo_common_metadata = "warn"
+cast_lossless = "warn"
+cloned_instead_of_copied = "warn"
+empty_drop = "warn"
+empty_line_after_outer_attr = "warn"
+equatable_if_let = "warn"
+expl_impl_clone_on_copy = "warn"
+explicit_deref_methods = "warn"
+explicit_into_iter_loop = "warn"
+explicit_iter_loop = "warn"
+fallible_impl_from = "warn"
+flat_map_option = "warn"
+if_then_some_else_none = "warn"
+inconsistent_struct_constructor = "warn"
+large_digit_groups = "warn"
+let_underscore_must_use = "warn"
+manual_ok_or = "warn"
+map_err_ignore = "warn"
+map_unwrap_or = "warn"
+match_same_arms = "warn"
+match_wildcard_for_single_variants = "warn"
+missing_inline_in_public_items = "warn"
+mod_module_files = "warn"
+must_use_candidate = "warn"
+needless_continue = "warn"
+needless_for_each = "warn"
+needless_pass_by_value = "warn"
+ptr_as_ptr = "warn"
+redundant_closure_for_method_calls = "warn"
+ref_binding_to_reference = "warn"
+ref_option_ref = "warn"
+rest_pat_in_fully_bound_structs = "warn"
+undocumented_unsafe_blocks = "warn"
+unneeded_field_pattern = "warn"
+unseparated_literal_suffix = "warn"
+unreadable_literal = "warn"
+unused_self = "warn"
+use_self = "warn"
+# Panic-free lints
+exit = "warn"
 
 [profile.dev]
 lto = false

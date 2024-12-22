@@ -467,7 +467,7 @@ mod proptests {
             }
         }
 
-        pub fn any_json_string() -> impl Strategy<Value = (String, JsonString)> {
+        pub(super) fn any_json_string() -> impl Strategy<Value = (String, JsonString)> {
             prop_oneof![
                 Just(JsonStringTokenEncodingMode::SingleQuoted),
                 Just(JsonStringTokenEncodingMode::DoubleQuoted)
@@ -509,7 +509,7 @@ mod proptests {
             SingularSegment, TestExpr,
         };
 
-        pub fn any_logical_expr(
+        pub(super) fn any_logical_expr(
             test_query_strategy: Option<BoxedStrategy<(String, JsonPathQuery)>>,
         ) -> impl Strategy<Value = (String, LogicalExpr)> {
             any_atomic_logical_expr(test_query_strategy).prop_recursive(8, 32, 2, |inner| {
@@ -659,7 +659,7 @@ mod proptests {
             ];
 
             fn any_float() -> impl Strategy<Value = f64> {
-                prop_oneof![num::f64::NORMAL, num::f64::NORMAL.prop_map(|f| f.trunc())]
+                prop_oneof![num::f64::NORMAL, num::f64::NORMAL.prop_map(f64::trunc)]
             }
 
             fn arbitrary_exp_repr(f: f64) -> impl Strategy<Value = String> {

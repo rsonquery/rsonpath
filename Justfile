@@ -280,8 +280,8 @@ release ver:
 release-patch ver:
     #!/usr/bin/env nu
     let ver = "{{ver}}";
-    let crates = ["rsonpath", "rsonpath-lib", "rsonpath-benchmarks", "rsonpath-test", "rsonpath-test-codegen"];
-    $crates | each { |cr|
+    let paths = ["./Cargo.toml", "./crates/rsonpath-benchmarks/Cargo.toml", "./crates/rsonpath-test-codegen/Cargo.toml"];
+    $paths | each { |path|
         let path = $"./crates/($cr)/Cargo.toml";
         sed -i $'s/^version = "[^"]*"/version = "($ver)"/;s/^rsonpath-lib = { version = "[^"]*"/rsonpath-lib = { version = "($ver)"/;s/rsonpath-test-codegen = { version = "[^"]*"/rsonpath-test-codegen = { version = "($ver)"/' $path;
     };
