@@ -3,13 +3,13 @@
 use crate::{
     input::{error::InputError, Input},
     result::InputRecorder,
+    string_pattern::StringPattern,
     BLOCK_SIZE,
 };
-use rsonpath_syntax::str::JsonString;
 
 /// Classifier that can quickly find a member name in a byte stream.
 pub trait Memmem<'i, 'b, 'r, I: Input, const N: usize> {
-    /// Find a member key identified by a given [`JsonString`].
+    /// Find a member key identified by a given [`StringPattern`].
     ///
     /// - `first_block` &ndash; optional first block to search; if not provided,
     ///    the search will start at the next block returned by the underlying [`Input`] iterator.
@@ -22,7 +22,7 @@ pub trait Memmem<'i, 'b, 'r, I: Input, const N: usize> {
         &mut self,
         first_block: Option<I::Block<'i, N>>,
         start_idx: usize,
-        label: &JsonString,
+        label: &StringPattern,
     ) -> Result<Option<(usize, I::Block<'i, N>)>, InputError>;
 }
 

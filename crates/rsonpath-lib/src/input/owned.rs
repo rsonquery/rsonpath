@@ -24,8 +24,7 @@ use super::{
     padding::{PaddedBlock, TwoSidesPaddedInput},
     Input, SliceSeekable, MAX_BLOCK_SIZE,
 };
-use crate::result::InputRecorder;
-use rsonpath_syntax::str::JsonString;
+use crate::{result::InputRecorder, string_pattern::StringPattern};
 use std::borrow::Borrow;
 
 /// Input wrapping a buffer borrowable as a slice of bytes.
@@ -160,7 +159,7 @@ where
     }
 
     #[inline]
-    fn is_member_match(&self, from: usize, to: usize, member: &JsonString) -> Result<bool, Self::Error> {
+    fn is_member_match(&self, from: usize, to: usize, member: &StringPattern) -> Result<bool, Self::Error> {
         let offset = self.leading_padding_len();
         let Some(from) = from.checked_sub(offset) else {
             return Ok(false);

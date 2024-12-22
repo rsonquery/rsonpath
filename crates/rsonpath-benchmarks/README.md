@@ -12,60 +12,21 @@ Benchmark suite for [`rsonpath`](https://github.com/v0ldek/rsonpath).
 
 ## Prerequisites
 
-By default, the benches are performed against a released version of `rsonpath`.
-Usually you might want to run it against the local version to test your changes.
-To do that, pass a [patch config value] to `cargo`:
+By default, the benches are performed against the local version of `rsonpath` in the local repository.
 
-```ini
---config 'patch.crates-io.rsonpath.path = "../rsonpath"'
-```
-
-Additionally:
-
-1. An appropriate C++ compiler is required for the [`cc` crate](https://lib.rs/crates/cc) to compile the
-   JSONSki code.
-2. JDK of version at least 8 is required and your `JAVA_HOME` environment variable must be set
+1. JDK of version at least 8 is required and your `JAVA_HOME` environment variable must be set
    to its location.
+2. You need `gradle` to create the required wrapper JAR to build JSurfer. To install `gradle` it's recommended to use
+[`SDKMan`](https://sdkman.io/): `sdk install gradle 7.5`. After that is done, run `just init` in the root of `rsonpath-benchmarks`.
+This needs to be done only once.
 
 On x86_64 Ubuntu the latters can be done by installing `openjdk-17-jdk` and exporting `JAVA_HOME` as
 `/usr/lib/jvm/java-1.17.0-openjdk-amd64`.
 
 ### Download the dataset
 
-On a UNIX system with `wget` installed run the script `sh dl.sh`.
-You can also manually download the dataset and put the JSON files in the correct folder.
-
-For more information, refers to:
-
-* AST: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7229269.svg)](https://doi.org/10.5281/zenodo.7229269)
-* Twitter: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7229287.svg)](https://doi.org/10.5281/zenodo.7229287)
-* Crossref: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7229287.svg)](https://doi.org/10.5281/zenodo.7231920)
-
-For the benchmark to work, the directory layout should be as follows:
-
-```ini
-── data
-   ├── ast
-   │   └── ast.json
-   ├── crossref
-   │   ├── crossref0.json
-   │   ├── crossref16.json
-   │   ├── crossref1.json
-   │   ├── crossref2.json
-   │   ├── crossref4.json
-   │   └── crossref8.json
-   └── twitter
-       └── twitter.json
-```
-
-The sha256sum of the JSON files, for reference:
-
-* `c3ff840d153953ee08c1d9622b20f8c1dc367ae2abcb9c85d44100c6209571af  ast/ast.json`
-* `f76da4fbd5c18889012ab9bbc222cc439b4b28f458193d297666f56fc69ec500  crossref/crossref/crossref1.json`
-* `95e0038e46ce2e94a0f9dde35ec7975280194220878f83436e320881ccd252b4  crossref/crossref/crossref2.json`
-* `f14e65d4f8df3c9144748191c1e9d46a030067af86d0cc03cc67f22149143c5d  twitter/twitter.json`
-
-TODO: checksums of other crossrefs
+Datasets are automatically downloaded on demand when an appropriate benchmark is ran. The datasets are also
+automatically checked against their known SHA256 checksum to verify integrity.
 
 ## Usage
 
@@ -82,12 +43,6 @@ cargo bench --bench <dataset> --no-default-features
 ```
 
 The folder `target/criterion` contains all the information needed to plot the experiment.
-
-As a reminder, to test against local changes instead of a crates.io version:
-
-```bash
-cargo bench --bench <dataset> --config 'patch.crates-io.rsonpath.path = "../rsonpath"'
-```
 
 ## Plotting
 

@@ -1,6 +1,9 @@
 [private]
 default: build-bench
 
+init:
+  cd ./src/implementations/jsurferShim && gradle wrapper
+
 # === BUILD ===
 
 alias b := build-bench

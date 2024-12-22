@@ -6,7 +6,7 @@ default: (build-all "release")
 # === INIT ===
 
 # Initialize the repository for development.
-init: check-cargo hooks-init checkout-benchmarks
+init: check-cargo hooks-init checkout-submodules
 
 # Check if cargo is installed and install it from rustup if not.
 [private]
@@ -28,9 +28,14 @@ init: check-cargo hooks-init checkout-benchmarks
 
 # Checkout and populate the benchmarks repository, excluding datasets.
 [private]
-checkout-benchmarks:
+@checkout-submodules:
     git submodule init
     git submodule update
+
+# Initialize the benchmarks crate.
+[private]
+@init-benchmarks:
+    cd crates/rsonpath-benchmarks && just init
 
 # === BUILD ===
 
@@ -247,7 +252,7 @@ hook-pre-commit:
     (just verify-fmt && just verify-check);
 
 [private]
-@hook-post-checkout: checkout-benchmarks
+@hook-post-checkout: checkout-submodules
 
 [private]
 assert-benchmarks-committed:

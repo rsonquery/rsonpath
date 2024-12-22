@@ -1,6 +1,8 @@
 //! Engine decorator that performs **head skipping** &ndash; an extremely optimized search for
 //! the first matching member name in a query starting with a self-looping state.
 //! This happens in queries starting with a descendant selector.
+use std::rc::Rc;
+
 use crate::{
     automaton::{Automaton, State},
     classification::{
@@ -19,9 +21,9 @@ use crate::{
         Input, InputBlockIterator,
     },
     result::Recorder,
+    string_pattern::StringPattern,
     FallibleIterator, MaskType, BLOCK_SIZE,
 };
-use rsonpath_syntax::str::JsonString;
 
 /// Trait that needs to be implemented by an [`Engine`](`super::Engine`) to use this submodule.
 pub(super) trait CanHeadSkip<'i, 'r, I, R, V>
@@ -61,15 +63,15 @@ where
     V: Simd;
 
 /// Configuration of the head-skipping decorator.
-pub(super) struct HeadSkip<'b, 'q, I, V, const N: usize> {
+pub(super) struct HeadSkip<'b, I, V, const N: usize> {
     bytes: &'b I,
     state: State,
     is_accepting: bool,
-    member_name: &'q JsonString,
+    member_name: Rc<StringPattern>,
     simd: V,
 }
 
-impl<'b, 'q, I: Input, V: Simd> HeadSkip<'b, 'q, I, V, BLOCK_SIZE> {
+impl<'b, I: Input, V: Simd> HeadSkip<'b, I, V, BLOCK_SIZE> {
     /// Create a new instance of the head-skipping decorator over a given input
     /// and for a compiled query [`Automaton`].
     ///
@@ -92,7 +94,7 @@ impl<'b, 'q, I: Input, V: Simd> HeadSkip<'b, 'q, I, V, BLOCK_SIZE> {
     /// extremely quickly with [`classification::memmem`](crate::classification::memmem).
     ///
     /// In all other cases, head-skipping is not supported.
-    pub(super) fn new(bytes: &'b I, automaton: &'b Automaton<'q>, simd: V) -> Option<Self> {
+    pub(super) fn new(bytes: &'b I, automaton: &Automaton, simd: V) -> Option<Self> {
         let initial_state = automaton.initial_state();
         let fallback_state = automaton[initial_state].fallback_state();
         let transitions = automaton[initial_state].member_transitions();
@@ -101,13 +103,13 @@ impl<'b, 'q, I: Input, V: Simd> HeadSkip<'b, 'q, I, V, BLOCK_SIZE> {
             && transitions.len() == 1
             && automaton[initial_state].array_transitions().is_empty()
         {
-            let (member_name, target_state) = transitions[0];
+            let (member_name, target_state) = &transitions[0];
             debug!("Automaton starts with a descendant search, using memmem heuristic.");
             return Some(Self {
                 bytes,
-                state: target_state,
-                is_accepting: automaton.is_accepting(target_state),
-                member_name,
+                state: *target_state,
+                is_accepting: automaton.is_accepting(*target_state),
+                member_name: member_name.clone(),
                 simd,
             });
         }
@@ -124,7 +126,7 @@ impl<'b, 'q, I: Input, V: Simd> HeadSkip<'b, 'q, I, V, BLOCK_SIZE> {
         R: Recorder<I::Block<'b, BLOCK_SIZE>> + 'r,
     {
         dispatch_simd!(self.simd; self, engine =>
-        fn<'b, 'q, 'r, I, V, E, R>(head_skip: &HeadSkip<'b, 'q, I, V, BLOCK_SIZE>, engine: &mut E) -> Result<(), EngineError>
+        fn<'b, 'r, I, V, E, R>(head_skip: &HeadSkip<'b, I, V, BLOCK_SIZE>, engine: &mut E) -> Result<(), EngineError>
         where
             'b: 'r,
             E: CanHeadSkip<'b, 'r, I, R, V>,
@@ -140,7 +142,7 @@ impl<'b, 'q, I: Input, V: Simd> HeadSkip<'b, 'q, I, V, BLOCK_SIZE> {
                 let mut memmem = head_skip.simd.memmem(head_skip.bytes, &mut input_iter);
                 debug!("Starting memmem search from {idx}");
 
-                if let Some((starting_quote_idx, last_block)) = memmem.find_label(first_block, idx, head_skip.member_name)? {
+                if let Some((starting_quote_idx, last_block)) = memmem.find_label(first_block, idx, head_skip.member_name.as_ref())? {
                     drop(memmem);
 
                     first_block = Some(last_block);
