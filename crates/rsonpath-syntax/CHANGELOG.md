@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.2] - 2024-12-22
+
+### Dependencies
+
+- Bump arbitrary from 1.3.1 to 1.3.2
+- Bump owo-colors from 4.0.0 to 4.1.0
+- Bump thiserror from 1.0.57 to 2.0.9 (#617). ([#617](https://github.com/V0ldek/rsonpath/issues/617))
+- Bump unicode-width from 0.1.11 to 0.2.0
+
 ## [0.3.1] - 2024-03-28
 
 ### Features

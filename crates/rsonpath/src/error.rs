@@ -6,14 +6,14 @@ use rsonpath_syntax::{error::ParseError, JsonPathQuery};
 const FEATURE_REQUEST_URL: &str = "https://github.com/V0ldek/rsonpath/issues/new?template=feature_request.md";
 
 /// Turn a [`ParseError`] into a user-friendly eyre Report.
-pub fn report_parser_error(error: ParseError) -> eyre::Report {
+pub(super) fn report_parser_error(error: ParseError) -> eyre::Report {
     eyre!("One or more syntax errors occurred.").section(error.colored().header("Parse error:"))
 }
 
 /// Turn a [`CompilerError`] into a user-friendly eyre Report.
-pub fn report_compiler_error(query: &JsonPathQuery, error: CompilerError) -> eyre::Report {
+pub(super) fn report_compiler_error(query: &JsonPathQuery, error: CompilerError) -> eyre::Report {
     match error {
-        CompilerError::NotSupported(unsupported) => report_unsupported_error(unsupported),
+        CompilerError::NotSupported(unsupported) => report_unsupported_error(&unsupported),
         CompilerError::QueryTooComplex(_) => {
             let mut report = eyre::Report::new(error);
             if query.segments().iter().any(|segment| {
@@ -27,73 +27,30 @@ pub fn report_compiler_error(query: &JsonPathQuery, error: CompilerError) -> eyr
                     Consider reformulating the query using descendant selectors to replace sequences of wildcards.",
                 );
             }
-            add_unsupported_context(report, UnsupportedFeatureError::large_automaton_queries())
+            add_unsupported_context(report, &UnsupportedFeatureError::large_automaton_queries())
         }
     }
 }
 
 /// Turn a [`EngineError`] into a user-friendly eyre Report.
-pub fn report_engine_error(error: EngineError) -> eyre::Report {
+pub(super) fn report_engine_error(error: EngineError) -> eyre::Report {
     match error {
-        EngineError::DepthBelowZero(_, _) => eyre::Report::new(error),
         EngineError::DepthAboveLimit(_, _) => {
-            add_unsupported_context(eyre::Report::new(error), UnsupportedFeatureError::large_json_depths())
+            add_unsupported_context(eyre::Report::new(error), &UnsupportedFeatureError::large_json_depths())
         }
-        EngineError::MissingClosingCharacter() => eyre::Report::new(error),
-        EngineError::MissingOpeningCharacter() => eyre::Report::new(error),
-        EngineError::MissingItem() => eyre::Report::new(error),
-        EngineError::MalformedStringQuotes(_) => eyre::Report::new(error),
-        EngineError::NotSupported(unsupported) => report_unsupported_error(unsupported),
-        EngineError::InternalError(_) => eyre::Report::new(error),
-        EngineError::InputError(_) => eyre::Report::new(error),
-        EngineError::SinkError(_) => eyre::Report::new(error),
+        EngineError::NotSupported(unsupported) => report_unsupported_error(&unsupported),
+        EngineError::DepthBelowZero(_, _)
+        | EngineError::InputError(_)
+        | EngineError::InternalError(_)
+        | EngineError::MalformedStringQuotes(_)
+        | EngineError::MissingClosingCharacter()
+        | EngineError::MissingItem()
+        | EngineError::MissingOpeningCharacter()
+        | EngineError::SinkError(_) => eyre::Report::new(error),
     }
 }
 
-/*fn report_query_syntax_error(query_string: &str, report: ParseErrorReport) -> eyre::Report {
-    let mut eyre = eyre!("One or more syntax errors occurred.");
-
-    for error in report.errors() {
-        use color_eyre::owo_colors::OwoColorize;
-        use std::{cmp, iter};
-        const MAX_DISPLAY_LENGTH: usize = 80;
-
-        let display_start_idx = if error.start_idx > MAX_DISPLAY_LENGTH {
-            error.start_idx - MAX_DISPLAY_LENGTH
-        } else {
-            0
-        };
-        let display_length = cmp::min(error.len + MAX_DISPLAY_LENGTH, query_string.len() - display_start_idx);
-        let error_slice = &query_string[error.start_idx..error.start_idx + error.len];
-        let slice = &query_string[display_start_idx..display_start_idx + display_length];
-        let error_idx = error.start_idx - display_start_idx;
-        let underline: String = iter::repeat(' ')
-            .take(error_idx)
-            .chain(iter::repeat('^').take(error.len))
-            .collect();
-        let display_string = format!("{}\n{}", slice, (underline + " invalid tokens").bright_red());
-
-        eyre = eyre.section(display_string.header("Parse error:"));
-
-        if error.start_idx == 0 {
-            eyre = eyre.suggestion(format!(
-                "Queries should start with the root selector '{}'.",
-                "$".dimmed()
-            ));
-        }
-
-        if error_slice.contains('$') {
-            eyre = eyre.suggestion(format!(
-                "The '{}' character is reserved for the root selector and may appear only at the start.",
-                "$".dimmed()
-            ));
-        }
-    }
-
-    eyre
-}*/
-
-fn report_unsupported_error(unsupported: UnsupportedFeatureError) -> eyre::Report {
+fn report_unsupported_error(unsupported: &UnsupportedFeatureError) -> eyre::Report {
     use color_eyre::owo_colors::OwoColorize;
     let feature = unsupported.feature();
     let base_report = if unsupported.is_planned() {
@@ -106,7 +63,7 @@ fn report_unsupported_error(unsupported: UnsupportedFeatureError) -> eyre::Repor
     add_unsupported_context(base_report, unsupported)
 }
 
-fn add_unsupported_context(report: eyre::Report, unsupported: UnsupportedFeatureError) -> eyre::Report {
+fn add_unsupported_context(report: eyre::Report, unsupported: &UnsupportedFeatureError) -> eyre::Report {
     use color_eyre::owo_colors::OwoColorize;
     let feature = unsupported.feature();
     if let Some(issue) = unsupported.issue() {

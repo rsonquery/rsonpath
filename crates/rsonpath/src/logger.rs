@@ -2,7 +2,7 @@ use color_eyre::eyre::{Result, WrapErr};
 use log::LevelFilter;
 use simple_logger::SimpleLogger;
 
-pub fn configure(verbose: bool) -> Result<()> {
+pub(super) fn configure(verbose: bool) -> Result<()> {
     SimpleLogger::new()
         .with_level(if verbose { LevelFilter::Trace } else { LevelFilter::Warn })
         .init()

@@ -1,21 +1,21 @@
 [package]
+version = { workspace = true }
+authors = { workspace = true }
+readme = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+homepage = { workspace = true }
+edition = { workspace = true }
 name = "rsonpath"
-version = "0.9.1"
-authors = ["Mateusz Gienieczko <mat@gienieczko.com>"]
 description = "Blazing fast JSONPath CLI tool powered by SIMD"
-readme = "../../README.md"
-license = "MIT"
 keywords = ["json", "jsonpath", "query", "search", "cli"]
 categories = [
     "command-line-utilities",
     "text-processing",
     "parser-implementations",
 ]
-repository = "https://github.com/V0ldek/rsonpath"
-homepage = "https://v0ldek.github.io/rsonpath/"
 build = "build.rs"
 workspace = "../.."
-edition = "2021"
 rust-version = "1.78.0"
 
 [[bin]]
@@ -44,3 +44,6 @@ trycmd = "0.15.8"
 [features]
 default = ["simd"]
 simd = ["rsonpath-lib/simd"]
+
+[lints]
+workspace = true

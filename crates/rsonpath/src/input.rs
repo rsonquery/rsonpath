@@ -8,18 +8,18 @@ use std::{
 
 const MAX_EAGER_LEN: u64 = 1 << 20;
 
-pub enum JsonSource<S> {
+pub(super) enum JsonSource<S> {
     File(fs::File),
     Stdin(io::Stdin),
     Inline(S),
 }
 
-pub enum JsonSourceRead<'a> {
+pub(super) enum JsonSourceRead<'a> {
     File(&'a mut fs::File),
     Stdin(&'a mut io::Stdin),
 }
 
-pub enum ResolvedInputKind {
+pub(super) enum ResolvedInputKind {
     Mmap,
     Owned,
     Buffered,
@@ -31,9 +31,9 @@ impl<S> JsonSource<S> {
         use std::os::fd::AsRawFd;
 
         match self {
-            JsonSource::File(f) => Some(f.as_raw_fd()),
-            JsonSource::Stdin(s) => Some(s.as_raw_fd()),
-            JsonSource::Inline(_) => None,
+            Self::File(f) => Some(f.as_raw_fd()),
+            Self::Stdin(s) => Some(s.as_raw_fd()),
+            Self::Inline(_) => None,
         }
     }
 
@@ -42,17 +42,17 @@ impl<S> JsonSource<S> {
         use os::windows::io::AsRawHandle;
 
         match self {
-            JsonSource::File(f) => Some(f.as_raw_handle()),
-            JsonSource::Stdin(s) => Some(s.as_raw_handle()),
-            JsonSource::Inline(_) => None,
+            Self::File(f) => Some(f.as_raw_handle()),
+            Self::Stdin(s) => Some(s.as_raw_handle()),
+            Self::Inline(_) => None,
         }
     }
 
     pub(crate) fn try_as_read(&mut self) -> Option<JsonSourceRead> {
         match self {
-            JsonSource::File(f) => Some(JsonSourceRead::File(f)),
-            JsonSource::Stdin(s) => Some(JsonSourceRead::Stdin(s)),
-            JsonSource::Inline(_) => None,
+            Self::File(f) => Some(JsonSourceRead::File(f)),
+            Self::Stdin(s) => Some(JsonSourceRead::Stdin(s)),
+            Self::Inline(_) => None,
         }
     }
 }
@@ -66,7 +66,7 @@ impl Read for JsonSourceRead<'_> {
     }
 }
 
-pub fn decide_input_strategy<S>(
+pub(super) fn decide_input_strategy<S>(
     source: &JsonSource<S>,
     force_input: Option<&InputArg>,
 ) -> Result<(ResolvedInputKind, Option<ResolvedInputKind>)> {

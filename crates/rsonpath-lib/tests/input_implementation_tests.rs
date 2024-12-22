@@ -50,9 +50,9 @@ impl FileTestInput {
 
     fn test_on_file(&self, path: &str) {
         match self {
-            FileTestInput::Buffered => Self::test_buffered(path),
-            FileTestInput::Mmap => Self::test_mmap(path),
-            FileTestInput::Borrowed => Self::test_borrowed(path),
+            Self::Buffered => Self::test_buffered(path),
+            Self::Mmap => Self::test_mmap(path),
+            Self::Borrowed => Self::test_borrowed(path),
         }
     }
 
@@ -65,7 +65,7 @@ impl FileTestInput {
         let file = Self::get_file(path);
         let input = BufferedInput::new(file);
 
-        test_equivalence(&buf, input);
+        test_equivalence(&buf, &input);
     }
 
     fn test_mmap(path: &str) {
@@ -75,9 +75,10 @@ impl FileTestInput {
         drop(file);
 
         let file = Self::get_file(path);
+        // SAFETY: We keep the file open until end of this function.
         let input = unsafe { MmapInput::map_file(&file) }.unwrap();
 
-        test_equivalence(&buf, input);
+        test_equivalence(&buf, &input);
     }
 
     fn test_borrowed(path: &str) {
@@ -86,68 +87,56 @@ impl FileTestInput {
         file.read_to_end(&mut buf).unwrap();
         let input = BorrowedBytes::new(&buf);
 
-        test_equivalence(&buf, input);
+        test_equivalence(&buf, &input);
     }
 }
 
 impl InMemoryTestInput {
     fn test_padding(&self, bytes: &[u8]) {
         match self {
-            InMemoryTestInput::Buffered => Self::test_padding_buffered(bytes),
-            InMemoryTestInput::Borrowed => Self::test_padding_borrowed(bytes),
-            InMemoryTestInput::Owned => Self::test_padding_owned(bytes),
+            Self::Buffered => Self::test_padding_buffered(bytes),
+            Self::Borrowed => Self::test_padding_borrowed(bytes),
+            Self::Owned => Self::test_padding_owned(bytes),
         }
     }
 
     fn test_seek_forward(&self, bytes: &[u8], from: usize, needle: u8, expected: usize) {
         match self {
-            InMemoryTestInput::Buffered => Self::test_seek_forward_buffered(bytes, from, needle, expected),
-            InMemoryTestInput::Borrowed => Self::test_seek_forward_borrowed(bytes, from, needle, expected),
-            InMemoryTestInput::Owned => Self::test_seek_forward_owned(bytes, from, needle, expected),
+            Self::Buffered => Self::test_seek_forward_buffered(bytes, from, needle, expected),
+            Self::Borrowed => Self::test_seek_forward_borrowed(bytes, from, needle, expected),
+            Self::Owned => Self::test_seek_forward_owned(bytes, from, needle, expected),
         }
     }
 
     fn test_seek_non_whitespace_forward(&self, bytes: &[u8], from: usize, expected: usize, expected_byte: u8) {
         match self {
-            InMemoryTestInput::Buffered => {
-                Self::test_seek_non_whitespace_forward_buffered(bytes, from, expected, expected_byte)
-            }
-            InMemoryTestInput::Borrowed => {
-                Self::test_seek_non_whitespace_forward_borrowed(bytes, from, expected, expected_byte)
-            }
-            InMemoryTestInput::Owned => {
-                Self::test_seek_non_whitespace_forward_owned(bytes, from, expected, expected_byte)
-            }
+            Self::Buffered => Self::test_seek_non_whitespace_forward_buffered(bytes, from, expected, expected_byte),
+            Self::Borrowed => Self::test_seek_non_whitespace_forward_borrowed(bytes, from, expected, expected_byte),
+            Self::Owned => Self::test_seek_non_whitespace_forward_owned(bytes, from, expected, expected_byte),
         }
     }
 
     fn test_seek_backward(&self, bytes: &[u8], from: usize, needle: u8, expected: usize) {
         match self {
-            InMemoryTestInput::Buffered => Self::test_seek_backward_buffered(bytes, from, needle, expected),
-            InMemoryTestInput::Borrowed => Self::test_seek_backward_borrowed(bytes, from, needle, expected),
-            InMemoryTestInput::Owned => Self::test_seek_backward_owned(bytes, from, needle, expected),
+            Self::Buffered => Self::test_seek_backward_buffered(bytes, from, needle, expected),
+            Self::Borrowed => Self::test_seek_backward_borrowed(bytes, from, needle, expected),
+            Self::Owned => Self::test_seek_backward_owned(bytes, from, needle, expected),
         }
     }
 
     fn test_seek_non_whitespace_backward(&self, bytes: &[u8], from: usize, expected: usize, expected_byte: u8) {
         match self {
-            InMemoryTestInput::Buffered => {
-                Self::test_seek_non_whitespace_backward_buffered(bytes, from, expected, expected_byte)
-            }
-            InMemoryTestInput::Borrowed => {
-                Self::test_seek_non_whitespace_backward_borrowed(bytes, from, expected, expected_byte)
-            }
-            InMemoryTestInput::Owned => {
-                Self::test_seek_non_whitespace_backward_owned(bytes, from, expected, expected_byte)
-            }
+            Self::Buffered => Self::test_seek_non_whitespace_backward_buffered(bytes, from, expected, expected_byte),
+            Self::Borrowed => Self::test_seek_non_whitespace_backward_borrowed(bytes, from, expected, expected_byte),
+            Self::Owned => Self::test_seek_non_whitespace_backward_owned(bytes, from, expected, expected_byte),
         }
     }
 
-    fn test_positive_is_member_match(&self, bytes: &[u8], from: usize, to: usize, json_string: StringPattern) {
+    fn test_positive_is_member_match(&self, bytes: &[u8], from: usize, to: usize, json_string: &StringPattern) {
         match self {
-            InMemoryTestInput::Buffered => Self::test_positive_is_member_match_buffered(bytes, from, to, json_string),
-            InMemoryTestInput::Borrowed => Self::test_positive_is_member_match_borrowed(bytes, from, to, json_string),
-            InMemoryTestInput::Owned => Self::test_positive_is_member_match_owned(bytes, from, to, json_string),
+            Self::Buffered => Self::test_positive_is_member_match_buffered(bytes, from, to, json_string),
+            Self::Borrowed => Self::test_positive_is_member_match_borrowed(bytes, from, to, json_string),
+            Self::Owned => Self::test_positive_is_member_match_owned(bytes, from, to, json_string),
         }
     }
 
@@ -269,50 +258,50 @@ impl InMemoryTestInput {
         assert_eq!(result, Some((expected, expected_byte)));
     }
 
-    fn test_positive_is_member_match_buffered(bytes: &[u8], from: usize, to: usize, json_string: StringPattern) {
+    fn test_positive_is_member_match_buffered(bytes: &[u8], from: usize, to: usize, json_string: &StringPattern) {
         let input = create_buffered(bytes);
 
-        let result = input.is_member_match(from, to, &json_string).expect("match succeeds");
+        let result = input.is_member_match(from, to, json_string).expect("match succeeds");
         // Buffered is never padded from the start.
 
         assert!(result);
     }
 
-    fn test_positive_is_member_match_borrowed(bytes: &[u8], from: usize, to: usize, json_string: StringPattern) {
+    fn test_positive_is_member_match_borrowed(bytes: &[u8], from: usize, to: usize, json_string: &StringPattern) {
         let input = BorrowedBytes::new(bytes);
 
         // Need to take padding into account.
         let from = from + input.leading_padding_len();
         let to = to + input.leading_padding_len();
-        let result = input.is_member_match(from, to, &json_string).expect("match succeeds");
+        let result = input.is_member_match(from, to, json_string).expect("match succeeds");
 
         assert!(result);
     }
 
-    fn test_positive_is_member_match_owned(bytes: &[u8], from: usize, to: usize, json_string: StringPattern) {
+    fn test_positive_is_member_match_owned(bytes: &[u8], from: usize, to: usize, json_string: &StringPattern) {
         let input = OwnedBytes::new(bytes);
 
         // Need to take padding into account.
         let from = from + input.leading_padding_len();
         let to = to + input.leading_padding_len();
-        let result = input.is_member_match(from, to, &json_string).expect("match succeeds");
+        let result = input.is_member_match(from, to, json_string).expect("match succeeds");
 
         assert!(result);
     }
 
     fn test_padding_buffered(bytes: &[u8]) {
         let input = create_buffered(bytes);
-        test_equivalence(bytes, input);
+        test_equivalence(bytes, &input);
     }
 
     fn test_padding_borrowed(bytes: &[u8]) {
         let input = BorrowedBytes::new(bytes);
-        test_equivalence(bytes, input);
+        test_equivalence(bytes, &input);
     }
 
     fn test_padding_owned(bytes: &[u8]) {
         let input = OwnedBytes::new(bytes);
-        test_equivalence(bytes, input);
+        test_equivalence(bytes, &input);
     }
 }
 
@@ -321,7 +310,7 @@ fn create_buffered(bytes: &[u8]) -> BufferedInput<ReadBytes> {
     BufferedInput::new(read)
 }
 
-fn test_equivalence<I: Input>(original_contents: &[u8], input: I) {
+fn test_equivalence<I: Input>(original_contents: &[u8], input: &I) {
     let original_length = original_contents.len();
     let mut input_contents = read_input_to_end(input).unwrap();
 
@@ -330,11 +319,11 @@ fn test_equivalence<I: Input>(original_contents: &[u8], input: I) {
     buffered_assert_eq(&input_contents.data, original_contents);
 }
 
-fn read_input_to_end<I: Input>(input: I) -> Result<ResultInput, InputError> {
+fn read_input_to_end<I: Input>(input: &I) -> Result<ResultInput, InputError> {
     let mut result: Vec<u8> = vec![];
     let mut iter = input.iter_blocks::<_, BLOCK_SIZE>(&EmptyRecorder);
 
-    while let Some(block) = iter.next().map_err(|x| x.into())? {
+    while let Some(block) = iter.next().map_err(std::convert::Into::into)? {
         result.extend_from_slice(&block)
     }
 
@@ -503,17 +492,17 @@ mod in_memory_proptests {
 
         #[test]
         fn buffered_input_is_member_match_should_be_true((input, from, to, member) in positive_is_member_match_strategy()) {
-             InMemoryTestInput::Buffered.test_positive_is_member_match(&input, from, to, member)
+             InMemoryTestInput::Buffered.test_positive_is_member_match(&input, from, to, &member)
         }
 
         #[test]
         fn borrowed_input_is_member_match_should_be_true((input, from, to, member) in positive_is_member_match_strategy()) {
-            InMemoryTestInput::Borrowed.test_positive_is_member_match(&input, from, to, member)
+            InMemoryTestInput::Borrowed.test_positive_is_member_match(&input, from, to, &member)
         }
 
         #[test]
         fn owned_input_is_member_match_should_be_true((input, from, to, member) in positive_is_member_match_strategy()) {
-            InMemoryTestInput::Owned.test_positive_is_member_match(&input, from, to, member)
+            InMemoryTestInput::Owned.test_positive_is_member_match(&input, from, to, &member)
         }
     }
 

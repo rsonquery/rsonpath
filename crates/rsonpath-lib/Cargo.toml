@@ -1,10 +1,13 @@
 [package]
+version = { workspace = true }
+authors = { workspace = true }
+readme = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+homepage = { workspace = true }
+edition = { workspace = true }
 name = "rsonpath-lib"
-version = "0.9.1"
-authors = ["Mateusz Gienieczko <mat@gienieczko.com>"]
 description = "Blazing fast JSONPath query engine powered by SIMD. Core library of `rsonpath`."
-readme = "README.md"
-license = "MIT"
 keywords = ["json", "jsonpath", "query", "search", "simd"]
 exclude = [
     "/tests",
@@ -13,9 +16,6 @@ exclude = [
     "/src/classification/classifier_correctness_tests.proptest-regressions",
 ]
 categories = ["text-processing"]
-repository = "https://github.com/V0ldek/rsonpath"
-homepage = "https://v0ldek.github.io/rsonpath/"
-edition = "2021"
 rust-version = "1.67.1"
 
 [lib]
@@ -52,3 +52,6 @@ simd = []
 name = "approx_spans_usage"
 path = "examples/approx_spans_usage.rs"
 doc-scrape-examples = true
+
+[lints]
+workspace = true

@@ -2,7 +2,7 @@ use std::sync::OnceLock;
 
 static LONG_VERSION: OnceLock<String> = OnceLock::new();
 
-pub fn get_long_version() -> &'static str {
+pub(super) fn get_long_version() -> &'static str {
     LONG_VERSION.get_or_init(|| {
         let mut res = env!("CARGO_PKG_VERSION").to_owned();
         let simd = rsonpath_lib::classification::describe_simd();
