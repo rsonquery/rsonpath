@@ -1,7 +1,6 @@
 use clap::{Parser, Subcommand};
 use rsonpath::lookup_table::{
     count_distances::{self, DISTANCE_EVAL_DIR},
-    packed_stacked_frame::{test_packed_stacked_frame, PackedStackFrame},
     performance::{self, BUILD_TIME_EVAL_DIR, HEAP_EVAL_DIR},
     sichash_test_data_generator::{self, SICHASH_DATA_DIR},
 };
@@ -81,7 +80,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             performance::performance_test(json_dir, &csv_dir, *tasks);
         }
         Commands::Test {} => {
-            test_packed_stacked_frame();
+            // TODO test_packed_stacked_frame
         }
     }
 
