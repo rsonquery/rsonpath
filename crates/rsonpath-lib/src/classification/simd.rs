@@ -461,7 +461,7 @@ pub(crate) enum SimdTag {
 }
 
 /// Runtime-detected SIMD configuration guiding how to construct a [`Simd`] implementation for the engine.
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct SimdConfiguration {
     highest_simd: SimdTag,
     fast_quotes: bool,
