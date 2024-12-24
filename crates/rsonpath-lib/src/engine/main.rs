@@ -69,7 +69,8 @@ use smallvec::{smallvec, SmallVec};
 ///
 /// The engine is stateless, meaning that it can be executed
 /// on any number of separate inputs, even on separate threads.
-#[derive(Clone)]
+
+#[derive(Clone, Debug)]
 pub struct MainEngine {
     automaton: Automaton,
     simd: SimdConfiguration,
