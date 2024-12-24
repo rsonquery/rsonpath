@@ -49,7 +49,7 @@ where
     ) -> Result<usize, EngineError> {
         // debug!("Skipping BracketType: {:?} from {}", bracket_type, opening_idx_padded);
         if let Some(lut) = lut {
-            self.skip_with_lut(opening_idx_padded, bracket_type, &lut, padding)
+            self.skip_with_lut(opening_idx_padded, bracket_type, lut, padding)
         } else {
             debug!("Skipping without LUT");
             self.skip_without_lut(bracket_type)
@@ -89,13 +89,13 @@ where
         if let Some(idx_close) = lut.get(&(opening_idx_padded - padding)) {
             // Shift index by 1 or its off aligned TODO: fix lut
             let idx_close = idx_close + 1;
-            let idx_close_pad = padding + idx_close as usize;
+            let idx_close_pad = padding + idx_close;
 
             // 1. Tell the Structural Classifier (self.classifier) to jump
             self.classifier
                 .as_mut()
                 .expect("tail skip must always hold a classifier")
-                .jump_to_idx(idx_close_pad)?;
+                .jump_to_idx(idx_close_pad, false)?;
 
             debug!(
                 "LUT:({},{}) No-PAD:({},{})",
@@ -225,5 +225,70 @@ where
         self.classifier
             .as_mut()
             .expect("tail skip must always hold a classifier")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        classification::{
+            simd::{self, config_simd, Simd},
+            structural::{BracketType, Structural},
+        },
+        engine::{error::EngineError, tail_skipping::TailSkip},
+        input::{Input, OwnedBytes},
+        result::empty::EmptyRecorder,
+        FallibleIterator,
+    };
+
+    /// Skipping that ends at the very end of a block is an edge case that triggered a bug once.
+    #[test]
+    fn skipping_over_block_boundary() -> Result<(), EngineError> {
+        // Force the bytes to be misaligned from the 128B boundary.
+        #[repr(C, align(128))]
+        struct Misaligned {
+            /// Misalign by 1B.
+            pad: u8,
+            /// JSON goes here.
+            arr: [u8; 37],
+        }
+        impl std::borrow::Borrow<[u8]> for &Misaligned {
+            fn borrow(&self) -> &[u8] {
+                &self.arr
+            }
+        }
+        // We will model the query $.a..b which causes one skip from the second curly
+        // and then at the end a skip of the entire object.
+        let json = r#"{"a":[{"c":{"d":[42,43,44],"b":45}}]}"#;
+        let mut misaligned = Misaligned { pad: 0, arr: [0; 37] };
+        misaligned.arr.copy_from_slice(json.as_bytes());
+        let input = OwnedBytes::new(&misaligned);
+
+        let simd = simd::configure();
+        config_simd!(simd => |simd| {
+            let recorder = EmptyRecorder;
+            let iter = input.iter_blocks(&recorder);
+            let quote_classifier = simd.classify_quoted_sequences(iter);
+            let structural_classifier = simd.classify_structural_characters(quote_classifier);
+            let mut classifier = TailSkip::new(structural_classifier, simd);
+
+            assert_eq!(Some(Structural::Opening(BracketType::Curly, 91)), classifier.next()?);
+            assert_eq!(Some(Structural::Opening(BracketType::Square, 96)), classifier.next()?);
+            assert_eq!(Some(Structural::Opening(BracketType::Curly, 97)), classifier.next()?);
+
+            // We've read this one
+            //       v
+            // {"a":[{"c":{"d":[42,43,44],"b":45}}]}
+            //                                  ^ and skip to here.
+            let end_idx1 = classifier.skip_without_lut(BracketType::Curly)?;
+            assert_eq!(126, end_idx1);
+
+            // Now we expect to skip to the very end of the document.
+            let end_idx2 = classifier.skip_without_lut(BracketType::Curly)?;
+            assert_eq!(128, end_idx2);
+
+            Ok::<(), EngineError>(())
+        })?;
+        Ok(())
     }
 }

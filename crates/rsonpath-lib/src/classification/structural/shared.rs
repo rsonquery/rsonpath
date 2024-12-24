@@ -239,10 +239,9 @@ macro_rules! structural_classifier {
                 }
             }
 
-            fn jump_to_idx(&mut self, idx: usize) -> Result<(), InputError>{
+            fn jump_to_idx(&mut self, idx: usize, expect_quoted: bool) -> Result<(), InputError> {
                 // TODO Ricardo copy the nosimd implementation
                 todo!()
-
 
                 // TODO: use this instead the from index function
                 // let mask = <$mask_ty>::MAX << block_idx;

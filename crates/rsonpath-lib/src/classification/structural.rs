@@ -171,7 +171,7 @@ where
     fn turn_colons_and_commas_off(&mut self);
 
     /// Added by Ricardo
-    fn jump_to_idx(&mut self, idx: usize) -> Result<(), InputError>;
+    fn jump_to_idx(&mut self, idx: usize, expect_quoted: bool) -> Result<(), InputError>;
 }
 
 pub(crate) mod nosimd;
