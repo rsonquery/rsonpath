@@ -12,12 +12,7 @@ use crate::{automaton::error::CompilerError, debug, string_pattern::StringPatter
 use nfa::NondeterministicAutomaton;
 use rsonpath_syntax::{num::JsonUInt, JsonPathQuery};
 use smallvec::SmallVec;
-use std::{fmt::Display, ops::Index};
-
-#[cfg(not(feature = "multithread"))]
-use std::rc::Rc;
-#[cfg(feature = "multithread")]
-use std::sync::Arc as Rc;
+use std::{fmt::Display, ops::Index, sync::Arc};
 
 /// A minimal, deterministic automaton representing a JSONPath query.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -26,7 +21,7 @@ pub struct Automaton {
 }
 
 /// Transition when a JSON member name matches a [`StringPattern`].
-pub type MemberTransition = (Rc<StringPattern>, State);
+pub type MemberTransition = (Arc<StringPattern>, State);
 
 /// Transition on elements of an array with indices specified by either a single index
 /// or a simple slice expression.

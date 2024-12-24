@@ -2,10 +2,7 @@
 //! the first matching member name in a query starting with a self-looping state.
 //! This happens in queries starting with a descendant selector.
 
-#[cfg(not(feature = "multithread"))]
-use std::rc::Rc;
-#[cfg(feature = "multithread")]
-use std::sync::Arc as Rc;
+use std::sync::Arc;
 
 use crate::{
     automaton::{Automaton, State},
@@ -71,7 +68,7 @@ pub(super) struct HeadSkip<'b, I, V, const N: usize> {
     bytes: &'b I,
     state: State,
     is_accepting: bool,
-    member_name: Rc<StringPattern>,
+    member_name: Arc<StringPattern>,
     simd: V,
 }
 

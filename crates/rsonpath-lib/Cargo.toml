@@ -47,7 +47,6 @@ test-case = { workspace = true }
 default = ["simd"]
 arbitrary = ["dep:arbitrary"]
 simd = []
-multithread = []
 
 [[example]]
 name = "approx_spans_usage"

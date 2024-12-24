@@ -76,6 +76,8 @@ pub struct MainEngine {
     simd: SimdConfiguration,
 }
 
+static_assertions::assert_impl_all!(MainEngine: Send, Sync);
+
 impl Compiler for MainEngine {
     type E = Self;
 

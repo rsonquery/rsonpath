@@ -5,12 +5,7 @@ use crate::{automaton::SimpleSlice, error::UnsupportedFeatureError, string_patte
 
 use super::{error::CompilerError, ArrayTransitionLabel};
 use rsonpath_syntax::{str::JsonString, JsonPathQuery, Step};
-use std::{collections::HashMap, fmt::Display, ops::Index};
-
-#[cfg(not(feature = "multithread"))]
-use std::rc::Rc;
-#[cfg(feature = "multithread")]
-use std::sync::Arc as Rc;
+use std::{collections::HashMap, fmt::Display, ops::Index, sync::Arc};
 
 /// An NFA representing a query. It is always a directed path
 /// from an initial state to the unique accepting state at the end,
@@ -39,7 +34,7 @@ pub(super) enum Transition {
     /// A transition matching array indices.
     Array(ArrayTransitionLabel),
     /// A transition matching a specific member.
-    Member(Rc<StringPattern>),
+    Member(Arc<StringPattern>),
     /// A transition matching anything.
     Wildcard,
 }
@@ -76,7 +71,7 @@ impl NondeterministicAutomaton {
         use rsonpath_syntax::{Index, Selector};
         use std::collections::hash_map::Entry;
 
-        let mut string_pattern_cache: HashMap<&'q JsonString, Rc<StringPattern>> = HashMap::new();
+        let mut string_pattern_cache: HashMap<&'q JsonString, Arc<StringPattern>> = HashMap::new();
 
         let states_result: Result<Vec<NfaState>, CompilerError> = query
             .segments()
@@ -92,7 +87,7 @@ impl NondeterministicAutomaton {
                             let pattern = match string_pattern_cache.entry(name) {
                                 Entry::Occupied(pat) => pat.get().clone(),
                                 Entry::Vacant(entry) => {
-                                    let pat = Rc::new(StringPattern::new(name));
+                                    let pat = Arc::new(StringPattern::new(name));
                                     entry.insert(pat.clone());
                                     pat
                                 }
@@ -247,10 +242,10 @@ mod tests {
 
         let expected_automaton = NondeterministicAutomaton {
             ordered_states: vec![
-                NfaState::Direct(Transition::Member(Rc::new(StringPattern::new(&label_a)))),
-                NfaState::Direct(Transition::Member(Rc::new(StringPattern::new(&label_b)))),
-                NfaState::Recursive(Transition::Member(Rc::new(StringPattern::new(&label_c)))),
-                NfaState::Recursive(Transition::Member(Rc::new(StringPattern::new(&label_d)))),
+                NfaState::Direct(Transition::Member(Arc::new(StringPattern::new(&label_a)))),
+                NfaState::Direct(Transition::Member(Arc::new(StringPattern::new(&label_b)))),
+                NfaState::Recursive(Transition::Member(Arc::new(StringPattern::new(&label_c)))),
+                NfaState::Recursive(Transition::Member(Arc::new(StringPattern::new(&label_d)))),
                 NfaState::Direct(Transition::Wildcard),
                 NfaState::Direct(Transition::Wildcard),
                 NfaState::Recursive(Transition::Wildcard),

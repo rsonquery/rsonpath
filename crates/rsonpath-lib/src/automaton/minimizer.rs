@@ -1,9 +1,6 @@
 //! Determinization and minimization of an NFA into the final DFA used by the engines.
 
-#[cfg(not(feature = "multithread"))]
-use std::rc::Rc;
-#[cfg(feature = "multithread")]
-use std::sync::Arc as Rc;
+use std::sync::Arc;
 
 // NOTE: Some comments in this module are outdated, because the minimizer doesn't
 // actually produce minimal automata as of now - see #91.
@@ -53,7 +50,7 @@ pub(super) struct Minimizer {
 #[derive(Debug)]
 struct SuperstateTransitionTable {
     array: ArrayTransitionSet,
-    member: VecMap<Rc<StringPattern>, SmallSet256>,
+    member: VecMap<Arc<StringPattern>, SmallSet256>,
     wildcard: SmallSet256,
 }
 
@@ -180,7 +177,7 @@ impl Minimizer {
         &self,
         id: DfaStateId,
         array_transitions: &[ArrayTransition],
-        member_transitions: &[(Rc<StringPattern>, DfaStateId)],
+        member_transitions: &[(Arc<StringPattern>, DfaStateId)],
         fallback: DfaStateId,
     ) -> StateAttributes {
         let mut attrs = StateAttributesBuilder::new();
@@ -557,8 +554,8 @@ mod tests {
     #[test]
     fn interstitial_descendant_wildcard() {
         // Query = $..a.b..*.a..b
-        let label_a = Rc::new(StringPattern::new(&JsonString::new("a")));
-        let label_b = Rc::new(StringPattern::new(&JsonString::new("b")));
+        let label_a = Arc::new(StringPattern::new(&JsonString::new("a")));
+        let label_b = Arc::new(StringPattern::new(&JsonString::new("b")));
 
         let nfa = NondeterministicAutomaton {
             ordered_states: vec![
@@ -626,8 +623,8 @@ mod tests {
     #[test]
     fn interstitial_nondescendant_wildcard() {
         // Query = $..a.b.*.a..b
-        let label_a = Rc::new(StringPattern::new(&JsonString::new("a")));
-        let label_b = Rc::new(StringPattern::new(&JsonString::new("b")));
+        let label_a = Arc::new(StringPattern::new(&JsonString::new("a")));
+        let label_b = Arc::new(StringPattern::new(&JsonString::new("b")));
 
         let nfa = NondeterministicAutomaton {
             ordered_states: vec![
@@ -701,7 +698,7 @@ mod tests {
     #[test]
     fn simple_multi_accepting() {
         // Query = $..a.*
-        let label = Rc::new(StringPattern::new(&JsonString::new("a")));
+        let label = Arc::new(StringPattern::new(&JsonString::new("a")));
 
         let nfa = NondeterministicAutomaton {
             ordered_states: vec![
@@ -799,7 +796,7 @@ mod tests {
     #[test]
     fn chained_wildcard_children() {
         // Query = $.a.*.*.*
-        let label = Rc::new(StringPattern::new(&JsonString::new("a")));
+        let label = Arc::new(StringPattern::new(&JsonString::new("a")));
 
         let nfa = NondeterministicAutomaton {
             ordered_states: vec![
@@ -860,7 +857,7 @@ mod tests {
     #[test]
     fn chained_wildcard_children_after_descendant() {
         // Query = $..a.*.*
-        let label = Rc::new(StringPattern::new(&JsonString::new("a")));
+        let label = Arc::new(StringPattern::new(&JsonString::new("a")));
 
         let nfa = NondeterministicAutomaton {
             ordered_states: vec![
@@ -938,11 +935,11 @@ mod tests {
     #[test]
     fn child_and_descendant() {
         // Query = $.x..a.b.a.b.c..d
-        let label_a = Rc::new(StringPattern::new(&JsonString::new("a")));
-        let label_b = Rc::new(StringPattern::new(&JsonString::new("b")));
-        let label_c = Rc::new(StringPattern::new(&JsonString::new("c")));
-        let label_d = Rc::new(StringPattern::new(&JsonString::new("d")));
-        let label_x = Rc::new(StringPattern::new(&JsonString::new("x")));
+        let label_a = Arc::new(StringPattern::new(&JsonString::new("a")));
+        let label_b = Arc::new(StringPattern::new(&JsonString::new("b")));
+        let label_c = Arc::new(StringPattern::new(&JsonString::new("c")));
+        let label_d = Arc::new(StringPattern::new(&JsonString::new("d")));
+        let label_x = Arc::new(StringPattern::new(&JsonString::new("x")));
 
         let nfa = NondeterministicAutomaton {
             ordered_states: vec![
@@ -1024,9 +1021,9 @@ mod tests {
     #[test]
     fn child_descendant_and_child_wildcard() {
         // Query = $.x.*..a.*.b
-        let label_a = Rc::new(StringPattern::new(&JsonString::new("a")));
-        let label_b = Rc::new(StringPattern::new(&JsonString::new("b")));
-        let label_x = Rc::new(StringPattern::new(&JsonString::new("x")));
+        let label_a = Arc::new(StringPattern::new(&JsonString::new("a")));
+        let label_b = Arc::new(StringPattern::new(&JsonString::new("b")));
+        let label_x = Arc::new(StringPattern::new(&JsonString::new("x")));
 
         let nfa = NondeterministicAutomaton {
             ordered_states: vec![
@@ -1106,10 +1103,10 @@ mod tests {
     #[test]
     fn all_name_and_wildcard_selectors() {
         // Query = $.a.b..c..d.*..*
-        let label_a = Rc::new(StringPattern::new(&JsonString::new("a")));
-        let label_b = Rc::new(StringPattern::new(&JsonString::new("b")));
-        let label_c = Rc::new(StringPattern::new(&JsonString::new("c")));
-        let label_d = Rc::new(StringPattern::new(&JsonString::new("d")));
+        let label_a = Arc::new(StringPattern::new(&JsonString::new("a")));
+        let label_b = Arc::new(StringPattern::new(&JsonString::new("b")));
+        let label_c = Arc::new(StringPattern::new(&JsonString::new("c")));
+        let label_d = Arc::new(StringPattern::new(&JsonString::new("d")));
 
         let nfa = NondeterministicAutomaton {
             ordered_states: vec![
