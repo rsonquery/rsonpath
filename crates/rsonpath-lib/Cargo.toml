@@ -54,15 +54,14 @@ siphasher = "1.0" # for the phf_crate code
 clap = { version = "4.5.20", features = ["derive"]}
 itertools = "0.13.0"
 rayon = {version = "1.10"}
+# Added by Ricardo
+simple_logger = "4.3.3"
 
 [dev-dependencies]
 itertools = { workspace = true }
 pretty_assertions = { workspace = true }
 proptest = { workspace = true }
 test-case = { workspace = true }
-
-# Added by Ricardo
-simple_logger = "4.3.3"
 
 [features]
 default = ["simd"]

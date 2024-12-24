@@ -1,10 +1,22 @@
 use clap::{Parser, Subcommand};
-use rsonpath::lookup_table::{
-    count_distances::{self, DISTANCE_EVAL_DIR},
-    performance::{self, BUILD_TIME_EVAL_DIR, HEAP_EVAL_DIR},
-    sichash_test_data_generator::{self, SICHASH_DATA_DIR},
+use log::LevelFilter;
+use rsonpath::{
+    engine::{Compiler, Engine, RsonpathEngine},
+    input::OwnedBytes,
+    lookup_table::{
+        count_distances::{self, DISTANCE_EVAL_DIR},
+        performance::{self, BUILD_TIME_EVAL_DIR, HEAP_EVAL_DIR},
+        sichash_test_data_generator::{self, SICHASH_DATA_DIR},
+        LookUpTable, LookUpTableImpl,
+    },
 };
-use std::{error::Error, fs, path::Path};
+use simple_logger::SimpleLogger;
+use std::{
+    error::Error,
+    fs,
+    io::{BufReader, Read},
+    path::Path,
+};
 
 #[derive(Parser)]
 #[command(
@@ -47,6 +59,12 @@ enum Commands {
         tasks: u16,
     },
 
+    Run {
+        json_query: String,
+
+        json_path: String,
+    },
+
     Test {},
 }
 
@@ -78,6 +96,32 @@ fn main() -> Result<(), Box<dyn Error>> {
             let csv_dir = format!("{}/{}", out_dir, "performance");
 
             performance::performance_test(json_dir, &csv_dir, *tasks);
+        }
+        Commands::Run { json_query, json_path } => {
+            SimpleLogger::new().with_level(LevelFilter::Trace).init()?;
+            let lut = LookUpTableImpl::build(json_path)?;
+            let query = rsonpath_syntax::parse(json_query)?;
+            let mut engine = RsonpathEngine::compile_query(&query)?;
+            engine.add_lut(lut);
+
+            // Get results
+            let input = {
+                let mut file = BufReader::new(fs::File::open(json_path)?);
+                let mut buf = vec![];
+                file.read_to_end(&mut buf)?;
+                // Here you can define whether to use OwnedBytes (padding), Mmap (padding = 0)  or Borrowed (padding)
+                OwnedBytes::new(buf)
+            };
+            let mut sink = vec![];
+            engine.matches(&input, &mut sink)?;
+            let results = sink
+                .into_iter()
+                .map(|m| String::from_utf8_lossy(m.bytes()).to_string())
+                .collect::<Vec<_>>();
+            println!("Found: ");
+            for res in results {
+                println!("{res}");
+            }
         }
         Commands::Test {} => {
             // TODO test_packed_stacked_frame

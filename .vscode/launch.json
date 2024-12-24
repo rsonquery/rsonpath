@@ -33,6 +33,30 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Debug executable 'lut'",
+            "env": {
+                "RSONPATH_UNSAFE_FORCE_SIMD": "nosimd;slow_quotes;slow_popcnt"
+            },
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=lut",
+                ],
+                "filter": {
+                    "name": "lut",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "run",
+                "$.a..b",
+                "./crates/rsonpath-test/documents/json/compressed/atomic_after_list.json"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Debug unit tests in library 'rsonpath-lib'",
             "env": {
                 "RUSTFLAGS": "-C target-cpu=native"
