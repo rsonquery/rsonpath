@@ -37,54 +37,57 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> Result<(), io::Error> {
                 InputTypeToTest::Buffered,
                 InputTypeToTest::Mmap,
             ] {
-                for result_type in get_available_results(&discovered_doc.document.input.source, query)? {
-                    let fn_name = format_ident!(
-                        "{}",
-                        heck::AsSnakeCase(format!(
-                            "{}_with_query_{}_with_{}_and_{}_using_{}",
-                            discovered_doc.document.input.description,
-                            query.description,
+                for engine_type in [EngineTypeToTest::Main, EngineTypeToTest::MainWithLut] {
+                    for result_type in get_available_results(&discovered_doc.document.input.source, query)? {
+                        let fn_name = format_ident!(
+                            "{}",
+                            heck::AsSnakeCase(format!(
+                                "{}_with_query_{}_with_{}_and_{}_using_{}",
+                                discovered_doc.document.input.description,
+                                query.description,
+                                input_type,
+                                result_type,
+                                engine_type,
+                            ))
+                            .to_string()
+                        );
+                        let full_description = format!(
+                            r#"on document {} running the query {} ({}) with Input impl {} and result mode {} using engine {}"#,
+                            escape_format(&discovered_doc.name.simple_name()),
+                            escape_format(&query.query),
+                            escape_format(&query.description),
+                            escape_format(&input_type),
+                            escape_format(&result_type),
+                            escape_format(&engine_type)
+                        );
+                        let body = generate_body(
+                            &full_description,
+                            &input_json,
+                            query,
                             input_type,
                             result_type,
-                            EngineTypeToTest::Main,
-                        ))
-                        .to_string()
-                    );
-                    let full_description = format!(
-                        r#"on document {} running the query {} ({}) with Input impl {} and result mode {}"#,
-                        escape_format(&discovered_doc.name.simple_name()),
-                        escape_format(&query.query),
-                        escape_format(&query.description),
-                        escape_format(&input_type),
-                        escape_format(&result_type)
-                    );
-                    let body = generate_body(
-                        &full_description,
-                        &input_json,
-                        query,
-                        input_type,
-                        result_type,
-                        EngineTypeToTest::Main,
-                    );
-                    let mb_ignore = if let Some(disabled) = &query.disabled {
-                        let reason = format!("{} (see {})", disabled.reason, disabled.issue);
-                        quote! {
-                            #[doc = #reason]
-                            #[ignore]
-                        }
-                    } else {
-                        quote! {}
-                    };
+                            engine_type,
+                        );
+                        let mb_ignore = if let Some(disabled) = &query.disabled {
+                            let reason = format!("{} (see {})", disabled.reason, disabled.issue);
+                            quote! {
+                                #[doc = #reason]
+                                #[ignore]
+                            }
+                        } else {
+                            quote! {}
+                        };
 
-                    let r#fn = quote! {
-                        #mb_ignore
-                        #[test]
-                        fn #fn_name() -> Result<(), Box<dyn Error>> {
-                            #body
-                        }
-                    };
+                        let r#fn = quote! {
+                            #mb_ignore
+                            #[test]
+                            fn #fn_name() -> Result<(), Box<dyn Error>> {
+                                #body
+                            }
+                        };
 
-                    fns.push((fn_name, r#fn));
+                        fns.push((fn_name, r#fn));
+                    }
                 }
             }
             fns.sort_by(|x, y| x.0.cmp(&y.0));
@@ -148,8 +151,8 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> Result<(), io::Error> {
     ) -> TokenStream {
         let query_ident = format_ident!("jsonpath_query");
         let query_string = &query.query;
-        let (input_ident, input_setup_code) = generate_input_setup(input_json_path, input_type);
-        let (engine_ident, engine_setup_code) = generate_engine_setup(engine_type, &query_ident);
+        let (input_ident, input_setup_code) = generate_input_setup(&input_json_path, input_type);
+        let (engine_ident, engine_setup_code) = generate_engine_setup(input_json_path, engine_type, &query_ident);
         let run_and_diff_code = generate_run_and_diff_code(query, result_type, &engine_ident, &input_ident);
 
         quote! {
@@ -193,13 +196,25 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> Result<(), io::Error> {
         (ident, code)
     }
 
-    fn generate_engine_setup(engine_type: EngineTypeToTest, query_ident: &Ident) -> (Ident, TokenStream) {
+    fn generate_engine_setup<P: AsRef<Path>>(
+        input_path: P,
+        engine_type: EngineTypeToTest,
+        query_ident: &Ident,
+    ) -> (Ident, TokenStream) {
         let ident = format_ident!("engine");
+        let raw_input_path = input_path.as_ref().to_str().expect("supported unicode path");
 
         let code = match engine_type {
             EngineTypeToTest::Main => {
                 quote! {
                     let #ident = MainEngine::compile_query(&#query_ident)?;
+                }
+            }
+            EngineTypeToTest::MainWithLut => {
+                quote! {
+                    let lut = LookUpTableImpl::build(#raw_input_path)?;
+                    let mut #ident = MainEngine::compile_query(&#query_ident)?;
+                    #ident.add_lut(lut);
                 }
             }
         };
@@ -349,6 +364,7 @@ pub(crate) fn generate_imports() -> TokenStream {
     quote! {
         use rsonpath_lib::engine::{Compiler, Engine, main::MainEngine};
         use rsonpath_lib::input::*;
+        use rsonpath_lib::lookup_table::{LookUpTable, LookUpTableImpl};
         use pretty_assertions::assert_eq;
         use std::error::Error;
         use std::fs;
@@ -376,6 +392,7 @@ enum ResultTypeToTest {
 #[derive(Clone, Copy)]
 enum EngineTypeToTest {
     Main,
+    MainWithLut,
 }
 
 impl Display for InputTypeToTest {
@@ -415,6 +432,7 @@ impl Display for EngineTypeToTest {
             "{}",
             match self {
                 Self::Main => "MainEngine",
+                Self::MainWithLut => "MainEngine(with LUT)",
             }
         )
     }
