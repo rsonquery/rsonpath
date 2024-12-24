@@ -5,7 +5,12 @@ use crate::{automaton::SimpleSlice, error::UnsupportedFeatureError, string_patte
 
 use super::{error::CompilerError, ArrayTransitionLabel};
 use rsonpath_syntax::{str::JsonString, JsonPathQuery, Step};
-use std::{collections::HashMap, fmt::Display, ops::Index, rc::Rc};
+use std::{collections::HashMap, fmt::Display, ops::Index};
+
+#[cfg(not(feature = "multithread"))]
+use std::rc::Rc;
+#[cfg(feature = "multithread")]
+use std::sync::Arc as Rc;
 
 /// An NFA representing a query. It is always a directed path
 /// from an initial state to the unique accepting state at the end,

@@ -1,7 +1,11 @@
 //! Engine decorator that performs **head skipping** &ndash; an extremely optimized search for
 //! the first matching member name in a query starting with a self-looping state.
 //! This happens in queries starting with a descendant selector.
+
+#[cfg(not(feature = "multithread"))]
 use std::rc::Rc;
+#[cfg(feature = "multithread")]
+use std::sync::Arc as Rc;
 
 use crate::{
     automaton::{Automaton, State},

@@ -1,6 +1,9 @@
 //! Determinization and minimization of an NFA into the final DFA used by the engines.
 
+#[cfg(not(feature = "multithread"))]
 use std::rc::Rc;
+#[cfg(feature = "multithread")]
+use std::sync::Arc as Rc;
 
 // NOTE: Some comments in this module are outdated, because the minimizer doesn't
 // actually produce minimal automata as of now - see #91.
