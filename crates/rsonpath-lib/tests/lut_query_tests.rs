@@ -7,15 +7,9 @@ use std::{
 use log::debug;
 use rsonpath::{
     engine::{Compiler, Engine, RsonpathEngine},
-    input::{Input, OwnedBytes},
-    lookup_table::{
-        lut_hash_map::LutHashMap, lut_hash_map_double::LutHashMapDouble, lut_perfect_naive::LutPerfectNaive,
-        lut_phf::LutPHF, lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup, pair_finder, LookUpTable,
-        LookUpTableImpl,
-    },
-    result::Match,
+    input::OwnedBytes,
+    lookup_table::{LookUpTable, LookUpTableImpl},
 };
-use rsonpath_syntax::JsonPathQuery;
 
 // JSON files
 const JOHN_BIG_JSON: &str = "tests/json/john_big.json";
@@ -47,7 +41,8 @@ fn query_with_lut(json_path: &str, query_text: &str, expected_result: Vec<usize>
 
     // Build query
     let query = rsonpath_syntax::parse(query_text)?;
-    let engine = RsonpathEngine::compile_query(&query)?;
+    let mut engine = RsonpathEngine::compile_query(&query)?;
+    engine.add_lut(lut);
 
     // Get results
     let input = {
@@ -58,7 +53,7 @@ fn query_with_lut(json_path: &str, query_text: &str, expected_result: Vec<usize>
         OwnedBytes::new(buf)
     };
     let mut sink = vec![];
-    engine.matches_with_lut(&input, lut, &mut sink)?;
+    engine.matches(&input, &mut sink)?;
     let results = sink.into_iter().map(|m| m.span().start_idx()).collect::<Vec<_>>();
 
     // Compare expected result with result

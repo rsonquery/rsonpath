@@ -73,6 +73,14 @@ use smallvec::{smallvec, SmallVec};
 pub struct MainEngine {
     automaton: Automaton,
     simd: SimdConfiguration,
+    lut: Option<LookUpTableImpl>,
+}
+
+impl MainEngine {
+    #[inline(always)]
+    pub fn add_lut(&mut self, lut: LookUpTableImpl) {
+        self.lut = Some(lut)
+    }
 }
 
 impl Compiler for MainEngine {
@@ -85,14 +93,22 @@ impl Compiler for MainEngine {
         debug!("DFA:\n {}", automaton);
         let simd = simd::configure();
         log::info!("SIMD configuration:\n {}", simd);
-        Ok(Self { automaton, simd })
+        Ok(Self {
+            automaton,
+            simd,
+            lut: None,
+        })
     }
 
     #[inline(always)]
     fn from_compiled_query(automaton: Automaton) -> Self::E {
         let simd = simd::configure();
         log::info!("SIMD configuration:\n {}", simd);
-        Self { automaton, simd }
+        Self {
+            automaton,
+            simd,
+            lut: None,
+        }
     }
 }
 
@@ -121,7 +137,7 @@ impl Engine for MainEngine {
 
         let recorder = CountRecorder::new();
         config_simd!(self.simd => |simd| {
-            let executor = query_executor(&self.automaton, input, None, &recorder, simd);
+            let executor = query_executor(&self.automaton, input, self.lut.as_ref(), &recorder, simd);
             executor.run()
         })?;
 
@@ -143,7 +159,7 @@ impl Engine for MainEngine {
 
         let recorder = IndexRecorder::new(sink, input.leading_padding_len());
         config_simd!(self.simd => |simd| {
-            let executor = query_executor(&self.automaton, input, None, &recorder, simd);
+            let executor = query_executor(&self.automaton, input, self.lut.as_ref(), &recorder, simd);
             executor.run()
         })?;
 
@@ -165,7 +181,7 @@ impl Engine for MainEngine {
 
         let recorder = ApproxSpanRecorder::new(sink, input.leading_padding_len());
         config_simd!(self.simd => |simd| {
-            let executor = query_executor(&self.automaton, input, None, &recorder, simd);
+            let executor = query_executor(&self.automaton, input, self.lut.as_ref(), &recorder, simd);
             executor.run()
         })?;
 
@@ -187,29 +203,7 @@ impl Engine for MainEngine {
 
         let recorder = NodesRecorder::build_recorder(sink, input.leading_padding_len());
         config_simd!(self.simd => |simd| {
-            let executor = query_executor(&self.automaton, input, None, &recorder, simd);
-            executor.run()
-        })?;
-
-        Ok(())
-    }
-
-    #[inline]
-    fn matches_with_lut<I, S>(&self, input: &I, lut: LookUpTableImpl, sink: &mut S) -> Result<(), EngineError>
-    where
-        I: Input,
-        S: Sink<Match>,
-    {
-        if self.automaton.is_select_root_query() {
-            return select_root_query::match_(input, sink);
-        }
-        if self.automaton.is_empty_query() {
-            return Ok(());
-        }
-
-        let recorder = NodesRecorder::build_recorder(sink, input.leading_padding_len());
-        config_simd!(self.simd => |simd| {
-            let executor = query_executor(&self.automaton, input, Some(lut), &recorder, simd);
+            let executor = query_executor(&self.automaton, input, self.lut.as_ref(), &recorder, simd);
             executor.run()
         })?;
 
@@ -255,14 +249,14 @@ struct Executor<'i, 'r, I, R, V> {
     recorder: &'r R,
     /// Resolved SIMD context.
     simd: V,
-    lut: Option<LookUpTableImpl>,
+    lut: Option<&'i LookUpTableImpl>,
 }
 
 /// Initialize the [`Executor`] for the initial state of a query.
 fn query_executor<'i, 'r, I, R, V: Simd>(
     automaton: &'i Automaton,
     input: &'i I,
-    jump_table: Option<LookUpTableImpl>,
+    jump_table: Option<&'i LookUpTableImpl>,
     recorder: &'r R,
     simd: V,
 ) -> Executor<'i, 'r, I, R, V>
@@ -421,7 +415,7 @@ where
             }
             let bracket_type = self.current_node_bracket_type();
             debug!("Skipping unique state from {bracket_type:?}");
-            let stop_at = classifier.skip(idx, bracket_type, self.lut.as_ref(), self.input.leading_padding_len())?;
+            let stop_at = classifier.skip(idx, bracket_type, self.lut, self.input.leading_padding_len())?;
             // Skipping stops at the closing character *and consumes it*. We still need the main loop to properly
             // handle a closing, so we set the lookahead to the correct character.
             self.next_event = Some(Structural::Closing(bracket_type, stop_at));
@@ -520,8 +514,7 @@ where
             if self.automaton.is_rejecting(fallback) {
                 // Tail skipping. Skip the entire subtree. The skipping consumes the closing character.
                 // We still need to notify the recorder - in case the value being skipped was actually accepted.
-                let closing_idx =
-                    classifier.skip(idx, bracket_type, self.lut.as_ref(), self.input.leading_padding_len())?;
+                let closing_idx = classifier.skip(idx, bracket_type, self.lut, self.input.leading_padding_len())?;
                 return self.recorder.record_value_terminator(closing_idx, self.depth);
             } else {
                 self.transition_to(fallback, bracket_type);
@@ -616,8 +609,7 @@ where
             if self.automaton.is_unitary(self.state) {
                 let bracket_type = self.current_node_bracket_type();
                 debug!("Skipping unique state from {bracket_type:?}");
-                let close_idx =
-                    classifier.skip(idx, bracket_type, self.lut.as_ref(), self.input.leading_padding_len())?;
+                let close_idx = classifier.skip(idx, bracket_type, self.lut, self.input.leading_padding_len())?;
                 // Skipping stops at the closing character *and consumes it*. We still need the main loop to properly
                 // handle a closing, so we set the lookahead to the correct character.
                 self.next_event = Some(Structural::Closing(bracket_type, close_idx));
