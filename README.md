@@ -216,13 +216,13 @@ cargo tree --package rsonpath --edges normal --depth 1
 
 <!-- rsonpath dependencies start -->
 ```ini
-rsonpath v0.9.2 (/home/mat/src/rsonpath/crates/rsonpath)
+rsonpath v0.9.3 (/home/mat/src/rsonpath/crates/rsonpath)
 ├── clap v4.5.23
 ├── color-eyre v0.6.3
 ├── eyre v0.6.12
 ├── log v0.4.22
-├── rsonpath-lib v0.9.2 (/home/mat/src/rsonpath/crates/rsonpath-lib)
-├── rsonpath-syntax v0.3.1 (/home/mat/src/rsonpath/crates/rsonpath-syntax)
+├── rsonpath-lib v0.9.3 (/home/mat/src/rsonpath/crates/rsonpath-lib)
+├── rsonpath-syntax v0.3.2 (/home/mat/src/rsonpath/crates/rsonpath-syntax)
 └── simple_logger v5.0.0
 [build-dependencies]
 ├── rustflags v0.1.6
@@ -241,12 +241,12 @@ cargo tree --package rsonpath-lib --edges normal --depth 1
 
 <!-- rsonpath-lib dependencies start -->
 ```ini
-rsonpath-lib v0.9.2 (/home/mat/src/rsonpath/crates/rsonpath-lib)
+rsonpath-lib v0.9.3 (/home/mat/src/rsonpath/crates/rsonpath-lib)
 ├── arbitrary v1.4.1
 ├── cfg-if v1.0.0
 ├── log v0.4.22
 ├── memmap2 v0.9.5
-├── rsonpath-syntax v0.3.1 (/home/mat/src/rsonpath/crates/rsonpath-syntax)
+├── rsonpath-syntax v0.3.2 (/home/mat/src/rsonpath/crates/rsonpath-syntax)
 ├── smallvec v1.13.2
 ├── static_assertions v1.1.0
 ├── thiserror v2.0.9
@@ -275,7 +275,7 @@ cargo tree --package rsonpath --edges normal
 
 <!-- rsonpath-full dependencies start -->
 ```ini
-rsonpath v0.9.2 (/home/mat/src/rsonpath/crates/rsonpath)
+rsonpath v0.9.3 (/home/mat/src/rsonpath/crates/rsonpath)
 ├── clap v4.5.23
 │   ├── clap_builder v4.5.23
 │   │   ├── anstream v0.6.18
@@ -347,12 +347,12 @@ rsonpath v0.9.2 (/home/mat/src/rsonpath/crates/rsonpath)
 │   └── owo-colors v3.5.0
 ├── eyre v0.6.12 (*)
 ├── log v0.4.22
-├── rsonpath-lib v0.9.2 (/home/mat/src/rsonpath/crates/rsonpath-lib)
+├── rsonpath-lib v0.9.3 (/home/mat/src/rsonpath/crates/rsonpath-lib)
 │   ├── cfg-if v1.0.0
 │   ├── log v0.4.22
 │   ├── memmap2 v0.9.5
 │   │   └── libc v0.2.169
-│   ├── rsonpath-syntax v0.3.1 (/home/mat/src/rsonpath/crates/rsonpath-syntax)
+│   ├── rsonpath-syntax v0.3.2 (/home/mat/src/rsonpath/crates/rsonpath-syntax)
 │   │   ├── nom v7.1.3
 │   │   │   ├── memchr v2.7.4
 │   │   │   └── minimal-lexical v0.2.1
@@ -393,7 +393,7 @@ rsonpath v0.9.2 (/home/mat/src/rsonpath/crates/rsonpath)
 │           ├── rand_core v0.5.1 (*)
 │           └── rand_hc v0.2.0
 │               └── rand_core v0.5.1 (*)
-├── rsonpath-syntax v0.3.1 (/home/mat/src/rsonpath/crates/rsonpath-syntax) (*)
+├── rsonpath-syntax v0.3.2 (/home/mat/src/rsonpath/crates/rsonpath-syntax) (*)
 └── simple_logger v5.0.0
     ├── colored v2.2.0
     │   ├── lazy_static v1.5.0
