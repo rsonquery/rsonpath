@@ -12,20 +12,20 @@ use crate::{automaton::error::CompilerError, debug, string_pattern::StringPatter
 use nfa::NondeterministicAutomaton;
 use rsonpath_syntax::{num::JsonUInt, JsonPathQuery};
 use smallvec::SmallVec;
-use std::{fmt::Display, ops::Index, rc::Rc};
+use std::{fmt::Display, ops::Index, sync::Arc};
 
 /// A minimal, deterministic automaton representing a JSONPath query.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Automaton {
     states: Vec<StateTable>,
 }
 
 /// Transition when a JSON member name matches a [`StringPattern`].
-pub type MemberTransition = (Rc<StringPattern>, State);
+pub type MemberTransition = (Arc<StringPattern>, State);
 
 /// Transition on elements of an array with indices specified by either a single index
 /// or a simple slice expression.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ArrayTransition {
     label: ArrayTransitionLabel,
     target: State,
@@ -44,7 +44,7 @@ pub(super) enum ArrayTransitionLabel {
 ///
 /// Contains transitions triggered by matching member names or array indices, and a fallback transition
 /// triggered when none of the labelled transitions match.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct StateTable {
     attributes: StateAttributes,
     member_transitions: SmallVec<[MemberTransition; 2]>,
