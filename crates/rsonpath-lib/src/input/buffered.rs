@@ -277,11 +277,6 @@ where
     fn get_offset(&self) -> usize {
         self.idx
     }
-
-    fn jump_to_idx(&mut self, idx: usize) {
-        // TODO Ricardo
-        // todo!()
-    }
 }
 
 impl<const N: usize> Deref for BufferedInputBlock<N> {
