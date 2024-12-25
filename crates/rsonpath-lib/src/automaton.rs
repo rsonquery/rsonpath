@@ -389,7 +389,7 @@ impl Automaton {
         self[state].attributes.is_unitary()
     }
 
-    /// Returns JSONPath segments as strings from an Automation instance
+    /// Returns JSONPath segments as unquoted strings from an Automation instance
     ///
     ///  It traverses the states and transitions of the internal automaton to collect the unquoted patterns representing the individual components of the JSONPath query.
     /// # Example
@@ -403,7 +403,7 @@ impl Automaton {
     /// ```
     #[must_use]
     #[inline(always)]
-    pub fn get_jsonpath_segments(&self) -> Vec<String> {
+    pub fn unquoted_jsonpath_segments(&self) -> Vec<String> {
         self.states
             .iter()
             .flat_map(|state| {

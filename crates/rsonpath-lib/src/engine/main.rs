@@ -195,7 +195,7 @@ impl Engine for MainEngine {
 }
 
 impl MainEngine {
-    /// Returns JSONPath segments as strings from an MainEngine instance
+    /// Returns JSONPath segments as unquoted strings from an MainEngine instance
     ///
     ///  It traverses the states and transitions of the internal automaton to collect the unquoted patterns representing the individual components of the JSONPath query.
     /// # Example
@@ -203,15 +203,15 @@ impl MainEngine {
     /// use rsonpath::automaton::*;
     /// let path = "$.personal.details.contact.information.phones.home";
     /// let automation = Automaton::new(&rsonpath_syntax::parse(path).unwrap()).unwrap();
-    /// let engine = RsonpathEngine::from_compiled_query(a)
+    /// let engine = RsonpathEngine::from_compiled_query(a);
     /// let jsonpath_strings = engine.get_jsonpath_segments();
     ///
     /// println!("{:?}", jsonpath_strings); // ["personal", "details", "contact", "information", "phones", "home"]
     /// ```
     #[must_use]
     #[inline]
-    pub fn get_jsonpath_segments(&self) -> Vec<String> {
-        self.automaton.get_jsonpath_segments()
+    pub fn unquoted_jsonpath_segments(&self) -> Vec<String> {
+        self.automaton.unquoted_jsonpath_segments()
     }
 }
 
