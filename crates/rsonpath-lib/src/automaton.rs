@@ -389,6 +389,28 @@ impl Automaton {
         self[state].attributes.is_unitary()
     }
 
+    /// Returns JSONPath segments as strings from an Automation instance
+    ///
+    ///  It traverses the states and transitions of the internal automaton to collect the unquoted patterns representing the individual components of the JSONPath query.
+    /// # Example
+    /// ```rust
+    /// use rsonpath::automaton::*;
+    /// let path = "$.personal.details.contact.information.phones.home";
+    /// let automation = Automaton::new(&rsonpath_syntax::parse(path).unwrap()).unwrap();
+    /// let jsonpath_strings = automation.get_jsonpath_segments();
+    ///
+    /// println!("{:?}", jsonpath_strings); // ["personal", "details", "contact", "information", "phones", "home"]
+    /// ```
+    #[must_use]
+    #[inline(always)]
+    pub fn get_jsonpath_segments(&self) -> Vec<String> {
+        self.states
+            .iter()
+            .flat_map(|state| state.member_transitions.iter().map(|(pattern, _)| pattern.unquoted()))
+            .map(|pattern| std::str::from_utf8(pattern).unwrap().to_string())
+            .collect()
+    }
+
     fn minimize(nfa: NondeterministicAutomaton) -> Result<Self, CompilerError> {
         minimizer::minimize(nfa)
     }

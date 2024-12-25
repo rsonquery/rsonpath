@@ -194,6 +194,26 @@ impl Engine for MainEngine {
     }
 }
 
+impl MainEngine {
+    /// Returns JSONPath segments as strings from an MainEngine instance
+    ///
+    ///  It traverses the states and transitions of the internal automaton to collect the unquoted patterns representing the individual components of the JSONPath query.
+    /// # Example
+    /// ```rust
+    /// use rsonpath::automaton::*;
+    /// let path = "$.personal.details.contact.information.phones.home";
+    /// let automation = Automaton::new(&rsonpath_syntax::parse(path).unwrap()).unwrap();
+    /// let engine = RsonpathEngine::from_compiled_query(a)
+    /// let jsonpath_strings = engine.get_jsonpath_segments();
+    ///
+    /// println!("{:?}", jsonpath_strings); // ["personal", "details", "contact", "information", "phones", "home"]
+    /// ```
+    #[inline]
+    pub fn get_jsonpath_segments(&self) -> Vec<String> {
+        self.automaton.get_jsonpath_segments()
+    }
+}
+
 // This is a convenience macro to hide the enormous type of the classifier.
 // It expects generic types `I` (the Input implementation), `R` (the Recorder),
 // and `V` (the SIMD context).
