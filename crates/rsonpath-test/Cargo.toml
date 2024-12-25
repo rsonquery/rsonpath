@@ -26,4 +26,4 @@ rsonpath-syntax = { workspace = true }
 eyre = "0.6.12"
 glob = "0.3.1"
 md5 = "0.7.0"
-rsonpath-test-codegen = { version = "0.9.1", path = "../rsonpath-test-codegen" }
+rsonpath-test-codegen = { version = "0.9.3", path = "../rsonpath-test-codegen" }

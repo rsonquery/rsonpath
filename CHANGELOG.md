@@ -2,11 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.3] - 2024-12-24
+
+### Library
+
+- Made `MainEngine` `Send` and `Sync`
+  - Changed internal `Rc`s to `Arc`s in the automaton labels.
+  - Added a `static_assert` to make sure `MainEngine` is `Send+Sync` forever.
+- Added a `Debug` impl for `MainEngine`.
+
 ## [0.9.2] - 2024-12-22
 
 ### Library
 
-- Added `StringPattern` and made `Automaton` no longer borrow the query. ([#117](https://github.com/V0ldek/rsonpath/issues/117)[#613](https://github.com/V0ldek/rsonpath/issues/613))
+- [**breaking**] Added `StringPattern` and made `Automaton` no longer borrow the query. ([#117](https://github.com/V0ldek/rsonpath/issues/117)[#613](https://github.com/V0ldek/rsonpath/issues/613))
 
   - The `Automaton` struct borrowed the source query, which also caused the Engine to carry the query's lifetime with it.
     The actual data being borrowed were the `JsonString` values for member transitions.
@@ -17,6 +26,8 @@ All notable changes to this project will be documented in this file.
     To reduce the size of the automaton we cache the patterns and put them into an `Rc`.
     This may get optimised later to instead use some kind of inline storage, but it's unlike to actually matter.
     I ran the benchmarks and saw no measurable difference between the previous version and this one.
+  - This is a breaking API change -- the `MainEngine` is now lifetimeless and the `Compiler` trait requires the
+    returned engine to be lifetimeless.
 
 ### Dependencies
 

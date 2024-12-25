@@ -6,7 +6,7 @@ default: (build-all "release")
 # === INIT ===
 
 # Initialize the repository for development.
-init: check-cargo hooks-init checkout-submodules
+init: check-cargo hooks-init checkout-submodules init-benchmarks
 
 # Check if cargo is installed and install it from rustup if not.
 [private]
