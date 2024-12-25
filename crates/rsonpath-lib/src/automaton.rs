@@ -397,7 +397,7 @@ impl Automaton {
     /// use rsonpath::automaton::*;
     /// let path = "$.personal.details.contact.information.phones.home";
     /// let automation = Automaton::new(&rsonpath_syntax::parse(path).unwrap()).unwrap();
-    /// let jsonpath_strings = automation.get_jsonpath_segments();
+    /// let jsonpath_strings = automation.unquoted_jsonpath_segments();
     ///
     /// println!("{:?}", jsonpath_strings); // ["personal", "details", "contact", "information", "phones", "home"]
     /// ```

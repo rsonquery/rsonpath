@@ -201,10 +201,12 @@ impl MainEngine {
     /// # Example
     /// ```rust
     /// use rsonpath::automaton::*;
+    /// use rsonpath::engine::RsonpathEngine;
+    /// use crate::rsonpath::engine::Compiler;
     /// let path = "$.personal.details.contact.information.phones.home";
     /// let automation = Automaton::new(&rsonpath_syntax::parse(path).unwrap()).unwrap();
-    /// let engine = RsonpathEngine::from_compiled_query(a);
-    /// let jsonpath_strings = engine.get_jsonpath_segments();
+    /// let engine = RsonpathEngine::from_compiled_query(automation);
+    /// let jsonpath_strings = engine.unquoted_jsonpath_segments();
     ///
     /// println!("{:?}", jsonpath_strings); // ["personal", "details", "contact", "information", "phones", "home"]
     /// ```
