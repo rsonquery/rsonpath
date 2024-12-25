@@ -406,8 +406,12 @@ impl Automaton {
     pub fn get_jsonpath_segments(&self) -> Vec<String> {
         self.states
             .iter()
-            .flat_map(|state| state.member_transitions.iter().map(|(pattern, _)| pattern.unquoted()))
-            .map(|pattern| std::str::from_utf8(pattern).unwrap().to_string())
+            .flat_map(|state| {
+                state
+                    .member_transitions
+                    .iter()
+                    .map(|(pattern, _)| pattern.unquoted_str().to_string())
+            })
             .collect()
     }
 

@@ -44,11 +44,25 @@ impl StringPattern {
         self.0.quoted().as_bytes()
     }
 
+    /// Get the underlying [`JsonString`], including the delimiting double quote symbols.
+    #[inline]
+    #[must_use]
+    pub fn quoted_str(&self) -> &str {
+        self.0.quoted()
+    }
+
     /// Get the underlying [`JsonString`] as bytes, without the delimiting quotes.
     #[inline]
     #[must_use]
     pub fn unquoted(&self) -> &[u8] {
         self.0.unquoted().as_bytes()
+    }
+
+    /// Get the underlying [`JsonString`], without the delimiting quotes.
+    #[inline]
+    #[must_use]
+    pub fn unquoted_str(&self) -> &str {
+        self.0.unquoted()
     }
 
     /// Create a new pattern from a given [`JsonString`].

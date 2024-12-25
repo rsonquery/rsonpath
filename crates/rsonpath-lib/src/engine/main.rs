@@ -208,6 +208,7 @@ impl MainEngine {
     ///
     /// println!("{:?}", jsonpath_strings); // ["personal", "details", "contact", "information", "phones", "home"]
     /// ```
+    #[must_use]
     #[inline]
     pub fn get_jsonpath_segments(&self) -> Vec<String> {
         self.automaton.get_jsonpath_segments()
