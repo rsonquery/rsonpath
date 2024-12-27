@@ -16,6 +16,7 @@ const JOHN_BIG_JSON: &str = "tests/json/john_big.json";
 const POKEMON_JSON: &str = "tests/json/pokemon_(6MB).json";
 const TWITTER_SHORT_JSON: &str = "tests/json/twitter_short_(80MB).json";
 const BESTBUY_JSON: &str = "tests/json/bestbuy_short_(103MB).json";
+const ERROR_1_JSON: &str = "tests/json/error_1.json";
 
 /// Run this with:
 #[test]
@@ -27,6 +28,12 @@ fn query_john_big_log() -> Result<(), Box<dyn Error>> {
 #[test]
 fn query_pokemon() -> Result<(), Box<dyn Error>> {
     query_with_lut(POKEMON_JSON, "$.cfgs[0].Name", vec![858, 996])
+}
+
+#[test]
+fn query_error_1() -> Result<(), Box<dyn Error>> {
+    debug!("Starting test for error_1.json");
+    query_with_lut(ERROR_1_JSON, "$.a..b", vec![0])
 }
 
 fn query_with_lut(json_path: &str, query_text: &str, expected_result: Vec<usize>) -> Result<(), Box<dyn Error>> {

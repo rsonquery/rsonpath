@@ -1,22 +1,11 @@
 use clap::{Parser, Subcommand};
-use log::LevelFilter;
-use rsonpath::{
-    engine::{Compiler, Engine, RsonpathEngine},
-    input::OwnedBytes,
-    lookup_table::{
-        count_distances::{self, DISTANCE_EVAL_DIR},
-        performance::{self, BUILD_TIME_EVAL_DIR, HEAP_EVAL_DIR},
-        sichash_test_data_generator::{self, SICHASH_DATA_DIR},
-        LookUpTable, LookUpTableImpl,
-    },
+use rsonpath::lookup_table::{
+    count_distances::{self, DISTANCE_EVAL_DIR},
+    performance::{self, BUILD_TIME_EVAL_DIR, HEAP_EVAL_DIR},
+    query_with_lut::query_with_lut,
+    sichash_test_data_generator::{self, SICHASH_DATA_DIR},
 };
-use simple_logger::SimpleLogger;
-use std::{
-    error::Error,
-    fs,
-    io::{BufReader, Read},
-    path::Path,
-};
+use std::{error::Error, fs, path::Path};
 
 #[derive(Parser)]
 #[command(
@@ -30,61 +19,51 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Measure distances for each JSON in the folder
+    /// Apply a query on the a given JSON file
+    Query {
+        /// Path to the JSON file
+        json_query: String,
+        /// Query to be applied
+        json_path: String,
+    },
+    /// Measure distances of each parenthesis pair for each JSON in the folder and plot the distribution
     Distances {
         /// Path to the folder containing JSON files
         json_dir: String,
-
-        /// Path to the output directory
+        /// Path to the output directory where the results are saved
         out_dir: String,
     },
-
-    Sichash {
-        /// Path to the folder containing JSON files
-        json_dir: String,
-
-        /// Path to the output directory
-        out_dir: String,
-    },
-
     /// Run performance tests
     Performance {
         /// Path to the input JSON folder
         json_dir: String,
-
         /// Path to the output directory
         out_dir: String,
-
         /// Task to run: 0 for time eval, 1 for get eval, 2 for heap eval, 2 for both
         tasks: u16,
     },
-
-    Run {
-        json_query: String,
-
-        json_path: String,
+    /// Create the test data used in this project: https://github.com/KraftRicardo/test-SicHash
+    Sichash {
+        /// Path to the folder containing JSON files
+        json_dir: String,
+        /// Path to the output directory where the results are saved
+        out_dir: String,
     },
-
-    Test {},
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
 
     match &cli.command {
+        Commands::Query { json_query, json_path } => {
+            query_with_lut(json_path, json_query);
+        }
         Commands::Distances { json_dir, out_dir } => {
             check_if_dir_exists(json_dir);
             create_folder_setup(out_dir)?;
             let csv_dir = format!("{}/{}", out_dir, "performance");
 
             count_distances::count_distances_in_dir(json_dir, &csv_dir);
-        }
-        Commands::Sichash { json_dir, out_dir } => {
-            check_if_dir_exists(json_dir);
-            create_folder_setup(out_dir)?;
-            let csv_dir = format!("{}/{}", out_dir, "performance");
-
-            sichash_test_data_generator::generate_test_data_for_sichash(json_dir, &csv_dir);
         }
         Commands::Performance {
             json_dir,
@@ -97,34 +76,12 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             performance::performance_test(json_dir, &csv_dir, *tasks);
         }
-        Commands::Run { json_query, json_path } => {
-            SimpleLogger::new().with_level(LevelFilter::Trace).init()?;
-            let lut = LookUpTableImpl::build(json_path)?;
-            let query = rsonpath_syntax::parse(json_query)?;
-            let mut engine = RsonpathEngine::compile_query(&query)?;
-            engine.add_lut(lut);
+        Commands::Sichash { json_dir, out_dir } => {
+            check_if_dir_exists(json_dir);
+            create_folder_setup(out_dir)?;
+            let csv_dir = format!("{}/{}", out_dir, "performance");
 
-            // Get results
-            let input = {
-                let mut file = BufReader::new(fs::File::open(json_path)?);
-                let mut buf = vec![];
-                file.read_to_end(&mut buf)?;
-                // Here you can define whether to use OwnedBytes (padding), Mmap (padding = 0)  or Borrowed (padding)
-                OwnedBytes::new(buf)
-            };
-            let mut sink = vec![];
-            engine.matches(&input, &mut sink)?;
-            let results = sink
-                .into_iter()
-                .map(|m| String::from_utf8_lossy(m.bytes()).to_string())
-                .collect::<Vec<_>>();
-            println!("Found: ");
-            for res in results {
-                println!("{res}");
-            }
-        }
-        Commands::Test {} => {
-            // TODO test_packed_stacked_frame
+            sichash_test_data_generator::generate_test_data_for_sichash(json_dir, &csv_dir);
         }
     }
 
