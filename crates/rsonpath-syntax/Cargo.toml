@@ -27,7 +27,7 @@ unicode-width = "0.2.0"
 
 [dev-dependencies]
 ciborium = { workspace = true, default-features = true }
-insta = "1.41.1"
+insta = { workspace = true, features = ["ron"] }
 pretty_assertions = { workspace = true }
 proptest = { workspace = true }
 rmp-serde = { workspace = true }

@@ -39,6 +39,7 @@ vector-map = "1.0.1"
 
 [dev-dependencies]
 ciborium = { workspace = true, default-features = true }
+insta = { workspace = true, features = ["ron"] }
 itertools = { workspace = true }
 pretty_assertions = { workspace = true }
 proptest = { workspace = true }

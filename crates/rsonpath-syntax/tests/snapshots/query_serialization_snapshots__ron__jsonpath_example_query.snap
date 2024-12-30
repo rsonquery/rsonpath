@@ -1,0 +1,28 @@
+---
+source: crates/rsonpath-syntax/tests/query_serialization_snapshots.rs
+expression: "&parse(\"$..phoneNumbers[*].number\")?"
+snapshot_kind: text
+---
+JsonPathQuery(
+  segments: [
+    Descendant(Selectors(
+      inner: [
+        Name(JsonString(
+          quoted: "\"phoneNumbers\"",
+        )),
+      ],
+    )),
+    Child(Selectors(
+      inner: [
+        Wildcard,
+      ],
+    )),
+    Child(Selectors(
+      inner: [
+        Name(JsonString(
+          quoted: "\"number\"",
+        )),
+      ],
+    )),
+  ],
+)

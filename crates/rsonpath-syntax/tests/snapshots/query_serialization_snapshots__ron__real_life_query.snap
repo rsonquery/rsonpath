@@ -1,0 +1,51 @@
+---
+source: crates/rsonpath-syntax/tests/query_serialization_snapshots.rs
+expression: "&parse(\"$.personal.details.contact.information.phones.home\")?"
+snapshot_kind: text
+---
+JsonPathQuery(
+  segments: [
+    Child(Selectors(
+      inner: [
+        Name(JsonString(
+          quoted: "\"personal\"",
+        )),
+      ],
+    )),
+    Child(Selectors(
+      inner: [
+        Name(JsonString(
+          quoted: "\"details\"",
+        )),
+      ],
+    )),
+    Child(Selectors(
+      inner: [
+        Name(JsonString(
+          quoted: "\"contact\"",
+        )),
+      ],
+    )),
+    Child(Selectors(
+      inner: [
+        Name(JsonString(
+          quoted: "\"information\"",
+        )),
+      ],
+    )),
+    Child(Selectors(
+      inner: [
+        Name(JsonString(
+          quoted: "\"phones\"",
+        )),
+      ],
+    )),
+    Child(Selectors(
+      inner: [
+        Name(JsonString(
+          quoted: "\"home\"",
+        )),
+      ],
+    )),
+  ],
+)

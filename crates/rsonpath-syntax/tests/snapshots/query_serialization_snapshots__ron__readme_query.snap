@@ -1,0 +1,21 @@
+---
+source: crates/rsonpath-syntax/tests/query_serialization_snapshots.rs
+expression: "&parse(\"$.jsonpath[*]\")?"
+snapshot_kind: text
+---
+JsonPathQuery(
+  segments: [
+    Child(Selectors(
+      inner: [
+        Name(JsonString(
+          quoted: "\"jsonpath\"",
+        )),
+      ],
+    )),
+    Child(Selectors(
+      inner: [
+        Wildcard,
+      ],
+    )),
+  ],
+)

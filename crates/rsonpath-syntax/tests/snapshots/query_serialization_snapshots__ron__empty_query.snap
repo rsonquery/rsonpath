@@ -1,0 +1,8 @@
+---
+source: crates/rsonpath-syntax/tests/query_serialization_snapshots.rs
+expression: "&query"
+snapshot_kind: text
+---
+JsonPathQuery(
+  segments: [],
+)
