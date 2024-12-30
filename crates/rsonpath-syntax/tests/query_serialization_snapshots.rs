@@ -1,8 +1,7 @@
-use insta::assert_ron_snapshot;
-use rsonpath_syntax::parse;
-
+#[cfg(feature = "serde")]
 mod ron {
-    use super::*;
+    use insta::assert_ron_snapshot;
+    use rsonpath_syntax::parse;
     use std::error::Error;
 
     #[test]
