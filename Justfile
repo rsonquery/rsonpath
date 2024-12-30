@@ -267,7 +267,7 @@ assert-benchmarks-committed:
 
 # === RELEASE ===
 
-# Execute prerequisits for a release for the given version.
+# Execute prerequisites for a release for the given version.
 release ver:
     cargo update
     just release-patch {{ver}}
@@ -276,7 +276,7 @@ release ver:
     cargo build
     cargo +nightly fuzz build
 
-# Execute prerequisits for a release of `rsonpath-syntax` for the given version.
+# Execute prerequisites for a release of `rsonpath-syntax` for the given version.
 release-syntax ver:
     #!/usr/bin/env nu
     let ver = "{{ver}}";
@@ -297,10 +297,12 @@ release-readme:
     #!/usr/bin/env nu
     let rsonpath_deps = (cargo tree --package rsonpath --edges normal --edges build --depth 1 --target=all --all-features);
     let rsonpath_lib_deps = (cargo tree --package rsonpath-lib --edges normal --edges build --depth 1 --target=all --all-features);
+    let rsonpath_syntax_deps = (cargo tree --package rsonpath-syntax --edges normal --edges build --depth 1 --target=all --all-features);
     let rsonpath_full_deps = (cargo tree --package rsonpath --edges normal --edges build --target=all --all-features);
     let params = [
         [$rsonpath_deps, "rsonpath", "./README.md"],
         [$rsonpath_lib_deps, "rsonpath-lib", "./README.md"],
+        [$rsonpath_syntax_deps, "rsonpath-syntax", "./crates/rsonpath-syntax/README.md"],
         [$rsonpath_lib_deps, "rsonpath-lib", "./crates/rsonpath-lib/README.md"],
         [$rsonpath_full_deps, "rsonpath-full", "./README.md"]
     ];

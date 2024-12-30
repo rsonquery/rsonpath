@@ -18,6 +18,7 @@
 /// assert_eq!(needle.unquoted(), "needle");
 /// assert_eq!(needle.quoted(), "\"needle\"");
 /// ```
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone)]
 pub struct JsonString {
     quoted: String,

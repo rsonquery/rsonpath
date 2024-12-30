@@ -1,0 +1,28 @@
+[package]
+name = "rsonpath-syntax-proptest"
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+edition.workspace = true
+version = "0.3.2"
+description = "A JSONPath parser."
+readme = "README.md"
+keywords = ["json", "jsonpath", "query", "search", "parser"]
+exclude = ["tests", "src/cli.rs"]
+categories = ["parser-implementations", "text-processing"]
+rust-version = "1.67.1"
+
+[package.metadata.docs.rs]
+rustdoc-args = ["--cfg", "docsrs"]
+all-features = true
+
+[dependencies]
+rsonpath-syntax = { workspace = true }
+proptest = { workspace = true }
+
+[features]
+default = []
+
+[lints]
+workspace = true

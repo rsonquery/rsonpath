@@ -46,26 +46,26 @@ and how data flows from the user's input (query, document) through the pipeline 
 
 The `simd` feature is enabled by default and is recommended to make use of the performance benefits of the project.
 
-The `arbitrary` feature is optional and enables the [`arbitrary` dependency](https://lib.rs/crates/arbitrary),
-which provides an implementation of [`Arbitrary`](https://docs.rs/arbitrary/latest/arbitrary/trait.Arbitrary.html)
-for the query struct.
+The `serde` feature is optional and enables the [`serde` dependency](https://lib.rs/crates/serde),
+which allows serializing and deserializing the engine after compilation. Note: the binary format of the engine
+is expected to evolve and so changing it is considered a minor update for semver purposes.
 
 ## Dependencies
 
 Showing direct dependencies.
 
 ```bash
-cargo tree --package rsonpath-lib --edges normal --depth 1
+cargo tree --package rsonpath-lib --edges normal --depth 1 --target=all --all-features
 ```
 
 <!-- rsonpath-lib dependencies start -->
 ```ini
 rsonpath-lib v0.9.3 (/home/mat/src/rsonpath/crates/rsonpath-lib)
-├── arbitrary v1.4.1
 ├── cfg-if v1.0.0
 ├── log v0.4.22
 ├── memmap2 v0.9.5
 ├── rsonpath-syntax v0.3.2 (/home/mat/src/rsonpath/crates/rsonpath-syntax)
+|-- serde v1.0.217
 ├── smallvec v1.13.2
 ├── static_assertions v1.1.0
 ├── thiserror v2.0.9
@@ -76,10 +76,9 @@ rsonpath-lib v0.9.3 (/home/mat/src/rsonpath/crates/rsonpath-lib)
 ### Justification
 
 - `cfg-if` &ndash; used to support SIMD and no-SIMD versions.
-- `memchr` &ndash; rapid, SIMDified substring search for fast-forwarding to labels.
+- `log` &ndash; Rust standard logging idiom.
 - `memmap2` &ndash; for fast reading of source files via a memory map instead of buffered copies.
-- `nom` &ndash; for parser implementation.
-- `replace_with` &ndash; for safe handling of internal classifier state when switching classifiers.
+- `serde` &ndash; optional dependency for serialization and deserialization of compiled engines.
 - `smallvec` &ndash; crucial for small-stack performance.
 - `static_assertions` &ndash; additional reliability by some constant assumptions validated at compile time.
 - `thiserror` &ndash; idiomatic `Error` implementations.

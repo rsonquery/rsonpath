@@ -4,6 +4,7 @@ members = [
     "crates/rsonpath",
     "crates/rsonpath-lib",
     "crates/rsonpath-syntax",
+    "crates/rsonpath-syntax-proptest",
     "crates/rsonpath-test",
 ]
 
@@ -24,15 +25,23 @@ edition = "2021"
 # Project crates
 rsonpath-lib = { version = "0.9.3", path = "./crates/rsonpath-lib", package = "rsonpath-lib", default-features = false }
 rsonpath-syntax = { version = "0.3.2", path = "./crates/rsonpath-syntax" }
+rsonpath-syntax-proptest = { version = "0.3.2", path = "./crates/rsonpath-syntax-proptest" }
 # Main dependencies
 arbitrary = { version = "1.4.1" }
 cfg-if = "1.0.0"
 log = "0.4.22"
 thiserror = "2.0.9"
 # Dev-dependencies
+ciborium = { version = "0.2.2", default-features = false }
 itertools = "0.13.0"
 pretty_assertions = "1.4.1"
 proptest = "1.5.0"
+rmp-serde = "1.3.0"
+serde = { version = "1.0.217", default-features = false }
+serde_json = { version = "1.0.133", default-features = true, features = [
+    "std",
+    "float_roundtrip",
+] }
 test-case = "3.3.1"
 
 [workspace.lints.rust]

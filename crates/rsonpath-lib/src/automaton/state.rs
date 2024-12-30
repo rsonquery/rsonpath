@@ -30,6 +30,7 @@ pub(crate) struct StateAttributesBuilder {
 }
 
 /// A set of attributes that can be associated with a [`State`].
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default)]
 pub struct StateAttributes(u8);
 
@@ -167,6 +168,7 @@ impl StateAttributes {
 }
 
 /// State of an [`Automaton`](`super::Automaton`). Thin wrapper over a state's identifier.
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub struct State(
     // Only `pub` for the `automaton` module, since it needs to construct and deconstruct the wrapper.
