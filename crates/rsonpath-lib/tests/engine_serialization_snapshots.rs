@@ -1,8 +1,7 @@
-use insta::assert_ron_snapshot;
-use rsonpath::engine::{Compiler, RsonpathEngine};
-
+#[cfg(feature = "serde")]
 mod ron {
-    use super::*;
+    use insta::assert_ron_snapshot;
+    use rsonpath::engine::{Compiler, RsonpathEngine};
     use std::error::Error;
 
     fn engine(string: &str) -> Result<RsonpathEngine, Box<dyn Error>> {
