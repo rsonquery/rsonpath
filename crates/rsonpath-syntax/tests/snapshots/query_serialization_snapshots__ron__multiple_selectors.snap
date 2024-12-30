@@ -1,6 +1,6 @@
 ---
 source: crates/rsonpath-syntax/tests/query_serialization_snapshots.rs
-expression: "&parse(\"$..entries[3:5:7]\")?"
+expression: "&parse(\"$..entries['abc', 4, 7:10:13]\")?"
 snapshot_kind: text
 ---
 JsonPathQuery(
@@ -14,10 +14,14 @@ JsonPathQuery(
     )),
     Child(Selectors(
       inner: [
+        Name(JsonString(
+          quoted: "\"abc\"",
+        )),
+        Index(FromStart(JsonUInt(4))),
         Slice(Slice(
-          start: FromStart(JsonUInt(3)),
-          end: Some(FromStart(JsonUInt(5))),
-          step: Forward(JsonUInt(7)),
+          start: FromStart(JsonUInt(7)),
+          end: Some(FromStart(JsonUInt(10))),
+          step: Forward(JsonUInt(13)),
         )),
       ],
     )),

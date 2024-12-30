@@ -1,0 +1,47 @@
+---
+source: crates/rsonpath-syntax/tests/query_serialization_snapshots.rs
+expression: "&parse(\"$..user[?@.id == 'value']..entities..url\")?"
+snapshot_kind: text
+---
+JsonPathQuery(
+  segments: [
+    Descendant(Selectors(
+      inner: [
+        Name(JsonString(
+          quoted: "\"user\"",
+        )),
+      ],
+    )),
+    Child(Selectors(
+      inner: [
+        Filter(Comparison(ComparisonExpr(
+          lhs: RelativeSingularQuery(SingularJsonPathQuery(
+            segments: [
+              Name(JsonString(
+                quoted: "\"id\"",
+              )),
+            ],
+          )),
+          op: EqualTo,
+          rhs: Literal(String(JsonString(
+            quoted: "\"value\"",
+          ))),
+        ))),
+      ],
+    )),
+    Descendant(Selectors(
+      inner: [
+        Name(JsonString(
+          quoted: "\"entities\"",
+        )),
+      ],
+    )),
+    Descendant(Selectors(
+      inner: [
+        Name(JsonString(
+          quoted: "\"url\"",
+        )),
+      ],
+    )),
+  ],
+)
