@@ -27,25 +27,30 @@ rustdoc-args = ["--cfg", "docsrs"]
 all-features = true
 
 [dependencies]
-arbitrary = { workspace = true, features = ["derive"], optional = true }
 cfg-if = { workspace = true }
 log = { workspace = true }
 memmap2 = "0.9.5"
 rsonpath-syntax = { workspace = true }
+serde = { workspace = true, optional = true, features = ["derive", "rc"] }
 smallvec = { version = "1.13.2", features = ["union"] }
 static_assertions = "1.1.0"
 thiserror = { workspace = true }
 vector-map = "1.0.1"
 
 [dev-dependencies]
+ciborium = { workspace = true, default-features = true }
+insta = { workspace = true, features = ["ron"] }
 itertools = { workspace = true }
 pretty_assertions = { workspace = true }
 proptest = { workspace = true }
+rmp-serde = { workspace = true }
+rsonpath-syntax-proptest = { workspace = true }
+serde_json = { workspace = true }
 test-case = { workspace = true }
 
 [features]
 default = ["simd"]
-arbitrary = ["dep:arbitrary"]
+serde = ["dep:serde", "smallvec/serde", "rsonpath-syntax/serde"]
 simd = []
 
 [[example]]

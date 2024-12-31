@@ -1,0 +1,84 @@
+---
+source: crates/rsonpath-lib/tests/engine_serialization_snapshots.rs
+expression: "&engine(\"$..phoneNumbers[*].number\")?"
+snapshot_kind: text
+---
+(V1, Automaton(
+  states: [
+    StateTable(
+      attributes: StateAttributes(2),
+      member_transitions: [],
+      array_transitions: [],
+      fallback_state: State(0),
+    ),
+    StateTable(
+      attributes: StateAttributes(0),
+      member_transitions: [
+        (StringPattern(JsonString(
+          quoted: "\"phoneNumbers\"",
+        )), State(2)),
+      ],
+      array_transitions: [],
+      fallback_state: State(1),
+    ),
+    StateTable(
+      attributes: StateAttributes(0),
+      member_transitions: [
+        (StringPattern(JsonString(
+          quoted: "\"phoneNumbers\"",
+        )), State(4)),
+      ],
+      array_transitions: [],
+      fallback_state: State(3),
+    ),
+    StateTable(
+      attributes: StateAttributes(8),
+      member_transitions: [
+        (StringPattern(JsonString(
+          quoted: "\"phoneNumbers\"",
+        )), State(2)),
+        (StringPattern(JsonString(
+          quoted: "\"number\"",
+        )), State(6)),
+      ],
+      array_transitions: [],
+      fallback_state: State(1),
+    ),
+    StateTable(
+      attributes: StateAttributes(8),
+      member_transitions: [
+        (StringPattern(JsonString(
+          quoted: "\"phoneNumbers\"",
+        )), State(4)),
+        (StringPattern(JsonString(
+          quoted: "\"number\"",
+        )), State(5)),
+      ],
+      array_transitions: [],
+      fallback_state: State(3),
+    ),
+    StateTable(
+      attributes: StateAttributes(9),
+      member_transitions: [
+        (StringPattern(JsonString(
+          quoted: "\"phoneNumbers\"",
+        )), State(2)),
+        (StringPattern(JsonString(
+          quoted: "\"number\"",
+        )), State(6)),
+      ],
+      array_transitions: [],
+      fallback_state: State(1),
+    ),
+    StateTable(
+      attributes: StateAttributes(1),
+      member_transitions: [
+        (StringPattern(JsonString(
+          quoted: "\"phoneNumbers\"",
+        )), State(2)),
+      ],
+      array_transitions: [],
+      fallback_state: State(1),
+    ),
+  ],
+))

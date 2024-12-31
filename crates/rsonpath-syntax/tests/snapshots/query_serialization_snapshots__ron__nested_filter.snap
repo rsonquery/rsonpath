@@ -1,0 +1,56 @@
+---
+source: crates/rsonpath-syntax/tests/query_serialization_snapshots.rs
+expression: "&parse(r#\"$.a[?@.b == \"abc\" && $[*][?@.c > 3.13]]\"#)?"
+snapshot_kind: text
+---
+JsonPathQuery(
+  segments: [
+    Child(Selectors(
+      inner: [
+        Name(JsonString(
+          quoted: "\"a\"",
+        )),
+      ],
+    )),
+    Child(Selectors(
+      inner: [
+        Filter(And(Comparison(ComparisonExpr(
+          lhs: RelativeSingularQuery(SingularJsonPathQuery(
+            segments: [
+              Name(JsonString(
+                quoted: "\"b\"",
+              )),
+            ],
+          )),
+          op: EqualTo,
+          rhs: Literal(String(JsonString(
+            quoted: "\"abc\"",
+          ))),
+        )), Test(Absolute(JsonPathQuery(
+          segments: [
+            Child(Selectors(
+              inner: [
+                Wildcard,
+              ],
+            )),
+            Child(Selectors(
+              inner: [
+                Filter(Comparison(ComparisonExpr(
+                  lhs: RelativeSingularQuery(SingularJsonPathQuery(
+                    segments: [
+                      Name(JsonString(
+                        quoted: "\"c\"",
+                      )),
+                    ],
+                  )),
+                  op: GreaterThan,
+                  rhs: Literal(Number(Float(JsonFloat(3.13)))),
+                ))),
+              ],
+            )),
+          ],
+        ))))),
+      ],
+    )),
+  ],
+)

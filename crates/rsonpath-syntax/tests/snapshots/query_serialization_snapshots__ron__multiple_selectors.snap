@@ -1,0 +1,29 @@
+---
+source: crates/rsonpath-syntax/tests/query_serialization_snapshots.rs
+expression: "&parse(\"$..entries['abc', 4, 7:10:13]\")?"
+snapshot_kind: text
+---
+JsonPathQuery(
+  segments: [
+    Descendant(Selectors(
+      inner: [
+        Name(JsonString(
+          quoted: "\"entries\"",
+        )),
+      ],
+    )),
+    Child(Selectors(
+      inner: [
+        Name(JsonString(
+          quoted: "\"abc\"",
+        )),
+        Index(FromStart(JsonUInt(4))),
+        Slice(Slice(
+          start: FromStart(JsonUInt(7)),
+          end: Some(FromStart(JsonUInt(10))),
+          step: Forward(JsonUInt(13)),
+        )),
+      ],
+    )),
+  ],
+)

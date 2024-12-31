@@ -1,0 +1,21 @@
+---
+source: crates/rsonpath-lib/tests/engine_serialization_snapshots.rs
+expression: "&engine(\"$\")?"
+snapshot_kind: text
+---
+(V1, Automaton(
+  states: [
+    StateTable(
+      attributes: StateAttributes(2),
+      member_transitions: [],
+      array_transitions: [],
+      fallback_state: State(0),
+    ),
+    StateTable(
+      attributes: StateAttributes(1),
+      member_transitions: [],
+      array_transitions: [],
+      fallback_state: State(0),
+    ),
+  ],
+))

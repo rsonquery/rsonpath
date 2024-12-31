@@ -840,7 +840,7 @@ fn string(mode: StringParseMode) -> impl FnMut(&str) -> IResult<&str, JsonString
                             let low = read_hexadecimal_escape(q_len, i, chars)?;
                             match low {
                                 0xDC00..=0xDFFF => {
-                                    let n = ((raw_c - 0xD800) << 10 | (low - 0xDC00)) + 0x10000;
+                                    let n = (((raw_c - 0xD800) << 10) | (low - 0xDC00)) + 0x10000;
                                     Ok(char::from_u32(n).expect("high and low surrogate pair is always a valid char"))
                                 }
                                 _ => Err(SyntaxError::new(

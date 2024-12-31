@@ -59,6 +59,7 @@ use std::{
 /// let too_small = JsonInt::try_from(-(1_i64 << 53)).expect_err("out of range");
 /// ```
 #[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct JsonInt(i64);
 
 /// Unsigned interoperable JSON integer.
@@ -84,6 +85,7 @@ pub struct JsonInt(i64);
 ///
 /// let too_big = JsonUInt::try_from(1_u64 << 53).expect_err("out of range");
 /// ```
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct JsonUInt(u64);
 
@@ -110,6 +112,7 @@ pub struct JsonUInt(u64);
 /// let too_big = JsonNonZeroUInt::try_from(1_u64 << 53).expect_err("out of range");
 /// ```
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct JsonNonZeroUInt(NonZeroU64);
 
 /// IEEE 754 conformant floating-point number expressible in JSON.
@@ -129,6 +132,7 @@ pub struct JsonNonZeroUInt(NonZeroU64);
 /// [`JsonFloat`] is [`TryInto<JsonInt>`], where the conversion succeeds if and only if
 /// the float is an exactly representable integer in the range \[-2<sup>53</sup>+1, (2<sup>53</sup>)-1].
 #[derive(Clone, Copy, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct JsonFloat(f64);
 
 // This is correct since the allowed values for `JsonFloat` don't include NaNs or infinities.
@@ -182,6 +186,7 @@ impl std::hash::Hash for JsonFloat {
 /// ```
 #[derive(Clone, Copy, Debug)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum JsonNumber {
     /// A [`JsonInt`] number.
     Int(JsonInt),

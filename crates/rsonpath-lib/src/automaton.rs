@@ -15,6 +15,7 @@ use smallvec::SmallVec;
 use std::{fmt::Display, ops::Index, sync::Arc};
 
 /// A minimal, deterministic automaton representing a JSONPath query.
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Automaton {
     states: Vec<StateTable>,
@@ -25,6 +26,7 @@ pub type MemberTransition = (Arc<StringPattern>, State);
 
 /// Transition on elements of an array with indices specified by either a single index
 /// or a simple slice expression.
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ArrayTransition {
     label: ArrayTransitionLabel,
@@ -32,6 +34,7 @@ pub struct ArrayTransition {
 }
 
 /// Represent the distinct methods of moving on a match between states.
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, PartialEq, Clone, Eq)]
 pub(super) enum ArrayTransitionLabel {
     /// Transition on the n-th element of an array, with n specified by a [`JsonUInt`].
@@ -44,6 +47,7 @@ pub(super) enum ArrayTransitionLabel {
 ///
 /// Contains transitions triggered by matching member names or array indices, and a fallback transition
 /// triggered when none of the labelled transitions match.
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone)]
 pub struct StateTable {
     attributes: StateAttributes,
@@ -52,6 +56,7 @@ pub struct StateTable {
     fallback_state: State,
 }
 
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, PartialEq, Clone, Eq)]
 pub(crate) struct SimpleSlice {
     start: JsonUInt,

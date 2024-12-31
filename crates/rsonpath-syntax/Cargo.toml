@@ -21,19 +21,25 @@ all-features = true
 arbitrary = { workspace = true, features = ["derive"], optional = true }
 owo-colors = { version = "4.1.0", default-features = false, optional = true }
 nom = "7.1.3"
+serde = { workspace = true, optional = true, features = ["derive"] }
 thiserror = { workspace = true }
 unicode-width = "0.2.0"
 
 [dev-dependencies]
-insta = "1.41.1"
+ciborium = { workspace = true, default-features = true }
+insta = { workspace = true, features = ["ron"] }
 pretty_assertions = { workspace = true }
 proptest = { workspace = true }
+rmp-serde = { workspace = true }
+rsonpath-syntax-proptest = { workspace = true }
+serde_json = { workspace = true }
 test-case = { workspace = true }
 
 [features]
 default = []
 arbitrary = ["dep:arbitrary"]
 color = ["dep:owo-colors"]
+serde = ["dep:serde"]
 
 [lints]
 workspace = true

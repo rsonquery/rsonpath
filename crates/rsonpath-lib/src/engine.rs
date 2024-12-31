@@ -6,9 +6,11 @@
 pub mod error;
 mod head_skipping;
 pub mod main;
+mod select_root_query;
+#[cfg(feature = "serde")]
+mod serde;
 mod tail_skipping;
 pub use main::MainEngine as RsonpathEngine;
-mod select_root_query;
 
 use self::error::EngineError;
 use crate::{

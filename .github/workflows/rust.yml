@@ -145,7 +145,7 @@ jobs:
         env:
           CARGO_TARGET_DIR: target/
       - name: Build all feature sets
-        run: cargo hack build --workspace --feature-powerset --skip default --target ${{ matrix.target_triple }} --features arbitrary --ignore-unknown-features
+        run: cargo hack build --workspace --feature-powerset --skip default --target ${{ matrix.target_triple }} -F arbitrary -F serde --ignore-unknown-features
         env:
           RUSTFLAGS: ${{ matrix.rustflags }}
       - name: Download rsonpath-test artifact
@@ -154,7 +154,7 @@ jobs:
           name: ${{ needs.test-gen.outputs.artifact-name }}
           path: ${{ needs.test-gen.outputs.artifact-path }}
       - name: Test all feature sets
-        run: cargo hack test --workspace --feature-powerset --skip default --target ${{ matrix.target_triple }} --features arbitrary --ignore-unknown-features
+        run: cargo hack test --workspace --feature-powerset --skip default --target ${{ matrix.target_triple }} -F arbitrary -F serde --ignore-unknown-features
         env:
           RUSTFLAGS: ${{ matrix.rustflags }}
 

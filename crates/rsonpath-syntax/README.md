@@ -22,10 +22,11 @@ For advanced usage consult the crate documentation.
 
 ## Feature flags
 
-There are two optional features:
+There are three optional features:
 
 - `arbitrary`, which enables a dependency on the [`arbitrary` crate](https://docs.rs/arbitrary/latest/arbitrary/) to provide `Arbitrary` implementations on query types; this is used e.g. for fuzzing.
 - `color`, which enables a dependency on the [`owo_colors` crate](https://docs.rs/owo-colors/latest/owo_colors/) to provide colorful `Display` representations of `ParseError` with the `colored` function.
+- `serde`, which enables a dependency on the [`serde` crate](https://docs.rs/serde/latest/serde/) to provide serialization and deserialization of `JsonPathQuery` and all the underlying types.
 
 ## Examples
 
@@ -42,3 +43,32 @@ However, these are fully supported, tested, and fuzzed. The planned roadmap is:
 - [ ] support functions (including type check)
 - [ ] polish the API
 - [ ] 1.0.0 stable release
+
+## Dependencies
+
+Showing direct dependencies.
+
+```bash
+cargo tree --package rsonpath-lib --edges normal --depth 1 --target=all --all-features
+```
+
+<!-- rsonpath-syntax dependencies start -->
+```ini
+rsonpath-syntax v0.3.2 (/home/mat/src/rsonpath/crates/rsonpath-syntax)
+├── arbitrary v1.4.1
+├── nom v7.1.3
+├── owo-colors v4.1.0
+├── serde v1.0.217
+├── thiserror v2.0.9
+└── unicode-width v0.2.0
+```
+<!-- rsonpath-syntax dependencies end -->
+
+### Justification
+
+- `arbitrary` &ndash; optional `Arbitrary` support for fuzzing.
+- `nom` &ndash; combinator-based parsing used throughout the crate.
+- `owo-colors` &ndash; optional feature for pretty error messages.
+- `serde` &ndash; optional dependency for serialization and deserialization of compiled engines.
+- `thiserror` &ndash; idiomatic `Error` implementations.
+- `unicode-width` &ndash; used to display error messages correctly in presence of wider Unicode characters in the query string.

@@ -248,6 +248,7 @@ where
     S: Into<std::borrow::Cow<'static, str>>,
 {
     use indicatif::{ProgressBar, ProgressStyle};
+    #[allow(clippy::literal_string_with_formatting_args)]
     let style = ProgressStyle::with_template(
         "{msg} {spinner} {wide_bar:.green/white} {bytes:>12}/{total_bytes:>12} ({bytes_per_sec:>12}) {eta:>10}",
     )
