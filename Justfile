@@ -273,24 +273,25 @@ release ver:
     just release-patch {{ver}}
     just release-readme
     just release-bug-template {{ver}}
-    cargo build
-    cargo +nightly fuzz build
 
 # Execute prerequisites for a release of `rsonpath-syntax` for the given version.
 release-syntax ver:
     #!/usr/bin/env nu
     let ver = "{{ver}}";
     sed -i $'s/^version = "[^"]*"/version = "($ver)"/' "./crates/rsonpath-syntax/Cargo.toml"
+    sed -i $'s/^version = "[^"]*"/version = "($ver)"/' "./crates/rsonpath-syntax-proptest/Cargo.toml"
     sed -i $'s/^rsonpath-syntax = { version = "[^"]*"/rsonpath-syntax = { version = "($ver)"/' "./Cargo.toml"
+    sed -i $'s/^rsonpath-syntax-proptest = { version = "[^"]*"/rsonpath-syntax-proptest = { version = "($ver)"/' "./Cargo.toml"
 
 [private]
-release-patch ver:
+release-main ver:
     #!/usr/bin/env nu
     let ver = "{{ver}}";
     let paths = ["./Cargo.toml", "./crates/rsonpath-benchmarks/Cargo.toml", "./crates/rsonpath-test-codegen/Cargo.toml"];
     $paths | each { |path|
         sed -i $'s/^version = "[^"]*"/version = "($ver)"/;s/^rsonpath-lib = { version = "[^"]*"/rsonpath-lib = { version = "($ver)"/;s/rsonpath-test-codegen = { version = "[^"]*"/rsonpath-test-codegen = { version = "($ver)"/' $path;
     };
+    sed -z -i $"s/\\$ rq -V\\nrq \\\([^\\n]*\\\)\\n/\\$ rq -V\\nrq ($ver)\\n/" ./book/src/user/installation.md
 
 [private]
 release-readme:

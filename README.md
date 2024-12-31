@@ -216,13 +216,13 @@ cargo tree --package rsonpath --edges normal --depth 1
 
 <!-- rsonpath dependencies start -->
 ```ini
-rsonpath v0.9.3 (/home/mat/src/rsonpath/crates/rsonpath)
+rsonpath v0.9.4 (/home/mat/src/rsonpath/crates/rsonpath)
 ├── clap v4.5.23
 ├── color-eyre v0.6.3
 ├── eyre v0.6.12
 ├── log v0.4.22
-├── rsonpath-lib v0.9.3 (/home/mat/src/rsonpath/crates/rsonpath-lib)
-├── rsonpath-syntax v0.3.2 (/home/mat/src/rsonpath/crates/rsonpath-syntax)
+├── rsonpath-lib v0.9.4 (/home/mat/src/rsonpath/crates/rsonpath-lib)
+├── rsonpath-syntax v0.4.0 (/home/mat/src/rsonpath/crates/rsonpath-syntax)
 └── simple_logger v5.0.0
 [build-dependencies]
 ├── rustflags v0.1.6
@@ -241,12 +241,12 @@ cargo tree --package rsonpath-lib --edges normal --depth 1
 
 <!-- rsonpath-lib dependencies start -->
 ```ini
-rsonpath-lib v0.9.3 (/home/mat/src/rsonpath/crates/rsonpath-lib)
-├── arbitrary v1.4.1
+rsonpath-lib v0.9.4 (/home/mat/src/rsonpath/crates/rsonpath-lib)
 ├── cfg-if v1.0.0
 ├── log v0.4.22
 ├── memmap2 v0.9.5
-├── rsonpath-syntax v0.3.2 (/home/mat/src/rsonpath/crates/rsonpath-syntax)
+├── rsonpath-syntax v0.4.0 (/home/mat/src/rsonpath/crates/rsonpath-syntax)
+├── serde v1.0.217
 ├── smallvec v1.13.2
 ├── static_assertions v1.1.0
 ├── thiserror v2.0.9
@@ -275,7 +275,7 @@ cargo tree --package rsonpath --edges normal
 
 <!-- rsonpath-full dependencies start -->
 ```ini
-rsonpath v0.9.3 (/home/mat/src/rsonpath/crates/rsonpath)
+rsonpath v0.9.4 (/home/mat/src/rsonpath/crates/rsonpath)
 ├── clap v4.5.23
 │   ├── clap_builder v4.5.23
 │   │   ├── anstream v0.6.18
@@ -316,11 +316,11 @@ rsonpath v0.9.3 (/home/mat/src/rsonpath/crates/rsonpath)
 │       ├── heck v0.5.0
 │       ├── proc-macro2 v1.0.92
 │       │   └── unicode-ident v1.0.14
-│       ├── quote v1.0.37
+│       ├── quote v1.0.38
 │       │   └── proc-macro2 v1.0.92 (*)
-│       └── syn v2.0.91
+│       └── syn v2.0.93
 │           ├── proc-macro2 v1.0.92 (*)
-│           ├── quote v1.0.37 (*)
+│           ├── quote v1.0.38 (*)
 │           └── unicode-ident v1.0.14
 ├── color-eyre v0.6.3
 │   ├── backtrace v0.3.71
@@ -334,7 +334,7 @@ rsonpath v0.9.3 (/home/mat/src/rsonpath/crates/rsonpath)
 │   │   │   └── memchr v2.7.4
 │   │   └── rustc-demangle v0.1.24
 │   │   [build-dependencies]
-│   │   └── cc v1.2.5
+│   │   └── cc v1.2.6
 │   │       ├── jobserver v0.1.32
 │   │       │   └── libc v0.2.169
 │   │       ├── libc v0.2.169
@@ -347,12 +347,12 @@ rsonpath v0.9.3 (/home/mat/src/rsonpath/crates/rsonpath)
 │   └── owo-colors v3.5.0
 ├── eyre v0.6.12 (*)
 ├── log v0.4.22
-├── rsonpath-lib v0.9.3 (/home/mat/src/rsonpath/crates/rsonpath-lib)
+├── rsonpath-lib v0.9.4 (/home/mat/src/rsonpath/crates/rsonpath-lib)
 │   ├── cfg-if v1.0.0
 │   ├── log v0.4.22
 │   ├── memmap2 v0.9.5
 │   │   └── libc v0.2.169
-│   ├── rsonpath-syntax v0.3.2 (/home/mat/src/rsonpath/crates/rsonpath-syntax)
+│   ├── rsonpath-syntax v0.4.0 (/home/mat/src/rsonpath/crates/rsonpath-syntax)
 │   │   ├── nom v7.1.3
 │   │   │   ├── memchr v2.7.4
 │   │   │   └── minimal-lexical v0.2.1
@@ -360,8 +360,8 @@ rsonpath v0.9.3 (/home/mat/src/rsonpath/crates/rsonpath)
 │   │   ├── thiserror v2.0.9
 │   │   │   └── thiserror-impl v2.0.9 (proc-macro)
 │   │   │       ├── proc-macro2 v1.0.92 (*)
-│   │   │       ├── quote v1.0.37 (*)
-│   │   │       └── syn v2.0.91 (*)
+│   │   │       ├── quote v1.0.38 (*)
+│   │   │       └── syn v2.0.93 (*)
 │   │   └── unicode-width v0.2.0
 │   ├── smallvec v1.13.2
 │   ├── static_assertions v1.1.0
@@ -369,10 +369,10 @@ rsonpath v0.9.3 (/home/mat/src/rsonpath/crates/rsonpath)
 │   └── vector-map v1.0.1
 │       ├── contracts v0.4.0 (proc-macro)
 │       │   ├── proc-macro2 v1.0.92 (*)
-│       │   ├── quote v1.0.37 (*)
+│       │   ├── quote v1.0.38 (*)
 │       │   └── syn v1.0.109
 │       │       ├── proc-macro2 v1.0.92 (*)
-│       │       ├── quote v1.0.37 (*)
+│       │       ├── quote v1.0.38 (*)
 │       │       └── unicode-ident v1.0.14
 │       └── rand v0.7.3
 │           ├── getrandom v0.1.16
@@ -386,14 +386,14 @@ rsonpath v0.9.3 (/home/mat/src/rsonpath/crates/rsonpath)
 │           │   │       ├── byteorder v1.5.0
 │           │   │       └── zerocopy-derive v0.7.35 (proc-macro)
 │           │   │           ├── proc-macro2 v1.0.92 (*)
-│           │   │           ├── quote v1.0.37 (*)
-│           │   │           └── syn v2.0.91 (*)
+│           │   │           ├── quote v1.0.38 (*)
+│           │   │           └── syn v2.0.93 (*)
 │           │   └── rand_core v0.5.1
 │           │       └── getrandom v0.1.16 (*)
 │           ├── rand_core v0.5.1 (*)
 │           └── rand_hc v0.2.0
 │               └── rand_core v0.5.1 (*)
-├── rsonpath-syntax v0.3.2 (/home/mat/src/rsonpath/crates/rsonpath-syntax) (*)
+├── rsonpath-syntax v0.4.0 (/home/mat/src/rsonpath/crates/rsonpath-syntax) (*)
 └── simple_logger v5.0.0
     ├── colored v2.2.0
     │   ├── lazy_static v1.5.0
@@ -427,21 +427,21 @@ rsonpath v0.9.3 (/home/mat/src/rsonpath/crates/rsonpath)
 │   ├── anyhow v1.0.95
 │   ├── cargo_metadata v0.19.1
 │   │   ├── camino v1.1.9
-│   │   │   └── serde v1.0.216
-│   │   │       └── serde_derive v1.0.216 (proc-macro)
+│   │   │   └── serde v1.0.217
+│   │   │       └── serde_derive v1.0.217 (proc-macro)
 │   │   │           ├── proc-macro2 v1.0.92 (*)
-│   │   │           ├── quote v1.0.37 (*)
-│   │   │           └── syn v2.0.91 (*)
+│   │   │           ├── quote v1.0.38 (*)
+│   │   │           └── syn v2.0.93 (*)
 │   │   ├── cargo-platform v0.1.9
-│   │   │   └── serde v1.0.216 (*)
+│   │   │   └── serde v1.0.217 (*)
 │   │   ├── semver v1.0.24
-│   │   │   └── serde v1.0.216 (*)
-│   │   ├── serde v1.0.216 (*)
+│   │   │   └── serde v1.0.217 (*)
+│   │   ├── serde v1.0.217 (*)
 │   │   ├── serde_json v1.0.134
 │   │   │   ├── itoa v1.0.14
 │   │   │   ├── memchr v2.7.4
 │   │   │   ├── ryu v1.0.18
-│   │   │   └── serde v1.0.216 (*)
+│   │   │   └── serde v1.0.217 (*)
 │   │   └── thiserror v2.0.9 (*)
 │   ├── derive_builder v0.20.2
 │   │   └── derive_builder_macro v0.20.2 (proc-macro)
@@ -451,17 +451,17 @@ rsonpath v0.9.3 (/home/mat/src/rsonpath/crates/rsonpath)
 │   │       │   │   │   ├── fnv v1.0.7
 │   │       │   │   │   ├── ident_case v1.0.1
 │   │       │   │   │   ├── proc-macro2 v1.0.92 (*)
-│   │       │   │   │   ├── quote v1.0.37 (*)
+│   │       │   │   │   ├── quote v1.0.38 (*)
 │   │       │   │   │   ├── strsim v0.11.1
-│   │       │   │   │   └── syn v2.0.91 (*)
+│   │       │   │   │   └── syn v2.0.93 (*)
 │   │       │   │   └── darling_macro v0.20.10 (proc-macro)
 │   │       │   │       ├── darling_core v0.20.10 (*)
-│   │       │   │       ├── quote v1.0.37 (*)
-│   │       │   │       └── syn v2.0.91 (*)
+│   │       │   │       ├── quote v1.0.38 (*)
+│   │       │   │       └── syn v2.0.93 (*)
 │   │       │   ├── proc-macro2 v1.0.92 (*)
-│   │       │   ├── quote v1.0.37 (*)
-│   │       │   └── syn v2.0.91 (*)
-│   │       └── syn v2.0.91 (*)
+│   │       │   ├── quote v1.0.38 (*)
+│   │       │   └── syn v2.0.93 (*)
+│   │       └── syn v2.0.93 (*)
 │   ├── regex v1.11.1
 │   │   ├── aho-corasick v1.1.3
 │   │   │   └── memchr v2.7.4
@@ -477,9 +477,9 @@ rsonpath v0.9.3 (/home/mat/src/rsonpath/crates/rsonpath)
 │       ├── anyhow v1.0.95
 │       └── derive_builder v0.20.2 (*)
 │       [build-dependencies]
-│       └── rustversion v1.0.18 (proc-macro)
+│       └── rustversion v1.0.19 (proc-macro)
 │   [build-dependencies]
-│   └── rustversion v1.0.18 (proc-macro)
+│   └── rustversion v1.0.19 (proc-macro)
 ├── vergen-git2 v1.0.2
 │   ├── anyhow v1.0.95
 │   ├── derive_builder v0.20.2 (*)
@@ -491,11 +491,11 @@ rsonpath v0.9.3 (/home/mat/src/rsonpath/crates/rsonpath)
 │   │   │   └── libz-sys v1.1.20
 │   │   │       └── libc v0.2.169
 │   │   │       [build-dependencies]
-│   │   │       ├── cc v1.2.5 (*)
+│   │   │       ├── cc v1.2.6 (*)
 │   │   │       ├── pkg-config v0.3.31
 │   │   │       └── vcpkg v0.2.15
 │   │   │   [build-dependencies]
-│   │   │   ├── cc v1.2.5 (*)
+│   │   │   ├── cc v1.2.6 (*)
 │   │   │   └── pkg-config v0.3.31
 │   │   ├── log v0.4.22
 │   │   └── url v2.5.4
@@ -506,25 +506,25 @@ rsonpath v0.9.3 (/home/mat/src/rsonpath/crates/rsonpath)
 │   │       │   │   ├── icu_normalizer v1.5.0
 │   │       │   │   │   ├── displaydoc v0.2.5 (proc-macro)
 │   │       │   │   │   │   ├── proc-macro2 v1.0.92 (*)
-│   │       │   │   │   │   ├── quote v1.0.37 (*)
-│   │       │   │   │   │   └── syn v2.0.91 (*)
+│   │       │   │   │   │   ├── quote v1.0.38 (*)
+│   │       │   │   │   │   └── syn v2.0.93 (*)
 │   │       │   │   │   ├── icu_collections v1.5.0
 │   │       │   │   │   │   ├── displaydoc v0.2.5 (proc-macro) (*)
 │   │       │   │   │   │   ├── yoke v0.7.5
 │   │       │   │   │   │   │   ├── stable_deref_trait v1.2.0
 │   │       │   │   │   │   │   ├── yoke-derive v0.7.5 (proc-macro)
 │   │       │   │   │   │   │   │   ├── proc-macro2 v1.0.92 (*)
-│   │       │   │   │   │   │   │   ├── quote v1.0.37 (*)
-│   │       │   │   │   │   │   │   ├── syn v2.0.91 (*)
+│   │       │   │   │   │   │   │   ├── quote v1.0.38 (*)
+│   │       │   │   │   │   │   │   ├── syn v2.0.93 (*)
 │   │       │   │   │   │   │   │   └── synstructure v0.13.1
 │   │       │   │   │   │   │   │       ├── proc-macro2 v1.0.92 (*)
-│   │       │   │   │   │   │   │       ├── quote v1.0.37 (*)
-│   │       │   │   │   │   │   │       └── syn v2.0.91 (*)
+│   │       │   │   │   │   │   │       ├── quote v1.0.38 (*)
+│   │       │   │   │   │   │   │       └── syn v2.0.93 (*)
 │   │       │   │   │   │   │   └── zerofrom v0.1.5
 │   │       │   │   │   │   │       └── zerofrom-derive v0.1.5 (proc-macro)
 │   │       │   │   │   │   │           ├── proc-macro2 v1.0.92 (*)
-│   │       │   │   │   │   │           ├── quote v1.0.37 (*)
-│   │       │   │   │   │   │           ├── syn v2.0.91 (*)
+│   │       │   │   │   │   │           ├── quote v1.0.38 (*)
+│   │       │   │   │   │   │           ├── syn v2.0.93 (*)
 │   │       │   │   │   │   │           └── synstructure v0.13.1 (*)
 │   │       │   │   │   │   ├── zerofrom v0.1.5 (*)
 │   │       │   │   │   │   └── zerovec v0.10.4
@@ -532,8 +532,8 @@ rsonpath v0.9.3 (/home/mat/src/rsonpath/crates/rsonpath)
 │   │       │   │   │   │       ├── zerofrom v0.1.5 (*)
 │   │       │   │   │   │       └── zerovec-derive v0.10.3 (proc-macro)
 │   │       │   │   │   │           ├── proc-macro2 v1.0.92 (*)
-│   │       │   │   │   │           ├── quote v1.0.37 (*)
-│   │       │   │   │   │           └── syn v2.0.91 (*)
+│   │       │   │   │   │           ├── quote v1.0.38 (*)
+│   │       │   │   │   │           └── syn v2.0.93 (*)
 │   │       │   │   │   ├── icu_normalizer_data v1.5.0
 │   │       │   │   │   ├── icu_properties v1.5.1
 │   │       │   │   │   │   ├── displaydoc v0.2.5 (proc-macro) (*)
@@ -554,8 +554,8 @@ rsonpath v0.9.3 (/home/mat/src/rsonpath/crates/rsonpath)
 │   │       │   │   │   │   │   │   ├── icu_locid v1.5.0 (*)
 │   │       │   │   │   │   │   │   ├── icu_provider_macros v1.5.0 (proc-macro)
 │   │       │   │   │   │   │   │   │   ├── proc-macro2 v1.0.92 (*)
-│   │       │   │   │   │   │   │   │   ├── quote v1.0.37 (*)
-│   │       │   │   │   │   │   │   │   └── syn v2.0.91 (*)
+│   │       │   │   │   │   │   │   │   ├── quote v1.0.38 (*)
+│   │       │   │   │   │   │   │   │   └── syn v2.0.93 (*)
 │   │       │   │   │   │   │   │   ├── stable_deref_trait v1.2.0
 │   │       │   │   │   │   │   │   ├── tinystr v0.7.6 (*)
 │   │       │   │   │   │   │   │   ├── writeable v0.5.5
@@ -589,7 +589,7 @@ rsonpath v0.9.3 (/home/mat/src/rsonpath/crates/rsonpath)
 │   ├── vergen v9.0.2 (*)
 │   └── vergen-lib v0.1.5 (*)
 │   [build-dependencies]
-│   └── rustversion v1.0.18 (proc-macro)
+│   └── rustversion v1.0.19 (proc-macro)
 └── vergen-gitcl v1.0.2
     ├── anyhow v1.0.95
     ├── derive_builder v0.20.2 (*)
@@ -597,6 +597,6 @@ rsonpath v0.9.3 (/home/mat/src/rsonpath/crates/rsonpath)
     ├── vergen v9.0.2 (*)
     └── vergen-lib v0.1.5 (*)
     [build-dependencies]
-    └── rustversion v1.0.18 (proc-macro)
+    └── rustversion v1.0.19 (proc-macro)
 ```
 <!-- rsonpath-full dependencies end -->

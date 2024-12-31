@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.4] - 2024-12-31
+
+### Library
+
+- Serde support for `MainEngine`.
+  - Implemented `serde::Serialize` and `serde::Deserialize` for `MainEngine` in rsonpath-lib,
+    The `serde` dependency is guarded behind the optional `serde` feature.
+  - The serialization format is not stable, as the `Automaton`
+    is expected to evolve. Thus, serialization includes a version
+    and deserialization will fail if the version disagrees.
+  - Also added snapshot tests for serialization based on `insta`.
+- Added the `MainEngine::automaton` function to retrieve a reference to the compiled query.
+- Removed the `arbitrary` feature from `rsonpath-lib` as it didn't actually do anything anymore.
+
+### Dependencies
+
+- `serde` (1.0.217) is now an optional dependency for `rsonpath` and `rsonpath-lib`
+
 ## [0.9.3] - 2024-12-24
 
 ### Library

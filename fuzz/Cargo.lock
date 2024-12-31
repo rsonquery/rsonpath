@@ -205,7 +205,7 @@ dependencies = [
 
 [[package]]
 name = "rsonpath-lib"
-version = "0.9.3"
+version = "0.9.4"
 dependencies = [
  "cfg-if",
  "log",
@@ -231,7 +231,7 @@ dependencies = [
 
 [[package]]
 name = "rsonpath-syntax"
-version = "0.3.2"
+version = "0.4.0"
 dependencies = [
  "arbitrary",
  "nom",

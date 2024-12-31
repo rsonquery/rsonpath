@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.0] - 2024-12-31
+
+### Features
+
+- Serde support for `JsonPathQuery` and all the constutent types.
+  - Implemented `serde::Serialize` and `serde::Deserialize` for
+    `JsonPathQuery` and all its substructures, including `JsonString`
+    and the numeric types. The `serde` dependency is guarded behind the optional `serde` feature.
+  - Also added snapshot tests for serialization based on `insta`.
+
+### Dependencies
+
+- `serde` (1.0.217) is now an optional dependency
+
 ## [0.3.2] - 2024-12-22
 
 ### Dependencies
