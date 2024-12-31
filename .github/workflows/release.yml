@@ -217,8 +217,30 @@ jobs:
         with:
           toolchain: stable
       - name: Publish rsonpath-syntax
-        run: cargo publish --token ${{ secrets.CRATES_TOKEN }} -p rsonpath-syntax --no-verify
+        run: |
+          old_ver=$(cargo info rsonpath-syntax --registry crates-io | sed -n 's/version: \([0-9]\.[0-9].[0-9]\)/\1/p')
+          new_ver=$(cargo pkgid rsonpath-syntax | sed 's/.*#//g')
+          if [ $old_ver != $new_ver ]; then
+            cargo publish --token ${{ secrets.CRATES_TOKEN }} -p rsonpath-syntax --no-verify
+          fi
+      - name: Publish rsonpath-syntax-proptest
+        run: |
+          old_ver=$(cargo info rsonpath-syntax-proptest --registry crates-io | sed -n 's/version: \([0-9]\.[0-9].[0-9]\)/\1/p')
+          new_ver=$(cargo pkgid rsonpath-syntax-proptest | sed 's/.*#//g')
+          if [ $old_ver != $new_ver ]; then
+            cargo publish --token ${{ secrets.CRATES_TOKEN }} -p rsonpath-syntax-proptest --no-verify
+          fi
       - name: Publish rsonpath-lib
-        run: cargo publish --token ${{ secrets.CRATES_TOKEN }} -p rsonpath-lib --no-verify
+        run: |
+          old_ver=$(cargo info rsonpath-lib --registry crates-io | sed -n 's/version: \([0-9]\.[0-9].[0-9]\)/\1/p')
+          new_ver=$(cargo pkgid rsonpath-lib | sed 's/.*#//g')
+          if [ $old_ver != $new_ver ]; then
+            cargo publish --token ${{ secrets.CRATES_TOKEN }} -p rsonpath-lib --no-verify
+          fi
       - name: Publish rsonpath
-        run: cargo publish --token ${{ secrets.CRATES_TOKEN }} -p rsonpath --no-verify
+        run: |
+          old_ver=$(cargo info rsonpath --registry crates-io | sed -n 's/version: \([0-9]\.[0-9].[0-9]\)/\1/p')
+          new_ver=$(cargo pkgid rsonpath | sed 's/.*#//g')
+          if [ $old_ver != $new_ver ]; then
+            cargo publish --token ${{ secrets.CRATES_TOKEN }} -p rsonpath --no-verify
+          fi

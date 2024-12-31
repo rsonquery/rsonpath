@@ -5,12 +5,11 @@ license.workspace = true
 repository.workspace = true
 homepage.workspace = true
 edition.workspace = true
-version = "0.3.2"
-description = "A JSONPath parser."
+version = "0.4.0"
+description = "Test utilities for JSONPath."
 readme = "README.md"
-keywords = ["json", "jsonpath", "query", "search", "parser"]
-exclude = ["tests", "src/cli.rs"]
-categories = ["parser-implementations", "text-processing"]
+keywords = ["jsonpath", "test", "proptest", "arbitrary", "fuzz"]
+categories = ["development-tools::testing"]
 rust-version = "1.67.1"
 
 [package.metadata.docs.rs]
