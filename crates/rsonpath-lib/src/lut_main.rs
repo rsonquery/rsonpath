@@ -21,9 +21,9 @@ struct Cli {
 enum Commands {
     /// Apply a query on the a given JSON file
     Query {
-        /// Path to the JSON file
-        json_query: String,
         /// Query to be applied
+        json_query: String,
+        /// Path to the JSON file
         json_path: String,
     },
     /// Measure distances of each parenthesis pair for each JSON in the folder and plot the distribution
@@ -56,7 +56,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     match &cli.command {
         Commands::Query { json_query, json_path } => {
-            query_with_lut(json_path, json_query);
+            let _ = query_with_lut(json_path, json_query);
         }
         Commands::Distances { json_dir, out_dir } => {
             check_if_dir_exists(json_dir);

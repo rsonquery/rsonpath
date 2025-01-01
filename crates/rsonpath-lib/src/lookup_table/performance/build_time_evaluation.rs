@@ -78,10 +78,10 @@ fn eval<T: LookUpTable>(
     let build_time = start_build.elapsed().as_secs_f64();
 
     // Query time
-    let start_build = std::time::Instant::now();
+    let start_query = std::time::Instant::now();
     // Call a black box function that does nothing so that the compiler does not optimize away get_every_key_once
     my_black_box(get_every_key_once(&lut, &keys));
-    let query_time = start_build.elapsed().as_secs_f64();
+    let query_time = start_query.elapsed().as_secs_f64();
 
     head_line.push_str(&format!("{}_build_time,{}_query_time,", name, name));
     data_line.push_str(&format!("{},{},", build_time, query_time));

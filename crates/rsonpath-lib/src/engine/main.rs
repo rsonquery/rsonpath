@@ -55,7 +55,7 @@ use crate::{
         Compiler, Engine, Input,
     },
     input::error::InputErrorConvertible,
-    lookup_table::LookUpTableImpl,
+    lookup_table::{LookUpTable, LookUpTableImpl},
     result::{
         approx_span::ApproxSpanRecorder, count::CountRecorder, index::IndexRecorder, nodes::NodesRecorder, Match,
         MatchCount, MatchIndex, MatchSpan, MatchedNodeType, Recorder, Sink,
@@ -80,6 +80,11 @@ impl MainEngine {
     #[inline(always)]
     pub fn add_lut(&mut self, lut: LookUpTableImpl) {
         self.lut = Some(lut)
+    }
+
+    #[inline(always)]
+    pub fn allocated_bytes_by_lut(&self) -> usize {
+        self.lut.as_ref().map_or(0, |lut| lut.allocated_bytes())
     }
 }
 
