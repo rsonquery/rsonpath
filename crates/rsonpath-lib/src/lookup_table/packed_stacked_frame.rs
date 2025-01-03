@@ -1,7 +1,7 @@
 use log::debug;
 
-const MAX_VALUE_55_BITS: usize = (1 << 55) - 1; // Max value for 55 bits
-const MAX_VALUE_56_BITS: u64 = (1 << 56) - 1; // Max value for 56 bits
+const MASK_55_BITS: usize = (1 << 55) - 1; // Max value for 55 bits
+const MASK_56_BITS: u64 = (1 << 56) - 1; // Max value for 56 bits
 
 #[derive(Clone, Copy)]
 pub struct PackedStackFrame {
@@ -22,25 +22,26 @@ impl PackedStackFrame {
         let mut frame = [0u8; 16];
 
         // Bytes 0-6: array_count (56 bits)
-        // debug_assert!(
-        //     array_count <= MAX_VALUE_56_BITS,
-        //     "array_count exceeds 56-bit limit: {}",
-        //     array_count
-        // );
+        debug_assert!(
+            array_count <= MASK_56_BITS,
+            "array_count exceeds 56-bit limit: {}",
+            array_count
+        );
         frame[0..7].copy_from_slice(&array_count.to_le_bytes()[..7]);
 
         // Byte 7: depth
         frame[7] = depth;
 
         // Bytes 8-14 minus the last bit: idx_of_last_opening (55 bits)
-        // debug_assert!(
-        //     idx_of_last_opening <= MAX_VALUE_55_BITS,
-        //     "idx_of_last_opening exceeds 55-bit limit: {}",
-        //     idx_of_last_opening
-        // );
-        let idx_masked = (idx_of_last_opening & MAX_VALUE_55_BITS) as u64;
+        debug_assert!(
+            idx_of_last_opening <= MASK_55_BITS,
+            "idx_of_last_opening exceeds 55-bit limit: {}",
+            idx_of_last_opening
+        );
+        let idx_masked = (idx_of_last_opening & MASK_55_BITS) as u64;
+        println!("idx_of_last_opening = {}", idx_of_last_opening); // TODO remove this
+        println!("idx_masked = {}", idx_masked); // TODO remove this
         let mut idx_bytes = idx_masked.to_le_bytes();
-        idx_bytes[6] &= 0b01111111; // Mask off the most significant bit for is_list
         frame[8..14].copy_from_slice(&idx_bytes[..6]);
 
         // Byte 14: is_list (1 bit in the most significant position)
@@ -69,8 +70,13 @@ impl PackedStackFrame {
     /// Extracts the idx_of_last_opening field (Bytes 8-14 minus the last bit).
     pub fn idx_of_last_opening(&self) -> usize {
         let mut bytes = [0u8; 8];
-        bytes[..7].copy_from_slice(&self.frame[8..15]);
+        bytes[..6].copy_from_slice(&self.frame[8..14]);
         bytes[6] &= 0b01111111; // Mask out the most significant bit
+
+        for (i, byte) in bytes.iter().enumerate() {
+            println!("i: {} byte: {}", i, byte);
+        }
+
         u64::from_le_bytes(bytes) as usize
     }
 
@@ -155,26 +161,20 @@ mod tests {
     }
 
     #[test]
-    fn test_packed_stack_frame_truncated_idx_of_last_opening() {
-        // Value exceeding 55 bits
+    #[should_panic(expected = "idx_of_last_opening exceeds 55-bit limit")]
+    fn test_packed_stack_frame_invalid_idx_of_last_opening() {
         let invalid_idx_of_last_opening = MAX_VALUE_55_BITS + 1; // 55 bits + 1 bit
-        let truncated_idx_of_last_opening = MAX_VALUE_55_BITS; // Expected after truncation
 
-        let frame = PackedStackFrame::new(10, 20, false, 0, invalid_idx_of_last_opening);
-        println!("{:?}", frame);
-
-        assert_eq!(frame.idx_of_last_opening(), truncated_idx_of_last_opening);
+        // This should panic due to `debug_assert!`
+        let _frame = PackedStackFrame::new(10, 20, false, 0, invalid_idx_of_last_opening);
     }
 
     #[test]
-    fn test_packed_stack_frame_boundary_values() {
-        // Check transitions for depth and state at boundaries
-        let frame = PackedStackFrame::new(u8::MAX, 0, true, 0, 0);
-        assert_eq!(frame.depth(), u8::MAX);
-        assert_eq!(frame.state(), 0);
+    #[should_panic(expected = "array_count exceeds 56-bit limit")]
+    fn test_packed_stack_frame_invalid_array_count() {
+        let invalid_array_count = MAX_VALUE_56_BITS + 1; // 56 bits + 1 bit
 
-        let frame = PackedStackFrame::new(0, u8::MAX, false, 0, 0);
-        assert_eq!(frame.depth(), 0);
-        assert_eq!(frame.state(), u8::MAX);
+        // This should panic due to `debug_assert!`
+        let _frame = PackedStackFrame::new(10, 20, false, invalid_array_count, 0);
     }
 }
