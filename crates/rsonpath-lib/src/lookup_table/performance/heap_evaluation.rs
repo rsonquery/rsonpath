@@ -5,7 +5,6 @@ use crate::lookup_table::{
 };
 use stats_alloc::{Region, StatsAlloc, INSTRUMENTED_SYSTEM};
 use std::io::Write;
-use std::os::unix::thread;
 use std::{
     alloc::System,
     io::{self},
@@ -14,6 +13,13 @@ use std::{
 
 #[global_allocator]
 static GLOBAL: &StatsAlloc<System> = &INSTRUMENTED_SYSTEM;
+
+/// Helper struct to reduce the number of parameters when calling functions
+pub struct EvalConfig<'a> {
+    json_path: &'a str,
+    head_line: &'a mut String,
+    data_line: &'a mut String,
+}
 
 #[inline]
 pub fn run(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Error>> {
@@ -24,33 +30,30 @@ pub fn run(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Er
     let mut head_line = String::from("name,input_size_bytes,num_keys,");
     let mut data_line = format!("{},{},{},", filename, file.metadata()?.len(), num_keys);
 
+    let mut config = EvalConfig {
+        json_path,
+        head_line: &mut head_line,
+        data_line: &mut data_line,
+    };
+
     // Measure LUTs without lambda parameter
-    eval::<LutHashMap>(json_path, "hash_map", &mut head_line, &mut data_line);
-    eval::<LutHashMapDouble>(json_path, "hash_map_double", &mut head_line, &mut data_line);
-    // eval::<LutPerfectNaive>(json_path, "perfect_naive", &mut head_line, &mut data_line);
+    eval::<LutHashMap>(&mut config, "hash_map");
+    eval::<LutHashMapDouble>(&mut config, "hash_map_double");
+    eval::<LutPerfectNaive>(&mut config, "perfect_naive");
 
     // Process each LUT that has a lambda parameter with lambda [1, ..., 5]
-    for l in vec![1, 5] {
-        let t = false;
-        // eval_lambda::<LutPHF>(l, json_path, "phf", &mut head_line, &mut data_line, t);
-        // eval_lambda::<LutPHFDouble>(l, json_path, "phf_double", &mut head_line, &mut data_line, t);
-        // eval_lambda::<LutPHFGroup>(l, json_path, "phf_group", &mut head_line, &mut data_line, t);
-
-        let t = true;
-        // eval_lambda::<LutPHF>(l, json_path, "phf(T)", &mut head_line, &mut data_line, t);
-        // eval_lambda::<LutPHFDouble>(l, json_path, "phf_double(T)", &mut head_line, &mut data_line, t);
-        // eval_lambda::<LutPHFGroup>(l, json_path, "phf_group(T)", &mut head_line, &mut data_line, t);
+    for lambda in 1..5 {
+        for threaded in [true, false] {
+            eval_lambda::<LutPHF>(&mut config, "phf", lambda, threaded);
+            eval_lambda::<LutPHFDouble>(&mut config, "phf_double", lambda, threaded);
+            eval_lambda::<LutPHFGroup>(&mut config, "phf_group", lambda, threaded);
+        }
     }
 
-    for l in vec![1, 5] {
-        let t = false;
-
-        // eval_bucket(l, json_path, "phf_group", 3, &mut head_line, &mut data_line, t);
-        // eval_bucket(l, json_path, "phf_group", 7, &mut head_line, &mut data_line, t);
-        // eval_bucket(l, json_path, "phf_group", 15, &mut head_line, &mut data_line, t);
-        // eval_bucket(l, json_path, "phf_group", 31, &mut head_line, &mut data_line, t);
-        eval_bucket(l, json_path, "phf_group", 63, &mut head_line, &mut data_line, t);
-        eval_bucket(l, json_path, "phf_group", 127, &mut head_line, &mut data_line, t);
+    for lambda in 1..5 {
+        for bit_mask in [3, 7, 15, 31, 63, 127] {
+            eval_bucket(&mut config, "phf_group", bit_mask, lambda, false);
+        }
     }
 
     // Write CSV header and data
@@ -66,54 +69,43 @@ pub fn run(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Er
     Ok(())
 }
 
-fn eval<T: LookUpTable>(json_path: &str, name: &str, head_line: &mut String, data_line: &mut String) {
+fn eval<T: LookUpTable>(config: &mut EvalConfig, name: &str) {
     println!("  - {}", name);
     let reg = Region::new(GLOBAL);
-    let lut = T::build(json_path).expect("Fail @ build lut");
+    let lut = T::build(config.json_path).expect("Fail @ build lut");
     let stats = heap_value(reg.change());
-    head_line.push_str(&format!("{}_heap,{}_capacity,", name, name));
-    data_line.push_str(&format!("{},{},", stats, lut.allocated_bytes()));
+    config.head_line.push_str(&format!("{}_heap,{}_capacity,", name, name));
+    config
+        .data_line
+        .push_str(&format!("{},{},", stats, lut.allocated_bytes()));
 }
 
-fn eval_lambda<T: LookUpTableLambda>(
-    lambda: usize,
-    json_path: &str,
-    name: &str,
-    head_line: &mut String,
-    data_line: &mut String,
-    threaded: bool,
-) {
+fn eval_lambda<T: LookUpTableLambda>(config: &mut EvalConfig, name: &str, lambda: usize, threaded: bool) {
     println!("  - {}:λ={},T={}", name, lambda, threaded);
     let reg = Region::new(GLOBAL);
-    let lut = T::build_lambda(lambda, json_path, threaded).expect("Fail @ build with lambda");
+    let lut = T::build_lambda(lambda, config.json_path, threaded).expect("Fail @ build with lambda");
     let stats = heap_value(reg.change());
-    head_line.push_str(&format!("λ={}:{}_heap,λ={}:{}_capacity,", lambda, name, lambda, name));
-    data_line.push_str(&format!("{},{},", stats, lut.allocated_bytes()));
+    config
+        .head_line
+        .push_str(&format!("λ={lambda}:{name}_heap,λ={lambda}:{name}_capacity,"));
+    config
+        .data_line
+        .push_str(&format!("{},{},", stats, lut.allocated_bytes()));
 }
 
-fn eval_bucket(
-    lambda: usize,
-    json_path: &str,
-    name: &str,
-    bit_mask: usize,
-    head_line: &mut String,
-    data_line: &mut String,
-    threaded: bool,
-) {
+fn eval_bucket(config: &mut EvalConfig, name: &str, bit_mask: usize, lambda: usize, threaded: bool) {
     println!("  - {}:#{}_λ={},T={}", name, bit_mask + 1, lambda, threaded);
     let reg = Region::new(GLOBAL);
-    let lut = LutPHFGroup::build_buckets(lambda, json_path, bit_mask, threaded).expect("Fail @ build with lambda");
+    let lut =
+        LutPHFGroup::build_buckets(lambda, config.json_path, bit_mask, threaded).expect("Fail @ build with lambda");
     let stats = heap_value(reg.change());
-    head_line.push_str(&format!(
-        "#{}_λ={}:{}_heap,#{}_λ={}:{}_capacity,",
-        bit_mask + 1,
-        lambda,
-        name,
-        bit_mask + 1,
-        lambda,
-        name
+    let bit_mask_plus_one = bit_mask + 1;
+    config.head_line.push_str(&format!(
+        "#{bit_mask_plus_one}_λ={lambda}:{name}_heap,#{bit_mask_plus_one}_λ={lambda}:{name}_capacity,"
     ));
-    data_line.push_str(&format!("{},{},", stats, lut.allocated_bytes()));
+    config
+        .data_line
+        .push_str(&format!("{},{},", stats, lut.allocated_bytes()));
 }
 
 fn heap_value(stats: stats_alloc::Stats) -> isize {

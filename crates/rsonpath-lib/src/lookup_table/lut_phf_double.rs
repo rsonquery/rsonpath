@@ -22,7 +22,7 @@ pub struct LutPHFDouble {
 impl LookUpTable for LutPHFDouble {
     #[inline]
     fn build(json_path: &str) -> Result<Self, Box<dyn std::error::Error>> {
-        LutPHFDouble::build_lambda(DEFAULT_LAMBDA, json_path, DEFAULT_THREADED)
+        Self::build_lambda(DEFAULT_LAMBDA, json_path, DEFAULT_THREADED)
     }
 
     #[inline]
@@ -71,7 +71,7 @@ impl LookUpTableLambda for LutPHFDouble {
             I: Input,
             V: Simd, {
                     let pair_data = LutHashMapDouble::find_all_pairs::<I, V>(&input, simd)?;
-                    Ok(LutPHFDouble::build_double(lambda, pair_data, threaded))
+                    Ok(LutPHFDouble::build_double(lambda, &pair_data, threaded))
                 })
         });
         lut_phf_double.map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
@@ -79,7 +79,9 @@ impl LookUpTableLambda for LutPHFDouble {
 }
 
 impl LutPHFDouble {
-    pub fn build_double(lambda: usize, pair_data: PairData, threaded: bool) -> Self {
+    #[inline]
+    #[must_use]
+    pub fn build_double(lambda: usize, pair_data: &PairData, threaded: bool) -> Self {
         // 1) Build hash_state for the values of size u16
         let hash_state_16_usize = phf_generator_double_hash::build(lambda, &pair_data.keys_16, threaded);
 

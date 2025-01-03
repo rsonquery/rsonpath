@@ -125,6 +125,7 @@ impl HashState {
     }
 
     #[inline]
+    #[must_use]
     pub fn allocated_bytes(&self) -> usize {
         let mut total_size = std::mem::size_of::<Self>();
         total_size += std::mem::size_of::<HashKey>();

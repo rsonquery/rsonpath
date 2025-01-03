@@ -9,32 +9,36 @@ use crate::{
     lookup_table::{LookUpTable, LookUpTableImpl},
 };
 
-use std::{error::Error, io::Read};
+use std::io::Read;
 
-pub fn query_with_lut(json_path: &str, json_query: &str) -> Result<(), Box<dyn Error>> {
-    SimpleLogger::new().with_level(LevelFilter::Trace).init()?;
+#[inline]
+pub fn query_with_lut(json_path: &str, json_query: &str) {
+    SimpleLogger::new()
+        .with_level(LevelFilter::Trace)
+        .init()
+        .expect("Fail init logger.");
 
     // Build query
-    let query = rsonpath_syntax::parse(json_query)?;
-    let mut engine = RsonpathEngine::compile_query(&query)?;
+    let query = rsonpath_syntax::parse(json_query).expect("Fail @ parsing query.");
+    let mut engine = RsonpathEngine::compile_query(&query).expect("Fail @ compiling.");
 
     // Build and add lut
     let start_build = std::time::Instant::now();
-    let lut = LookUpTableImpl::build(json_path)?;
+    let lut = LookUpTableImpl::build(json_path).expect("Fail @ building LookUp-table.");
     let build_time = start_build.elapsed().as_secs_f64();
     engine.add_lut(lut);
 
     // Get results
     let start_query = std::time::Instant::now();
     let input = {
-        let mut file = BufReader::new(fs::File::open(json_path)?);
+        let mut file = BufReader::new(fs::File::open(json_path).expect("Fail @ reading file"));
         let mut buf = vec![];
-        file.read_to_end(&mut buf)?;
+        file.read_to_end(&mut buf).expect("Fail @ read");
         // Here you can define whether to use OwnedBytes (padding), Mmap (padding = 0) or Borrowed (padding)
         OwnedBytes::new(buf)
     };
     let mut sink = vec![];
-    engine.matches(&input, &mut sink)?;
+    engine.matches(&input, &mut sink).expect("Fail @ engine matching.");
     let results = sink
         .into_iter()
         .map(|m| String::from_utf8_lossy(m.bytes()).to_string())
@@ -55,6 +59,4 @@ pub fn query_with_lut(json_path: &str, json_query: &str) -> Result<(), Box<dyn E
     println!(" - LUT build time: {} seconds", build_time);
     println!(" - LUT query time: {} seconds", query_time);
     println!(" - LUT size:       {} bytes", engine.allocated_bytes_by_lut());
-
-    Ok(())
 }

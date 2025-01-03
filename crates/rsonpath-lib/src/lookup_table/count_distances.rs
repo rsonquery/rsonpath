@@ -41,6 +41,8 @@ pub fn count_distances_in_dir(dir_path: &str, csv_path: &str) {
     }
 }
 
+#[inline]
+#[must_use]
 pub fn count_num_pairs(json_path: &str) -> usize {
     let file = std::fs::File::open(json_path).expect("Fail to open file");
 

@@ -1,6 +1,5 @@
 use super::LookUpTable;
 use crate::debug;
-use crate::lookup_table::util_path;
 use crate::{
     classification::{
         self,
@@ -12,13 +11,9 @@ use crate::{
     FallibleIterator,
 };
 use serde::{Deserialize, Serialize};
-use serde_cbor;
-use serde_json;
 use std::collections::HashMap;
 use std::collections::VecDeque;
 use std::fs;
-use std::fs::File;
-use std::io::{Error, ErrorKind, Read, Write};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct LutHashMap {
@@ -54,6 +49,7 @@ impl LookUpTable for LutHashMap {
         self.hash_map.get(key).copied()
     }
 
+    #[inline]
     fn allocated_bytes(&self) -> usize {
         let mut total_size = 0;
         total_size += std::mem::size_of::<Self>();
@@ -63,7 +59,8 @@ impl LookUpTable for LutHashMap {
 }
 
 impl LutHashMap {
-    pub fn find_all_pairs<I, V>(input: &I, simd: V) -> Result<(Vec<usize>, Vec<usize>), error::InputError>
+    #[inline]
+    pub(crate) fn find_all_pairs<I, V>(input: &I, simd: V) -> Result<(Vec<usize>, Vec<usize>), error::InputError>
     where
         I: Input,
         V: Simd,

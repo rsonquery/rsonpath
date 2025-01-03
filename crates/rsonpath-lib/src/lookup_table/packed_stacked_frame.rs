@@ -1,5 +1,3 @@
-use log::debug;
-
 const MASK_55_BITS: usize = (1 << 55) - 1; // Max value for 55 bits
 const MASK_56_BITS: u64 = (1 << 56) - 1; // Max value for 56 bits
 
@@ -18,8 +16,10 @@ type JsonUInt = u64;
 /// - Byte 15: state: u8
 impl PackedStackFrame {
     /// Creates a new `PackedStackFrame` instance.
+    #[inline]
+    #[must_use]
     pub fn new(depth: u8, state: u8, is_list: bool, array_count: JsonUInt, idx_of_last_opening: usize) -> Self {
-        let mut frame = [0u8; 16];
+        let mut frame = [0_u8; 16];
 
         // Bytes 0-6: array_count (56 bits)
         debug_assert!(
@@ -39,14 +39,12 @@ impl PackedStackFrame {
             idx_of_last_opening
         );
         let idx_masked = (idx_of_last_opening & MASK_55_BITS) as u64;
-        println!("idx_of_last_opening = {}", idx_of_last_opening); // TODO remove this
-        println!("idx_masked = {}", idx_masked); // TODO remove this
-        let mut idx_bytes = idx_masked.to_le_bytes();
-        frame[8..14].copy_from_slice(&idx_bytes[..6]);
+        let idx_bytes = idx_masked.to_le_bytes();
+        frame[8..15].copy_from_slice(&idx_bytes[..7]);
 
         // Byte 14: is_list (1 bit in the most significant position)
         if is_list {
-            frame[14] |= 0b10000000; // Set the most significant bit
+            frame[14] |= 0b1000_0000; // Set the most significant bit
         }
 
         // Byte 15: state
@@ -56,36 +54,41 @@ impl PackedStackFrame {
     }
 
     /// Extracts the array_count field (Bytes 0-6).
+    #[inline]
+    #[must_use]
     pub fn array_count(&self) -> JsonUInt {
-        let mut bytes = [0u8; 8];
+        let mut bytes = [0_u8; 8];
         bytes[..7].copy_from_slice(&self.frame[0..7]);
         JsonUInt::from_le_bytes(bytes)
     }
 
     /// Extracts the depth field (Byte 7)
+    #[inline]
+    #[must_use]
     pub fn depth(&self) -> u8 {
         self.frame[7]
     }
 
     /// Extracts the idx_of_last_opening field (Bytes 8-14 minus the last bit).
+    #[inline]
+    #[must_use]
     pub fn idx_of_last_opening(&self) -> usize {
-        let mut bytes = [0u8; 8];
-        bytes[..6].copy_from_slice(&self.frame[8..14]);
-        bytes[6] &= 0b01111111; // Mask out the most significant bit
-
-        for (i, byte) in bytes.iter().enumerate() {
-            println!("i: {} byte: {}", i, byte);
-        }
-
+        let mut bytes = [0_u8; 8];
+        bytes[0..7].copy_from_slice(&self.frame[8..15]);
+        bytes[6] &= 0b0111_1111; // Mask out the most significant bit
         u64::from_le_bytes(bytes) as usize
     }
 
     /// Extracts the is_list field (most significant bit of Byte 14).
+    #[inline]
+    #[must_use]
     pub fn is_list(&self) -> bool {
-        self.frame[14] & 0b10000000 != 0
+        self.frame[14] & 0b1000_0000 != 0
     }
 
     /// Extracts the state field (Byte 15).
+    #[inline]
+    #[must_use]
     pub fn state(&self) -> u8 {
         self.frame[15]
     }
@@ -93,6 +96,7 @@ impl PackedStackFrame {
 
 // Implement Eq, PartialEq, and Debug traits
 impl PartialEq for PackedStackFrame {
+    #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.frame == other.frame
     }
@@ -101,6 +105,7 @@ impl PartialEq for PackedStackFrame {
 impl Eq for PackedStackFrame {}
 
 impl std::fmt::Debug for PackedStackFrame {
+    #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("PackedStackFrame")
             .field("array_count", &self.array_count())
@@ -116,54 +121,43 @@ impl std::fmt::Debug for PackedStackFrame {
 mod tests {
     use super::*;
 
-    const MAX_VALUE_55_BITS: usize = (1 << 55) - 1; // Max value for 55 bits
-    const MAX_VALUE_56_BITS: u64 = (1 << 56) - 1; // Max value for 56 bits
-
     #[test]
     fn test_packed_stack_frame_normal_values() {
-        let frame = PackedStackFrame::new(10, 20, true, 123456789, 987654);
-        println!("{:?}", frame);
+        let depth = 10;
+        let state = 20;
+        let is_list = true;
+        let array_count = 123456789;
+        let idx_of_last_opening = 987654321;
 
-        assert_eq!(frame.depth(), 10);
-        assert_eq!(frame.state(), 20);
-        assert_eq!(frame.is_list(), true);
-        assert_eq!(frame.array_count(), 123456789);
-        assert_eq!(frame.idx_of_last_opening(), 987654);
+        test_build_frame(depth, state, is_list, array_count, idx_of_last_opening);
     }
 
     #[test]
     fn test_packed_stack_frame_max_values() {
-        let max_depth = u8::MAX; // 255
-        let max_state = u8::MAX; // 255
-        let max_array_count = MAX_VALUE_56_BITS; // 56-bit max value
-        let max_idx_of_last_opening = MAX_VALUE_55_BITS; // 55-bit max value
+        let depth = u8::MAX; // 255
+        let state = u8::MAX; // 255
+        let is_list = true;
+        let array_count = MASK_56_BITS; // 56-bit max value
+        let idx_of_last_opening = MASK_55_BITS; // 55-bit max value
 
-        let frame = PackedStackFrame::new(max_depth, max_state, true, max_array_count, max_idx_of_last_opening);
-        println!("{:?}", frame);
-
-        assert_eq!(frame.depth(), max_depth);
-        assert_eq!(frame.state(), max_state);
-        assert_eq!(frame.is_list(), true);
-        assert_eq!(frame.array_count(), max_array_count);
-        assert_eq!(frame.idx_of_last_opening(), max_idx_of_last_opening);
+        test_build_frame(depth, state, is_list, array_count, idx_of_last_opening);
     }
 
     #[test]
     fn test_packed_stack_frame_min_values() {
-        let frame = PackedStackFrame::new(0, 0, false, 0, 0);
-        println!("{:?}", frame);
+        let depth = 0;
+        let state = 0;
+        let is_list = false;
+        let array_count = 0;
+        let idx_of_last_opening = 0;
 
-        assert_eq!(frame.depth(), 0);
-        assert_eq!(frame.state(), 0);
-        assert_eq!(frame.is_list(), false);
-        assert_eq!(frame.array_count(), 0);
-        assert_eq!(frame.idx_of_last_opening(), 0);
+        test_build_frame(depth, state, is_list, array_count, idx_of_last_opening);
     }
 
     #[test]
     #[should_panic(expected = "idx_of_last_opening exceeds 55-bit limit")]
     fn test_packed_stack_frame_invalid_idx_of_last_opening() {
-        let invalid_idx_of_last_opening = MAX_VALUE_55_BITS + 1; // 55 bits + 1 bit
+        let invalid_idx_of_last_opening = MASK_55_BITS + 1; // 55 bits + 1 bit
 
         // This should panic due to `debug_assert!`
         let _frame = PackedStackFrame::new(10, 20, false, 0, invalid_idx_of_last_opening);
@@ -172,9 +166,20 @@ mod tests {
     #[test]
     #[should_panic(expected = "array_count exceeds 56-bit limit")]
     fn test_packed_stack_frame_invalid_array_count() {
-        let invalid_array_count = MAX_VALUE_56_BITS + 1; // 56 bits + 1 bit
+        let invalid_array_count = MASK_56_BITS + 1; // 56 bits + 1 bit
 
         // This should panic due to `debug_assert!`
         let _frame = PackedStackFrame::new(10, 20, false, invalid_array_count, 0);
+    }
+
+    fn test_build_frame(depth: u8, state: u8, is_list: bool, array_count: JsonUInt, idx_of_last_opening: usize) {
+        let frame = PackedStackFrame::new(depth, state, is_list, array_count, idx_of_last_opening);
+        println!("{:?}", frame);
+
+        assert_eq!(frame.depth(), depth);
+        assert_eq!(frame.state(), state);
+        assert_eq!(frame.is_list(), is_list);
+        assert_eq!(frame.array_count(), array_count);
+        assert_eq!(frame.idx_of_last_opening(), idx_of_last_opening);
     }
 }

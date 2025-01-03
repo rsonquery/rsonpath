@@ -27,7 +27,7 @@ pub struct LutPHFGroup {
 impl LookUpTable for LutPHFGroup {
     #[inline]
     fn build(json_path: &str) -> Result<Self, Box<dyn std::error::Error>> {
-        LutPHFGroup::build_buckets(DEFAULT_LAMBDA, json_path, DEFAULT_BIT_MASK, DEFAULT_THREADED)
+        Self::build_buckets(DEFAULT_LAMBDA, json_path, DEFAULT_BIT_MASK, DEFAULT_THREADED)
     }
 
     #[inline]
@@ -50,7 +50,7 @@ impl LookUpTable for LutPHFGroup {
 impl LookUpTableLambda for LutPHFGroup {
     #[inline]
     fn build_lambda(lambda: usize, json_path: &str, threaded: bool) -> Result<Self, Box<dyn std::error::Error>> {
-        LutPHFGroup::build_buckets(lambda, json_path, DEFAULT_BIT_MASK, threaded)
+        Self::build_buckets(lambda, json_path, DEFAULT_BIT_MASK, threaded)
     }
 }
 
@@ -87,7 +87,7 @@ impl LutPHFGroup {
     fn build_lut_doubles(lambda: usize, lut_doubles_pair_data: Vec<PairData>, bit_mask: usize, threaded: bool) -> Self {
         let lut_doubles: Vec<LutPHFDouble> = lut_doubles_pair_data
             .into_par_iter()
-            .map(|pair_data| LutPHFDouble::build_double(lambda, pair_data, threaded))
+            .map(|pair_data| LutPHFDouble::build_double(lambda, &pair_data, threaded))
             .collect();
 
         Self { lut_doubles, bit_mask }

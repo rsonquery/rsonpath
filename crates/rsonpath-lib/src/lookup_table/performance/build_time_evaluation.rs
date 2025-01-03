@@ -3,13 +3,18 @@ use std::{
     process::Command,
 };
 
-use rayon::vec;
-
 use crate::lookup_table::{
     count_distances, lut_hash_map::LutHashMap, lut_hash_map_double::LutHashMapDouble,
     lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF, lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup,
     pair_finder, util_path, LookUpTable, LookUpTableLambda,
 };
+/// Helper struct to reduce the number of parameters when calling functions
+pub struct EvalConfig<'a> {
+    json_path: &'a str,
+    keys: Vec<usize>,
+    head_line: &'a mut String,
+    data_line: &'a mut String,
+}
 
 #[inline]
 pub fn run(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Error>> {
@@ -22,33 +27,31 @@ pub fn run(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Er
 
     let (keys, _) = pair_finder::get_keys_and_values(json_path).expect("Fail @ finding pairs.");
 
+    let mut config = EvalConfig {
+        json_path,
+        keys,
+        head_line: &mut head_line,
+        data_line: &mut data_line,
+    };
+
     // Measure LUTs without lambda parameter
-    eval::<LutHashMap>(json_path, &keys, "hash_map", &mut head_line, &mut data_line);
-    eval::<LutHashMapDouble>(json_path, &keys, "hash_map_double", &mut head_line, &mut data_line);
-    // eval::<LutPerfectNaive>(json_path, &keys, "perfect_naive", &mut head_line, &mut data_line);
+    eval::<LutHashMap>(&mut config, "hash_map");
+    eval::<LutHashMapDouble>(&mut config, "hash_map_double");
+    eval::<LutPerfectNaive>(&mut config, "perfect_naive");
 
     // Measure LUTs with lambda parameter
-    for l in vec![1, 5] {
-        let t = false;
-        // eval_lambda::<LutPHF>(l, json_path, &keys, "phf", &mut head_line, &mut data_line, t);
-        // eval_lambda::<LutPHFDouble>(l, json_path, &keys, "phf_double", &mut head_line, &mut data_line, t);
-        // eval_lambda::<LutPHFGroup>(l, json_path, &keys, "phf_group", &mut head_line, &mut data_line, t);
-
-        // let threaded = true;
-        // eval_lambda::<LutPHF>(l, json_path, &keys, "phf(T)", &mut head_line, &mut data_line, t);
-        // eval_lambda::<LutPHFDouble>(l, json_path, &keys, "phf_double(T)", &mut head_line, &mut data_line, t);
-        // eval_lambda::<LutPHFGroup>(l, json_path, &keys, "phf_group(T)", &mut head_line, &mut data_line, t);
+    for lambda in 1..5 {
+        for threaded in [true, false] {
+            eval_lambda::<LutPHF>(&mut config, "phf", lambda, threaded);
+            eval_lambda::<LutPHFDouble>(&mut config, "phf_double", lambda, threaded);
+            eval_lambda::<LutPHFGroup>(&mut config, "phf_group", lambda, threaded);
+        }
     }
 
-    for l in vec![1, 5] {
-        let t = false;
-
-        // eval_bucket(l, json_path, &keys, 3, "phf_group", &mut head_line, &mut data_line, t);
-        // eval_bucket(l, json_path, &keys, 7, "phf_group", &mut head_line, &mut data_line, t);
-        // eval_bucket(l, json_path, &keys, 15, "phf_group", &mut head_line, &mut data_line, t);
-        // eval_bucket(l, json_path, &keys, 31, "phf_group", &mut head_line, &mut data_line, t);
-        eval_bucket(l, json_path, &keys, 63, "phf_group", &mut head_line, &mut data_line, t);
-        eval_bucket(l, json_path, &keys, 127, "phf_group", &mut head_line, &mut data_line, t);
+    for lambda in 1..5 {
+        for bit_mask in [3, 7, 15, 31, 63, 127] {
+            eval_bucket(&mut config, "phf_group", bit_mask, lambda, false);
+        }
     }
 
     // Write CSV header and data
@@ -63,92 +66,67 @@ pub fn run(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Er
     Ok(())
 }
 
-fn eval<T: LookUpTable>(
-    json_path: &str,
-    keys: &Vec<usize>,
-    name: &str,
-    head_line: &mut String,
-    data_line: &mut String,
-) {
+fn eval<T: LookUpTable>(config: &mut EvalConfig, name: &str) {
     println!("  - {}", name);
 
     // Build time
     let start_build = std::time::Instant::now();
-    let lut = T::build(json_path).expect("Fail @ build lut");
+    let lut = T::build(config.json_path).expect("Fail @ build lut");
     let build_time = start_build.elapsed().as_secs_f64();
 
     // Query time
     let start_query = std::time::Instant::now();
     // Call a black box function that does nothing so that the compiler does not optimize away get_every_key_once
-    my_black_box(get_every_key_once(&lut, &keys));
+    my_black_box(get_every_key_once(&lut, &config.keys));
     let query_time = start_query.elapsed().as_secs_f64();
 
-    head_line.push_str(&format!("{}_build_time,{}_query_time,", name, name));
-    data_line.push_str(&format!("{},{},", build_time, query_time));
+    // Use the fields directly without destructuring
+    config
+        .head_line
+        .push_str(&format!("{}_build_time,{}_query_time,", name, name));
+    config.data_line.push_str(&format!("{},{},", build_time, query_time));
 }
 
-fn eval_lambda<T: LookUpTableLambda>(
-    lambda: usize,
-    json_path: &str,
-    keys: &Vec<usize>,
-    name: &str,
-    head_line: &mut String,
-    data_line: &mut String,
-    threaded: bool,
-) {
+fn eval_lambda<T: LookUpTableLambda>(config: &mut EvalConfig, name: &str, lambda: usize, threaded: bool) {
     println!("  - {}:λ={}", name, lambda);
 
     // Build time
     let start_build = std::time::Instant::now();
-    let lut = T::build_lambda(lambda, json_path, threaded).expect("Fail @ build lut");
+    let lut = T::build_lambda(lambda, config.json_path, threaded).expect("Fail @ build lut");
     let build_time = start_build.elapsed().as_secs_f64();
 
     // Query time
     let start_build = std::time::Instant::now();
     // Call a black box function that does nothing so that the compiler does not optimize away get_every_key_once
-    my_black_box(get_every_key_once(&lut, &keys));
+    my_black_box(get_every_key_once(&lut, &config.keys));
     let query_time = start_build.elapsed().as_secs_f64();
 
-    head_line.push_str(&format!(
+    config.head_line.push_str(&format!(
         "λ={}:{}_build_time,λ={}:{}_query_time,",
         lambda, name, lambda, name
     ));
-    data_line.push_str(&format!("{},{},", build_time, query_time));
+    config.data_line.push_str(&format!("{},{},", build_time, query_time));
 }
 
-fn eval_bucket(
-    lambda: usize,
-    json_path: &str,
-    keys: &Vec<usize>,
-    bit_mask: usize,
-    name: &str,
-    head_line: &mut String,
-    data_line: &mut String,
-    threaded: bool,
-) {
+fn eval_bucket(config: &mut EvalConfig, name: &str, bit_mask: usize, lambda: usize, threaded: bool) {
     println!("  - {}:#{}_λ={}", name, bit_mask + 1, lambda);
 
     // Build time
     let start_build = std::time::Instant::now();
-    let lut = LutPHFGroup::build_buckets(lambda, json_path, bit_mask, threaded).expect("Fail @ build lut");
+    let lut = LutPHFGroup::build_buckets(lambda, config.json_path, bit_mask, threaded).expect("Fail @ build lut");
     let build_time = start_build.elapsed().as_secs_f64();
 
     // Query time
     let start_build = std::time::Instant::now();
     // Call a black box function that does nothing so that the compiler does not optimize away get_every_key_once
-    my_black_box(get_every_key_once(&lut, &keys));
+    my_black_box(get_every_key_once(&lut, &config.keys));
     let query_time = start_build.elapsed().as_secs_f64();
 
-    head_line.push_str(&format!(
-        "#{}_λ={}:{}_build_time,#{}_λ={}:{}_query_time,",
-        bit_mask + 1,
-        lambda,
-        name,
-        bit_mask + 1,
-        lambda,
-        name
+    let power_of_two = bit_mask + 1;
+    config.head_line.push_str(&format!(
+        "#{power_of_two}_λ={lambda}:{name}_build_time,#{power_of_two}_λ={lambda}:{name}_query_time,",
     ));
-    data_line.push_str(&format!("{},{},", build_time, query_time));
+    config.data_line.push_str(&format!("{},{},", build_time, query_time));
 }
 
 fn get_every_key_once(lut: &dyn LookUpTable, keys: &[usize]) -> usize {
@@ -179,4 +157,4 @@ fn run_python_statistics_builder(csv_path: &str) {
 // A black box function so that the compiler will not optimize away the values passed into here. Mainly used when
 // running tests.
 #[inline(never)]
-fn my_black_box<T>(whatever: T) {}
+fn my_black_box<T>(_whatever: T) {}

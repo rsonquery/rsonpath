@@ -41,8 +41,6 @@ pub enum Structural {
 }
 use Structural::*;
 
-use super::quotes::QuoteIterResult;
-
 impl Structural {
     /// Returns the index of the character in the document,
     /// i.e. which byte it is counting from 0.

@@ -5,7 +5,7 @@ use crate::{
     lookup_table::lut_hash_map::LutHashMap,
 };
 use phf_generator_double_hash::HashState;
-use std::{default, fs};
+use std::fs;
 
 pub mod phf_generator;
 pub mod phf_generator_double_hash;
@@ -23,7 +23,7 @@ pub struct LutPHF {
 impl LookUpTable for LutPHF {
     #[inline]
     fn build(json_path: &str) -> Result<Self, Box<dyn std::error::Error>> {
-        LutPHF::build_lambda(DEFAULT_LAMBDA, json_path, DEFAULT_THREADED)
+        Self::build_lambda(DEFAULT_LAMBDA, json_path, DEFAULT_THREADED)
     }
 
     #[inline]

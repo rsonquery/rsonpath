@@ -17,6 +17,27 @@ use std::{
 // 65536 = 2^16, since we want to consider all values that fit into a 16 bit representation
 pub const THRESHOLD_16_BITS: usize = 65536;
 
+/// Helper struct, because it makes the code shorter and cleaner to read.
+#[derive(Clone, Default)]
+pub struct PairData {
+    pub keys_16: Vec<usize>,
+    pub values_16: Vec<u16>,
+    pub keys_64: Vec<usize>,
+    pub values_64: Vec<usize>,
+}
+
+impl PairData {
+    #[inline]
+    #[must_use]
+    pub fn new() -> Self {
+        Self {
+            keys_16: vec![],
+            values_16: vec![],
+            keys_64: vec![],
+            values_64: vec![],
+        }
+    }
+}
 pub struct LutHashMapDouble {
     pub hash_map_16: HashMap<usize, u16>,
     pub hash_map_64: HashMap<usize, usize>,
@@ -72,9 +93,11 @@ impl LookUpTable for LutHashMapDouble {
 }
 
 impl LutHashMapDouble {
+    #[inline]
+    #[must_use]
     pub fn build_double(pd: PairData) -> Self {
-        let hash_map_16: HashMap<usize, u16> = pd.keys_16.into_iter().zip(pd.values_16.into_iter()).collect();
-        let hash_map_64: HashMap<usize, usize> = pd.keys_64.into_iter().zip(pd.values_64.into_iter()).collect();
+        let hash_map_16: HashMap<usize, u16> = pd.keys_16.into_iter().zip(pd.values_16).collect();
+        let hash_map_64: HashMap<usize, usize> = pd.keys_64.into_iter().zip(pd.values_64).collect();
 
         Self {
             hash_map_16,
@@ -85,7 +108,8 @@ impl LutHashMapDouble {
     /// We count the distances between the opening and closing brackets. We save the start position as key and
     /// distance to the closing bracket in the value. Creates a key-value list for values which fit in a 16 bit
     /// representation and another key-value list for the ones that do not.
-    pub fn find_all_pairs<I, V>(input: &I, simd: V) -> Result<PairData, error::InputError>
+    #[inline]
+    pub(crate) fn find_all_pairs<I, V>(input: &I, simd: V) -> Result<PairData, error::InputError>
     where
         I: Input,
         V: Simd,
@@ -132,25 +156,5 @@ impl LutHashMapDouble {
         }
 
         Ok(pairs)
-    }
-}
-
-/// Helper struct, because it makes the code shorter and cleaner to read.
-#[derive(Clone)]
-pub struct PairData {
-    pub keys_16: Vec<usize>,
-    pub values_16: Vec<u16>,
-    pub keys_64: Vec<usize>,
-    pub values_64: Vec<usize>,
-}
-
-impl PairData {
-    pub fn new() -> Self {
-        Self {
-            keys_16: vec![],
-            values_16: vec![],
-            keys_64: vec![],
-            values_64: vec![],
-        }
     }
 }

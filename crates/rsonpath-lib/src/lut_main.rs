@@ -56,7 +56,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     match &cli.command {
         Commands::Query { json_query, json_path } => {
-            let _ = query_with_lut(json_path, json_query);
+            query_with_lut(json_path, json_query);
         }
         Commands::Distances { json_dir, out_dir } => {
             check_if_dir_exists(json_dir);
@@ -113,10 +113,8 @@ fn create_folder_setup(dir_name: &str) -> std::io::Result<()> {
 
 fn check_if_dir_exists(path: &str) {
     if fs::metadata(path).is_err() {
-        eprintln!("Error: The provided folder '{}' does not exist.", path);
-        std::process::exit(1);
+        panic!("Error: The provided folder '{}' does not exist.", path);
     } else if !Path::new(path).is_dir() {
-        eprintln!("Error: The provided folder '{}' is not a directory.", path);
-        std::process::exit(1);
+        panic!("Error: The provided folder '{}' is not a directory.", path);
     }
 }

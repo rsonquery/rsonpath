@@ -83,6 +83,7 @@ impl MainEngine {
     }
 
     #[inline(always)]
+    #[must_use]
     pub fn allocated_bytes_by_lut(&self) -> usize {
         self.lut.as_ref().map_or(0, |lut| lut.allocated_bytes())
     }

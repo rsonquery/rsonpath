@@ -48,6 +48,7 @@ impl<U: Copy> HashState<U> {
     }
 
     #[inline]
+    #[must_use]
     pub fn allocated_bytes(&self) -> usize {
         let mut total_size = 0;
         total_size += std::mem::size_of::<Self>();
