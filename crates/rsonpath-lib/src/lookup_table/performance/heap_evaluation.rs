@@ -1,4 +1,5 @@
 use crate::lookup_table::lut_hash_map_double::LutHashMapDouble;
+use crate::lookup_table::performance::build_time_evaluation::GLOBAL;
 use crate::lookup_table::{
     count_distances, lut_hash_map::LutHashMap, lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF,
     lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup, util_path, LookUpTable, LookUpTableLambda,
@@ -10,9 +11,6 @@ use std::{
     io::{self},
     process::Command,
 };
-
-#[global_allocator]
-static GLOBAL: &StatsAlloc<System> = &INSTRUMENTED_SYSTEM;
 
 /// Helper struct to reduce the number of parameters when calling functions
 pub struct EvalConfig<'a> {

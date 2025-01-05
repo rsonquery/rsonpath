@@ -1,13 +1,20 @@
 use std::{
+    alloc::System,
     io::{self, Write},
     process::Command,
 };
+
+use stats_alloc::{Region, StatsAlloc, INSTRUMENTED_SYSTEM};
 
 use crate::lookup_table::{
     count_distances, lut_hash_map::LutHashMap, lut_hash_map_double::LutHashMapDouble,
     lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF, lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup,
     pair_finder, util_path, LookUpTable, LookUpTableLambda,
 };
+
+/// Allocator to track how much allocations are happening during a specific time frame
+#[global_allocator]
+pub static GLOBAL: &StatsAlloc<System> = &INSTRUMENTED_SYSTEM;
 /// Helper struct to reduce the number of parameters when calling functions
 pub struct EvalConfig<'a> {
     json_path: &'a str,
@@ -37,10 +44,10 @@ pub fn run(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Er
     // Measure LUTs without lambda parameter
     eval::<LutHashMap>(&mut config, "hash_map");
     eval::<LutHashMapDouble>(&mut config, "hash_map_double");
-    eval::<LutPerfectNaive>(&mut config, "perfect_naive");
+    // eval::<LutPerfectNaive>(&mut config, "perfect_naive");
 
     // Measure LUTs with lambda parameter
-    for lambda in 1..5 {
+    for lambda in 1..2 {
         for threaded in [true, false] {
             eval_lambda::<LutPHF>(&mut config, "phf", lambda, threaded);
             eval_lambda::<LutPHFDouble>(&mut config, "phf_double", lambda, threaded);
@@ -50,7 +57,7 @@ pub fn run(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Er
 
     for lambda in 1..5 {
         for bit_mask in [3, 7, 15, 31, 63, 127] {
-            eval_bucket(&mut config, "phf_group", bit_mask, lambda, false);
+            // eval_bucket(&mut config, "phf_group", bit_mask, lambda, false);
         }
     }
 
@@ -66,67 +73,101 @@ pub fn run(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Er
     Ok(())
 }
 
-fn eval<T: LookUpTable>(config: &mut EvalConfig, name: &str) {
-    println!("  - {}", name);
+fn eval<T: LookUpTable>(cfg: &mut EvalConfig, name: &str) {
+    println!("  - {name}");
 
-    // Build time
+    // Build time & heap size
+    let start_heap = Region::new(GLOBAL);
+
     let start_build = std::time::Instant::now();
-    let lut = T::build(config.json_path).expect("Fail @ build lut");
+    let lut = T::build(cfg.json_path).expect("Fail @ build lut");
     let build_time = start_build.elapsed().as_secs_f64();
+
+    let heap_bytes = heap_value(start_heap.change());
+    let allocated_bytes = lut.allocated_bytes();
 
     // Query time
     let start_query = std::time::Instant::now();
     // Call a black box function that does nothing so that the compiler does not optimize away get_every_key_once
-    my_black_box(get_every_key_once(&lut, &config.keys));
+    my_black_box(get_every_key_once(&lut, &cfg.keys));
     let query_time = start_query.elapsed().as_secs_f64();
 
-    // Use the fields directly without destructuring
-    config
-        .head_line
-        .push_str(&format!("{}_build_time,{}_query_time,", name, name));
-    config.data_line.push_str(&format!("{},{},", build_time, query_time));
+    // Save measurements
+    let h = name;
+    cfg.head_line.push_str(&format!("{h}_build_time,{h}_query_time,"));
+    cfg.data_line.push_str(&format!("{build_time},{query_time},"));
+    cfg.head_line.push_str(&format!("{h}_heap,{h}_capacity,"));
+    cfg.data_line.push_str(&format!("{heap_bytes},{allocated_bytes},"));
+
+    println!("    - Build time:      {build_time}");
+    println!("    - Query time:      {query_time}");
+    println!("    - Heap bytes:      {heap_bytes}");
+    println!("    - Allocated bytes: {allocated_bytes}");
 }
 
-fn eval_lambda<T: LookUpTableLambda>(config: &mut EvalConfig, name: &str, lambda: usize, threaded: bool) {
-    println!("  - {}:λ={}", name, lambda);
+fn eval_lambda<T: LookUpTableLambda>(cfg: &mut EvalConfig, name: &str, lambda: usize, threaded: bool) {
+    println!("  - {name}:λ={lambda},threaded={threaded}");
 
-    // Build time
+    // Build time & heap size
+    let start_heap = Region::new(GLOBAL);
+
     let start_build = std::time::Instant::now();
-    let lut = T::build_lambda(lambda, config.json_path, threaded).expect("Fail @ build lut");
+    let lut = T::build_lambda(lambda, cfg.json_path, threaded).expect("Fail @ build lut");
     let build_time = start_build.elapsed().as_secs_f64();
+
+    let heap_bytes = heap_value(start_heap.change());
+    let allocated_bytes = lut.allocated_bytes();
 
     // Query time
     let start_build = std::time::Instant::now();
     // Call a black box function that does nothing so that the compiler does not optimize away get_every_key_once
-    my_black_box(get_every_key_once(&lut, &config.keys));
+    my_black_box(get_every_key_once(&lut, &cfg.keys));
     let query_time = start_build.elapsed().as_secs_f64();
 
-    config.head_line.push_str(&format!(
-        "λ={}:{}_build_time,λ={}:{}_query_time,",
-        lambda, name, lambda, name
-    ));
-    config.data_line.push_str(&format!("{},{},", build_time, query_time));
+    // Save measurements
+    let h = format!("λ={lambda}:{name}");
+    cfg.head_line.push_str(&format!("{h}_build_time,{h}_query_time,",));
+    cfg.data_line.push_str(&format!("{build_time},{query_time},"));
+    cfg.head_line.push_str(&format!("{h}_heap,{h}_capacity,"));
+    cfg.data_line.push_str(&format!("{heap_bytes},{allocated_bytes},"));
+
+    println!("    - Build time:      {build_time}");
+    println!("    - Query time:      {query_time}");
+    println!("    - Heap bytes:      {heap_bytes}");
+    println!("    - Allocated bytes: {allocated_bytes}");
 }
 
-fn eval_bucket(config: &mut EvalConfig, name: &str, bit_mask: usize, lambda: usize, threaded: bool) {
-    println!("  - {}:#{}_λ={}", name, bit_mask + 1, lambda);
+fn eval_bucket(cfg: &mut EvalConfig, name: &str, bit_mask: usize, lambda: usize, threaded: bool) {
+    let bits = bit_mask + 1;
+    println!("  - {name}:#{bits}_λ={lambda}");
 
-    // Build time
+    // Build time & heap size
+    let start_heap = Region::new(GLOBAL);
+
     let start_build = std::time::Instant::now();
-    let lut = LutPHFGroup::build_buckets(lambda, config.json_path, bit_mask, threaded).expect("Fail @ build lut");
+    let lut = LutPHFGroup::build_buckets(lambda, cfg.json_path, bit_mask, threaded).expect("Fail @ build lut");
     let build_time = start_build.elapsed().as_secs_f64();
+
+    let heap_bytes = heap_value(start_heap.change());
+    let allocated_bytes = lut.allocated_bytes();
 
     // Query time
     let start_build = std::time::Instant::now();
     // Call a black box function that does nothing so that the compiler does not optimize away get_every_key_once
-    my_black_box(get_every_key_once(&lut, &config.keys));
+    my_black_box(get_every_key_once(&lut, &cfg.keys));
     let query_time = start_build.elapsed().as_secs_f64();
 
-    let power_of_two = bit_mask + 1;
-    config.head_line.push_str(&format!(
-        "#{power_of_two}_λ={lambda}:{name}_build_time,#{power_of_two}_λ={lambda}:{name}_query_time,",
-    ));
-    config.data_line.push_str(&format!("{},{},", build_time, query_time));
+    // Save measurements
+    let h = format!("#{bits}_λ={lambda}:{name}");
+    cfg.head_line.push_str(&format!("{h}_build_time,{h}_query_time,",));
+    cfg.data_line.push_str(&format!("{build_time},{query_time},"));
+    cfg.head_line.push_str(&format!("{h}_heap,{h}_capacity,"));
+    cfg.data_line.push_str(&format!("{heap_bytes},{allocated_bytes},"));
+
+    println!("    - Build time:      {build_time}");
+    println!("    - Query time:      {query_time}");
+    println!("    - Heap bytes:      {heap_bytes}");
+    println!("    - Allocated bytes: {allocated_bytes}");
 }
 
 fn get_every_key_once(lut: &dyn LookUpTable, keys: &[usize]) -> usize {
@@ -135,6 +176,15 @@ fn get_every_key_once(lut: &dyn LookUpTable, keys: &[usize]) -> usize {
         count += lut.get(key).expect("Fail at getting value!");
     }
     count
+}
+
+fn heap_value(stats: stats_alloc::Stats) -> isize {
+    // We take the allocated bytes minus the deallocated and ignore the reallocated bytes because we are interested
+    // in the total heap space taken
+    stats.bytes_allocated as isize - stats.bytes_deallocated as isize
+
+    // Alternative line that should not be used:
+    // stats.bytes_allocated as isize - stats.bytes_deallocated as isize + stats.bytes_reallocated
 }
 
 fn run_python_statistics_builder(csv_path: &str) {

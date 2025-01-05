@@ -5,17 +5,17 @@ pub mod build_time_evaluation;
 pub mod heap_evaluation;
 
 pub const HEAP_EVAL_DIR: &str = "heap_evaluation";
-pub const BUILD_TIME_EVAL_DIR: &str = "build_time_evaluation";
+pub const BUILD_TIME_EVAL_DIR: &str = "evaluation";
 
 #[inline]
 pub fn performance_test(json_dir: &str, out_dir: &str, tasks: u16) {
     match tasks {
         0 => {
             build_time_evaluation(json_dir, out_dir);
-            heap_evaluation(json_dir, out_dir);
+            // heap_evaluation(json_dir, out_dir);
         }
         1 => build_time_evaluation(json_dir, out_dir),
-        2 => heap_evaluation(json_dir, out_dir),
+        // 2 => heap_evaluation(json_dir, out_dir),
         _ => eprintln!("Invalid task selection"),
     }
 }

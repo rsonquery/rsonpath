@@ -36,13 +36,13 @@ Currently, the LUT supports the following operations: distances, sichash, perfor
 Here are some example commands to run the various operations:
 
 ```bash
-    cargo run --bin lut --release -- distances .a_lut_tests/test_data/MB_100 .a_lut_tests
-    cargo run --bin lut --release -- sichash .a_lut_tests/test_data/MB_100 .a_lut_tests
-    cargo run --bin lut --release -- performance .a_lut_tests/test_data/MB_100 .a_lut_tests 0
-    cargo run --bin lut --release -- performance .a_lut_tests/test_data .a_lut_tests 3
-    cargo run --bin lut --release -- test
+cargo run --bin lut --release -- distances .a_lut_tests/test_data/MB_100 .a_lut_tests
+cargo run --bin lut --release -- sichash .a_lut_tests/test_data/MB_100 .a_lut_tests
+cargo run --bin lut --release -- performance .a_lut_tests/test_data/MB_100 .a_lut_tests 0
+cargo run --bin lut --release -- performance .a_lut_tests/test_data .a_lut_tests 3
+cargo run --bin lut --release -- test
 
-    cargo run --bin lut --release -- query $.person.spouse.person.phoneNumber[*] .a_lut_tests/test_data/kB_1/john_big.json
+cargo run --bin lut --release -- query $.person.spouse.person.phoneNumber[*] .a_lut_tests/test_data/kB_1/john_big.json
 ```
 
 ## Run the tests with
@@ -50,7 +50,8 @@ Here are some example commands to run the various operations:
 The tests are in `crates/rsonpath-lib/tests/lut_query_tests.rs`. You can run them with the command:
 
 ```bash
-cargo test --test lut_tests
+cargo test --test lut_build_tests
+cargo test --test lut_query_tests
 ```
 
 If you want to run the tests with debug messages and filter which files will add to the debug messages run the commands as in the examples below. Here they are for example only allowing the files "tail_skipping" and "lut_query_tests" to write debug messages.
