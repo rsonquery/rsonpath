@@ -24,7 +24,7 @@ pub struct EvalConfig<'a> {
 }
 
 #[inline]
-pub fn run(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub fn evaluate(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Error>> {
     let file = std::fs::File::open(json_path)?;
     let filename = util_path::extract_filename(json_path);
     let num_keys = count_distances::count_num_pairs(json_path);
@@ -93,16 +93,8 @@ fn eval<T: LookUpTable>(cfg: &mut EvalConfig, name: &str) {
     let query_time = start_query.elapsed().as_secs_f64();
 
     // Save measurements
-    let h = name;
-    cfg.head_line.push_str(&format!("{h}_build_time,{h}_query_time,"));
-    cfg.data_line.push_str(&format!("{build_time},{query_time},"));
-    cfg.head_line.push_str(&format!("{h}_heap,{h}_capacity,"));
-    cfg.data_line.push_str(&format!("{heap_bytes},{allocated_bytes},"));
-
-    println!("    - Build time:      {build_time}");
-    println!("    - Query time:      {query_time}");
-    println!("    - Heap bytes:      {heap_bytes}");
-    println!("    - Allocated bytes: {allocated_bytes}");
+    let name = name;
+    save_measurements(cfg, &name, build_time, query_time, heap_bytes, allocated_bytes);
 }
 
 fn eval_lambda<T: LookUpTableLambda>(cfg: &mut EvalConfig, name: &str, lambda: usize, threaded: bool) {
@@ -119,22 +111,14 @@ fn eval_lambda<T: LookUpTableLambda>(cfg: &mut EvalConfig, name: &str, lambda: u
     let allocated_bytes = lut.allocated_bytes();
 
     // Query time
-    let start_build = std::time::Instant::now();
+    let start_query = std::time::Instant::now();
     // Call a black box function that does nothing so that the compiler does not optimize away get_every_key_once
     my_black_box(get_every_key_once(&lut, &cfg.keys));
-    let query_time = start_build.elapsed().as_secs_f64();
+    let query_time = start_query.elapsed().as_secs_f64();
 
     // Save measurements
-    let h = format!("λ={lambda}:{name}");
-    cfg.head_line.push_str(&format!("{h}_build_time,{h}_query_time,",));
-    cfg.data_line.push_str(&format!("{build_time},{query_time},"));
-    cfg.head_line.push_str(&format!("{h}_heap,{h}_capacity,"));
-    cfg.data_line.push_str(&format!("{heap_bytes},{allocated_bytes},"));
-
-    println!("    - Build time:      {build_time}");
-    println!("    - Query time:      {query_time}");
-    println!("    - Heap bytes:      {heap_bytes}");
-    println!("    - Allocated bytes: {allocated_bytes}");
+    let name = format!("λ={lambda}:{name}");
+    save_measurements(cfg, &name, build_time, query_time, heap_bytes, allocated_bytes);
 }
 
 fn eval_bucket(cfg: &mut EvalConfig, name: &str, bit_mask: usize, lambda: usize, threaded: bool) {
@@ -152,16 +136,27 @@ fn eval_bucket(cfg: &mut EvalConfig, name: &str, bit_mask: usize, lambda: usize,
     let allocated_bytes = lut.allocated_bytes();
 
     // Query time
-    let start_build = std::time::Instant::now();
+    let start_query = std::time::Instant::now();
     // Call a black box function that does nothing so that the compiler does not optimize away get_every_key_once
     my_black_box(get_every_key_once(&lut, &cfg.keys));
-    let query_time = start_build.elapsed().as_secs_f64();
+    let query_time = start_query.elapsed().as_secs_f64();
 
     // Save measurements
-    let h = format!("#{bits}_λ={lambda}:{name}");
-    cfg.head_line.push_str(&format!("{h}_build_time,{h}_query_time,",));
+    let name = format!("#{bits}_λ={lambda}:{name}");
+    save_measurements(cfg, &name, build_time, query_time, heap_bytes, allocated_bytes);
+}
+
+fn save_measurements(
+    cfg: &mut EvalConfig,
+    f: &str,
+    build_time: f64,
+    query_time: f64,
+    heap_bytes: isize,
+    allocated_bytes: usize,
+) {
+    cfg.head_line.push_str(&format!("{f}_build_time,{f}_query_time,",));
     cfg.data_line.push_str(&format!("{build_time},{query_time},"));
-    cfg.head_line.push_str(&format!("{h}_heap,{h}_capacity,"));
+    cfg.head_line.push_str(&format!("{f}_heap,{f}_capacity,"));
     cfg.data_line.push_str(&format!("{heap_bytes},{allocated_bytes},"));
 
     println!("    - Build time:      {build_time}");
@@ -190,7 +185,7 @@ fn heap_value(stats: stats_alloc::Stats) -> isize {
 fn run_python_statistics_builder(csv_path: &str) {
     let msg = format!("Failed to open csv_path: {}", csv_path);
     let output = Command::new("python")
-        .arg("crates/rsonpath-lib/src/lookup_table/python_statistic/build_time_evaluation.py")
+        .arg("crates/rsonpath-lib/src/lookup_table/python_statistic/lut_evaluation.py")
         .arg(csv_path)
         .output()
         .expect(&msg);

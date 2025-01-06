@@ -38,10 +38,7 @@ Here are some example commands to run the various operations:
 ```bash
 cargo run --bin lut --release -- distances .a_lut_tests/test_data/MB_100 .a_lut_tests
 cargo run --bin lut --release -- sichash .a_lut_tests/test_data/MB_100 .a_lut_tests
-cargo run --bin lut --release -- performance .a_lut_tests/test_data/MB_100 .a_lut_tests 0
-cargo run --bin lut --release -- performance .a_lut_tests/test_data .a_lut_tests 3
-cargo run --bin lut --release -- test
-
+cargo run --bin lut --release -- performance .a_lut_tests/test_data/MB_1 .a_lut_tests
 cargo run --bin lut --release -- query $.person.spouse.person.phoneNumber[*] .a_lut_tests/test_data/kB_1/john_big.json
 ```
 
@@ -58,8 +55,6 @@ If you want to run the tests with debug messages and filter which files will add
 
 ```bash
 cargo test --test lut_query_tests -- query_john_big_log --nocapture | rg "(tail_skipping|lut_query_tests)"
-
 cargo test --test lut_query_tests -- query_john_big_log --nocapture | rg "(tail_skipping|lut_query_tests)" --passthru
-
 cargo test --test lut_query_tests -- query_error_1 --nocapture | rg "(tail_skipping|lut_query_tests)"
 ```

@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 use rsonpath::lookup_table::{
     count_distances::{self, DISTANCE_EVAL_DIR},
-    performance::{self, BUILD_TIME_EVAL_DIR, HEAP_EVAL_DIR},
+    performance::{self, EVAL_DIR},
     query_with_lut::query_with_lut,
     sichash_test_data_generator::{self, SICHASH_DATA_DIR},
 };
@@ -39,8 +39,6 @@ enum Commands {
         json_dir: String,
         /// Path to the output directory
         out_dir: String,
-        /// Task to run: 0 for time eval, 1 for get eval, 2 for heap eval, 2 for both
-        tasks: u16,
     },
     /// Create the test data used in this project: https://github.com/KraftRicardo/test-SicHash
     Sichash {
@@ -65,16 +63,12 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             count_distances::count_distances_in_dir(json_dir, &csv_dir);
         }
-        Commands::Performance {
-            json_dir,
-            out_dir,
-            tasks,
-        } => {
+        Commands::Performance { json_dir, out_dir } => {
             check_if_dir_exists(json_dir);
             create_folder_setup(out_dir)?;
             let csv_dir = format!("{}/{}", out_dir, "performance");
 
-            performance::performance_test(json_dir, &csv_dir, *tasks);
+            performance::performance_test(json_dir, &csv_dir);
         }
         Commands::Sichash { json_dir, out_dir } => {
             check_if_dir_exists(json_dir);
@@ -93,8 +87,7 @@ fn create_folder_setup(dir_name: &str) -> std::io::Result<()> {
     let dirs = [
         dir_name,
         &format!("{}/performance", dir_name),
-        &format!("{}/performance/{}", dir_name, HEAP_EVAL_DIR),
-        &format!("{}/performance/{}", dir_name, BUILD_TIME_EVAL_DIR),
+        &format!("{}/performance/{}", dir_name, EVAL_DIR),
         &format!("{}/performance/{}", dir_name, DISTANCE_EVAL_DIR),
         &format!("{}/performance/{}", dir_name, SICHASH_DATA_DIR),
         &format!("{}/test_data", dir_name),
