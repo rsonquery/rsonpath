@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Harden Runner
-      uses: step-security/harden-runner@0080882f6c36860b6ba35c610c98ce87d4e2f26f # v2.10.2
+      uses: step-security/harden-runner@c95a14d0e5bab51a9f56296a4eb0e416910cd350 # v2.10.3
       with:
         egress-policy: audit
 
@@ -27,7 +27,7 @@ jobs:
       run: sed -i '/^\[patch.crates-io\]/d' ./Cargo.toml && sed -i '/^rsonpath-lib = { path = .*$/d' ./Cargo.toml
     - name: Install lld
       run: sudo apt install lld
-    - uses: actions/setup-java@8df1039502a15bceb9433410b1a100fbe190c53b # v4.5.0
+    - uses: actions/setup-java@7a6d8a8234af8eb26422e24e3006232cccaa061b # v4.6.0
       name: Setup Java JDK
       with:
         distribution: temurin
@@ -56,7 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Harden Runner
-      uses: step-security/harden-runner@0080882f6c36860b6ba35c610c98ce87d4e2f26f # v2.10.2
+      uses: step-security/harden-runner@c95a14d0e5bab51a9f56296a4eb0e416910cd350 # v2.10.3
       with:
         egress-policy: audit
 
@@ -65,7 +65,7 @@ jobs:
       run: sed -i '/^\[patch.crates-io\]/d' ./Cargo.toml && sed -i '/^rsonpath-lib = { path = .*$/d' ./Cargo.toml
     - name: Install lld
       run: sudo apt install lld
-    - uses: actions/setup-java@8df1039502a15bceb9433410b1a100fbe190c53b # v4.5.0
+    - uses: actions/setup-java@7a6d8a8234af8eb26422e24e3006232cccaa061b # v4.6.0
       name: Setup Java JDK
       with:
         distribution: temurin
@@ -101,7 +101,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Harden Runner
-      uses: step-security/harden-runner@0080882f6c36860b6ba35c610c98ce87d4e2f26f # v2.10.2
+      uses: step-security/harden-runner@c95a14d0e5bab51a9f56296a4eb0e416910cd350 # v2.10.3
       with:
         egress-policy: audit
 
@@ -110,7 +110,7 @@ jobs:
       run: sed -i '/^\[patch.crates-io\]/d' ./Cargo.toml && sed -i '/^rsonpath-lib = { path = .*$/d' ./Cargo.toml
     - name: Install lld
       run: sudo apt install lld
-    - uses: actions/setup-java@8df1039502a15bceb9433410b1a100fbe190c53b # v4.5.0
+    - uses: actions/setup-java@7a6d8a8234af8eb26422e24e3006232cccaa061b # v4.6.0
       name: Setup Java JDK
       with:
         distribution: temurin
