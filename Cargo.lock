@@ -1069,9 +1069,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.92"
+version = "1.0.93"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "37d3544b3f2748c54e147655edb5025752e2303145b5aefb3c3ea2c78b973bb0"
+checksum = "60946a68e5f9d28b0dc1c21bb8a97ee7d018a8b322fa57838ba31cc878e22d99"
 dependencies = [
  "unicode-ident",
 ]
@@ -1847,9 +1847,9 @@ dependencies = [
 
 [[package]]
 name = "vergen"
-version = "9.0.3"
+version = "9.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5874b280b7018290bee73c03ff2437bcfcc25f637d6a74927790d309698963ed"
+checksum = "e0d2f179f8075b805a43a2a21728a46f0cc2921b3c58695b28fa8817e103cd9a"
 dependencies = [
  "anyhow",
  "cargo_metadata",
@@ -1862,9 +1862,9 @@ dependencies = [
 
 [[package]]
 name = "vergen-git2"
-version = "1.0.3"
+version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1be691f975ed6640f6ad8e5dbfd845a1dfd27915dba17dc5788ce3bbf9b722b4"
+checksum = "d86bae87104cb2790cdee615c2bb54729804d307191732ab27b1c5357ea6ddc5"
 dependencies = [
  "anyhow",
  "derive_builder",
@@ -1877,9 +1877,9 @@ dependencies = [
 
 [[package]]
 name = "vergen-gitcl"
-version = "1.0.3"
+version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "51fd85916a841d1a40cc97302c18788895cfe2893ae1163e54c54d02b7bd3971"
+checksum = "b2f89d70a58a4506a6079cedf575c64cf51649ccbb4e02a63dac539b264b7711"
 dependencies = [
  "anyhow",
  "derive_builder",
