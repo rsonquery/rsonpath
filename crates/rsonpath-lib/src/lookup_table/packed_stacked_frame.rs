@@ -1,3 +1,5 @@
+use rsonpath_syntax::num::JsonUInt;
+
 const MASK_55_BITS: usize = (1 << 55) - 1; // Max value for 55 bits
 const MASK_56_BITS: u64 = (1 << 56) - 1; // Max value for 56 bits
 
@@ -5,8 +7,6 @@ const MASK_56_BITS: u64 = (1 << 56) - 1; // Max value for 56 bits
 pub struct PackedStackFrame {
     frame: [u8; 16], // Frame is exactly 16 bytes
 }
-
-type JsonUInt = u64;
 
 /// PackedStackFrame has a size of 16 bytes and the following structure:
 /// - Bytes 0-6: JsonUInt (u64) array_count (56 bits)
@@ -23,11 +23,11 @@ impl PackedStackFrame {
 
         // Bytes 0-6: array_count (56 bits)
         debug_assert!(
-            array_count <= MASK_56_BITS,
+            array_count.as_u64() <= MASK_56_BITS,
             "array_count exceeds 56-bit limit: {}",
             array_count
         );
-        frame[0..7].copy_from_slice(&array_count.to_le_bytes()[..7]);
+        frame[0..7].copy_from_slice(&array_count.as_u64().to_le_bytes()[..7]);
 
         // Byte 7: depth
         frame[7] = depth;
@@ -59,7 +59,8 @@ impl PackedStackFrame {
     pub fn array_count(&self) -> JsonUInt {
         let mut bytes = [0_u8; 8];
         bytes[..7].copy_from_slice(&self.frame[0..7]);
-        JsonUInt::from_le_bytes(bytes)
+
+        JsonUInt::try_from(u64::from_le_bytes(bytes)).expect("Unable to unwrap Option")
     }
 
     /// Extracts the depth field (Byte 7)
@@ -126,7 +127,7 @@ mod tests {
         let depth = 10;
         let state = 20;
         let is_list = true;
-        let array_count = 123456789;
+        let array_count = JsonUInt::from(123456789);
         let idx_of_last_opening = 987654321;
 
         test_build_frame(depth, state, is_list, array_count, idx_of_last_opening);
@@ -137,7 +138,7 @@ mod tests {
         let depth = u8::MAX; // 255
         let state = u8::MAX; // 255
         let is_list = true;
-        let array_count = MASK_56_BITS; // 56-bit max value
+        let array_count = JsonUInt::try_from(MASK_56_BITS); // 56-bit max value
         let idx_of_last_opening = MASK_55_BITS; // 55-bit max value
 
         test_build_frame(depth, state, is_list, array_count, idx_of_last_opening);
@@ -148,10 +149,10 @@ mod tests {
         let depth = 0;
         let state = 0;
         let is_list = false;
-        let array_count = 0;
+        let array_count = JsonUInt::try_from(0);
         let idx_of_last_opening = 0;
 
-        test_build_frame(depth, state, is_list, array_count, idx_of_last_opening);
+        test_build_frame(depth, state, is_list, JsonUInt::from(array_count), idx_of_last_opening);
     }
 
     #[test]
@@ -160,7 +161,7 @@ mod tests {
         let invalid_idx_of_last_opening = MASK_55_BITS + 1; // 55 bits + 1 bit
 
         // This should panic due to `debug_assert!`
-        let _frame = PackedStackFrame::new(10, 20, false, 0, invalid_idx_of_last_opening);
+        let _frame = PackedStackFrame::new(10, 20, false, JsonUInt::try_from(0), invalid_idx_of_last_opening);
     }
 
     #[test]
@@ -169,7 +170,7 @@ mod tests {
         let invalid_array_count = MASK_56_BITS + 1; // 56 bits + 1 bit
 
         // This should panic due to `debug_assert!`
-        let _frame = PackedStackFrame::new(10, 20, false, invalid_array_count, 0);
+        let _frame = PackedStackFrame::new(10, 20, false, JsonUInt::try_from(0), invalid_array_count, 0);
     }
 
     fn test_build_frame(depth: u8, state: u8, is_list: bool, array_count: JsonUInt, idx_of_last_opening: usize) {

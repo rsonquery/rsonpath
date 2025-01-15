@@ -29,7 +29,7 @@ impl LookUpTable for LutPHFDouble {
     fn get(&self, key: &usize) -> Option<usize> {
         // Look for a value for a given key. Search first in `hash_state_16` because it represents
         // >99% of the keys. On rare misses (indicated by value == 0), check `hash_state_64`. If the hash_state
-        // None the key was never part of the original key set at build time
+        // returns None the key was never part of the original key set at build time
         if let Some(value_16) = self.hash_state_16.get(key) {
             if value_16 == 0 {
                 if let Some(value_64) = self.hash_state_64.get(key) {
