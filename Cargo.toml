@@ -33,7 +33,7 @@ log = "0.4.25"
 thiserror = "2.0.11"
 # Dev-dependencies
 ciborium = { version = "0.2.2", default-features = false }
-insta = { version = "1.42.0" }
+insta = { version = "1.42.1" }
 itertools = "0.13.0"
 pretty_assertions = "1.4.1"
 proptest = "1.5.0"
