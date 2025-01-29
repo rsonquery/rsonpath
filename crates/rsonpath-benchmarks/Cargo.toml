@@ -45,7 +45,7 @@ rsonpath-lib = { path = "../rsonpath-lib" }
 rsonpath-syntax = { path = "../rsonpath-syntax" }
 
 [dev-dependencies]
-itertools = "0.13.0"
+itertools = "0.14.0"
 regex = "1.11.1"
 memchr = "2.7.4"
 
