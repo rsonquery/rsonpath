@@ -267,7 +267,7 @@ jobs:
         env:
           RUSTFLAGS: "-C link-arg=-fuse-ld=lld --deny warnings"
       - name: Clippy all features
-        uses: auguwu/clippy-action@18b67df671e30db3c67ad7d7955b69c4f538822a # v1.3.0
+        uses: auguwu/clippy-action@34b69aef42cb41df21a7dd9b5cf990324e3f0ef8 # v1.3.0
         with:
           deny: warnings
           all-features: true
