@@ -1,4 +1,5 @@
 use crate::framework::implementation::Implementation;
+use rsonpath::lookup_table::LookUpTable;
 use rsonpath::{engine::Compiler, input::MmapInput};
 use rsonpath::{
     engine::{main::MainEngine, Engine},
@@ -12,6 +13,53 @@ pub struct Rsonpath {}
 pub struct RsonpathCount {}
 pub struct RsonpathMmap {}
 pub struct RsonpathMmapCount {}
+pub struct RsonpathWithLut {}
+
+// Added by Ricardo
+impl Implementation for RsonpathWithLut {
+    type Query = MainEngine;
+    type File = (MmapInput, LookUpTable::LookUpTableImpl);
+    type Error = RsonpathError;
+    type Result<'a> = &'static str;
+
+    fn id() -> &'static str {
+        "rsonpath_with_lut"
+    }
+
+    fn new() -> Result<Self, Self::Error> {
+        Ok(RsonpathWithLut {})
+    }
+
+    fn load_file(&self, file_path: &str) -> Result<Self::File, Self::Error> {
+        let file = fs::File::open(file_path)?;
+        let input = unsafe { MmapInput::map_file(&file)? };
+
+        let lut: LookUpTable::LookUpTableImpl = LookUpTable::LookUpTableImpl::build(file_path);
+
+        Ok((input, lut))
+    }
+
+    fn compile_query(&self, query: &str) -> Result<Self::Query, Self::Error> {
+       // TODO throw error: "This implementation cannot by used without lut"
+    }
+
+    fn compile_query_and_build_lut(&self, query: &str, file: &Self::File){
+        let query = rsonpath_syntax::parse(query).unwrap();
+        let mut engine = MainEngine::compile_query(&query).map_err(RsonpathError::CompilerError)?;
+
+      
+
+        engine.add_lut(lut);
+
+        Ok(engine)
+    }
+
+    fn run(&self, query: &Self::Query, file: &Self::File) -> Result<Self::Result<'_>, Self::Error> {
+        query.matches(file, &mut VoidSink).map_err(RsonpathError::EngineError)?;
+
+        Ok("[not collected]")
+    }
+}
 
 impl Implementation for Rsonpath {
     type Query = MainEngine;

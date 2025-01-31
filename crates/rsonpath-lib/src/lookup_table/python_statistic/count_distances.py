@@ -3,7 +3,7 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 
-def plot_binned_frequencies(df: pd.DataFrame, save_path: str) -> None:
+def plot_binned_frequencies(df: pd.DataFrame, directory: str, file_base_name: str) -> None:
     if df.shape[1] != 2:
         raise ValueError("DataFrame should have exactly two columns: 'distance' and 'frequency'")
     
@@ -24,7 +24,7 @@ def plot_binned_frequencies(df: pd.DataFrame, save_path: str) -> None:
     plt.xticks(rotation=90)  # Rotate x-axis labels for better readability
     plt.xlabel('Distance (Binned)')
     plt.ylabel('Percentage of Total Frequency')
-    plt.title(f'Distance vs Percentage of Total Frequency\n'
+    plt.title(f'Distance Distribution in {file_base_name}\n'
               f'Sum of all Frequencies: {total_frequency}, Max Distance: {max_distance}')
     plt.grid(True)
 
@@ -46,6 +46,7 @@ def plot_binned_frequencies(df: pd.DataFrame, save_path: str) -> None:
 
     # Save plot
     plt.tight_layout()
+    save_path = os.path.join(directory, f"{file_base_name}_plot.png")
     plt.savefig(save_path)
     plt.close()
 
@@ -57,5 +58,5 @@ if __name__ == "__main__":
 
     # Plot
     df = pd.read_csv(file_path)
-    plot_binned_frequencies(df, os.path.join(directory, f"{file_base_name}_plot.png"))
+    plot_binned_frequencies(df, directory, file_base_name.removesuffix("_distances"))
 

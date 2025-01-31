@@ -1,7 +1,7 @@
 use rsonpath_syntax::num::JsonUInt;
 
 const MASK_55_BITS: usize = (1 << 55) - 1; // Max value for 55 bits
-const MASK_56_BITS: u64 = (1 << 56) - 1; // Max value for 56 bits
+const MASK_56_BITS: usize = (1 << 56) - 1; // Max value for 56 bits
 
 #[derive(Clone, Copy)]
 pub struct PackedStackFrame {
@@ -23,7 +23,7 @@ impl PackedStackFrame {
 
         // Bytes 0-6: array_count (56 bits)
         debug_assert!(
-            array_count.as_u64() <= MASK_56_BITS,
+            array_count.as_u64() <= (MASK_56_BITS as u64),
             "array_count exceeds 56-bit limit: {}",
             array_count
         );
@@ -138,7 +138,7 @@ mod tests {
         let depth = u8::MAX; // 255
         let state = u8::MAX; // 255
         let is_list = true;
-        let array_count = JsonUInt::try_from(MASK_56_BITS); // 56-bit max value
+        let array_count = JsonUInt::try_from(MASK_56_BITS as u64).unwrap(); // 56-bit max value
         let idx_of_last_opening = MASK_55_BITS; // 55-bit max value
 
         test_build_frame(depth, state, is_list, array_count, idx_of_last_opening);
@@ -149,10 +149,10 @@ mod tests {
         let depth = 0;
         let state = 0;
         let is_list = false;
-        let array_count = JsonUInt::try_from(0);
+        let array_count = JsonUInt::from(0);
         let idx_of_last_opening = 0;
 
-        test_build_frame(depth, state, is_list, JsonUInt::from(array_count), idx_of_last_opening);
+        test_build_frame(depth, state, is_list, array_count, idx_of_last_opening);
     }
 
     #[test]
@@ -161,16 +161,16 @@ mod tests {
         let invalid_idx_of_last_opening = MASK_55_BITS + 1; // 55 bits + 1 bit
 
         // This should panic due to `debug_assert!`
-        let _frame = PackedStackFrame::new(10, 20, false, JsonUInt::try_from(0), invalid_idx_of_last_opening);
+        let _frame = PackedStackFrame::new(10, 20, false, JsonUInt::from(0), invalid_idx_of_last_opening);
     }
 
     #[test]
     #[should_panic(expected = "array_count exceeds 56-bit limit")]
     fn test_packed_stack_frame_invalid_array_count() {
-        let invalid_array_count = MASK_56_BITS + 1; // 56 bits + 1 bit
+        let invalid_array_count: usize = MASK_56_BITS +1;  // 56 bits + 1 bit
 
         // This should panic due to `debug_assert!`
-        let _frame = PackedStackFrame::new(10, 20, false, JsonUInt::try_from(0), invalid_array_count, 0);
+        let _frame = PackedStackFrame::new(10, 20, false, JsonUInt::from(0), invalid_array_count);
     }
 
     fn test_build_frame(depth: u8, state: u8, is_list: bool, array_count: JsonUInt, idx_of_last_opening: usize) {

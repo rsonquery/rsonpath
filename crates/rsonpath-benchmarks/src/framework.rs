@@ -21,6 +21,7 @@ pub mod implementation;
 pub enum BenchTarget<'q> {
     RsonpathMmap(&'q str, ResultType),
     Rsonpath(&'q str, ResultType),
+    RsonpathWithLut(&'q str, ResultType),
     JSurfer(&'q str),
     JsonpathRust(&'q str),
     SerdeJsonPath(&'q str),
@@ -143,6 +144,12 @@ impl Benchset {
         Ok(self)
     }
 
+    // TODO Ricardo
+    pub fn add_rsonpath_with_lut(self, query: &str) -> Result<Self, BenchmarkError> {
+        self.add_target(BenchTarget::RsonpathWithLut((query), (ResultType::Full)))?
+            .add_target(BenchTarget::RsonpathMmap(query, ResultType::Full))
+    }
+
     pub fn add_rsonpath_with_all_result_types(self, query: &str) -> Result<Self, BenchmarkError> {
         self.add_target(BenchTarget::Rsonpath(query, ResultType::Full))?
             .add_target(BenchTarget::Rsonpath(query, ResultType::Count))?
@@ -234,6 +241,14 @@ impl Target for BenchTarget<'_> {
                 let prepared = prepare(serde_json_path, file_path, q, load_ahead_of_time, compile_ahead_of_time)?;
                 Ok(Box::new(prepared))
             }
+            // Added by Ricardo
+            // to make it work replace the _ with 2 implementation of FULL and COUNT
+            // install JAVA
+            BenchTarget::RsonpathWithLut(q, _) => {
+                let rsonpath = RsonpathWithLut::new()?;
+                let prepared = prepare(rsonpath, file_path, q, load_ahead_of_time, compile_ahead_of_time)?;
+                Ok(Box::new(prepared))
+            }
         }
     }
 
@@ -294,6 +309,12 @@ impl Target for BenchTarget<'_> {
                 )?;
                 Ok(Box::new(prepared))
             }
+            // Added by Ricardo
+            BenchTarget::RsonpathWithLut(q, _) => {
+                let rsonpath = RsonpathWithLut::new()?;
+                let prepared = prepare_with_id(rsonpath, id, file_path, q, load_ahead_of_time, compile_ahead_of_time)?;
+                Ok(Box::new(prepared))
+            }
         }
     }
 }
@@ -322,7 +343,7 @@ impl<I: Implementation> BenchFn for PreparedQuery<I> {
         };
         let q = match &self.query {
             implementation::Query::NeedToCompile(query_string) => {
-                q_storage = self.implementation.compile_query(query_string).unwrap();
+                q_storage = self.implementation.compile_query_with_lut(query_string, f).unwrap();
                 &q_storage
             }
             implementation::Query::AlreadyCompiled(q) => q,

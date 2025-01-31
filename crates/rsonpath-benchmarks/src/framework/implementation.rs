@@ -14,6 +14,10 @@ pub trait Implementation: Sized {
 
     fn compile_query(&self, query: &str) -> Result<Self::Query, Self::Error>;
 
+    fn compile_query_and_build_lut(&self, query: &str, file: &'a Self::File) -> Result<Self::Query, Self::Error> {
+        self.compile_query(query)
+    }
+
     fn run<'a>(&self, query: &'a Self::Query, file: &'a Self::File) -> Result<Self::Result<'a>, Self::Error>;
 }
 

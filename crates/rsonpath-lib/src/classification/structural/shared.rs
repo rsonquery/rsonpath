@@ -239,16 +239,51 @@ macro_rules! structural_classifier {
                 }
             }
 
-            fn jump_to_idx(&mut self, idx: usize, expect_quoted: bool) -> Result<(), InputError> {
-                // TODO Ricardo copy the nosimd implementation
-                todo!()
 
-                // TODO: use this instead the from index function
-                // let mask = <$mask_ty>::MAX << block_idx;
-                // // SAFETY: target_feature invariant
-                // let mut new_block = unsafe { self.classifier.classify(quote_classified_block) };
-                // new_block.structural_mask &= mask;
-                // self.block = Some(new_block);
+
+            // TODO Ricardo copy the nosimd implementation from: 
+            // rsonpath/crates/rsonpath-lib/src/classification/structural/nosimd.rs
+            fn jump_to_idx(&mut self, idx: usize, expect_quoted: bool) -> Result<(), InputError> {
+                use crate::classification::mask::Mask;
+
+                let block_idx = idx % $size;
+                // 2. S tells its quote classifier to jump and retrieve that new block
+                if let Some(mut jump_to_block) = self.iter.jump_to_idx(idx)? {
+                    // 6. S needs to reclassify the new current block.
+                    // This is the same edge-case as in head-skipping where we might happen to jump into a block that starts
+                    // in the middle of a string. In that case the quote classifier will be wrong about everything.
+                    // Consider a block:
+                    //               block start    jump-to point
+                    //                   v               v
+                    // input:      ..."abcdefg": [1,2,3] }
+                    // quote mask:       00000111111111111
+                    //
+                    // We use the `expect_quoted` parameter to resolve this issue. The code that jumps should know if
+                    // it's jumping to a character that ought to be quoted or not. In the case of tail-skipping we always
+                    // jump to a structural closing symbol, which must be unquoted. If we detect that the quote classifier
+                    // is wrong, we can tell it to simply flip its state and it'll be correct.
+                    if jump_to_block.within_quotes_mask.is_lit(block_idx) != expect_quoted {
+                        debug!("Mask needs flipping!");
+                        jump_to_block.within_quotes_mask = !jump_to_block.within_quotes_mask;
+                        self.iter.flip_quotes_bit();
+                    }
+
+                    let mut block = unsafe { self.classifier.classify(jump_to_block) };
+                    
+                    // Apply the bit shift mask by index. So if index is 24, the mask shifts by 24
+                    let idx_mask = <$mask_ty>::MAX.checked_shl(block_idx as u32).unwrap_or(0);
+                    block.structural_mask &= idx_mask;
+                    self.block = Some(block);
+                }
+                // If there was no jump then it is contained fully within the current block.
+                // We need to advance the inner index. 
+                // We still need to bit shift with the mask.
+                else if let Some(curr_block) = self.block.as_mut() {
+                    // Apply the bit shift mask by index. So if index is 24, the mask shifts by 24
+                    let idx_mask = <$mask_ty>::MAX.checked_shl(block_idx as u32).unwrap_or(0);
+                    curr_block.structural_mask &= idx_mask;
+                }
+                Ok(())
             }
         }
     };

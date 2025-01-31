@@ -42,22 +42,23 @@ pub fn evaluate(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::erro
     };
 
     // Measure LUTs without lambda parameter
-    eval::<LutHashMap>(&mut config, "hash_map");
+    // eval::<LutHashMap>(&mut config, "hash_map");
     eval::<LutHashMapDouble>(&mut config, "hash_map_double");
     // eval::<LutPerfectNaive>(&mut config, "perfect_naive");
 
     // Measure LUTs with lambda parameter
-    for lambda in 1..2 {
-        for threaded in [true, false] {
-            eval_lambda::<LutPHF>(&mut config, "phf", lambda, threaded);
-            eval_lambda::<LutPHFDouble>(&mut config, "phf_double", lambda, threaded);
+    for lambda in [1, 5] {
+        for threaded in [false] {
+            // eval_lambda::<LutPHF>(&mut config, "phf", lambda, threaded);
+            // eval_lambda::<LutPHFDouble>(&mut config, "phf_double", lambda, threaded);
             eval_lambda::<LutPHFGroup>(&mut config, "phf_group", lambda, threaded);
         }
     }
 
-    for lambda in 1..5 {
-        for bit_mask in [3, 7, 15, 31, 63, 127] {
-            // eval_bucket(&mut config, "phf_group", bit_mask, lambda, false);
+    for lambda in [1, 5] {
+        // for bit_mask in [3, 7, 15, 31, 63, 127] {
+        for bit_mask in [2047, 4095, 8191] {
+            eval_bucket(&mut config, "phf_group", bit_mask, lambda, false);
         }
     }
 

@@ -121,11 +121,30 @@ macro_rules! quote_classifier {
                 self.classifier.internal_classifier.flip_prev_quote_mask();
             }
 
+            // TODO Ricardo copy the nosimd implementation from:
+            // rsonpath/crates/rsonpath-lib/src/classification/quotes/nosimd.rs
             fn jump_to_idx(&mut self, idx: usize) -> QuoteIterResult<I::Block, MaskType, $size> {
-                // TODO Ricardo copy the nosimd implementation
-                todo!()
+                let current_block = self.get_offset() / $size;
+                let jump_to_block = idx / $size;
+                let distance = jump_to_block - current_block;
 
-                // just copy the no simd code
+                if distance > 0 {
+                    debug!(
+                        "Jump from block {} to block {} with distance {}",
+                        current_block, jump_to_block, distance
+                    );
+
+                    // 3. Q tells the InputIterator to jump
+                    for _ in 0..distance - 1 {
+                        self.iter.next().e()?;
+                    }
+
+                    // 5. Q needs to reclassify the new current block.
+                    self.next()
+                } else {
+                    debug!("Jump distance 0! No jump.");
+                    Ok(None)
+                }
             }
         }
 

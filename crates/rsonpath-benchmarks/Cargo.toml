@@ -78,3 +78,8 @@ harness = false
 [[bench]]
 name = "rust_native"
 harness = false
+
+# Added by Ricardo
+[[bench]]
+name = "main_lut"
+harness = false
