@@ -239,9 +239,7 @@ macro_rules! structural_classifier {
                 }
             }
 
-
-
-            // TODO Ricardo copy the nosimd implementation from: 
+            // TODO Ricardo copy the nosimd implementation from:
             // rsonpath/crates/rsonpath-lib/src/classification/structural/nosimd.rs
             fn jump_to_idx(&mut self, idx: usize, expect_quoted: bool) -> Result<(), InputError> {
                 use crate::classification::mask::Mask;
@@ -269,14 +267,14 @@ macro_rules! structural_classifier {
                     }
 
                     let mut block = unsafe { self.classifier.classify(jump_to_block) };
-                    
+
                     // Apply the bit shift mask by index. So if index is 24, the mask shifts by 24
                     let idx_mask = <$mask_ty>::MAX.checked_shl(block_idx as u32).unwrap_or(0);
                     block.structural_mask &= idx_mask;
                     self.block = Some(block);
                 }
                 // If there was no jump then it is contained fully within the current block.
-                // We need to advance the inner index. 
+                // We need to advance the inner index.
                 // We still need to bit shift with the mask.
                 else if let Some(curr_block) = self.block.as_mut() {
                     // Apply the bit shift mask by index. So if index is 24, the mask shifts by 24

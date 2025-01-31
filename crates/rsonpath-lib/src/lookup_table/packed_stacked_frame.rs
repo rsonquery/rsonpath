@@ -167,7 +167,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "array_count exceeds 56-bit limit")]
     fn test_packed_stack_frame_invalid_array_count() {
-        let invalid_array_count: usize = MASK_56_BITS +1;  // 56 bits + 1 bit
+        let invalid_array_count: usize = MASK_56_BITS + 1; // 56 bits + 1 bit
 
         // This should panic due to `debug_assert!`
         let _frame = PackedStackFrame::new(10, 20, false, JsonUInt::from(0), invalid_array_count);
