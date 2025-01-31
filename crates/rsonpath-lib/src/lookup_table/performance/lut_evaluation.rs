@@ -51,7 +51,7 @@ pub fn evaluate(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::erro
         for threaded in [false] {
             // eval_lambda::<LutPHF>(&mut config, "phf", lambda, threaded);
             // eval_lambda::<LutPHFDouble>(&mut config, "phf_double", lambda, threaded);
-            eval_lambda::<LutPHFGroup>(&mut config, "phf_group", lambda, threaded);
+            // eval_lambda::<LutPHFGroup>(&mut config, "phf_group", lambda, threaded);
         }
     }
 
