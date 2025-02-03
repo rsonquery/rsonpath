@@ -1,6 +1,7 @@
 pub mod count_distances;
 pub mod lut_hash_map;
 pub mod lut_hash_map_double;
+pub mod lut_hash_map_group;
 pub mod lut_perfect_naive;
 pub mod lut_phf;
 pub mod lut_phf_double;

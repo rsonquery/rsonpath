@@ -1,6 +1,7 @@
 use rsonpath::lookup_table::{
-    lut_hash_map::LutHashMap, lut_hash_map_double::LutHashMapDouble, lut_perfect_naive::LutPerfectNaive,
-    lut_phf::LutPHF, lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup, pair_finder, LookUpTable,
+    lut_hash_map::LutHashMap, lut_hash_map_double::LutHashMapDouble, lut_hash_map_group::LutHashMapGroup,
+    lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF, lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup,
+    pair_finder, LookUpTable,
 };
 
 // JSON files
@@ -36,6 +37,12 @@ test_lut_with_json!(LutHashMapDouble, hash_map_double_john_big, JOHN_BIG_JSON);
 test_lut_with_json!(LutHashMapDouble, hash_map_double_pokemon, POKEMON_JSON);
 test_lut_with_json!(LutHashMapDouble, hash_map_double_twitter_short, TWITTER_SHORT_JSON);
 test_lut_with_json!(LutHashMapDouble, hash_map_double_crossref0, BESTBUY_JSON);
+
+// Generate test functions for LutHashMapGroup
+test_lut_with_json!(LutHashMapGroup, hash_map_group_john_big, JOHN_BIG_JSON);
+test_lut_with_json!(LutHashMapGroup, hash_map_group_pokemon, POKEMON_JSON);
+test_lut_with_json!(LutHashMapGroup, hash_map_group_twitter_short, TWITTER_SHORT_JSON);
+test_lut_with_json!(LutHashMapGroup, hash_map_group_crossref0, BESTBUY_JSON);
 
 // Generate test functions for LutPerfectNaive
 test_lut_with_json!(LutPerfectNaive, perfect_naive_john_big, JOHN_BIG_JSON);

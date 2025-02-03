@@ -8,8 +8,8 @@ use stats_alloc::{Region, StatsAlloc, INSTRUMENTED_SYSTEM};
 
 use crate::lookup_table::{
     count_distances, lut_hash_map::LutHashMap, lut_hash_map_double::LutHashMapDouble,
-    lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF, lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup,
-    pair_finder, util_path, LookUpTable, LookUpTableLambda,
+    lut_hash_map_group::LutHashMapGroup, lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF,
+    lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup, pair_finder, util_path, LookUpTable, LookUpTableLambda,
 };
 
 /// Allocator to track how much allocations are happening during a specific time frame
@@ -41,26 +41,34 @@ pub fn evaluate(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::erro
         data_line: &mut data_line,
     };
 
+    // #####################################
     // Measure LUTs without lambda parameter
+    // #####################################
     // eval::<LutHashMap>(&mut config, "hash_map");
     eval::<LutHashMapDouble>(&mut config, "hash_map_double");
     // eval::<LutPerfectNaive>(&mut config, "perfect_naive");
 
-    // Measure LUTs with lambda parameter
-    for lambda in [1, 5] {
-        for threaded in [false] {
-            // eval_lambda::<LutPHF>(&mut config, "phf", lambda, threaded);
-            // eval_lambda::<LutPHFDouble>(&mut config, "phf_double", lambda, threaded);
-            // eval_lambda::<LutPHFGroup>(&mut config, "phf_group", lambda, threaded);
-        }
+    // for bit_mask in [3, 7, 15, 31, 63, 127] {
+    for bit_mask in [2047, 4095, 8191] {
+        eval_hash_map_group(&mut config, "hash_map_group", bit_mask);
     }
 
-    for lambda in [1, 5] {
-        // for bit_mask in [3, 7, 15, 31, 63, 127] {
-        for bit_mask in [2047, 4095, 8191] {
-            eval_bucket(&mut config, "phf_group", bit_mask, lambda, false);
-        }
-    }
+    // #####################################
+    // Measure LUTs with lambda parameter
+    // #####################################
+    // for lambda in [1, 5] {
+    //     for threaded in [false] {
+    //         eval_phf::<LutPHF>(&mut config, "phf", lambda, threaded);
+    //         eval_phf::<LutPHFDouble>(&mut config, "phf_double", lambda, threaded);
+    //     }
+    // }
+
+    // for lambda in [1, 5] {
+    //     // for bit_mask in [3, 7, 15, 31, 63, 127] {
+    //     for bit_mask in [2047, 4095, 8191] {
+    //         eval_phf_group(&mut config, "phf_group", bit_mask, lambda, false);
+    //     }
+    // }
 
     // Write CSV header and data
     let mut csv_file = std::fs::OpenOptions::new().append(true).create(true).open(csv_path)?;
@@ -98,7 +106,7 @@ fn eval<T: LookUpTable>(cfg: &mut EvalConfig, name: &str) {
     save_measurements(cfg, &name, build_time, query_time, heap_bytes, allocated_bytes);
 }
 
-fn eval_lambda<T: LookUpTableLambda>(cfg: &mut EvalConfig, name: &str, lambda: usize, threaded: bool) {
+fn eval_phf<T: LookUpTableLambda>(cfg: &mut EvalConfig, name: &str, lambda: usize, threaded: bool) {
     println!("  - {name}:λ={lambda},threaded={threaded}");
 
     // Build time & heap size
@@ -122,7 +130,7 @@ fn eval_lambda<T: LookUpTableLambda>(cfg: &mut EvalConfig, name: &str, lambda: u
     save_measurements(cfg, &name, build_time, query_time, heap_bytes, allocated_bytes);
 }
 
-fn eval_bucket(cfg: &mut EvalConfig, name: &str, bit_mask: usize, lambda: usize, threaded: bool) {
+fn eval_phf_group(cfg: &mut EvalConfig, name: &str, bit_mask: usize, lambda: usize, threaded: bool) {
     let bits = bit_mask + 1;
     println!("  - {name}:#{bits}_λ={lambda}");
 
@@ -144,6 +152,31 @@ fn eval_bucket(cfg: &mut EvalConfig, name: &str, bit_mask: usize, lambda: usize,
 
     // Save measurements
     let name = format!("#{bits}_λ={lambda}:{name}");
+    save_measurements(cfg, &name, build_time, query_time, heap_bytes, allocated_bytes);
+}
+
+fn eval_hash_map_group(cfg: &mut EvalConfig, name: &str, bit_mask: usize) {
+    let bits = bit_mask + 1;
+    println!("  - {name}:#{bits}");
+
+    // Build time & heap size
+    let start_heap = Region::new(GLOBAL);
+
+    let start_build = std::time::Instant::now();
+    let lut = LutHashMapGroup::build_buckets(cfg.json_path, bit_mask).expect("Fail @ build lut");
+    let build_time = start_build.elapsed().as_secs_f64();
+
+    let heap_bytes = heap_value(start_heap.change());
+    let allocated_bytes = lut.allocated_bytes();
+
+    // Query time
+    let start_query = std::time::Instant::now();
+    // Call a black box function that does nothing so that the compiler does not optimize away get_every_key_once
+    my_black_box(get_every_key_once(&lut, &cfg.keys));
+    let query_time = start_query.elapsed().as_secs_f64();
+
+    // Save measurements
+    let name = format!("#{bits}:{name}");
     save_measurements(cfg, &name, build_time, query_time, heap_bytes, allocated_bytes);
 }
 

@@ -10,10 +10,10 @@ pub struct PackedStackFrame {
 
 /// PackedStackFrame has a size of 16 bytes and the following structure:
 /// - Bytes 0-6: JsonUInt (u64) array_count (56 bits)
-/// - Byte 7: depth: u8
+/// - Byte 7: depth: u8 (8 bit)
 /// - Bytes 8-14 (minus the last bit): idx_of_last_opening: 55 bits
 /// - Byte 14 (last bit): is_list: 1 bit
-/// - Byte 15: state: u8
+/// - Byte 15: state: u8 (8 bit)
 impl PackedStackFrame {
     /// Creates a new `PackedStackFrame` instance.
     #[inline]
