@@ -38,7 +38,7 @@ impl Implementation for JsonpathRust {
         Ok(value)
     }
 
-    fn compile_query(&self, query: &str) -> Result<Self::Query, Self::Error> {
+    fn compile_query_without_lut(&self, query: &str) -> Result<Self::Query, Self::Error> {
         JsonPath::from_str(query).map_err(JsonpathRustError::JsonPathInstError)
     }
 

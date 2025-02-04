@@ -47,22 +47,13 @@ where
         lut: Option<&LookUpTableImpl>,
         padding: usize,
     ) -> Result<usize, EngineError> {
-        // debug!("Skipping BracketType: {:?} from {}", bracket_type, opening_idx_padded);
         if let Some(lut) = lut {
+            debug!("Skipping with LUT");
             self.skip_with_lut(opening_idx_padded, bracket_type, lut, padding)
         } else {
             debug!("Skipping without LUT");
             self.skip_without_lut(bracket_type)
         }
-
-        // let opening_idx = opening_idx_padded - padding;
-        // let closing_idx_pad = self.skip_without_lut(bracket_type)?;
-        // let closing_idx = padding + closing_idx_pad as usize;
-        // debug!(
-        //     "ITE:({},{}) No-PAD:({},{})",
-        //     opening_idx_padded, closing_idx_pad, opening_idx, closing_idx
-        // );
-        // Ok(closing_idx)
     }
 
     // RICARDO TODO
@@ -85,7 +76,6 @@ where
 
         // 0. Use LUT to get opening -> closing index
         // Can fail if key is not in lut
-        // TODO: think about random hits here
         if let Some(idx_close) = lut.get(&(opening_idx_padded - padding)) {
             // Shift index by 1 or its off aligned TODO: fix lut
             let idx_close = idx_close + 1;
@@ -101,6 +91,7 @@ where
                 "LUT:({},{}) No-PAD:({},{})",
                 opening_idx_padded, idx_close_pad, opening_idx, idx_close
             );
+            // print!("{} ", idx_close_pad - opening_idx_padded);
             // 7. This function returns the skipped-to index.
             Ok(idx_close_pad)
         } else {
@@ -151,15 +142,13 @@ where
                 'outer: while let Some(ref mut vector) = current_vector {
                     vector.add_depth(current_depth);
 
-                    // TODO uncomment later
-                    // debug!("Fetched vector, current depth is {current_depth}");
-                    // debug!("Estimate: {}", vector.estimate_lowest_possible_depth());
+                    debug!("Fetched vector, current depth is {current_depth}");
+                    debug!("Estimate: {}", vector.estimate_lowest_possible_depth());
 
                     if vector.estimate_lowest_possible_depth() <= 0 {
                         while vector.advance_to_next_depth_decrease() {
                             if vector.get_depth() == 0 {
-                                // TODO uncomment later
-                                // debug!("Encountered depth 0, breaking.");
+                                debug!("Encountered depth 0, breaking.");
                                 break 'outer;
                             }
                         }
@@ -176,11 +165,9 @@ where
                     };
                 }
 
-                // TODO uncomment later
-                // debug!("Skipping complete, resuming structural classification.");
+                debug!("Skipping complete, resuming structural classification.");
                 let resume_state = depth_classifier.stop(current_vector);
-                // TODO uncomment later
-                // debug!("Finished at {}", resume_state.get_idx());
+                debug!("Finished at {}", resume_state.get_idx());
                 idx = resume_state.get_idx();
                 tail_skip.simd.resume_structural_classification(resume_state)
             });

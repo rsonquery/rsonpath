@@ -18,7 +18,7 @@ fn main() -> Result<()> {
 }
 
 fn run<I: Implementation>(imp: I, query_str: &str, path_str: &str) -> Result<()> {
-    let query = imp.compile_query(query_str)?;
+    let query = imp.compile_query_without_lut(query_str)?;
     let file = imp.load_file(path_str)?;
 
     let result = imp.run(&query, &file)?;

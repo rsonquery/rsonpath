@@ -49,9 +49,10 @@ pub fn evaluate(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::erro
     // eval::<LutPerfectNaive>(&mut config, "perfect_naive");
 
     // for bit_mask in [3, 7, 15, 31, 63, 127] {
-    for bit_mask in [2047, 4095, 8191] {
-        eval_hash_map_group(&mut config, "hash_map_group", bit_mask);
-    }
+    // for bit_mask in [2047, 4095, 8191] {
+    // for bit_mask in [2047] {
+    //     eval_hash_map_group(&mut config, "hash_map_group", bit_mask);
+    // }
 
     // #####################################
     // Measure LUTs with lambda parameter
@@ -63,12 +64,12 @@ pub fn evaluate(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::erro
     //     }
     // }
 
-    // for lambda in [1, 5] {
-    //     // for bit_mask in [3, 7, 15, 31, 63, 127] {
-    //     for bit_mask in [2047, 4095, 8191] {
-    //         eval_phf_group(&mut config, "phf_group", bit_mask, lambda, false);
-    //     }
-    // }
+    for lambda in [1, 5] {
+        // for bit_mask in [3, 7, 15, 31, 63, 127] {
+        for bit_mask in [2047, 4095, 8191] {
+            eval_phf_group(&mut config, "phf_group", bit_mask, lambda, false);
+        }
+    }
 
     // Write CSV header and data
     let mut csv_file = std::fs::OpenOptions::new().append(true).create(true).open(csv_path)?;

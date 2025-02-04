@@ -37,7 +37,7 @@ impl Implementation for SerdeJsonPath {
         Ok(value)
     }
 
-    fn compile_query(&self, query: &str) -> Result<Self::Query, Self::Error> {
+    fn compile_query_without_lut(&self, query: &str) -> Result<Self::Query, Self::Error> {
         JsonPath::parse(query).map_err(SerdeJsonPathError::JsonPathParseError)
     }
 

@@ -198,7 +198,7 @@ impl Implementation for JSurfer {
             .map(|f| LoadedFile { file_object: f })
     }
 
-    fn compile_query(&self, query: &str) -> Result<Self::Query, Self::Error> {
+    fn compile_query_without_lut(&self, query: &str) -> Result<Self::Query, Self::Error> {
         let query_string = self.env().new_string(query)?;
         let compile_query_result = self.env().call_static_method(
             self.shim(),

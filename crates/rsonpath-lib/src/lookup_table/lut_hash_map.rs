@@ -90,17 +90,20 @@ impl LutHashMap {
                         BracketType::Curly => curly_bracket_stack.pop_back().expect("Unmatched closing }"),
                     };
 
-                    keys.push(idx_open);
-                    values.push(idx_close);
+                    let distance = idx_close - idx_open;
+                    if distance > 64 {
+                        keys.push(idx_open);
+                        values.push(idx_close);
+                    }
                 }
                 Structural::Colon(_) | Structural::Comma(_) => unreachable!(),
             }
         }
 
-        debug!("Found keys and values:");
-        for (key, value) in keys.iter().zip(values.iter()) {
-            debug!("({}, {})", key, value);
-        }
+        // debug!("Found keys and values:");
+        // for (key, value) in keys.iter().zip(values.iter()) {
+        //     debug!("({}, {})", key, value);
+        // }
 
         Ok((keys, values))
     }

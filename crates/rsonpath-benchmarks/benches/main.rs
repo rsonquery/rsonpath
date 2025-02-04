@@ -252,8 +252,6 @@ pub fn all_first_index(c: &mut Criterion) -> Result<(), BenchmarkError> {
     Ok(())
 }
 
-
-
 benchsets!(
     main_benches,
     canada_second_coord_component,

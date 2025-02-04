@@ -12,10 +12,10 @@ pub trait Implementation: Sized {
 
     fn load_file(&self, file_path: &str) -> Result<Self::File, Self::Error>;
 
-    fn compile_query(&self, query: &str) -> Result<Self::Query, Self::Error>;
+    fn compile_query_without_lut(&self, query: &str) -> Result<Self::Query, Self::Error>;
 
-    fn compile_query_and_build_lut(&self, query: &str, file: &'a Self::File) -> Result<Self::Query, Self::Error> {
-        self.compile_query(query)
+    fn compile_query(&self, query: &str, file_path: &str) -> Result<Self::Query, Self::Error> {
+        self.compile_query_without_lut(query)
     }
 
     fn run<'a>(&self, query: &'a Self::Query, file: &'a Self::File) -> Result<Self::Result<'a>, Self::Error>;
@@ -84,7 +84,7 @@ pub(crate) fn prepare_with_id<I: Implementation>(
     compile_ahead_of_time: bool,
 ) -> Result<PreparedQuery<I>, I::Error> {
     let query = if compile_ahead_of_time {
-        Query::from_query(implementation.compile_query(query)?)
+        Query::from_query(implementation.compile_query(query, file_path)?)
     } else {
         Query::from_str(query)
     };

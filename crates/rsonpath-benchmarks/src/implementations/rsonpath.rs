@@ -1,5 +1,5 @@
 use crate::framework::implementation::Implementation;
-use rsonpath::lookup_table::LookUpTable;
+use rsonpath::lookup_table::{LookUpTable, LookUpTableImpl};
 use rsonpath::{engine::Compiler, input::MmapInput};
 use rsonpath::{
     engine::{main::MainEngine, Engine},
@@ -13,13 +13,16 @@ pub struct Rsonpath {}
 pub struct RsonpathCount {}
 pub struct RsonpathMmap {}
 pub struct RsonpathMmapCount {}
-pub struct RsonpathWithLut {}
+pub struct RsonpathLut {}
 
 // Added by Ricardo
-impl Implementation for RsonpathWithLut {
+impl Implementation for RsonpathLut {
     type Query = MainEngine;
-    type File = (MmapInput, LookUpTable::LookUpTableImpl);
+
+    type File = MmapInput;
+
     type Error = RsonpathError;
+
     type Result<'a> = &'static str;
 
     fn id() -> &'static str {
@@ -27,29 +30,29 @@ impl Implementation for RsonpathWithLut {
     }
 
     fn new() -> Result<Self, Self::Error> {
-        Ok(RsonpathWithLut {})
+        Ok(RsonpathLut {})
     }
 
     fn load_file(&self, file_path: &str) -> Result<Self::File, Self::Error> {
         let file = fs::File::open(file_path)?;
         let input = unsafe { MmapInput::map_file(&file)? };
-
-        let lut: LookUpTable::LookUpTableImpl = LookUpTable::LookUpTableImpl::build(file_path);
-
-        Ok((input, lut))
+        Ok(input)
     }
 
-    fn compile_query(&self, query: &str) -> Result<Self::Query, Self::Error> {
-       // TODO throw error: "This implementation cannot by used without lut"
+    fn compile_query_without_lut(&self, query: &str) -> Result<Self::Query, Self::Error> {
+        Err(Self::Error::LutRequiredError)
     }
 
-    fn compile_query_and_build_lut(&self, query: &str, file: &Self::File){
+    fn compile_query(&self, query: &str, file_path: &str) -> Result<Self::Query, Self::Error> {
         let query = rsonpath_syntax::parse(query).unwrap();
         let mut engine = MainEngine::compile_query(&query).map_err(RsonpathError::CompilerError)?;
 
-      
-
-        engine.add_lut(lut);
+        // Build LUT and add it to the engine object
+        if let Ok(lut) = LookUpTableImpl::build(file_path) {
+            engine.add_lut(lut);
+        } else {
+            return Err(Self::Error::LutRequiredError);
+        }
 
         Ok(engine)
     }
@@ -85,7 +88,7 @@ impl Implementation for Rsonpath {
         Ok(input)
     }
 
-    fn compile_query(&self, query: &str) -> Result<Self::Query, Self::Error> {
+    fn compile_query_without_lut(&self, query: &str) -> Result<Self::Query, Self::Error> {
         let query = rsonpath_syntax::parse(query).unwrap();
         let engine = MainEngine::compile_query(&query).map_err(RsonpathError::CompilerError)?;
 
@@ -123,7 +126,7 @@ impl Implementation for RsonpathCount {
         Ok(input)
     }
 
-    fn compile_query(&self, query: &str) -> Result<Self::Query, Self::Error> {
+    fn compile_query_without_lut(&self, query: &str) -> Result<Self::Query, Self::Error> {
         let query = rsonpath_syntax::parse(query).unwrap();
         let engine = MainEngine::compile_query(&query).map_err(RsonpathError::CompilerError)?;
 
@@ -161,7 +164,7 @@ impl Implementation for RsonpathMmap {
         Ok(input)
     }
 
-    fn compile_query(&self, query: &str) -> Result<Self::Query, Self::Error> {
+    fn compile_query_without_lut(&self, query: &str) -> Result<Self::Query, Self::Error> {
         let query = rsonpath_syntax::parse(query).unwrap();
         let engine = MainEngine::compile_query(&query).map_err(RsonpathError::CompilerError)?;
 
@@ -199,7 +202,7 @@ impl Implementation for RsonpathMmapCount {
         Ok(input)
     }
 
-    fn compile_query(&self, query: &str) -> Result<Self::Query, Self::Error> {
+    fn compile_query_without_lut(&self, query: &str) -> Result<Self::Query, Self::Error> {
         let query = rsonpath_syntax::parse(query).unwrap();
         let engine = MainEngine::compile_query(&query).map_err(RsonpathError::CompilerError)?;
 
@@ -225,6 +228,10 @@ pub enum RsonpathError {
     IoError(#[from] io::Error),
     #[error("something happened")]
     Unknown(),
+    #[error("Query compilation without LUT is not supported")]
+    LutRequiredError,
+    #[error("Failed to build lookup table: {0}")]
+    LutBuildError(#[from] Box<dyn std::error::Error + Send + Sync>),
 }
 
 pub struct MatchDisplay(Vec<Match>);

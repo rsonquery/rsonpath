@@ -1,5 +1,6 @@
 use self::implementation::prepare;
 use self::{benchmark_options::BenchmarkOptions, implementation::prepare_with_id};
+use crate::implementations::rsonpath::RsonpathLut;
 use crate::{
     dataset,
     implementations::{
@@ -145,8 +146,9 @@ impl Benchset {
     }
 
     // TODO Ricardo
+    // Here you can define which implementations you want to compare. At the moment Mmap should be enough.
     pub fn add_rsonpath_with_lut(self, query: &str) -> Result<Self, BenchmarkError> {
-        self.add_target(BenchTarget::RsonpathWithLut((query), (ResultType::Full)))?
+        self.add_target(BenchTarget::RsonpathWithLut(query, ResultType::Full))?
             .add_target(BenchTarget::RsonpathMmap(query, ResultType::Full))
     }
 
@@ -242,11 +244,15 @@ impl Target for BenchTarget<'_> {
                 Ok(Box::new(prepared))
             }
             // Added by Ricardo
-            // to make it work replace the _ with 2 implementation of FULL and COUNT
-            // install JAVA
-            BenchTarget::RsonpathWithLut(q, _) => {
-                let rsonpath = RsonpathWithLut::new()?;
-                let prepared = prepare(rsonpath, file_path, q, load_ahead_of_time, compile_ahead_of_time)?;
+            BenchTarget::RsonpathWithLut(q, ResultType::Full) => {
+                let rsonpath_lut = RsonpathLut::new()?;
+                let prepared = prepare(rsonpath_lut, file_path, q, load_ahead_of_time, compile_ahead_of_time)?;
+                Ok(Box::new(prepared))
+            }
+            // Added by Ricardo
+            BenchTarget::RsonpathWithLut(q, ResultType::Count) => {
+                let implementation = RsonpathLut::new()?;
+                let prepared = prepare(implementation, file_path, q, load_ahead_of_time, compile_ahead_of_time)?;
                 Ok(Box::new(prepared))
             }
         }
@@ -311,8 +317,15 @@ impl Target for BenchTarget<'_> {
             }
             // Added by Ricardo
             BenchTarget::RsonpathWithLut(q, _) => {
-                let rsonpath = RsonpathWithLut::new()?;
-                let prepared = prepare_with_id(rsonpath, id, file_path, q, load_ahead_of_time, compile_ahead_of_time)?;
+                let rsonpath_lut = RsonpathLut::new()?;
+                let prepared = prepare_with_id(
+                    rsonpath_lut,
+                    id,
+                    file_path,
+                    q,
+                    load_ahead_of_time,
+                    compile_ahead_of_time,
+                )?;
                 Ok(Box::new(prepared))
             }
         }
@@ -343,7 +356,12 @@ impl<I: Implementation> BenchFn for PreparedQuery<I> {
         };
         let q = match &self.query {
             implementation::Query::NeedToCompile(query_string) => {
-                q_storage = self.implementation.compile_query_with_lut(query_string, f).unwrap();
+                // TODO Ricardo this is not correct yet, we need the path in both cases
+                let file_path = match &self.file {
+                    implementation::File::NeedToLoad(ref path) => path.as_str(), // Extracts the path
+                    implementation::File::AlreadyLoaded(_) => "",                // No path available
+                };
+                q_storage = self.implementation.compile_query(query_string, file_path).unwrap();
                 &q_storage
             }
             implementation::Query::AlreadyCompiled(q) => q,
