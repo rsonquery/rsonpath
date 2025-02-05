@@ -8,10 +8,9 @@ use crate::{
         ResumeClassifierState,
     },
     debug,
-    engine::error::EngineError,
+    engine::{distance_counter::increment_value, error::EngineError},
     input::InputBlockIterator,
-    lookup_table::LookUpTable,
-    lookup_table::LookUpTableImpl,
+    lookup_table::{LookUpTable, LookUpTableImpl},
     FallibleIterator, MaskType, BLOCK_SIZE,
 };
 use std::marker::PhantomData;
@@ -48,10 +47,8 @@ where
         padding: usize,
     ) -> Result<usize, EngineError> {
         if let Some(lut) = lut {
-            debug!("Skipping with LUT");
             self.skip_with_lut(opening_idx_padded, bracket_type, lut, padding)
         } else {
-            debug!("Skipping without LUT");
             self.skip_without_lut(bracket_type)
         }
     }
@@ -78,22 +75,25 @@ where
         // Can fail if key is not in lut
         if let Some(idx_close) = lut.get(&(opening_idx_padded - padding)) {
             // Shift index by 1 or its off aligned TODO: fix lut
-            let idx_close = idx_close + 1;
-            let idx_close_pad = padding + idx_close;
+            let closing_idx = idx_close + 1;
+            let closing_idx_padded = padding + closing_idx;
+
+            // TODO Ricardo this is only for testing how many times the jumps a distance
+            let distance = closing_idx - (opening_idx_padded - padding);
+            increment_value(distance);
 
             // 1. Tell the Structural Classifier (self.classifier) to jump
             self.classifier
                 .as_mut()
                 .expect("tail skip must always hold a classifier")
-                .jump_to_idx(idx_close_pad, false)?;
+                .jump_to_idx(closing_idx_padded, false)?;
 
             debug!(
                 "LUT:({},{}) No-PAD:({},{})",
-                opening_idx_padded, idx_close_pad, opening_idx, idx_close
+                opening_idx_padded, closing_idx_padded, opening_idx, closing_idx
             );
-            // print!("{} ", idx_close_pad - opening_idx_padded);
             // 7. This function returns the skipped-to index.
-            Ok(idx_close_pad)
+            Ok(closing_idx_padded)
         } else {
             // Do this when you were not able to find any hits in the lut
             let closing_idx_padded = self.skip_without_lut(bracket_type)?;
@@ -103,10 +103,15 @@ where
                 opening_idx_padded, closing_idx_padded, opening_idx, closing_idx
             );
 
+            // TODO Ricardo this is only for testing how many times the jumps a distance
+            let distance = closing_idx - (opening_idx_padded - padding);
+            increment_value(distance);
+
             Ok(closing_idx_padded)
         }
     }
 
+    // TODO Ricardo uncomment every debug that was commented out here
     fn skip_without_lut(&mut self, bracket_type: BracketType) -> Result<usize, EngineError> {
         dispatch_simd!(self.simd; self, bracket_type =>
         fn <'i, I, V>(
@@ -142,13 +147,13 @@ where
                 'outer: while let Some(ref mut vector) = current_vector {
                     vector.add_depth(current_depth);
 
-                    debug!("Fetched vector, current depth is {current_depth}");
-                    debug!("Estimate: {}", vector.estimate_lowest_possible_depth());
+                    // debug!("Fetched vector, current depth is {current_depth}");
+                    // debug!("Estimate: {}", vector.estimate_lowest_possible_depth());
 
                     if vector.estimate_lowest_possible_depth() <= 0 {
                         while vector.advance_to_next_depth_decrease() {
                             if vector.get_depth() == 0 {
-                                debug!("Encountered depth 0, breaking.");
+                                // debug!("Encountered depth 0, breaking.");
                                 break 'outer;
                             }
                         }
@@ -165,9 +170,9 @@ where
                     };
                 }
 
-                debug!("Skipping complete, resuming structural classification.");
+                // debug!("Skipping complete, resuming structural classification.");
                 let resume_state = depth_classifier.stop(current_vector);
-                debug!("Finished at {}", resume_state.get_idx());
+                // debug!("Finished at {}", resume_state.get_idx());
                 idx = resume_state.get_idx();
                 tail_skip.simd.resume_structural_classification(resume_state)
             });

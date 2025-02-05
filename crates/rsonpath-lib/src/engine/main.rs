@@ -82,8 +82,8 @@ impl MainEngine {
         self.lut = Some(lut)
     }
 
+    #[must_use = "if you are asking for the bytes then should also use them"]
     #[inline(always)]
-    #[must_use]
     pub fn allocated_bytes_by_lut(&self) -> usize {
         self.lut.as_ref().map_or(0, |lut| lut.allocated_bytes())
     }

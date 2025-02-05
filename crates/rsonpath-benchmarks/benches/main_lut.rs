@@ -36,5 +36,5 @@ pub fn bench_1(c: &mut Criterion) -> Result<(), BenchmarkError> {
 benchsets!(
     main_lut_benches, // name of the group functions
     bench_0,          // first parameter ...
-                      // bench_1,
+    bench_1,          // bench_1,
 );

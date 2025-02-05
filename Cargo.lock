@@ -1304,6 +1304,7 @@ dependencies = [
  "clap",
  "csv",
  "itertools",
+ "lazy_static",
  "log",
  "memmap2",
  "ph",

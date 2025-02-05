@@ -18,11 +18,8 @@ pub struct RsonpathLut {}
 // Added by Ricardo
 impl Implementation for RsonpathLut {
     type Query = MainEngine;
-
     type File = MmapInput;
-
     type Error = RsonpathError;
-
     type Result<'a> = &'static str;
 
     fn id() -> &'static str {
@@ -66,11 +63,8 @@ impl Implementation for RsonpathLut {
 
 impl Implementation for Rsonpath {
     type Query = MainEngine;
-
     type File = OwnedBytes<Vec<u8>>;
-
     type Error = RsonpathError;
-
     type Result<'a> = &'static str;
 
     fn id() -> &'static str {
@@ -104,11 +98,8 @@ impl Implementation for Rsonpath {
 
 impl Implementation for RsonpathCount {
     type Query = MainEngine;
-
     type File = OwnedBytes<Vec<u8>>;
-
     type Error = RsonpathError;
-
     type Result<'a> = &'static str;
 
     fn id() -> &'static str {
@@ -142,11 +133,8 @@ impl Implementation for RsonpathCount {
 
 impl Implementation for RsonpathMmap {
     type Query = MainEngine;
-
     type File = MmapInput;
-
     type Error = RsonpathError;
-
     type Result<'a> = &'static str;
 
     fn id() -> &'static str {
@@ -180,11 +168,8 @@ impl Implementation for RsonpathMmap {
 
 impl Implementation for RsonpathMmapCount {
     type Query = MainEngine;
-
     type File = MmapInput;
-
     type Error = RsonpathError;
-
     type Result<'a> = &'static str;
 
     fn id() -> &'static str {
