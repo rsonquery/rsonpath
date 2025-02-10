@@ -8,7 +8,10 @@ use crate::{
         ResumeClassifierState,
     },
     debug,
-    engine::{distance_counter::increment_value, error::EngineError},
+    engine::{
+        error::EngineError,
+        skip_tracker::{increment_ite, increment_lut},
+    },
     input::InputBlockIterator,
     lookup_table::{LookUpTable, LookUpTableImpl},
     FallibleIterator, MaskType, BLOCK_SIZE,
@@ -80,7 +83,7 @@ where
 
             // TODO Ricardo this is only for testing how many times the jumps a distance
             let distance = closing_idx - (opening_idx_padded - padding);
-            increment_value(distance);
+            increment_lut(distance);
 
             // 1. Tell the Structural Classifier (self.classifier) to jump
             self.classifier
@@ -105,7 +108,7 @@ where
 
             // TODO Ricardo this is only for testing how many times the jumps a distance
             let distance = closing_idx - (opening_idx_padded - padding);
-            increment_value(distance);
+            increment_ite(distance);
 
             Ok(closing_idx_padded)
         }

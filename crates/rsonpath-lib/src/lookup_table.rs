@@ -1,4 +1,4 @@
-pub mod count_distances;
+pub mod distance_counter;
 pub mod lut_hash_map;
 pub mod lut_hash_map_double;
 pub mod lut_hash_map_group;
@@ -18,6 +18,7 @@ pub type LookUpTableImpl = lut_hash_map::LutHashMap;
 /// Throughout this project the abbreviation for LookUpTable will be LUT or lut
 pub trait LookUpTable {
     fn build(json_path: &str) -> Result<Self, Box<dyn std::error::Error>>
+    // fn build(json_path: &str) -> Result<Self, Box<dyn std::error::Error + Sync + Send>>
     where
         Self: Sized;
 

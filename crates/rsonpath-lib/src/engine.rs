@@ -3,10 +3,10 @@
 //! Defines the [`Engine`] trait that provides different ways of retrieving
 //! query results from input bytes, as well as [`Compiler`] which provides
 //! a standalone entry point for compiling a [`JsonPathQuery`] into an [`Engine`].
-pub mod distance_counter;
 pub mod error;
 mod head_skipping;
 pub mod main;
+pub mod skip_tracker;
 pub mod tail_skipping;
 pub use main::MainEngine as RsonpathEngine;
 mod select_root_query;

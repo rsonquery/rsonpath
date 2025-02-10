@@ -51,6 +51,9 @@ impl Implementation for RsonpathLut {
             return Err(Self::Error::LutRequiredError);
         }
 
+        // let lut = LookUpTableImpl::build(file_path)?;
+        // engine.add_lut(lut);
+
         Ok(engine)
     }
 

@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
 use rsonpath::lookup_table::{
-    count_distances::{self, DISTANCE_EVAL_DIR},
+    distance_counter::{self, DISTANCE_EVAL_DIR},
     performance::{self, EVAL_DIR},
     query_with_lut::query_with_lut,
     sichash_test_data_generator::{self, SICHASH_DATA_DIR},
@@ -61,7 +61,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             create_folder_setup(out_dir)?;
             let csv_dir = format!("{}/{}", out_dir, "performance");
 
-            count_distances::count_distances_in_dir(json_dir, &csv_dir);
+            distance_counter::count_distances_in_dir(json_dir, &csv_dir);
         }
         Commands::Performance { json_dir, out_dir } => {
             check_if_dir_exists(json_dir);

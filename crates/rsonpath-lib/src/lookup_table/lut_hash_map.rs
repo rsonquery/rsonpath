@@ -91,11 +91,11 @@ impl LutHashMap {
                     };
 
                     // TODO this is only needed for experiments
-                    // let distance = idx_close - idx_open;
-                    // if distance > 200 {
-                    keys.push(idx_open);
-                    values.push(idx_close);
-                    // }
+                    let distance = idx_close - idx_open;
+                    if distance > 5000 {
+                        keys.push(idx_open);
+                        values.push(idx_close);
+                    }
                 }
                 Structural::Colon(_) | Structural::Comma(_) => unreachable!(),
             }
