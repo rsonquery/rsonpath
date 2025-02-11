@@ -13,6 +13,12 @@ pub struct JsonpathRust {}
 
 pub struct JsonpathRustResult<'a>(Vec<JsonPathValue<'a, Value>>);
 
+impl JsonpathRust {
+    pub fn new() -> Result<Self, JsonpathRustError> {
+        Ok(JsonpathRust {})
+    }
+}
+
 impl Implementation for JsonpathRust {
     type Query = JsonPath;
 
@@ -24,10 +30,6 @@ impl Implementation for JsonpathRust {
 
     fn id() -> &'static str {
         "jsonpath-rust"
-    }
-
-    fn new() -> Result<Self, Self::Error> {
-        Ok(JsonpathRust {})
     }
 
     fn load_file(&self, file_path: &str) -> Result<Self::File, Self::Error> {

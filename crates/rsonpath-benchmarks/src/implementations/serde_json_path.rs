@@ -12,6 +12,12 @@ pub struct SerdeJsonPath {}
 
 pub struct SerdeJsonPathResult<'a>(NodeList<'a>);
 
+impl SerdeJsonPath {
+    pub fn new() -> Result<Self, SerdeJsonPathError> {
+        Ok(SerdeJsonPath {})
+    }
+}
+
 impl Implementation for SerdeJsonPath {
     type Query = JsonPath;
 
@@ -23,10 +29,6 @@ impl Implementation for SerdeJsonPath {
 
     fn id() -> &'static str {
         "serde_json_path"
-    }
-
-    fn new() -> Result<Self, Self::Error> {
-        Ok(SerdeJsonPath {})
     }
 
     fn load_file(&self, file_path: &str) -> Result<Self::File, Self::Error> {

@@ -1,6 +1,7 @@
 use std::{collections::VecDeque, fs};
 
 use super::{
+    distance_counter,
     lut_phf::{
         phf_generator_double_hash::{self, HashState},
         DEFAULT_LAMBDA, DEFAULT_THREADED,
@@ -50,8 +51,8 @@ pub struct LutPHFDouble {
 
 impl LookUpTable for LutPHFDouble {
     #[inline]
-    fn build(json_path: &str) -> Result<Self, Box<dyn std::error::Error>> {
-        Self::build_lambda(DEFAULT_LAMBDA, json_path, DEFAULT_THREADED)
+    fn build(json_path: &str, distance_cutoff: usize) -> Result<Self, Box<dyn std::error::Error>> {
+        Self::build_lambda(DEFAULT_LAMBDA, json_path, distance_cutoff, DEFAULT_THREADED)
     }
 
     #[inline]
@@ -84,22 +85,28 @@ impl LookUpTable for LutPHFDouble {
 
 impl LookUpTableLambda for LutPHFDouble {
     #[inline]
-    fn build_lambda(lambda: usize, json_path: &str, threaded: bool) -> Result<Self, Box<dyn std::error::Error>> {
+    fn build_lambda(
+        lambda: usize,
+        json_path: &str,
+        distance_cutoff: usize,
+        threaded: bool,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
         let file = fs::File::open(json_path).expect("Failed to open file");
         // SAFETY: We keep the file open throughout the entire duration.
         let input = unsafe { input::MmapInput::map_file(&file)? };
         let simd_c = classification::simd::configure();
 
         let lut_phf_double = classification::simd::config_simd!(simd_c => |simd| {
-            classification::simd::dispatch_simd!(simd; input, simd, lambda, threaded => fn<I, V>(
+            classification::simd::dispatch_simd!(simd; input, simd, lambda, distance_cutoff, threaded => fn<I, V>(
                 input: I,
                 simd: V,
                 lambda: usize,
+                distance_cutoff: usize,
                 threaded: bool,
             ) -> Result<LutPHFDouble, error::InputError> where
             I: Input,
             V: Simd, {
-                    let pair_data = LutPHFDouble::find_all_pairs::<I, V>(&input, simd)?;
+                    let pair_data = LutPHFDouble::find_all_pairs::<I, V>(&input, simd, distance_cutoff)?;
                     Ok(LutPHFDouble::build_double(lambda, &pair_data, threaded))
                 })
         });
@@ -146,7 +153,11 @@ impl LutPHFDouble {
     /// distance to the closing bracket in the value. Creates a key-value list for values which fit in a 16 bit
     /// representation and another key-value list for the ones that do not.
     #[inline]
-    pub(crate) fn find_all_pairs<I, V>(input: &I, simd: V) -> Result<PairData, error::InputError>
+    pub(crate) fn find_all_pairs<I, V>(
+        input: &I,
+        simd: V,
+        distance_cutoff: usize,
+    ) -> Result<PairData, error::InputError>
     where
         I: Input,
         V: Simd,
@@ -176,16 +187,18 @@ impl LutPHFDouble {
 
                     // Check if distance can be represented with 16 or less bits
                     let distance = idx_close - idx_open;
-                    if distance < THRESHOLD_16_BITS {
-                        // Can fit into 16 bit
-                        pairs.keys.push(idx_open);
-                        pairs.values.push(distance.try_into().expect("Fail at pushing value."));
-                    } else {
-                        // Cannot fit into 16 bit
-                        pairs.keys.push(idx_open);
-                        pairs.values.push(0);
-                        pairs.keys_64.push(idx_open);
-                        pairs.values_64.push(distance);
+                    if (distance >= distance_cutoff) {
+                        if distance < THRESHOLD_16_BITS {
+                            // Can fit into 16 bit
+                            pairs.keys.push(idx_open);
+                            pairs.values.push(distance.try_into().expect("Fail at pushing value."));
+                        } else {
+                            // Cannot fit into 16 bit
+                            pairs.keys.push(idx_open);
+                            pairs.values.push(0);
+                            pairs.keys_64.push(idx_open);
+                            pairs.values_64.push(distance);
+                        }
                     }
                 }
                 Structural::Colon(_) | Structural::Comma(_) => unreachable!(),

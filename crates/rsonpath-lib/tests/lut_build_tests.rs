@@ -16,7 +16,7 @@ macro_rules! test_lut_with_json {
         #[test]
         fn $test_name() {
             let json_path = $json_file;
-            let lut = $lut_type::build(json_path).expect(&format!(
+            let lut = $lut_type::build(json_path, 0).expect(&format!(
                 "Fail @ building {}. Input = {}",
                 stringify!($lut_type),
                 json_path
@@ -87,7 +87,7 @@ fn debug_lut_group_buckets() {
     // let json_path = "tests/json/twitter_short_(80MB).json";
 
     let (keys, values) = pair_finder::get_keys_and_values(json_path).expect("Fail @ finding pairs.");
-    let lut = LutPHFGroup::build_buckets(1, json_path, 63, false).expect("Fail @ building lut_phf_double");
+    let lut = LutPHFGroup::build_buckets(1, json_path, 0, 63, false).expect("Fail @ building lut_phf_double");
 
     let mut count_correct = 0;
     let mut count_incorrect = 0;
@@ -119,7 +119,7 @@ fn debug_lut_phf_double() {
     // let json_path = "tests/json/twitter_short_(80MB).json";
 
     let (keys, values) = pair_finder::get_keys_and_values(json_path).expect("Fail @ finding pairs.");
-    let lut = LutPHFDouble::build(json_path).expect("Fail @ building lut_phf_double");
+    let lut = LutPHFDouble::build(json_path, 0).expect("Fail @ building lut_phf_double");
 
     let mut count_correct = 0;
     let mut count_incorrect = 0;

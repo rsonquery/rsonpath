@@ -212,7 +212,7 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> Result<(), io::Error> {
             }
             EngineTypeToTest::MainWithLut => {
                 quote! {
-                    let lut = LookUpTableImpl::build(#raw_input_path)?;
+                    let lut = LookUpTableImpl::build(#raw_input_path, 0)?;
                     let mut #ident = MainEngine::compile_query(&#query_ident)?;
                     #ident.add_lut(lut);
                 }

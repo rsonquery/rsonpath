@@ -12,6 +12,7 @@ use crate::{
 };
 use criterion::{Criterion, Throughput};
 use implementation::{Implementation, PreparedQuery};
+use rsonpath::lookup_table::distance_counter;
 use std::{path::PathBuf, time::Duration};
 use thiserror::Error;
 
@@ -22,7 +23,7 @@ pub mod implementation;
 pub enum BenchTarget<'q> {
     RsonpathMmap(&'q str, ResultType),
     Rsonpath(&'q str, ResultType),
-    RsonpathWithLut(&'q str, ResultType),
+    RsonpathWithLut(&'q str, usize, ResultType),
     JSurfer(&'q str),
     JsonpathRust(&'q str),
     SerdeJsonPath(&'q str),
@@ -148,8 +149,19 @@ impl Benchset {
     // TODO Ricardo
     // Here you can define which implementations you want to compare. At the moment Mmap should be enough.
     pub fn add_rsonpath_with_lut(self, query: &str) -> Result<Self, BenchmarkError> {
-        self.add_target(BenchTarget::RsonpathWithLut(query, ResultType::Full))?
-            .add_target(BenchTarget::RsonpathMmap(query, ResultType::Full))
+        self.add_target_with_id(
+            BenchTarget::RsonpathWithLut(query, 0, ResultType::Full),
+            "rsonpath-lut: cutoff=0",
+        )?
+        .add_target_with_id(
+            BenchTarget::RsonpathWithLut(query, 16, ResultType::Full),
+            "rsonpath-lut: cutoff=16",
+        )?
+        .add_target_with_id(
+            BenchTarget::RsonpathWithLut(query, 32, ResultType::Full),
+            "rsonpath-lut: cutoff=32",
+        )?
+        .add_target(BenchTarget::RsonpathMmap(query, ResultType::Full))
     }
 
     pub fn add_rsonpath_with_all_result_types(self, query: &str) -> Result<Self, BenchmarkError> {
@@ -244,14 +256,14 @@ impl Target for BenchTarget<'_> {
                 Ok(Box::new(prepared))
             }
             // Added by Ricardo
-            BenchTarget::RsonpathWithLut(q, ResultType::Full) => {
-                let rsonpath_lut = RsonpathLut::new()?;
+            BenchTarget::RsonpathWithLut(q, distance_cutoff, ResultType::Full) => {
+                let rsonpath_lut = RsonpathLut::new(distance_cutoff)?;
                 let prepared = prepare(rsonpath_lut, file_path, q, load_ahead_of_time, compile_ahead_of_time)?;
                 Ok(Box::new(prepared))
             }
             // Added by Ricardo
-            BenchTarget::RsonpathWithLut(q, ResultType::Count) => {
-                let implementation = RsonpathLut::new()?;
+            BenchTarget::RsonpathWithLut(q, distance_cutoff, ResultType::Count) => {
+                let implementation = RsonpathLut::new(distance_cutoff)?;
                 let prepared = prepare(implementation, file_path, q, load_ahead_of_time, compile_ahead_of_time)?;
                 Ok(Box::new(prepared))
             }
@@ -316,8 +328,8 @@ impl Target for BenchTarget<'_> {
                 Ok(Box::new(prepared))
             }
             // Added by Ricardo
-            BenchTarget::RsonpathWithLut(q, _) => {
-                let rsonpath_lut = RsonpathLut::new()?;
+            BenchTarget::RsonpathWithLut(q, distance_cutoff, ResultType::Full) => {
+                let rsonpath_lut = RsonpathLut::new(distance_cutoff)?;
                 let prepared = prepare_with_id(
                     rsonpath_lut,
                     id,
@@ -328,6 +340,7 @@ impl Target for BenchTarget<'_> {
                 )?;
                 Ok(Box::new(prepared))
             }
+            BenchTarget::RsonpathWithLut(q, distance_cutoff, ResultType::Count) => unimplemented!(),
         }
     }
 }

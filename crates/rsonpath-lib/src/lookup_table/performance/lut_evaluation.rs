@@ -90,7 +90,7 @@ fn eval<T: LookUpTable>(cfg: &mut EvalConfig, name: &str) {
     let start_heap = Region::new(GLOBAL);
 
     let start_build = std::time::Instant::now();
-    let lut = T::build(cfg.json_path).expect("Fail @ build lut");
+    let lut = T::build(cfg.json_path, 0).expect("Fail @ build lut");
     let build_time = start_build.elapsed().as_secs_f64();
 
     let heap_bytes = heap_value(start_heap.change());
@@ -114,7 +114,7 @@ fn eval_phf<T: LookUpTableLambda>(cfg: &mut EvalConfig, name: &str, lambda: usiz
     let start_heap = Region::new(GLOBAL);
 
     let start_build = std::time::Instant::now();
-    let lut = T::build_lambda(lambda, cfg.json_path, threaded).expect("Fail @ build lut");
+    let lut = T::build_lambda(lambda, cfg.json_path, 0, threaded).expect("Fail @ build lut");
     let build_time = start_build.elapsed().as_secs_f64();
 
     let heap_bytes = heap_value(start_heap.change());
@@ -139,7 +139,7 @@ fn eval_phf_group(cfg: &mut EvalConfig, name: &str, bit_mask: usize, lambda: usi
     let start_heap = Region::new(GLOBAL);
 
     let start_build = std::time::Instant::now();
-    let lut = LutPHFGroup::build_buckets(lambda, cfg.json_path, bit_mask, threaded).expect("Fail @ build lut");
+    let lut = LutPHFGroup::build_buckets(lambda, cfg.json_path, 0, bit_mask, threaded).expect("Fail @ build lut");
     let build_time = start_build.elapsed().as_secs_f64();
 
     let heap_bytes = heap_value(start_heap.change());

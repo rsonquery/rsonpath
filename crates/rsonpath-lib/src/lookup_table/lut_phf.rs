@@ -22,8 +22,8 @@ pub struct LutPHF {
 
 impl LookUpTable for LutPHF {
     #[inline]
-    fn build(json_path: &str) -> Result<Self, Box<dyn std::error::Error>> {
-        Self::build_lambda(DEFAULT_LAMBDA, json_path, DEFAULT_THREADED)
+    fn build(json_path: &str, distance_cutoff: usize) -> Result<Self, Box<dyn std::error::Error>> {
+        Self::build_lambda(DEFAULT_LAMBDA, json_path, distance_cutoff, DEFAULT_THREADED)
     }
 
     #[inline]
@@ -46,22 +46,28 @@ impl LookUpTable for LutPHF {
 
 impl LookUpTableLambda for LutPHF {
     #[inline]
-    fn build_lambda(lambda: usize, json_path: &str, threaded: bool) -> Result<Self, Box<dyn std::error::Error>> {
+    fn build_lambda(
+        lambda: usize,
+        json_path: &str,
+        distance_cutoff: usize,
+        threaded: bool,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
         let file = fs::File::open(json_path).expect("Failed to open file");
         // SAFETY: We keep the file open throughout the entire duration.
         let input = unsafe { input::MmapInput::map_file(&file)? };
         let simd_c = classification::simd::configure();
 
         let lut_phf_double = classification::simd::config_simd!(simd_c => |simd| {
-            classification::simd::dispatch_simd!(simd; input, simd, lambda, threaded => fn<I, V>(
+            classification::simd::dispatch_simd!(simd; input, simd, lambda, distance_cutoff, threaded => fn<I, V>(
                 input: I,
                 simd: V,
                 lambda: usize,
+                distance_cutoff: usize,
                 threaded: bool,
             ) -> Result<LutPHF, error::InputError> where
             I: Input,
             V: Simd, {
-                    let (keys, values) = LutHashMap::find_all_pairs::<I, V>(&input, simd)?;
+                    let (keys, values) = LutHashMap::find_all_pairs::<I, V>(&input, simd, distance_cutoff)?;
                     let hash_state = phf_generator_double_hash::build(lambda, &keys, threaded);
                     Ok(LutPHF { hash_state, values })
                 })

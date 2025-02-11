@@ -165,6 +165,14 @@ impl JSurfer {
     }
 }
 
+impl JSurfer {
+    pub fn new() -> Result<Self, JSurferError> {
+        Ok(JSurfer {
+            context: Jvm::attach()?,
+        })
+    }
+}
+
 impl Implementation for JSurfer {
     type Query = CompiledQuery<'static>;
 
@@ -176,12 +184,6 @@ impl Implementation for JSurfer {
 
     fn id() -> &'static str {
         "jsurfer"
-    }
-
-    fn new() -> Result<Self, Self::Error> {
-        Ok(JSurfer {
-            context: Jvm::attach()?,
-        })
     }
 
     fn load_file(&self, path: &str) -> Result<Self::File, Self::Error> {

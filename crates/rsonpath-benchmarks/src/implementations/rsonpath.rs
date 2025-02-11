@@ -13,7 +13,15 @@ pub struct Rsonpath {}
 pub struct RsonpathCount {}
 pub struct RsonpathMmap {}
 pub struct RsonpathMmapCount {}
-pub struct RsonpathLut {}
+pub struct RsonpathLut {
+    distance_cutoff: usize,
+}
+
+impl RsonpathLut {
+    pub fn new(distance_cutoff: usize) -> Result<Self, RsonpathError> {
+        Ok(RsonpathLut { distance_cutoff })
+    }
+}
 
 // Added by Ricardo
 impl Implementation for RsonpathLut {
@@ -24,10 +32,6 @@ impl Implementation for RsonpathLut {
 
     fn id() -> &'static str {
         "rsonpath_with_lut"
-    }
-
-    fn new() -> Result<Self, Self::Error> {
-        Ok(RsonpathLut {})
     }
 
     fn load_file(&self, file_path: &str) -> Result<Self::File, Self::Error> {
@@ -45,7 +49,7 @@ impl Implementation for RsonpathLut {
         let mut engine = MainEngine::compile_query(&query).map_err(RsonpathError::CompilerError)?;
 
         // Build LUT and add it to the engine object
-        if let Ok(lut) = LookUpTableImpl::build(file_path) {
+        if let Ok(lut) = LookUpTableImpl::build(file_path, self.distance_cutoff) {
             engine.add_lut(lut);
         } else {
             return Err(Self::Error::LutRequiredError);
@@ -64,6 +68,12 @@ impl Implementation for RsonpathLut {
     }
 }
 
+impl Rsonpath {
+    pub fn new() -> Result<Self, RsonpathError> {
+        Ok(Rsonpath {})
+    }
+}
+
 impl Implementation for Rsonpath {
     type Query = MainEngine;
     type File = OwnedBytes<Vec<u8>>;
@@ -72,10 +82,6 @@ impl Implementation for Rsonpath {
 
     fn id() -> &'static str {
         "rsonpath"
-    }
-
-    fn new() -> Result<Self, Self::Error> {
-        Ok(Rsonpath {})
     }
 
     fn load_file(&self, file_path: &str) -> Result<Self::File, Self::Error> {
@@ -99,6 +105,12 @@ impl Implementation for Rsonpath {
     }
 }
 
+impl RsonpathCount {
+    pub fn new() -> Result<Self, RsonpathError> {
+        Ok(RsonpathCount {})
+    }
+}
+
 impl Implementation for RsonpathCount {
     type Query = MainEngine;
     type File = OwnedBytes<Vec<u8>>;
@@ -107,10 +119,6 @@ impl Implementation for RsonpathCount {
 
     fn id() -> &'static str {
         "rsonpath_count"
-    }
-
-    fn new() -> Result<Self, Self::Error> {
-        Ok(RsonpathCount {})
     }
 
     fn load_file(&self, file_path: &str) -> Result<Self::File, Self::Error> {
@@ -134,6 +142,12 @@ impl Implementation for RsonpathCount {
     }
 }
 
+impl RsonpathMmap {
+    pub fn new() -> Result<Self, RsonpathError> {
+        Ok(RsonpathMmap {})
+    }
+}
+
 impl Implementation for RsonpathMmap {
     type Query = MainEngine;
     type File = MmapInput;
@@ -142,10 +156,6 @@ impl Implementation for RsonpathMmap {
 
     fn id() -> &'static str {
         "rsonpath_mmap"
-    }
-
-    fn new() -> Result<Self, Self::Error> {
-        Ok(RsonpathMmap {})
     }
 
     fn load_file(&self, file_path: &str) -> Result<Self::File, Self::Error> {
@@ -169,6 +179,12 @@ impl Implementation for RsonpathMmap {
     }
 }
 
+impl RsonpathMmapCount {
+    pub fn new() -> Result<Self, RsonpathError> {
+        Ok(RsonpathMmapCount {})
+    }
+}
+
 impl Implementation for RsonpathMmapCount {
     type Query = MainEngine;
     type File = MmapInput;
@@ -177,10 +193,6 @@ impl Implementation for RsonpathMmapCount {
 
     fn id() -> &'static str {
         "rsonpath_mmap_count"
-    }
-
-    fn new() -> Result<Self, Self::Error> {
-        Ok(RsonpathMmapCount {})
     }
 
     fn load_file(&self, file_path: &str) -> Result<Self::File, Self::Error> {

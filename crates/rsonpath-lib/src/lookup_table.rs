@@ -17,7 +17,7 @@ pub type LookUpTableImpl = lut_hash_map::LutHashMap;
 
 /// Throughout this project the abbreviation for LookUpTable will be LUT or lut
 pub trait LookUpTable {
-    fn build(json_path: &str) -> Result<Self, Box<dyn std::error::Error>>
+    fn build(json_path: &str, distance_cutoff: usize) -> Result<Self, Box<dyn std::error::Error>>
     // fn build(json_path: &str) -> Result<Self, Box<dyn std::error::Error + Sync + Send>>
     where
         Self: Sized;
@@ -28,7 +28,12 @@ pub trait LookUpTable {
 }
 
 pub trait LookUpTableLambda: LookUpTable {
-    fn build_lambda(lambda: usize, json_path: &str, threaded: bool) -> Result<Self, Box<dyn std::error::Error>>
+    fn build_lambda(
+        lambda: usize,
+        json_path: &str,
+        distance_cutoff: usize,
+        threaded: bool,
+    ) -> Result<Self, Box<dyn std::error::Error>>
     where
         Self: Sized;
 }

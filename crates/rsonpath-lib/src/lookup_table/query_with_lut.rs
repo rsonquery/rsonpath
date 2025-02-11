@@ -24,7 +24,7 @@ pub fn query_with_lut(json_path: &str, json_query: &str) {
 
     // Build and add lut
     let start_build = std::time::Instant::now();
-    let lut = LookUpTableImpl::build(json_path).expect("Fail @ building LookUp-table.");
+    let lut = LookUpTableImpl::build(json_path, 0).expect("Fail @ building LookUp-table.");
     let build_time = start_build.elapsed().as_secs_f64();
     engine.add_lut(lut);
 

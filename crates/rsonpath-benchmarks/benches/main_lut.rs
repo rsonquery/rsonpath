@@ -49,7 +49,7 @@ pub fn twitter_q0(c: &mut Criterion) -> Result<(), BenchmarkError> {
 
 benchsets!(
     main_lut_benches, // name of the group functions
-    // bestbuy_q0,    
-    bestbuy_short_q0,
-    // twitter_q0,          
+    // bestbuy_q0,
+    // bestbuy_short_q0,
+    twitter_q0,
 );

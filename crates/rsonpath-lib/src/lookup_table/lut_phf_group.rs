@@ -26,8 +26,14 @@ pub struct LutPHFGroup {
 
 impl LookUpTable for LutPHFGroup {
     #[inline]
-    fn build(json_path: &str) -> Result<Self, Box<dyn std::error::Error>> {
-        Self::build_buckets(DEFAULT_LAMBDA, json_path, DEFAULT_BIT_MASK, DEFAULT_THREADED)
+    fn build(json_path: &str, distance_cutoff: usize) -> Result<Self, Box<dyn std::error::Error>> {
+        Self::build_buckets(
+            DEFAULT_LAMBDA,
+            json_path,
+            distance_cutoff,
+            DEFAULT_BIT_MASK,
+            DEFAULT_THREADED,
+        )
     }
 
     #[inline]
@@ -49,8 +55,13 @@ impl LookUpTable for LutPHFGroup {
 
 impl LookUpTableLambda for LutPHFGroup {
     #[inline]
-    fn build_lambda(lambda: usize, json_path: &str, threaded: bool) -> Result<Self, Box<dyn std::error::Error>> {
-        Self::build_buckets(lambda, json_path, DEFAULT_BIT_MASK, threaded)
+    fn build_lambda(
+        lambda: usize,
+        json_path: &str,
+        distance_cutoff: usize,
+        threaded: bool,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
+        Self::build_buckets(lambda, json_path, distance_cutoff, DEFAULT_BIT_MASK, threaded)
     }
 }
 
@@ -59,6 +70,7 @@ impl LutPHFGroup {
     pub fn build_buckets(
         lambda: usize,
         json_path: &str,
+        distance_cutoff: usize,
         bit_mask: usize,
         threaded: bool,
     ) -> Result<Self, Box<dyn std::error::Error>> {
@@ -68,16 +80,17 @@ impl LutPHFGroup {
         let simd_c = classification::simd::configure();
 
         let lut_perfect_naive = classification::simd::config_simd!(simd_c => |simd| {
-            classification::simd::dispatch_simd!(simd; input, simd, lambda, bit_mask, threaded => fn<I, V>(
+            classification::simd::dispatch_simd!(simd; input, simd, lambda, distance_cutoff, bit_mask, threaded => fn<I, V>(
                 input: I,
                 simd: V,
                 lambda: usize,
                 bit_mask: usize,
+                distance_cutoff: usize,
                 threaded: bool,
             ) -> Result<LutPHFGroup, error::InputError> where
             I: Input,
             V: Simd,{
-                let lut_doubles_pair_data = LutPHFGroup::find_all_pairs::<I, V>(&input, simd, bit_mask)?;
+                let lut_doubles_pair_data = LutPHFGroup::find_all_pairs::<I, V>(&input, simd, distance_cutoff, bit_mask)?;
                 Ok(LutPHFGroup::build_lut_doubles(lambda, lut_doubles_pair_data, bit_mask, threaded))
             })
         });
@@ -93,7 +106,12 @@ impl LutPHFGroup {
         Self { lut_doubles, bit_mask }
     }
 
-    fn find_all_pairs<I, V>(input: &I, simd: V, bit_mask: usize) -> Result<Vec<PairData>, error::InputError>
+    fn find_all_pairs<I, V>(
+        input: &I,
+        simd: V,
+        distance_cutoff: usize,
+        bit_mask: usize,
+    ) -> Result<Vec<PairData>, error::InputError>
     where
         I: Input,
         V: Simd,
@@ -135,18 +153,20 @@ impl LutPHFGroup {
                     let lut_double = &mut lut_doubles_pair_data[idx_open & bit_mask];
 
                     let distance = idx_close - idx_open;
-                    if distance < THRESHOLD_16_BITS {
-                        // Can fit into 16 bits
-                        lut_double.keys.push(idx_open);
-                        lut_double
-                            .values
-                            .push(distance.try_into().expect("Fail @ convert to 16 bit"));
-                    } else {
-                        // Needs 64 bits
-                        lut_double.keys.push(idx_open);
-                        lut_double.values.push(0);
-                        lut_double.keys_64.push(idx_open);
-                        lut_double.values_64.push(distance);
+                    if (distance >= distance_cutoff) {
+                        if distance < THRESHOLD_16_BITS {
+                            // Can fit into 16 bits
+                            lut_double.keys.push(idx_open);
+                            lut_double
+                                .values
+                                .push(distance.try_into().expect("Fail @ convert to 16 bit"));
+                        } else {
+                            // Needs 64 bits
+                            lut_double.keys.push(idx_open);
+                            lut_double.values.push(0);
+                            lut_double.keys_64.push(idx_open);
+                            lut_double.values_64.push(distance);
+                        }
                     }
                 }
                 Structural::Colon(_) | Structural::Comma(_) => unreachable!(),

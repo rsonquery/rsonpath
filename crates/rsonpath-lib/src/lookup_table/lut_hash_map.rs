@@ -22,20 +22,21 @@ pub struct LutHashMap {
 
 impl LookUpTable for LutHashMap {
     #[inline]
-    fn build(json_path: &str) -> Result<Self, Box<dyn std::error::Error>> {
+    fn build(json_path: &str, distance_cutoff: usize) -> Result<Self, Box<dyn std::error::Error>> {
         let file = fs::File::open(json_path).expect("Failed to open file");
         // SAFETY: We keep the file open throughout the entire duration.
         let input = unsafe { input::MmapInput::map_file(&file)? };
         let simd_c = classification::simd::configure();
 
         classification::simd::config_simd!(simd_c => |simd| {
-            classification::simd::dispatch_simd!(simd; input, simd => fn<I, V>(
+            classification::simd::dispatch_simd!(simd; input, simd, distance_cutoff => fn<I, V>(
                 input: I,
                 simd: V,
+                distance_cutoff: usize,
             ) -> Result<LutHashMap, error::InputError> where
             I: Input,
             V: Simd,{
-                    let (keys, values) = LutHashMap::find_all_pairs::<I, V>(&input, simd)?;
+                    let (keys, values) = LutHashMap::find_all_pairs::<I, V>(&input, simd, distance_cutoff)?;
                     let hash_map: HashMap<usize, usize> = keys.into_iter().zip(values.into_iter()).collect();
                     Ok(LutHashMap{ hash_map })
                 })
@@ -60,7 +61,11 @@ impl LookUpTable for LutHashMap {
 
 impl LutHashMap {
     #[inline]
-    pub(crate) fn find_all_pairs<I, V>(input: &I, simd: V) -> Result<(Vec<usize>, Vec<usize>), error::InputError>
+    pub(crate) fn find_all_pairs<I, V>(
+        input: &I,
+        simd: V,
+        distance_cutoff: usize,
+    ) -> Result<(Vec<usize>, Vec<usize>), error::InputError>
     where
         I: Input,
         V: Simd,
@@ -90,9 +95,8 @@ impl LutHashMap {
                         BracketType::Curly => curly_bracket_stack.pop_back().expect("Unmatched closing }"),
                     };
 
-                    // TODO this is only needed for experiments
                     let distance = idx_close - idx_open;
-                    if distance > 5000 {
+                    if distance > distance_cutoff {
                         keys.push(idx_open);
                         values.push(idx_close);
                     }

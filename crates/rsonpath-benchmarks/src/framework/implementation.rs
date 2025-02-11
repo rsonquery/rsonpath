@@ -8,8 +8,6 @@ pub trait Implementation: Sized {
 
     fn id() -> &'static str;
 
-    fn new() -> Result<Self, Self::Error>;
-
     fn load_file(&self, file_path: &str) -> Result<Self::File, Self::Error>;
 
     fn compile_query_without_lut(&self, query: &str) -> Result<Self::Query, Self::Error>;
