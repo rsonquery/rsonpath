@@ -6,33 +6,29 @@ use std::io::{BufWriter, Result, Write};
 use std::path::Path;
 use std::sync::Mutex;
 
-#[derive(PartialEq)]
+// Define here what you want to track, if you want to run without tracking then set it to OFF
+pub const MODE: SkipMode = SkipMode::COUNT;
+
+#[derive(Debug, PartialEq)]
 pub enum SkipMode {
-    COUNT,
-    TRACK,
+    COUNT, // Track how many jumps are happening
+    TRACK, // Track each jump value individually in a data structure (slow)
+    OFF,   // Turned off, tracking nothing
 }
 
-// Define a global mode variable here!
 lazy_static! {
-    static ref MODE: Mutex<SkipMode> = Mutex::new(SkipMode::COUNT); // Define mode here
     static ref LUT_COUNTER: Mutex<u64> = Mutex::new(0);
     static ref ITE_COUNTER: Mutex<u64> = Mutex::new(0);
     static ref SKIP_TRACKER_LUT: Mutex<HashMap<usize, usize>> = Mutex::new(HashMap::new());
     static ref SKIP_TRACKER_ITE: Mutex<HashMap<usize, usize>> = Mutex::new(HashMap::new());
 }
 
-pub fn set_mode(new_mode: SkipMode) {
-    let mut mode = MODE.lock().unwrap();
-    *mode = new_mode;
-}
-
 // Increment the frequency of given distance by 1, or initialize to 1 if not present
 pub fn increment_lut(distance: usize) {
-    let mode = MODE.lock().unwrap();
-    if *mode == SkipMode::COUNT {
+    if is_counting() {
         let mut counter = LUT_COUNTER.lock().unwrap();
         *counter += 1;
-    } else if *mode == SkipMode::TRACK {
+    } else if is_tracking() {
         let mut map = SKIP_TRACKER_LUT.lock().unwrap();
         *map.entry(distance).or_insert(0) += 1;
     }
@@ -40,11 +36,10 @@ pub fn increment_lut(distance: usize) {
 
 // Increment the value by 1, or initialize to 1 if not present
 pub fn increment_ite(distance: usize) {
-    let mode = MODE.lock().unwrap();
-    if *mode == SkipMode::COUNT {
+    if is_counting() {
         let mut counter = ITE_COUNTER.lock().unwrap();
         *counter += 1;
-    } else if *mode == SkipMode::TRACK {
+    } else if is_tracking() {
         let mut map = SKIP_TRACKER_ITE.lock().unwrap();
         *map.entry(distance).or_insert(0) += 1;
     }
@@ -105,6 +100,18 @@ pub fn print_count_results_and_save_in_csv(file_path: &str, filename: &str, quer
     reset_counts();
 
     Ok(())
+}
+
+pub fn is_counting() -> bool {
+    MODE == SkipMode::COUNT
+}
+
+pub fn is_tracking() -> bool {
+    MODE == SkipMode::TRACK
+}
+
+pub fn is_off() -> bool {
+    MODE == SkipMode::OFF
 }
 
 fn reset_counts() {

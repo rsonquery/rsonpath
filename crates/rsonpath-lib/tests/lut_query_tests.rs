@@ -83,41 +83,37 @@ fn query_with_lut(json_path: &str, query_text: &str, expected_result: Vec<usize>
 
 #[test]
 fn count_skips() -> Result<(), Box<dyn Error>> {
-    let count_mode = false; // true = COUNT, false = TRACK
+    let _ = track_skips(TWITTER_SHORT_JSON, "q0", "$.search_metadata.count");
 
-    let _ = track_skips(TWITTER_SHORT_JSON, "q0", "$..entities.user_mentions[1]", count_mode);
-    let _ = track_skips(TWITTER_SHORT_JSON, "q1", "$..entities.user_mentions[2]", count_mode);
-    let _ = track_skips(TWITTER_SHORT_JSON, "q2", "$..[0]", count_mode);
+    // let _ = track_skips(BESTBUY_JSON, "q0","$.products[5].videoChapters");
+    // let _ = track_skips(BESTBUY_JSON, "q1","$.products[*].videoChapters");
+    // let _ = track_skips(BESTBUY_JSON, "q2","$.products[*].categoryPath[2]");
 
-    // let _ = track_skips(BESTBUY_JSON, "q0","$.products[5].videoChapters", count_mode);
-    // let _ = track_skips(BESTBUY_JSON, "q1","$.products[*].videoChapters", count_mode);
-    // let _ = track_skips(BESTBUY_JSON, "q2","$.products[*].categoryPath[2]", count_mode);
+    // let _ = track_skips(POKEMON_JSON, "q0","$.cfgs[17].Moves[*]");
+    // let _ = track_skips(POKEMON_JSON, "q1","$.cfgs[0].Name");
+    // let _ = track_skips(POKEMON_JSON, "q2","$.cfgs[*].Name");
+    // let _ = track_skips(POKEMON_JSON, "q3","$.cfgs[*].Moves[*].levelLearnedAt");
+    // let _ = track_skips(POKEMON_JSON, "q4","$.cfgs[*].Moves[*]");
 
-    // let _ = track_skips(POKEMON_JSON, "q0","$.cfgs[17].Moves[*]", count_mode);
-    // let _ = track_skips(POKEMON_JSON, "q1","$.cfgs[0].Name", count_mode);
-    // let _ = track_skips(POKEMON_JSON, "q2","$.cfgs[*].Name", count_mode);
-    // let _ = track_skips(POKEMON_JSON, "q3","$.cfgs[*].Moves[*].levelLearnedAt", count_mode);
-    // let _ = track_skips(POKEMON_JSON, "q4","$.cfgs[*].Moves[*]", count_mode);
+    // let _ = track_skips(WALMART_SHORT_JSON, "q0","$.items[*].name");
+    // let _ = track_skips(WALMART_SHORT_JSON, "q1","$.items[50].stock");
 
-    // let _ = track_skips(WALMART_SHORT_JSON, "q0","$.items[*].name", count_mode);
-    // let _ = track_skips(WALMART_SHORT_JSON, "q1","$.items[50].stock", count_mode);
+    // let _ = track_skips(WALMART_JSON, "q0","$.items[50].stock");
 
-    // let _ = track_skips(WALMART_JSON, "q0","$.items[50].stock", count_mode);
+    // let _ = track_skips(TWITTER_JSON, "q0","$.search_metadata.count");
 
-    // let _ = track_skips(TWITTER_JSON, "q0","$.search_metadata.count", count_mode);
-
-    // let _ = track_skips(GOOGLE_MAP_JSON, "q0","$[*].available_travel_modes", count_mode);
-    // let _ = track_skips(GOOGLE_MAP_JSON, "q1","$[*].routes[*].legs[*].steps[*].distance.text", count_mode);
+    // let _ = track_skips(GOOGLE_MAP_JSON, "q0","$[*].available_travel_modes");
+    // let _ = track_skips(GOOGLE_MAP_JSON, "q1","$[*].routes[*].legs[*].steps[*].distance.text");
 
     Ok(())
 }
 
-fn track_skips(json_path: &str, query_name: &str, query_text: &str, count_mode: bool) -> Result<(), Box<dyn Error>> {
-    // Set the correct mode for tracking skips
-    if count_mode {
-        skip_tracker::set_mode(SkipMode::COUNT);
+fn track_skips(json_path: &str, query_name: &str, query_text: &str) -> Result<(), Box<dyn Error>> {
+    if !skip_tracker::is_off() {
+        println!("Tracking set to {:?}", skip_tracker::MODE);
     } else {
-        skip_tracker::set_mode(SkipMode::TRACK);
+        println!("No tracking set. Abort.");
+        return Ok(());
     }
 
     // Build lut
@@ -141,14 +137,14 @@ fn track_skips(json_path: &str, query_name: &str, query_text: &str, count_mode: 
     let _ = sink.into_iter().map(|m| m.span().start_idx()).collect::<Vec<_>>();
 
     let filename = get_filename(json_path);
-    if count_mode {
+    if skip_tracker::is_counting() {
         println!("File = {filename}, Query = {query_text} ");
         let _ = skip_tracker::print_count_results_and_save_in_csv(
             "../../.a_lut_tests/performance/skip_tracker/COUNTER.csv",
             filename,
             query_text,
         );
-    } else {
+    } else if skip_tracker::is_tracking() {
         // Save the tracked skips to a csv
         let file_path = format!(
             "../../.a_lut_tests/performance/skip_tracker/{}_{}.csv",

@@ -10,7 +10,7 @@ use crate::{
     debug,
     engine::{
         error::EngineError,
-        skip_tracker::{increment_ite, increment_lut},
+        skip_tracker::{self, increment_ite, increment_lut},
     },
     input::InputBlockIterator,
     lookup_table::{LookUpTable, LookUpTableImpl},
@@ -37,11 +37,12 @@ where
         }
     }
 
-    /// Returns the index position where the parser skips to. Given the a opening bracket this returns the position of
+    /// Returns the index position where the parser skips to. Given the opening bracket this returns the position of
     /// the closing bracket.
     ///
-    /// The skip is based either on opening_idx + lut to find goal position via a data structure OR given just the
-    /// BracketType the parser iteratively reads blocks until the closing bracket is found.
+    /// The skip is based either on opening_idx + lookup-table (LUT) to find goal position via a data structure OR
+    /// given just the BracketType the parser iteratively reads blocks until the closing bracket is found. If the skip
+    /// has a long distance then using the LUT should be faster.
     pub(crate) fn skip(
         &mut self,
         opening_idx_padded: usize,
@@ -56,7 +57,7 @@ where
         }
     }
 
-    // RICARDO TODO
+    // TODO Ricardo
     // 0. Use LUT to get opening -> closing index
     // 1. Tell the Structural Classifier (self.classifier) to jump
     // 2. S tells its quote classifier to jump
@@ -74,16 +75,22 @@ where
     ) -> Result<usize, EngineError> {
         let opening_idx = opening_idx_padded - padding;
 
-        // 0. Use LUT to get opening -> closing index
-        // Can fail if key is not in lut
+        // 0. Use LUT to get opening -> closing index. Can fail if key is not in LUT
         if let Some(idx_close) = lut.get(&(opening_idx_padded - padding)) {
-            // Shift index by 1 or its off aligned TODO: fix lut
+            // Shift index by 1 or its off aligned
             let closing_idx = idx_close + 1;
             let closing_idx_padded = padding + closing_idx;
 
-            // TODO Ricardo this is only for testing how many times the jumps a distance
-            let distance = closing_idx - (opening_idx_padded - padding);
-            increment_lut(distance);
+            debug!(
+                "LUT:({},{}) No-PAD:({},{})",
+                opening_idx_padded, closing_idx_padded, opening_idx, closing_idx
+            );
+
+            if !skip_tracker::is_off() {
+                // Only for tracking jumps and not needed in normal runs
+                let distance = closing_idx - (opening_idx_padded - padding);
+                increment_lut(distance);
+            }
 
             // 1. Tell the Structural Classifier (self.classifier) to jump
             self.classifier
@@ -91,24 +98,23 @@ where
                 .expect("tail skip must always hold a classifier")
                 .jump_to_idx(closing_idx_padded, false)?;
 
-            debug!(
-                "LUT:({},{}) No-PAD:({},{})",
-                opening_idx_padded, closing_idx_padded, opening_idx, closing_idx
-            );
             // 7. This function returns the skipped-to index.
             Ok(closing_idx_padded)
         } else {
-            // Do this when you were not able to find any hits in the lut
+            // Do this when you were not able to find any values in the LUT
             let closing_idx_padded = self.skip_without_lut(bracket_type)?;
             let closing_idx = closing_idx_padded - padding;
+
             debug!(
                 "ITE:({},{}) No-PAD:({},{})",
                 opening_idx_padded, closing_idx_padded, opening_idx, closing_idx
             );
 
-            // TODO Ricardo this is only for testing how many times the jumps a distance
-            let distance = closing_idx - (opening_idx_padded - padding);
-            increment_ite(distance);
+            if !skip_tracker::is_off() {
+                // Only for tracking jumps and not needed in normal runs
+                let distance = closing_idx - (opening_idx_padded - padding);
+                increment_ite(distance);
+            }
 
             Ok(closing_idx_padded)
         }
