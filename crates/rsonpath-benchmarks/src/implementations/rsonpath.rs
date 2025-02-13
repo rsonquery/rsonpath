@@ -17,6 +17,7 @@ pub struct RsonpathLut {
     distance_cutoff: usize,
 }
 
+// Added by Ricardo
 impl RsonpathLut {
     pub fn new(distance_cutoff: usize) -> Result<Self, RsonpathError> {
         Ok(RsonpathLut { distance_cutoff })
@@ -31,7 +32,7 @@ impl Implementation for RsonpathLut {
     type Result<'a> = &'static str;
 
     fn id() -> &'static str {
-        "rsonpath_with_lut"
+        "rq_lut"
     }
 
     fn load_file(&self, file_path: &str) -> Result<Self::File, Self::Error> {
@@ -54,9 +55,6 @@ impl Implementation for RsonpathLut {
         } else {
             return Err(Self::Error::LutRequiredError);
         }
-
-        // let lut = LookUpTableImpl::build(file_path)?;
-        // engine.add_lut(lut);
 
         Ok(engine)
     }

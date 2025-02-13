@@ -39,6 +39,7 @@ rsonpath-syntax = { version = "0.3.1", default-features = false }
 serde_json_path = "0.7.1"
 tar = "0.4.43"
 thiserror = "2.0.9"
+once_cell = "1.20.3"
 
 [patch.crates-io]
 rsonpath-lib = { path = "../rsonpath-lib" }
@@ -81,5 +82,5 @@ harness = false
 
 # Added by Ricardo
 [[bench]]
-name = "main_lut"
+name = "lut_benches"
 harness = false
