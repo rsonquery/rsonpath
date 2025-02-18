@@ -2,6 +2,7 @@ use crate::lookup_table::util_path;
 use std::{fs, path::Path};
 
 pub mod lut_evaluation;
+pub mod lut_skip_evaluation;
 
 pub const EVAL_DIR: &str = "evaluation";
 

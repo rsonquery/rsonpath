@@ -166,26 +166,6 @@ impl Benchset {
             .add_target(BenchTarget::RsonpathMmap(query, ResultType::Full))
     }
 
-    // pub fn add_rsonpath_with_lut(self, query: &str) -> Result<Self, BenchmarkError> {
-    //     // Compare with different cutoffs
-    //     self.add_target_with_id(BenchTarget::RsonpathWithLut(query, 0, ResultType::Full), "rq-lut: 0")?
-    //         .add_target_with_id(BenchTarget::RsonpathWithLut(query, 1, ResultType::Full), "rq-lut: 1")?
-    //         .add_target_with_id(BenchTarget::RsonpathWithLut(query, 2, ResultType::Full), "rq-lut: 2")?
-    //         .add_target_with_id(BenchTarget::RsonpathWithLut(query, 4, ResultType::Full), "rq-lut: 4")?
-    //         .add_target_with_id(BenchTarget::RsonpathWithLut(query, 8, ResultType::Full), "rq-lut: 8")?
-    //         .add_target_with_id(BenchTarget::RsonpathWithLut(query, 16, ResultType::Full), "rq-lut: 16")?
-    //         .add_target_with_id(BenchTarget::RsonpathWithLut(query, 32, ResultType::Full), "rq-lut: 32")?
-    //         .add_target_with_id(BenchTarget::RsonpathWithLut(query, 64, ResultType::Full), "rq-lut: 64")?
-    //         .add_target_with_id(BenchTarget::RsonpathWithLut(query, 128, ResultType::Full), "1rq-lut: 28")?
-    //         .add_target_with_id(BenchTarget::RsonpathWithLut(query, 256, ResultType::Full), "rq-lut: 256")?
-    //         .add_target_with_id(BenchTarget::RsonpathWithLut(query, 512, ResultType::Full), "rq-lut: 512")?
-    //         .add_target_with_id(BenchTarget::RsonpathWithLut(query, 1024, ResultType::Full), "rq-lut: 1024")?
-    //         .add_target_with_id(BenchTarget::RsonpathWithLut(query, 2048, ResultType::Full), "rq-lut: 2048")?
-    //         .add_target_with_id(BenchTarget::RsonpathWithLut(query, 4096, ResultType::Full), "rq-lut: 4096")?
-    //         .add_target_with_id(BenchTarget::RsonpathWithLut(query, 8192, ResultType::Full), "rq-lut: 8192")?
-    //         .add_target(BenchTarget::RsonpathMmap(query, ResultType::Full)) // Compare with one already established implementation
-    // }
-
     pub fn add_rsonpath_with_all_result_types(self, query: &str) -> Result<Self, BenchmarkError> {
         self.add_target(BenchTarget::Rsonpath(query, ResultType::Full))?
             .add_target(BenchTarget::Rsonpath(query, ResultType::Count))?

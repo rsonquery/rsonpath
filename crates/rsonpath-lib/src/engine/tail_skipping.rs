@@ -13,10 +13,10 @@ use crate::{
         skip_tracker::{self, increment_ite, increment_lut},
     },
     input::InputBlockIterator,
-    lookup_table::{LookUpTable, LookUpTableImpl},
+    lookup_table::{performance::lut_skip_evaluation, LookUpTable, LookUpTableImpl},
     FallibleIterator, MaskType, BLOCK_SIZE,
 };
-use std::marker::PhantomData;
+use std::{marker::PhantomData, time::Instant};
 
 pub(crate) struct TailSkip<'i, I, Q, S, V, const N: usize> {
     classifier: Option<S>,
@@ -44,6 +44,24 @@ where
     /// given just the BracketType the parser iteratively reads blocks until the closing bracket is found. If the skip
     /// has a long distance then using the LUT should be faster.
     pub(crate) fn skip(
+        &mut self,
+        opening_idx_padded: usize,
+        bracket_type: BracketType,
+        lut: Option<&LookUpTableImpl>,
+        padding: usize,
+    ) -> Result<usize, EngineError> {
+        if lut_skip_evaluation::TRACK_SKIPPING {
+            let start_skip = Instant::now();
+            let result = self.skip_choice(opening_idx_padded, bracket_type, lut, padding);
+            let skip_time = start_skip.elapsed().as_nanos() as u64;
+            lut_skip_evaluation::add_skip_time(skip_time);
+            return result;
+        } else {
+            self.skip_choice(opening_idx_padded, bracket_type, lut, padding)
+        }
+    }
+
+    fn skip_choice(
         &mut self,
         opening_idx_padded: usize,
         bracket_type: BracketType,
@@ -86,11 +104,11 @@ where
                 opening_idx_padded, closing_idx_padded, opening_idx, closing_idx
             );
 
-            if !skip_tracker::is_off() {
-                // Only for tracking jumps and not needed in normal runs
-                let distance = closing_idx - (opening_idx_padded - padding);
-                increment_lut(distance);
-            }
+            // if !skip_tracker::is_off() {
+            //     // Only for tracking jumps and not needed in normal runs
+            //     let distance = closing_idx - (opening_idx_padded - padding);
+            //     increment_lut(distance);
+            // }
 
             // 1. Tell the Structural Classifier (self.classifier) to jump
             self.classifier
@@ -110,11 +128,11 @@ where
                 opening_idx_padded, closing_idx_padded, opening_idx, closing_idx
             );
 
-            if !skip_tracker::is_off() {
-                // Only for tracking jumps and not needed in normal runs
-                let distance = closing_idx - (opening_idx_padded - padding);
-                increment_ite(distance);
-            }
+            // if !skip_tracker::is_off() {
+            //     // Only for tracking jumps and not needed in normal runs
+            //     let distance = closing_idx - (opening_idx_padded - padding);
+            //     increment_ite(distance);
+            // }
 
             Ok(closing_idx_padded)
         }

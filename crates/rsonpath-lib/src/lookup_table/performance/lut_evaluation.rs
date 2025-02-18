@@ -25,6 +25,7 @@ pub struct EvalConfig<'a> {
 
 #[inline]
 pub fn evaluate(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Error>> {
+    println!("JSONPATH: {}", json_path);
     let file = std::fs::File::open(json_path)?;
     let filename = util_path::extract_filename(json_path);
     let num_keys = distance_counter::count_num_pairs(json_path);

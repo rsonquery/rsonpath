@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 use rsonpath::lookup_table::{
     distance_counter::{self, DISTANCE_EVAL_DIR},
-    performance::{self, EVAL_DIR},
+    performance::{self, lut_skip_evaluation, EVAL_DIR},
     query_with_lut::query_with_lut,
     sichash_test_data_generator::{self, SICHASH_DATA_DIR},
 };
@@ -40,6 +40,7 @@ enum Commands {
         /// Path to the output directory
         out_dir: String,
     },
+    Skip {},
     /// Create the test data used in this project: https://github.com/KraftRicardo/test-SicHash
     Sichash {
         /// Path to the folder containing JSON files
@@ -69,6 +70,9 @@ fn main() -> Result<(), Box<dyn Error>> {
             let csv_dir = format!("{}/{}", out_dir, "performance");
 
             performance::performance_test(json_dir, &csv_dir);
+        }
+        Commands::Skip {} => {
+            lut_skip_evaluation::skip_evaluation();
         }
         Commands::Sichash { json_dir, out_dir } => {
             check_if_dir_exists(json_dir);
