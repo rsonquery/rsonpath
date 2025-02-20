@@ -170,6 +170,11 @@ def plot_all(df: pd.DataFrame, save_path: str) -> None:
             'boxstyle': 'round'
         }
     )
+// ##############
+// # SKIP TRACK #
+// ##############
+
+}
 
     # Shrink the plot to make room for the legend and text box
     plt.subplots_adjust(right=0.85)

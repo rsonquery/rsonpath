@@ -5,38 +5,34 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 def plot(df: pd.DataFrame, file_path: str):
-    # Sort by T_ORIGINAL_SKIP for the first plot
+    # Sort by T_ORIGINAL_SKIP for better visualization
     df_sorted = df.sort_values(by="T_ORIGINAL_SKIP")
     
-    fig, axes = plt.subplots(2, 2, figsize=(20, 12))
+    # Separate data by COLOR value
+    df_blue = df_sorted[df_sorted["COLOR"] == "blue"]
+    df_yellow = df_sorted[df_sorted["COLOR"] == "yellow"]
     
-    # First plot: T_ORIGINAL, T_LUT, T_OPTIMUM (bar chart)
-    df_sorted.plot(x="TEST", y=["T_ORIGINAL", "T_LUT", "T_OPTIMUM"], kind="bar", ax=axes[0, 0])
-    axes[0, 0].set_ylabel("Time (ns)")
-    axes[0, 0].set_title("Query Execution Time Comparison")
-    axes[0, 0].tick_params(axis='x', rotation=45)
+    fig, axes = plt.subplots(1, 2, figsize=(20, 6))
     
-    # Second plot: T_ORIGINAL_SKIP vs. T_LUT_SKIP
-    df_sorted.plot(x="TEST", y=["T_ORIGINAL_SKIP", "T_LUT_SKIP"], kind="bar", ax=axes[0, 1])
-    axes[0, 1].set_ylabel("Time (ns)")
-    axes[0, 1].set_title("Skip Time Comparison")
-    axes[0, 1].tick_params(axis='x', rotation=45)
-    
-    # Third plot: LUT Build Time per JSON file
-    df_unique_json = df.drop_duplicates(subset=["JSON"])
-    sns.barplot(data=df_unique_json, x="JSON", y="T_LUT_BUILD", ax=axes[1, 0])
-    axes[1, 0].set_ylabel("LUT Build Time (ns)")
-    axes[1, 0].set_title("LUT Build Time per JSON File")
-    axes[1, 0].tick_params(axis='x', rotation=45)
-    
-    # Fourth plot: LUT Capacity per JSON file
-    sns.barplot(data=df_unique_json, x="JSON", y="LUT_CAPACITY", ax=axes[1, 1])
-    axes[1, 1].set_ylabel("LUT Capacity (bytes)")
-    axes[1, 1].set_title("LUT Capacity per JSON File")
-    axes[1, 1].tick_params(axis='x', rotation=45)
+    for i, (df_subset, color, ax) in enumerate(zip([df_blue, df_yellow], ["Blue", "Yellow"], axes)):
+        if not df_subset.empty:
+            build_time = df_subset["T_LUT_BUILD"].iloc[0] / 1_000_000  # Convert ns to ms
+            capacity = df_subset["LUT_CAPACITY"].iloc[0] / (1024 * 1024)  # Convert bytes to MB
+            title = f"Query Execution Time Comparison ({color} Data)\nLUT Build Time: {build_time} ms, LUT Capacity: {capacity:.2f} MB"
+            
+            df_subset.plot(
+                x="TEST", 
+                y=["T_ORIGINAL", "T_LUT", "T_OPTIMUM", "T_ORIGINAL_SKIP", "T_LUT_SKIP"], 
+                kind="bar", 
+                ax=ax,
+                color=["salmon", "blue", "green", "lightsalmon", "lightblue"]
+            )
+            ax.set_ylabel("Time (ns)")
+            ax.set_title(title)
+            ax.tick_params(axis='x', rotation=45)
     
     plt.tight_layout()
-    plt.savefig(file_path.replace(".csv", "_combined_plots.png"))
+    plt.savefig(file_path.replace(".csv", "_bar_plots.png"))
     plt.close()
 
 if __name__ == "__main__":

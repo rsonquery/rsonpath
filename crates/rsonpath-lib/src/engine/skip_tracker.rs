@@ -4,10 +4,11 @@ use std::collections::HashMap;
 use std::fs::{File, OpenOptions};
 use std::io::{BufWriter, Result, Write};
 use std::path::Path;
+use std::sync::atomic::AtomicU64;
 use std::sync::Mutex;
 
 // Define here what you want to track, if you want to run without tracking then set it to OFF
-pub const MODE: SkipMode = SkipMode::COUNT;
+pub const MODE: SkipMode = SkipMode::TRACK;
 
 #[derive(Debug, PartialEq)]
 pub enum SkipMode {
@@ -17,17 +18,17 @@ pub enum SkipMode {
 }
 
 lazy_static! {
-    static ref LUT_COUNTER: Mutex<u64> = Mutex::new(0);
-    static ref ITE_COUNTER: Mutex<u64> = Mutex::new(0);
     static ref SKIP_TRACKER_LUT: Mutex<HashMap<usize, usize>> = Mutex::new(HashMap::new());
     static ref SKIP_TRACKER_ITE: Mutex<HashMap<usize, usize>> = Mutex::new(HashMap::new());
 }
 
+static LUT_COUNTER: AtomicU64 = AtomicU64::new(0);
+static ITE_COUNTER: AtomicU64 = AtomicU64::new(0);
+
 // Increment the frequency of given distance by 1, or initialize to 1 if not present
 pub fn increment_lut(distance: usize) {
     if is_counting() {
-        let mut counter = LUT_COUNTER.lock().unwrap();
-        *counter += 1;
+        LUT_COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     } else if is_tracking() {
         let mut map = SKIP_TRACKER_LUT.lock().unwrap();
         *map.entry(distance).or_insert(0) += 1;
@@ -37,8 +38,7 @@ pub fn increment_lut(distance: usize) {
 // Increment the value by 1, or initialize to 1 if not present
 pub fn increment_ite(distance: usize) {
     if is_counting() {
-        let mut counter = ITE_COUNTER.lock().unwrap();
-        *counter += 1;
+        ITE_COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     } else if is_tracking() {
         let mut map = SKIP_TRACKER_ITE.lock().unwrap();
         *map.entry(distance).or_insert(0) += 1;
@@ -71,8 +71,8 @@ pub fn save_track_results_to_csv(file_path: &str) -> std::io::Result<()> {
 }
 
 pub fn print_count_results_and_save_in_csv(file_path: &str, filename: &str, query_text: &str) -> Result<()> {
-    let lut_counter = *LUT_COUNTER.lock().unwrap();
-    let ite_counter = *ITE_COUNTER.lock().unwrap();
+    let lut_counter = LUT_COUNTER.load(std::sync::atomic::Ordering::Relaxed);
+    let ite_counter = ITE_COUNTER.load(std::sync::atomic::Ordering::Relaxed);
     let total = lut_counter + ite_counter;
 
     println!("\tCounts: LUT = {lut_counter}, ITE = {ite_counter}, TOTAL = {total}");
@@ -115,8 +115,6 @@ pub fn is_off() -> bool {
 }
 
 fn reset_counts() {
-    let mut lut_counter = LUT_COUNTER.lock().unwrap();
-    *lut_counter = 0;
-    let mut ite_counter = ITE_COUNTER.lock().unwrap();
-    *ite_counter = 0;
+    LUT_COUNTER.store(0, std::sync::atomic::Ordering::Relaxed);
+    ITE_COUNTER.store(0, std::sync::atomic::Ordering::Relaxed);
 }

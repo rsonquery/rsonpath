@@ -50,15 +50,17 @@ where
         lut: Option<&LookUpTableImpl>,
         padding: usize,
     ) -> Result<usize, EngineError> {
-        if lut_skip_evaluation::TRACK_SKIPPING {
-            let start_skip = Instant::now();
-            let result = self.skip_choice(opening_idx_padded, bracket_type, lut, padding);
-            let skip_time = start_skip.elapsed().as_nanos() as u64;
-            lut_skip_evaluation::add_skip_time(skip_time);
-            return result;
-        } else {
-            self.skip_choice(opening_idx_padded, bracket_type, lut, padding)
-        }
+        // if lut_skip_evaluation::TRACK_SKIPPING {
+        //     let start_skip = Instant::now();
+        //     let result = self.skip_choice(opening_idx_padded, bracket_type, lut, padding);
+        //     let skip_time = start_skip.elapsed().as_nanos() as u64;
+        //     lut_skip_evaluation::add_skip_time(skip_time);
+        //     return result;
+        // } else {
+        //     self.skip_choice(opening_idx_padded, bracket_type, lut, padding)
+        // }
+
+        self.skip_choice(opening_idx_padded, bracket_type, lut, padding)
     }
 
     fn skip_choice(
