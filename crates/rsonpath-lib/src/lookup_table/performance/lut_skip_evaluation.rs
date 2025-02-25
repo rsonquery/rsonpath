@@ -21,12 +21,12 @@ use std::{
 use super::lut_skip_counter::COUNTER_FILE_PATH;
 use super::lut_test_data::{TEST_BESTBUY, TEST_GOOGLE, TEST_TWITTER};
 
-// ############
-// # Settings #
-// ############
+// ##########
+// # Config #
+// ##########
 pub const TRACK_SKIPPING_DURING_PERFORMANCE_TEST: bool = true;
-pub const MODE: SkipMode = SkipMode::OFF;
-pub const DISTANCE_CUT_OFF: usize = 1024;
+pub const MODE: SkipMode = SkipMode::COUNT;
+pub const DISTANCE_CUT_OFF: usize = 0;
 const REPETITIONS: u64 = 1;
 
 static SKIP_TIME_ATOMIC: AtomicU64 = AtomicU64::new(0);
@@ -38,12 +38,12 @@ pub enum SkipMode {
     OFF,   // Turned off, tracking nothing
 }
 
-const RESULT_CSV_PATH: &str = ".a_lut_tests/performance/skip_evaluation/total.csv";
+const RESULT_CSV_PATH: &str = ".a_lut_tests/performance/skip_evaluation/";
 
 pub fn skip_evaluation() {
-    // eval_test_data(TEST_BESTBUY);
     // eval_test_data(TEST_GOOGLE);
-    eval_test_data(TEST_TWITTER);
+    eval_test_data(TEST_BESTBUY);
+    // eval_test_data(TEST_TWITTER);
 }
 
 pub fn add_skip_time(added_time: u64) {
@@ -57,7 +57,8 @@ pub fn reset_skip_time() {
 fn eval_test_data(test_data: (&str, &[(&str, &str)])) {
     let (json_path, queries) = test_data;
 
-    let path = get_next_valid_name(RESULT_CSV_PATH);
+    let mut path = format!("{}{}.csv", RESULT_CSV_PATH, get_filename(json_path));
+    path = get_next_valid_name(&path);
     let csv_path = Path::new(&path);
     check_if_exists(json_path);
 

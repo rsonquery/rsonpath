@@ -26,8 +26,8 @@ pub const COUNTER_FILE_PATH: &str = ".a_lut_tests/performance/skip_tracker/COUNT
 
 pub fn track_skips() {
     // count_test_data(TEST_GOOGLE);
-    // count_test_data(TEST_BESTBUY);
-    count_test_data(TEST_TWITTER);
+    count_test_data(TEST_BESTBUY);
+    // count_test_data(TEST_TWITTER);
 }
 
 fn count_test_data(test_data: (&str, &[(&str, &str)])) {
