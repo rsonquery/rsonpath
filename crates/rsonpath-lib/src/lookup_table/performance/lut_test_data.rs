@@ -104,10 +104,40 @@ pub const TEST_BESTBUY: (&str, &[(&str, &str)]) = (
 );
 
 pub const TEST_TWITTER: (&str, &[(&str, &str)]) = (
-    TWITTER_MINI,
-    &[("0", "$.search_metadata.count"), ("1", "$.search_metadata.count")],
+    TWITTER,
+    &[
+        ("100", "$[*].geo"),
+        ("101", "$[*].id"),
+        ("102", "$[*].source"),
+        ("103", "$[*].timestamp_ms"),
+        ("104", "$[*].user.created_at"),
+        ("105", "$[*].user.followers_count"),
+        ("106", "$[*].user.lang"),
+        ("107", "$[*].user.listed_count"),
+        ("108", "$[*].user.profile_image_url_https"),
+        ("109", "$[*].user.profile_sidebar_border_color"),
+        ("110", "$[*].user.screen_name"),
+        ("111", "$[*].user.verified"),
+        ("112", "$[*].retweeted_status.id"),
+        ("113", "$[*].retweeted_status.filter_level"),
+        ("114", "$[*].retweeted_status.user.following"),
+        ("115", "$[*].retweeted_status.user.name"),
+        ("116", "$[*].retweeted_status[*]"),
+        ("117", "$[*].retweeted_status[*]..entities..url"),
+        ("118", "$[*].retweeted_status[*]..entities.symbols[*]"),
+        ("119", "$[*].retweeted_status[*]..entities.user_mentions[*]"),
+        ("120", "$[*].retweeted_status[*]..id"),
+        ("121", "$[*].retweeted_status[*]..in_reply_to_screen_name"),
+        ("122", "$[*].retweeted_status[*].user.lang"),
+        ("123", "$[*].entities.hashtags[*]"),
+        ("124", "$[*].entities.symbols[*]"),
+        ("125", "$[*].entities.symbols[1]"),
+        ("126", "$[*].entities.urls[*].display_url"),
+        ("127", "$[*].entities..symbols[*]"),
+        ("128", "$[*].entities..url"),
+        ("129", "$[*]..id"),
+    ],
 );
-
 // const TEST_DATA: &[(&str, &str, &str, &str)] = &[
 //     ("Twitter b0", TWITTER_JSON, "$.search_metadata.count"),
 

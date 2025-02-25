@@ -12,7 +12,7 @@ use crate::{
 
 use super::{
     lut_skip_evaluation::{self, get_filename, SkipMode},
-    lut_test_data::{TEST_BESTBUY, TEST_GOOGLE},
+    lut_test_data::{TEST_BESTBUY, TEST_GOOGLE, TEST_TWITTER},
 };
 
 use crate::{
@@ -25,8 +25,9 @@ use std::{error::Error, fs};
 pub const COUNTER_FILE_PATH: &str = ".a_lut_tests/performance/skip_tracker/COUNTER_";
 
 pub fn track_skips() {
-    count_test_data(TEST_BESTBUY);
     // count_test_data(TEST_GOOGLE);
+    // count_test_data(TEST_BESTBUY);
+    count_test_data(TEST_TWITTER);
 }
 
 fn count_test_data(test_data: (&str, &[(&str, &str)])) {
