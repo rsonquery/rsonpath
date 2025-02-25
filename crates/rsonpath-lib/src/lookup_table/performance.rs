@@ -4,6 +4,7 @@ use std::{fs, path::Path};
 pub mod lut_evaluation;
 pub mod lut_skip_counter;
 pub mod lut_skip_evaluation;
+pub mod lut_test_data;
 
 pub const EVAL_DIR: &str = "evaluation";
 

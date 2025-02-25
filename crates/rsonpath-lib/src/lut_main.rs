@@ -76,7 +76,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             lut_skip_evaluation::skip_evaluation();
         }
         Commands::SkipCount {} => {
-            lut_skip_counter::count_skips();
+            lut_skip_counter::track_skips();
         }
         Commands::Sichash { json_dir, out_dir } => {
             check_if_dir_exists(json_dir);

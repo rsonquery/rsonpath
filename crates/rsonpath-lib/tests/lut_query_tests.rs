@@ -1,7 +1,7 @@
 use log::debug;
 use rsonpath::{
     engine::{
-        skip_tracker::{self, save_track_results_to_csv, SkipMode},
+        skip_tracker::{self, save_track_to_csv, SkipMode},
         Compiler, Engine, RsonpathEngine,
     },
     input::OwnedBytes,

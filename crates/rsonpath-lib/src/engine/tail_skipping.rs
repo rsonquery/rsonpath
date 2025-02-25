@@ -10,10 +10,13 @@ use crate::{
     debug,
     engine::{
         error::EngineError,
-        skip_tracker::{self, increment_ite, increment_lut},
+        skip_tracker::{self, track_distance_ite, track_distance_lut},
     },
     input::InputBlockIterator,
-    lookup_table::{performance::lut_skip_evaluation, LookUpTable, LookUpTableImpl},
+    lookup_table::{
+        performance::lut_skip_evaluation::{self, SkipMode},
+        LookUpTable, LookUpTableImpl,
+    },
     FallibleIterator, MaskType, BLOCK_SIZE,
 };
 use std::{marker::PhantomData, time::Instant};
@@ -50,17 +53,15 @@ where
         lut: Option<&LookUpTableImpl>,
         padding: usize,
     ) -> Result<usize, EngineError> {
-        // if lut_skip_evaluation::TRACK_SKIPPING {
-        //     let start_skip = Instant::now();
-        //     let result = self.skip_choice(opening_idx_padded, bracket_type, lut, padding);
-        //     let skip_time = start_skip.elapsed().as_nanos() as u64;
-        //     lut_skip_evaluation::add_skip_time(skip_time);
-        //     return result;
-        // } else {
-        //     self.skip_choice(opening_idx_padded, bracket_type, lut, padding)
-        // }
-
-        self.skip_choice(opening_idx_padded, bracket_type, lut, padding)
+        if lut_skip_evaluation::TRACK_SKIPPING_DURING_PERFORMANCE_TEST {
+            let start_skip = Instant::now();
+            let result = self.skip_choice(opening_idx_padded, bracket_type, lut, padding);
+            let skip_time = start_skip.elapsed().as_nanos() as u64;
+            lut_skip_evaluation::add_skip_time(skip_time);
+            return result;
+        } else {
+            self.skip_choice(opening_idx_padded, bracket_type, lut, padding)
+        }
     }
 
     fn skip_choice(
@@ -106,11 +107,11 @@ where
                 opening_idx_padded, closing_idx_padded, opening_idx, closing_idx
             );
 
-            // if !skip_tracker::is_off() {
-            //     // Only for tracking jumps and not needed in normal runs
-            //     let distance = closing_idx - (opening_idx_padded - padding);
-            //     increment_lut(distance);
-            // }
+            if !(lut_skip_evaluation::MODE == SkipMode::OFF) {
+                // Only for tracking jumps and not needed in normal runs
+                let distance = closing_idx - (opening_idx_padded - padding);
+                track_distance_lut(distance);
+            }
 
             // 1. Tell the Structural Classifier (self.classifier) to jump
             self.classifier
@@ -130,11 +131,11 @@ where
                 opening_idx_padded, closing_idx_padded, opening_idx, closing_idx
             );
 
-            // if !skip_tracker::is_off() {
-            //     // Only for tracking jumps and not needed in normal runs
-            //     let distance = closing_idx - (opening_idx_padded - padding);
-            //     increment_ite(distance);
-            // }
+            if !(lut_skip_evaluation::MODE == SkipMode::OFF) {
+                // Only for tracking jumps and not needed in normal runs
+                let distance = closing_idx - (opening_idx_padded - padding);
+                track_distance_ite(distance);
+            }
 
             Ok(closing_idx_padded)
         }
