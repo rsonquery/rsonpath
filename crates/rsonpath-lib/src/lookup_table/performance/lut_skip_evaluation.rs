@@ -21,8 +21,11 @@ use std::{
 use super::lut_skip_counter::COUNTER_FILE_PATH;
 use super::lut_test_data::{TEST_BESTBUY, TEST_GOOGLE};
 
+// ############
+// # Settings #
+// ############
 pub const TRACK_SKIPPING_DURING_PERFORMANCE_TEST: bool = true;
-pub const MODE: SkipMode = SkipMode::OFF;
+pub const MODE: SkipMode = SkipMode::COUNT;
 pub const DISTANCE_CUT_OFF: usize = 1024;
 const REPETITIONS: u64 = 1;
 
@@ -38,8 +41,8 @@ pub enum SkipMode {
 const RESULT_CSV_PATH: &str = ".a_lut_tests/performance/skip_evaluation/total.csv";
 
 pub fn skip_evaluation() {
-    // eval_test_data(TEST_BESTBUY);
-    eval_test_data(TEST_GOOGLE);
+    eval_test_data(TEST_BESTBUY);
+    // eval_test_data(TEST_GOOGLE);
 }
 
 pub fn add_skip_time(added_time: u64) {
@@ -93,7 +96,7 @@ fn eval_test_data(test_data: (&str, &[(&str, &str)])) {
         writeln!(csv_file, "{}", data_line).expect("Failed to write data to CSV");
     }
 
-    plot_with_python(csv_path.to_str().unwrap());
+    plot_with_python(csv_path.to_str().unwrap(), get_filename(json_path));
 }
 
 fn evaluate(
@@ -167,10 +170,12 @@ fn evaluate(
     (result, lut)
 }
 
-fn plot_with_python(csv_path: &str) {
+fn plot_with_python(csv_path: &str, filename: &str) {
+    let counter_file_path = format!("{}{}.csv", COUNTER_FILE_PATH, filename);
+
     let output = Command::new("python")
         .arg("crates/rsonpath-lib/src/lookup_table/python_statistic/lut_skip_evaluation.py")
-        .args(&[csv_path, COUNTER_FILE_PATH])
+        .args(&[csv_path, &counter_file_path])
         .output();
 
     match output {

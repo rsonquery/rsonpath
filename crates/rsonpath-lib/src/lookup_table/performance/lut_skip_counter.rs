@@ -1,4 +1,5 @@
 use std::{
+    fmt::format,
     io::{self, BufReader, Read, Write},
     path::Path,
     process::Command,
@@ -21,11 +22,11 @@ use crate::{
 };
 use std::{error::Error, fs};
 
-pub const COUNTER_FILE_PATH: &str = ".a_lut_tests/performance/skip_tracker/COUNTER.csv";
+pub const COUNTER_FILE_PATH: &str = ".a_lut_tests/performance/skip_tracker/COUNTER_";
 
 pub fn track_skips() {
-    // count_test_data(TEST_BESTBUY);
-    count_test_data(TEST_GOOGLE);
+    count_test_data(TEST_BESTBUY);
+    // count_test_data(TEST_GOOGLE);
 }
 
 fn count_test_data(test_data: (&str, &[(&str, &str)])) {
@@ -69,7 +70,8 @@ fn track(lut: LookUpTableImpl, json_path: &str, query_name: &str, query_text: &s
 
     let filename = get_filename(json_path);
     if lut_skip_evaluation::MODE == SkipMode::COUNT {
-        let _ = skip_tracker::save_count_to_csv(json_path, &COUNTER_FILE_PATH, filename, query_name, query_text);
+        let csv_path = format!("{}{}.csv", COUNTER_FILE_PATH, filename);
+        let _ = skip_tracker::save_count_to_csv(json_path, &csv_path, filename, query_name, query_text);
     } else if lut_skip_evaluation::MODE == SkipMode::TRACK {
         // Save the tracked skips to a csv
         let file_path = format!(".a_lut_tests/performance/skip_tracker/{}_{}.csv", filename, query_name);
