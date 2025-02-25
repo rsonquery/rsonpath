@@ -10,7 +10,7 @@ def plot(skip_timing_csv: str, skip_count_csv: str):
     df_merged = pd.merge(df_times, df_count, on=["FILENAME", "QUERY_NAME"])
 
     # Sort by LUT_PERCENT_SKIP
-    df_sorted = df_merged.sort_values(by="LUT_PERCENT_SKIP")
+    df_sorted = df_merged.sort_values(by="TOTAL_PERCENT_SKIP")
 
     # Convert values for better readability
     build_time = df_sorted["T_LUT_BUILD"].iloc[0] / 1_000_000  # ns to ms

@@ -22,7 +22,8 @@ use super::lut_skip_counter::COUNTER_FILE_PATH;
 use super::lut_test_data::{TEST_BESTBUY, TEST_GOOGLE};
 
 pub const TRACK_SKIPPING_DURING_PERFORMANCE_TEST: bool = true;
-pub const MODE: SkipMode = SkipMode::COUNT;
+pub const MODE: SkipMode = SkipMode::OFF;
+pub const DISTANCE_CUT_OFF: usize = 1024;
 const REPETITIONS: u64 = 1;
 
 static SKIP_TIME_ATOMIC: AtomicU64 = AtomicU64::new(0);
@@ -69,8 +70,15 @@ fn eval_test_data(test_data: (&str, &[(&str, &str)])) {
         "LUT_CAPACITY"
     );
 
+    // Build LUT once
+    let start_build_time = Instant::now();
+    let mut lut = LookUpTableImpl::build(json_path, DISTANCE_CUT_OFF).expect("Failed to build LUT");
+    let t_lut_build = start_build_time.elapsed().as_nanos() as u64;
+    let capacity = lut.allocated_bytes();
+
     for &(query_name, query_text) in queries {
-        let data_line = evaluate(json_path, query_name, query_text);
+        let (data_line, new_lut) = evaluate(lut, json_path, query_name, query_text, t_lut_build, capacity);
+        lut = new_lut;
 
         // Write CSV header and data
         let mut csv_file = fs::OpenOptions::new()
@@ -88,7 +96,14 @@ fn eval_test_data(test_data: (&str, &[(&str, &str)])) {
     plot_with_python(csv_path.to_str().unwrap());
 }
 
-fn evaluate(json_path: &str, query_name: &str, query_text: &str) -> String {
+fn evaluate(
+    mut lut: LookUpTableImpl,
+    json_path: &str,
+    query_name: &str,
+    query_text: &str,
+    t_lut_build: u64,
+    capacity: usize,
+) -> (String, LookUpTableImpl) {
     // Build query
     let query = rsonpath_syntax::parse(query_text).expect("Failed to parse query");
     let mut engine = RsonpathEngine::compile_query(&query).expect("Failed to build engine");
@@ -105,28 +120,20 @@ fn evaluate(json_path: &str, query_name: &str, query_text: &str) -> String {
     let mut t_original_skip: u64 = 0;
     let mut t_lut: u64 = 0;
     let mut t_lut_skip: u64 = 0;
-    let mut t_lut_build: u64 = 0;
-    let mut lut_capacity: usize = 0;
 
     println!("Time: {}, {}", get_filename(json_path), query_name);
-    for i in 0..REPETITIONS {
-        println!("\t{i}");
-        // Time normal query, track total time
+    for _ in 0..REPETITIONS {
         reset_skip_time();
         let start_query_time = Instant::now();
         engine.count(&input).expect("Failed to run query normally");
         t_original += start_query_time.elapsed().as_nanos() as u64;
         t_original_skip += SKIP_TIME_ATOMIC.load(std::sync::atomic::Ordering::Relaxed);
+    }
 
-        // Build and add LUT
-        let distance_cutoff = 0;
-        let start_build = Instant::now();
-        let lut = LookUpTableImpl::build(json_path, distance_cutoff).expect("Failed to build LUT");
-        t_lut_build += start_build.elapsed().as_nanos() as u64;
-        lut_capacity = lut.allocated_bytes();
-        engine.add_lut(lut);
+    // Add LUT
+    engine.add_lut(lut);
 
-        // Time LUT query, track total time
+    for _ in 0..REPETITIONS {
         reset_skip_time();
         let start_query_time = Instant::now();
         engine.count(&input).expect("Failed to run query normally");
@@ -134,16 +141,18 @@ fn evaluate(json_path: &str, query_name: &str, query_text: &str) -> String {
         t_lut_skip += SKIP_TIME_ATOMIC.load(std::sync::atomic::Ordering::Relaxed);
     }
 
-    t_original = t_original / REPETITIONS;
-    t_original_skip = t_original_skip / REPETITIONS;
-    let t_optimum = t_original - t_original_skip;
-    t_lut = t_lut / REPETITIONS;
-    t_lut_skip = t_lut_skip / REPETITIONS;
-    t_lut_build = t_lut_build / REPETITIONS;
+    // Take LUT back
+    lut = engine.take_lut().expect("Failed to retrieve LUT from engine");
 
-    // Collect all data
-    format!(
-        "{},{},{:.6},{:.6},{:.6},{:.6},{:.6},{:.6},{:.6}",
+    t_original /= REPETITIONS;
+    t_original_skip /= REPETITIONS;
+    let t_optimum = t_original - t_original_skip;
+    t_lut /= REPETITIONS;
+    t_lut_skip /= REPETITIONS;
+
+    // Format result string
+    let result = format!(
+        "{},{},{:.6},{:.6},{:.6},{:.6},{:.6},{:.6},{}",
         get_filename(json_path),
         query_name,
         t_original,
@@ -152,8 +161,10 @@ fn evaluate(json_path: &str, query_name: &str, query_text: &str) -> String {
         t_lut,
         t_lut_skip,
         t_lut_build,
-        lut_capacity
-    )
+        capacity,
+    );
+
+    (result, lut)
 }
 
 fn plot_with_python(csv_path: &str) {

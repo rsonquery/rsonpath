@@ -6,7 +6,7 @@ use std::{
 
 use crate::{
     engine::{skip_tracker, Engine},
-    lookup_table::LookUpTableImpl,
+    lookup_table::{LookUpTableImpl, LookUpTableLambda},
 };
 
 use super::{
@@ -30,12 +30,16 @@ pub fn track_skips() {
 
 fn count_test_data(test_data: (&str, &[(&str, &str)])) {
     let (json_path, queries) = test_data;
+
+    let mut lut = LookUpTableImpl::build(json_path, 0).expect("Fail @ building LUT");
+
     for &(query_name, query_text) in queries {
-        track(json_path, query_name, query_text);
+        let new_lut = track(lut, json_path, query_name, query_text);
+        lut = new_lut;
     }
 }
 
-fn track(json_path: &str, query_name: &str, query_text: &str) {
+fn track(lut: LookUpTableImpl, json_path: &str, query_name: &str, query_text: &str) -> LookUpTableImpl {
     if !(lut_skip_evaluation::MODE == SkipMode::OFF) {
         println!(
             "Mode={:?}: Process query: {} = {}",
@@ -45,13 +49,10 @@ fn track(json_path: &str, query_name: &str, query_text: &str) {
         );
     } else {
         println!("No tracking set. Abort.");
-        return;
+        return lut;
     }
 
-    // Build lut
-    let lut = LookUpTableImpl::build(json_path, 0).expect("Fail @ building LUT");
-
-    // Build query
+    // Build query and LUT
     let query = rsonpath_syntax::parse(query_text).expect("Fail @ parse query");
     let mut engine = RsonpathEngine::compile_query(&query).expect("Fail @ compile query");
     engine.add_lut(lut);
@@ -61,11 +62,10 @@ fn track(json_path: &str, query_name: &str, query_text: &str) {
         let mut file = BufReader::new(fs::File::open(json_path).expect("Fail @ open File"));
         let mut buf = vec![];
         file.read_to_end(&mut buf).expect("Fail @ file read");
-        // Here you can define whether to use OwnedBytes (padding), Mmap (padding = 0)  or Borrowed (padding)
         OwnedBytes::new(buf)
     };
     let result = engine.count(&input).expect("Failed to run query normally");
-    println!("Result COUNT = {}", result);
+    print!("  COUNT = {} ", result);
 
     let filename = get_filename(json_path);
     if lut_skip_evaluation::MODE == SkipMode::COUNT {
@@ -79,6 +79,8 @@ fn track(json_path: &str, query_name: &str, query_text: &str) {
         }
         plot_tracked_skips(&file_path);
     }
+
+    engine.take_lut().expect("Failed to retrieve LUT from engine")
 }
 
 fn plot_tracked_skips(csv_path: &str) {

@@ -141,6 +141,8 @@ pub fn save_count_to_csv(json_path: &str, csv_path: &str, filename: &str, query_
     )
     .expect("Fail @ writing line");
 
+    println!("TOTAL_SKIP_PERCENT = {}", percentage_total_skip);
+
     writer.flush().expect("Fail @ writing csv");
     reset();
 }

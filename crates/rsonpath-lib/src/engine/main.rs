@@ -82,6 +82,11 @@ impl MainEngine {
         self.lut = Some(lut)
     }
 
+    #[inline(always)]
+    pub fn take_lut(&mut self) -> Option<LookUpTableImpl> {
+        self.lut.take()
+    }
+
     #[must_use = "if you are asking for the bytes then should also use them"]
     #[inline(always)]
     pub fn allocated_bytes_by_lut(&self) -> usize {
