@@ -14,7 +14,7 @@ use crate::{
     },
     input::InputBlockIterator,
     lookup_table::{
-        performance::lut_skip_evaluation::{self, SkipMode},
+        performance::lut_skip_evaluation::{self, SkipMode, DISTANCE_CUT_OFF, USE_SKIP_ABORT_STRATEGY},
         LookUpTable, LookUpTableImpl,
     },
     FallibleIterator, MaskType, BLOCK_SIZE,
@@ -72,13 +72,16 @@ where
         padding: usize,
     ) -> Result<usize, EngineError> {
         if let Some(lut) = lut {
-            self.skip_with_lut(opening_idx_padded, bracket_type, lut, padding)
+            if USE_SKIP_ABORT_STRATEGY {
+                self.skip_without_lut_abort(opening_idx_padded, bracket_type, lut, padding)
+            } else {
+                self.skip_with_lut(opening_idx_padded, bracket_type, lut, padding)
+            }
         } else {
             self.skip_without_lut(bracket_type)
         }
     }
 
-    // TODO Ricardo
     // 0. Use LUT to get opening -> closing index
     // 1. Tell the Structural Classifier (self.classifier) to jump
     // 2. S tells its quote classifier to jump
@@ -139,6 +142,98 @@ where
 
             Ok(closing_idx_padded)
         }
+    }
+
+    // Idea: skip the first 1000 or so bytes normally and only if the jump is big use the LUT access
+    fn skip_without_lut_abort(
+        &mut self,
+        opening_idx_padded: usize,
+        bracket_type: BracketType,
+        lut: &LookUpTableImpl,
+        padding: usize,
+    ) -> Result<usize, EngineError> {
+        dispatch_simd!(self.simd; self, bracket_type =>
+        fn <'i, I, V>(
+            tail_skip: &mut TailSkip<'i, I, V::QuotesClassifier<'i, I>, V::StructuralClassifier<'i, I>, V, BLOCK_SIZE>,
+            opening: BracketType) -> Result<usize, EngineError>
+        where
+            I: InputBlockIterator<'i, BLOCK_SIZE>,
+            V: Simd
+        {
+            let mut idx = 0;
+            let mut err = None;
+
+            let classifier = tail_skip.classifier.take().expect("tail skip must always hold a classifier");
+
+            tail_skip.classifier = Some('a: {
+                let resume_state = classifier.stop();
+                let DepthIteratorResumeOutcome(first_vector, mut depth_classifier) =
+                    tail_skip.simd.resume_depth_classification(resume_state, opening);
+
+                let mut current_vector = match first_vector {
+                    Some(v) => Some(v),
+                    None => match depth_classifier.next() {
+                        Ok(v) => v,
+                        Err(e) => {
+                            err = Some(e);
+                            let resume_state = depth_classifier.stop(None);
+                            break 'a tail_skip.simd.resume_structural_classification(resume_state);
+                        }
+                    },
+                };
+                let mut current_depth = 1;
+
+                'outer: while let Some(ref mut vector) = current_vector {
+                    vector.add_depth(current_depth);
+                    if vector.estimate_lowest_possible_depth() <= 0 {
+                        while vector.advance_to_next_depth_decrease() {
+                            if vector.get_depth() == 0 {
+                                // debug!("Encountered depth 0, breaking.");
+                                break 'outer;
+                            }
+                        }
+                    }
+                    current_depth = vector.depth_at_end();
+                    current_vector = match depth_classifier.next() {
+                        Ok(v) => v,
+                        Err(e) => {
+                            err = Some(e);
+                            let resume_state = depth_classifier.stop(None);
+                            break 'a tail_skip.simd.resume_structural_classification(resume_state);
+                        }
+                    };
+
+                    // let resume_state = depth_classifier.stop(current_vector);
+                    // let current_idx = resume_state.get_idx();
+                    // if(current_idx - opening_idx_padded) > DISTANCE_CUT_OFF {
+                    //     debug!("Reached threshhold of {}", DISTANCE_CUT_OFF);
+
+                    //     let Some(idx_close) = lut.get(&(opening_idx_padded - padding));
+                    //     let closing_idx = idx_close + 1;
+                    //     let closing_idx_padded = padding + closing_idx;
+                    //     self.classifier
+                    //         .as_mut()
+                    //         .expect("tail skip must always hold a classifier")
+                    //         .jump_to_idx(closing_idx_padded, false)?;
+
+                    // } else {
+                        // let DepthIteratorResumeOutcome(first_vector, mut depth_classifier) =
+                        //     tail_skip.simd.resume_depth_classification(resume_state, opening);
+                    // }
+                }
+
+                let resume_state = depth_classifier.stop(current_vector);
+                idx = resume_state.get_idx();
+                tail_skip.simd.resume_structural_classification(resume_state)
+            });
+
+
+            if let Some(err) = err {
+                Err(err.into())
+            } else {
+                Ok(idx)
+            }
+        })
     }
 
     // TODO Ricardo uncomment every debug that was commented out here
@@ -206,6 +301,7 @@ where
                 idx = resume_state.get_idx();
                 tail_skip.simd.resume_structural_classification(resume_state)
             });
+
 
             if let Some(err) = err {
                 Err(err.into())

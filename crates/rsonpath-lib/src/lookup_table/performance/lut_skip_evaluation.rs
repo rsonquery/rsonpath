@@ -24,6 +24,7 @@ use super::lut_test_data::{TEST_BESTBUY, TEST_GOOGLE, TEST_TWITTER};
 // ##########
 // # Config #
 // ##########
+pub const USE_SKIP_ABORT_STRATEGY: bool = false;
 pub const TRACK_SKIPPING_DURING_PERFORMANCE_TEST: bool = true;
 pub const MODE: SkipMode = SkipMode::COUNT;
 pub const DISTANCE_CUT_OFF: usize = 0;
