@@ -19,7 +19,7 @@ use thiserror::Error;
 
 static LUT_CUTOFFS: Lazy<Vec<usize>> =
     // Lazy::new(|| vec![0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]);
-    Lazy::new(|| vec![0, 64, 2048, 4096, 8192, 16384, 32768]);
+    Lazy::new(|| vec![0, 1000]);
 static LUT_LABELS: Lazy<Vec<String>> = Lazy::new(|| LUT_CUTOFFS.iter().map(|&c| format!("rq-lut: {}", c)).collect());
 
 pub mod benchmark_options;
@@ -77,18 +77,20 @@ impl Benchset {
     pub fn new<S: Into<String>>(id: S, dataset: dataset::Dataset) -> Result<Self, BenchmarkError> {
         let json_file = dataset.file_path().map_err(BenchmarkError::DatasetError)?;
 
-        let warm_up_time = if json_file.size_in_bytes < 10_000_000 {
-            None
-        } else if json_file.size_in_bytes < 100_000_000 {
-            Some(Duration::from_secs(5))
-        } else {
-            Some(Duration::from_secs(10))
-        };
+        // TODO revert this
+        let warm_up_time = Some(Duration::from_secs(5));
+        // let warm_up_time = if json_file.size_in_bytes < 10_000_000 {
+        //     None
+        // } else if json_file.size_in_bytes < 100_000_000 {
+        //     Some(Duration::from_secs(5))
+        // } else {
+        //     Some(Duration::from_secs(10))
+        // };
 
         // We're aiming for over 1GB/s, but some queries run at 100MB/s.
         // Let's say we want to run the query at least 10 times to get significant results.
         const TARGET_NUMBER_OF_QUERIES: f64 = 10.0;
-        const TARGET_SPEED_IN_BYTES_PER_SEC: f64 = 100_000_000.0;
+        const TARGET_SPEED_IN_BYTES_PER_SEC: f64 = 300_000_000.0; // TODO: Revert back from 200_000_000.0 to 100_000_000.0
 
         let measurement_secs =
             (json_file.size_in_bytes as f64) * TARGET_NUMBER_OF_QUERIES / TARGET_SPEED_IN_BYTES_PER_SEC;

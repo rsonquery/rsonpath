@@ -510,6 +510,15 @@ pub const fn az_tenants() -> Dataset {
     }
 }
 
+pub const fn pokemon_short() -> Dataset {
+    Dataset {
+        name: "pokemon_short",
+        path: dataset_path!("ricardo/pokemon_(173MB).json"),
+        source: DatasetSource::LocalJson,
+        checksum: hex!("320f399bb040bb79087c348ca5002485ba0fc00a84652a805b7a5d855435285d"),
+    }
+}
+
 #[derive(Error, Debug)]
 pub enum DatasetError {
     #[error("Filesystem error: {0}")]
