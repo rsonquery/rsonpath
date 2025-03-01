@@ -19,13 +19,13 @@ use std::{
 };
 
 use super::lut_skip_counter::COUNTER_FILE_PATH;
-use super::lut_test_data::{TEST_BESTBUY, TEST_GOOGLE, TEST_TWITTER};
+use super::lut_test_data::{TEST_BESTBUY, TEST_GOOGLE, TEST_POKEMON_SHORT, TEST_TWITTER};
 
 // ##########
 // # Config #
 // ##########
 pub const TRACK_SKIPPING_DURING_PERFORMANCE_TEST: bool = true;
-pub const MODE: SkipMode = SkipMode::TRACK;
+pub const MODE: SkipMode = SkipMode::COUNT;
 pub const DISTANCE_CUT_OFF: usize = 0;
 pub const USE_SKIP_ABORT_STRATEGY: bool = false;
 const REPETITIONS: u64 = 1;
@@ -44,7 +44,8 @@ const RESULT_CSV_PATH: &str = ".a_lut_tests/performance/skip_evaluation/";
 pub fn skip_evaluation() {
     // eval_test_data(TEST_GOOGLE);
     // eval_test_data(TEST_BESTBUY);
-    eval_test_data(TEST_TWITTER);
+    // eval_test_data(TEST_TWITTER);
+    eval_test_data(TEST_POKEMON_SHORT);
 }
 
 pub fn add_skip_time(added_time: u64) {

@@ -22,10 +22,10 @@ pub fn generate_bigger_version(json_path: &str) {
 
     // Retain tail-data fields
     if let Some(tail_data) = data.get("tail-data") {
-        new_data.insert("tail-data".to_string(), tail_data.clone());
+        new_data.insert("taildata".to_string(), tail_data.clone());
     }
     if let Some(tail_data_2) = data.get("tail-data-2") {
-        new_data.insert("tail-data-2".to_string(), tail_data_2.clone());
+        new_data.insert("taildata2".to_string(), tail_data_2.clone());
     }
 
     // Convert to JSON

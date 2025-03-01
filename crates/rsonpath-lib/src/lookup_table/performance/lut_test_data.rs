@@ -4,6 +4,7 @@ pub const TWITTER_SHORT: &str = ".a_lut_tests/test_data/MB_100/twitter_short_(80
 pub const BESTBUY_SHORT: &str = ".a_lut_tests/test_data/MB_100/bestbuy_short_(103MB).json";
 pub const GOOGLE_SHORT: &str = ".a_lut_tests/test_data/MB_100/google_map_short_(107MB).json";
 pub const WALMART_SHORT: &str = ".a_lut_tests/test_data/MB_100/walmart_short_(95MB).json";
+pub const POKEMON_SHORT: &str = ".a_lut_tests/test_data/MB_100/pokemon_(173MB).json";
 
 pub const BESTBUY: &str = ".a_lut_tests/test_data/GB_1/bestbuy_large_record_(1GB).json";
 pub const WALMART: &str = ".a_lut_tests/test_data/GB_1/walmart_large_record_(995MB).json";
@@ -148,8 +149,46 @@ pub const TEST_TWITTER: (&str, &[(&str, &str)]) = (
         ("205", "$[*].timestamp_ms"),
     ],
 );
-// const TEST_DATA: &[(&str, &str, &str, &str)] = &[
-//     ("Twitter b0", TWITTER_JSON, "$.search_metadata.count"),
 
-//     ("Twitter y0", TWITTER_JSON, "$.search_metadata.count"),
-// ];
+pub const TEST_POKEMON_SHORT: (&str, &[(&str, &str)]) = (
+    POKEMON_SHORT,
+    &[
+        // Group 1: Tail data
+        ("200", "$.taildata"),
+        ("201", "$.taildata2"),
+        // Group 2: cfg1 fields
+        ("202", "$.cfg1[*].ID"),
+        ("203", "$.cfg1[*].Name"),
+        ("204", "$.cfg1[*].Height"),
+        ("205", "$.cfg1[*].Weight"),
+        ("206", "$.cfg1[*].Abilities[*]"),
+        ("207", "$.cfg1[*].Moves[*].moveName"),
+        ("208", "$.cfg1[*].Moves[*].levelLearnedAt"),
+        ("209", "$.cfg1[*].Moves[*].moveLearnCondition"),
+        // Group 3: Recursive search
+        ("210", "$..ID"),
+        ("211", "$..Name"),
+        ("212", "$..Height"),
+        ("213", "$..Weight"),
+        ("214", "$..Abilities[*]"),
+        ("215", "$..Moves[*].moveName"),
+        ("216", "$..Moves[*].levelLearnedAt"),
+        ("217", "$..Moves[*].moveLearnCondition"),
+        // Group 4: cfg10 fields
+        ("218", "$.cfg10[*].ID"),
+        ("219", "$.cfg10[*].Abilities[*]"),
+        ("220", "$.cfg10[*].Moves[*].levelLearnedAt"),
+        // Group 5: cfg25 fields
+        ("221", "$.cfg25[*].ID"),
+        ("222", "$.cfg25[*].Abilities[*]"),
+        ("223", "$.cfg25[*].Moves[*].levelLearnedAt"),
+        // Group 6: cfg40 fields
+        ("224", "$.cfg40[*].ID"),
+        ("225", "$.cfg40[*].Abilities[*]"),
+        ("226", "$.cfg40[*].Moves[*].levelLearnedAt"),
+        // Group 7: cfg50 fields
+        ("227", "$.cfg50[*].ID"),
+        ("228", "$.cfg50[*].Abilities[*]"),
+        ("229", "$.cfg50[*].Moves[*].levelLearnedAt"),
+    ],
+);

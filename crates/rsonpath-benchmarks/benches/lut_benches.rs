@@ -14,11 +14,6 @@ pub fn bestbuy_q0(c: &mut Criterion) -> Result<(), BenchmarkError> {
     Ok(())
 }
 
-// TODO Ricardo add:
-// Queries that skip nothing
-// Queries that skip everything
-// Queries that skip 10% to 90% in 10% steps
-
 pub fn bestbuy_short_q0(c: &mut Criterion) -> Result<(), BenchmarkError> {
     let id = "bestbuy_short::q0";
     let dataset = dataset::pison_bestbuy_short();
