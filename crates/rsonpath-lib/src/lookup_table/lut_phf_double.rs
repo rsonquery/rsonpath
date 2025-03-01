@@ -1,7 +1,6 @@
 use std::{collections::VecDeque, fs};
 
 use super::{
-    distance_counter,
     lut_phf::{
         phf_generator_double_hash::{self, HashState},
         DEFAULT_LAMBDA, DEFAULT_THREADED,
@@ -187,7 +186,7 @@ impl LutPHFDouble {
 
                     // Check if distance can be represented with 16 or less bits
                     let distance = idx_close - idx_open;
-                    if (distance >= distance_cutoff) {
+                    if distance >= distance_cutoff {
                         if distance < THRESHOLD_16_BITS {
                             // Can fit into 16 bit
                             pairs.keys.push(idx_open);

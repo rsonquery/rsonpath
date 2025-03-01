@@ -11,10 +11,10 @@ pub const WALMART: &str = ".a_lut_tests/test_data/GB_1/walmart_large_record_(995
 pub const TWITTER: &str = ".a_lut_tests/test_data/GB_1/twitter_large_record_(843MB).json";
 pub const GOOGLE: &str = ".a_lut_tests/test_data/GB_1/google_map_large_record_(1.1GB).json";
 
-// google_map_large
-pub const TEST_GOOGLE: (&str, &[(&str, &str)]) = (
+pub const QUERY_GOOGLE: (&str, &[(&str, &str)]) = (
     GOOGLE,
     &[
+        // Random queries
         // ("0", "$[*]..bounds"),
         // ("1", "$[*]..bounds.northeast"),
         // ("2", "$[*]..bounds.northeast.lat"),
@@ -73,7 +73,7 @@ pub const TEST_GOOGLE: (&str, &[(&str, &str)]) = (
     ],
 );
 
-pub const TEST_BESTBUY: (&str, &[(&str, &str)]) = (
+pub const QUERY_BESTBUY: (&str, &[(&str, &str)]) = (
     BESTBUY,
     &[
         ("100", "$.products[5].videoChapters"),
@@ -108,9 +108,10 @@ pub const TEST_BESTBUY: (&str, &[(&str, &str)]) = (
     ],
 );
 
-pub const TEST_TWITTER: (&str, &[(&str, &str)]) = (
+pub const QUERY_TWITTER: (&str, &[(&str, &str)]) = (
     TWITTER,
     &[
+        // Random Queries
         // ("100", "$[*].geo"),
         // ("101", "$[*].id"),
         // ("102", "$[*].source"),
@@ -141,6 +142,7 @@ pub const TEST_TWITTER: (&str, &[(&str, &str)]) = (
         // ("127", "$[*].entities..symbols[*]"),
         // ("128", "$[*].entities..url"),
         // ("129", "$[*]..id"),
+        // Queries where LUT is faster than ITE
         ("200", "$[*].entities..symbols[*]"),
         ("201", "$[*].entities..url"),
         ("202", "$[*].entities.symbols[*]"),
@@ -150,7 +152,7 @@ pub const TEST_TWITTER: (&str, &[(&str, &str)]) = (
     ],
 );
 
-pub const TEST_POKEMON_SHORT: (&str, &[(&str, &str)]) = (
+pub const QUERY_POKEMON_SHORT: (&str, &[(&str, &str)]) = (
     POKEMON_SHORT,
     &[
         // Group 1: Tail data

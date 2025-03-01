@@ -2,7 +2,7 @@ use lazy_static::lazy_static;
 use log::debug;
 use std::collections::HashMap;
 use std::fs::{metadata, File, OpenOptions};
-use std::io::{BufWriter, Result, Write};
+use std::io::{BufWriter, Write};
 use std::path::Path;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Mutex;

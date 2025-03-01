@@ -1,5 +1,4 @@
 use super::LookUpTable;
-use crate::debug;
 use crate::{
     classification::{
         self,

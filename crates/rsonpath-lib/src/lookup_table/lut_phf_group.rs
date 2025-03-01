@@ -153,7 +153,7 @@ impl LutPHFGroup {
                     let lut_double = &mut lut_doubles_pair_data[idx_open & bit_mask];
 
                     let distance = idx_close - idx_open;
-                    if (distance >= distance_cutoff) {
+                    if distance >= distance_cutoff {
                         if distance < THRESHOLD_16_BITS {
                             // Can fit into 16 bits
                             lut_double.keys.push(idx_open);

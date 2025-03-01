@@ -11,8 +11,8 @@ use crate::{
 };
 
 use super::{
+    lut_query_data::{POKEMON_SHORT, QUERY_BESTBUY, QUERY_GOOGLE, QUERY_POKEMON_SHORT, QUERY_TWITTER},
     lut_skip_evaluation::{self, get_filename, SkipMode},
-    lut_test_data::{POKEMON_SHORT, TEST_BESTBUY, TEST_GOOGLE, TEST_POKEMON_SHORT, TEST_TWITTER},
 };
 
 use crate::{
@@ -28,7 +28,7 @@ pub fn track_skips() {
     // count_test_data(TEST_GOOGLE);
     // count_test_data(TEST_BESTBUY);
     // count_test_data(TEST_TWITTER);
-    count_test_data(TEST_POKEMON_SHORT);
+    count_test_data(QUERY_POKEMON_SHORT);
 }
 
 fn count_test_data(test_data: (&str, &[(&str, &str)])) {

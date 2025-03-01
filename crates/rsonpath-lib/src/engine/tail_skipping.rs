@@ -10,11 +10,11 @@ use crate::{
     debug,
     engine::{
         error::EngineError,
-        skip_tracker::{self, track_distance_ite, track_distance_lut},
+        skip_tracker::{track_distance_ite, track_distance_lut},
     },
     input::InputBlockIterator,
     lookup_table::{
-        performance::lut_skip_evaluation::{self, SkipMode, DISTANCE_CUT_OFF, USE_SKIP_ABORT_STRATEGY},
+        performance::lut_skip_evaluation::{self, SkipMode, USE_SKIP_ABORT_STRATEGY},
         LookUpTable, LookUpTableImpl,
     },
     FallibleIterator, MaskType, BLOCK_SIZE,

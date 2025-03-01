@@ -18,8 +18,8 @@ use std::{
     time::Instant,
 };
 
+use super::lut_query_data::{QUERY_BESTBUY, QUERY_GOOGLE, QUERY_POKEMON_SHORT, QUERY_TWITTER};
 use super::lut_skip_counter::COUNTER_FILE_PATH;
-use super::lut_test_data::{TEST_BESTBUY, TEST_GOOGLE, TEST_POKEMON_SHORT, TEST_TWITTER};
 
 // ##########
 // # Config #
@@ -45,7 +45,7 @@ pub fn skip_evaluation() {
     // eval_test_data(TEST_GOOGLE);
     // eval_test_data(TEST_BESTBUY);
     // eval_test_data(TEST_TWITTER);
-    eval_test_data(TEST_POKEMON_SHORT);
+    eval_test_data(QUERY_POKEMON_SHORT);
 }
 
 pub fn add_skip_time(added_time: u64) {
