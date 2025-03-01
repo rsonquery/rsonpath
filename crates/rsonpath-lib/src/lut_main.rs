@@ -2,6 +2,7 @@ use clap::{Parser, Subcommand};
 use rsonpath::lookup_table::{
     distance_counter::{self, DISTANCE_EVAL_DIR},
     performance::{self, lut_skip_counter, lut_skip_evaluation, EVAL_DIR},
+    pokemon_test_data_generator,
     query_with_lut::query_with_lut,
     sichash_test_data_generator::{self, SICHASH_DATA_DIR},
 };
@@ -49,6 +50,9 @@ enum Commands {
         /// Path to the output directory where the results are saved
         out_dir: String,
     },
+    Pokemon {
+        json_path: String,
+    },
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -84,6 +88,9 @@ fn main() -> Result<(), Box<dyn Error>> {
             let csv_dir = format!("{}/{}", out_dir, "performance");
 
             sichash_test_data_generator::generate_test_data_for_sichash(json_dir, &csv_dir);
+        }
+        Commands::Pokemon { json_path } => {
+            pokemon_test_data_generator::generate_bigger_version(json_path);
         }
     }
 

@@ -217,8 +217,8 @@ where
                     //         .jump_to_idx(closing_idx_padded, false)?;
 
                     // } else {
-                        // let DepthIteratorResumeOutcome(first_vector, mut depth_classifier) =
-                        //     tail_skip.simd.resume_depth_classification(resume_state, opening);
+                    //     let DepthIteratorResumeOutcome(first_vector, mut depth_classifier) =
+                    //         tail_skip.simd.resume_depth_classification(resume_state, opening);
                     // }
                 }
 
