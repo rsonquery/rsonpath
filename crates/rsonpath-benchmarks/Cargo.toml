@@ -54,9 +54,8 @@ memchr = "2.7.4"
 
 [features]
 default = ["simd"]
-# default = ["simd", "empty-list-opt"]
 simd = ["rsonpath-lib/simd"]
-empty-list-opt = []
+empty-list-opt = ["rsonpath-lib/empty-list-opt"]
 
 [build-dependencies]
 eyre = "0.6.12"
