@@ -523,6 +523,20 @@ where
             debug!("Falling back to {fallback}");
 
             if self.automaton.is_rejecting(fallback) {
+                if cfg! {feature = "empty-list-opt"} {
+                    // Ask the input if the next character is a closing bracket and if so do not skip
+                    let res = self.input.seek_non_whitespace_forward(idx + 1).e()?;
+                    if let Some((position, character)) = res {
+                        if character == b'}' || character == b']' {
+                            self.recorder.record_value_terminator(position, self.depth)?;
+                            classifier.next()?;
+                            return Ok(());
+                        }
+                    } else {
+                        return Err(EngineError::MissingClosingCharacter());
+                    }
+                }
+
                 // Tail skipping. Skip the entire subtree. The skipping consumes the closing character.
                 // We still need to notify the recorder - in case the value being skipped was actually accepted.
                 let closing_idx = classifier.skip(idx, bracket_type, self.lut, self.input.leading_padding_len())?;

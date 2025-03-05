@@ -68,6 +68,7 @@ test-case = { workspace = true }
 default = ["simd"]
 arbitrary = ["dep:arbitrary"]
 simd = []
+empty-list-opt = []
 
 [[example]]
 name = "approx_spans_usage"
