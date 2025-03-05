@@ -24,7 +24,7 @@ path = "./src/main.rs"
 name = "rq"
 
 [dependencies]
-clap = { version = "4.5.27", features = ["derive", "wrap_help"] }
+clap = { version = "4.5.31", features = ["derive", "wrap_help"] }
 color-eyre = { version = "0.6.3", default-features = false }
 eyre = "0.6.12"
 log = { workspace = true }
@@ -33,13 +33,13 @@ rsonpath-syntax = { workspace = true, features = ["color"] }
 simple_logger = "5.0.0"
 
 [build-dependencies]
-rustflags = { version = "0.1.6" }
+rustflags = { version = "0.1.7" }
 vergen = { version = "9.0.4", features = ["cargo", "rustc"] }
 vergen-git2 = "1.0.5"
 vergen-gitcl = "1.0.5"
 
 [dev-dependencies]
-trycmd = "0.15.8"
+trycmd = "0.15.9"
 
 [features]
 default = ["simd"]
