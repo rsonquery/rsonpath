@@ -63,7 +63,7 @@ struct SuperstateTransitionTable {
  *   2. Each superstate containing
  *      a) a checkpoint and;
  *      b) some states on the path from the initial state to that checkpoint,
- *         is equivalent to a superstate without the b) states.
+ *      is equivalent to a superstate without the b) states.
  *
  * This allows on-the-fly minimization with the `normalize` function, vastly reducing
  * the number of superstates to consider.

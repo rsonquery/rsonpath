@@ -110,6 +110,7 @@ pub trait Compiler {
     /// # Errors
     /// An appropriate [`CompilerError`] is returned if the compiler
     /// cannot handle the query.
+    #[must_use = "compiling the query only creates an engine instance that should be used"]
     fn compile_query(query: &JsonPathQuery) -> Result<Self::E, CompilerError>;
 
     /// Turn a compiled [`Automaton`] into an [`Engine`].
