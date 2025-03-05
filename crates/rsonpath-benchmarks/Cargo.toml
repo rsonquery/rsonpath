@@ -52,6 +52,7 @@ memchr = "2.7.4"
 [features]
 default = ["simd"]
 simd = ["rsonpath-lib/simd"]
+jsurfer = []
 
 [build-dependencies]
 eyre = "0.6.12"

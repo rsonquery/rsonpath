@@ -3,7 +3,9 @@ use std::error::Error;
 use std::process::Command;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    setup_jsurfer()?;
+    if cfg!(feature = "jsurfer") {
+        setup_jsurfer()?;
+    }
 
     Ok(())
 }
