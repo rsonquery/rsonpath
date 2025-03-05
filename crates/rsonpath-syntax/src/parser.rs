@@ -22,7 +22,7 @@ fn skip_one(q: &str) -> &str {
 
 fn ignore_whitespace<'a, T, F, E>(mut inner: F) -> impl FnMut(&'a str) -> IResult<&'a str, T, E>
 where
-    F: nom::Parser<&'a str, T, E>,
+    F: nom::Parser<&'a str, Output = T, Error = E>,
 {
     move |q: &'a str| {
         inner
@@ -145,7 +145,8 @@ fn segment<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, Segment, InternalP
         |q| descendant_segment(q, ctx),
         |q| child_segment(q, ctx),
         failed_segment(SyntaxErrorKind::InvalidSegmentStart),
-    ))(q)
+    ))
+    .parse(q)
 }
 
 fn descendant_segment<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, Segment, InternalParseError<'q>> {
@@ -160,7 +161,8 @@ fn descendant_segment<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, Segment
             ))),
         ),
         Segment::Descendant,
-    )(q)
+    )
+    .parse(q)
 }
 
 fn child_segment<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, Segment, InternalParseError<'q>> {
@@ -178,7 +180,8 @@ fn child_segment<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, Segment, Int
             ),
         )),
         Segment::Child,
-    )(q)
+    )
+    .parse(q)
 }
 
 fn failed_segment<T>(kind: SyntaxErrorKind) -> impl FnMut(&str) -> IResult<&str, T, InternalParseError> {
@@ -246,7 +249,8 @@ fn member_name_shorthand(q: &str) -> IResult<&str, Selectors, InternalParseError
             }),
         ),
         |x| Selectors::one(Selector::Name(x.into())),
-    )(q);
+    )
+    .parse(q);
 
     fn name_first(q: &str) -> IResult<&str, char, InternalParseError> {
         satisfy(|x| x.is_ascii_alphabetic() || matches!(x, '_' | '\u{0080}'..='\u{D7FF}' | '\u{E000}'..='\u{10FFFF}'))(
@@ -255,7 +259,7 @@ fn member_name_shorthand(q: &str) -> IResult<&str, Selectors, InternalParseError
     }
 
     fn name_char(q: &str) -> IResult<&str, char, InternalParseError> {
-        alt((name_first, satisfy(|x| x.is_ascii_digit())))(q)
+        alt((name_first, satisfy(|x| x.is_ascii_digit()))).parse(q)
     }
 }
 
@@ -267,7 +271,8 @@ fn selector<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, Selector, Interna
         ignore_whitespace(index_selector),
         ignore_whitespace(|q| filter_selector(q, ctx)),
         failed_selector,
-    ))(q)
+    ))
+    .parse(q)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -277,22 +282,23 @@ enum StringParseMode {
 }
 
 fn name_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
-    map(string_literal, Selector::Name)(q)
+    map(string_literal, Selector::Name).parse(q)
 }
 
 fn string_literal(q: &str) -> IResult<&str, JsonString, InternalParseError> {
     alt((
         preceded(char('\''), string(StringParseMode::SingleQuoted)),
         preceded(char('"'), string(StringParseMode::DoubleQuoted)),
-    ))(q)
+    ))
+    .parse(q)
 }
 
 fn wildcard_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
-    map(tag("*"), |_| Selector::Wildcard)(q)
+    map(tag("*"), |_| Selector::Wildcard).parse(q)
 }
 
 fn slice_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
-    let (rest, opt_start) = terminated(opt(int), ignore_whitespace(char(':')))(q)?;
+    let (rest, opt_start) = terminated(opt(int), ignore_whitespace(char(':'))).parse(q)?;
     // We have parsed a ':', so this *must* be a slice selector. Any errors after here are fatal.
     let mut slice = crate::Slice::default();
 
@@ -311,7 +317,7 @@ fn slice_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
         };
     }
     let q = rest;
-    let (rest, opt_end) = opt(ignore_whitespace(int))(q)?;
+    let (rest, opt_end) = opt(ignore_whitespace(int)).parse(q)?;
 
     if let Some(end_str) = opt_end {
         match parse_directional_int(end_str) {
@@ -324,7 +330,7 @@ fn slice_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
     }
 
     let q = rest;
-    let (rest, opt_step) = opt(ignore_whitespace(preceded(char(':'), opt(ignore_whitespace(int)))))(q)?;
+    let (rest, opt_step) = opt(ignore_whitespace(preceded(char(':'), opt(ignore_whitespace(int))))).parse(q)?;
 
     if let Some(Some(step_str)) = opt_step {
         match parse_directional_int(step_str) {
@@ -382,7 +388,7 @@ fn failed_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
 }
 
 fn filter_selector<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, Selector, InternalParseError<'q>> {
-    into(preceded(char('?'), ignore_whitespace(|q| logical_expr(q, ctx))))(q)
+    into(preceded(char('?'), ignore_whitespace(|q| logical_expr(q, ctx)))).parse(q)
 }
 
 fn logical_expr<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, LogicalExpr, InternalParseError<'q>> {
@@ -426,7 +432,8 @@ fn logical_expr<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, LogicalExpr, 
         let (rest, mb_boolean_op) = opt(ignore_whitespace(alt((
             value(BooleanOp::And, tag("&&")),
             value(BooleanOp::Or, tag("||")),
-        ))))(loop_rest)?;
+        ))))
+        .parse(loop_rest)?;
         loop_rest = rest;
 
         match mb_boolean_op {
@@ -450,7 +457,7 @@ fn logical_expr<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, LogicalExpr, 
         let (rest, opt_neg) = ignore_whitespace(opt(char('!')))(q)?;
         let negated = opt_neg.is_some();
         if let Ok((rest, _)) = char::<_, ()>('(')(rest) {
-            let (rest, nested_filter) = cut(|q| logical_expr(q, ctx))(skip_whitespace(rest))?;
+            let (rest, nested_filter) = cut(|q| logical_expr(q, ctx)).parse(skip_whitespace(rest))?;
             let rest = skip_whitespace(rest);
             let Ok((rest, _)) = char::<_, ()>(')')(rest) else {
                 return failed_filter_expression(SyntaxErrorKind::MissingClosingParenthesis)(rest);
@@ -470,7 +477,7 @@ fn logical_expr<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, LogicalExpr, 
                     Ok((rest, comp_op)) => (rest, comp_op),
                     Err(Err::Failure(err)) => return Err(Err::Failure(err)),
                     _ => {
-                        if peek(char::<_, ()>(']'))(rest).is_ok() {
+                        if peek(char::<_, ()>(']')).parse(rest).is_ok() {
                             return fail(SyntaxErrorKind::MissingComparisonOperator, rest.len(), 1, rest);
                         } else {
                             return failed_filter_expression(SyntaxErrorKind::InvalidComparisonOperator)(rest);
@@ -482,7 +489,7 @@ fn logical_expr<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, LogicalExpr, 
                     Ok((rest, rhs)) => (rest, rhs),
                     Err(Err::Failure(err)) => return Err(Err::Failure(err)),
                     _ => {
-                        if peek(char::<_, ()>(']'))(rest).is_ok() {
+                        if peek(char::<_, ()>(']')).parse(rest).is_ok() {
                             return fail(SyntaxErrorKind::InvalidComparable, rest.len(), 1, rest);
                         } else {
                             return failed_filter_expression(SyntaxErrorKind::InvalidComparable)(rest);
@@ -577,7 +584,8 @@ fn filter_query<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, FilterQuery, 
     let (rest, root_type) = alt((
         value(RootSelectorType::Absolute, char('$')),
         value(RootSelectorType::Relative, char('@')),
-    ))(q)?;
+    ))
+    .parse(q)?;
     let rest = skip_whitespace(rest);
     let mut segments = vec![];
     let mut syntax_errors = vec![];
@@ -585,7 +593,7 @@ fn filter_query<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, FilterQuery, 
     let mut q = rest;
 
     loop {
-        if peek(one_of::<_, _, ()>(".["))(q).is_err() {
+        if peek(one_of::<_, _, ()>(".[")).parse(q).is_err() {
             break;
         }
 
@@ -593,7 +601,8 @@ fn filter_query<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, FilterQuery, 
             |q| descendant_segment(q, ctx),
             |q| child_segment(q, ctx),
             failed_segment_within_filter(SyntaxErrorKind::InvalidSegmentStart),
-        ))(q)
+        ))
+        .parse(q)
         .finish()
         {
             Ok((rest, segment)) => {
@@ -656,11 +665,12 @@ fn comparison_operator(q: &str) -> IResult<&str, ComparisonOp, InternalParseErro
         value(ComparisonOp::GreaterOrEqualTo, tag(">=")),
         value(ComparisonOp::LessThan, char('<')),
         value(ComparisonOp::GreaterThan, char('>')),
-    ))(q)
+    ))
+    .parse(q)
 }
 
 fn comparable<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, Comparable, InternalParseError<'q>> {
-    return alt((into(literal), |q| singular_query(q, ctx)))(q);
+    return alt((into(literal), |q| singular_query(q, ctx))).parse(q);
 
     fn singular_query<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, Comparable, InternalParseError<'q>> {
         let (rest, query) = filter_query(q, ctx)?;
@@ -679,17 +689,18 @@ fn literal(q: &str) -> IResult<&str, Literal, InternalParseError> {
         value(Literal::Bool(true), tag("true")),
         value(Literal::Bool(false), tag("false")),
         value(Literal::Null, tag("null")),
-    ))(q)
+    ))
+    .parse(q)
 }
 
 fn number(q: &str) -> IResult<&str, JsonNumber, InternalParseError> {
-    map(float, |f| JsonNumber::from(f).normalize())(q)
+    map(float, |f| JsonNumber::from(f).normalize()).parse(q)
 }
 
 // Exported for JsonFloat::from_str
 fn float(q: &str) -> IResult<&str, JsonFloat, InternalParseError> {
     // Look ahead to verify that this has a chance to be a number.
-    let (rest, valid_str) = recognize(alt((preceded(char('-'), base_float), base_float)))(q)?;
+    let (rest, valid_str) = recognize(alt((preceded(char('-'), base_float), base_float))).parse(q)?;
 
     // It is a number, so after here we can hard cut.
     return match JsonFloat::from_str(valid_str) {
@@ -698,14 +709,15 @@ fn float(q: &str) -> IResult<&str, JsonFloat, InternalParseError> {
     };
 
     fn base_float(q: &str) -> IResult<&str, &str, InternalParseError> {
-        recognize(tuple((
+        recognize((
             digit1,
             opt(preceded(char('.'), digit1)),
             opt(preceded(
                 tag_no_case("e"),
                 preceded(opt(alt((char('+'), char('-')))), digit1),
             )),
-        )))(q)
+        ))
+        .parse(q)
     }
 }
 
@@ -729,7 +741,7 @@ fn parse_directional_int(int_str: &str) -> DirectionalInt {
 }
 
 fn int(q: &str) -> IResult<&str, &str, InternalParseError> {
-    let (rest, int) = recognize(alt((preceded(char('-'), digit1), digit1)))(q)?;
+    let (rest, int) = recognize(alt((preceded(char('-'), digit1), digit1))).parse(q)?;
 
     if int != "0" {
         if int == "-0" {

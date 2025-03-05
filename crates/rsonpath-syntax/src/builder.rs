@@ -480,7 +480,6 @@ impl SliceBuilder {
 
 impl From<SliceBuilder> for Slice {
     #[inline]
-    #[must_use]
     fn from(mut value: SliceBuilder) -> Self {
         value.to_slice()
     }
@@ -495,7 +494,6 @@ impl Default for SliceBuilder {
     /// assert_eq!(Slice::default(), slice);
     /// ```
     #[inline(always)]
-    #[must_use]
     fn default() -> Self {
         Self::new()
     }
@@ -575,7 +573,6 @@ impl Default for SingularJsonPathQueryBuilder {
 
 impl From<SingularJsonPathQueryBuilder> for SingularJsonPathQuery {
     #[inline]
-    #[must_use]
     fn from(value: SingularJsonPathQueryBuilder) -> Self {
         Self {
             segments: value.segments,

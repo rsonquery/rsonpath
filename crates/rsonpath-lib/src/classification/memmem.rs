@@ -12,9 +12,9 @@ pub trait Memmem<'i, 'b, 'r, I: Input, const N: usize> {
     /// Find a member key identified by a given [`StringPattern`].
     ///
     /// - `first_block` &ndash; optional first block to search; if not provided,
-    ///    the search will start at the next block returned by the underlying [`Input`] iterator.
+    ///   the search will start at the next block returned by the underlying [`Input`] iterator.
     /// - `start_idx` &ndash; index of the start of search, either falling inside `first_block`,
-    ///    or at the start of the next block.
+    ///   or at the start of the next block.
     ///
     /// # Errors
     /// Errors when reading the underlying [`Input`] are propagated.
