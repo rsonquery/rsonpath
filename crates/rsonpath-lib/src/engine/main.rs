@@ -55,7 +55,7 @@ use crate::{
         Compiler, Engine, Input,
     },
     input::error::InputErrorConvertible,
-    lookup_table::{LookUpTable, LookUpTableImpl},
+    lookup_table::{LookUpTable, LUT},
     result::{
         approx_span::ApproxSpanRecorder, count::CountRecorder, index::IndexRecorder, nodes::NodesRecorder, Match,
         MatchCount, MatchIndex, MatchSpan, MatchedNodeType, Recorder, Sink,
@@ -73,17 +73,17 @@ use smallvec::{smallvec, SmallVec};
 pub struct MainEngine {
     automaton: Automaton,
     simd: SimdConfiguration,
-    lut: Option<LookUpTableImpl>,
+    lut: Option<LUT>,
 }
 
 impl MainEngine {
     #[inline(always)]
-    pub fn add_lut(&mut self, lut: LookUpTableImpl) {
+    pub fn add_lut(&mut self, lut: LUT) {
         self.lut = Some(lut)
     }
 
     #[inline(always)]
-    pub fn take_lut(&mut self) -> Option<LookUpTableImpl> {
+    pub fn take_lut(&mut self) -> Option<LUT> {
         self.lut.take()
     }
 
@@ -260,14 +260,14 @@ struct Executor<'i, 'r, I, R, V> {
     recorder: &'r R,
     /// Resolved SIMD context.
     simd: V,
-    lut: Option<&'i LookUpTableImpl>,
+    lut: Option<&'i LUT>,
 }
 
 /// Initialize the [`Executor`] for the initial state of a query.
 fn query_executor<'i, 'r, I, R, V: Simd>(
     automaton: &'i Automaton,
     input: &'i I,
-    jump_table: Option<&'i LookUpTableImpl>,
+    jump_table: Option<&'i LUT>,
     recorder: &'r R,
     simd: V,
 ) -> Executor<'i, 'r, I, R, V>

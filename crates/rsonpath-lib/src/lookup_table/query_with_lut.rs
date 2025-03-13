@@ -6,7 +6,7 @@ use simple_logger::SimpleLogger;
 use crate::{
     engine::{Compiler, Engine, RsonpathEngine},
     input::OwnedBytes,
-    lookup_table::{LookUpTable, LookUpTableImpl},
+    lookup_table::{LookUpTable, LUT},
 };
 
 use std::io::Read;
@@ -24,7 +24,7 @@ pub fn query_with_lut(json_path: &str, json_query: &str) {
 
     // Build and add lut
     let start_build = std::time::Instant::now();
-    let lut = LookUpTableImpl::build(json_path, 0).expect("Fail @ building LookUp-table.");
+    let lut = LUT::build(json_path, 0).expect("Fail @ building LookUp-table.");
     let build_time = start_build.elapsed().as_secs_f64();
     engine.add_lut(lut);
 
@@ -55,7 +55,7 @@ pub fn query_with_lut(json_path: &str, json_query: &str) {
 
     println!("#### Stats ####");
     println!(" - Num results:    {}", num_results);
-    println!(" - LUT type:       {}", type_name::<LookUpTableImpl>());
+    println!(" - LUT type:       {}", type_name::<LUT>());
     println!(" - LUT build time: {} seconds", build_time);
     println!(" - LUT query time: {} seconds", query_time);
     println!(" - LUT size:       {} bytes", engine.allocated_bytes_by_lut());

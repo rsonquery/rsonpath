@@ -7,7 +7,7 @@ use std::{
 
 use crate::{
     engine::{skip_tracker, Engine},
-    lookup_table::{LookUpTableImpl, LookUpTableLambda},
+    lookup_table::{LookUpTableLambda, LUT},
 };
 
 use super::{
@@ -34,7 +34,7 @@ pub fn track_skips() {
 fn count_test_data(test_data: (&str, &[(&str, &str)])) {
     let (json_path, queries) = test_data;
 
-    let mut lut = LookUpTableImpl::build(json_path, 0).expect("Fail @ building LUT");
+    let mut lut = LUT::build(json_path, 0).expect("Fail @ building LUT");
 
     for &(query_name, query_text) in queries {
         let new_lut = track(lut, json_path, query_name, query_text);
@@ -42,7 +42,7 @@ fn count_test_data(test_data: (&str, &[(&str, &str)])) {
     }
 }
 
-fn track(lut: LookUpTableImpl, json_path: &str, query_name: &str, query_text: &str) -> LookUpTableImpl {
+fn track(lut: LUT, json_path: &str, query_name: &str, query_text: &str) -> LUT {
     if !(lut_skip_evaluation::MODE == SkipMode::OFF) {
         println!(
             "Mode={:?}: Process query: {} = {}",

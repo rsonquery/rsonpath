@@ -14,8 +14,12 @@ use crate::{
     },
     input::InputBlockIterator,
     lookup_table::{
-        performance::lut_skip_evaluation::{self, SkipMode, DISTANCE_CUT_OFF, USE_SKIP_ABORT_STRATEGY},
-        LookUpTable, LookUpTableImpl,
+        lut_hash_map,
+        performance::{
+            lut_query_data::POKEMON_MINI,
+            lut_skip_evaluation::{self, SkipMode, DISTANCE_CUT_OFF, USE_SKIP_ABORT_STRATEGY},
+        },
+        LookUpTable, LUT,
     },
     FallibleIterator, MaskType, BLOCK_SIZE,
 };
@@ -50,7 +54,7 @@ where
         &mut self,
         opening_idx_padded: usize,
         bracket_type: BracketType,
-        lut: Option<&LookUpTableImpl>,
+        lut: Option<&LUT>,
         padding: usize,
     ) -> Result<usize, EngineError> {
         if lut_skip_evaluation::TRACK_SKIPPING_DURING_PERFORMANCE_TEST {
@@ -68,7 +72,7 @@ where
         &mut self,
         opening_idx_padded: usize,
         bracket_type: BracketType,
-        lut: Option<&LookUpTableImpl>,
+        lut: Option<&LUT>,
         padding: usize,
     ) -> Result<usize, EngineError> {
         if let Some(lut) = lut {
@@ -92,27 +96,43 @@ where
     // 7. This function returns the skipped-to index.
     fn skip_with_lut(
         &mut self,
-        opening_idx_padded: usize,
+        open_idx_pad: usize,
         bracket_type: BracketType,
-        lut: &LookUpTableImpl,
+        lut: &LUT,
         padding: usize,
     ) -> Result<usize, EngineError> {
-        let opening_idx = opening_idx_padded - padding;
+        let open_idx = open_idx_pad - padding;
+
+        // TODO delete this
+        // let lut_hash_map = lut_hash_map::LutHashMap::build(POKEMON_MINI, 0).expect("Fail @ build lut hash map");
+        // print!("Try skip with key {} ... ", open_idx);
 
         // 0. Use LUT to get opening -> closing index. Can fail if key is not in LUT
-        if let Some(idx_close) = lut.get(&(opening_idx_padded - padding)) {
+        if let Some(lut_idx) = lut.get(&open_idx) {
+            // TODO delete this if
+            // println!("LUT");
+            // if let Some(lut_hash_map_idx) = lut_hash_map.get(&open_idx){
+            //     if lut_hash_map_idx == lut_idx {
+            //         println!("SKIP OK: Key {}, Found {}, Expected {}", open_idx, lut_idx, lut_hash_map_idx);
+            //     } else {
+            //         println!("SKIP NOT OK: Key {}, Found {}, Expected {}", open_idx, lut_idx, lut_hash_map_idx);
+            //     }
+            // } else {
+            //     println!("FFFFFFFFFFFFFFFF SKIP: Key {}, Found {}, Expected NO-HIT", open_idx, lut_idx);
+            // }
+
             // Shift index by 1 or its off aligned
-            let closing_idx = idx_close + 1;
-            let closing_idx_padded = padding + closing_idx;
+            let close_idx = lut_idx + 1;
+            let close_idx_pad = padding + close_idx;
 
             debug!(
                 "LUT:({},{}) No-PAD:({},{})",
-                opening_idx_padded, closing_idx_padded, opening_idx, closing_idx
+                open_idx_pad, close_idx_pad, open_idx, close_idx
             );
 
             if !(lut_skip_evaluation::MODE == SkipMode::OFF) {
                 // Only for tracking jumps and not needed in normal runs
-                let distance = closing_idx - (opening_idx_padded - padding);
+                let distance = close_idx - open_idx;
                 track_distance_lut(distance);
             }
 
@@ -120,27 +140,30 @@ where
             self.classifier
                 .as_mut()
                 .expect("tail skip must always hold a classifier")
-                .jump_to_idx(closing_idx_padded, false)?;
+                .jump_to_idx(close_idx_pad, false)?;
 
             // 7. This function returns the skipped-to index.
-            Ok(closing_idx_padded)
+            Ok(close_idx_pad)
         } else {
+            // TODO delete
+            // println!("ITE");
+
             // Do this when you were not able to find any values in the LUT
-            let closing_idx_padded = self.skip_without_lut(bracket_type)?;
-            let closing_idx = closing_idx_padded - padding;
+            let close_idx_pad = self.skip_without_lut(bracket_type)?;
+            let close_idx = close_idx_pad - padding;
 
             debug!(
                 "ITE:({},{}) No-PAD:({},{})",
-                opening_idx_padded, closing_idx_padded, opening_idx, closing_idx
+                open_idx_pad, close_idx_pad, open_idx, close_idx
             );
 
             if !(lut_skip_evaluation::MODE == SkipMode::OFF) {
                 // Only for tracking jumps and not needed in normal runs
-                let distance = closing_idx - (opening_idx_padded - padding);
+                let distance = close_idx - open_idx;
                 track_distance_ite(distance);
             }
 
-            Ok(closing_idx_padded)
+            Ok(close_idx_pad)
         }
     }
 
@@ -149,7 +172,7 @@ where
         &mut self,
         opening_idx_padded: usize,
         bracket_type: BracketType,
-        lut: &LookUpTableImpl,
+        lut: &LUT,
         padding: usize,
     ) -> Result<usize, EngineError> {
         dispatch_simd!(self.simd; self, bracket_type =>

@@ -1,5 +1,5 @@
 use crate::framework::implementation::Implementation;
-use rsonpath::lookup_table::{LookUpTable, LookUpTableImpl};
+use rsonpath::lookup_table::{LookUpTable, LUT};
 use rsonpath::{engine::Compiler, input::MmapInput};
 use rsonpath::{
     engine::{main::MainEngine, Engine},
@@ -50,7 +50,7 @@ impl Implementation for RsonpathLut {
         let mut engine = MainEngine::compile_query(&query).map_err(RsonpathError::CompilerError)?;
 
         // Build LUT and add it to the engine object
-        if let Ok(lut) = LookUpTableImpl::build(file_path, self.distance_cutoff) {
+        if let Ok(lut) = LUT::build(file_path, self.distance_cutoff) {
             engine.add_lut(lut);
         } else {
             return Err(Self::Error::LutRequiredError);

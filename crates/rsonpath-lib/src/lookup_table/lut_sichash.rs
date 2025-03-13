@@ -1,23 +1,16 @@
-use clap::builder::Str;
-use serde::de::value;
-
 use super::{
     lut_phf_double::THRESHOLD_16_BITS,
-    performance::lut_query_data::{BESTBUY, GOOGLE, POKEMON_SHORT, TWITTER, WALMART},
+    performance::lut_query_data::{BESTBUY, GOOGLE, TWITTER, WALMART},
     LookUpTable,
 };
 
 use std::{
     ffi::{c_void, CString},
-    os::{raw::c_char, unix::process::parent_id},
-    slice::{self, from_raw_parts},
-    str::{self, from_utf8},
+    os::raw::c_char,
+    str::{self},
 };
 
-use std::{
-    error::Error,
-    io::{BufReader, Read},
-};
+use std::io::{BufReader, Read};
 
 use std::{collections::VecDeque, fs};
 
@@ -25,10 +18,12 @@ use crate::{
     engine::{Compiler, Engine, RsonpathEngine},
     input::OwnedBytes,
     lookup_table::{
-        pair_finder,
+        self, lut_hash_map, pair_finder,
         performance::lut_query_data::{
-            ALPHABET, JOHN, JOHN_BIG, QUERY_BESTBUY, QUERY_GOOGLE, QUERY_POKEMON_SHORT, QUERY_TWITTER, TWITTER_MINI,
+            ALPHABET, JOHN, JOHN_BIG, POKEMON_SHORT, QUERY_BESTBUY, QUERY_GOOGLE, QUERY_POKEMON_SHORT, QUERY_TWITTER,
+            TWITTER_MINI,
         },
+        LUT,
     },
 };
 
@@ -107,8 +102,8 @@ impl LutSicHash {
         let keys_64_lengths: &[usize] = &pair_data.keys_64_lengths;
         let values_64: &[u64] = &pair_data.values_64;
 
-        let (_c_keys, keys_ptrs) = LutSicHash::convert_keys_2(&pair_data.keys);
-        let (_c_keys_64, keys_64_ptrs) = LutSicHash::convert_keys_2(&pair_data.keys_64);
+        let (_c_keys, keys_ptrs) = LutSicHash::convert_keys(&pair_data.keys);
+        let (_c_keys_64, keys_64_ptrs) = LutSicHash::convert_keys(&pair_data.keys_64);
 
         let lut = unsafe {
             build_phf(
@@ -187,7 +182,9 @@ impl LutSicHash {
             }
         }
 
-        // TODO delete this test code
+        // TODO delete this test code, currently SicHashPHF will cause a segmentation fault if called with an empty list.
+        // That is why need to add one artificial entry in both lists. The currently picked dummy can cause issues at
+        // the moment
         let dummy_number: usize = 999999999999;
         let dummy_string_1 = dummy_number.to_string();
         let dummy_string_2 = dummy_number.to_string();
@@ -213,7 +210,9 @@ impl LutSicHash {
         Ok(pairs)
     }
 
-    fn convert_keys_2(keys: &[String]) -> (Vec<CString>, Vec<*const c_char>) {
+    // TODO: this is a highly inefficient copy of large lists, which should be get rid of. At the moment it is the
+    // only working solution we have.
+    fn convert_keys(keys: &[String]) -> (Vec<CString>, Vec<*const c_char>) {
         let c_keys: Vec<CString> = keys.iter().map(|s| CString::new(s.as_str()).unwrap()).collect();
         let ptrs: Vec<*const c_char> = c_keys.iter().map(|s| s.as_ptr()).collect();
         (c_keys, ptrs)
@@ -270,18 +269,40 @@ impl LookUpTable for LutSicHash {
 // ########################
 // #### Test functions ####
 // ########################
+pub fn test_sichash_lut() {
+    // query_and_build_test();
+
+    // test_build_correctness(GOOGLE);
+    // test_build_correctness(WALMART);
+    // test_build_correctness(BESTBUY);
+    // test_build_correctness(TWITTER);
+    // test_build_correctness(POKEMON_SHORT);
+
+    test_query_correctness(lut_query_data::QUERY_POKEMON_MINI);
+    // test_query_correctness(lut_query_data::QUERY_GOOGLE);
+    // test_query_correctness(lut_query_data::QUERY_TWITTER);
+    // test_query_correctness(lut_query_data::QUERY_BESTBUY);
+    // test_query_correctness(lut_query_data::QUERY_POKEMON_SHORT);
+}
+
 pub fn test_build_correctness(json_path: &str) {
     println!("Building LUT: {}", json_path);
-    let lut = LutSicHash::build(&json_path, 0).expect("Fail @ building LUT");
+    let lut = LUT::build(&json_path, 0).expect("Fail @ building LUT");
+    println!("Building LUT (Hashmap): {}", json_path);
+    let lut_hash_map = lut_hash_map::LutHashMap::build(&json_path, 0).expect("Fail @ building LUT");
 
     println!("Testing keys ...");
     let (keys, values) = pair_finder::get_keys_and_values(json_path).expect("Fail @ finding pairs.");
     let mut count_incorrect = 0;
     for (i, key) in keys.iter().enumerate() {
         let value = lut.get(key).expect("Fail at getting value.");
-        if values[i] != value {
+        let value_hash = lut_hash_map.get(key).expect("Fail at getting value.");
+        if value != values[i] || value != value_hash {
             count_incorrect += 1;
-            println!("  i: {}, Key {}, Value {}, Expected: {}", i, key, value, values[i])
+            println!(
+                "  i: {}, Key {}, Value {}, Expected: {}, Hash {}",
+                i, key, value, values[i], value_hash
+            );
         }
     }
 
@@ -294,53 +315,110 @@ pub fn test_build_correctness(json_path: &str) {
 pub fn test_query_correctness(test_data: (&str, &[(&str, &str)])) {
     let (json_path, queries) = test_data;
     println!("Building LUT: {}", json_path);
-    let mut lut = LutSicHash::build(&json_path, 0).expect("Fail @ building LUT");
+    let mut lut = LUT::build(&json_path, 0).expect("Fail @ building LUT");
 
     // Run all queries
     println!("Checking queries:");
     for &(query_name, query_text) in queries {
         print!(" Query: {} ... ", query_name);
-        lut = compare_results_lut_vs_ite(lut, &json_path, query_text).expect("Fail @ compare_results");
-    }
-}
+        let input = {
+            let mut file = BufReader::new(fs::File::open(json_path).expect("Fail @ open File"));
+            let mut buf = vec![];
+            file.read_to_end(&mut buf).expect("Fail @ file read");
+            OwnedBytes::new(buf)
+        };
+        let query = rsonpath_syntax::parse(query_text).expect("Fail @ parse query");
 
-fn compare_results_lut_vs_ite(
-    lut: LutSicHash,
-    json_path: &str,
-    query_text: &str,
-) -> Result<LutSicHash, Box<dyn Error>> {
-    let input = {
-        let mut file = BufReader::new(fs::File::open(json_path).expect("Fail @ open File"));
-        let mut buf = vec![];
-        file.read_to_end(&mut buf).expect("Fail @ file read");
-        OwnedBytes::new(buf)
-    };
-    let query = rsonpath_syntax::parse(query_text).expect("Fail @ parse query");
+        // Query normally and skip iteratively (ITE)
+        let mut engine = RsonpathEngine::compile_query(&query).expect("Fail @ compile query");
+        let count = engine.count(&input).expect("Failed to run query normally");
 
-    // Query normally and skip iteratively (ITE)
-    let mut engine = RsonpathEngine::compile_query(&query).expect("Fail @ compile query");
-    let result = engine.count(&input).expect("Failed to run query normally");
+        // Query normally and skip using the lookup table (LUT)
+        engine.add_lut(lut);
+        let lut_count = engine.count(&input).expect("LUT: Failed to run query normally");
 
-    // Query normally and skip using the lookup table (LUT)
-    engine.add_lut(lut);
-    let lut_result = engine.count(&input).expect("LUT: Failed to run query normally");
+        if lut_count != count {
+            println!("Found {}, Expected {}", lut_count, count);
+        } else {
+            println!("Correct");
+        }
 
-    if lut_result != result {
-        println!("Found {}, Expected {}", lut_result, result);
-    } else {
-        println!("Correct");
+        lut = engine.take_lut().expect("Failed to retrieve LUT from engine");
     }
 
-    Ok(engine.take_lut().expect("Failed to retrieve LUT from engine"))
+    std::mem::drop(lut);
 }
 
-pub fn test_sichash_lut() {
-    // test_build_correctness(GOOGLE);
-    // test_build_correctness(WALMART);
-    // test_build_correctness(BESTBUY);
-    // test_build_correctness(TWITTER);
-    // test_build_correctness(POKEMON_SHORT);
+fn query_and_build_test() {
+    let test_data = lut_query_data::QUERY_POKEMON_SHORT;
+    let (json_path, queries) = test_data;
 
-    // test_query_correctness(lut_query_data::QUERY_POKEMON_SHORT);
-    test_query_correctness(lut_query_data::QUERY_GOOGLE);
+    println!("Building LUT: {}", json_path);
+    let mut lut = LUT::build(&json_path, 0).expect("Fail @ building LUT");
+    println!("Building LUT (Hashmap): {}", json_path);
+    let lut_hash_map = lut_hash_map::LutHashMap::build(&json_path, 0).expect("Fail @ building LUT");
+
+    // TEST BUILD
+    println!("Testing keys ...");
+    let (keys, values) = pair_finder::get_keys_and_values(json_path).expect("Fail @ finding pairs.");
+    let mut count_incorrect = 0;
+    for (i, key) in keys.iter().enumerate() {
+        let value = lut.get(key).expect("Fail at getting value.");
+        let value_hash = lut_hash_map.get(key).expect("Fail at getting value.");
+        if value != values[i] || value != value_hash {
+            count_incorrect += 1;
+            println!(
+                "  i: {}, Key {}, Value {}, Expected: {}, Hash {}",
+                i, key, value, values[i], value_hash
+            );
+        }
+    }
+    println!(" Correct {}/{}", keys.len() - count_incorrect, keys.len());
+    println!(" Incorrect {}/{}", count_incorrect, keys.len());
+
+    // QUERIES
+    // Run all queries
+    for &(query_name, query_text) in queries {
+        print!(" Query: {} ... ", query_name);
+        let input = {
+            let mut file = BufReader::new(fs::File::open(json_path).expect("Fail @ open File"));
+            let mut buf = vec![];
+            file.read_to_end(&mut buf).expect("Fail @ file read");
+            OwnedBytes::new(buf)
+        };
+        let query = rsonpath_syntax::parse(query_text).expect("Fail @ parse query");
+
+        // Query normally and skip iteratively (ITE)
+        let mut engine = RsonpathEngine::compile_query(&query).expect("Fail @ compile query");
+        let result = engine.count(&input).expect("Failed to run query normally");
+
+        // Query normally and skip using the lookup table (LUT)
+        engine.add_lut(lut);
+        let lut_result = engine.count(&input).expect("LUT: Failed to run query normally");
+
+        if lut_result != result {
+            println!("Found {}, Expected {}", lut_result, result);
+        } else {
+            println!("Correct");
+        }
+
+        lut = engine.take_lut().expect("Failed to retrieve LUT from engine");
+    }
+
+    // TEST BUILD AGAIN
+    println!("Testing keys ...");
+    let (keys, values) = pair_finder::get_keys_and_values(json_path).expect("Fail @ finding pairs.");
+    for (i, key) in keys.iter().enumerate() {
+        let value = lut.get(key).expect("Fail at getting value.");
+        let value_hash = lut_hash_map.get(key).expect("Fail at getting value.");
+        if value != values[i] || value != value_hash {
+            count_incorrect += 1;
+            println!(
+                "  i: {}, Key {}, Value {}, Expected: {}, Hash {}",
+                i, key, value, values[i], value_hash
+            );
+        }
+    }
+    println!(" Correct {}/{}", keys.len() - count_incorrect, keys.len());
+    println!(" Incorrect {}/{}", count_incorrect, keys.len());
 }

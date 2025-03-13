@@ -3,6 +3,8 @@ pub const JOHN_BIG: &str = ".a_lut_tests/test_data/kB_1/john_big.json";
 pub const ALPHABET: &str = ".a_lut_tests/test_data/kB_1/alphabet_(2kB).json";
 pub const TWITTER_MINI: &str = ".a_lut_tests/test_data/MB_1/twitter_(767kB).json";
 
+pub const POKEMON_MINI: &str = ".a_lut_tests/test_data/MB_15/pokemon_(6MB).json";
+
 pub const TWITTER_SHORT: &str = ".a_lut_tests/test_data/MB_100/twitter_short_(80MB).json";
 pub const BESTBUY_SHORT: &str = ".a_lut_tests/test_data/MB_100/bestbuy_short_(103MB).json";
 pub const GOOGLE_SHORT: &str = ".a_lut_tests/test_data/MB_100/google_map_short_(107MB).json";
@@ -194,5 +196,17 @@ pub const QUERY_POKEMON_SHORT: (&str, &[(&str, &str)]) = (
         ("227", "$.cfg50[*].ID"),
         ("228", "$.cfg50[*].Abilities[*]"),
         ("229", "$.cfg50[*].Moves[*].levelLearnedAt"),
+    ],
+);
+
+pub const QUERY_POKEMON_MINI: (&str, &[(&str, &str)]) = (
+    POKEMON_MINI,
+    &[
+        ("200", "$.cfgs[1].ID"),
+        // ("201", "$.cfgs[1].Name"),
+        ("202", "$.cfgs[*].ID"),
+        // ("203", "$.cfgs[*].Name"),
+        // ("204", "$.cfgs[*].Height"),
+        // ("205", "$.cfgs[*].Weight"),
     ],
 );

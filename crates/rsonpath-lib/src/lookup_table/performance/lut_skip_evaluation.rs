@@ -1,4 +1,4 @@
-use crate::lookup_table::{LookUpTable, LookUpTableImpl};
+use crate::lookup_table::{LookUpTable, LUT};
 use crate::{
     engine::{
         skip_tracker::{self, save_track_to_csv},
@@ -79,7 +79,7 @@ fn eval_test_data(test_data: (&str, &[(&str, &str)])) {
 
     // Build LUT once
     let start_build_time = Instant::now();
-    let mut lut = LookUpTableImpl::build(json_path, DISTANCE_CUT_OFF).expect("Failed to build LUT");
+    let mut lut = LUT::build(json_path, DISTANCE_CUT_OFF).expect("Failed to build LUT");
     let t_lut_build = start_build_time.elapsed().as_nanos() as u64;
     let capacity = lut.allocated_bytes();
 
@@ -104,13 +104,13 @@ fn eval_test_data(test_data: (&str, &[(&str, &str)])) {
 }
 
 fn evaluate(
-    mut lut: LookUpTableImpl,
+    mut lut: LUT,
     json_path: &str,
     query_name: &str,
     query_text: &str,
     t_lut_build: u64,
     capacity: usize,
-) -> (String, LookUpTableImpl) {
+) -> (String, LUT) {
     // Build query
     let query = rsonpath_syntax::parse(query_text).expect("Failed to parse query");
     let mut engine = RsonpathEngine::compile_query(&query).expect("Failed to build engine");

@@ -4,7 +4,7 @@ use rsonpath::{
     input::OwnedBytes,
     lookup_table::{
         performance::lut_query_data::{QUERY_BESTBUY, QUERY_GOOGLE, QUERY_POKEMON_SHORT, QUERY_TWITTER},
-        LookUpTable, LookUpTableImpl,
+        LookUpTable, LUT,
     },
 };
 use std::{
@@ -37,7 +37,7 @@ fn query_with_lut(json_path: &str, query_text: &str, expected_result: Vec<usize>
         .unwrap();
 
     // Build lut
-    let lut = LookUpTableImpl::build(json_path, 0)?;
+    let lut = LUT::build(json_path, 0)?;
 
     // Build query
     let query = rsonpath_syntax::parse(query_text)?;
@@ -99,7 +99,7 @@ fn test_all_queries(test_data: (&str, &[(&str, &str)])) -> Result<(), Box<dyn Er
     let (json_file_path, queries) = test_data;
     let json_path = format!("../../{}", json_file_path);
     debug!("Building LUT: {}", json_path);
-    let mut lut = LookUpTableImpl::build(&json_path, 0).expect("Fail @ building LUT");
+    let mut lut = LUT::build(&json_path, 0).expect("Fail @ building LUT");
 
     // Run all queries
     for &(query_name, query_text) in queries {
@@ -110,11 +110,7 @@ fn test_all_queries(test_data: (&str, &[(&str, &str)])) -> Result<(), Box<dyn Er
     Ok(())
 }
 
-fn compare_results_lut_vs_ite(
-    lut: LookUpTableImpl,
-    json_path: &str,
-    query_text: &str,
-) -> Result<LookUpTableImpl, Box<dyn Error>> {
+fn compare_results_lut_vs_ite(lut: LUT, json_path: &str, query_text: &str) -> Result<LUT, Box<dyn Error>> {
     let input = {
         let mut file = BufReader::new(fs::File::open(json_path).expect("Fail @ open File"));
         let mut buf = vec![];
