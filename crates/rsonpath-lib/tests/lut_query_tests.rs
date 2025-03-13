@@ -64,24 +64,27 @@ fn query_with_lut(json_path: &str, query_text: &str, expected_result: Vec<usize>
     Ok(())
 }
 
-/// cargo test --test lut_query_tests -- full_pokemon_short --nocapture | rg "(lut_query_tests)"
 #[test]
 fn full_pokemon_short() -> Result<(), Box<dyn Error>> {
+    // cargo test --test lut_query_tests -- full_pokemon_short --nocapture | rg "(lut_query_tests)"
     test_all_queries(QUERY_POKEMON_SHORT)
 }
 
 #[test]
 fn full_google() -> Result<(), Box<dyn Error>> {
+    // cargo test --test lut_query_tests -- full_google --nocapture | rg "(lut_query_tests)"
     test_all_queries(QUERY_GOOGLE)
 }
 
 #[test]
 fn full_bestbuy() -> Result<(), Box<dyn Error>> {
+    // cargo test --test lut_query_tests -- full_bestbuy --nocapture | rg "(lut_query_tests)"
     test_all_queries(QUERY_BESTBUY)
 }
 
 #[test]
 fn full_twitter() -> Result<(), Box<dyn Error>> {
+    // cargo test --test lut_query_tests -- full_twitter --nocapture | rg "(lut_query_tests)"
     test_all_queries(QUERY_TWITTER)
 }
 

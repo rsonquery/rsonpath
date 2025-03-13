@@ -1,3 +1,6 @@
+pub const JOHN: &str = ".a_lut_tests/test_data/kB_1/john_119.json";
+pub const JOHN_BIG: &str = ".a_lut_tests/test_data/kB_1/john_big.json";
+pub const ALPHABET: &str = ".a_lut_tests/test_data/kB_1/alphabet_(2kB).json";
 pub const TWITTER_MINI: &str = ".a_lut_tests/test_data/MB_1/twitter_(767kB).json";
 
 pub const TWITTER_SHORT: &str = ".a_lut_tests/test_data/MB_100/twitter_short_(80MB).json";

@@ -6,6 +6,7 @@ pub mod lut_perfect_naive;
 pub mod lut_phf;
 pub mod lut_phf_double;
 pub mod lut_phf_group;
+pub mod lut_sichash;
 pub mod packed_stacked_frame;
 pub mod pair_finder;
 pub mod performance;
@@ -14,7 +15,8 @@ pub mod query_with_lut;
 pub mod sichash_test_data_generator;
 pub mod util_path;
 
-pub type LookUpTableImpl = lut_hash_map::LutHashMap;
+// pub type LookUpTableImpl = lut_hash_map::LutHashMap;
+pub type LookUpTableImpl = lut_sichash::LutSicHash;
 
 /// Lookup-table = LUT
 pub trait LookUpTable {
@@ -39,89 +41,89 @@ pub trait LookUpTableLambda: LookUpTable {
         Self: Sized;
 }
 
-pub struct LookUpTableBuilder {
-    json_path: Option<String>,
-    distance_cutoff: Option<usize>,
-    lambda: Option<usize>,
-    threaded: bool,
-}
+// pub struct LookUpTableBuilder {
+//     json_path: Option<String>,
+//     distance_cutoff: Option<usize>,
+//     lambda: Option<usize>,
+//     threaded: bool,
+// }
 
-impl LookUpTableBuilder {
-    pub fn new() -> Self {
-        LookUpTableBuilder {
-            json_path: None,
-            distance_cutoff: Some(0),
-            lambda: None,
-            threaded: false,
-        }
-    }
+// impl LookUpTableBuilder {
+//     pub fn new() -> Self {
+//         LookUpTableBuilder {
+//             json_path: None,
+//             distance_cutoff: Some(0),
+//             lambda: None,
+//             threaded: false,
+//         }
+//     }
 
-    pub fn json_path(mut self, path: &str) -> Self {
-        self.json_path = Some(path.to_string());
-        self
-    }
+//     pub fn json_path(mut self, path: &str) -> Self {
+//         self.json_path = Some(path.to_string());
+//         self
+//     }
 
-    pub fn distance_cutoff(mut self, cutoff: usize) -> Self {
-        self.distance_cutoff = Some(cutoff);
-        self
-    }
+//     pub fn distance_cutoff(mut self, cutoff: usize) -> Self {
+//         self.distance_cutoff = Some(cutoff);
+//         self
+//     }
 
-    pub fn lambda(mut self, lambda: usize) -> Self {
-        self.lambda = Some(lambda);
-        self
-    }
+//     pub fn lambda(mut self, lambda: usize) -> Self {
+//         self.lambda = Some(lambda);
+//         self
+//     }
 
-    pub fn threaded(mut self, threaded: bool) -> Self {
-        self.threaded = threaded;
-        self
-    }
+//     pub fn threaded(mut self, threaded: bool) -> Self {
+//         self.threaded = threaded;
+//         self
+//     }
 
-    pub fn build<T: LookUpTable>(self) -> Result<T, Box<dyn std::error::Error>> {
-        let json_path = self
-            .json_path
-            .ok_or("Error: `json_path` must be set before calling `build`")?;
-        let distance_cutoff = self
-            .distance_cutoff
-            .ok_or("Error: `distance_cutoff` must be set before calling `build`")?;
+//     pub fn build<T: LookUpTable>(self) -> Result<T, Box<dyn std::error::Error>> {
+//         let json_path = self
+//             .json_path
+//             .ok_or("Error: `json_path` must be set before calling `build`")?;
+//         let distance_cutoff = self
+//             .distance_cutoff
+//             .ok_or("Error: `distance_cutoff` must be set before calling `build`")?;
 
-        if json_path.is_empty() {
-            return Err("Error: `json_path` cannot be empty".into());
-        }
-        if distance_cutoff == 0 {
-            return Err("Error: `distance_cutoff` must be greater than 0".into());
-        }
+//         if json_path.is_empty() {
+//             return Err("Error: `json_path` cannot be empty".into());
+//         }
+//         if distance_cutoff == 0 {
+//             return Err("Error: `distance_cutoff` must be greater than 0".into());
+//         }
 
-        T::build(&json_path, distance_cutoff)
-    }
+//         T::build(&json_path, distance_cutoff)
+//     }
 
-    // Example usage:
-    // let lut_lambda = LookUpTableBuilder::new()
-    // .json_path("data.json")
-    // .distance_cutoff(5)
-    // .lambda(42)
-    // .threaded(true)
-    // .build_lambda::<LookUpTableImpl>()?;
-    pub fn build_lambda<T: LookUpTableLambda>(self) -> Result<T, Box<dyn std::error::Error>> {
-        let json_path = self
-            .json_path
-            .ok_or("Error: `json_path` must be set before calling `build_lambda`")?;
-        let distance_cutoff = self
-            .distance_cutoff
-            .ok_or("Error: `distance_cutoff` must be set before calling `build_lambda`")?;
-        let lambda = self
-            .lambda
-            .ok_or("Error: `lambda` must be set before calling `build_lambda`")?;
+//     // Example usage:
+//     // let lut_lambda = LookUpTableBuilder::new()
+//     // .json_path("data.json")
+//     // .distance_cutoff(5)
+//     // .lambda(42)
+//     // .threaded(true)
+//     // .build_lambda::<LookUpTableImpl>()?;
+//     pub fn build_lambda<T: LookUpTableLambda>(self) -> Result<T, Box<dyn std::error::Error>> {
+//         let json_path = self
+//             .json_path
+//             .ok_or("Error: `json_path` must be set before calling `build_lambda`")?;
+//         let distance_cutoff = self
+//             .distance_cutoff
+//             .ok_or("Error: `distance_cutoff` must be set before calling `build_lambda`")?;
+//         let lambda = self
+//             .lambda
+//             .ok_or("Error: `lambda` must be set before calling `build_lambda`")?;
 
-        if json_path.is_empty() {
-            return Err("Error: `json_path` cannot be empty".into());
-        }
-        if distance_cutoff < 0 {
-            return Err("Error: `distance_cutoff` must be greater than 0".into());
-        }
-        if lambda == 0 {
-            return Err("Error: `lambda` must be greater than 0".into());
-        }
+//         if json_path.is_empty() {
+//             return Err("Error: `json_path` cannot be empty".into());
+//         }
+//         if distance_cutoff < 0 {
+//             return Err("Error: `distance_cutoff` must be greater than 0".into());
+//         }
+//         if lambda == 0 {
+//             return Err("Error: `lambda` must be greater than 0".into());
+//         }
 
-        T::build_lambda(lambda, &json_path, distance_cutoff, self.threaded)
-    }
-}
+//         T::build_lambda(lambda, &json_path, distance_cutoff, self.threaded)
+//     }
+// }

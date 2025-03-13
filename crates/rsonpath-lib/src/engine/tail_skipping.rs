@@ -14,7 +14,7 @@ use crate::{
     },
     input::InputBlockIterator,
     lookup_table::{
-        performance::lut_skip_evaluation::{self, SkipMode, USE_SKIP_ABORT_STRATEGY},
+        performance::lut_skip_evaluation::{self, SkipMode, DISTANCE_CUT_OFF, USE_SKIP_ABORT_STRATEGY},
         LookUpTable, LookUpTableImpl,
     },
     FallibleIterator, MaskType, BLOCK_SIZE,
@@ -165,6 +165,8 @@ where
 
             let classifier = tail_skip.classifier.take().expect("tail skip must always hold a classifier");
 
+            let mut skip_with_lut_now = false;
+
             tail_skip.classifier = Some('a: {
                 let resume_state = classifier.stop();
                 let DepthIteratorResumeOutcome(first_vector, mut depth_classifier) =
@@ -183,7 +185,19 @@ where
                 };
                 let mut current_depth = 1;
 
+
+                let mut distance_counter = 0;
                 'outer: while let Some(ref mut vector) = current_vector {
+                    distance_counter = distance_counter + BLOCK_SIZE;
+                    if distance_counter > DISTANCE_CUT_OFF {
+                        // TODO stop skipping ITE style and skip LUT style
+                        skip_with_lut_now = true;
+
+                        let resume_state = depth_classifier.stop(current_vector);
+                        idx = resume_state.get_idx();
+                        break 'a tail_skip.simd.resume_structural_classification(resume_state);
+                    }
+
                     vector.add_depth(current_depth);
                     if vector.estimate_lowest_possible_depth() <= 0 {
                         while vector.advance_to_next_depth_decrease() {
@@ -202,30 +216,13 @@ where
                             break 'a tail_skip.simd.resume_structural_classification(resume_state);
                         }
                     };
-
-                    // let resume_state = depth_classifier.stop(current_vector);
-                    // let current_idx = resume_state.get_idx();
-                    // if(current_idx - opening_idx_padded) > DISTANCE_CUT_OFF {
-                    //     debug!("Reached threshhold of {}", DISTANCE_CUT_OFF);
-
-                    //     let Some(idx_close) = lut.get(&(opening_idx_padded - padding));
-                    //     let closing_idx = idx_close + 1;
-                    //     let closing_idx_padded = padding + closing_idx;
-                    //     self.classifier
-                    //         .as_mut()
-                    //         .expect("tail skip must always hold a classifier")
-                    //         .jump_to_idx(closing_idx_padded, false)?;
-
-                    // } else {
-                    //     let DepthIteratorResumeOutcome(first_vector, mut depth_classifier) =
-                    //         tail_skip.simd.resume_depth_classification(resume_state, opening);
-                    // }
                 }
 
                 let resume_state = depth_classifier.stop(current_vector);
                 idx = resume_state.get_idx();
                 tail_skip.simd.resume_structural_classification(resume_state)
             });
+
 
 
             if let Some(err) = err {

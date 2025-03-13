@@ -65,6 +65,9 @@ pub fn evaluate(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::erro
     //     }
     // }
 
+    // #####################################
+    // Measure LUTs with bucket parameter
+    // #####################################
     for lambda in [1, 5] {
         // for bit_mask in [3, 7, 15, 31, 63, 127] {
         for bit_mask in [2047, 4095, 8191] {

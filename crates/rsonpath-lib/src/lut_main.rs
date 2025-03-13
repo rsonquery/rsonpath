@@ -1,6 +1,7 @@
 use clap::{Parser, Subcommand};
 use rsonpath::lookup_table::{
     distance_counter::{self, DISTANCE_EVAL_DIR},
+    lut_sichash,
     performance::{self, lut_skip_counter, lut_skip_evaluation, EVAL_DIR},
     pokemon_test_data_generator,
     query_with_lut::query_with_lut,
@@ -43,6 +44,7 @@ enum Commands {
     },
     Skip {},
     SkipCount {},
+    TestSicHash {},
     /// Create the test data used in this project: https://github.com/KraftRicardo/test-SicHash
     Sichash {
         /// Path to the folder containing JSON files
@@ -81,6 +83,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
         Commands::SkipCount {} => {
             lut_skip_counter::track_skips();
+        }
+        Commands::TestSicHash {} => {
+            lut_sichash::test_sichash_lut();
         }
         Commands::Sichash { json_dir, out_dir } => {
             check_if_dir_exists(json_dir);
