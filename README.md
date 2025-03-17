@@ -206,6 +206,12 @@ We have a paper on `rsonpath` to be published at [ASPLOS '24](https://www.asplos
 This project was conceived as [my thesis](/pdf/fast-execution-of-jsonpath-queries.pdf). You can read it for details on the theoretical
 background on the engine and details of its implementation.
 
+We also have a short talk from ASPLOS 2024 about rsonpath!
+
+https://gienieczko.com/asplos-2024-talk.mp4
+
+(excuse the audio quality, the sound in the source video was corrupted and we had to salvage)
+
 ## Dependencies
 
 Showing direct dependencies, for full graph see below.
