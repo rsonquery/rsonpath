@@ -15,14 +15,15 @@ pub mod query_with_lut;
 pub mod sichash_test_data_generator;
 pub mod util_path;
 
+pub type LUT = lut_hash_map::LutHashMap;
+
 // Cannot work until PackedStackFrame logic is implemented since it cannot return None on untrained keys
-pub type LUT = lut_sichash::LutSicHash;
-// pub type LUT = lut_hash_map::LutHashMap;
+// pub type LUT = lut_sichash::LutSicHash;
 
 /// Lookup-table = LUT
 pub trait LookUpTable {
     fn build(json_path: &str, distance_cutoff: usize) -> Result<Self, Box<dyn std::error::Error>>
-    // fn build(json_path: &str) -> Result<Self, Box<dyn std::error::Error + Sync + Send>>
+    // TODO if time? fn build(json_path: &str) -> Result<Self, Box<dyn std::error::Error + Sync + Send>>
     where
         Self: Sized;
 

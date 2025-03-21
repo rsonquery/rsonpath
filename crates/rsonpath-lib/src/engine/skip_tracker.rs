@@ -22,9 +22,9 @@ static LUT_DISTANCE: AtomicU64 = AtomicU64::new(0);
 static ITE_DISTANCE: AtomicU64 = AtomicU64::new(0);
 
 pub fn track_distance_lut(distance: usize) {
-    if lut_skip_evaluation::MODE == SkipMode::COUNT {
+    if lut_skip_evaluation::SKIP_MODE == SkipMode::COUNT {
         LUT_COUNT.fetch_add(1, Ordering::Relaxed);
-    } else if lut_skip_evaluation::MODE == SkipMode::TRACK {
+    } else if lut_skip_evaluation::SKIP_MODE == SkipMode::TRACK {
         let mut map = SKIP_TRACKER_LUT.lock().unwrap();
         *map.entry(distance).or_insert(0) += 1;
     }
@@ -33,9 +33,9 @@ pub fn track_distance_lut(distance: usize) {
 }
 
 pub fn track_distance_ite(distance: usize) {
-    if lut_skip_evaluation::MODE == SkipMode::COUNT {
+    if lut_skip_evaluation::SKIP_MODE == SkipMode::COUNT {
         ITE_COUNT.fetch_add(1, Ordering::Relaxed);
-    } else if lut_skip_evaluation::MODE == SkipMode::TRACK {
+    } else if lut_skip_evaluation::SKIP_MODE == SkipMode::TRACK {
         let mut map = SKIP_TRACKER_ITE.lock().unwrap();
         *map.entry(distance).or_insert(0) += 1;
     }

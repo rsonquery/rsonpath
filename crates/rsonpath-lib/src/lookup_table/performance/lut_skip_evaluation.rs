@@ -24,10 +24,10 @@ use super::lut_skip_counter::COUNTER_FILE_PATH;
 // ##########
 // # Config #
 // ##########
-pub const TRACK_SKIPPING_DURING_PERFORMANCE_TEST: bool = false;
-pub const MODE: SkipMode = SkipMode::OFF;
+pub const TRACK_SKIPPING_TIME_DURING_PERFORMANCE_TEST: bool = false;
+pub const SKIP_MODE: SkipMode = SkipMode::TRACK;
 pub const DISTANCE_CUT_OFF: usize = 0;
-pub const USE_SKIP_ABORT_STRATEGY: bool = false;
+pub const USE_SKIP_ABORT_STRATEGY: bool = true;
 const REPETITIONS: u64 = 1;
 
 static SKIP_TIME_ATOMIC: AtomicU64 = AtomicU64::new(0);

@@ -19,9 +19,12 @@ use crate::{
     input::OwnedBytes,
     lookup_table::{
         self, lut_hash_map, pair_finder,
-        performance::lut_query_data::{
-            ALPHABET, JOHN, JOHN_BIG, POKEMON_SHORT, QUERY_BESTBUY, QUERY_GOOGLE, QUERY_POKEMON_SHORT, QUERY_TWITTER,
-            TWITTER_MINI,
+        performance::{
+            lut_query_data::{
+                ALPHABET, JOHN, JOHN_BIG, POKEMON_SHORT, QUERY_BESTBUY, QUERY_GOOGLE, QUERY_POKEMON_SHORT,
+                QUERY_TWITTER, TWITTER_MINI,
+            },
+            lut_skip_evaluation::DISTANCE_CUT_OFF,
         },
         LUT,
     },
@@ -278,8 +281,8 @@ pub fn test_sichash_lut() {
     // test_build_correctness(TWITTER);
     // test_build_correctness(POKEMON_SHORT);
 
-    test_query_correctness(lut_query_data::QUERY_POKEMON_MINI);
-    // test_query_correctness(lut_query_data::QUERY_GOOGLE);
+    // test_query_correctness(lut_query_data::QUERY_POKEMON_MINI);
+    test_query_correctness(lut_query_data::QUERY_GOOGLE);
     // test_query_correctness(lut_query_data::QUERY_TWITTER);
     // test_query_correctness(lut_query_data::QUERY_BESTBUY);
     // test_query_correctness(lut_query_data::QUERY_POKEMON_SHORT);
@@ -315,7 +318,7 @@ pub fn test_build_correctness(json_path: &str) {
 pub fn test_query_correctness(test_data: (&str, &[(&str, &str)])) {
     let (json_path, queries) = test_data;
     println!("Building LUT: {}", json_path);
-    let mut lut = LUT::build(&json_path, 0).expect("Fail @ building LUT");
+    let mut lut = LUT::build(&json_path, DISTANCE_CUT_OFF).expect("Fail @ building LUT");
 
     // Run all queries
     println!("Checking queries:");

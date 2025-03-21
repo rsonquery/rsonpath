@@ -25,8 +25,8 @@ use std::{error::Error, fs};
 pub const COUNTER_FILE_PATH: &str = ".a_lut_tests/performance/skip_tracker/COUNTER_";
 
 pub fn track_skips() {
-    // count_test_data(TEST_GOOGLE);
-    count_test_data(QUERY_BESTBUY);
+    count_test_data(QUERY_GOOGLE);
+    // count_test_data(QUERY_BESTBUY);
     // count_test_data(TEST_TWITTER);
     // count_test_data(QUERY_POKEMON_SHORT);
 }
@@ -43,10 +43,10 @@ fn count_test_data(test_data: (&str, &[(&str, &str)])) {
 }
 
 fn track(lut: LUT, json_path: &str, query_name: &str, query_text: &str) -> LUT {
-    if !(lut_skip_evaluation::MODE == SkipMode::OFF) {
+    if !(lut_skip_evaluation::SKIP_MODE == SkipMode::OFF) {
         println!(
             "Mode={:?}: Process query: {} = {}",
-            lut_skip_evaluation::MODE,
+            lut_skip_evaluation::SKIP_MODE,
             query_name,
             query_text
         );
@@ -71,10 +71,10 @@ fn track(lut: LUT, json_path: &str, query_name: &str, query_text: &str) -> LUT {
     print!("  COUNT = {} ", result);
 
     let filename = get_filename(json_path);
-    if lut_skip_evaluation::MODE == SkipMode::COUNT {
+    if lut_skip_evaluation::SKIP_MODE == SkipMode::COUNT {
         let csv_path = format!("{}{}.csv", COUNTER_FILE_PATH, filename);
         let _ = skip_tracker::save_count_to_csv(json_path, &csv_path, filename, query_name, query_text);
-    } else if lut_skip_evaluation::MODE == SkipMode::TRACK {
+    } else if lut_skip_evaluation::SKIP_MODE == SkipMode::TRACK {
         // Save the tracked skips to a csv
         let file_path = format!(".a_lut_tests/performance/skip_tracker/{}_{}.csv", filename, query_name);
         let save_result = skip_tracker::save_track_to_csv(&file_path);
