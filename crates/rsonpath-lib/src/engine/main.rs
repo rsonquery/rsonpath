@@ -261,6 +261,7 @@ struct Executor<'i, 'r, I, R, V> {
     /// Resolved SIMD context.
     simd: V,
     lut: Option<&'i LUT>,
+    idx_of_last_opening: usize,
 }
 
 /// Initialize the [`Executor`] for the initial state of a query.
@@ -287,6 +288,7 @@ where
         is_list: false,
         array_count: JsonUInt::ZERO,
         lut: jump_table,
+        idx_of_last_opening: 0,
     }
 }
 
@@ -426,7 +428,15 @@ where
             }
             let bracket_type = self.current_node_bracket_type();
             debug!("Skipping unique state from {bracket_type:?}");
-            let stop_at = classifier.skip(idx, bracket_type, self.lut, self.input.leading_padding_len())?;
+
+            // TODO Ricardo pass idx_of_last_opening
+            let stop_at = classifier.skip(
+                self.idx_of_last_opening,
+                idx,
+                bracket_type,
+                self.lut,
+                self.input.leading_padding_len(),
+            )?;
             // Skipping stops at the closing character *and consumes it*. We still need the main loop to properly
             // handle a closing, so we set the lookahead to the correct character.
             self.next_event = Some(Structural::Closing(bracket_type, stop_at));
@@ -539,7 +549,13 @@ where
 
                 // Tail skipping. Skip the entire subtree. The skipping consumes the closing character.
                 // We still need to notify the recorder - in case the value being skipped was actually accepted.
-                let closing_idx = classifier.skip(idx, bracket_type, self.lut, self.input.leading_padding_len())?;
+                let closing_idx = classifier.skip(
+                    self.idx_of_last_opening,
+                    idx,
+                    bracket_type,
+                    self.lut,
+                    self.input.leading_padding_len(),
+                )?;
                 return self.recorder.record_value_terminator(closing_idx, self.depth);
             } else {
                 self.transition_to(fallback, bracket_type);
@@ -554,6 +570,8 @@ where
         self.depth
             .increment()
             .map_err(|err| EngineError::DepthAboveLimit(idx, err))?;
+        // TODO Ricardo update last_opening_idx here
+        self.idx_of_last_opening = idx;
 
         self.is_list = bracket_type == BracketType::Square;
         let mut needs_commas = false;
@@ -634,7 +652,13 @@ where
             if self.automaton.is_unitary(self.state) {
                 let bracket_type = self.current_node_bracket_type();
                 debug!("Skipping unique state from {bracket_type:?}");
-                let close_idx = classifier.skip(idx, bracket_type, self.lut, self.input.leading_padding_len())?;
+                let close_idx = classifier.skip(
+                    self.idx_of_last_opening,
+                    idx,
+                    bracket_type,
+                    self.lut,
+                    self.input.leading_padding_len(),
+                )?;
                 // Skipping stops at the closing character *and consumes it*. We still need the main loop to properly
                 // handle a closing, so we set the lookahead to the correct character.
                 self.next_event = Some(Structural::Closing(bracket_type, close_idx));
@@ -669,21 +693,31 @@ where
         let is_fallback_accepting = self.automaton.is_accepting(fallback);
         let searching_list = is_fallback_accepting || self.automaton.has_any_array_item_transition(self.state);
 
-        // To keep the stack small, we only push if the state only changes in any meaningful way.
-        if target != self.state || target_is_list != self.is_list || searching_list {
-            debug!(
-                "push {}, goto {target}, is_list = {target_is_list}, array_count: {}",
-                self.state, self.array_count
-            );
+        // // To keep the stack small, we only push if the state only changes in any meaningful way.
+        // if target != self.state || target_is_list != self.is_list || searching_list {
+        //     debug!(
+        //         "push {}, goto {target}, is_list = {target_is_list}, array_count: {}",
+        //         self.state, self.array_count
+        //     );
 
-            self.stack.push(StackFrame {
-                depth: *self.depth,
-                state: self.state,
-                is_list: self.is_list,
-                array_count: self.array_count,
-            });
-            self.state = target;
-        }
+        //     self.stack.push(StackFrame {
+        //         depth: *self.depth,
+        //         state: self.state,
+        //         is_list: self.is_list,
+        //         array_count: self.array_count,
+        //     });
+        //     self.state = target;
+        // }
+
+        // TODO Ricardo
+        self.stack.push(StackFrame {
+            depth: *self.depth,
+            state: self.state,
+            is_list: self.is_list,
+            array_count: self.array_count,
+            idx_of_last_opening: self.idx_of_last_opening,
+        });
+        self.state = target;
     }
 
     /// Find the preceding non-whitespace character and return its index if it's a colon.
@@ -764,6 +798,8 @@ struct StackFrame {
     state: State,
     is_list: bool,
     array_count: JsonUInt,
+    // TODO Ricardo add idx_of_last_opening
+    idx_of_last_opening: usize,
 }
 
 #[derive(Debug)]

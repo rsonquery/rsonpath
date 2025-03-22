@@ -52,19 +52,25 @@ where
     /// has a long distance then using the LUT should be faster.
     pub(crate) fn skip(
         &mut self,
-        opening_idx_padded: usize,
+        idx_of_last_opening_padded: usize,
+        idx_padded: usize,
         bracket_type: BracketType,
         lut: Option<&LUT>,
         padding: usize,
     ) -> Result<usize, EngineError> {
+        // TODO Ricardo
+        // let distance = lut.get(idx_of_last_opening)
+        // let offset = idx_padded - idx_of_last_opening
+        // let final_distance = distance - offset;
+
         if lut_skip_evaluation::TRACK_SKIPPING_TIME_DURING_PERFORMANCE_TEST {
             let start_skip = Instant::now();
-            let result = self.skip_choice(opening_idx_padded, bracket_type, lut, padding);
+            let result = self.skip_choice(idx_padded, bracket_type, lut, padding);
             let skip_time = start_skip.elapsed().as_nanos() as u64;
             lut_skip_evaluation::add_skip_time(skip_time);
             return result;
         } else {
-            self.skip_choice(opening_idx_padded, bracket_type, lut, padding)
+            self.skip_choice(idx_padded, bracket_type, lut, padding)
         }
     }
 

@@ -15,7 +15,6 @@ pub struct PackedStackFrame {
 /// - Byte 14 (last bit): is_list: 1 bit
 /// - Byte 15: state: u8 (8 bit)
 impl PackedStackFrame {
-    /// Creates a new `PackedStackFrame` instance.
     #[inline]
     #[must_use]
     pub fn new(depth: u8, state: u8, is_list: bool, array_count: JsonUInt, idx_of_last_opening: usize) -> Self {
