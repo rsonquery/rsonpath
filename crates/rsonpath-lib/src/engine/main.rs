@@ -687,11 +687,11 @@ where
     /// that opened with `opening`.
     #[inline(always)]
     fn transition_to(&mut self, target: State, opening: BracketType) {
-        let target_is_list = opening == BracketType::Square;
+        // let target_is_list = opening == BracketType::Square;
 
-        let fallback = self.automaton[self.state].fallback_state();
-        let is_fallback_accepting = self.automaton.is_accepting(fallback);
-        let searching_list = is_fallback_accepting || self.automaton.has_any_array_item_transition(self.state);
+        // let fallback = self.automaton[self.state].fallback_state();
+        // let is_fallback_accepting = self.automaton.is_accepting(fallback);
+        // let searching_list = is_fallback_accepting || self.automaton.has_any_array_item_transition(self.state);
 
         // // To keep the stack small, we only push if the state only changes in any meaningful way.
         // if target != self.state || target_is_list != self.is_list || searching_list {

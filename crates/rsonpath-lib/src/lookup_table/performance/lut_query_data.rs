@@ -1,3 +1,16 @@
+use crate::{
+    engine::{Compiler, Engine, RsonpathEngine},
+    input::OwnedBytes,
+    lookup_table::{
+        self, lut_hash_map, pair_finder, performance::lut_skip_evaluation::DISTANCE_CUT_OFF, LookUpTable, LUT,
+    },
+};
+
+use std::{
+    fs,
+    io::{BufReader, Read},
+};
+
 pub const JOHN: &str = ".a_lut_tests/test_data/kB_1/john_119.json";
 pub const JOHN_BIG: &str = ".a_lut_tests/test_data/kB_1/john_big.json";
 pub const ALPHABET: &str = ".a_lut_tests/test_data/kB_1/alphabet_(2kB).json";
@@ -210,3 +223,95 @@ pub const QUERY_POKEMON_MINI: (&str, &[(&str, &str)]) = (
         ("205", "$.cfgs[*].Weight"),
     ],
 );
+
+pub const QUERY_JOHN_BIG: (&str, &[(&str, &str)]) = (
+    JOHN_BIG,
+    &[
+        // ("200", "$.person.firstName"),
+        // ("201", "$.person.lastName"),
+        // ("202", "$.person.phoneNumber[2].type"),
+        ("203", "$.person.spouse.person.phoneNumber.*"),
+    ],
+);
+
+// ########################
+// #### Test functions ####
+// ########################
+pub fn test_build_and_queries() {
+    // test_build_correctness(GOOGLE);
+    // test_build_correctness(WALMART);
+    // test_build_correctness(BESTBUY);
+    // test_build_correctness(TWITTER);
+    // test_build_correctness(POKEMON_SHORT);
+
+    test_query_correctness(QUERY_JOHN_BIG);
+    // test_query_correctness(QUERY_POKEMON_MINI);
+    // test_query_correctness(QUERY_GOOGLE);
+    // test_query_correctness(QUERY_TWITTER);
+    // test_query_correctness(QUERY_BESTBUY);
+    // test_query_correctness(QUERY_POKEMON_SHORT);
+}
+
+fn test_build_correctness(json_path: &str) {
+    println!("Building LUT: {}", json_path);
+    let lut = LUT::build(&json_path, 0).expect("Fail @ building LUT");
+    println!("Building LUT (Hashmap): {}", json_path);
+    let lut_hash_map = lut_hash_map::LutHashMap::build(&json_path, 0).expect("Fail @ building LUT");
+
+    println!("Testing keys ...");
+    let (keys, values) = pair_finder::get_keys_and_values(json_path).expect("Fail @ finding pairs.");
+    let mut count_incorrect = 0;
+    for (i, key) in keys.iter().enumerate() {
+        let value = lut.get(key).expect("Fail at getting value.");
+        let value_hash = lut_hash_map.get(key).expect("Fail at getting value.");
+        if value != values[i] || value != value_hash {
+            count_incorrect += 1;
+            println!(
+                "  i: {}, Key {}, Value {}, Expected: {}, Hash {}",
+                i, key, value, values[i], value_hash
+            );
+        }
+    }
+
+    println!(" Correct {}/{}", keys.len() - count_incorrect, keys.len());
+    println!(" Incorrect {}/{}", count_incorrect, keys.len());
+
+    std::mem::drop(lut);
+}
+
+fn test_query_correctness(test_data: (&str, &[(&str, &str)])) {
+    let (json_path, queries) = test_data;
+    println!("Building LUT: {}", json_path);
+    let mut lut = LUT::build(&json_path, DISTANCE_CUT_OFF).expect("Fail @ building LUT");
+
+    // Run all queries
+    println!("Checking queries:");
+    for &(query_name, query_text) in queries {
+        println!(" Query: {} = \"{}\" ... ", query_name, query_text);
+        let input = {
+            let mut file = BufReader::new(fs::File::open(json_path).expect("Fail @ open File"));
+            let mut buf = vec![];
+            file.read_to_end(&mut buf).expect("Fail @ file read");
+            OwnedBytes::new(buf)
+        };
+        let query = rsonpath_syntax::parse(query_text).expect("Fail @ parse query");
+
+        // Query normally and skip iteratively (ITE)
+        let mut engine = RsonpathEngine::compile_query(&query).expect("Fail @ compile query");
+        let count = engine.count(&input).expect("Failed to run query normally");
+
+        // Query normally and skip using the lookup table (LUT)
+        engine.add_lut(lut);
+        let lut_count = engine.count(&input).expect("LUT: Failed to run query normally");
+
+        if lut_count != count {
+            println!("Found {}, Expected {}", lut_count, count);
+        } else {
+            println!("Correct");
+        }
+
+        lut = engine.take_lut().expect("Failed to retrieve LUT from engine");
+    }
+
+    std::mem::drop(lut);
+}

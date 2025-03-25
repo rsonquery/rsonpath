@@ -104,10 +104,10 @@ impl LutHashMap {
             }
         }
 
-        // debug!("Found keys and values:");
-        // for (key, value) in keys.iter().zip(values.iter()) {
-        //     debug!("({}, {})", key, value);
-        // }
+        println!("Found keys and values:");
+        for (key, value) in keys.iter().zip(values.iter()) {
+            println!("({}, {})", key, value);
+        }
 
         Ok((keys, values))
     }

@@ -65,27 +65,28 @@ where
 
         if lut_skip_evaluation::TRACK_SKIPPING_TIME_DURING_PERFORMANCE_TEST {
             let start_skip = Instant::now();
-            let result = self.skip_choice(idx_padded, bracket_type, lut, padding);
+            let result = self.skip_choice(idx_of_last_opening_padded, idx_padded, bracket_type, lut, padding);
             let skip_time = start_skip.elapsed().as_nanos() as u64;
             lut_skip_evaluation::add_skip_time(skip_time);
             return result;
         } else {
-            self.skip_choice(idx_padded, bracket_type, lut, padding)
+            self.skip_choice(idx_of_last_opening_padded, idx_padded, bracket_type, lut, padding)
         }
     }
 
     fn skip_choice(
         &mut self,
-        opening_idx_padded: usize,
+        idx_of_last_opening_padded: usize,
+        idx_padded: usize,
         bracket_type: BracketType,
         lut: Option<&LUT>,
         padding: usize,
     ) -> Result<usize, EngineError> {
         if let Some(lut) = lut {
             if USE_SKIP_ABORT_STRATEGY {
-                self.skip_with_lut_abort(opening_idx_padded, bracket_type, lut, padding)
+                self.skip_with_lut_abort(idx_of_last_opening_padded, bracket_type, lut, padding)
             } else {
-                self.skip_with_lut(opening_idx_padded, bracket_type, lut, padding)
+                self.skip_with_lut(idx_of_last_opening_padded, idx_padded, bracket_type, lut, padding)
             }
         } else {
             self.skip_without_lut(bracket_type)
@@ -102,17 +103,16 @@ where
     // 7. This function returns the skipped-to index.
     fn skip_with_lut(
         &mut self,
-        open_idx_pad: usize,
+        idx_of_last_opening_padded: usize,
+        idx_padded: usize,
         bracket_type: BracketType,
         lut: &LUT,
         padding: usize,
     ) -> Result<usize, EngineError> {
-        let open_idx = open_idx_pad - padding;
+        let open_idx = idx_of_last_opening_padded - padding;
 
-        // 0. Use LUT to get opening -> closing index. Can fail if key is not in LUT
         if let Some(lut_idx) = lut.get(&open_idx) {
-            // Shift index by 1 or its off aligned
-            let close_idx = lut_idx + 1;
+            let close_idx = lut_idx + 1; // Shift index by 1 or its off aligned
             let close_idx_pad = padding + close_idx;
 
             if !(lut_skip_evaluation::SKIP_MODE == SkipMode::OFF) {
@@ -121,18 +121,27 @@ where
                 track_distance_lut(distance);
             }
 
-            // 1. Tell the Structural Classifier (self.classifier) to jump
             self.classifier
                 .as_mut()
                 .expect("tail skip must always hold a classifier")
                 .jump_to_idx(close_idx_pad, false)?;
 
-            // 7. This function returns the skipped-to index.
+            println!(
+                "LUT: {}: ({}, {}) No-PAD: {}: ({}, {})",
+                idx_padded,
+                idx_of_last_opening_padded,
+                close_idx_pad,
+                idx_padded - padding,
+                idx_of_last_opening_padded - padding,
+                close_idx_pad - padding,
+            );
+
             Ok(close_idx_pad)
         } else {
+            panic!("Did not find key in LUT. Should never happen.");
             // Do this when you were not able to find any values in the LUT
-            let close_idx_pad = self.skip_without_lut(bracket_type)?;
-            let close_idx = close_idx_pad - padding;
+            let close_idx_padded = self.skip_without_lut(bracket_type)?;
+            let close_idx = close_idx_padded - padding;
 
             if !(lut_skip_evaluation::SKIP_MODE == SkipMode::OFF) {
                 // Only for tracking jumps and not needed in normal runs
@@ -140,7 +149,17 @@ where
                 track_distance_ite(distance);
             }
 
-            Ok(close_idx_pad)
+            println!(
+                "ITE: {}: ({}, {}) No-PAD: {}, ({}, {})",
+                idx_padded,
+                idx_of_last_opening_padded,
+                close_idx_padded,
+                idx_padded - padding,
+                idx_of_last_opening_padded - padding,
+                close_idx_padded - padding,
+            );
+
+            Ok(close_idx_padded)
         }
     }
 

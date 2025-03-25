@@ -1,8 +1,4 @@
-use super::{
-    lut_phf_double::THRESHOLD_16_BITS,
-    performance::lut_query_data::{BESTBUY, GOOGLE, TWITTER, WALMART},
-    LookUpTable,
-};
+use super::{lut_phf_double::THRESHOLD_16_BITS, LookUpTable};
 
 use std::{
     ffi::{c_void, CString},
@@ -10,25 +6,7 @@ use std::{
     str::{self},
 };
 
-use std::io::{BufReader, Read};
-
 use std::{collections::VecDeque, fs};
-
-use crate::{
-    engine::{Compiler, Engine, RsonpathEngine},
-    input::OwnedBytes,
-    lookup_table::{
-        self, lut_hash_map, pair_finder,
-        performance::{
-            lut_query_data::{
-                ALPHABET, JOHN, JOHN_BIG, POKEMON_SHORT, QUERY_BESTBUY, QUERY_GOOGLE, QUERY_POKEMON_SHORT,
-                QUERY_TWITTER, TWITTER_MINI,
-            },
-            lut_skip_evaluation::DISTANCE_CUT_OFF,
-        },
-        LUT,
-    },
-};
 
 use crate::{
     classification::{
@@ -37,7 +15,6 @@ use crate::{
         structural::{BracketType, Structural, StructuralIterator},
     },
     input::{self, error, Input},
-    lookup_table::performance::lut_query_data,
     result::empty::EmptyRecorder,
     FallibleIterator,
 };
@@ -267,161 +244,4 @@ impl LookUpTable for LutSicHash {
     fn allocated_bytes(&self) -> usize {
         unsafe { get_allocated_bytes(self.lut) }
     }
-}
-
-// ########################
-// #### Test functions ####
-// ########################
-pub fn test_sichash_lut() {
-    // query_and_build_test();
-
-    // test_build_correctness(GOOGLE);
-    // test_build_correctness(WALMART);
-    // test_build_correctness(BESTBUY);
-    // test_build_correctness(TWITTER);
-    // test_build_correctness(POKEMON_SHORT);
-
-    // test_query_correctness(lut_query_data::QUERY_POKEMON_MINI);
-    test_query_correctness(lut_query_data::QUERY_GOOGLE);
-    // test_query_correctness(lut_query_data::QUERY_TWITTER);
-    // test_query_correctness(lut_query_data::QUERY_BESTBUY);
-    // test_query_correctness(lut_query_data::QUERY_POKEMON_SHORT);
-}
-
-pub fn test_build_correctness(json_path: &str) {
-    println!("Building LUT: {}", json_path);
-    let lut = LUT::build(&json_path, 0).expect("Fail @ building LUT");
-    println!("Building LUT (Hashmap): {}", json_path);
-    let lut_hash_map = lut_hash_map::LutHashMap::build(&json_path, 0).expect("Fail @ building LUT");
-
-    println!("Testing keys ...");
-    let (keys, values) = pair_finder::get_keys_and_values(json_path).expect("Fail @ finding pairs.");
-    let mut count_incorrect = 0;
-    for (i, key) in keys.iter().enumerate() {
-        let value = lut.get(key).expect("Fail at getting value.");
-        let value_hash = lut_hash_map.get(key).expect("Fail at getting value.");
-        if value != values[i] || value != value_hash {
-            count_incorrect += 1;
-            println!(
-                "  i: {}, Key {}, Value {}, Expected: {}, Hash {}",
-                i, key, value, values[i], value_hash
-            );
-        }
-    }
-
-    println!(" Correct {}/{}", keys.len() - count_incorrect, keys.len());
-    println!(" Incorrect {}/{}", count_incorrect, keys.len());
-
-    std::mem::drop(lut);
-}
-
-pub fn test_query_correctness(test_data: (&str, &[(&str, &str)])) {
-    let (json_path, queries) = test_data;
-    println!("Building LUT: {}", json_path);
-    let mut lut = LUT::build(&json_path, DISTANCE_CUT_OFF).expect("Fail @ building LUT");
-
-    // Run all queries
-    println!("Checking queries:");
-    for &(query_name, query_text) in queries {
-        print!(" Query: {} ... ", query_name);
-        let input = {
-            let mut file = BufReader::new(fs::File::open(json_path).expect("Fail @ open File"));
-            let mut buf = vec![];
-            file.read_to_end(&mut buf).expect("Fail @ file read");
-            OwnedBytes::new(buf)
-        };
-        let query = rsonpath_syntax::parse(query_text).expect("Fail @ parse query");
-
-        // Query normally and skip iteratively (ITE)
-        let mut engine = RsonpathEngine::compile_query(&query).expect("Fail @ compile query");
-        let count = engine.count(&input).expect("Failed to run query normally");
-
-        // Query normally and skip using the lookup table (LUT)
-        engine.add_lut(lut);
-        let lut_count = engine.count(&input).expect("LUT: Failed to run query normally");
-
-        if lut_count != count {
-            println!("Found {}, Expected {}", lut_count, count);
-        } else {
-            println!("Correct");
-        }
-
-        lut = engine.take_lut().expect("Failed to retrieve LUT from engine");
-    }
-
-    std::mem::drop(lut);
-}
-
-fn query_and_build_test() {
-    let test_data = lut_query_data::QUERY_POKEMON_SHORT;
-    let (json_path, queries) = test_data;
-
-    println!("Building LUT: {}", json_path);
-    let mut lut = LUT::build(&json_path, 0).expect("Fail @ building LUT");
-    println!("Building LUT (Hashmap): {}", json_path);
-    let lut_hash_map = lut_hash_map::LutHashMap::build(&json_path, 0).expect("Fail @ building LUT");
-
-    // TEST BUILD
-    println!("Testing keys ...");
-    let (keys, values) = pair_finder::get_keys_and_values(json_path).expect("Fail @ finding pairs.");
-    let mut count_incorrect = 0;
-    for (i, key) in keys.iter().enumerate() {
-        let value = lut.get(key).expect("Fail at getting value.");
-        let value_hash = lut_hash_map.get(key).expect("Fail at getting value.");
-        if value != values[i] || value != value_hash {
-            count_incorrect += 1;
-            println!(
-                "  i: {}, Key {}, Value {}, Expected: {}, Hash {}",
-                i, key, value, values[i], value_hash
-            );
-        }
-    }
-    println!(" Correct {}/{}", keys.len() - count_incorrect, keys.len());
-    println!(" Incorrect {}/{}", count_incorrect, keys.len());
-
-    // QUERIES
-    // Run all queries
-    for &(query_name, query_text) in queries {
-        print!(" Query: {} ... ", query_name);
-        let input = {
-            let mut file = BufReader::new(fs::File::open(json_path).expect("Fail @ open File"));
-            let mut buf = vec![];
-            file.read_to_end(&mut buf).expect("Fail @ file read");
-            OwnedBytes::new(buf)
-        };
-        let query = rsonpath_syntax::parse(query_text).expect("Fail @ parse query");
-
-        // Query normally and skip iteratively (ITE)
-        let mut engine = RsonpathEngine::compile_query(&query).expect("Fail @ compile query");
-        let result = engine.count(&input).expect("Failed to run query normally");
-
-        // Query normally and skip using the lookup table (LUT)
-        engine.add_lut(lut);
-        let lut_result = engine.count(&input).expect("LUT: Failed to run query normally");
-
-        if lut_result != result {
-            println!("Found {}, Expected {}", lut_result, result);
-        } else {
-            println!("Correct");
-        }
-
-        lut = engine.take_lut().expect("Failed to retrieve LUT from engine");
-    }
-
-    // TEST BUILD AGAIN
-    println!("Testing keys ...");
-    let (keys, values) = pair_finder::get_keys_and_values(json_path).expect("Fail @ finding pairs.");
-    for (i, key) in keys.iter().enumerate() {
-        let value = lut.get(key).expect("Fail at getting value.");
-        let value_hash = lut_hash_map.get(key).expect("Fail at getting value.");
-        if value != values[i] || value != value_hash {
-            count_incorrect += 1;
-            println!(
-                "  i: {}, Key {}, Value {}, Expected: {}, Hash {}",
-                i, key, value, values[i], value_hash
-            );
-        }
-    }
-    println!(" Correct {}/{}", keys.len() - count_incorrect, keys.len());
-    println!(" Incorrect {}/{}", count_incorrect, keys.len());
 }
