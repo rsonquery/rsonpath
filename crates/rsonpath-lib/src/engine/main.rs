@@ -260,8 +260,10 @@ struct Executor<'i, 'r, I, R, V> {
     recorder: &'r R,
     /// Resolved SIMD context.
     simd: V,
+    /// Lookup table (LUT), returns the position of a closing bracket given the position of an opening bracket
     lut: Option<&'i LUT>,
-    idx_of_last_opening: usize,
+    /// Track position of the last opened bracket, needed for LUT. padded
+    idx_open: usize,
 }
 
 /// Initialize the [`Executor`] for the initial state of a query.
@@ -288,7 +290,7 @@ where
         is_list: false,
         array_count: JsonUInt::ZERO,
         lut: jump_table,
-        idx_of_last_opening: 0,
+        idx_open: 0,
     }
 }
 
@@ -431,7 +433,7 @@ where
 
             // TODO Ricardo pass idx_of_last_opening
             let stop_at = classifier.skip(
-                self.idx_of_last_opening,
+                self.idx_open,
                 idx,
                 bracket_type,
                 self.lut,
@@ -550,7 +552,7 @@ where
                 // Tail skipping. Skip the entire subtree. The skipping consumes the closing character.
                 // We still need to notify the recorder - in case the value being skipped was actually accepted.
                 let closing_idx = classifier.skip(
-                    self.idx_of_last_opening,
+                    self.idx_open,
                     idx,
                     bracket_type,
                     self.lut,
@@ -571,7 +573,7 @@ where
             .increment()
             .map_err(|err| EngineError::DepthAboveLimit(idx, err))?;
         // TODO Ricardo update last_opening_idx here
-        self.idx_of_last_opening = idx;
+        self.idx_open = idx;
 
         self.is_list = bracket_type == BracketType::Square;
         let mut needs_commas = false;
@@ -653,7 +655,7 @@ where
                 let bracket_type = self.current_node_bracket_type();
                 debug!("Skipping unique state from {bracket_type:?}");
                 let close_idx = classifier.skip(
-                    self.idx_of_last_opening,
+                    self.idx_open,
                     idx,
                     bracket_type,
                     self.lut,
@@ -715,7 +717,7 @@ where
             state: self.state,
             is_list: self.is_list,
             array_count: self.array_count,
-            idx_of_last_opening: self.idx_of_last_opening,
+            idx_of_last_opening: self.idx_open,
         });
         self.state = target;
     }

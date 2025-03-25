@@ -52,44 +52,42 @@ where
     /// has a long distance then using the LUT should be faster.
     pub(crate) fn skip(
         &mut self,
-        idx_of_last_opening_padded: usize,
-        idx_padded: usize,
+        idx_open: usize, // padded
+        idx: usize,      // padded
         bracket_type: BracketType,
         lut: Option<&LUT>,
         padding: usize,
     ) -> Result<usize, EngineError> {
-        // TODO Ricardo
-        // let distance = lut.get(idx_of_last_opening)
-        // let offset = idx_padded - idx_of_last_opening
-        // let final_distance = distance - offset;
-
         if lut_skip_evaluation::TRACK_SKIPPING_TIME_DURING_PERFORMANCE_TEST {
             let start_skip = Instant::now();
-            let result = self.skip_choice(idx_of_last_opening_padded, idx_padded, bracket_type, lut, padding);
+            let result = self.skip_choice(idx_open, idx, bracket_type, lut, padding);
             let skip_time = start_skip.elapsed().as_nanos() as u64;
             lut_skip_evaluation::add_skip_time(skip_time);
             return result;
         } else {
-            self.skip_choice(idx_of_last_opening_padded, idx_padded, bracket_type, lut, padding)
+            self.skip_choice(idx_open, idx, bracket_type, lut, padding)
         }
     }
 
     fn skip_choice(
         &mut self,
-        idx_of_last_opening_padded: usize,
-        idx_padded: usize,
+        idx_open: usize, // padded
+        idx: usize,      // padded
         bracket_type: BracketType,
         lut: Option<&LUT>,
         padding: usize,
     ) -> Result<usize, EngineError> {
         if let Some(lut) = lut {
             if USE_SKIP_ABORT_STRATEGY {
-                self.skip_with_lut_abort(idx_of_last_opening_padded, bracket_type, lut, padding)
+                // use ITE mainly and LUT only when then jump distance exceeds DISTANCE_CUTOFF
+                self.skip_lut_abort(idx_open, bracket_type, lut, padding)
             } else {
-                self.skip_with_lut(idx_of_last_opening_padded, idx_padded, bracket_type, lut, padding)
+                // use only the LUT, even for short distances
+                self.skip_lut(idx_open, idx, bracket_type, lut, padding)
             }
         } else {
-            self.skip_without_lut(bracket_type)
+            // default
+            self.skip_ite(bracket_type)
         }
     }
 
@@ -101,92 +99,86 @@ where
     // 5. Q needs to reclassify the new current block.
     // 6. S needs to reclassify the new current block.
     // 7. This function returns the skipped-to index.
-    fn skip_with_lut(
+    fn skip_lut(
         &mut self,
-        idx_of_last_opening_padded: usize,
-        idx_padded: usize,
+        idx_open: usize, // padded
+        idx: usize,      // padded
         bracket_type: BracketType,
         lut: &LUT,
         padding: usize,
     ) -> Result<usize, EngineError> {
-        let open_idx = idx_of_last_opening_padded - padding;
-
-        if let Some(lut_idx) = lut.get(&open_idx) {
-            let close_idx = lut_idx + 1; // Shift index by 1 or its off aligned
-            let close_idx_pad = padding + close_idx;
-
-            if !(lut_skip_evaluation::SKIP_MODE == SkipMode::OFF) {
-                // Only for tracking jumps and not needed in normal runs
-                let distance = close_idx - open_idx;
-                track_distance_lut(distance);
-            }
+        // Get value from LUT, can hit or miss.
+        if let Some(lut_index) = lut.get(&(idx_open - padding)) {
+            // Note: shift index by 1 or its off aligned
+            let idx_close = lut_index + 1 + padding;
 
             self.classifier
                 .as_mut()
                 .expect("tail skip must always hold a classifier")
-                .jump_to_idx(close_idx_pad, false)?;
+                .jump_to_idx(idx_close, false)?;
+
+            // Only for tracking jumps and not needed in normal runs
+            if !(lut_skip_evaluation::SKIP_MODE == SkipMode::OFF) {
+                track_distance_lut(idx_close - idx_open);
+            }
 
             println!(
-                "LUT: {}: ({}, {}) No-PAD: {}: ({}, {})",
-                idx_padded,
-                idx_of_last_opening_padded,
-                close_idx_pad,
-                idx_padded - padding,
-                idx_of_last_opening_padded - padding,
-                close_idx_pad - padding,
+                "LUT: idx={}: ({}, {}) No-PAD: idx={}: ({}, {})",
+                idx,
+                idx_open,
+                idx_close,
+                idx - padding,
+                idx_open - padding,
+                idx_close - padding,
             );
 
-            Ok(close_idx_pad)
+            Ok(idx_close)
         } else {
-            panic!("Did not find key in LUT. Should never happen.");
-            // Do this when you were not able to find any values in the LUT
-            let close_idx_padded = self.skip_without_lut(bracket_type)?;
-            let close_idx = close_idx_padded - padding;
+            // LUT had no hit, skip ITE style
+            let idx_close = self.skip_ite(bracket_type)?;
 
+            // Only for tracking jumps and not needed in normal runs
             if !(lut_skip_evaluation::SKIP_MODE == SkipMode::OFF) {
-                // Only for tracking jumps and not needed in normal runs
-                let distance = close_idx - open_idx;
-                track_distance_ite(distance);
+                track_distance_ite(idx_close - idx_open);
             }
 
             println!(
                 "ITE: {}: ({}, {}) No-PAD: {}, ({}, {})",
-                idx_padded,
-                idx_of_last_opening_padded,
-                close_idx_padded,
-                idx_padded - padding,
-                idx_of_last_opening_padded - padding,
-                close_idx_padded - padding,
+                idx,
+                idx_open,
+                idx_close,
+                idx - padding,
+                idx_open - padding,
+                idx_close - padding,
             );
 
-            Ok(close_idx_padded)
+            Ok(idx_close)
         }
     }
 
     /// With DISTANCE_CUTOFF we defined a minimum distance value that all the LUTs will track. That means when we
     /// skip we want to skip normally ITE style until we reach the DISTANCE_CUTOFF. Then we want to query the LUT,
     /// since we know it will cover the larger skips, and then skip LUT style, because it should be faster.
-    fn skip_with_lut_abort(
+    fn skip_lut_abort(
         &mut self,
-        opening_idx_padded: usize,
+        idx_open: usize,
         bracket_type: BracketType,
         lut: &LUT,
         padding: usize,
     ) -> Result<usize, EngineError> {
-        dispatch_simd!(self.simd; self, bracket_type, opening_idx_padded, lut, padding =>
+        dispatch_simd!(self.simd; self, bracket_type, idx_open, lut, padding =>
         fn <'i, I, V>(
             tail_skip: &mut TailSkip<'i, I, V::QuotesClassifier<'i, I>, V::StructuralClassifier<'i, I>, V, BLOCK_SIZE>,
-            opening: BracketType, open_idx_pad: usize, lut: &LUT, padding: usize) -> Result<usize, EngineError>
+            opening: BracketType, idx_open: usize, lut: &LUT, padding: usize) -> Result<usize, EngineError>
         where
             I: InputBlockIterator<'i, BLOCK_SIZE>,
             V: Simd
         {
-            let mut idx = 0;
+            let mut idx_close = 0;
             let mut err = None;
-
             let mut skip_with_lut = false;
-            let mut lut_idx: usize = 0;
-            let open_idx = open_idx_pad - padding;
+            let mut idx_lut: usize = 0;
+            let idx_open_no_pad = idx_open - padding;
 
             let classifier = tail_skip.classifier.take().expect("tail skip must always hold a classifier");
 
@@ -216,13 +208,13 @@ where
                         skipped_distance = skipped_distance + BLOCK_SIZE;
                         if skipped_distance > DISTANCE_CUT_OFF {
                             // Check if the LUT has a hit
-                            if let Some(lut_result) = lut.get(&open_idx) {
+                            if let Some(lut_result) = lut.get(&idx_open_no_pad) {
                                 // Stop skipping ITE style and skip LUT style
                                 skip_with_lut = true;
-                                lut_idx = lut_result;
+                                idx_lut = lut_result;
 
                                 let resume_state = depth_classifier.stop(current_vector);
-                                idx = resume_state.get_idx();
+                                idx_close = resume_state.get_idx();
                                 break 'a tail_skip.simd.resume_structural_classification(resume_state)
                             } else {
                                 // The LUT has no hit, continue iterating ITE style. (Note: Once the PackedStackFrame
@@ -253,43 +245,43 @@ where
                 }
 
                 let resume_state = depth_classifier.stop(current_vector);
-                idx = resume_state.get_idx();
+                idx_close = resume_state.get_idx();
                 tail_skip.simd.resume_structural_classification(resume_state)
             });
 
             // Skip LUT style if skipped_distance > DISTANCE_CUTOFF
             if skip_with_lut {
                 // Shift index by 1 or its off aligned
-                let close_idx = lut_idx + 1;
-                let close_idx_pad = close_idx + padding;
+                let idx_close = idx_lut + 1 + padding;
 
                 // Tell the Structural Classifier to jump
                 tail_skip.classifier
                     .as_mut()
                     .expect("tail skip must always hold a classifier")
-                    .jump_to_idx(close_idx_pad, false)?;
+                    .jump_to_idx(idx_close, false)?;
 
                 if !(lut_skip_evaluation::SKIP_MODE == SkipMode::OFF) {
-                    track_distance_lut(close_idx - open_idx);
+                    track_distance_lut(idx_close - idx_open);
                 }
 
-                return Ok(close_idx_pad);
+                return Ok(idx_close);
             }
 
             if let Some(err) = err {
                 Err(err.into())
             } else {
                 if !(lut_skip_evaluation::SKIP_MODE == SkipMode::OFF) {
-                    track_distance_ite(idx - padding - open_idx);
+                    let distance = idx_close - idx_open;
+                    track_distance_ite(distance);
                 }
 
-                Ok(idx)
+                Ok(idx_close)
             }
         })
     }
 
-    // TODO Ricardo uncomment every debug that was commented out here
-    fn skip_without_lut(&mut self, bracket_type: BracketType) -> Result<usize, EngineError> {
+    // TODO Ricardo reenable the out commented debug lines
+    fn skip_ite(&mut self, bracket_type: BracketType) -> Result<usize, EngineError> {
         dispatch_simd!(self.simd; self, bracket_type =>
         fn <'i, I, V>(
             tail_skip: &mut TailSkip<'i, I, V::QuotesClassifier<'i, I>, V::StructuralClassifier<'i, I>, V, BLOCK_SIZE>,
@@ -450,11 +442,11 @@ mod tests {
             //       v
             // {"a":[{"c":{"d":[42,43,44],"b":45}}]}
             //                                  ^ and skip to here.
-            let end_idx1 = classifier.skip_without_lut(BracketType::Curly)?;
+            let end_idx1 = classifier.skip_ite(BracketType::Curly)?;
             assert_eq!(126, end_idx1);
 
             // Now we expect to skip to the very end of the document.
-            let end_idx2 = classifier.skip_without_lut(BracketType::Curly)?;
+            let end_idx2 = classifier.skip_ite(BracketType::Curly)?;
             assert_eq!(128, end_idx2);
 
             Ok::<(), EngineError>(())
