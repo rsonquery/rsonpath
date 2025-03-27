@@ -212,7 +212,7 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> Result<(), io::Error> {
             }
             EngineTypeToTest::MainWithLut => {
                 quote! {
-                    let lut = LookUpTableImpl::build(#raw_input_path, 0)?;
+                    let lut = LUT::build(#raw_input_path, 0)?;
                     let mut #ident = MainEngine::compile_query(&#query_ident)?;
                     #ident.add_lut(lut);
                 }
@@ -364,7 +364,7 @@ pub(crate) fn generate_imports() -> TokenStream {
     quote! {
         use rsonpath_lib::engine::{Compiler, Engine, main::MainEngine};
         use rsonpath_lib::input::*;
-        use rsonpath_lib::lookup_table::{LookUpTable, LookUpTableImpl};
+        use rsonpath_lib::lookup_table::{LookUpTable, LUT};
         use pretty_assertions::assert_eq;
         use std::error::Error;
         use std::fs;

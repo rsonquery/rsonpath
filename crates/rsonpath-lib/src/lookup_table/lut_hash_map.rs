@@ -9,6 +9,7 @@ use crate::{
     result::empty::EmptyRecorder,
     FallibleIterator,
 };
+use log::debug;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::collections::VecDeque;
@@ -104,9 +105,9 @@ impl LutHashMap {
             }
         }
 
-        println!("Found keys and values:");
+        debug!("Found keys and values:");
         for (key, value) in keys.iter().zip(values.iter()) {
-            println!("({}, {})", key, value);
+            debug!("({}, {})", key, value);
         }
 
         Ok((keys, values))

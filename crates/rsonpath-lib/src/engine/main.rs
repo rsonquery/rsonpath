@@ -290,7 +290,7 @@ where
         is_list: false,
         array_count: JsonUInt::ZERO,
         lut: jump_table,
-        idx_open: 0,
+        idx_open: input.leading_padding_len(),
     }
 }
 
@@ -352,6 +352,7 @@ where
                     debug!("Depth = {:?}", eng.depth);
                     debug!("Stack = {:?}", eng.stack);
                     debug!("State = {:?}", eng.state);
+                    debug!("iOpen = {:?}", eng.idx_open);
                     debug!("====================");
 
                     match event {
@@ -431,7 +432,6 @@ where
             let bracket_type = self.current_node_bracket_type();
             debug!("Skipping unique state from {bracket_type:?}");
 
-            // TODO Ricardo pass idx_of_last_opening
             let stop_at = classifier.skip(
                 self.idx_open,
                 idx,
@@ -503,6 +503,7 @@ where
                 if trans.matches(self.array_count) {
                     let target = trans.target_state();
                     any_matched = true;
+                    // debug!("TRANSITION ARRAY");
                     self.transition_to(target, bracket_type);
                     if self.automaton.is_accepting(target) {
                         debug!("Accept {idx}");
@@ -518,6 +519,7 @@ where
                 if let Some(colon_idx) = colon_idx {
                     if self.is_match(colon_idx, member_name.as_ref())? {
                         any_matched = true;
+                        // debug!("TRANSITION MEMBER");
                         self.transition_to(*target, bracket_type);
                         if self.automaton.is_accepting(*target) {
                             debug!("Accept {idx}");
@@ -527,6 +529,20 @@ where
                     }
                 }
             }
+        }
+
+        debug!("any_matched={}, self.depth={}", any_matched, self.depth);
+
+        if !any_matched && self.depth == Depth::ZERO {
+            debug!("TRANSITION DEPTH=0");
+
+            self.stack.push(StackFrame {
+                depth: *self.depth,
+                state: self.state,
+                is_list: self.is_list,
+                array_count: self.array_count,
+                idx_open: self.idx_open,
+            });
         }
 
         // If nothing matched trigger the fallback transition.
@@ -551,15 +567,11 @@ where
 
                 // Tail skipping. Skip the entire subtree. The skipping consumes the closing character.
                 // We still need to notify the recorder - in case the value being skipped was actually accepted.
-                let closing_idx = classifier.skip(
-                    self.idx_open,
-                    idx,
-                    bracket_type,
-                    self.lut,
-                    self.input.leading_padding_len(),
-                )?;
+                let closing_idx =
+                    classifier.skip(idx, idx, bracket_type, self.lut, self.input.leading_padding_len())?;
                 return self.recorder.record_value_terminator(closing_idx, self.depth);
             } else {
+                // debug!("TRANSITION FALLBACK");
                 self.transition_to(fallback, bracket_type);
             }
 
@@ -572,7 +584,6 @@ where
         self.depth
             .increment()
             .map_err(|err| EngineError::DepthAboveLimit(idx, err))?;
-        // TODO Ricardo update last_opening_idx here
         self.idx_open = idx;
 
         self.is_list = bracket_type == BracketType::Square;
@@ -646,6 +657,7 @@ where
             self.state = stack_frame.state;
             self.is_list = stack_frame.is_list;
             self.array_count = stack_frame.array_count;
+            self.idx_open = stack_frame.idx_open;
 
             debug!("Restored array count to {}", self.array_count);
 
@@ -712,12 +724,13 @@ where
         // }
 
         // TODO Ricardo
+        // debug!("PUSH");
         self.stack.push(StackFrame {
             depth: *self.depth,
             state: self.state,
             is_list: self.is_list,
             array_count: self.array_count,
-            idx_of_last_opening: self.idx_open,
+            idx_open: self.idx_open,
         });
         self.state = target;
     }
@@ -800,8 +813,7 @@ struct StackFrame {
     state: State,
     is_list: bool,
     array_count: JsonUInt,
-    // TODO Ricardo add idx_of_last_opening
-    idx_of_last_opening: usize,
+    idx_open: usize,
 }
 
 #[derive(Debug)]

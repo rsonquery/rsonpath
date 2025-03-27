@@ -1,20 +1,14 @@
 use crate::lookup_table::{LookUpTable, LUT};
 use crate::{
-    engine::{
-        skip_tracker::{self, save_track_to_csv},
-        Compiler, Engine, RsonpathEngine,
-    },
+    engine::{Compiler, Engine, RsonpathEngine},
     input::OwnedBytes,
 };
-use lazy_static::lazy_static;
 use std::sync::atomic::AtomicU64;
 use std::{
-    error::Error,
     fs,
     io::{self, BufReader, Read, Write},
     path::Path,
     process::Command,
-    sync::Mutex,
     time::Instant,
 };
 

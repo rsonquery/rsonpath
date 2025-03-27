@@ -13,6 +13,7 @@ use std::{
 
 pub const JOHN: &str = ".a_lut_tests/test_data/kB_1/john_119.json";
 pub const JOHN_BIG: &str = ".a_lut_tests/test_data/kB_1/john_big.json";
+pub const BUGS: &str = ".a_lut_tests/test_data/kB_1/bugs.json";
 pub const ALPHABET: &str = ".a_lut_tests/test_data/kB_1/alphabet_(2kB).json";
 pub const TWITTER_MINI: &str = ".a_lut_tests/test_data/MB_1/twitter_(767kB).json";
 
@@ -66,26 +67,26 @@ pub const QUERY_GOOGLE: (&str, &[(&str, &str)]) = (
         // ("30", "$[3000].routes[*].bounds"),
         ("100", "$[*].routes[*].legs[*]"),
         ("101", "$[*].routes[*].legs[*].steps[*]"),
-        // ("102", "$[*].routes[*].legs[*].steps[*].distance"),
-        // ("103", "$[*].routes[*].legs[*].steps[*].distance.text"),
-        // ("104", "$[*].routes[*].legs[*].steps[*].distance.value"),
-        // ("108", "$[*].routes[*].legs[*].steps[*].duration"),
-        // ("109", "$[*].routes[*].legs[*].steps[*].polyline"),
-        // ("110", "$[*].routes[*].legs[*].steps[*].polyline.points"),
-        // ("111", "$[*].routes[*].legs[*].steps[*].end_location"),
-        // ("112", "$[*].routes[*].legs[*].steps[*].html_instructions"),
-        // ("113", "$[*].routes[*].legs[*].steps[*].travel_mode"),
-        // ("114", "$[*].routes[*].legs[*].steps[*].start_location"),
-        // ("115", "$[*].routes[*].legs[*].steps[*].start_location.lat"),
-        // ("116", "$[*].routes[*].legs[*].steps[*].start_location.lng"),
-        // ("117", "$[*].routes[*].legs[*].steps[*].maneuver"),
-        // ("118", "$[*].routes[*].legs[*]..lat"),
-        // ("119", "$[*].routes[*].legs[*]..lng"),
-        // ("200", "$[*].available_travel_modes"),
-        // ("201", "$[*].copyrights"),
-        // ("202", "$[*].routes[*]"),
-        // ("203", "$[*].routes[*].legs[*]"),
-        // ("204", "$[4000].routes[*].bounds"),
+        ("102", "$[*].routes[*].legs[*].steps[*].distance"),
+        ("103", "$[*].routes[*].legs[*].steps[*].distance.text"),
+        ("104", "$[*].routes[*].legs[*].steps[*].distance.value"),
+        ("108", "$[*].routes[*].legs[*].steps[*].duration"),
+        ("109", "$[*].routes[*].legs[*].steps[*].polyline"),
+        ("110", "$[*].routes[*].legs[*].steps[*].polyline.points"),
+        ("111", "$[*].routes[*].legs[*].steps[*].end_location"),
+        ("112", "$[*].routes[*].legs[*].steps[*].html_instructions"),
+        ("113", "$[*].routes[*].legs[*].steps[*].travel_mode"),
+        ("114", "$[*].routes[*].legs[*].steps[*].start_location"),
+        ("115", "$[*].routes[*].legs[*].steps[*].start_location.lat"),
+        ("116", "$[*].routes[*].legs[*].steps[*].start_location.lng"),
+        ("117", "$[*].routes[*].legs[*].steps[*].maneuver"),
+        ("118", "$[*].routes[*].legs[*]..lat"),
+        ("119", "$[*].routes[*].legs[*]..lng"),
+        ("200", "$[*].available_travel_modes"),
+        ("201", "$[*].copyrights"),
+        ("202", "$[*].routes[*]"),
+        ("203", "$[*].routes[*].legs[*]"),
+        ("204", "$[4000].routes[*].bounds"),
         ("205", "$[*].routes[1]"),
     ],
 );
@@ -219,24 +220,34 @@ pub const QUERY_POKEMON_MINI: (&str, &[(&str, &str)]) = (
         ("201", "$.cfgs[1].Name"),
         ("202", "$.cfgs[*].ID"),
         ("203", "$.cfgs[*].Name"),
-        ("204", "$.cfgs[*].Height"),
-        ("205", "$.cfgs[*].Weight"),
+        ("204", "$.cfgs[*].BaseStats[1]"),
+        ("204", "$.cfgs[*].BaseStats[2]"),
+        ("204", "$.cfgs[*].BaseStats[*]"),
+        ("204", "$.cfgs[*].EggGroups[1]"),
+        ("204", "$.cfgs[*].EggGroups[2]"),
+        ("204", "$.cfgs[*].EggGroups[*]"),
     ],
 );
 
 pub const QUERY_JOHN_BIG: (&str, &[(&str, &str)]) = (
     JOHN_BIG,
     &[
-        // ("200", "$.person.firstName"),
-        // ("201", "$.person.lastName"),
-        // ("202", "$.person.phoneNumber[2].type"),
+        // OLD JOHN BIG
+        ("200", "$.person.firstName"),
+        ("201", "$.person.lastName"),
+        ("202", "$.person.phoneNumber[2].type"),
         ("203", "$.person.spouse.person.phoneNumber.*"),
+        ("204", "$.person.spouse.person.phoneNumber[1]"),
+        ("205", "$.person.spouse.person.phoneNumber[2]"),
     ],
 );
 
+pub const QUERY_BUGS: (&str, &[(&str, &str)]) = (BUGS, &[("1", "$.a..b")]);
+
 // ########################
 // #### Test functions ####
-// ########################
+// #########################
+// Run with: cargo run --bin lut --release -- test-query
 pub fn test_build_and_queries() {
     // test_build_correctness(GOOGLE);
     // test_build_correctness(WALMART);
@@ -244,9 +255,10 @@ pub fn test_build_and_queries() {
     // test_build_correctness(TWITTER);
     // test_build_correctness(POKEMON_SHORT);
 
+    test_query_correctness(QUERY_BUGS);
     test_query_correctness(QUERY_JOHN_BIG);
     // test_query_correctness(QUERY_POKEMON_MINI);
-    // test_query_correctness(QUERY_GOOGLE);
+    test_query_correctness(QUERY_GOOGLE);
     // test_query_correctness(QUERY_TWITTER);
     // test_query_correctness(QUERY_BESTBUY);
     // test_query_correctness(QUERY_POKEMON_SHORT);
@@ -287,7 +299,7 @@ fn test_query_correctness(test_data: (&str, &[(&str, &str)])) {
     // Run all queries
     println!("Checking queries:");
     for &(query_name, query_text) in queries {
-        println!(" Query: {} = \"{}\" ... ", query_name, query_text);
+        print!(" Query: {} = \"{}\" ... ", query_name, query_text);
         let input = {
             let mut file = BufReader::new(fs::File::open(json_path).expect("Fail @ open File"));
             let mut buf = vec![];
@@ -297,10 +309,12 @@ fn test_query_correctness(test_data: (&str, &[(&str, &str)])) {
         let query = rsonpath_syntax::parse(query_text).expect("Fail @ parse query");
 
         // Query normally and skip iteratively (ITE)
+        // println!("---- ITE STYLE ----");
         let mut engine = RsonpathEngine::compile_query(&query).expect("Fail @ compile query");
         let count = engine.count(&input).expect("Failed to run query normally");
 
         // Query normally and skip using the lookup table (LUT)
+        // println!("---- LUT STYLE ----");
         engine.add_lut(lut);
         let lut_count = engine.count(&input).expect("LUT: Failed to run query normally");
 

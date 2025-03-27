@@ -87,18 +87,29 @@ where
             }
         } else {
             // default
-            self.skip_ite(bracket_type)
+            let idx_close = self.skip_ite(bracket_type)?;
+            if idx >= padding && idx_open >= padding && idx_close >= padding {
+                debug!(
+                    "ITE: {}: ({}, {}) No-PAD: {}, ({}, {})",
+                    idx,
+                    idx_open,
+                    idx_close,
+                    idx - padding,
+                    idx_open - padding,
+                    idx_close - padding,
+                );
+            } else {
+                debug!(
+                    "ITE: {}: ({}, {}) Cannot show padding, cause values < padding = {}",
+                    idx, idx_open, idx_close, padding
+                );
+            }
+
+            Ok(idx_close)
         }
     }
 
-    // 0. Use LUT to get opening -> closing index
-    // 1. Tell the Structural Classifier (self.classifier) to jump
-    // 2. S tells its quote classifier to jump
-    // 3. Q tells the InputIterator to jump
-    // 4. Implement jump in InputBlockIterators
-    // 5. Q needs to reclassify the new current block.
-    // 6. S needs to reclassify the new current block.
-    // 7. This function returns the skipped-to index.
+    // Skip using the LUT as helper. If the LUT has a miss skip ITE style.
     fn skip_lut(
         &mut self,
         idx_open: usize, // padded
@@ -108,29 +119,36 @@ where
         padding: usize,
     ) -> Result<usize, EngineError> {
         // Get value from LUT, can hit or miss.
-        if let Some(lut_index) = lut.get(&(idx_open - padding)) {
+        if let Some(idx_lut) = lut.get(&(idx_open - padding)) {
             // Note: shift index by 1 or its off aligned
-            let idx_close = lut_index + 1 + padding;
-
-            self.classifier
-                .as_mut()
-                .expect("tail skip must always hold a classifier")
-                .jump_to_idx(idx_close, false)?;
+            let idx_close = idx_lut + 1 + padding;
 
             // Only for tracking jumps and not needed in normal runs
             if !(lut_skip_evaluation::SKIP_MODE == SkipMode::OFF) {
                 track_distance_lut(idx_close - idx_open);
             }
 
-            println!(
-                "LUT: idx={}: ({}, {}) No-PAD: idx={}: ({}, {})",
-                idx,
-                idx_open,
-                idx_close,
-                idx - padding,
-                idx_open - padding,
-                idx_close - padding,
-            );
+            if idx >= padding && idx_open >= padding && idx_close >= padding {
+                debug!(
+                    "LUT: {}: ({}, {}) No-PAD: {}, ({}, {})",
+                    idx,
+                    idx_open,
+                    idx_close,
+                    idx - padding,
+                    idx_open - padding,
+                    idx_close - padding,
+                );
+            } else {
+                debug!(
+                    "LUT: {}: ({}, {}) Cannot show padding, cause values < padding = {}",
+                    idx, idx_open, idx_close, padding
+                );
+            }
+
+            self.classifier
+                .as_mut()
+                .expect("tail skip must always hold a classifier")
+                .jump_to_idx(idx_close, false)?;
 
             Ok(idx_close)
         } else {
@@ -142,7 +160,7 @@ where
                 track_distance_ite(idx_close - idx_open);
             }
 
-            println!(
+            debug!(
                 "ITE: {}: ({}, {}) No-PAD: {}, ({}, {})",
                 idx,
                 idx_open,
