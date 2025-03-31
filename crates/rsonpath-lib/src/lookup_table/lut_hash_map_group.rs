@@ -92,8 +92,8 @@ impl LutHashMapGroup {
         let num_buckets = bit_mask + 1;
         let mut lut_doubles_pair_data: Vec<PairData> = vec![
             PairData {
-                keys_16: vec![],
-                values_16: vec![],
+                keys: vec![],
+                values: vec![],
                 keys_64: vec![],
                 values_64: vec![],
             };
@@ -122,9 +122,9 @@ impl LutHashMapGroup {
                     let distance = idx_close - idx_open;
                     if distance < THRESHOLD_16_BITS {
                         // Can fit into 16 bits
-                        lut_double.keys_16.push(idx_open);
+                        lut_double.keys.push(idx_open);
                         lut_double
-                            .values_16
+                            .values
                             .push(distance.try_into().expect("Fail @ convert to 16 bit"));
                     } else {
                         // Needs 64 bits

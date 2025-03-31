@@ -47,6 +47,7 @@
         "mmaps",
         "monomorphizing",
         "movemask",
+        "mphf",
         "ndash",
         "nondescendant",
         "nonescaped",

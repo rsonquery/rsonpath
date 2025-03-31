@@ -18,8 +18,8 @@ use crate::{
     FallibleIterator,
 };
 
-// 65536 = 2^16, since we want to consider all values that fit into a 16 bit representation
-pub const THRESHOLD_16_BITS: usize = 65536;
+// 2^16, since we want to consider all values that fit into a 16 bit representation
+pub const THRESHOLD_16_BITS: usize = u16::MAX as usize;
 
 /// Helper struct, because it makes the code shorter and cleaner to read.
 #[derive(Clone, Default)]

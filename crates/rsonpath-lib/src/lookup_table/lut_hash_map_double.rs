@@ -20,8 +20,8 @@ pub const THRESHOLD_16_BITS: usize = 65536;
 /// Helper struct, because it makes the code shorter and cleaner to read.
 #[derive(Clone, Default)]
 pub struct PairData {
-    pub keys_16: Vec<usize>,
-    pub values_16: Vec<u16>,
+    pub keys: Vec<usize>,
+    pub values: Vec<u16>,
     pub keys_64: Vec<usize>,
     pub values_64: Vec<usize>,
 }
@@ -31,15 +31,15 @@ impl PairData {
     #[must_use]
     pub fn new() -> Self {
         Self {
-            keys_16: vec![],
-            values_16: vec![],
+            keys: vec![],
+            values: vec![],
             keys_64: vec![],
             values_64: vec![],
         }
     }
 }
 pub struct LutHashMapDouble {
-    pub hash_map_16: HashMap<usize, u16>,
+    pub hash_map: HashMap<usize, u16>,
     pub hash_map_64: HashMap<usize, usize>,
 }
 
@@ -69,7 +69,7 @@ impl LookUpTable for LutHashMapDouble {
     fn get(&self, key: &usize) -> Option<usize> {
         // Look for a value for a given key, search first in hash_map_16 since it represents usually >99% of the keys
         // and only on the rare cases of key misses we have to look into hash_map_64 which covers the rest.
-        if let Some(&value_16) = self.hash_map_16.get(key) {
+        if let Some(&value_16) = self.hash_map.get(key) {
             Some(*key + value_16 as usize)
         } else if let Some(&value_64) = self.hash_map_64.get(key) {
             Some(*key + value_64)
@@ -85,7 +85,7 @@ impl LookUpTable for LutHashMapDouble {
         let mut total_size = 0;
 
         total_size += std::mem::size_of::<Self>();
-        total_size += self.hash_map_16.capacity() * (std::mem::size_of::<usize>() + std::mem::size_of::<u16>());
+        total_size += self.hash_map.capacity() * (std::mem::size_of::<usize>() + std::mem::size_of::<u16>());
         total_size += self.hash_map_64.capacity() * (std::mem::size_of::<usize>() + std::mem::size_of::<usize>());
 
         total_size
@@ -96,11 +96,11 @@ impl LutHashMapDouble {
     #[inline]
     #[must_use]
     pub fn build_double(pd: PairData) -> Self {
-        let hash_map_16: HashMap<usize, u16> = pd.keys_16.into_iter().zip(pd.values_16).collect();
+        let hash_map_16: HashMap<usize, u16> = pd.keys.into_iter().zip(pd.values).collect();
         let hash_map_64: HashMap<usize, usize> = pd.keys_64.into_iter().zip(pd.values_64).collect();
 
         Self {
-            hash_map_16,
+            hash_map: hash_map_16,
             hash_map_64,
         }
     }
@@ -141,10 +141,8 @@ impl LutHashMapDouble {
                     let distance = idx_close - idx_open;
                     if distance < THRESHOLD_16_BITS {
                         // Can fit into 16 bit
-                        pairs.keys_16.push(idx_open);
-                        pairs
-                            .values_16
-                            .push(distance.try_into().expect("Fail at pushing value."));
+                        pairs.keys.push(idx_open);
+                        pairs.values.push(distance.try_into().expect("Fail at pushing value."));
                     } else {
                         // Cannot fit into 16 bit
                         pairs.keys_64.push(idx_open);

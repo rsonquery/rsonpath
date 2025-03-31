@@ -57,6 +57,7 @@ rayon = {version = "1.10"}
 # Added by Ricardo
 simple_logger = "4.3.3"
 lazy_static = "1.4" # for using static objects
+ptr_hash = "1.1.0" # new crate for performant minimal perfect hash functions in rust
 
 [dev-dependencies]
 itertools = { workspace = true }
