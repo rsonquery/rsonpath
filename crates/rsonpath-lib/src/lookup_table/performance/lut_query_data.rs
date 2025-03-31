@@ -11,20 +11,26 @@ use std::{
     io::{BufReader, Read},
 };
 
+// kB_1
 pub const JOHN: &str = ".a_lut_tests/test_data/kB_1/john_119.json";
 pub const JOHN_BIG: &str = ".a_lut_tests/test_data/kB_1/john_big.json";
 pub const BUGS: &str = ".a_lut_tests/test_data/kB_1/bugs.json";
 pub const ALPHABET: &str = ".a_lut_tests/test_data/kB_1/alphabet_(2kB).json";
+
+// MB_1
 pub const TWITTER_MINI: &str = ".a_lut_tests/test_data/MB_1/twitter_(767kB).json";
 
+// MB_15
 pub const POKEMON_MINI: &str = ".a_lut_tests/test_data/MB_15/pokemon_(6MB).json";
 
+// MB_100
 pub const TWITTER_SHORT: &str = ".a_lut_tests/test_data/MB_100/twitter_short_(80MB).json";
 pub const BESTBUY_SHORT: &str = ".a_lut_tests/test_data/MB_100/bestbuy_short_(103MB).json";
 pub const GOOGLE_SHORT: &str = ".a_lut_tests/test_data/MB_100/google_map_short_(107MB).json";
 pub const WALMART_SHORT: &str = ".a_lut_tests/test_data/MB_100/walmart_short_(95MB).json";
 pub const POKEMON_SHORT: &str = ".a_lut_tests/test_data/MB_100/pokemon_(173MB).json";
 
+// GB_1
 pub const BESTBUY: &str = ".a_lut_tests/test_data/GB_1/bestbuy_large_record_(1GB).json";
 pub const WALMART: &str = ".a_lut_tests/test_data/GB_1/walmart_large_record_(995MB).json";
 pub const TWITTER: &str = ".a_lut_tests/test_data/GB_1/twitter_large_record_(843MB).json";

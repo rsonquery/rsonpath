@@ -9,8 +9,9 @@ use stats_alloc::{Region, StatsAlloc, INSTRUMENTED_SYSTEM};
 use crate::lookup_table::{
     distance_counter, lut_hash_map::LutHashMap, lut_hash_map_double::LutHashMapDouble,
     lut_hash_map_group::LutHashMapGroup, lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF,
-    lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup, lut_sichash::LutSicHashDouble, pair_finder,
-    performance::lut_skip_evaluation::DISTANCE_CUT_OFF, util_path, LookUpTable, LookUpTableLambda,
+    lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup, lut_ptr_hash_double::LutPtrHashDouble,
+    lut_sichash::LutSicHashDouble, pair_finder, performance::lut_skip_evaluation::DISTANCE_CUT_OFF, util_path,
+    LookUpTable, LookUpTableLambda,
 };
 
 /// Allocator to track how much allocations are happening during a specific time frame
@@ -49,6 +50,7 @@ pub fn evaluate(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::erro
     // eval::<LutHashMap>(&mut config, "hash_map");
     eval::<LutHashMapDouble>(&mut config, "hash_map_double");
     eval::<LutSicHashDouble>(&mut config, "sic_hash_double");
+    eval::<LutPtrHashDouble>(&mut config, "ptr_hash_double");
     // eval::<LutPerfectNaive>(&mut config, "perfect_naive");
 
     // for bit_mask in [3, 7, 15, 31, 63, 127] {

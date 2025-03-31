@@ -12,31 +12,35 @@ use rsonpath::{
         lut_phf_double::LutPHFDouble,
         lut_phf_group::LutPHFGroup,
         pair_finder,
-        performance::{lut_query_data::POKEMON_MINI, lut_skip_evaluation::DISTANCE_CUT_OFF},
+        performance::{
+            lut_query_data::{ALPHABET, GOOGLE, POKEMON_MINI, TWITTER_SHORT},
+            lut_skip_evaluation::DISTANCE_CUT_OFF,
+        },
         LookUpTable, LUT,
     },
 };
 
-/// cargo test --test lut_query_tests -- test_build_and_queries --nocapture | rg "(tail_skipping|lut_query_tests)"
-/// cargo test --test lut_query_tests -- test_build_and_queries --nocapture | rg "(tail_skipping|lut_query_tests|main)"
-/// cargo test --test lut_query_tests -- test_build_and_queries --nocapture | rg ^"(tail_skipping|lut_query_tests|main|lut_hash_map)"
+/// cargo test --test lut_debug_tests -- test_build_and_queries --nocapture | rg "(lut_debug_tests)"
+/// cargo test --test lut_debug_tests -- test_build_and_queries --nocapture | rg "(tail_skipping|lut_debug_tests|main)"
+/// cargo test --test lut_debug_tests -- test_build_and_queries --nocapture | rg ^"(tail_skipping|lut_debug_tests|main|lut_hash_map)"
 #[test]
 fn test_build_and_queries() {
     // Enables to see log messages when running tests
-    simple_logger::SimpleLogger::new()
-        .with_level(log::LevelFilter::Debug)
-        .without_timestamps()
-        .init()
-        .unwrap();
+    // simple_logger::SimpleLogger::new()
+    //     .with_level(log::LevelFilter::Debug)
+    //     .without_timestamps()
+    //     .init()
+    //     .unwrap();
 
     debug!("Start");
 
-    // test_build_correctness(GOOGLE);
+    test_build_correctness(GOOGLE);
     // test_build_correctness(WALMART);
     // test_build_correctness(BESTBUY);
     // test_build_correctness(TWITTER);
-    // test_build_correctness(POKEMON_SHORT);
-    test_build_correctness(POKEMON_MINI);
+    // test_build_correctness(POKEMON_MINI);
+    // test_build_correctness(TWITTER_SHORT);
+    // test_build_correctness(ALPHABET);
 
     // test_query_correctness(QUERY_BUGS);
     // test_query_correctness(QUERY_JOHN_BIG);
@@ -51,10 +55,10 @@ fn test_build_correctness(json_name: &str) {
     let s = format!("../../{}", json_name);
     let json_path = s.as_str();
 
-    debug!("Building LUT: {}", json_path);
-    let lut = LUT::build(&json_path, 0).expect("Fail @ building LUT");
     debug!("Building LUT (Hashmap): {}", json_path);
     let lut_hash_map = lut_hash_map::LutHashMap::build(&json_path, 0).expect("Fail @ building LUT");
+    debug!("Building LUT: {}", json_path);
+    let lut = LUT::build(&json_path, 0).expect("Fail @ building LUT");
 
     debug!("Testing keys ...");
     let (keys, values) = pair_finder::get_keys_and_values(json_path).expect("Fail @ finding pairs.");

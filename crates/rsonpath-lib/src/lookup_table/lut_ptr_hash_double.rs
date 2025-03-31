@@ -43,10 +43,10 @@ impl LookUpTable for LutPtrHashDouble {
 
     fn get(&self, key: &usize) -> Option<usize> {
         let key_64 = (*key) as u64;
-        let mut dst: usize = self.values[self.ptr_hash.index_no_remap(&key_64)] as usize;
+        let mut dst: usize = self.values[self.ptr_hash.index(&key_64)] as usize;
         // Check ptr_hash and if that returns 0 then check ptr_hash_64
         if dst == 0 {
-            dst = self.values_64[self.ptr_hash_64.index_no_remap(&key_64)];
+            dst = self.values_64[self.ptr_hash_64.index(&key_64)];
         }
 
         Some(*key + dst)
@@ -61,22 +61,23 @@ impl LutPtrHashDouble {
     fn build_double(pair_data: PairData) -> Self {
         let keys: Vec<u64> = pair_data.keys.iter().map(|&k| k as u64).collect();
         let input_values = pair_data.values;
-        let keys_64: Vec<u64> = pair_data.keys_64.iter().map(|&k| k as u64).collect();
-        let input_values_64 = pair_data.values_64;
 
         // Build minimal perfect hash function (mphf)
         let ptr_hash = <PtrHash>::new(&keys, PtrHashParams::default());
-        // Sort value depending on the new mphf
+        // Sort values depending on the new mphf
         let mut values: Vec<u16> = vec![0; input_values.len()];
         for (i, key) in keys.iter().enumerate() {
-            values[ptr_hash.index_no_remap(key)] = input_values[i];
+            values[ptr_hash.index(key)] = input_values[i];
         }
 
         // Do the same for usize
+        let keys_64: Vec<u64> = pair_data.keys_64.iter().map(|&k| k as u64).collect();
+        let input_values_64 = pair_data.values_64;
+
         let ptr_hash_64 = <PtrHash>::new(&keys_64, PtrHashParams::default());
         let mut values_64: Vec<usize> = vec![0; input_values_64.len()];
         for (i, key) in keys_64.iter().enumerate() {
-            let new_i = ptr_hash_64.index_no_remap(key);
+            let new_i = ptr_hash_64.index(key);
             values_64[new_i] = input_values_64[i];
         }
 
