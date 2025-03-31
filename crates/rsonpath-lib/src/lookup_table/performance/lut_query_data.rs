@@ -257,11 +257,11 @@ pub fn test_build_and_queries() {
 
     test_query_correctness(QUERY_BUGS);
     test_query_correctness(QUERY_JOHN_BIG);
-    // test_query_correctness(QUERY_POKEMON_MINI);
+    test_query_correctness(QUERY_POKEMON_MINI);
     test_query_correctness(QUERY_GOOGLE);
-    // test_query_correctness(QUERY_TWITTER);
-    // test_query_correctness(QUERY_BESTBUY);
-    // test_query_correctness(QUERY_POKEMON_SHORT);
+    test_query_correctness(QUERY_TWITTER);
+    test_query_correctness(QUERY_BESTBUY);
+    test_query_correctness(QUERY_POKEMON_SHORT);
 }
 
 fn test_build_correctness(json_path: &str) {

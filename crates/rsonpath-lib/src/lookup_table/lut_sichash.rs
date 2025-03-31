@@ -65,11 +65,11 @@ extern "C" {
     fn get_allocated_bytes(instance: *mut c_void) -> usize;
     fn drop(instance: *mut c_void);
 }
-pub struct LutSicHash {
+pub struct LutSicHashDouble {
     lut: *mut c_void,
 }
 
-impl LutSicHash {
+impl LutSicHashDouble {
     pub fn say_hello() {
         unsafe {
             say_hello();
@@ -82,8 +82,8 @@ impl LutSicHash {
         let keys_64_lengths: &[usize] = &pair_data.keys_64_lengths;
         let values_64: &[u64] = &pair_data.values_64;
 
-        let (_c_keys, keys_ptrs) = LutSicHash::convert_keys(&pair_data.keys);
-        let (_c_keys_64, keys_64_ptrs) = LutSicHash::convert_keys(&pair_data.keys_64);
+        let (_c_keys, keys_ptrs) = LutSicHashDouble::convert_keys(&pair_data.keys);
+        let (_c_keys_64, keys_64_ptrs) = LutSicHashDouble::convert_keys(&pair_data.keys_64);
 
         let lut = unsafe {
             build_phf(
@@ -199,13 +199,13 @@ impl LutSicHash {
     }
 }
 
-impl Drop for LutSicHash {
+impl Drop for LutSicHashDouble {
     fn drop(&mut self) {
         unsafe { drop(self.lut) };
     }
 }
 
-impl LookUpTable for LutSicHash {
+impl LookUpTable for LutSicHashDouble {
     #[inline]
     fn build(json_path: &str, distance_cutoff: usize) -> Result<Self, Box<dyn std::error::Error>> {
         let file = fs::File::open(json_path).expect("Failed to open file");
@@ -218,11 +218,11 @@ impl LookUpTable for LutSicHash {
                 input: I,
                 simd: V,
                 distance_cutoff: usize,
-            ) -> Result<LutSicHash, error::InputError> where
+            ) -> Result<LutSicHashDouble, error::InputError> where
             I: Input,
             V: Simd, {
-                    let pair_data = LutSicHash::find_all_pairs::<I, V>(&input, simd, distance_cutoff)?;
-                    Ok(LutSicHash::new(pair_data))
+                    let pair_data = LutSicHashDouble::find_all_pairs::<I, V>(&input, simd, distance_cutoff)?;
+                    Ok(LutSicHashDouble::new(pair_data))
                 })
         });
         lut_phf_double.map_err(|e| Box::new(e) as Box<dyn std::error::Error>)

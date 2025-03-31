@@ -12,6 +12,7 @@ use crate::{
     result::empty::EmptyRecorder,
     FallibleIterator,
 };
+use log::debug;
 use rayon::prelude::*;
 use std::{collections::VecDeque, fs};
 
@@ -39,8 +40,7 @@ impl LookUpTable for LutPHFGroup {
     #[inline]
     fn get(&self, key: &usize) -> Option<usize> {
         // Logical AND with BIT_MASK to get the correct index
-        let lut_double_index = key & self.bit_mask;
-        self.lut_doubles[lut_double_index].get(key)
+        self.lut_doubles[key & self.bit_mask].get(key)
     }
 
     #[inline]
@@ -80,7 +80,7 @@ impl LutPHFGroup {
         let simd_c = classification::simd::configure();
 
         let lut_perfect_naive = classification::simd::config_simd!(simd_c => |simd| {
-            classification::simd::dispatch_simd!(simd; input, simd, lambda, distance_cutoff, bit_mask, threaded => fn<I, V>(
+            classification::simd::dispatch_simd!(simd; input, simd, lambda, bit_mask, distance_cutoff, threaded => fn<I, V>(
                 input: I,
                 simd: V,
                 lambda: usize,
@@ -150,22 +150,22 @@ impl LutPHFGroup {
                     };
 
                     // Map to correct lut_double using the bit mask on the idx_open (= key)
-                    let lut_double = &mut lut_doubles_pair_data[idx_open & bit_mask];
-
+                    let bucket = &mut lut_doubles_pair_data[idx_open & bit_mask];
                     let distance = idx_close - idx_open;
+
                     if distance >= distance_cutoff {
                         if distance < THRESHOLD_16_BITS {
                             // Can fit into 16 bits
-                            lut_double.keys.push(idx_open);
-                            lut_double
+                            bucket.keys.push(idx_open);
+                            bucket
                                 .values
                                 .push(distance.try_into().expect("Fail @ convert to 16 bit"));
                         } else {
                             // Needs 64 bits
-                            lut_double.keys.push(idx_open);
-                            lut_double.values.push(0);
-                            lut_double.keys_64.push(idx_open);
-                            lut_double.values_64.push(distance);
+                            bucket.keys.push(idx_open);
+                            bucket.values.push(0);
+                            bucket.keys_64.push(idx_open);
+                            bucket.values_64.push(distance);
                         }
                     }
                 }
@@ -173,6 +173,15 @@ impl LutPHFGroup {
             }
         }
 
+        // debug!("Found keys and values:");
+        // let mut i = 0;
+        // for pair_data in &lut_doubles_pair_data {
+        //     debug!("bucket:{}", i);
+        //     i += 1;
+        //     for (key, value) in pair_data.keys.iter().zip(pair_data.values.iter()) {
+        //         debug!("({}, {})", key, value);
+        //     }
+        // }
         Ok(lut_doubles_pair_data)
     }
 }

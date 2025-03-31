@@ -15,8 +15,9 @@ pub mod query_with_lut;
 pub mod sichash_test_data_generator;
 pub mod util_path;
 
-pub type LUT = lut_hash_map::LutHashMap;
-// pub type LUT = lut_sichash::LutSicHash; // Cannot work until PackedStackFrame logic is implemented since it cannot return None on untrained keys
+// pub type LUT = lut_hash_map::LutHashMap;
+pub type LUT = lut_hash_map_double::LutHashMapDouble;
+// pub type LUT = lut_sichash::LutSicHash;
 
 /// Lookup-table = LUT
 pub trait LookUpTable {

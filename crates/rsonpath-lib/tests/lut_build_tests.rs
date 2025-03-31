@@ -1,7 +1,18 @@
+use log::debug;
 use rsonpath::lookup_table::{
-    lut_hash_map::LutHashMap, lut_hash_map_double::LutHashMapDouble, lut_hash_map_group::LutHashMapGroup,
-    lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF, lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup,
-    pair_finder, LookUpTable,
+    lut_hash_map::LutHashMap,
+    lut_hash_map_double::LutHashMapDouble,
+    lut_hash_map_group::LutHashMapGroup,
+    lut_perfect_naive::LutPerfectNaive,
+    lut_phf::LutPHF,
+    lut_phf_double::LutPHFDouble,
+    lut_phf_group::LutPHFGroup,
+    pair_finder,
+    performance::{
+        lut_query_data::{ALPHABET, JOHN_BIG, POKEMON_MINI},
+        lut_skip_evaluation::DISTANCE_CUT_OFF,
+    },
+    LookUpTable,
 };
 
 // JSON files
@@ -80,14 +91,27 @@ fn compare_valid(lut: &dyn LookUpTable, json_path: &str) {
     assert_eq!(count_incorrect, 0);
 }
 
+// cargo test --test lut_build_tests -- debug_lut_group_buckets --nocapture | rg "(lut_build_tests|lut_phf_group)"
 #[test]
 fn debug_lut_group_buckets() {
-    let json_path = "tests/json/pokemon_(6MB).json";
-    // let json_path = "tests/json/john_big.json";
-    // let json_path = "tests/json/twitter_short_(80MB).json";
+    // Enables to see log messages when running tests
+    simple_logger::SimpleLogger::new()
+        .with_level(log::LevelFilter::Debug)
+        .without_timestamps()
+        .init()
+        .unwrap();
+
+    // let json_file = format!("../../{}", ALPHABET);
+    let json_file = format!("../../{}", POKEMON_MINI);
+    let lambda = 1;
+    let distance_cutoff = DISTANCE_CUT_OFF;
+    let json_path = json_file.as_str();
+    let bit_mask = 3; // powers of 2 -1
+    let threaded = false;
 
     let (keys, values) = pair_finder::get_keys_and_values(json_path).expect("Fail @ finding pairs.");
-    let lut = LutPHFGroup::build_buckets(1, json_path, 0, 63, false).expect("Fail @ building lut_phf_double");
+    let lut = LutPHFGroup::build_buckets(lambda, json_path, distance_cutoff, bit_mask, threaded)
+        .expect("Fail @ building lut_phf_double");
 
     let mut count_correct = 0;
     let mut count_incorrect = 0;
@@ -96,7 +120,7 @@ fn debug_lut_group_buckets() {
         let right = lut.get(key).expect("fail");
         if left != right {
             let distance = left - key;
-            println!(
+            debug!(
                 "Key: {}, Expected: {}, Found: {}, Expected Dist. {}",
                 key, left, right, distance
             );
@@ -107,16 +131,15 @@ fn debug_lut_group_buckets() {
     }
 
     let total = count_correct + count_incorrect;
-    println!("Correct: {}/{}", count_correct, total);
-    println!("Incorrect: {}/{}", count_incorrect, total);
+    debug!("Correct: {}/{}", count_correct, total);
+    debug!("Incorrect: {}/{}", count_incorrect, total);
     assert_eq!(count_incorrect, 0);
 }
 
 #[test]
 fn debug_lut_phf_double() {
-    let json_path = "tests/json/pokemon_(6MB).json";
-    // let json_path = "tests/json/john_big.json";
-    // let json_path = "tests/json/twitter_short_(80MB).json";
+    let json_file = format!("../../{}", POKEMON_MINI);
+    let json_path = json_file.as_str();
 
     let (keys, values) = pair_finder::get_keys_and_values(json_path).expect("Fail @ finding pairs.");
     let lut = LutPHFDouble::build(json_path, 0).expect("Fail @ building lut_phf_double");
@@ -128,8 +151,8 @@ fn debug_lut_phf_double() {
         let right = lut.get(key).expect("fail");
         if left != right {
             let distance = left - key;
-            println!(
-                "Key: {}, Expected: {}, Found: {}, Expected Dist. {}",
+            debug!(
+                "Key: {}, Expected Value: {}, Found Distance: {}, Expected Dist. {}",
                 key, left, right, distance
             );
             count_incorrect += 1;
@@ -139,7 +162,7 @@ fn debug_lut_phf_double() {
     }
 
     let total = count_correct + count_incorrect;
-    println!("Correct: {}/{}", count_correct, total);
-    println!("Incorrect: {}/{}", count_incorrect, total);
+    debug!("Correct: {}/{}", count_correct, total);
+    debug!("Incorrect: {}/{}", count_incorrect, total);
     assert_eq!(count_incorrect, 0);
 }

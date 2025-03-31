@@ -6,7 +6,8 @@ use rsonpath::{
         lut_hash_map, pair_finder,
         performance::{
             lut_query_data::{
-                QUERY_BESTBUY, QUERY_BUGS, QUERY_GOOGLE, QUERY_JOHN_BIG, QUERY_POKEMON_SHORT, QUERY_TWITTER,
+                QUERY_BESTBUY, QUERY_BUGS, QUERY_GOOGLE, QUERY_JOHN_BIG, QUERY_POKEMON_MINI, QUERY_POKEMON_SHORT,
+                QUERY_TWITTER,
             },
             lut_skip_evaluation::DISTANCE_CUT_OFF,
         },

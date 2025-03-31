@@ -9,7 +9,8 @@ use stats_alloc::{Region, StatsAlloc, INSTRUMENTED_SYSTEM};
 use crate::lookup_table::{
     distance_counter, lut_hash_map::LutHashMap, lut_hash_map_double::LutHashMapDouble,
     lut_hash_map_group::LutHashMapGroup, lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF,
-    lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup, pair_finder, util_path, LookUpTable, LookUpTableLambda,
+    lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup, lut_sichash::LutSicHashDouble, pair_finder,
+    performance::lut_skip_evaluation::DISTANCE_CUT_OFF, util_path, LookUpTable, LookUpTableLambda,
 };
 
 /// Allocator to track how much allocations are happening during a specific time frame
@@ -47,6 +48,7 @@ pub fn evaluate(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::erro
     // #####################################
     // eval::<LutHashMap>(&mut config, "hash_map");
     eval::<LutHashMapDouble>(&mut config, "hash_map_double");
+    eval::<LutSicHashDouble>(&mut config, "sic_hash_double");
     // eval::<LutPerfectNaive>(&mut config, "perfect_naive");
 
     // for bit_mask in [3, 7, 15, 31, 63, 127] {
@@ -70,7 +72,8 @@ pub fn evaluate(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::erro
     // #####################################
     for lambda in [1, 5] {
         // for bit_mask in [3, 7, 15, 31, 63, 127] {
-        for bit_mask in [2047, 4095, 8191] {
+        // for bit_mask in [2047, 4095, 8191] {
+        for bit_mask in [2047] {
             eval_phf_group(&mut config, "phf_group", bit_mask, lambda, false);
         }
     }
@@ -143,7 +146,8 @@ fn eval_phf_group(cfg: &mut EvalConfig, name: &str, bit_mask: usize, lambda: usi
     let start_heap = Region::new(GLOBAL);
 
     let start_build = std::time::Instant::now();
-    let lut = LutPHFGroup::build_buckets(lambda, cfg.json_path, 0, bit_mask, threaded).expect("Fail @ build lut");
+    let lut = LutPHFGroup::build_buckets(lambda, cfg.json_path, DISTANCE_CUT_OFF, bit_mask, threaded)
+        .expect("Fail @ build lut");
     let build_time = start_build.elapsed().as_secs_f64();
 
     let heap_bytes = heap_value(start_heap.change());
