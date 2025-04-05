@@ -1,7 +1,7 @@
 use crate::lookup_table::util_path;
 use std::{fs, path::Path};
 
-pub mod distance_cutoff_evaluation;
+pub mod cutoff;
 pub mod lut_evaluation;
 pub mod lut_query_data;
 pub mod lut_skip_counter;

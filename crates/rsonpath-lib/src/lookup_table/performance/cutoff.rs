@@ -21,12 +21,12 @@ const QUERY_REPETITIONS: usize = 1;
 const RESULTS_PATH: &str = ".a_lut_tests/performance/distance_cutoff_evaluation";
 
 pub fn evaluate() {
-    let distance_cutoffs = vec![0, 1000];
+    let cutoff = vec![0, 1000];
 
-    eval_query_set(lut_query_data::QUERY_GOOGLE, distance_cutoffs);
+    eval_query_set(lut_query_data::QUERY_GOOGLE, cutoff);
 }
 
-fn eval_query_set(test_data: (&str, &[(&str, &str)]), distance_cutoffs: Vec<usize>) {
+fn eval_query_set(test_data: (&str, &[(&str, &str)]), cutoff: Vec<usize>) {
     let (json_path, queries) = test_data;
     let filename = util_path::extract_filename(json_path);
     println!("JSON: {}", json_path);
@@ -37,7 +37,7 @@ fn eval_query_set(test_data: (&str, &[(&str, &str)]), distance_cutoffs: Vec<usiz
     let mut query_results = Vec::new();
 
     let mut lut;
-    for cutoff in distance_cutoffs {
+    for cutoff in cutoff {
         print!("  cutoff {cutoff}");
 
         // Build time & heap size
@@ -60,7 +60,7 @@ fn eval_query_set(test_data: (&str, &[(&str, &str)]), distance_cutoffs: Vec<usiz
             // Build query and add the LUT to it
             let query = rsonpath_syntax::parse(query_text).expect("Fail @ parse query");
             let mut engine = RsonpathEngine::compile_query(&query).expect("Fail @ compile query");
-            engine.add_lut(lut);
+            engine.add_lut(lut, cutoff);
 
             let start_query = std::time::Instant::now();
             for _i in 0..QUERY_REPETITIONS {

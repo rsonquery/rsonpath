@@ -104,13 +104,9 @@ impl LutSicHashDouble {
     /// We count the distances between the opening and closing brackets. We save the start position as key and
     /// distance to the closing bracket in the value. Creates a key-value list for values which fit in a 16 bit
     /// representation and another key-value list for the ones that do not. Ignore all pairs with distances <
-    /// distance_cutoff.
+    /// cutoff.
     #[inline]
-    pub(crate) fn find_all_pairs<I, V>(
-        input: &I,
-        simd: V,
-        distance_cutoff: usize,
-    ) -> Result<PairDataSicHash, error::InputError>
+    pub(crate) fn find_all_pairs<I, V>(input: &I, simd: V, cutoff: usize) -> Result<PairDataSicHash, error::InputError>
     where
         I: Input,
         V: Simd,
@@ -140,7 +136,7 @@ impl LutSicHashDouble {
 
                     // Check if distance can be represented with 16 or less bits
                     let distance = idx_close - idx_open;
-                    if distance > distance_cutoff {
+                    if distance > cutoff {
                         let key_string = idx_open.to_string();
                         let key_length = key_string.len();
                         if distance < THRESHOLD_16_BITS {
@@ -207,21 +203,21 @@ impl Drop for LutSicHashDouble {
 
 impl LookUpTable for LutSicHashDouble {
     #[inline]
-    fn build(json_path: &str, distance_cutoff: usize) -> Result<Self, Box<dyn std::error::Error>> {
+    fn build(json_path: &str, cutoff: usize) -> Result<Self, Box<dyn std::error::Error>> {
         let file = fs::File::open(json_path).expect("Failed to open file");
         // SAFETY: We keep the file open throughout the entire duration.
         let input = unsafe { input::MmapInput::map_file(&file)? };
         let simd_c = classification::simd::configure();
 
         let lut_phf_double = classification::simd::config_simd!(simd_c => |simd| {
-            classification::simd::dispatch_simd!(simd; input, simd, distance_cutoff => fn<I, V>(
+            classification::simd::dispatch_simd!(simd; input, simd, cutoff => fn<I, V>(
                 input: I,
                 simd: V,
-                distance_cutoff: usize,
+                cutoff: usize,
             ) -> Result<LutSicHashDouble, error::InputError> where
             I: Input,
             V: Simd, {
-                    let pair_data = LutSicHashDouble::find_all_pairs::<I, V>(&input, simd, distance_cutoff)?;
+                    let pair_data = LutSicHashDouble::find_all_pairs::<I, V>(&input, simd, cutoff)?;
                     Ok(LutSicHashDouble::new(pair_data))
                 })
         });

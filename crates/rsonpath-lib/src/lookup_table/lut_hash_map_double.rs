@@ -45,7 +45,7 @@ pub struct LutHashMapDouble {
 
 impl LookUpTable for LutHashMapDouble {
     #[inline]
-    fn build(json_path: &str, distance_cutoff: usize) -> Result<Self, Box<dyn std::error::Error>> {
+    fn build(json_path: &str, cutoff: usize) -> Result<Self, Box<dyn std::error::Error>> {
         let file = fs::File::open(json_path).expect("Failed to open file");
         // SAFETY: We keep the file open throughout the entire duration.
         let input = unsafe { input::MmapInput::map_file(&file)? };
@@ -96,13 +96,10 @@ impl LutHashMapDouble {
     #[inline]
     #[must_use]
     pub fn build_double(pd: PairData) -> Self {
-        let hash_map_16: HashMap<usize, u16> = pd.keys.into_iter().zip(pd.values).collect();
+        let hash_map: HashMap<usize, u16> = pd.keys.into_iter().zip(pd.values).collect();
         let hash_map_64: HashMap<usize, usize> = pd.keys_64.into_iter().zip(pd.values_64).collect();
 
-        Self {
-            hash_map: hash_map_16,
-            hash_map_64,
-        }
+        Self { hash_map, hash_map_64 }
     }
 
     /// We count the distances between the opening and closing brackets. We save the start position as key and

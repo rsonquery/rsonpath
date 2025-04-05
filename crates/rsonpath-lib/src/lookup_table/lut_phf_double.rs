@@ -50,8 +50,8 @@ pub struct LutPHFDouble {
 
 impl LookUpTable for LutPHFDouble {
     #[inline]
-    fn build(json_path: &str, distance_cutoff: usize) -> Result<Self, Box<dyn std::error::Error>> {
-        Self::build_lambda(DEFAULT_LAMBDA, json_path, distance_cutoff, DEFAULT_THREADED)
+    fn build(json_path: &str, cutoff: usize) -> Result<Self, Box<dyn std::error::Error>> {
+        Self::build_lambda(DEFAULT_LAMBDA, json_path, cutoff, DEFAULT_THREADED)
     }
 
     #[inline]
@@ -87,7 +87,7 @@ impl LookUpTableLambda for LutPHFDouble {
     fn build_lambda(
         lambda: usize,
         json_path: &str,
-        distance_cutoff: usize,
+        cutoff: usize,
         threaded: bool,
     ) -> Result<Self, Box<dyn std::error::Error>> {
         let file = fs::File::open(json_path).expect("Failed to open file");
@@ -96,16 +96,16 @@ impl LookUpTableLambda for LutPHFDouble {
         let simd_c = classification::simd::configure();
 
         let lut_phf_double = classification::simd::config_simd!(simd_c => |simd| {
-            classification::simd::dispatch_simd!(simd; input, simd, lambda, distance_cutoff, threaded => fn<I, V>(
+            classification::simd::dispatch_simd!(simd; input, simd, lambda, cutoff, threaded => fn<I, V>(
                 input: I,
                 simd: V,
                 lambda: usize,
-                distance_cutoff: usize,
+                cutoff: usize,
                 threaded: bool,
             ) -> Result<LutPHFDouble, error::InputError> where
             I: Input,
             V: Simd, {
-                    let pair_data = LutPHFDouble::find_all_pairs::<I, V>(&input, simd, distance_cutoff)?;
+                    let pair_data = LutPHFDouble::find_all_pairs::<I, V>(&input, simd, cutoff)?;
                     Ok(LutPHFDouble::build_double(lambda, &pair_data, threaded))
                 })
         });
@@ -152,11 +152,7 @@ impl LutPHFDouble {
     /// distance to the closing bracket in the value. Creates a key-value list for values which fit in a 16 bit
     /// representation and another key-value list for the ones that do not.
     #[inline]
-    pub(crate) fn find_all_pairs<I, V>(
-        input: &I,
-        simd: V,
-        distance_cutoff: usize,
-    ) -> Result<PairData, error::InputError>
+    pub(crate) fn find_all_pairs<I, V>(input: &I, simd: V, cutoff: usize) -> Result<PairData, error::InputError>
     where
         I: Input,
         V: Simd,
@@ -186,7 +182,7 @@ impl LutPHFDouble {
 
                     // Check if distance can be represented with 16 or less bits
                     let distance = idx_close - idx_open;
-                    if distance >= distance_cutoff {
+                    if distance >= cutoff {
                         if distance < THRESHOLD_16_BITS {
                             // Can fit into 16 bit
                             pairs.keys.push(idx_open);

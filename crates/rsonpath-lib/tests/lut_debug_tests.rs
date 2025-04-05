@@ -135,13 +135,13 @@ fn debug_lut_group_buckets() {
     // let json_file = format!("../../{}", ALPHABET);
     let json_file = format!("../../{}", POKEMON_MINI);
     let lambda = 1;
-    let distance_cutoff = DISTANCE_CUT_OFF;
+    let cutoff = 0;
     let json_path = json_file.as_str();
     let bit_mask = 3; // powers of 2 -1
     let threaded = false;
 
     let (keys, values) = pair_finder::get_keys_and_values(json_path).expect("Fail @ finding pairs.");
-    let lut = LutPHFGroup::build_buckets(lambda, json_path, distance_cutoff, bit_mask, threaded)
+    let lut = LutPHFGroup::build_buckets(lambda, json_path, cutoff, bit_mask, threaded)
         .expect("Fail @ building lut_phf_double");
 
     let mut count_correct = 0;

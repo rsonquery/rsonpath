@@ -27,14 +27,8 @@ pub struct LutPHFGroup {
 
 impl LookUpTable for LutPHFGroup {
     #[inline]
-    fn build(json_path: &str, distance_cutoff: usize) -> Result<Self, Box<dyn std::error::Error>> {
-        Self::build_buckets(
-            DEFAULT_LAMBDA,
-            json_path,
-            distance_cutoff,
-            DEFAULT_BIT_MASK,
-            DEFAULT_THREADED,
-        )
+    fn build(json_path: &str, cutoff: usize) -> Result<Self, Box<dyn std::error::Error>> {
+        Self::build_buckets(DEFAULT_LAMBDA, json_path, cutoff, DEFAULT_BIT_MASK, DEFAULT_THREADED)
     }
 
     #[inline]
@@ -58,10 +52,10 @@ impl LookUpTableLambda for LutPHFGroup {
     fn build_lambda(
         lambda: usize,
         json_path: &str,
-        distance_cutoff: usize,
+        cutoff: usize,
         threaded: bool,
     ) -> Result<Self, Box<dyn std::error::Error>> {
-        Self::build_buckets(lambda, json_path, distance_cutoff, DEFAULT_BIT_MASK, threaded)
+        Self::build_buckets(lambda, json_path, cutoff, DEFAULT_BIT_MASK, threaded)
     }
 }
 
@@ -70,7 +64,7 @@ impl LutPHFGroup {
     pub fn build_buckets(
         lambda: usize,
         json_path: &str,
-        distance_cutoff: usize,
+        cutoff: usize,
         bit_mask: usize,
         threaded: bool,
     ) -> Result<Self, Box<dyn std::error::Error>> {
@@ -80,17 +74,17 @@ impl LutPHFGroup {
         let simd_c = classification::simd::configure();
 
         let lut_perfect_naive = classification::simd::config_simd!(simd_c => |simd| {
-            classification::simd::dispatch_simd!(simd; input, simd, lambda, bit_mask, distance_cutoff, threaded => fn<I, V>(
+            classification::simd::dispatch_simd!(simd; input, simd, lambda, bit_mask, cutoff, threaded => fn<I, V>(
                 input: I,
                 simd: V,
                 lambda: usize,
                 bit_mask: usize,
-                distance_cutoff: usize,
+                cutoff: usize,
                 threaded: bool,
             ) -> Result<LutPHFGroup, error::InputError> where
             I: Input,
             V: Simd,{
-                let lut_doubles_pair_data = LutPHFGroup::find_all_pairs::<I, V>(&input, simd, distance_cutoff, bit_mask)?;
+                let lut_doubles_pair_data = LutPHFGroup::find_all_pairs::<I, V>(&input, simd, cutoff, bit_mask)?;
                 Ok(LutPHFGroup::build_lut_doubles(lambda, lut_doubles_pair_data, bit_mask, threaded))
             })
         });
@@ -109,7 +103,7 @@ impl LutPHFGroup {
     fn find_all_pairs<I, V>(
         input: &I,
         simd: V,
-        distance_cutoff: usize,
+        cutoff: usize,
         bit_mask: usize,
     ) -> Result<Vec<PairData>, error::InputError>
     where
@@ -153,7 +147,7 @@ impl LutPHFGroup {
                     let bucket = &mut lut_doubles_pair_data[idx_open & bit_mask];
                     let distance = idx_close - idx_open;
 
-                    if distance >= distance_cutoff {
+                    if distance >= cutoff {
                         if distance < THRESHOLD_16_BITS {
                             // Can fit into 16 bits
                             bucket.keys.push(idx_open);

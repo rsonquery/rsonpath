@@ -14,11 +14,7 @@ use crate::{
     },
     input::InputBlockIterator,
     lookup_table::{
-        lut_hash_map,
-        performance::{
-            lut_query_data::POKEMON_MINI,
-            lut_skip_evaluation::{self, SkipMode, DISTANCE_CUT_OFF, USE_SKIP_ABORT_STRATEGY},
-        },
+        performance::lut_skip_evaluation::{self, SkipMode, USE_SKIP_ABORT_STRATEGY},
         LookUpTable, LUT,
     },
     FallibleIterator, MaskType, BLOCK_SIZE,
@@ -56,16 +52,17 @@ where
         idx: usize,      // padded
         bracket_type: BracketType,
         lut: Option<&LUT>,
+        cutoff: Option<usize>,
         padding: usize,
     ) -> Result<usize, EngineError> {
         if lut_skip_evaluation::TRACK_SKIPPING_TIME_DURING_PERFORMANCE_TEST {
             let start_skip = Instant::now();
-            let result = self.skip_choice(idx_open, idx, bracket_type, lut, padding);
+            let result = self.skip_choice(idx_open, idx, bracket_type, lut, cutoff, padding);
             let skip_time = start_skip.elapsed().as_nanos() as u64;
             lut_skip_evaluation::add_skip_time(skip_time);
             return result;
         } else {
-            self.skip_choice(idx_open, idx, bracket_type, lut, padding)
+            self.skip_choice(idx_open, idx, bracket_type, lut, cutoff, padding)
         }
     }
 
@@ -75,12 +72,13 @@ where
         idx: usize,      // padded
         bracket_type: BracketType,
         lut: Option<&LUT>,
+        cutoff: Option<usize>,
         padding: usize,
     ) -> Result<usize, EngineError> {
-        if let Some(lut) = lut {
+        if let (Some(lut), Some(cutoff)) = (lut, cutoff) {
             if USE_SKIP_ABORT_STRATEGY {
-                // use ITE mainly and LUT only when then jump distance exceeds DISTANCE_CUTOFF
-                self.skip_lut_abort(idx_open, bracket_type, lut, padding)
+                // use ITE mainly and LUT only when the jump distance exceeds CUTOFF
+                self.skip_lut_abort(idx_open, bracket_type, lut, cutoff, padding)
             } else {
                 // use only the LUT, even for short distances
                 self.skip_lut(idx_open, idx, bracket_type, lut, padding)
@@ -174,20 +172,21 @@ where
         }
     }
 
-    /// With DISTANCE_CUTOFF we defined a minimum distance value that all the LUTs will track. That means when we
-    /// skip we want to skip normally ITE style until we reach the DISTANCE_CUTOFF. Then we want to query the LUT,
+    /// With CUTOFF we defined a minimum distance value that all the LUTs will track. That means when we
+    /// skip we want to skip normally ITE style until we reach the CUTOFF. Then we want to query the LUT,
     /// since we know it will cover the larger skips, and then skip LUT style, because it should be faster.
     fn skip_lut_abort(
         &mut self,
         idx_open: usize,
         bracket_type: BracketType,
         lut: &LUT,
+        cutoff: usize,
         padding: usize,
     ) -> Result<usize, EngineError> {
-        dispatch_simd!(self.simd; self, bracket_type, idx_open, lut, padding =>
+        dispatch_simd!(self.simd; self, bracket_type, idx_open, lut, cutoff, padding =>
         fn <'i, I, V>(
             tail_skip: &mut TailSkip<'i, I, V::QuotesClassifier<'i, I>, V::StructuralClassifier<'i, I>, V, BLOCK_SIZE>,
-            opening: BracketType, idx_open: usize, lut: &LUT, padding: usize) -> Result<usize, EngineError>
+            opening: BracketType, idx_open: usize, lut: &LUT, cutoff:usize, padding: usize) -> Result<usize, EngineError>
         where
             I: InputBlockIterator<'i, BLOCK_SIZE>,
             V: Simd
@@ -224,7 +223,7 @@ where
                 'outer: while let Some(ref mut vector) = current_vector {
                     if track_skipped_distance {
                         skipped_distance = skipped_distance + BLOCK_SIZE;
-                        if skipped_distance > DISTANCE_CUT_OFF {
+                        if skipped_distance > cutoff {
                             // Check if the LUT has a hit
                             if let Some(lut_result) = lut.get(&idx_open_no_pad) {
                                 // Stop skipping ITE style and skip LUT style
@@ -267,7 +266,7 @@ where
                 tail_skip.simd.resume_structural_classification(resume_state)
             });
 
-            // Skip LUT style if skipped_distance > DISTANCE_CUTOFF
+            // Skip LUT style if skipped_distance > CUTOFF
             if skip_with_lut {
                 // Shift index by 1 or its off aligned
                 let idx_close = idx_lut + 1 + padding;

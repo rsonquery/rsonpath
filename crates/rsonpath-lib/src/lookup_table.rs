@@ -23,14 +23,12 @@ pub type LUT = lut_ptr_hash_double::LutPtrHashDouble;
 
 /// Lookup-table = LUT
 pub trait LookUpTable {
-    fn build(json_path: &str, distance_cutoff: usize) -> Result<Self, Box<dyn std::error::Error>>
+    fn build(json_path: &str, cutoff: usize) -> Result<Self, Box<dyn std::error::Error>>
     // TODO if time? fn build(json_path: &str) -> Result<Self, Box<dyn std::error::Error + Sync + Send>>
     where
         Self: Sized;
 
     fn get(&self, key: &usize) -> Option<usize>;
-
-    // fn get_cutoff(&self) -> usize;
 
     fn allocated_bytes(&self) -> usize;
 }
@@ -39,7 +37,7 @@ pub trait LookUpTableLambda: LookUpTable {
     fn build_lambda(
         lambda: usize,
         json_path: &str,
-        distance_cutoff: usize,
+        cutoff: usize,
         threaded: bool,
     ) -> Result<Self, Box<dyn std::error::Error>>
     where
@@ -48,7 +46,7 @@ pub trait LookUpTableLambda: LookUpTable {
 
 // pub struct LookUpTableBuilder {
 //     json_path: Option<String>,
-//     distance_cutoff: Option<usize>,
+//     cutoff: Option<usize>,
 //     lambda: Option<usize>,
 //     threaded: bool,
 // }
@@ -57,7 +55,7 @@ pub trait LookUpTableLambda: LookUpTable {
 //     pub fn new() -> Self {
 //         LookUpTableBuilder {
 //             json_path: None,
-//             distance_cutoff: Some(0),
+//             cutoff: Some(0),
 //             lambda: None,
 //             threaded: false,
 //         }
@@ -68,8 +66,8 @@ pub trait LookUpTableLambda: LookUpTable {
 //         self
 //     }
 
-//     pub fn distance_cutoff(mut self, cutoff: usize) -> Self {
-//         self.distance_cutoff = Some(cutoff);
+//     pub fn cutoff(mut self, cutoff: usize) -> Self {
+//         self.cutoff = Some(cutoff);
 //         self
 //     }
 
@@ -87,24 +85,24 @@ pub trait LookUpTableLambda: LookUpTable {
 //         let json_path = self
 //             .json_path
 //             .ok_or("Error: `json_path` must be set before calling `build`")?;
-//         let distance_cutoff = self
-//             .distance_cutoff
-//             .ok_or("Error: `distance_cutoff` must be set before calling `build`")?;
+//         let cutoff = self
+//             .cutoff
+//             .ok_or("Error: `cutoff` must be set before calling `build`")?;
 
 //         if json_path.is_empty() {
 //             return Err("Error: `json_path` cannot be empty".into());
 //         }
-//         if distance_cutoff == 0 {
-//             return Err("Error: `distance_cutoff` must be greater than 0".into());
+//         if cutoff == 0 {
+//             return Err("Error: `cutoff` must be greater than 0".into());
 //         }
 
-//         T::build(&json_path, distance_cutoff)
+//         T::build(&json_path, cutoff)
 //     }
 
 //     // Example usage:
 //     // let lut_lambda = LookUpTableBuilder::new()
 //     // .json_path("data.json")
-//     // .distance_cutoff(5)
+//     // .cutoff(5)
 //     // .lambda(42)
 //     // .threaded(true)
 //     // .build_lambda::<LookUpTableImpl>()?;
@@ -112,9 +110,9 @@ pub trait LookUpTableLambda: LookUpTable {
 //         let json_path = self
 //             .json_path
 //             .ok_or("Error: `json_path` must be set before calling `build_lambda`")?;
-//         let distance_cutoff = self
-//             .distance_cutoff
-//             .ok_or("Error: `distance_cutoff` must be set before calling `build_lambda`")?;
+//         let cutoff = self
+//             .cutoff
+//             .ok_or("Error: `cutoff` must be set before calling `build_lambda`")?;
 //         let lambda = self
 //             .lambda
 //             .ok_or("Error: `lambda` must be set before calling `build_lambda`")?;
@@ -122,13 +120,13 @@ pub trait LookUpTableLambda: LookUpTable {
 //         if json_path.is_empty() {
 //             return Err("Error: `json_path` cannot be empty".into());
 //         }
-//         if distance_cutoff < 0 {
-//             return Err("Error: `distance_cutoff` must be greater than 0".into());
+//         if cutoff < 0 {
+//             return Err("Error: `cutoff` must be greater than 0".into());
 //         }
 //         if lambda == 0 {
 //             return Err("Error: `lambda` must be greater than 0".into());
 //         }
 
-//         T::build_lambda(lambda, &json_path, distance_cutoff, self.threaded)
+//         T::build_lambda(lambda, &json_path, cutoff, self.threaded)
 //     }
 // }

@@ -7,10 +7,8 @@ use std::{
 use stats_alloc::{Region, StatsAlloc, INSTRUMENTED_SYSTEM};
 
 use crate::lookup_table::{
-    distance_counter, lut_hash_map::LutHashMap, lut_hash_map_double::LutHashMapDouble,
-    lut_hash_map_group::LutHashMapGroup, lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF,
-    lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup, lut_ptr_hash_double::LutPtrHashDouble,
-    lut_sichash::LutSicHashDouble, pair_finder, performance::lut_skip_evaluation::DISTANCE_CUT_OFF, util_path,
+    distance_counter, lut_hash_map_double::LutHashMapDouble, lut_hash_map_group::LutHashMapGroup, lut_phf::LutPHF,
+    lut_phf_group::LutPHFGroup, lut_ptr_hash_double::LutPtrHashDouble, pair_finder, performance::cutoff, util_path,
     LookUpTable, LookUpTableLambda,
 };
 
@@ -27,7 +25,9 @@ pub struct EvalConfig<'a> {
 
 #[inline]
 pub fn evaluate(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Error>> {
-    println!("JSONPATH: {}", json_path);
+    let cutoff: usize = 0;
+    println!("JSONPATH: {}, cutoff = {}", json_path, cutoff);
+
     let file = std::fs::File::open(json_path)?;
     let filename = util_path::extract_filename(json_path);
     let num_keys = distance_counter::count_num_pairs(json_path);
@@ -64,7 +64,7 @@ pub fn evaluate(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::erro
     // #####################################
     for lambda in [1, 5] {
         for threaded in [false] {
-            // eval_phf::<LutPHF>(&mut config, "phf", lambda, threaded);
+            // eval_phf::<LutPHF>(&mut config, "phf", cutoff, lambda, threaded);
             // eval_phf::<LutPHFDouble>(&mut config, "phf_double", lambda, threaded);
         }
     }
@@ -76,7 +76,7 @@ pub fn evaluate(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::erro
         // for bit_mask in [3, 7, 15, 31, 63, 127] {
         // for bit_mask in [63, 127, 255, 511] {
         for bit_mask in [2047] {
-            eval_phf_group(&mut config, "phf_group", bit_mask, lambda, false);
+            eval_phf_group(&mut config, "phf_group", cutoff, bit_mask, lambda, false);
             // eval_phf_group(&mut config, "phf_group", bit_mask, lambda, false);
         }
     }
@@ -117,7 +117,7 @@ fn eval<T: LookUpTable>(cfg: &mut EvalConfig, name: &str) {
     save_measurements(cfg, &name, build_time, query_time, heap_bytes, allocated_bytes);
 }
 
-fn eval_phf<T: LookUpTableLambda>(cfg: &mut EvalConfig, name: &str, lambda: usize, threaded: bool) {
+fn eval_phf<T: LookUpTableLambda>(cfg: &mut EvalConfig, name: &str, cutoff: usize, lambda: usize, threaded: bool) {
     println!("  - {name}:λ={lambda},threaded={threaded}");
 
     // Build time & heap size
@@ -141,7 +141,7 @@ fn eval_phf<T: LookUpTableLambda>(cfg: &mut EvalConfig, name: &str, lambda: usiz
     save_measurements(cfg, &name, build_time, query_time, heap_bytes, allocated_bytes);
 }
 
-fn eval_phf_group(cfg: &mut EvalConfig, name: &str, bit_mask: usize, lambda: usize, threaded: bool) {
+fn eval_phf_group(cfg: &mut EvalConfig, name: &str, cutoff: usize, bit_mask: usize, lambda: usize, threaded: bool) {
     let bits = bit_mask + 1;
     println!("  - {name}:#{bits}_λ={lambda}");
 
@@ -149,8 +149,7 @@ fn eval_phf_group(cfg: &mut EvalConfig, name: &str, bit_mask: usize, lambda: usi
     let start_heap = Region::new(GLOBAL);
 
     let start_build = std::time::Instant::now();
-    let lut = LutPHFGroup::build_buckets(lambda, cfg.json_path, DISTANCE_CUT_OFF, bit_mask, threaded)
-        .expect("Fail @ build lut");
+    let lut = LutPHFGroup::build_buckets(lambda, cfg.json_path, cutoff, bit_mask, threaded).expect("Fail @ build lut");
     let build_time = start_build.elapsed().as_secs_f64();
 
     let heap_bytes = heap_value(start_heap.change());

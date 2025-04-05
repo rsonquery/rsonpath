@@ -17,7 +17,7 @@ pub struct LutPtrHashDouble {
 }
 
 impl LookUpTable for LutPtrHashDouble {
-    fn build(json_path: &str, distance_cutoff: usize) -> Result<Self, Box<dyn std::error::Error>>
+    fn build(json_path: &str, cutoff: usize) -> Result<Self, Box<dyn std::error::Error>>
     where
         Self: Sized,
     {
@@ -27,14 +27,14 @@ impl LookUpTable for LutPtrHashDouble {
         let simd_c = classification::simd::configure();
 
         let lut_phf_double = classification::simd::config_simd!(simd_c => |simd| {
-            classification::simd::dispatch_simd!(simd; input, simd, distance_cutoff => fn<I, V>(
+            classification::simd::dispatch_simd!(simd; input, simd, cutoff => fn<I, V>(
                 input: I,
                 simd: V,
-                distance_cutoff: usize,
+                cutoff: usize,
             ) -> Result<LutPtrHashDouble, error::InputError> where
             I: Input,
             V: Simd, {
-                    let pair_data = LutPHFDouble::find_all_pairs(&input, simd, distance_cutoff)?;
+                    let pair_data = LutPHFDouble::find_all_pairs(&input, simd, cutoff)?;
                     Ok(LutPtrHashDouble::build_double(pair_data))
                 })
         });

@@ -262,14 +262,14 @@ impl Target for BenchTarget<'_> {
                 Ok(Box::new(prepared))
             }
             // Added by Ricardo
-            BenchTarget::RsonpathWithLut(q, distance_cutoff, ResultType::Full) => {
-                let rsonpath_lut = RsonpathLut::new(distance_cutoff)?;
+            BenchTarget::RsonpathWithLut(q, cutoff, ResultType::Full) => {
+                let rsonpath_lut = RsonpathLut::new(cutoff)?;
                 let prepared = prepare(rsonpath_lut, file_path, q, load_ahead_of_time, compile_ahead_of_time)?;
                 Ok(Box::new(prepared))
             }
             // Added by Ricardo
-            BenchTarget::RsonpathWithLut(q, distance_cutoff, ResultType::Count) => {
-                let implementation = RsonpathLut::new(distance_cutoff)?;
+            BenchTarget::RsonpathWithLut(q, cutoff, ResultType::Count) => {
+                let implementation = RsonpathLut::new(cutoff)?;
                 let prepared = prepare(implementation, file_path, q, load_ahead_of_time, compile_ahead_of_time)?;
                 Ok(Box::new(prepared))
             }
@@ -334,8 +334,8 @@ impl Target for BenchTarget<'_> {
                 Ok(Box::new(prepared))
             }
             // Added by Ricardo
-            BenchTarget::RsonpathWithLut(q, distance_cutoff, ResultType::Full) => {
-                let rsonpath_lut = RsonpathLut::new(distance_cutoff)?;
+            BenchTarget::RsonpathWithLut(q, cutoff, ResultType::Full) => {
+                let rsonpath_lut = RsonpathLut::new(cutoff)?;
                 let prepared = prepare_with_id(
                     rsonpath_lut,
                     id,
@@ -346,7 +346,7 @@ impl Target for BenchTarget<'_> {
                 )?;
                 Ok(Box::new(prepared))
             }
-            BenchTarget::RsonpathWithLut(q, distance_cutoff, ResultType::Count) => unimplemented!(),
+            BenchTarget::RsonpathWithLut(q, cutoff, ResultType::Count) => unimplemented!(),
         }
     }
 }

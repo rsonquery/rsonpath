@@ -25,7 +25,7 @@ pub struct LutHashMapGroup {
 
 impl LookUpTable for LutHashMapGroup {
     #[inline]
-    fn build(json_path: &str, distance_cutoff: usize) -> Result<Self, Box<dyn std::error::Error>> {
+    fn build(json_path: &str, cutoff: usize) -> Result<Self, Box<dyn std::error::Error>> {
         Self::build_buckets(json_path, DEFAULT_BIT_MASK)
     }
 
