@@ -71,6 +71,7 @@ pub const QUERY_GOOGLE: (&str, &[(&str, &str)]) = (
         // ("28", "$[1000].routes[*].bounds"),
         // ("29", "$[2000].routes[*].bounds"),
         // ("30", "$[3000].routes[*].bounds"),
+        // More queries
         ("100", "$[*].routes[*].legs[*]"),
         ("101", "$[*].routes[*].legs[*].steps[*]"),
         ("102", "$[*].routes[*].legs[*].steps[*].distance"),
@@ -89,11 +90,9 @@ pub const QUERY_GOOGLE: (&str, &[(&str, &str)]) = (
         ("118", "$[*].routes[*].legs[*]..lat"),
         ("119", "$[*].routes[*].legs[*]..lng"),
         ("200", "$[*].available_travel_modes"),
-        ("201", "$[*].copyrights"),
         ("202", "$[*].routes[*]"),
         ("203", "$[*].routes[*].legs[*]"),
         ("204", "$[4000].routes[*].bounds"),
-        ("205", "$[*].routes[1]"),
     ],
 );
 

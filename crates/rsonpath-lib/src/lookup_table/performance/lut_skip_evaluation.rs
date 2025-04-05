@@ -19,9 +19,9 @@ use super::lut_skip_counter::COUNTER_FILE_PATH;
 // # Config #
 // ##########
 pub const TRACK_SKIPPING_TIME_DURING_PERFORMANCE_TEST: bool = false;
-pub const SKIP_MODE: SkipMode = SkipMode::TRACK;
+pub const SKIP_MODE: SkipMode = SkipMode::COUNT;
 pub const DISTANCE_CUT_OFF: usize = 0;
-pub const USE_SKIP_ABORT_STRATEGY: bool = false;
+pub const USE_SKIP_ABORT_STRATEGY: bool = true;
 const REPETITIONS: u64 = 1;
 
 static SKIP_TIME_ATOMIC: AtomicU64 = AtomicU64::new(0);
@@ -36,8 +36,8 @@ pub enum SkipMode {
 const RESULT_CSV_PATH: &str = ".a_lut_tests/performance/skip_evaluation/";
 
 pub fn skip_evaluation() {
-    // eval_test_data(TEST_GOOGLE);
-    eval_test_data(QUERY_BESTBUY);
+    eval_test_data(QUERY_GOOGLE);
+    // eval_test_data(QUERY_BESTBUY);
     // eval_test_data(TEST_TWITTER);
     // eval_test_data(QUERY_POKEMON_SHORT);
 }

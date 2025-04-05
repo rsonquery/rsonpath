@@ -2,7 +2,7 @@ use clap::{Parser, Subcommand};
 use rsonpath::lookup_table::{
     distance_counter::{self, DISTANCE_EVAL_DIR},
     lut_sichash,
-    performance::{self, lut_query_data, lut_skip_counter, lut_skip_evaluation, EVAL_DIR},
+    performance::{self, distance_cutoff_evaluation, lut_query_data, lut_skip_counter, lut_skip_evaluation, EVAL_DIR},
     pokemon_test_data_generator,
     query_with_lut::query_with_lut,
     sichash_test_data_generator::{self, SICHASH_DATA_DIR},
@@ -55,6 +55,7 @@ enum Commands {
     Pokemon {
         json_path: String,
     },
+    Cutoff {},
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -96,6 +97,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
         Commands::Pokemon { json_path } => {
             pokemon_test_data_generator::generate_bigger_version(json_path);
+        }
+        Commands::Cutoff {} => {
+            distance_cutoff_evaluation::evaluate();
         }
     }
 

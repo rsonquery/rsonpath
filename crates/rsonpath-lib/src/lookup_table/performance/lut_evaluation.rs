@@ -49,7 +49,7 @@ pub fn evaluate(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::erro
     // #####################################
     // eval::<LutHashMap>(&mut config, "hash_map");
     eval::<LutHashMapDouble>(&mut config, "hash_map_double");
-    eval::<LutSicHashDouble>(&mut config, "sic_hash_double");
+    // eval::<LutSicHashDouble>(&mut config, "sic_hash_double");
     eval::<LutPtrHashDouble>(&mut config, "ptr_hash_double");
     // eval::<LutPerfectNaive>(&mut config, "perfect_naive");
 
@@ -62,21 +62,22 @@ pub fn evaluate(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::erro
     // #####################################
     // Measure LUTs with lambda parameter
     // #####################################
-    // for lambda in [1, 5] {
-    //     for threaded in [false] {
-    //         eval_phf::<LutPHF>(&mut config, "phf", lambda, threaded);
-    //         eval_phf::<LutPHFDouble>(&mut config, "phf_double", lambda, threaded);
-    //     }
-    // }
+    for lambda in [1, 5] {
+        for threaded in [false] {
+            // eval_phf::<LutPHF>(&mut config, "phf", lambda, threaded);
+            // eval_phf::<LutPHFDouble>(&mut config, "phf_double", lambda, threaded);
+        }
+    }
 
     // #####################################
     // Measure LUTs with bucket parameter
     // #####################################
     for lambda in [1, 5] {
         // for bit_mask in [3, 7, 15, 31, 63, 127] {
-        // for bit_mask in [2047, 4095, 8191] {
+        // for bit_mask in [63, 127, 255, 511] {
         for bit_mask in [2047] {
             eval_phf_group(&mut config, "phf_group", bit_mask, lambda, false);
+            // eval_phf_group(&mut config, "phf_group", bit_mask, lambda, false);
         }
     }
 

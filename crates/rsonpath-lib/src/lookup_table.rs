@@ -30,6 +30,8 @@ pub trait LookUpTable {
 
     fn get(&self, key: &usize) -> Option<usize>;
 
+    // fn get_cutoff(&self) -> usize;
+
     fn allocated_bytes(&self) -> usize;
 }
 
