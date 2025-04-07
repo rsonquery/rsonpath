@@ -37,6 +37,12 @@ impl LookUpTable for LutVFuncDouble {
             ) -> Result<LutVFuncDouble, error::InputError> where
             I: Input,
             V: Simd, {
+                    // let start_search = std::time::Instant::now();
+                    // let pair_data = LutPHFDouble::find_all_pairs(&input, simd, cutoff)?;
+                    // let search_time = start_search.elapsed().as_secs_f64();
+                    // println!("    - Search time:      {search_time}");
+                    // Ok(LutVFuncDouble::build_double(pair_data))
+
                     let pair_data = LutPHFDouble::find_all_pairs(&input, simd, cutoff)?;
                     Ok(LutVFuncDouble::build_double(pair_data))
                 })
@@ -80,8 +86,8 @@ impl LutVFuncDouble {
         let builder_64 = VBuilder::<usize, Box<[usize]>>::default().expected_num_keys(keys_64.len());
         let vfunc_64 = builder_64
             .try_build_func(
-                FromIntoIterator::from(keys_64.clone()),
-                FromIntoIterator::from(values_64.clone()),
+                FromIntoIterator::from(keys_64),
+                FromIntoIterator::from(values_64),
                 no_logging![],
             )
             .expect("Some build error");

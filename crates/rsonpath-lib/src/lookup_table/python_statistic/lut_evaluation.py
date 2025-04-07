@@ -24,13 +24,13 @@ def to_pretty_name(column_name: str, column_suffix: str) -> str:
 def plot_all(df: pd.DataFrame, save_path: str) -> None:
     df = df.sort_values(by='num_keys')
 
-    # Initialize the figure with subplots (2 columns for 8 plots)
-    fig, axes = plt.subplots(4, 2, figsize=(18, 24))
+    # Initialize the figure with subplots (2 columns for 6 plots)
+    fig, axes = plt.subplots(3, 2, figsize=(18, 18))
 
     # Flatten axes for easier iteration
     axes = axes.flatten()
 
-    # Define the configurations for the plots
+    # Define the configurations for the plots (capacity plots removed)
     plot_configs = [
         {
             'column_suffix': '_build_time',
@@ -48,11 +48,6 @@ def plot_all(df: pd.DataFrame, save_path: str) -> None:
             'per_key': False
         },
         {
-            'column_suffix': '_capacity',
-            'ylabel': 'Capacity in bytes',
-            'per_key': False
-        },
-        {
             'column_suffix': '_build_time',
             'ylabel': 'Average build time in seconds per key',
             'per_key': True
@@ -67,15 +62,10 @@ def plot_all(df: pd.DataFrame, save_path: str) -> None:
             'ylabel': 'Heap size in bytes per key',
             'per_key': True
         },
-        {
-            'column_suffix': '_capacity',
-            'ylabel': 'Capacity in bytes per key',
-            'per_key': True
-        },
     ]
 
     # Reshape axes into 2D array
-    axes = axes.reshape(4, 2)
+    axes = axes.reshape(3, 2)
     col1_axes = axes[:, 0]  # First column of subplots
     col2_axes = axes[:, 1]  # Second column of subplots
 
@@ -86,14 +76,17 @@ def plot_all(df: pd.DataFrame, save_path: str) -> None:
     for ax, config in zip(np.concatenate((col1_axes, col2_axes)), plot_configs):
         column_suffix = config['column_suffix']
         per_key = config['per_key']
-        filtered_columns = [col for col in df.columns if col.endswith(column_suffix)]
+        filtered_columns = [
+            col for col in df.columns if col.endswith(column_suffix)]
 
         for (i, column) in enumerate(filtered_columns):
             name = to_pretty_name(column, column_suffix)
             if per_key:
-                line, = ax.plot(df['num_keys'], df[column] / df['num_keys'], alpha=0.6, marker='o', label=name, color=PLOT_COLORS[i])
+                line, = ax.plot(df['num_keys'], df[column] / df['num_keys'],
+                                alpha=0.6, marker='o', label=name, color=PLOT_COLORS[i])
             else:
-                line, = ax.plot(df['num_keys'], df[column], alpha=0.6, marker='o', label=name, color=PLOT_COLORS[i])
+                line, = ax.plot(df['num_keys'], df[column], alpha=0.6,
+                                marker='o', label=name, color=PLOT_COLORS[i])
 
             # Collect handles and labels only once for each unique label
             if name not in labels:
@@ -157,7 +150,8 @@ def plot_all(df: pd.DataFrame, save_path: str) -> None:
     )
 
     # Textbox about the file names of the input data
-    text_content = "\n".join(f"{name} : {num_keys}" for name, num_keys in zip(df['name'], df['num_keys']))
+    text_content = "\n".join(
+        f"{name} : {num_keys}" for name, num_keys in zip(df['name'], df['num_keys']))
     fig.text(
         x=0.86,
         y=0.86,
@@ -185,4 +179,5 @@ if __name__ == "__main__":
 
     # Plot
     df = pd.read_csv(file_path)
-    plot_all(df, os.path.join(directory, f"{file_base_name}_combined_plot.png"))
+    plot_all(df, os.path.join(
+        directory, f"{file_base_name}_combined_plot.png"))

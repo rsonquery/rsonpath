@@ -10,8 +10,8 @@ use crate::lookup_table::{
     distance_counter, lut_hash_map::LutHashMap, lut_hash_map_double::LutHashMapDouble,
     lut_hash_map_group::LutHashMapGroup, lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF,
     lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup, lut_ptr_hash_double::LutPtrHashDouble,
-    lut_sichash::LutSicHashDouble, pair_finder, performance::lut_skip_evaluation::DISTANCE_CUT_OFF, util_path,
-    LookUpTable, LookUpTableLambda,
+    lut_sichash::LutSicHashDouble, lut_vfunc_double::LutVFuncDouble, pair_finder,
+    performance::lut_skip_evaluation::DISTANCE_CUT_OFF, util_path, LookUpTable, LookUpTableLambda,
 };
 
 /// Allocator to track how much allocations are happening during a specific time frame
@@ -47,11 +47,12 @@ pub fn evaluate(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::erro
     // #####################################
     // Measure LUTs without lambda parameter
     // #####################################
-    // eval::<LutHashMap>(&mut config, "hash_map");
-    eval::<LutHashMapDouble>(&mut config, "hash_map_double");
-    eval::<LutSicHashDouble>(&mut config, "sic_hash_double");
-    eval::<LutPtrHashDouble>(&mut config, "ptr_hash_double");
     // eval::<LutPerfectNaive>(&mut config, "perfect_naive");
+    // eval::<LutHashMap>(&mut config, "hash_map");
+    // eval::<LutHashMapDouble>(&mut config, "hash_map_double");
+    // eval::<LutSicHashDouble>(&mut config, "sic_hash_double");
+    eval::<LutPtrHashDouble>(&mut config, "ptr_hash_double");
+    eval::<LutVFuncDouble>(&mut config, "vfunc_double");
 
     // for bit_mask in [3, 7, 15, 31, 63, 127] {
     // for bit_mask in [2047, 4095, 8191] {
@@ -76,7 +77,7 @@ pub fn evaluate(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::erro
         // for bit_mask in [3, 7, 15, 31, 63, 127] {
         // for bit_mask in [2047, 4095, 8191] {
         for bit_mask in [2047] {
-            eval_phf_group(&mut config, "phf_group", bit_mask, lambda, false);
+            // eval_phf_group(&mut config, "phf_group", bit_mask, lambda, false);
         }
     }
 
