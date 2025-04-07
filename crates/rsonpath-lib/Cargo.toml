@@ -58,6 +58,8 @@ rayon = {version = "1.10"}
 simple_logger = "4.3.3"
 lazy_static = "1.4" # for using static objects
 ptr_hash = "1.1.0" # new crate for performant minimal perfect hash functions in rust
+sux = "0.7.2" # New crate for static functions (an alternative to MPHF)
+dsi-progress-logger = "0.8.1" # Needed to run sux code
 
 [dev-dependencies]
 itertools = { workspace = true }

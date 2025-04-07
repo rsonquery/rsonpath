@@ -11,7 +11,7 @@ use crate::{
     engine::{Compiler, Engine, RsonpathEngine},
     input::OwnedBytes,
     lookup_table::{
-        lut_ptr_hash_double::LutPtrHashDouble, performance::lut_evaluation::GLOBAL, util_path, LookUpTable,
+        lut_ptr_hash_double::LutPtrHashDouble, performance::lut_evaluation::GLOBAL, util_path, LookUpTable, LUT,
     },
 };
 
@@ -44,7 +44,7 @@ fn eval_query_set(test_data: (&str, &[(&str, &str)]), distance_cutoffs: Vec<usiz
         let start_heap = Region::new(GLOBAL);
 
         let start_build = std::time::Instant::now();
-        lut = LutPtrHashDouble::build(json_path, cutoff).expect("Fail @ build lut");
+        lut = LUT::build(json_path, cutoff).expect("Fail @ build lut");
         let build_time = start_build.elapsed().as_secs_f64();
 
         let heap_bytes = heap_value(start_heap.change());

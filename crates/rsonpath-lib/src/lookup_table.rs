@@ -8,6 +8,7 @@ pub mod lut_phf_double;
 pub mod lut_phf_group;
 pub mod lut_ptr_hash_double;
 pub mod lut_sichash;
+pub mod lut_vfunc_double;
 pub mod packed_stacked_frame;
 pub mod pair_finder;
 pub mod performance;
@@ -19,7 +20,8 @@ pub mod util_path;
 // pub type LUT = lut_hash_map::LutHashMap;
 // pub type LUT = lut_hash_map_double::LutHashMapDouble;
 // pub type LUT = lut_sichash::LutSicHash;
-pub type LUT = lut_ptr_hash_double::LutPtrHashDouble;
+// pub type LUT = lut_ptr_hash_double::LutPtrHashDouble;
+pub type LUT = lut_vfunc_double::LutVFuncDouble;
 
 /// Lookup-table = LUT
 pub trait LookUpTable {
@@ -44,6 +46,7 @@ pub trait LookUpTableLambda: LookUpTable {
         Self: Sized;
 }
 
+// TODO consinder builder pattern
 // pub struct LookUpTableBuilder {
 //     json_path: Option<String>,
 //     distance_cutoff: Option<usize>,

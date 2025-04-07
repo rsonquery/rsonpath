@@ -255,13 +255,15 @@ pub const QUERY_BUGS: (&str, &[(&str, &str)]) = (BUGS, &[("1", "$.a..b")]);
 // #########################
 // Run with: cargo run --bin lut --release -- test-query
 pub fn test_build_and_queries() {
+    // test_build_correctness(BUGS);
+    // test_build_correctness(JOHN_BIG);
     // test_build_correctness(GOOGLE);
     // test_build_correctness(WALMART);
     // test_build_correctness(BESTBUY);
     // test_build_correctness(TWITTER);
     // test_build_correctness(POKEMON_SHORT);
 
-    test_query_correctness(QUERY_BUGS);
+    // test_query_correctness(QUERY_BUGS);
     test_query_correctness(QUERY_JOHN_BIG);
     test_query_correctness(QUERY_POKEMON_MINI);
     test_query_correctness(QUERY_GOOGLE);
@@ -305,7 +307,7 @@ fn test_query_correctness(test_data: (&str, &[(&str, &str)])) {
     // Run all queries
     println!("Checking queries:");
     for &(query_name, query_text) in queries {
-        print!(" Query: {} = \"{}\" ... ", query_name, query_text);
+        println!(" Query: {} = \"{}\" ... ", query_name, query_text);
         let input = {
             let mut file = BufReader::new(fs::File::open(json_path).expect("Fail @ open File"));
             let mut buf = vec![];
@@ -325,9 +327,9 @@ fn test_query_correctness(test_data: (&str, &[(&str, &str)])) {
         let lut_count = engine.count(&input).expect("LUT: Failed to run query normally");
 
         if lut_count != count {
-            println!("Found {}, Expected {}", lut_count, count);
+            println!("  Found {}, Expected {}", lut_count, count);
         } else {
-            println!("Correct");
+            println!("  Correct");
         }
 
         lut = engine.take_lut().expect("Failed to retrieve LUT from engine");
