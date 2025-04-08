@@ -38,14 +38,14 @@ impl LookUpTable for LutVFuncDouble {
             ) -> Result<LutVFuncDouble, error::InputError> where
             I: Input,
             V: Simd, {
-                    // let start_search = std::time::Instant::now();
-                    // let pair_data = LutPHFDouble::find_all_pairs(&input, simd, cutoff)?;
-                    // let search_time = start_search.elapsed().as_secs_f64();
-                    // println!("    - Search time:      {search_time}");
-                    // Ok(LutVFuncDouble::build_double(pair_data))
-
+                    let start_search = std::time::Instant::now();
                     let pair_data = pair_data::find_pairs(&input, simd, cutoff)?;
+                    let search_time = start_search.elapsed().as_secs_f64();
+                    println!("    - Search time:      {search_time}");
                     Ok(LutVFuncDouble::build_double(pair_data, cutoff))
+
+                    // let pair_data = pair_data::find_pairs(&input, simd, cutoff)?;
+                    // Ok(LutVFuncDouble::build_double(pair_data, cutoff))
                 })
         });
         lut_vfunc_double.map_err(|e| Box::new(e) as Box<dyn std::error::Error>)

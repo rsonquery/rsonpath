@@ -33,6 +33,17 @@ impl PairData {
             values_64: vec![],
         }
     }
+
+    #[inline]
+    #[must_use]
+    pub fn with_capacity(start_capacity: usize, start_capacity_64: usize) -> Self {
+        Self {
+            keys: Vec::with_capacity(start_capacity),
+            values: Vec::with_capacity(start_capacity),
+            keys_64: Vec::with_capacity(start_capacity_64),
+            values_64: Vec::with_capacity(start_capacity_64),
+        }
+    }
 }
 
 /// We count the distances between the opening and closing brackets. We save the start position as key and
@@ -53,7 +64,8 @@ where
     let mut square_bracket_stack: VecDeque<usize> = VecDeque::new();
     let mut curly_bracket_stack: VecDeque<usize> = VecDeque::new();
 
-    let mut pairs = PairData::new();
+    // let mut pairs = PairData::new();
+    let mut pairs = PairData::with_capacity(10_000_000, 2000);
 
     while let Some(event) = structural_classifier.next()? {
         match event {
@@ -89,6 +101,8 @@ where
             Structural::Colon(_) | Structural::Comma(_) => unreachable!(),
         }
     }
+
+    println!("Sizes: keys= {}, keys64= {}", pairs.keys.len(), pairs.keys_64.len());
 
     Ok(pairs)
 }
