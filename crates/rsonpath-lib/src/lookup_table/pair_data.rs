@@ -1,3 +1,5 @@
+use smallvec::SmallVec;
+
 use crate::{
     classification::{
         self,
@@ -60,23 +62,22 @@ where
     let mut structural_classifier = simd.classify_structural_characters(quote_classifier);
     structural_classifier.turn_colons_and_commas_off();
 
-    // Initialize two empty stacks: one for "[" and one for "{", to remember the order we have found them
-    let mut square_bracket_stack: VecDeque<usize> = VecDeque::new();
-    let mut curly_bracket_stack: VecDeque<usize> = VecDeque::new();
+    let mut square_bracket_stack: SmallVec<[usize; 64]> = SmallVec::new();
+    let mut curly_bracket_stack: SmallVec<[usize; 64]> = SmallVec::new();
 
-    // let mut pairs = PairData::new();
-    let mut pairs = PairData::with_capacity(10_000_000, 2000);
+    let mut pairs = PairData::new();
+    // let mut pairs = PairData::with_capacity(10_000_000, 2000);
 
     while let Some(event) = structural_classifier.next()? {
         match event {
             Structural::Opening(b, idx_open) => match b {
-                BracketType::Square => square_bracket_stack.push_back(idx_open),
-                BracketType::Curly => curly_bracket_stack.push_back(idx_open),
+                BracketType::Square => square_bracket_stack.push(idx_open),
+                BracketType::Curly => curly_bracket_stack.push(idx_open),
             },
             Structural::Closing(b, idx_close) => {
                 let idx_open = match b {
-                    BracketType::Square => square_bracket_stack.pop_back().expect("Unmatched closing }"),
-                    BracketType::Curly => curly_bracket_stack.pop_back().expect("Unmatched closing }"),
+                    BracketType::Square => square_bracket_stack.pop().expect("Unmatched closing ]"),
+                    BracketType::Curly => curly_bracket_stack.pop().expect("Unmatched closing }"),
                 };
 
                 let distance = idx_close - idx_open;
@@ -84,14 +85,10 @@ where
                     continue;
                 }
 
-                // Check if distance can be represented with 16 or less bits
                 if distance < THRESHOLD_16_BITS {
-                    // Can fit into 16 bit
                     pairs.keys.push(idx_open);
                     pairs.values.push(distance.try_into().expect("Fail at pushing value."));
                 } else {
-                    // println!("Push u64: Key: {idx_open}, distance {distance}");
-                    // Cannot fit into 16 bit
                     pairs.keys.push(idx_open);
                     pairs.values.push(0);
                     pairs.keys_64.push(idx_open);
@@ -102,7 +99,7 @@ where
         }
     }
 
-    println!("Sizes: keys= {}, keys64= {}", pairs.keys.len(), pairs.keys_64.len());
+    // println!("Sizes: keys= {}, keys64= {}", pairs.keys.len(), pairs.keys_64.len());
 
     Ok(pairs)
 }
