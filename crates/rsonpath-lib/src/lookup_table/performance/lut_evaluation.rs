@@ -10,8 +10,7 @@ use crate::lookup_table::{
     distance_counter, lut_hash_map::LutHashMap, lut_hash_map_double::LutHashMapDouble,
     lut_hash_map_group::LutHashMapGroup, lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF,
     lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup, lut_ptr_hash_double::LutPtrHashDouble,
-    lut_sichash::LutSicHashDouble, lut_vfunc_double::LutVFuncDouble, pair_data, util_path, LookUpTable,
-    LookUpTableLambda, DISTANCE_CUT_OFF,
+    lut_vfunc_double::LutVFuncDouble, pair_data, util_path, LookUpTable, LookUpTableLambda, DISTANCE_CUT_OFF,
 };
 
 /// Allocator to track how much allocations are happening during a specific time frame
