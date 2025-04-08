@@ -2,7 +2,7 @@ use crate::{
     engine::{Compiler, Engine, RsonpathEngine},
     input::OwnedBytes,
     lookup_table::{
-        self, lut_hash_map, pair_finder, performance::lut_skip_evaluation::DISTANCE_CUT_OFF, LookUpTable, LUT,
+        self, lut_hash_map, pair_data, performance::lut_skip_evaluation::DISTANCE_CUT_OFF, LookUpTable, LUT,
     },
 };
 
@@ -255,15 +255,18 @@ pub const QUERY_BUGS: (&str, &[(&str, &str)]) = (BUGS, &[("1", "$.a..b")]);
 // #########################
 // Run with: cargo run --bin lut --release -- test-query
 pub fn test_build_and_queries() {
-    // test_build_correctness(BUGS);
-    // test_build_correctness(JOHN_BIG);
-    // test_build_correctness(GOOGLE);
-    // test_build_correctness(WALMART);
-    // test_build_correctness(BESTBUY);
-    // test_build_correctness(TWITTER);
-    // test_build_correctness(POKEMON_SHORT);
+    let cutoff = 0;
 
-    // test_query_correctness(QUERY_BUGS);
+    test_build_correctness(BUGS, cutoff);
+    test_build_correctness(JOHN_BIG, cutoff);
+    test_build_correctness(POKEMON_MINI, cutoff);
+    test_build_correctness(GOOGLE, cutoff);
+    test_build_correctness(WALMART, cutoff);
+    test_build_correctness(BESTBUY, cutoff);
+    test_build_correctness(TWITTER, cutoff);
+    test_build_correctness(POKEMON_SHORT, cutoff);
+
+    test_query_correctness(QUERY_BUGS);
     test_query_correctness(QUERY_JOHN_BIG);
     test_query_correctness(QUERY_POKEMON_MINI);
     test_query_correctness(QUERY_GOOGLE);
@@ -272,23 +275,23 @@ pub fn test_build_and_queries() {
     test_query_correctness(QUERY_POKEMON_SHORT);
 }
 
-fn test_build_correctness(json_path: &str) {
+fn test_build_correctness(json_path: &str, cutoff: usize) {
     println!("Building LUT: {}", json_path);
-    let lut = LUT::build(&json_path, 0).expect("Fail @ building LUT");
+    let lut = LUT::build(&json_path, cutoff).expect("Fail @ building LUT");
     println!("Building LUT (Hashmap): {}", json_path);
-    let lut_hash_map = lut_hash_map::LutHashMap::build(&json_path, 0).expect("Fail @ building LUT");
+    let lut_hash_map = lut_hash_map::LutHashMap::build(&json_path, cutoff).expect("Fail @ building LUT");
 
     println!("Testing keys ...");
-    let (keys, values) = pair_finder::get_keys_and_values(json_path).expect("Fail @ finding pairs.");
+    let (keys, values) = pair_data::get_keys_and_values(json_path, cutoff).expect("Fail @ finding pairs.");
     let mut count_incorrect = 0;
     for (i, key) in keys.iter().enumerate() {
-        let value = lut.get(key).expect("Fail at getting value.");
+        let found = lut.get(key).expect("Fail at getting value.");
         let value_hash = lut_hash_map.get(key).expect("Fail at getting value.");
-        if value != values[i] || value != value_hash {
+        if found != values[i] || found != value_hash {
             count_incorrect += 1;
             println!(
-                "  i: {}, Key {}, Value {}, Expected: {}, Hash {}",
-                i, key, value, values[i], value_hash
+                "  i: {}, Key {}, Found {}, Expected: {}, Hash {}",
+                i, key, found, values[i], value_hash
             );
         }
     }

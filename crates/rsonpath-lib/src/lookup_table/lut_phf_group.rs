@@ -1,40 +1,29 @@
 use super::lut_phf::DEFAULT_THREADED;
-use super::lut_phf_double::{PairData, THRESHOLD_16_BITS};
+use super::pair_data::PairData;
 use super::{lut_phf::DEFAULT_LAMBDA, lut_phf_double::LutPHFDouble};
 use super::{LookUpTable, LookUpTableLambda};
+use crate::lookup_table::pair_data;
 use crate::{
-    classification::{
-        self,
-        simd::Simd,
-        structural::{BracketType, Structural, StructuralIterator},
-    },
+    classification::{self, simd::Simd},
     input::{self, error, Input},
-    result::empty::EmptyRecorder,
-    FallibleIterator,
 };
 use log::debug;
 use rayon::prelude::*;
-use std::{collections::VecDeque, fs};
+use std::fs;
 
 // A bit map that only keeps the lower 4 bit because we currently have 16 lut in the group. 16 is represented by 4 bits.
 const DEFAULT_BIT_MASK: usize = 0xF;
 
 pub struct LutPHFGroup {
-    // Vector length is always 16 at the moment because we did not the add the parameter for it yet
     pub lut_doubles: Vec<LutPHFDouble>,
     pub bit_mask: usize,
+    pub cutoff: usize,
 }
 
 impl LookUpTable for LutPHFGroup {
     #[inline]
-    fn build(json_path: &str, distance_cutoff: usize) -> Result<Self, Box<dyn std::error::Error>> {
-        Self::build_buckets(
-            DEFAULT_LAMBDA,
-            json_path,
-            distance_cutoff,
-            DEFAULT_BIT_MASK,
-            DEFAULT_THREADED,
-        )
+    fn build(json_path: &str, cutoff: usize) -> Result<Self, Box<dyn std::error::Error>> {
+        Self::build_buckets(DEFAULT_LAMBDA, json_path, cutoff, DEFAULT_BIT_MASK, DEFAULT_THREADED)
     }
 
     #[inline]
@@ -50,6 +39,10 @@ impl LookUpTable for LutPHFGroup {
             total_size += lut_double.allocated_bytes();
         }
         total_size
+    }
+
+    fn get_cutoff(&self) -> usize {
+        self.cutoff
     }
 }
 
@@ -70,7 +63,7 @@ impl LutPHFGroup {
     pub fn build_buckets(
         lambda: usize,
         json_path: &str,
-        distance_cutoff: usize,
+        cutoff: usize,
         bit_mask: usize,
         threaded: bool,
     ) -> Result<Self, Box<dyn std::error::Error>> {
@@ -80,108 +73,39 @@ impl LutPHFGroup {
         let simd_c = classification::simd::configure();
 
         let lut_perfect_naive = classification::simd::config_simd!(simd_c => |simd| {
-            classification::simd::dispatch_simd!(simd; input, simd, lambda, bit_mask, distance_cutoff, threaded => fn<I, V>(
+            classification::simd::dispatch_simd!(simd; input, simd, lambda, bit_mask, cutoff, threaded => fn<I, V>(
                 input: I,
                 simd: V,
                 lambda: usize,
                 bit_mask: usize,
-                distance_cutoff: usize,
+                cutoff: usize,
                 threaded: bool,
             ) -> Result<LutPHFGroup, error::InputError> where
             I: Input,
             V: Simd,{
-                let lut_doubles_pair_data = LutPHFGroup::find_all_pairs::<I, V>(&input, simd, distance_cutoff, bit_mask)?;
-                Ok(LutPHFGroup::build_lut_doubles(lambda, lut_doubles_pair_data, bit_mask, threaded))
+                let pair_data_buckets = pair_data::find_pairs_buckets::<I, V>(&input, simd, cutoff, bit_mask)?;
+                Ok(LutPHFGroup::build_lut_doubles(lambda, pair_data_buckets, bit_mask, threaded, cutoff))
             })
         });
         lut_perfect_naive.map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
     }
 
-    fn build_lut_doubles(lambda: usize, lut_doubles_pair_data: Vec<PairData>, bit_mask: usize, threaded: bool) -> Self {
-        let lut_doubles: Vec<LutPHFDouble> = lut_doubles_pair_data
+    fn build_lut_doubles(
+        lambda: usize,
+        pair_data_buckets: Vec<PairData>,
+        bit_mask: usize,
+        threaded: bool,
+        cutoff: usize,
+    ) -> Self {
+        let lut_doubles: Vec<LutPHFDouble> = pair_data_buckets
             .into_par_iter()
-            .map(|pair_data| LutPHFDouble::build_double(lambda, &pair_data, threaded))
+            .map(|pair_data| LutPHFDouble::build_double(lambda, &pair_data, threaded, cutoff))
             .collect();
 
-        Self { lut_doubles, bit_mask }
-    }
-
-    fn find_all_pairs<I, V>(
-        input: &I,
-        simd: V,
-        distance_cutoff: usize,
-        bit_mask: usize,
-    ) -> Result<Vec<PairData>, error::InputError>
-    where
-        I: Input,
-        V: Simd,
-    {
-        let iter = input.iter_blocks::<_, 64>(&EmptyRecorder);
-        let quote_classifier = simd.classify_quoted_sequences(iter);
-        let mut structural_classifier = simd.classify_structural_characters(quote_classifier);
-        structural_classifier.turn_colons_and_commas_off();
-
-        // Initialize a vector of PairData for each lut_double used
-        let num_buckets = bit_mask + 1;
-        let mut lut_doubles_pair_data: Vec<PairData> = vec![
-            PairData {
-                keys: vec![],
-                values: vec![],
-                keys_64: vec![],
-                values_64: vec![],
-            };
-            num_buckets
-        ];
-
-        // Stacks for open brackets
-        let mut square_bracket_stack: VecDeque<usize> = VecDeque::new();
-        let mut curly_bracket_stack: VecDeque<usize> = VecDeque::new();
-
-        while let Some(event) = structural_classifier.next()? {
-            match event {
-                Structural::Opening(b, idx_open) => match b {
-                    BracketType::Square => square_bracket_stack.push_back(idx_open),
-                    BracketType::Curly => curly_bracket_stack.push_back(idx_open),
-                },
-                Structural::Closing(b, idx_close) => {
-                    let idx_open = match b {
-                        BracketType::Square => square_bracket_stack.pop_back().expect("Unmatched closing ]"),
-                        BracketType::Curly => curly_bracket_stack.pop_back().expect("Unmatched closing }"),
-                    };
-
-                    // Map to correct lut_double using the bit mask on the idx_open (= key)
-                    let bucket = &mut lut_doubles_pair_data[idx_open & bit_mask];
-                    let distance = idx_close - idx_open;
-
-                    if distance >= distance_cutoff {
-                        if distance < THRESHOLD_16_BITS {
-                            // Can fit into 16 bits
-                            bucket.keys.push(idx_open);
-                            bucket
-                                .values
-                                .push(distance.try_into().expect("Fail @ convert to 16 bit"));
-                        } else {
-                            // Needs 64 bits
-                            bucket.keys.push(idx_open);
-                            bucket.values.push(0);
-                            bucket.keys_64.push(idx_open);
-                            bucket.values_64.push(distance);
-                        }
-                    }
-                }
-                Structural::Colon(_) | Structural::Comma(_) => unreachable!(),
-            }
+        Self {
+            lut_doubles,
+            bit_mask,
+            cutoff,
         }
-
-        // debug!("Found keys and values:");
-        // let mut i = 0;
-        // for pair_data in &lut_doubles_pair_data {
-        //     debug!("bucket:{}", i);
-        //     i += 1;
-        //     for (key, value) in pair_data.keys.iter().zip(pair_data.values.iter()) {
-        //         debug!("({}, {})", key, value);
-        //     }
-        // }
-        Ok(lut_doubles_pair_data)
     }
 }

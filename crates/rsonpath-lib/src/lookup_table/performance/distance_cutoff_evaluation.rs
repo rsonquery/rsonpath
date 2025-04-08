@@ -10,9 +10,7 @@ use stats_alloc::Region;
 use crate::{
     engine::{Compiler, Engine, RsonpathEngine},
     input::OwnedBytes,
-    lookup_table::{
-        lut_ptr_hash_double::LutPtrHashDouble, performance::lut_evaluation::GLOBAL, util_path, LookUpTable, LUT,
-    },
+    lookup_table::{performance::lut_evaluation::GLOBAL, util_path, LookUpTable, LUT},
 };
 
 use super::lut_query_data;

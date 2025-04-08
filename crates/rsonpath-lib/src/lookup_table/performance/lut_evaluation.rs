@@ -10,7 +10,7 @@ use crate::lookup_table::{
     distance_counter, lut_hash_map::LutHashMap, lut_hash_map_double::LutHashMapDouble,
     lut_hash_map_group::LutHashMapGroup, lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF,
     lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup, lut_ptr_hash_double::LutPtrHashDouble,
-    lut_sichash::LutSicHashDouble, lut_vfunc_double::LutVFuncDouble, pair_finder,
+    lut_sichash::LutSicHashDouble, lut_vfunc_double::LutVFuncDouble, pair_data,
     performance::lut_skip_evaluation::DISTANCE_CUT_OFF, util_path, LookUpTable, LookUpTableLambda,
 };
 
@@ -35,7 +35,7 @@ pub fn evaluate(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::erro
     let mut head_line = String::from("name,input_size_bytes,num_keys,");
     let mut data_line = format!("{},{},{},", filename, file.metadata()?.len(), num_keys);
 
-    let (keys, _) = pair_finder::get_keys_and_values(json_path).expect("Fail @ finding pairs.");
+    let (keys, _) = pair_data::get_keys_and_values(json_path, DISTANCE_CUT_OFF).expect("Fail @ finding pairs.");
 
     let mut config = EvalConfig {
         json_path,
@@ -49,15 +49,15 @@ pub fn evaluate(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::erro
     // #####################################
     // eval::<LutPerfectNaive>(&mut config, "perfect_naive");
     // eval::<LutHashMap>(&mut config, "hash_map");
-    // eval::<LutHashMapDouble>(&mut config, "hash_map_double");
-    // eval::<LutSicHashDouble>(&mut config, "sic_hash_double");
-    eval::<LutPtrHashDouble>(&mut config, "ptr_hash_double");
-    eval::<LutVFuncDouble>(&mut config, "vfunc_double");
+    // eval::<LutHashMapDouble>(&mut config, "hash_map_double", DISTANCE_CUT_OFF);
+    // eval::<LutSicHashDouble>(&mut config, "sic_hash_double", DISTANCE_CUT_OFF);
+    eval::<LutPtrHashDouble>(&mut config, "ptr_hash_double", DISTANCE_CUT_OFF);
+    eval::<LutVFuncDouble>(&mut config, "vfunc_double", DISTANCE_CUT_OFF);
 
     // for bit_mask in [3, 7, 15, 31, 63, 127] {
     // for bit_mask in [2047, 4095, 8191] {
     // for bit_mask in [2047] {
-    //     eval_hash_map_group(&mut config, "hash_map_group", bit_mask);
+    //     eval_hash_map_group(&mut config, "hash_map_group", bit_mask, DISTANCE_CUT_OFF);
     // }
 
     // #####################################
@@ -65,8 +65,8 @@ pub fn evaluate(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::erro
     // #####################################
     // for lambda in [1, 5] {
     //     for threaded in [false] {
-    //         eval_phf::<LutPHF>(&mut config, "phf", lambda, threaded);
-    //         eval_phf::<LutPHFDouble>(&mut config, "phf_double", lambda, threaded);
+    //         eval_phf::<LutPHF>(&mut config, "phf", lambda, threaded, DISTANCE_CUT_OFF);
+    //         eval_phf::<LutPHFDouble>(&mut config, "phf_double", lambda, threaded, DISTANCE_CUT_OFF);
     //     }
     // }
 
@@ -77,7 +77,7 @@ pub fn evaluate(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::erro
         // for bit_mask in [3, 7, 15, 31, 63, 127] {
         // for bit_mask in [2047, 4095, 8191] {
         for bit_mask in [2047] {
-            // eval_phf_group(&mut config, "phf_group", bit_mask, lambda, false);
+            // eval_phf_group(&mut config, "phf_group", bit_mask, lambda, false, DISTANCE_CUT_OFF);
         }
     }
 
@@ -93,14 +93,14 @@ pub fn evaluate(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::erro
     Ok(())
 }
 
-fn eval<T: LookUpTable>(cfg: &mut EvalConfig, name: &str) {
+fn eval<T: LookUpTable>(cfg: &mut EvalConfig, name: &str, cutoff: usize) {
     println!("  - {name}");
 
     // Build time & heap size
     let start_heap = Region::new(GLOBAL);
 
     let start_build = std::time::Instant::now();
-    let lut = T::build(cfg.json_path, 0).expect("Fail @ build lut");
+    let lut = T::build(cfg.json_path, cutoff).expect("Fail @ build lut");
     let build_time = start_build.elapsed().as_secs_f64();
 
     let heap_bytes = heap_value(start_heap.change());
@@ -117,7 +117,7 @@ fn eval<T: LookUpTable>(cfg: &mut EvalConfig, name: &str) {
     save_measurements(cfg, &name, build_time, query_time, heap_bytes, allocated_bytes);
 }
 
-fn eval_phf<T: LookUpTableLambda>(cfg: &mut EvalConfig, name: &str, lambda: usize, threaded: bool) {
+fn eval_phf<T: LookUpTableLambda>(cfg: &mut EvalConfig, name: &str, lambda: usize, threaded: bool, cutoff: usize) {
     println!("  - {name}:λ={lambda},threaded={threaded}");
 
     // Build time & heap size
@@ -141,7 +141,7 @@ fn eval_phf<T: LookUpTableLambda>(cfg: &mut EvalConfig, name: &str, lambda: usiz
     save_measurements(cfg, &name, build_time, query_time, heap_bytes, allocated_bytes);
 }
 
-fn eval_phf_group(cfg: &mut EvalConfig, name: &str, bit_mask: usize, lambda: usize, threaded: bool) {
+fn eval_phf_group(cfg: &mut EvalConfig, name: &str, bit_mask: usize, lambda: usize, threaded: bool, cutoff: usize) {
     let bits = bit_mask + 1;
     println!("  - {name}:#{bits}_λ={lambda}");
 
@@ -149,8 +149,7 @@ fn eval_phf_group(cfg: &mut EvalConfig, name: &str, bit_mask: usize, lambda: usi
     let start_heap = Region::new(GLOBAL);
 
     let start_build = std::time::Instant::now();
-    let lut = LutPHFGroup::build_buckets(lambda, cfg.json_path, DISTANCE_CUT_OFF, bit_mask, threaded)
-        .expect("Fail @ build lut");
+    let lut = LutPHFGroup::build_buckets(lambda, cfg.json_path, cutoff, bit_mask, threaded).expect("Fail @ build lut");
     let build_time = start_build.elapsed().as_secs_f64();
 
     let heap_bytes = heap_value(start_heap.change());
@@ -167,7 +166,7 @@ fn eval_phf_group(cfg: &mut EvalConfig, name: &str, bit_mask: usize, lambda: usi
     save_measurements(cfg, &name, build_time, query_time, heap_bytes, allocated_bytes);
 }
 
-fn eval_hash_map_group(cfg: &mut EvalConfig, name: &str, bit_mask: usize) {
+fn eval_hash_map_group(cfg: &mut EvalConfig, name: &str, bit_mask: usize, cutoff: usize) {
     let bits = bit_mask + 1;
     println!("  - {name}:#{bits}");
 
@@ -175,7 +174,7 @@ fn eval_hash_map_group(cfg: &mut EvalConfig, name: &str, bit_mask: usize) {
     let start_heap = Region::new(GLOBAL);
 
     let start_build = std::time::Instant::now();
-    let lut = LutHashMapGroup::build_buckets(cfg.json_path, bit_mask).expect("Fail @ build lut");
+    let lut = LutHashMapGroup::build_buckets(cfg.json_path, bit_mask, cutoff).expect("Fail @ build lut");
     let build_time = start_build.elapsed().as_secs_f64();
 
     let heap_bytes = heap_value(start_heap.change());

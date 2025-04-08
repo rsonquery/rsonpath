@@ -1,44 +1,39 @@
 use super::LookUpTable;
 use crate::{
-    classification::{
-        self,
-        simd::Simd,
-        structural::{BracketType, Structural, StructuralIterator},
-    },
+    classification::{self, simd::Simd},
     input::{self, error, Input},
-    result::empty::EmptyRecorder,
-    FallibleIterator,
+    lookup_table::pair_data,
 };
 use log::debug;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::collections::VecDeque;
 use std::fs;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct LutHashMap {
     hash_map: HashMap<usize, usize>,
+    cutoff: usize,
 }
 
 impl LookUpTable for LutHashMap {
     #[inline]
-    fn build(json_path: &str, distance_cutoff: usize) -> Result<Self, Box<dyn std::error::Error>> {
+    fn build(json_path: &str, cutoff: usize) -> Result<Self, Box<dyn std::error::Error>> {
         let file = fs::File::open(json_path).expect("Failed to open file");
         // SAFETY: We keep the file open throughout the entire duration.
         let input = unsafe { input::MmapInput::map_file(&file)? };
         let simd_c = classification::simd::configure();
 
         classification::simd::config_simd!(simd_c => |simd| {
-            classification::simd::dispatch_simd!(simd; input, simd, distance_cutoff => fn<I, V>(
+            classification::simd::dispatch_simd!(simd; input, simd, cutoff => fn<I, V>(
                 input: I,
                 simd: V,
-                distance_cutoff: usize,
+                cutoff: usize,
             ) -> Result<LutHashMap, error::InputError> where
             I: Input,
             V: Simd,{
-                    let (keys, values) = LutHashMap::find_all_pairs::<I, V>(&input, simd, distance_cutoff)?;
+                    let (keys, values) = pair_data::find_pairs_absolute::<I, V>(&input, simd, cutoff)?;
                     let hash_map: HashMap<usize, usize> = keys.into_iter().zip(values.into_iter()).collect();
-                    Ok(LutHashMap{ hash_map })
+                    Ok(LutHashMap{ hash_map, cutoff })
                 })
         })
         .map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
@@ -57,59 +52,8 @@ impl LookUpTable for LutHashMap {
         total_size += self.hash_map.capacity() * (std::mem::size_of::<usize>() + std::mem::size_of::<usize>());
         total_size
     }
-}
 
-impl LutHashMap {
-    #[inline]
-    pub(crate) fn find_all_pairs<I, V>(
-        input: &I,
-        simd: V,
-        distance_cutoff: usize,
-    ) -> Result<(Vec<usize>, Vec<usize>), error::InputError>
-    where
-        I: Input,
-        V: Simd,
-    {
-        let iter = input.iter_blocks::<_, 64>(&EmptyRecorder);
-        let quote_classifier = simd.classify_quoted_sequences(iter);
-        let mut structural_classifier = simd.classify_structural_characters(quote_classifier);
-        structural_classifier.turn_colons_and_commas_off();
-
-        // Initialize two empty stacks: one for "[" and one for "{"
-        let mut square_bracket_stack: VecDeque<usize> = VecDeque::new();
-        let mut curly_bracket_stack: VecDeque<usize> = VecDeque::new();
-
-        // keys[i] and values[i] form a pair
-        let mut keys: Vec<usize> = vec![];
-        let mut values: Vec<usize> = vec![];
-
-        while let Some(event) = structural_classifier.next()? {
-            match event {
-                Structural::Opening(b, idx_open) => match b {
-                    BracketType::Square => square_bracket_stack.push_back(idx_open),
-                    BracketType::Curly => curly_bracket_stack.push_back(idx_open),
-                },
-                Structural::Closing(b, idx_close) => {
-                    let idx_open = match b {
-                        BracketType::Square => square_bracket_stack.pop_back().expect("Unmatched closing }"),
-                        BracketType::Curly => curly_bracket_stack.pop_back().expect("Unmatched closing }"),
-                    };
-
-                    let distance = idx_close - idx_open;
-                    if distance > distance_cutoff {
-                        keys.push(idx_open);
-                        values.push(idx_close);
-                    }
-                }
-                Structural::Colon(_) | Structural::Comma(_) => unreachable!(),
-            }
-        }
-
-        debug!("Found keys and values:");
-        for (key, value) in keys.iter().zip(values.iter()) {
-            debug!("({}, {})", key, value);
-        }
-
-        Ok((keys, values))
+    fn get_cutoff(&self) -> usize {
+        self.cutoff
     }
 }

@@ -2,11 +2,11 @@ use ptr_hash::{PtrHash, PtrHashParams};
 
 use std::fs;
 
-use super::{lut_phf_double::PairData, LookUpTable};
+use super::{pair_data::PairData, LookUpTable};
 use crate::{
     classification::{self, simd::Simd},
     input::{self, error, Input},
-    lookup_table::lut_phf_double::LutPHFDouble,
+    lookup_table::pair_data,
 };
 
 pub struct LutPtrHashDouble {
@@ -14,10 +14,11 @@ pub struct LutPtrHashDouble {
     values: Vec<u16>,
     ptr_hash_64: PtrHash,
     values_64: Vec<usize>,
+    cutoff: usize,
 }
 
 impl LookUpTable for LutPtrHashDouble {
-    fn build(json_path: &str, distance_cutoff: usize) -> Result<Self, Box<dyn std::error::Error>>
+    fn build(json_path: &str, cutoff: usize) -> Result<Self, Box<dyn std::error::Error>>
     where
         Self: Sized,
     {
@@ -27,10 +28,10 @@ impl LookUpTable for LutPtrHashDouble {
         let simd_c = classification::simd::configure();
 
         let lut_phf_double = classification::simd::config_simd!(simd_c => |simd| {
-            classification::simd::dispatch_simd!(simd; input, simd, distance_cutoff => fn<I, V>(
+            classification::simd::dispatch_simd!(simd; input, simd, cutoff => fn<I, V>(
                 input: I,
                 simd: V,
-                distance_cutoff: usize,
+                cutoff: usize,
             ) -> Result<LutPtrHashDouble, error::InputError> where
             I: Input,
             V: Simd, {
@@ -40,8 +41,8 @@ impl LookUpTable for LutPtrHashDouble {
                     // println!("    - Search time:      {search_time}");
                     // Ok(LutPtrHashDouble::build_double(pair_data))
 
-                    let pair_data = LutPHFDouble::find_all_pairs(&input, simd, distance_cutoff)?;
-                    Ok(LutPtrHashDouble::build_double(pair_data))
+                    let pair_data = pair_data::find_pairs(&input, simd, cutoff)?;
+                    Ok(LutPtrHashDouble::build_double(pair_data, cutoff))
                 })
         });
         lut_phf_double.map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
@@ -61,10 +62,14 @@ impl LookUpTable for LutPtrHashDouble {
     fn allocated_bytes(&self) -> usize {
         0
     }
+
+    fn get_cutoff(&self) -> usize {
+        self.cutoff
+    }
 }
 
 impl LutPtrHashDouble {
-    fn build_double(pair_data: PairData) -> Self {
+    fn build_double(pair_data: PairData, cutoff: usize) -> Self {
         let keys: Vec<u64> = pair_data.keys.iter().map(|&k| k as u64).collect();
         let input_values = pair_data.values;
 
@@ -92,6 +97,7 @@ impl LutPtrHashDouble {
             values,
             ptr_hash_64,
             values_64,
+            cutoff,
         }
     }
 }

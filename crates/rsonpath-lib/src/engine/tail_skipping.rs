@@ -224,7 +224,7 @@ where
                 'outer: while let Some(ref mut vector) = current_vector {
                     if track_skipped_distance {
                         skipped_distance = skipped_distance + BLOCK_SIZE;
-                        if skipped_distance > DISTANCE_CUT_OFF {
+                        if skipped_distance > lut.get_cutoff() {
                             // Check if the LUT has a hit
                             if let Some(lut_result) = lut.get(&idx_open_no_pad) {
                                 // Stop skipping ITE style and skip LUT style

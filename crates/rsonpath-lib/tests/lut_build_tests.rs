@@ -7,8 +7,11 @@ use rsonpath::lookup_table::{
     lut_phf_double::LutPHFDouble,
     lut_phf_group::LutPHFGroup,
     lut_ptr_hash_double::LutPtrHashDouble,
-    pair_finder,
-    performance::lut_query_data::{BESTBUY_SHORT, JOHN_BIG, POKEMON_MINI, TWITTER_SHORT},
+    pair_data,
+    performance::{
+        lut_query_data::{BESTBUY_SHORT, JOHN_BIG, POKEMON_MINI, TWITTER_SHORT},
+        lut_skip_evaluation::DISTANCE_CUT_OFF,
+    },
     LookUpTable,
 };
 
@@ -30,7 +33,7 @@ macro_rules! build_test {
 }
 
 fn compare_valid(lut: &dyn LookUpTable, json_path: &str) {
-    let (keys, values) = pair_finder::get_keys_and_values(json_path).expect("Fail @ finding pairs.");
+    let (keys, values) = pair_data::get_keys_and_values(json_path, DISTANCE_CUT_OFF).expect("Fail @ finding pairs.");
 
     let mut count_incorrect: u64 = 0;
     for (i, key) in keys.iter().enumerate() {

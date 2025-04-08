@@ -9,14 +9,15 @@ use sux::{
 use crate::{
     classification::{self, simd::Simd},
     input::{self, error, Input},
-    lookup_table::lut_phf_double::LutPHFDouble,
+    lookup_table::pair_data,
 };
 
-use super::{lut_phf_double::PairData, LookUpTable};
+use super::{pair_data::PairData, LookUpTable};
 
 pub struct LutVFuncDouble {
     vfunc: VFunc<usize, u16>,
     vfunc_64: VFunc<usize, usize>,
+    cutoff: usize,
 }
 
 impl LookUpTable for LutVFuncDouble {
@@ -43,8 +44,8 @@ impl LookUpTable for LutVFuncDouble {
                     // println!("    - Search time:      {search_time}");
                     // Ok(LutVFuncDouble::build_double(pair_data))
 
-                    let pair_data = LutPHFDouble::find_all_pairs(&input, simd, cutoff)?;
-                    Ok(LutVFuncDouble::build_double(pair_data))
+                    let pair_data = pair_data::find_pairs(&input, simd, cutoff)?;
+                    Ok(LutVFuncDouble::build_double(pair_data, cutoff))
                 })
         });
         lut_vfunc_double.map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
@@ -63,10 +64,14 @@ impl LookUpTable for LutVFuncDouble {
         // todo!()
         0
     }
+
+    fn get_cutoff(&self) -> usize {
+        self.cutoff
+    }
 }
 
 impl LutVFuncDouble {
-    fn build_double(pair_data: PairData) -> Self {
+    fn build_double(pair_data: PairData, cutoff: usize) -> Self {
         let keys = pair_data.keys;
         let values = pair_data.values;
         let keys_64 = pair_data.keys_64;
@@ -92,6 +97,10 @@ impl LutVFuncDouble {
             )
             .expect("Some build error");
 
-        Self { vfunc, vfunc_64 }
+        Self {
+            vfunc,
+            vfunc_64,
+            cutoff,
+        }
     }
 }

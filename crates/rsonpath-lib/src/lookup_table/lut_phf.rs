@@ -2,7 +2,7 @@ use super::{LookUpTable, LookUpTableLambda};
 use crate::{
     classification::{self, simd::Simd},
     input::{self, error, Input},
-    lookup_table::lut_hash_map::LutHashMap,
+    lookup_table::pair_data,
 };
 use phf_generator_double_hash::HashState;
 use std::fs;
@@ -18,12 +18,13 @@ pub const MAX_LAMBDA: usize = 5; // 5 because the source paper did so
 pub struct LutPHF {
     pub hash_state: HashState<usize>,
     pub values: Vec<usize>,
+    pub cutoff: usize,
 }
 
 impl LookUpTable for LutPHF {
     #[inline]
-    fn build(json_path: &str, distance_cutoff: usize) -> Result<Self, Box<dyn std::error::Error>> {
-        Self::build_lambda(DEFAULT_LAMBDA, json_path, distance_cutoff, DEFAULT_THREADED)
+    fn build(json_path: &str, cutoff: usize) -> Result<Self, Box<dyn std::error::Error>> {
+        Self::build_lambda(DEFAULT_LAMBDA, json_path, cutoff, DEFAULT_THREADED)
     }
 
     #[inline]
@@ -42,6 +43,10 @@ impl LookUpTable for LutPHF {
         total_size += self.values.capacity() * std::mem::size_of::<usize>();
         total_size
     }
+
+    fn get_cutoff(&self) -> usize {
+        self.cutoff
+    }
 }
 
 impl LookUpTableLambda for LutPHF {
@@ -49,7 +54,7 @@ impl LookUpTableLambda for LutPHF {
     fn build_lambda(
         lambda: usize,
         json_path: &str,
-        distance_cutoff: usize,
+        cutoff: usize,
         threaded: bool,
     ) -> Result<Self, Box<dyn std::error::Error>> {
         let file = fs::File::open(json_path).expect("Failed to open file");
@@ -58,18 +63,18 @@ impl LookUpTableLambda for LutPHF {
         let simd_c = classification::simd::configure();
 
         let lut_phf_double = classification::simd::config_simd!(simd_c => |simd| {
-            classification::simd::dispatch_simd!(simd; input, simd, lambda, distance_cutoff, threaded => fn<I, V>(
+            classification::simd::dispatch_simd!(simd; input, simd, lambda, cutoff, threaded => fn<I, V>(
                 input: I,
                 simd: V,
                 lambda: usize,
-                distance_cutoff: usize,
+                cutoff: usize,
                 threaded: bool,
             ) -> Result<LutPHF, error::InputError> where
             I: Input,
             V: Simd, {
-                    let (keys, values) = LutHashMap::find_all_pairs::<I, V>(&input, simd, distance_cutoff)?;
+                    let (keys, values) = pair_data::find_pairs_absolute::<I, V>(&input, simd, cutoff)?;
                     let hash_state = phf_generator_double_hash::build(lambda, &keys, threaded);
-                    Ok(LutPHF { hash_state, values })
+                    Ok(LutPHF { hash_state, values, cutoff })
                 })
         });
         lut_phf_double.map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
