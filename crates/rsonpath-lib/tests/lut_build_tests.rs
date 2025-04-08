@@ -8,11 +8,8 @@ use rsonpath::lookup_table::{
     lut_phf_group::LutPHFGroup,
     lut_ptr_hash_double::LutPtrHashDouble,
     pair_data,
-    performance::{
-        lut_query_data::{BESTBUY_SHORT, JOHN_BIG, POKEMON_MINI, TWITTER_SHORT},
-        lut_skip_evaluation::DISTANCE_CUT_OFF,
-    },
-    LookUpTable,
+    performance::lut_query_data::{BESTBUY_SHORT, JOHN_BIG, POKEMON_MINI, TWITTER_SHORT},
+    LookUpTable, DISTANCE_CUT_OFF,
 };
 
 // Macro to generate individual test functions for each (lut_type, json_file) combination

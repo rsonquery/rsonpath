@@ -12,11 +12,8 @@ use rsonpath::{
         lut_phf_double::LutPHFDouble,
         lut_phf_group::LutPHFGroup,
         pair_data,
-        performance::{
-            lut_query_data::{ALPHABET, GOOGLE, POKEMON_MINI, TWITTER_SHORT},
-            lut_skip_evaluation::DISTANCE_CUT_OFF,
-        },
-        LookUpTable, LUT,
+        performance::lut_query_data::{ALPHABET, GOOGLE, POKEMON_MINI, TWITTER_SHORT},
+        LookUpTable, DISTANCE_CUT_OFF, LUT,
     },
 };
 
@@ -107,7 +104,7 @@ fn test_query_correctness(test_data: (&str, &[(&str, &str)])) {
 
         // Query normally and skip using the lookup table (LUT)
         debug!("---- LUT STYLE ----");
-        engine.add_lut(lut);
+        engine.add_lut(lut, DISTANCE_CUT_OFF);
         let lut_count = engine.count(&input).expect("LUT: Failed to run query normally");
 
         if lut_count != count {
@@ -135,13 +132,13 @@ fn debug_lut_group_buckets() {
     // let json_file = format!("../../{}", ALPHABET);
     let json_file = format!("../../{}", POKEMON_MINI);
     let lambda = 1;
-    let distance_cutoff = DISTANCE_CUT_OFF;
+    let cutoff = 0;
     let json_path = json_file.as_str();
     let bit_mask = 3; // powers of 2 -1
     let threaded = false;
 
     let (keys, values) = pair_data::get_keys_and_values(json_path, DISTANCE_CUT_OFF).expect("Fail @ finding pairs.");
-    let lut = LutPHFGroup::build_buckets(lambda, json_path, distance_cutoff, bit_mask, threaded)
+    let lut = LutPHFGroup::build_buckets(lambda, json_path, DISTANCE_CUT_OFF, bit_mask, threaded)
         .expect("Fail @ building lut_phf_double");
 
     let mut count_correct = 0;

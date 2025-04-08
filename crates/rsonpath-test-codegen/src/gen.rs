@@ -214,7 +214,7 @@ pub(crate) fn generate_test_fns(files: &mut Files) -> Result<(), io::Error> {
                 quote! {
                     let lut = LUT::build(#raw_input_path, 0)?;
                     let mut #ident = MainEngine::compile_query(&#query_ident)?;
-                    #ident.add_lut(lut);
+                    #ident.add_lut(lut, 0);
                 }
             }
         };

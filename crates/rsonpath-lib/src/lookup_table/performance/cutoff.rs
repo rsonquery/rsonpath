@@ -10,7 +10,9 @@ use stats_alloc::Region;
 use crate::{
     engine::{Compiler, Engine, RsonpathEngine},
     input::OwnedBytes,
-    lookup_table::{performance::lut_evaluation::GLOBAL, util_path, LookUpTable, LUT},
+    lookup_table::{
+        lut_ptr_hash_double::LutPtrHashDouble, performance::lut_evaluation::GLOBAL, util_path, LookUpTable,
+    },
 };
 
 use super::lut_query_data;
@@ -19,12 +21,12 @@ const QUERY_REPETITIONS: usize = 1;
 const RESULTS_PATH: &str = ".a_lut_tests/performance/distance_cutoff_evaluation";
 
 pub fn evaluate() {
-    let distance_cutoffs = vec![0, 1000];
+    let cutoff = vec![0, 1000];
 
-    eval_query_set(lut_query_data::QUERY_GOOGLE, distance_cutoffs);
+    eval_query_set(lut_query_data::QUERY_GOOGLE, cutoff);
 }
 
-fn eval_query_set(test_data: (&str, &[(&str, &str)]), distance_cutoffs: Vec<usize>) {
+fn eval_query_set(test_data: (&str, &[(&str, &str)]), cutoff: Vec<usize>) {
     let (json_path, queries) = test_data;
     let filename = util_path::extract_filename(json_path);
     println!("JSON: {}", json_path);
@@ -35,14 +37,14 @@ fn eval_query_set(test_data: (&str, &[(&str, &str)]), distance_cutoffs: Vec<usiz
     let mut query_results = Vec::new();
 
     let mut lut;
-    for cutoff in distance_cutoffs {
+    for cutoff in cutoff {
         print!("  cutoff {cutoff}");
 
         // Build time & heap size
         let start_heap = Region::new(GLOBAL);
 
         let start_build = std::time::Instant::now();
-        lut = LUT::build(json_path, cutoff).expect("Fail @ build lut");
+        lut = LutPtrHashDouble::build(json_path, cutoff).expect("Fail @ build lut");
         let build_time = start_build.elapsed().as_secs_f64();
 
         let heap_bytes = heap_value(start_heap.change());

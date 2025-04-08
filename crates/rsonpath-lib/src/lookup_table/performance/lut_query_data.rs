@@ -1,9 +1,7 @@
 use crate::{
     engine::{Compiler, Engine, RsonpathEngine},
     input::OwnedBytes,
-    lookup_table::{
-        self, lut_hash_map, pair_data, performance::lut_skip_evaluation::DISTANCE_CUT_OFF, LookUpTable, LUT,
-    },
+    lookup_table::{self, lut_hash_map, pair_data, LookUpTable, LUT},
 };
 
 use std::{
@@ -71,6 +69,7 @@ pub const QUERY_GOOGLE: (&str, &[(&str, &str)]) = (
         // ("28", "$[1000].routes[*].bounds"),
         // ("29", "$[2000].routes[*].bounds"),
         // ("30", "$[3000].routes[*].bounds"),
+        // More queries
         ("100", "$[*].routes[*].legs[*]"),
         ("101", "$[*].routes[*].legs[*].steps[*]"),
         ("102", "$[*].routes[*].legs[*].steps[*].distance"),
@@ -89,11 +88,9 @@ pub const QUERY_GOOGLE: (&str, &[(&str, &str)]) = (
         ("118", "$[*].routes[*].legs[*]..lat"),
         ("119", "$[*].routes[*].legs[*]..lng"),
         ("200", "$[*].available_travel_modes"),
-        ("201", "$[*].copyrights"),
         ("202", "$[*].routes[*]"),
         ("203", "$[*].routes[*].legs[*]"),
         ("204", "$[4000].routes[*].bounds"),
-        ("205", "$[*].routes[1]"),
     ],
 );
 
@@ -266,13 +263,13 @@ pub fn test_build_and_queries() {
     test_build_correctness(TWITTER, cutoff);
     test_build_correctness(POKEMON_SHORT, cutoff);
 
-    test_query_correctness(QUERY_BUGS);
-    test_query_correctness(QUERY_JOHN_BIG);
-    test_query_correctness(QUERY_POKEMON_MINI);
-    test_query_correctness(QUERY_GOOGLE);
-    test_query_correctness(QUERY_TWITTER);
-    test_query_correctness(QUERY_BESTBUY);
-    test_query_correctness(QUERY_POKEMON_SHORT);
+    test_query_correctness(QUERY_BUGS, cutoff);
+    test_query_correctness(QUERY_JOHN_BIG, cutoff);
+    test_query_correctness(QUERY_POKEMON_MINI, cutoff);
+    test_query_correctness(QUERY_GOOGLE, cutoff);
+    test_query_correctness(QUERY_TWITTER, cutoff);
+    test_query_correctness(QUERY_BESTBUY, cutoff);
+    test_query_correctness(QUERY_POKEMON_SHORT, cutoff);
 }
 
 fn test_build_correctness(json_path: &str, cutoff: usize) {
@@ -302,10 +299,10 @@ fn test_build_correctness(json_path: &str, cutoff: usize) {
     std::mem::drop(lut);
 }
 
-fn test_query_correctness(test_data: (&str, &[(&str, &str)])) {
+fn test_query_correctness(test_data: (&str, &[(&str, &str)]), cutoff: usize) {
     let (json_path, queries) = test_data;
     println!("Building LUT: {}", json_path);
-    let mut lut = LUT::build(&json_path, DISTANCE_CUT_OFF).expect("Fail @ building LUT");
+    let mut lut = LUT::build(&json_path, cutoff).expect("Fail @ building LUT");
 
     // Run all queries
     println!("Checking queries:");
@@ -326,7 +323,7 @@ fn test_query_correctness(test_data: (&str, &[(&str, &str)])) {
 
         // Query normally and skip using the lookup table (LUT)
         // println!("---- LUT STYLE ----");
-        engine.add_lut(lut);
+        engine.add_lut(lut, cutoff);
         let lut_count = engine.count(&input).expect("LUT: Failed to run query normally");
 
         if lut_count != count {

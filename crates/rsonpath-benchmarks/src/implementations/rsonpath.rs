@@ -14,13 +14,13 @@ pub struct RsonpathCount {}
 pub struct RsonpathMmap {}
 pub struct RsonpathMmapCount {}
 pub struct RsonpathLut {
-    distance_cutoff: usize,
+    cutoff: usize,
 }
 
 // Added by Ricardo
 impl RsonpathLut {
-    pub fn new(distance_cutoff: usize) -> Result<Self, RsonpathError> {
-        Ok(RsonpathLut { distance_cutoff })
+    pub fn new(cutoff: usize) -> Result<Self, RsonpathError> {
+        Ok(RsonpathLut { cutoff })
     }
 }
 
@@ -50,7 +50,7 @@ impl Implementation for RsonpathLut {
         let mut engine = MainEngine::compile_query(&query).map_err(RsonpathError::CompilerError)?;
 
         // Build LUT and add it to the engine object
-        if let Ok(lut) = LUT::build(file_path, self.distance_cutoff) {
+        if let Ok(lut) = LUT::build(file_path, self.cutoff) {
             engine.add_lut(lut);
         } else {
             return Err(Self::Error::LutRequiredError);

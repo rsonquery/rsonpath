@@ -105,7 +105,7 @@ impl LutSicHashDouble {
     /// We count the distances between the opening and closing brackets. We save the start position as key and
     /// distance to the closing bracket in the value. Creates a key-value list for values which fit in a 16 bit
     /// representation and another key-value list for the ones that do not. Ignore all pairs with distances <
-    /// distance_cutoff.
+    /// cutoff.
     #[inline]
     pub(crate) fn find_all_pairs<I, V>(input: &I, simd: V, cutoff: usize) -> Result<PairDataSicHash, error::InputError>
     where

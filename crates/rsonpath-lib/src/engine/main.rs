@@ -74,12 +74,14 @@ pub struct MainEngine {
     automaton: Automaton,
     simd: SimdConfiguration,
     lut: Option<LUT>,
+    cutoff: Option<usize>,
 }
 
 impl MainEngine {
     #[inline(always)]
-    pub fn add_lut(&mut self, lut: LUT) {
-        self.lut = Some(lut)
+    pub fn add_lut(&mut self, lut: LUT, cutoff: usize) {
+        self.lut = Some(lut);
+        self.cutoff = Some(cutoff);
     }
 
     #[inline(always)]
@@ -91,6 +93,17 @@ impl MainEngine {
     #[inline(always)]
     pub fn allocated_bytes_by_lut(&self) -> usize {
         self.lut.as_ref().map_or(0, |lut| lut.allocated_bytes())
+    }
+
+    #[must_use = "if you are asking for the cutoff then should also use it"]
+    #[inline(always)]
+    pub fn get_cutoff(&mut self) -> usize {
+        if let Some(cutoff) = self.cutoff {
+            return cutoff;
+        } else {
+            debug!("Cutoff not set!");
+            return 0;
+        }
     }
 }
 
@@ -108,6 +121,7 @@ impl Compiler for MainEngine {
             automaton,
             simd,
             lut: None,
+            cutoff: None,
         })
     }
 
@@ -119,6 +133,7 @@ impl Compiler for MainEngine {
             automaton,
             simd,
             lut: None,
+            cutoff: None,
         }
     }
 }
@@ -148,7 +163,7 @@ impl Engine for MainEngine {
 
         let recorder = CountRecorder::new();
         config_simd!(self.simd => |simd| {
-            let executor = query_executor(&self.automaton, input, self.lut.as_ref(), &recorder, simd);
+            let executor = query_executor(&self.automaton, input, self.lut.as_ref(), self.cutoff, &recorder, simd);
             executor.run()
         })?;
 
@@ -170,7 +185,7 @@ impl Engine for MainEngine {
 
         let recorder = IndexRecorder::new(sink, input.leading_padding_len());
         config_simd!(self.simd => |simd| {
-            let executor = query_executor(&self.automaton, input, self.lut.as_ref(), &recorder, simd);
+            let executor = query_executor(&self.automaton, input, self.lut.as_ref(), self.cutoff, &recorder, simd);
             executor.run()
         })?;
 
@@ -192,7 +207,7 @@ impl Engine for MainEngine {
 
         let recorder = ApproxSpanRecorder::new(sink, input.leading_padding_len());
         config_simd!(self.simd => |simd| {
-            let executor = query_executor(&self.automaton, input, self.lut.as_ref(), &recorder, simd);
+            let executor = query_executor(&self.automaton, input, self.lut.as_ref(), self.cutoff, &recorder, simd);
             executor.run()
         })?;
 
@@ -214,7 +229,7 @@ impl Engine for MainEngine {
 
         let recorder = NodesRecorder::build_recorder(sink, input.leading_padding_len());
         config_simd!(self.simd => |simd| {
-            let executor = query_executor(&self.automaton, input, self.lut.as_ref(), &recorder, simd);
+            let executor = query_executor(&self.automaton, input, self.lut.as_ref(), self.cutoff, &recorder, simd);
             executor.run()
         })?;
 
@@ -262,6 +277,8 @@ struct Executor<'i, 'r, I, R, V> {
     simd: V,
     /// Lookup table (LUT), returns the position of a closing bracket given the position of an opening bracket
     lut: Option<&'i LUT>,
+    /// Minimum distance that the LUT will start tracking, needed for LUT.
+    cutoff: Option<usize>,
     /// Track position of the last opened bracket, needed for LUT. padded
     idx_open: usize,
 }
@@ -270,7 +287,8 @@ struct Executor<'i, 'r, I, R, V> {
 fn query_executor<'i, 'r, I, R, V: Simd>(
     automaton: &'i Automaton,
     input: &'i I,
-    jump_table: Option<&'i LUT>,
+    lut: Option<&'i LUT>,
+    cutoff: Option<usize>,
     recorder: &'r R,
     simd: V,
 ) -> Executor<'i, 'r, I, R, V>
@@ -289,7 +307,8 @@ where
         next_event: None,
         is_list: false,
         array_count: JsonUInt::ZERO,
-        lut: jump_table,
+        lut,
+        cutoff,
         idx_open: input.leading_padding_len(),
     }
 }
@@ -437,6 +456,7 @@ where
                 idx,
                 bracket_type,
                 self.lut,
+                self.cutoff,
                 self.input.leading_padding_len(),
             )?;
             // Skipping stops at the closing character *and consumes it*. We still need the main loop to properly
@@ -567,8 +587,14 @@ where
 
                 // Tail skipping. Skip the entire subtree. The skipping consumes the closing character.
                 // We still need to notify the recorder - in case the value being skipped was actually accepted.
-                let closing_idx =
-                    classifier.skip(idx, idx, bracket_type, self.lut, self.input.leading_padding_len())?;
+                let closing_idx = classifier.skip(
+                    idx,
+                    idx,
+                    bracket_type,
+                    self.lut,
+                    self.cutoff,
+                    self.input.leading_padding_len(),
+                )?;
                 return self.recorder.record_value_terminator(closing_idx, self.depth);
             } else {
                 // debug!("TRANSITION FALLBACK");
@@ -671,6 +697,7 @@ where
                     idx,
                     bracket_type,
                     self.lut,
+                    self.cutoff,
                     self.input.leading_padding_len(),
                 )?;
                 // Skipping stops at the closing character *and consumes it*. We still need the main loop to properly

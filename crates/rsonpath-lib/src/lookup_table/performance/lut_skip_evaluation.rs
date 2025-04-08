@@ -19,9 +19,8 @@ use super::lut_skip_counter::COUNTER_FILE_PATH;
 // # Config #
 // ##########
 pub const TRACK_SKIPPING_TIME_DURING_PERFORMANCE_TEST: bool = false;
-pub const SKIP_MODE: SkipMode = SkipMode::TRACK;
-pub const DISTANCE_CUT_OFF: usize = 0;
-pub const USE_SKIP_ABORT_STRATEGY: bool = false;
+pub const SKIP_MODE: SkipMode = SkipMode::COUNT;
+pub const USE_SKIP_ABORT_STRATEGY: bool = true;
 const REPETITIONS: u64 = 1;
 
 static SKIP_TIME_ATOMIC: AtomicU64 = AtomicU64::new(0);
@@ -36,10 +35,12 @@ pub enum SkipMode {
 const RESULT_CSV_PATH: &str = ".a_lut_tests/performance/skip_evaluation/";
 
 pub fn skip_evaluation() {
-    // eval_test_data(TEST_GOOGLE);
-    eval_test_data(QUERY_BESTBUY);
-    // eval_test_data(TEST_TWITTER);
-    // eval_test_data(QUERY_POKEMON_SHORT);
+    let cutoff = 0;
+
+    eval_test_data(QUERY_GOOGLE, cutoff);
+    // eval_test_data(QUERY_BESTBUY, cutoff);
+    // eval_test_data(TEST_TWITTER, cutoff);
+    // eval_test_data(QUERY_POKEMON_SHORT, cutoff);
 }
 
 pub fn add_skip_time(added_time: u64) {
@@ -50,7 +51,7 @@ pub fn reset_skip_time() {
     SKIP_TIME_ATOMIC.store(0, std::sync::atomic::Ordering::Relaxed);
 }
 
-fn eval_test_data(test_data: (&str, &[(&str, &str)])) {
+fn eval_test_data(test_data: (&str, &[(&str, &str)]), cutoff: usize) {
     let (json_path, queries) = test_data;
 
     let mut path = format!("{}{}.csv", RESULT_CSV_PATH, get_filename(json_path));
@@ -73,12 +74,12 @@ fn eval_test_data(test_data: (&str, &[(&str, &str)])) {
 
     // Build LUT once
     let start_build_time = Instant::now();
-    let mut lut = LUT::build(json_path, DISTANCE_CUT_OFF).expect("Failed to build LUT");
+    let mut lut = LUT::build(json_path, cutoff).expect("Failed to build LUT");
     let t_lut_build = start_build_time.elapsed().as_nanos() as u64;
     let capacity = lut.allocated_bytes();
 
     for &(query_name, query_text) in queries {
-        let (data_line, new_lut) = evaluate(lut, json_path, query_name, query_text, t_lut_build, capacity);
+        let (data_line, new_lut) = evaluate(lut, cutoff, json_path, query_name, query_text, t_lut_build, capacity);
         lut = new_lut;
 
         // Write CSV header and data
@@ -99,6 +100,7 @@ fn eval_test_data(test_data: (&str, &[(&str, &str)])) {
 
 fn evaluate(
     mut lut: LUT,
+    cutoff: usize,
     json_path: &str,
     query_name: &str,
     query_text: &str,
@@ -132,7 +134,7 @@ fn evaluate(
     }
 
     // Add LUT
-    engine.add_lut(lut);
+    engine.add_lut(lut, cutoff);
 
     for _ in 0..REPETITIONS {
         reset_skip_time();

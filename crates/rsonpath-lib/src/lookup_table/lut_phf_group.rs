@@ -51,10 +51,10 @@ impl LookUpTableLambda for LutPHFGroup {
     fn build_lambda(
         lambda: usize,
         json_path: &str,
-        distance_cutoff: usize,
+        cutoff: usize,
         threaded: bool,
     ) -> Result<Self, Box<dyn std::error::Error>> {
-        Self::build_buckets(lambda, json_path, distance_cutoff, DEFAULT_BIT_MASK, threaded)
+        Self::build_buckets(lambda, json_path, cutoff, DEFAULT_BIT_MASK, threaded)
     }
 }
 

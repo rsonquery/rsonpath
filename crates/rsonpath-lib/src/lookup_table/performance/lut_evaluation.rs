@@ -10,8 +10,8 @@ use crate::lookup_table::{
     distance_counter, lut_hash_map::LutHashMap, lut_hash_map_double::LutHashMapDouble,
     lut_hash_map_group::LutHashMapGroup, lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF,
     lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup, lut_ptr_hash_double::LutPtrHashDouble,
-    lut_sichash::LutSicHashDouble, lut_vfunc_double::LutVFuncDouble, pair_data,
-    performance::lut_skip_evaluation::DISTANCE_CUT_OFF, util_path, LookUpTable, LookUpTableLambda,
+    lut_sichash::LutSicHashDouble, lut_vfunc_double::LutVFuncDouble, pair_data, util_path, LookUpTable,
+    LookUpTableLambda, DISTANCE_CUT_OFF,
 };
 
 /// Allocator to track how much allocations are happening during a specific time frame
@@ -27,7 +27,9 @@ pub struct EvalConfig<'a> {
 
 #[inline]
 pub fn evaluate(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::error::Error>> {
-    println!("JSONPATH: {}", json_path);
+    let cutoff: usize = 0;
+    println!("JSONPATH: {}, cutoff = {}", json_path, cutoff);
+
     let file = std::fs::File::open(json_path)?;
     let filename = util_path::extract_filename(json_path);
     let num_keys = distance_counter::count_num_pairs(json_path);
@@ -35,7 +37,7 @@ pub fn evaluate(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::erro
     let mut head_line = String::from("name,input_size_bytes,num_keys,");
     let mut data_line = format!("{},{},{},", filename, file.metadata()?.len(), num_keys);
 
-    let (keys, _) = pair_data::get_keys_and_values(json_path, DISTANCE_CUT_OFF).expect("Fail @ finding pairs.");
+    let (keys, _) = pair_data::get_keys_and_values(json_path, cutoff).expect("Fail @ finding pairs.");
 
     let mut config = EvalConfig {
         json_path,
@@ -75,7 +77,7 @@ pub fn evaluate(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::erro
     // #####################################
     for lambda in [1, 5] {
         // for bit_mask in [3, 7, 15, 31, 63, 127] {
-        // for bit_mask in [2047, 4095, 8191] {
+        // for bit_mask in [63, 127, 255, 511] {
         for bit_mask in [2047] {
             // eval_phf_group(&mut config, "phf_group", bit_mask, lambda, false, DISTANCE_CUT_OFF);
         }

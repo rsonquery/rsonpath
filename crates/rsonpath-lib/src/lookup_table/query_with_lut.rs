@@ -13,6 +13,8 @@ use std::io::Read;
 
 #[inline]
 pub fn query_with_lut(json_path: &str, json_query: &str) {
+    let cutoff = 0;
+
     SimpleLogger::new()
         .with_level(LevelFilter::Trace)
         .init()
@@ -26,7 +28,7 @@ pub fn query_with_lut(json_path: &str, json_query: &str) {
     let start_build = std::time::Instant::now();
     let lut = LUT::build(json_path, 0).expect("Fail @ building LookUp-table.");
     let build_time = start_build.elapsed().as_secs_f64();
-    engine.add_lut(lut);
+    engine.add_lut(lut, cutoff);
 
     // Get results
     let start_query = std::time::Instant::now();

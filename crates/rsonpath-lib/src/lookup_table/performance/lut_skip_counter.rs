@@ -1,7 +1,5 @@
 use std::{
-    fmt::format,
     io::{self, BufReader, Read, Write},
-    path::Path,
     process::Command,
 };
 
@@ -25,24 +23,26 @@ use std::{error::Error, fs};
 pub const COUNTER_FILE_PATH: &str = ".a_lut_tests/performance/skip_tracker/COUNTER_";
 
 pub fn track_skips() {
-    count_test_data(QUERY_GOOGLE);
+    let cutoff = 0;
+
+    count_test_data(QUERY_GOOGLE, cutoff);
     // count_test_data(QUERY_BESTBUY);
     // count_test_data(TEST_TWITTER);
     // count_test_data(QUERY_POKEMON_SHORT);
 }
 
-fn count_test_data(test_data: (&str, &[(&str, &str)])) {
+fn count_test_data(test_data: (&str, &[(&str, &str)]), cutoff: usize) {
     let (json_path, queries) = test_data;
 
     let mut lut = LUT::build(json_path, 0).expect("Fail @ building LUT");
 
     for &(query_name, query_text) in queries {
-        let new_lut = track(lut, json_path, query_name, query_text);
+        let new_lut = track(lut, cutoff, json_path, query_name, query_text);
         lut = new_lut;
     }
 }
 
-fn track(lut: LUT, json_path: &str, query_name: &str, query_text: &str) -> LUT {
+fn track(lut: LUT, cutoff: usize, json_path: &str, query_name: &str, query_text: &str) -> LUT {
     if !(lut_skip_evaluation::SKIP_MODE == SkipMode::OFF) {
         println!(
             "Mode={:?}: Process query: {} = {}",
@@ -58,7 +58,7 @@ fn track(lut: LUT, json_path: &str, query_name: &str, query_text: &str) -> LUT {
     // Build query and LUT
     let query = rsonpath_syntax::parse(query_text).expect("Fail @ parse query");
     let mut engine = RsonpathEngine::compile_query(&query).expect("Fail @ compile query");
-    engine.add_lut(lut);
+    engine.add_lut(lut, cutoff);
 
     // Get results
     let input = {
