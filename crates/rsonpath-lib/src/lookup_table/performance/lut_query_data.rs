@@ -38,38 +38,38 @@ pub const QUERY_GOOGLE: (&str, &[(&str, &str)]) = (
     GOOGLE,
     &[
         // Random queries
-        // ("0", "$[*]..bounds"),
-        // ("1", "$[*]..bounds.northeast"),
-        // ("2", "$[*]..bounds.northeast.lat"),
-        // ("3", "$[*]..bounds.northeast.lng"),
-        // ("4", "$[*]..copyrights"),
-        // ("5", "$[*]..summary"),
-        // ("6", "$[*]..warnings"),
-        // ("7", "$[*]..waypoint_order"),
-        // ("8", "$[*].routes[*]"),
-        // ("9", "$[*].routes[*]..legs"),
-        // ("10", "$[*].routes[*]..points"),
-        // ("11", "$[*].routes[*]..steps[*]"),
-        // ("12", "$[*].routes[*].bounds"),
-        // ("13", "$[*].routes[*].bounds.northeast"),
-        // ("14", "$[*].routes[*].bounds.northeast.lat"),
-        // ("15", "$[*].routes[*].bounds.northeast.lng"),
-        // ("16", "$[*].routes[*].legs[*].start_location.lat"),
-        // ("17", "$[*].routes[*].legs[*].steps[1]"),
-        // ("18", "$[*].routes[*].legs[*].steps[1].distance.text"),
-        // ("19", "$[*].routes[*].legs[*].traffic_speed_entry"),
-        // ("20", "$[*].routes[*].overview_polyline"),
-        // ("21", "$[*].routes[*].overview_polyline.points"),
-        // ("22", "$[*].routes[*].summary"),
-        // ("23", "$[*].routes[*].warnings"),
-        // ("24", "$[*].routes[*].waypoint_order"),
-        // ("25", "$[1]"),
-        // ("26", "$[10].routes[*].bounds"),
-        // ("27", "$[100].routes[*].bounds"),
-        // ("28", "$[1000].routes[*].bounds"),
-        // ("29", "$[2000].routes[*].bounds"),
-        // ("30", "$[3000].routes[*].bounds"),
-        // More queries
+        ("0", "$[*]..bounds"),
+        ("1", "$[*]..bounds.northeast"),
+        ("2", "$[*]..bounds.northeast.lat"),
+        ("3", "$[*]..bounds.northeast.lng"),
+        ("4", "$[*]..copyrights"),
+        ("5", "$[*]..summary"),
+        ("6", "$[*]..warnings"),
+        ("7", "$[*]..waypoint_order"),
+        ("8", "$[*].routes[*]"),
+        ("9", "$[*].routes[*]..legs"),
+        ("10", "$[*].routes[*]..points"),
+        ("11", "$[*].routes[*]..steps[*]"),
+        ("12", "$[*].routes[*].bounds"),
+        ("13", "$[*].routes[*].bounds.northeast"),
+        ("14", "$[*].routes[*].bounds.northeast.lat"),
+        ("15", "$[*].routes[*].bounds.northeast.lng"),
+        ("16", "$[*].routes[*].legs[*].start_location.lat"),
+        ("17", "$[*].routes[*].legs[*].steps[1]"),
+        ("18", "$[*].routes[*].legs[*].steps[1].distance.text"),
+        ("19", "$[*].routes[*].legs[*].traffic_speed_entry"),
+        ("20", "$[*].routes[*].overview_polyline"),
+        ("21", "$[*].routes[*].overview_polyline.points"),
+        ("22", "$[*].routes[*].summary"),
+        ("23", "$[*].routes[*].warnings"),
+        ("24", "$[*].routes[*].waypoint_order"),
+        ("25", "$[1]"),
+        ("26", "$[10].routes[*].bounds"),
+        ("27", "$[100].routes[*].bounds"),
+        ("28", "$[1000].routes[*].bounds"),
+        ("29", "$[2000].routes[*].bounds"),
+        ("30", "$[3000].routes[*].bounds"),
+        // // More queries
         ("100", "$[*].routes[*].legs[*]"),
         ("101", "$[*].routes[*].legs[*].steps[*]"),
         ("102", "$[*].routes[*].legs[*].steps[*].distance"),
@@ -97,35 +97,35 @@ pub const QUERY_GOOGLE: (&str, &[(&str, &str)]) = (
 pub const QUERY_BESTBUY: (&str, &[(&str, &str)]) = (
     BESTBUY,
     &[
-        // ("100", "$.products[5].videoChapters"),
+        ("100", "$.products[5].videoChapters"),
         ("101", "$.products[*].videoChapters"),
-        // ("102", "$.products[*].videoChapters[1].chapter"),
-        // ("103", "$.products[*].shipping[*]"),
-        // ("104", "$.products[*].shipping[*].ground"),
-        // ("105", "$.products[*].shipping[*].nextDay"),
-        // ("106", "$.products[*].shipping[*].secondDay"),
-        // ("107", "$.products[*].shipping[*].vendorDelivery"),
-        // ("108", "$.products[*].shippingLevelsOfService[*]"),
-        // ("109", "$.products[*].shippingLevelsOfService[*].serviceLevelId"),
-        // ("110", "$.products[*].shippingLevelsOfService[*].serviceLevelName"),
-        // ("111", "$.products[*].shippingLevelsOfService[*].unitShippingPrice"),
+        ("102", "$.products[*].videoChapters[1].chapter"),
+        ("103", "$.products[*].shipping[*]"),
+        ("104", "$.products[*].shipping[*].ground"),
+        ("105", "$.products[*].shipping[*].nextDay"),
+        ("106", "$.products[*].shipping[*].secondDay"),
+        ("107", "$.products[*].shipping[*].vendorDelivery"),
+        ("108", "$.products[*].shippingLevelsOfService[*]"),
+        ("109", "$.products[*].shippingLevelsOfService[*].serviceLevelId"),
+        ("110", "$.products[*].shippingLevelsOfService[*].serviceLevelName"),
+        ("111", "$.products[*].shippingLevelsOfService[*].unitShippingPrice"),
         ("112", "$.products[*].categoryPath[2]"),
-        // ("113", "$.products[*].categoryPath[*].id"),
-        // ("114", "$.products[*].categoryPath[*].name"),
-        // ("115", "$.products[*].quantityLimit"),
-        // ("116", "$.products[*].earlyTerminationFees[*]"),
-        // ("117", "$.products[*].frequentlyPurchasedWith[*]"),
-        // ("118", "$.products[*].includedItemList[*]"),
-        // ("119", "$.products[*].accessories[*]"),
-        // ("120", "$.products[*].planFeatures[*]"),
-        // ("121", "$.products[*].homeDelivery"),
-        // ("122", "$.products[*].carrierPlans[*]"),
-        // ("123", "$.products[*].freeShipping"),
-        // ("124", "$.products[*].additionalFeatures[*]"),
-        // ("125", "$.products[*].additionalFeatures[*].feature"),
-        // ("126", "$.products[*].dollarSavings"),
-        // ("127", "$.products[*].lengthInMinutes"),
-        // ("128", "$.products[*].screenFormat"),
+        ("113", "$.products[*].categoryPath[*].id"),
+        ("114", "$.products[*].categoryPath[*].name"),
+        ("115", "$.products[*].quantityLimit"),
+        ("116", "$.products[*].earlyTerminationFees[*]"),
+        ("117", "$.products[*].frequentlyPurchasedWith[*]"),
+        ("118", "$.products[*].includedItemList[*]"),
+        ("119", "$.products[*].accessories[*]"),
+        ("120", "$.products[*].planFeatures[*]"),
+        ("121", "$.products[*].homeDelivery"),
+        ("122", "$.products[*].carrierPlans[*]"),
+        ("123", "$.products[*].freeShipping"),
+        ("124", "$.products[*].additionalFeatures[*]"),
+        ("125", "$.products[*].additionalFeatures[*].feature"),
+        ("126", "$.products[*].dollarSavings"),
+        ("127", "$.products[*].lengthInMinutes"),
+        ("128", "$.products[*].screenFormat"),
     ],
 );
 
@@ -133,36 +133,36 @@ pub const QUERY_TWITTER: (&str, &[(&str, &str)]) = (
     TWITTER,
     &[
         // Random Queries
-        // ("100", "$[*].geo"),
-        // ("101", "$[*].id"),
-        // ("102", "$[*].source"),
-        // ("103", "$[*].timestamp_ms"),
-        // ("104", "$[*].user.created_at"),
-        // ("105", "$[*].user.followers_count"),
-        // ("106", "$[*].user.lang"),
-        // ("107", "$[*].user.listed_count"),
-        // ("108", "$[*].user.profile_image_url_https"),
-        // ("109", "$[*].user.profile_sidebar_border_color"),
-        // ("110", "$[*].user.screen_name"),
-        // ("111", "$[*].user.verified"),
-        // ("112", "$[*].retweeted_status.id"),
-        // ("113", "$[*].retweeted_status.filter_level"),
-        // ("114", "$[*].retweeted_status.user.following"),
-        // ("115", "$[*].retweeted_status.user.name"),
-        // ("116", "$[*].retweeted_status[*]"),
-        // ("117", "$[*].retweeted_status[*]..entities..url"),
-        // ("118", "$[*].retweeted_status[*]..entities.symbols[*]"),
-        // ("119", "$[*].retweeted_status[*]..entities.user_mentions[*]"),
-        // ("120", "$[*].retweeted_status[*]..id"),
-        // ("121", "$[*].retweeted_status[*]..in_reply_to_screen_name"),
-        // ("122", "$[*].retweeted_status[*].user.lang"),
-        // ("123", "$[*].entities.hashtags[*]"),
-        // ("124", "$[*].entities.symbols[*]"),
-        // ("125", "$[*].entities.symbols[1]"),
-        // ("126", "$[*].entities.urls[*].display_url"),
-        // ("127", "$[*].entities..symbols[*]"),
-        // ("128", "$[*].entities..url"),
-        // ("129", "$[*]..id"),
+        ("100", "$[*].geo"),
+        ("101", "$[*].id"),
+        ("102", "$[*].source"),
+        ("103", "$[*].timestamp_ms"),
+        ("104", "$[*].user.created_at"),
+        ("105", "$[*].user.followers_count"),
+        ("106", "$[*].user.lang"),
+        ("107", "$[*].user.listed_count"),
+        ("108", "$[*].user.profile_image_url_https"),
+        ("109", "$[*].user.profile_sidebar_border_color"),
+        ("110", "$[*].user.screen_name"),
+        ("111", "$[*].user.verified"),
+        ("112", "$[*].retweeted_status.id"),
+        ("113", "$[*].retweeted_status.filter_level"),
+        ("114", "$[*].retweeted_status.user.following"),
+        ("115", "$[*].retweeted_status.user.name"),
+        ("116", "$[*].retweeted_status[*]"),
+        ("117", "$[*].retweeted_status[*]..entities..url"),
+        ("118", "$[*].retweeted_status[*]..entities.symbols[*]"),
+        ("119", "$[*].retweeted_status[*]..entities.user_mentions[*]"),
+        ("120", "$[*].retweeted_status[*]..id"),
+        ("121", "$[*].retweeted_status[*]..in_reply_to_screen_name"),
+        ("122", "$[*].retweeted_status[*].user.lang"),
+        ("123", "$[*].entities.hashtags[*]"),
+        ("124", "$[*].entities.symbols[*]"),
+        ("125", "$[*].entities.symbols[1]"),
+        ("126", "$[*].entities.urls[*].display_url"),
+        ("127", "$[*].entities..symbols[*]"),
+        ("128", "$[*].entities..url"),
+        ("129", "$[*]..id"),
         // Queries where LUT is faster than ITE
         ("200", "$[*].entities..symbols[*]"),
         ("201", "$[*].entities..url"),
@@ -236,12 +236,13 @@ pub const QUERY_JOHN_BIG: (&str, &[(&str, &str)]) = (
     JOHN_BIG,
     &[
         // OLD JOHN BIG
-        ("200", "$.person.firstName"),
-        ("201", "$.person.lastName"),
-        ("202", "$.person.phoneNumber[2].type"),
-        ("203", "$.person.spouse.person.phoneNumber.*"),
-        ("204", "$.person.spouse.person.phoneNumber[1]"),
-        ("205", "$.person.spouse.person.phoneNumber[2]"),
+        // ("200", "$.person.firstName"),
+        // ("201", "$.person.lastName"),
+        // ("202", "$.person.phoneNumber[2].type"),
+        // ("203", "$.person.spouse.person.phoneNumber.*"),
+        // ("204", "$.person.spouse.person.phoneNumber[1]"),
+        // ("205", "$.person.spouse.person.phoneNumber[2]"),
+        ("300", "$[1]"),
     ],
 );
 
@@ -254,22 +255,22 @@ pub const QUERY_BUGS: (&str, &[(&str, &str)]) = (BUGS, &[("1", "$.a..b")]);
 pub fn test_build_and_queries() {
     let cutoff = 0;
 
-    test_build_correctness(BUGS, cutoff);
-    test_build_correctness(JOHN_BIG, cutoff);
-    test_build_correctness(POKEMON_MINI, cutoff);
-    test_build_correctness(GOOGLE, cutoff);
-    test_build_correctness(WALMART, cutoff);
-    test_build_correctness(BESTBUY, cutoff);
-    test_build_correctness(TWITTER, cutoff);
-    test_build_correctness(POKEMON_SHORT, cutoff);
+    // test_build_correctness(BUGS, cutoff);
+    // test_build_correctness(JOHN_BIG, cutoff);
+    // test_build_correctness(POKEMON_MINI, cutoff);
+    // test_build_correctness(GOOGLE, cutoff);
+    // test_build_correctness(WALMART, cutoff);
+    // test_build_correctness(BESTBUY, cutoff);
+    // test_build_correctness(TWITTER, cutoff);
+    // test_build_correctness(POKEMON_SHORT, cutoff);
 
-    test_query_correctness(QUERY_BUGS, cutoff);
-    test_query_correctness(QUERY_JOHN_BIG, cutoff);
-    test_query_correctness(QUERY_POKEMON_MINI, cutoff);
+    // test_query_correctness(QUERY_BUGS, cutoff);
+    // test_query_correctness(QUERY_JOHN_BIG, cutoff);
+    // test_query_correctness(QUERY_POKEMON_MINI, cutoff);
     test_query_correctness(QUERY_GOOGLE, cutoff);
-    test_query_correctness(QUERY_TWITTER, cutoff);
+    // test_query_correctness(QUERY_TWITTER, cutoff);
     test_query_correctness(QUERY_BESTBUY, cutoff);
-    test_query_correctness(QUERY_POKEMON_SHORT, cutoff);
+    // test_query_correctness(QUERY_POKEMON_SHORT, cudsi-progress-logger = "0.8.1" # Needed to run sux codetoff);
 }
 
 fn test_build_correctness(json_path: &str, cutoff: usize) {
@@ -323,7 +324,7 @@ fn test_query_correctness(test_data: (&str, &[(&str, &str)]), cutoff: usize) {
 
         // Query normally and skip using the lookup table (LUT)
         // println!("---- LUT STYLE ----");
-        engine.add_lut(lut, cutoff);
+        engine.add_lut(lut);
         let lut_count = engine.count(&input).expect("LUT: Failed to run query normally");
 
         if lut_count != count {

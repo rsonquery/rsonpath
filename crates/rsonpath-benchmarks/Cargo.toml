@@ -42,6 +42,9 @@ thiserror = "2.0.9"
 once_cell = "1.20.3"
 # Added by Ricardo
 paste = "1.0.15"
+ptr_hash = "1.1.0" # new crate for performant minimal perfect hash functions in rust
+sux = "0.7.2" # New crate for static functions (an alternative to MPHF)
+dsi-progress-logger = "0.8.1" # Needed to run sux code
 
 [patch.crates-io]
 rsonpath-lib = { path = "../rsonpath-lib" }

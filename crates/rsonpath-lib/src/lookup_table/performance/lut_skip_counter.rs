@@ -26,9 +26,9 @@ pub fn track_skips() {
     let cutoff = 0;
 
     count_test_data(QUERY_GOOGLE, cutoff);
-    // count_test_data(QUERY_BESTBUY);
-    // count_test_data(TEST_TWITTER);
-    // count_test_data(QUERY_POKEMON_SHORT);
+    count_test_data(QUERY_BESTBUY, cutoff);
+    count_test_data(QUERY_TWITTER, cutoff);
+    count_test_data(QUERY_POKEMON_SHORT, cutoff);
 }
 
 fn count_test_data(test_data: (&str, &[(&str, &str)]), cutoff: usize) {
@@ -58,7 +58,7 @@ fn track(lut: LUT, cutoff: usize, json_path: &str, query_name: &str, query_text:
     // Build query and LUT
     let query = rsonpath_syntax::parse(query_text).expect("Fail @ parse query");
     let mut engine = RsonpathEngine::compile_query(&query).expect("Fail @ compile query");
-    engine.add_lut(lut, cutoff);
+    engine.add_lut(lut);
 
     // Get results
     let input = {

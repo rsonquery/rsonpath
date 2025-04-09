@@ -63,7 +63,7 @@ fn test_all_queries(test_data: (&str, &[(&str, &str)])) -> Result<(), Box<dyn Er
         let result = engine.count(&input).expect("Failed to run query normally");
 
         // Query normally and skip using the lookup table (LUT)
-        engine.add_lut(lut, DISTANCE_CUT_OFF);
+        engine.add_lut(lut);
         let lut_result = engine.count(&input).expect("LUT: Failed to run query normally");
 
         assert_eq!(lut_result, result);

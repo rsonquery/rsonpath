@@ -12,7 +12,7 @@ use rsonpath::{
         lut_phf_double::LutPHFDouble,
         lut_phf_group::LutPHFGroup,
         pair_data,
-        performance::lut_query_data::{ALPHABET, GOOGLE, POKEMON_MINI, TWITTER_SHORT},
+        performance::lut_query_data::{ALPHABET, GOOGLE, POKEMON_MINI, QUERY_BUGS, QUERY_JOHN_BIG, TWITTER_SHORT},
         LookUpTable, DISTANCE_CUT_OFF, LUT,
     },
 };
@@ -23,15 +23,15 @@ use rsonpath::{
 #[test]
 fn test_build_and_queries() {
     // Enables to see log messages when running tests
-    // simple_logger::SimpleLogger::new()
-    //     .with_level(log::LevelFilter::Debug)
-    //     .without_timestamps()
-    //     .init()
-    //     .unwrap();
+    simple_logger::SimpleLogger::new()
+        .with_level(log::LevelFilter::Debug)
+        .without_timestamps()
+        .init()
+        .unwrap();
 
     debug!("Start");
 
-    test_build_correctness(GOOGLE);
+    // test_build_correctness(GOOGLE);
     // test_build_correctness(WALMART);
     // test_build_correctness(BESTBUY);
     // test_build_correctness(TWITTER);
@@ -40,7 +40,7 @@ fn test_build_and_queries() {
     // test_build_correctness(ALPHABET);
 
     // test_query_correctness(QUERY_BUGS);
-    // test_query_correctness(QUERY_JOHN_BIG);
+    test_query_correctness(QUERY_JOHN_BIG);
     // test_query_correctness(QUERY_POKEMON_MINI);
     // test_query_correctness(QUERY_GOOGLE);
     // test_query_correctness(QUERY_TWITTER);
@@ -104,7 +104,7 @@ fn test_query_correctness(test_data: (&str, &[(&str, &str)])) {
 
         // Query normally and skip using the lookup table (LUT)
         debug!("---- LUT STYLE ----");
-        engine.add_lut(lut, DISTANCE_CUT_OFF);
+        engine.add_lut(lut);
         let lut_count = engine.count(&input).expect("LUT: Failed to run query normally");
 
         if lut_count != count {

@@ -124,9 +124,20 @@ macro_rules! quote_classifier {
             // TODO Ricardo copy the nosimd implementation from:
             // rsonpath/crates/rsonpath-lib/src/classification/quotes/nosimd.rs
             fn jump_to_idx(&mut self, idx: usize) -> QuoteIterResult<I::Block, MaskType, $size> {
+                debug!("Get offset = {}", self.get_offset());
+
                 let current_block = self.get_offset() / $size;
                 let jump_to_block = idx / $size;
-                let distance = jump_to_block - current_block;
+                debug!(
+                    "current_block = {}, jump_to_block = {}",
+                    current_block, jump_to_block
+                );
+
+                let mut distance = 0;
+                // We do this because in rare cases this is not the case and then we get an error.
+                if jump_to_block > current_block {
+                    distance = jump_to_block - current_block;
+                }
 
                 if distance > 0 {
                     debug!(

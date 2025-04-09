@@ -1,3 +1,4 @@
+use log::debug;
 use smallvec::SmallVec;
 
 use crate::{
@@ -97,6 +98,15 @@ where
             }
             Structural::Colon(_) | Structural::Comma(_) => unreachable!(),
         }
+    }
+
+    debug!("Found keys and values:");
+    for (key, value) in pairs.keys.iter().zip(pairs.values.iter()) {
+        debug!("({}, {})", key, value);
+    }
+    debug!("Found keys_64 and values_64:");
+    for (key_64, value_64) in pairs.keys_64.iter().zip(pairs.values_64.iter()) {
+        debug!("({}, {})", key_64, value_64);
     }
 
     // println!("Sizes: keys= {}, keys64= {}", pairs.keys.len(), pairs.keys_64.len());
