@@ -21,8 +21,13 @@ def plot_all(build_csv_path: str, query_csv_path: str, counter_csv_path: str, to
     build_df = pd.read_csv(build_csv_path)
     counter_df = pd.read_csv(counter_csv_path)
 
+    # cutoffs = [0, 64, 128]
+    # query_df = query_df[query_df["CUTOFF"].isin(cutoffs)]
+    # build_df = build_df[build_df["CUTOFF"].isin(cutoffs)]
+
     # Sort counter_df by TOTAL_PERCENT_SKIP & filter relevant query names
-    counter_df = counter_df.sort_values("TOTAL_PERCENT_SKIP")
+    counter_df = counter_df.sort_values(
+        by=["TOTAL_PERCENT_SKIP", "QUERY_NAME"])
     counter_df = counter_df[counter_df["QUERY_NAME"].isin(
         query_df["QUERY_ID"])]
 
@@ -33,7 +38,7 @@ def plot_all(build_csv_path: str, query_csv_path: str, counter_csv_path: str, to
         right_on='QUERY_NAME',
         how='left'
     )
-    query_df = query_df.sort_values("TOTAL_PERCENT_SKIP")
+    query_df = query_df.sort_values(by=["TOTAL_PERCENT_SKIP", "QUERY_ID"])
 
     # Convert size to MB and sort
     build_df = build_df.sort_values("CUTOFF")

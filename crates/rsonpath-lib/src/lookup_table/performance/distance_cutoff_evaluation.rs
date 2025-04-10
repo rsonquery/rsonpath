@@ -19,11 +19,32 @@ const QUERY_REPETITIONS: usize = 3;
 const RESULTS_PATH: &str = ".a_lut_tests/performance/distance_cutoff_evaluation";
 
 pub fn evaluate() {
-    let cutoffs = vec![64, 128, 256, 512, 1024, 2048, 4096, 8192];
+    let cutoffs = vec![16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192];
+    // let cutoffs = vec![64, 128, 1024, 2048];
 
-    eval_all(lut_query_data::QUERY_GOOGLE, &cutoffs);
-    // eval_all(lut_query_data::QUERY_TWITTER, &cutoffs);
-    // eval_all(lut_query_data::QUERY_BESTBUY, &cutoffs);
+    // only_plot(lut_query_data::QUERY_GOOGLE, &cutoffs);
+
+    // eval_all(lut_query_data::QUERY_GOOGLE, &cutoffs);
+    eval_all(lut_query_data::QUERY_TWITTER, &cutoffs);
+    eval_all(lut_query_data::QUERY_BESTBUY, &cutoffs);
+    eval_all(lut_query_data::QUERY_POKEMON_SHORT, &cutoffs);
+}
+
+fn only_plot(test_data: (&str, &[(&str, &str)]), cutoffs: &Vec<usize>) {
+    // Extract input
+    let (json_path, queries) = test_data;
+    let filename = util_path::extract_filename(json_path);
+    println!("JSON: {}", json_path);
+
+    // All necessary paths to CSV and PNG
+    let build_csv = format!("{}/{}_build_results.csv", RESULTS_PATH, filename);
+    let query_csv = format!("{}/{}_query_results.csv", RESULTS_PATH, filename);
+    let counter_csv_path = format!("{}/../skip_tracker/COUNTER_{}.csv", RESULTS_PATH, filename);
+    let distance_image_path = format!("{}/../distance_distribution/{}_plot.png", RESULTS_PATH, filename);
+    fs::create_dir_all(&RESULTS_PATH).expect("Could not create results directory");
+
+    // Plot it with python
+    run_python_statistics_builder(&build_csv, &query_csv, &counter_csv_path, &distance_image_path);
 }
 
 fn eval_all(test_data: (&str, &[(&str, &str)]), cutoffs: &Vec<usize>) {
