@@ -142,7 +142,11 @@ where
     fn jump_to_idx(&mut self, idx: usize) -> QuoteIterResult<I::Block, MaskType, N> {
         let current_block = self.get_offset() / N;
         let jump_to_block = idx / N;
-        let distance = jump_to_block - current_block;
+
+        let mut distance = 0;
+        if jump_to_block > current_block {
+            distance = jump_to_block - current_block;
+        }
 
         if distance > 0 {
             debug!(

@@ -21,8 +21,8 @@ pub const DISTANCE_EVAL_DIR: &str = "distance_distribution";
 
 /// Count the distances for each json file of the given directory
 #[inline]
-pub fn count_distances_in_dir(dir_path: &str, csv_path: &str) {
-    let dir = fs::read_dir(dir_path).expect("Failed to read directory");
+pub fn count_distances_in_dir(json_dir_path: &str, result_dir: &str) {
+    let dir = fs::read_dir(json_dir_path).expect("Failed to read directory");
 
     println!("Counting Distances:");
     for file in dir {
@@ -34,7 +34,7 @@ pub fn count_distances_in_dir(dir_path: &str, csv_path: &str) {
                 if extension == "json" {
                     let json_path = path.to_str().expect("Failed to convert path to string");
                     println!("  Processing: {}", json_path);
-                    count_distances_with_simd(json_path, csv_path);
+                    count_distances_with_simd(json_path, result_dir);
                 }
             }
         }
@@ -64,7 +64,7 @@ pub fn count_num_pairs(json_path: &str) -> usize {
     distance_frequencies.values().sum()
 }
 
-fn count_distances_with_simd(json_path: &str, csv_path: &str) {
+fn count_distances_with_simd(json_path: &str, result_dir: &str) {
     let file = std::fs::File::open(json_path).expect("Fail to open file");
     let filename = util_path::extract_filename(json_path);
 
@@ -84,7 +84,7 @@ fn count_distances_with_simd(json_path: &str, csv_path: &str) {
     });
 
     // Save in CSV: First column = distance, second column = frequency
-    let path = format!("{}/{}/{}_distances.csv", csv_path, DISTANCE_EVAL_DIR, filename);
+    let path = format!("{}/{}_distances.csv", result_dir, filename);
     let mut wtr = csv::Writer::from_writer(File::create(&path).expect("Failed to create CSV file"));
     wtr.write_record(["distance", "frequency"])
         .expect("Failed to write CSV header");
@@ -146,7 +146,7 @@ where
 fn run_python_statistics_builder(csv_path: &str) {
     let msg = format!("Failed to open csv_path: {}", csv_path);
     let output = Command::new("python")
-        .arg("crates/rsonpath-lib/src/lookup_table/python_statistic/distance_counter_distribution.py")
+        .arg("crates/rsonpath-lib/src/lookup_table/python_statistic/distance_distribution.py")
         .arg(csv_path)
         .output()
         .expect(&msg);

@@ -13,6 +13,7 @@ use std::{
 pub const JOHN: &str = ".a_lut_tests/test_data/kB_1/john_119.json";
 pub const JOHN_BIG: &str = ".a_lut_tests/test_data/kB_1/john_big.json";
 pub const BUGS: &str = ".a_lut_tests/test_data/kB_1/bugs.json";
+pub const BUGS_2: &str = ".a_lut_tests/test_data/kB_1/bugs_2.json";
 pub const ALPHABET: &str = ".a_lut_tests/test_data/kB_1/alphabet_(2kB).json";
 
 // MB_1
@@ -38,59 +39,59 @@ pub const QUERY_GOOGLE: (&str, &[(&str, &str)]) = (
     GOOGLE,
     &[
         // Random queries
-        ("0", "$[*]..bounds"),
-        ("1", "$[*]..bounds.northeast"),
-        ("2", "$[*]..bounds.northeast.lat"),
-        ("3", "$[*]..bounds.northeast.lng"),
-        ("4", "$[*]..copyrights"),
-        ("5", "$[*]..summary"),
-        ("6", "$[*]..warnings"),
-        ("7", "$[*]..waypoint_order"),
-        ("8", "$[*].routes[*]"),
-        ("9", "$[*].routes[*]..legs"),
-        ("10", "$[*].routes[*]..points"),
-        ("11", "$[*].routes[*]..steps[*]"),
-        ("12", "$[*].routes[*].bounds"),
-        ("13", "$[*].routes[*].bounds.northeast"),
-        ("14", "$[*].routes[*].bounds.northeast.lat"),
-        ("15", "$[*].routes[*].bounds.northeast.lng"),
-        ("16", "$[*].routes[*].legs[*].start_location.lat"),
-        ("17", "$[*].routes[*].legs[*].steps[1]"),
-        ("18", "$[*].routes[*].legs[*].steps[1].distance.text"),
-        ("19", "$[*].routes[*].legs[*].traffic_speed_entry"),
-        ("20", "$[*].routes[*].overview_polyline"),
-        ("21", "$[*].routes[*].overview_polyline.points"),
-        ("22", "$[*].routes[*].summary"),
-        ("23", "$[*].routes[*].warnings"),
-        ("24", "$[*].routes[*].waypoint_order"),
-        ("25", "$[1]"),
-        ("26", "$[10].routes[*].bounds"),
-        ("27", "$[100].routes[*].bounds"),
-        ("28", "$[1000].routes[*].bounds"),
-        ("29", "$[2000].routes[*].bounds"),
-        ("30", "$[3000].routes[*].bounds"),
+        // ("0", "$[*]..bounds"),
+        // ("1", "$[*]..bounds.northeast"),
+        // ("2", "$[*]..bounds.northeast.lat"),
+        // ("3", "$[*]..bounds.northeast.lng"),
+        // ("4", "$[*]..copyrights"),
+        // ("5", "$[*]..summary"),
+        // ("6", "$[*]..warnings"),
+        // ("7", "$[*]..waypoint_order"),
+        // ("8", "$[*].routes[*]"),
+        // ("9", "$[*].routes[*]..legs"),
+        // ("10", "$[*].routes[*]..points"),
+        // ("11", "$[*].routes[*]..steps[*]"),
+        // ("12", "$[*].routes[*].bounds"),
+        // ("13", "$[*].routes[*].bounds.northeast"),
+        // ("14", "$[*].routes[*].bounds.northeast.lat"),
+        // ("15", "$[*].routes[*].bounds.northeast.lng"),
+        // ("16", "$[*].routes[*].legs[*].start_location.lat"),
+        // ("17", "$[*].routes[*].legs[*].steps[1]"),
+        // ("18", "$[*].routes[*].legs[*].steps[1].distance.text"),
+        // ("19", "$[*].routes[*].legs[*].traffic_speed_entry"),
+        // ("20", "$[*].routes[*].overview_polyline"),
+        // ("21", "$[*].routes[*].overview_polyline.points"),
+        // ("22", "$[*].routes[*].summary"),
+        // ("23", "$[*].routes[*].warnings"),
+        // ("24", "$[*].routes[*].waypoint_order"),
+        // ("25", "$[1]"),
+        // ("26", "$[10].routes[*].bounds"),
+        // ("27", "$[100].routes[*].bounds"),
+        // ("28", "$[1000].routes[*].bounds"),
+        // ("29", "$[2000].routes[*].bounds"),
+        // ("30", "$[3000].routes[*].bounds"),
         // // More queries
         ("100", "$[*].routes[*].legs[*]"),
-        ("101", "$[*].routes[*].legs[*].steps[*]"),
-        ("102", "$[*].routes[*].legs[*].steps[*].distance"),
-        ("103", "$[*].routes[*].legs[*].steps[*].distance.text"),
-        ("104", "$[*].routes[*].legs[*].steps[*].distance.value"),
-        ("108", "$[*].routes[*].legs[*].steps[*].duration"),
-        ("109", "$[*].routes[*].legs[*].steps[*].polyline"),
-        ("110", "$[*].routes[*].legs[*].steps[*].polyline.points"),
-        ("111", "$[*].routes[*].legs[*].steps[*].end_location"),
-        ("112", "$[*].routes[*].legs[*].steps[*].html_instructions"),
-        ("113", "$[*].routes[*].legs[*].steps[*].travel_mode"),
-        ("114", "$[*].routes[*].legs[*].steps[*].start_location"),
-        ("115", "$[*].routes[*].legs[*].steps[*].start_location.lat"),
-        ("116", "$[*].routes[*].legs[*].steps[*].start_location.lng"),
-        ("117", "$[*].routes[*].legs[*].steps[*].maneuver"),
-        ("118", "$[*].routes[*].legs[*]..lat"),
-        ("119", "$[*].routes[*].legs[*]..lng"),
-        ("200", "$[*].available_travel_modes"),
-        ("202", "$[*].routes[*]"),
-        ("203", "$[*].routes[*].legs[*]"),
-        ("204", "$[4000].routes[*].bounds"),
+        // ("101", "$[*].routes[*].legs[*].steps[*]"),
+        // ("102", "$[*].routes[*].legs[*].steps[*].distance"),
+        // ("103", "$[*].routes[*].legs[*].steps[*].distance.text"),
+        // ("104", "$[*].routes[*].legs[*].steps[*].distance.value"),
+        // ("108", "$[*].routes[*].legs[*].steps[*].duration"),
+        // ("109", "$[*].routes[*].legs[*].steps[*].polyline"),
+        // ("110", "$[*].routes[*].legs[*].steps[*].polyline.points"),
+        // ("111", "$[*].routes[*].legs[*].steps[*].end_location"),
+        // ("112", "$[*].routes[*].legs[*].steps[*].html_instructions"),
+        // ("113", "$[*].routes[*].legs[*].steps[*].travel_mode"),
+        // ("114", "$[*].routes[*].legs[*].steps[*].start_location"),
+        // ("115", "$[*].routes[*].legs[*].steps[*].start_location.lat"),
+        // ("116", "$[*].routes[*].legs[*].steps[*].start_location.lng"),
+        // ("117", "$[*].routes[*].legs[*].steps[*].maneuver"),
+        // ("118", "$[*].routes[*].legs[*]..lat"),
+        // ("119", "$[*].routes[*].legs[*]..lng"),
+        // ("200", "$[*].available_travel_modes"),
+        // ("202", "$[*].routes[*]"),
+        // ("203", "$[*].routes[*].legs[*]"),
+        // ("204", "$[4000].routes[*].bounds"),
     ],
 );
 
@@ -236,24 +237,26 @@ pub const QUERY_JOHN_BIG: (&str, &[(&str, &str)]) = (
     JOHN_BIG,
     &[
         // OLD JOHN BIG
-        // ("200", "$.person.firstName"),
-        // ("201", "$.person.lastName"),
-        // ("202", "$.person.phoneNumber[2].type"),
-        // ("203", "$.person.spouse.person.phoneNumber.*"),
-        // ("204", "$.person.spouse.person.phoneNumber[1]"),
-        // ("205", "$.person.spouse.person.phoneNumber[2]"),
+        ("200", "$.person.firstName"),
+        ("201", "$.person.lastName"),
+        ("202", "$.person.phoneNumber[2].type"),
+        ("203", "$.person.spouse.person.phoneNumber.*"),
+        ("204", "$.person.spouse.person.phoneNumber[1]"),
+        ("205", "$.person.spouse.person.phoneNumber[2]"),
         ("300", "$[1]"),
     ],
 );
 
 pub const QUERY_BUGS: (&str, &[(&str, &str)]) = (BUGS, &[("1", "$.a..b")]);
 
+pub const QUERY_BUGS_2: (&str, &[(&str, &str)]) = (BUGS_2, &[("1", "$.b[0]")]);
+
 // ########################
 // #### Test functions ####
 // #########################
 // Run with: cargo run --bin lut --release -- test-query
 pub fn test_build_and_queries() {
-    let cutoff = 0;
+    let cutoff = 128;
 
     // test_build_correctness(BUGS, cutoff);
     // test_build_correctness(JOHN_BIG, cutoff);
@@ -264,13 +267,16 @@ pub fn test_build_and_queries() {
     // test_build_correctness(TWITTER, cutoff);
     // test_build_correctness(POKEMON_SHORT, cutoff);
 
-    // test_query_correctness(QUERY_BUGS, cutoff);
-    // test_query_correctness(QUERY_JOHN_BIG, cutoff);
-    // test_query_correctness(QUERY_POKEMON_MINI, cutoff);
-    test_query_correctness(QUERY_GOOGLE, cutoff);
-    // test_query_correctness(QUERY_TWITTER, cutoff);
-    test_query_correctness(QUERY_BESTBUY, cutoff);
-    // test_query_correctness(QUERY_POKEMON_SHORT, cudsi-progress-logger = "0.8.1" # Needed to run sux codetoff);
+    test_query_correctness_count(QUERY_BUGS, cutoff);
+    test_query_correctness_count(QUERY_BUGS_2, cutoff);
+    test_query_correctness_count(QUERY_JOHN_BIG, cutoff);
+    test_query_correctness_count(QUERY_POKEMON_MINI, cutoff);
+    test_query_correctness_count(QUERY_GOOGLE, cutoff);
+    test_query_correctness_count(QUERY_TWITTER, cutoff);
+    test_query_correctness_count(QUERY_BESTBUY, cutoff);
+    test_query_correctness_count(QUERY_POKEMON_SHORT, cutoff);
+
+    // test_query_correctness_nodes(QUERY_BUGS_2, cutoff);
 }
 
 fn test_build_correctness(json_path: &str, cutoff: usize) {
@@ -300,7 +306,7 @@ fn test_build_correctness(json_path: &str, cutoff: usize) {
     std::mem::drop(lut);
 }
 
-fn test_query_correctness(test_data: (&str, &[(&str, &str)]), cutoff: usize) {
+fn test_query_correctness_count(test_data: (&str, &[(&str, &str)]), cutoff: usize) {
     let (json_path, queries) = test_data;
     println!("Building LUT: {}", json_path);
     let mut lut = LUT::build(&json_path, cutoff).expect("Fail @ building LUT");
@@ -308,7 +314,7 @@ fn test_query_correctness(test_data: (&str, &[(&str, &str)]), cutoff: usize) {
     // Run all queries
     println!("Checking queries:");
     for &(query_name, query_text) in queries {
-        println!(" Query: {} = \"{}\" ... ", query_name, query_text);
+        print!(" Query: {} = \"{}\" ... ", query_name, query_text);
         let input = {
             let mut file = BufReader::new(fs::File::open(json_path).expect("Fail @ open File"));
             let mut buf = vec![];
@@ -328,9 +334,65 @@ fn test_query_correctness(test_data: (&str, &[(&str, &str)]), cutoff: usize) {
         let lut_count = engine.count(&input).expect("LUT: Failed to run query normally");
 
         if lut_count != count {
-            println!("  Found {}, Expected {}", lut_count, count);
+            println!("\n  Found {}, Expected {}", lut_count, count);
         } else {
             println!("  Correct");
+        }
+
+        lut = engine.take_lut().expect("Failed to retrieve LUT from engine");
+    }
+
+    std::mem::drop(lut);
+}
+
+fn test_query_correctness_nodes(test_data: (&str, &[(&str, &str)]), cutoff: usize) {
+    let (json_path, queries) = test_data;
+    println!("Building LUT: {}", json_path);
+    let mut lut = LUT::build(&json_path, cutoff).expect("Fail @ building LUT");
+
+    // Run all queries
+    println!("Checking queries:");
+    for &(query_name, query_text) in queries {
+        println!(" Query: {} = \"{}\" ... ", query_name, query_text);
+        let input = {
+            let mut file = BufReader::new(fs::File::open(json_path).expect("Fail @ open File"));
+            let mut buf = vec![];
+            file.read_to_end(&mut buf).expect("Fail @ file read");
+            OwnedBytes::new(buf)
+        };
+        let query = rsonpath_syntax::parse(query_text).expect("Fail @ parse query");
+
+        // Query normally and skip iteratively (ITE)
+        println!("---- ITE STYLE ----");
+        let mut engine = RsonpathEngine::compile_query(&query).expect("Fail @ compile query");
+        let mut sink = vec![];
+        engine.matches(&input, &mut sink).expect("Fail @ engine matching.");
+        let results = sink
+            .into_iter()
+            .map(|m| String::from_utf8_lossy(m.bytes()).to_string())
+            .collect::<Vec<_>>();
+
+        // Print results
+        println!("ITE Results found: ");
+        for (i, result) in results.into_iter().enumerate() {
+            println!("Result {}:", i);
+            println!("{result}");
+        }
+
+        // Query normally and skip using the lookup table (LUT)
+        println!("---- LUT STYLE ----");
+        engine.add_lut(lut);
+        let mut sink_lut = vec![];
+        engine.matches(&input, &mut sink_lut).expect("Fail @ engine matching.");
+        let results_lut = sink_lut
+            .into_iter()
+            .map(|m| String::from_utf8_lossy(m.bytes()).to_string())
+            .collect::<Vec<_>>();
+
+        println!("LUT Results found: ");
+        for (i, result) in results_lut.into_iter().enumerate() {
+            println!("Result {}:", i);
+            println!("{result}");
         }
 
         lut = engine.take_lut().expect("Failed to retrieve LUT from engine");

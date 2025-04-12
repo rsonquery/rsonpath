@@ -1,3 +1,4 @@
+use log::debug;
 use ptr_hash::{PtrHash, PtrHashParams};
 
 use std::fs;
@@ -49,6 +50,8 @@ impl LookUpTable for LutPtrHashDouble {
     }
 
     fn get(&self, key: &usize) -> Option<usize> {
+        debug!("PtrHash: Call get({})", key);
+
         let mut dst: usize = self.values[self.ptr_hash.index(key)] as usize;
         // Check ptr_hash and if that returns 0 then check ptr_hash_64
         if dst == 0 {

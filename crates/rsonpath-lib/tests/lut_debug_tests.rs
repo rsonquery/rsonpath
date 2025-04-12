@@ -12,7 +12,9 @@ use rsonpath::{
         lut_phf_double::LutPHFDouble,
         lut_phf_group::LutPHFGroup,
         pair_data,
-        performance::lut_query_data::{ALPHABET, GOOGLE, POKEMON_MINI, QUERY_BUGS, QUERY_JOHN_BIG, TWITTER_SHORT},
+        performance::lut_query_data::{
+            ALPHABET, GOOGLE, POKEMON_MINI, QUERY_BUGS, QUERY_GOOGLE, QUERY_JOHN_BIG, TWITTER_SHORT,
+        },
         LookUpTable, DISTANCE_CUT_OFF, LUT,
     },
 };
@@ -31,6 +33,8 @@ fn test_build_and_queries() {
 
     debug!("Start");
 
+    let cutoff = 128;
+
     // test_build_correctness(GOOGLE);
     // test_build_correctness(WALMART);
     // test_build_correctness(BESTBUY);
@@ -40,9 +44,9 @@ fn test_build_and_queries() {
     // test_build_correctness(ALPHABET);
 
     // test_query_correctness(QUERY_BUGS);
-    test_query_correctness(QUERY_JOHN_BIG);
+    // test_query_correctness(QUERY_JOHN_BIG, cutoff);
     // test_query_correctness(QUERY_POKEMON_MINI);
-    // test_query_correctness(QUERY_GOOGLE);
+    test_query_correctness(QUERY_GOOGLE, cutoff);
     // test_query_correctness(QUERY_TWITTER);
     // test_query_correctness(QUERY_BESTBUY);
     // test_query_correctness(QUERY_POKEMON_SHORT);
@@ -78,12 +82,12 @@ fn test_build_correctness(json_name: &str) {
     std::mem::drop(lut);
 }
 
-fn test_query_correctness(test_data: (&str, &[(&str, &str)])) {
+fn test_query_correctness(test_data: (&str, &[(&str, &str)]), cutoff: usize) {
     let (json_name, queries) = test_data;
     let s = format!("../../{}", json_name);
     let json_path = s.as_str();
     debug!("Building LUT: {}", json_path);
-    let mut lut = LUT::build(&json_path, DISTANCE_CUT_OFF).expect("Fail @ building LUT");
+    let mut lut = LUT::build(&json_path, cutoff).expect("Fail @ building LUT");
 
     // Run all queries
     debug!("Checking queries:");

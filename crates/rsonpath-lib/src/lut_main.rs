@@ -1,6 +1,9 @@
 use clap::{Parser, Subcommand};
 use rsonpath::lookup_table::{
-    distance_counter::{self, DISTANCE_EVAL_DIR},
+    analysis::{
+        distance_distribution, json_size_distribution::create_json_size_csv,
+        json_size_estimation_bits::print_estimation,
+    },
     lut_sichash,
     performance::{self, distance_cutoff_evaluation, lut_query_data, lut_skip_counter, lut_skip_evaluation, EVAL_DIR},
     pokemon_test_data_generator,
@@ -30,10 +33,8 @@ enum Commands {
     },
     /// Measure distances of each parenthesis pair for each JSON in the folder and plot the distribution
     Distances {
-        /// Path to the folder containing JSON files
-        json_dir: String,
-        /// Path to the output directory where the results are saved
-        out_dir: String,
+        json_dir: String, // Path to the folder containing JSON files
+        result_dir: String,
     },
     /// Run performance tests
     Performance {
@@ -56,21 +57,27 @@ enum Commands {
         json_path: String,
     },
     Cutoff {},
+    Analysis {
+        json_folder_path: String,
+    },
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
 
     match &cli.command {
+        Commands::Analysis { json_folder_path } => {
+            // create_json_size_csv(json_folder_path);
+            print_estimation();
+        }
         Commands::Query { json_query, json_path } => {
             query_with_lut(json_path, json_query);
         }
-        Commands::Distances { json_dir, out_dir } => {
+        Commands::Distances { json_dir, result_dir } => {
             check_if_dir_exists(json_dir);
-            create_folder_setup(out_dir)?;
-            let csv_dir = format!("{}/{}", out_dir, "performance");
+            check_if_dir_exists(result_dir);
 
-            distance_counter::count_distances_in_dir(json_dir, &csv_dir);
+            distance_distribution::count_distances_in_dir(json_dir, &result_dir);
         }
         Commands::Performance { json_dir, out_dir } => {
             check_if_dir_exists(json_dir);
@@ -112,7 +119,6 @@ fn create_folder_setup(dir_name: &str) -> std::io::Result<()> {
         dir_name,
         &format!("{}/performance", dir_name),
         &format!("{}/performance/{}", dir_name, EVAL_DIR),
-        &format!("{}/performance/{}", dir_name, DISTANCE_EVAL_DIR),
         &format!("{}/performance/{}", dir_name, SICHASH_DATA_DIR),
         &format!("{}/test_data", dir_name),
     ];

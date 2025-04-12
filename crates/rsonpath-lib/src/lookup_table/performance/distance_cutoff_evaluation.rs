@@ -22,15 +22,17 @@ pub fn evaluate() {
     let cutoffs = vec![16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192];
     // let cutoffs = vec![64, 128, 1024, 2048];
 
-    // only_plot(lut_query_data::QUERY_GOOGLE, &cutoffs);
+    only_plot(lut_query_data::QUERY_GOOGLE);
+    only_plot(lut_query_data::QUERY_TWITTER);
+    only_plot(lut_query_data::QUERY_BESTBUY);
 
     // eval_all(lut_query_data::QUERY_GOOGLE, &cutoffs);
-    eval_all(lut_query_data::QUERY_TWITTER, &cutoffs);
-    eval_all(lut_query_data::QUERY_BESTBUY, &cutoffs);
-    eval_all(lut_query_data::QUERY_POKEMON_SHORT, &cutoffs);
+    // eval_all(lut_query_data::QUERY_TWITTER, &cutoffs);
+    // eval_all(lut_query_data::QUERY_BESTBUY, &cutoffs);
+    // eval_all(lut_query_data::QUERY_POKEMON_SHORT, &cutoffs);
 }
 
-fn only_plot(test_data: (&str, &[(&str, &str)]), cutoffs: &Vec<usize>) {
+fn only_plot(test_data: (&str, &[(&str, &str)])) {
     // Extract input
     let (json_path, queries) = test_data;
     let filename = util_path::extract_filename(json_path);

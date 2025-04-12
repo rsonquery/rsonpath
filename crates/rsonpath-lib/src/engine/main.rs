@@ -430,8 +430,7 @@ where
                 Some(Structural::Colon(_) | Structural::Opening(_, _)) => (),
             }
             let bracket_type = self.current_node_bracket_type();
-            debug!("Skipping unique state from {bracket_type:?}");
-
+            debug!("Skipping unique state from {bracket_type:?} Skip#2");
             let stop_at = classifier.skip(
                 self.idx_open,
                 idx,
@@ -567,6 +566,7 @@ where
 
                 // Tail skipping. Skip the entire subtree. The skipping consumes the closing character.
                 // We still need to notify the recorder - in case the value being skipped was actually accepted.
+                debug!("Skip#3");
                 let closing_idx =
                     classifier.skip(idx, idx, bracket_type, self.lut, self.input.leading_padding_len())?;
                 return self.recorder.record_value_terminator(closing_idx, self.depth);
@@ -665,7 +665,7 @@ where
             // we can just skip the rest of the current subtree.
             if self.automaton.is_unitary(self.state) {
                 let bracket_type = self.current_node_bracket_type();
-                debug!("Skipping unique state from {bracket_type:?}");
+                debug!("Skipping unique state from {bracket_type:?}. Skip#1");
                 let close_idx = classifier.skip(
                     self.idx_open,
                     idx,

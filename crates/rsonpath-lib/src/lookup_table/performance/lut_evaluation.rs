@@ -7,7 +7,7 @@ use std::{
 use stats_alloc::{Region, StatsAlloc, INSTRUMENTED_SYSTEM};
 
 use crate::lookup_table::{
-    distance_counter, lut_hash_map::LutHashMap, lut_hash_map_double::LutHashMapDouble,
+    analysis::distance_distribution, lut_hash_map::LutHashMap, lut_hash_map_double::LutHashMapDouble,
     lut_hash_map_group::LutHashMapGroup, lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF,
     lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup, lut_ptr_hash_double::LutPtrHashDouble,
     lut_vfunc_double::LutVFuncDouble, pair_data, util_path, LookUpTable, LookUpTableLambda, DISTANCE_CUT_OFF,
@@ -31,7 +31,7 @@ pub fn evaluate(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::erro
 
     let file = std::fs::File::open(json_path)?;
     let filename = util_path::extract_filename(json_path);
-    let num_keys = distance_counter::count_num_pairs(json_path);
+    let num_keys = distance_distribution::count_num_pairs(json_path);
 
     let mut head_line = String::from("name,input_size_bytes,num_keys,");
     let mut data_line = format!("{},{},{},", filename, file.metadata()?.len(), num_keys);

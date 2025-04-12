@@ -3,6 +3,7 @@
 
 # Added by Ricardo
 /.a_lut_tests/*
+/.b_lut_tests/*
 /crates/rsonpath-lib/tests/json/*
 Cargo.lock
 **/__pycache__/

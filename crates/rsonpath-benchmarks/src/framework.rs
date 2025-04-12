@@ -19,7 +19,7 @@ use thiserror::Error;
 
 static LUT_CUTOFFS: Lazy<Vec<usize>> =
     // Lazy::new(|| vec![0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]);
-    Lazy::new(|| vec![0, 1000, 2000, 4000, 8000]);
+    Lazy::new(|| vec![128, 256]);
 static LUT_LABELS: Lazy<Vec<String>> = Lazy::new(|| LUT_CUTOFFS.iter().map(|&c| format!("rq-lut: {}", c)).collect());
 
 pub mod benchmark_options;
@@ -92,7 +92,7 @@ impl Benchset {
         const TARGET_NUMBER_OF_QUERIES: f64 = 10.0;
         // TODO revert this
         const TARGET_SPEED_IN_BYTES_PER_SEC: f64 = 300_000_000.0;
-        // const TARGET_SPEED_IN_BYTES_PER_SEC: f64 = 100_000_000.0; 
+        // const TARGET_SPEED_IN_BYTES_PER_SEC: f64 = 100_000_000.0;
 
         let measurement_secs =
             (json_file.size_in_bytes as f64) * TARGET_NUMBER_OF_QUERIES / TARGET_SPEED_IN_BYTES_PER_SEC;

@@ -54,7 +54,6 @@ siphasher = "1.0" # for the phf_crate code
 clap = { version = "4.5.20", features = ["derive"]}
 itertools = "0.13.0"
 rayon = {version = "1.10"}
-# Added by Ricardo
 simple_logger = "4.3.3"
 lazy_static = "1.4" # for using static objects
 ptr_hash = "1.1.0" # new crate for performant minimal perfect hash functions in rust

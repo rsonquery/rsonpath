@@ -278,3 +278,72 @@ pub fn get_keys_and_values(
     })
     .map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
 }
+
+#[inline]
+pub fn count_brackets(json_path: &str, cutoff: usize) -> Result<(usize, usize), Box<dyn std::error::Error>> {
+    let file = std::fs::File::open(json_path).expect("Fail at opening file");
+    // SAFETY: We keep the file open throughout the entire duration.
+    let input = unsafe { input::MmapInput::map_file(&file)? };
+    let simd_c = classification::simd::configure();
+
+    classification::simd::config_simd!(simd_c => |simd| {
+        classification::simd::dispatch_simd!(simd; input, simd, cutoff => fn<I, V>(
+            input: I,
+            simd: V,
+            cutoff: usize,
+        ) -> Result<(usize, usize), error::InputError> where
+        I: Input,
+        V: Simd,{
+                count::<I, V>(&input, simd, cutoff)
+            })
+    })
+    .map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
+}
+
+#[inline]
+pub(crate) fn count<I, V>(input: &I, simd: V, cutoff: usize) -> Result<(usize, usize), error::InputError>
+where
+    I: Input,
+    V: Simd,
+{
+    let iter = input.iter_blocks::<_, 64>(&EmptyRecorder);
+    let quote_classifier = simd.classify_quoted_sequences(iter);
+    let mut structural_classifier = simd.classify_structural_characters(quote_classifier);
+    structural_classifier.turn_colons_and_commas_off();
+
+    let mut square_bracket_stack: SmallVec<[usize; 64]> = SmallVec::new();
+    let mut curly_bracket_stack: SmallVec<[usize; 64]> = SmallVec::new();
+
+    let mut num_curly = 0;
+    let mut num_squary = 0;
+
+    while let Some(event) = structural_classifier.next()? {
+        match event {
+            Structural::Opening(b, idx_open) => match b {
+                BracketType::Square => square_bracket_stack.push(idx_open),
+                BracketType::Curly => curly_bracket_stack.push(idx_open),
+            },
+            Structural::Closing(b, idx_close) => {
+                let idx_open = match b {
+                    BracketType::Square => square_bracket_stack.pop().expect("Unmatched closing ]"),
+                    BracketType::Curly => curly_bracket_stack.pop().expect("Unmatched closing }"),
+                };
+
+                let distance = idx_close - idx_open;
+                if distance <= cutoff {
+                    continue;
+                }
+
+                if b == BracketType::Square {
+                    num_squary += 1;
+                }
+                if b == BracketType::Curly {
+                    num_curly += 1;
+                }
+            }
+            Structural::Colon(_) | Structural::Comma(_) => unreachable!(),
+        }
+    }
+
+    Ok((num_curly, num_squary))
+}

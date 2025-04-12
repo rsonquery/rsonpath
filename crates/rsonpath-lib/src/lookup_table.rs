@@ -1,4 +1,4 @@
-pub mod distance_counter;
+pub mod analysis;
 pub mod lut_hash_map;
 pub mod lut_hash_map_double;
 pub mod lut_hash_map_group;
