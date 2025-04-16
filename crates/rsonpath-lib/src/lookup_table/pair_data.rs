@@ -99,6 +99,7 @@ where
     }
 
     debug!("find_pairs - Found keys and values:");
+    debug!("Sizes: keys= {}, keys64= {}", pairs.keys.len(), pairs.keys_64.len());
     for (key, value) in pairs.keys.iter().zip(pairs.values.iter()) {
         debug!("({}, {})", key, value);
     }
@@ -106,8 +107,6 @@ where
     for (key_64, value_64) in pairs.keys_64.iter().zip(pairs.values_64.iter()) {
         debug!("({}, {})", key_64, value_64);
     }
-
-    // println!("Sizes: keys= {}, keys64= {}", pairs.keys.len(), pairs.keys_64.len());
 
     Ok(pairs)
 }

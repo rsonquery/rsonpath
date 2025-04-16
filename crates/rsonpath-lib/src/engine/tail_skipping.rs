@@ -59,7 +59,7 @@ where
             let result = self.skip_choice(idx_open, idx, bracket_type, lut, padding);
             let skip_time = start_skip.elapsed().as_nanos() as u64;
             lut_skip_evaluation::add_skip_time(skip_time);
-            return result;
+            result
         } else {
             self.skip_choice(idx_open, idx, bracket_type, lut, padding)
         }
@@ -75,32 +75,15 @@ where
     ) -> Result<usize, EngineError> {
         if let Some(lut) = lut {
             if USE_SKIP_ABORT_STRATEGY {
-                // use ITE mainly and LUT only when the jump distance exceeds CUTOFF
                 self.skip_lut_abort(idx_open, idx, bracket_type, lut, padding)
             } else {
-                // use only the LUT, even for short distances
                 self.skip_lut(idx_open, idx, bracket_type, lut, padding)
             }
         } else {
-            // default
             let idx_close = self.skip_ite(bracket_type)?;
-            if idx >= padding && idx_open >= padding && idx_close >= padding {
-                debug!(
-                    "ITE: {}: ({}, {}) No-PAD: {}, ({}, {})",
-                    idx,
-                    idx_open,
-                    idx_close,
-                    idx - padding,
-                    idx_open - padding,
-                    idx_close - padding,
-                );
-            } else {
-                debug!(
-                    "ITE: {}: ({}, {}) Cannot show padding, cause values < padding = {}",
-                    idx, idx_open, idx_close, padding
-                );
-            }
 
+            track_skip("ITE", idx_close - idx);
+            debug_msg("ITE", idx, idx_open, idx_close, padding);
             Ok(idx_close)
         }
     }
@@ -114,34 +97,12 @@ where
         lut: &LUT,
         padding: usize,
     ) -> Result<usize, EngineError> {
-        // Get value from LUT, can hit or miss.
+        // Get value from LUT, can hit or miss. Can also always hit depending on the implementation.
         if let Some(idx_lut) = lut.get(&(idx_open - padding)) {
-            // Note: shift index by 1 or its off aligned
-            let idx_close = idx_lut + 1 + padding;
+            let idx_close = idx_lut + 1 + padding; // Note: shift index by 1 or its off aligned
 
-            // Only for tracking jumps and not needed in normal runs
-            if !(lut_skip_evaluation::SKIP_MODE == SkipMode::OFF) {
-                let distance = idx_close - idx;
-                debug!("Track distance = {distance}");
-                track_distance_lut(distance);
-            }
-
-            if idx >= padding && idx_open >= padding && idx_close >= padding {
-                debug!(
-                    "LUT: {}: ({}, {}) No-PAD: {}, ({}, {})",
-                    idx,
-                    idx_open,
-                    idx_close,
-                    idx - padding,
-                    idx_open - padding,
-                    idx_close - padding,
-                );
-            } else {
-                debug!(
-                    "LUT: {}: ({}, {}) Cannot show padding, cause values < padding = {}",
-                    idx, idx_open, idx_close, padding
-                );
-            }
+            track_skip("LUT", idx_close - idx);
+            debug_msg("LUT", idx, idx_open, idx_close, padding);
 
             self.classifier
                 .as_mut()
@@ -153,22 +114,8 @@ where
             // LUT had no hit, skip ITE style
             let idx_close = self.skip_ite(bracket_type)?;
 
-            // Only for tracking jumps and not needed in normal runs
-            if !(lut_skip_evaluation::SKIP_MODE == SkipMode::OFF) {
-                let distance = idx_close - idx;
-                debug!("Track distance = {distance}");
-                track_distance_ite(distance);
-            }
-
-            debug!(
-                "ITE: {}: ({}, {}) No-PAD: {}, ({}, {})",
-                idx,
-                idx_open,
-                idx_close,
-                idx - padding,
-                idx_open - padding,
-                idx_close - padding,
-            );
+            track_skip("ITE", idx_close - idx);
+            debug_msg("ITE", idx, idx_open, idx_close, padding);
 
             Ok(idx_close)
         }
@@ -270,66 +217,29 @@ where
 
             // Skip LUT style if skipped_distance > CUTOFF
             if skip_with_lut {
-                // Shift index by 1 or its off aligned
-                let idx_close = idx_lut + 1 + padding;
+                let idx_close = idx_lut + 1 + padding; // Shift index by 1 or its off aligned
 
-                // Tell the Structural Classifier to jump
                 tail_skip.classifier
                     .as_mut()
                     .expect("tail skip must always hold a classifier")
                     .jump_to_idx(idx_close, false)?;
 
-                if !(lut_skip_evaluation::SKIP_MODE == SkipMode::OFF) {
-                    let distance = idx_close - idx;
-                    debug!("LUT: Track distance = {distance}");
-                    track_distance_lut(distance);
-                }
-                if idx >= padding && idx_open >= padding && idx_close >= padding {
-                    debug!(
-                        "LUT: {}: ({}, {}) No-PAD: {}, ({}, {})",
-                        idx,
-                        idx_open,
-                        idx_close,
-                        idx - padding,
-                        idx_open - padding,
-                        idx_close - padding,
-                    );
-                } else {
-                    debug!(
-                        "LUT: {}: ({}, {}) Cannot show padding, cause values < padding = {}",
-                        idx, idx_open, idx_close, padding
-                    );
-                }
-
+                track_skip("LUT", idx_close - idx);
+                debug_msg("LUT", idx, idx_open, idx_close, padding);
                 return Ok(idx_close);
             }
 
             if let Some(err) = err {
                 Err(err.into())
             } else {
-                if !(lut_skip_evaluation::SKIP_MODE == SkipMode::OFF) {
-                    let distance = idx_close - idx;
-                    debug!("ITE: Track distance = {distance}");
-                    track_distance_ite(distance);
-                }
-
-                debug!(
-                    "ITE: {}: ({}, {}) No-PAD: {}, ({}, {})",
-                    idx,
-                    idx_open,
-                    idx_close,
-                    idx - padding,
-                    idx_open - padding,
-                    idx_close - padding,
-                );
-
-
+                track_skip("ITE", idx_close - idx);
+                debug_msg("ITE", idx, idx_open, idx_close, padding);
                 Ok(idx_close)
             }
         })
     }
 
-    // TODO Ricardo reenable the out commented debug lines
+    // TODO Ricardo re-enable the out commented debug lines
     fn skip_ite(&mut self, bracket_type: BracketType) -> Result<usize, EngineError> {
         dispatch_simd!(self.simd; self, bracket_type =>
         fn <'i, I, V>(
@@ -395,7 +305,6 @@ where
                 tail_skip.simd.resume_structural_classification(resume_state)
             });
 
-
             if let Some(err) = err {
                 Err(err.into())
             } else {
@@ -406,6 +315,43 @@ where
 
     pub(crate) fn stop(self) -> ResumeClassifierState<'i, I, V::QuotesClassifier<'i, I>, MaskType, BLOCK_SIZE> {
         self.classifier.expect("tail skip must always hold a classifier").stop()
+    }
+}
+
+fn debug_msg(prefix: &str, idx: usize, idx_open: usize, idx_close: usize, padding: usize) {
+    let distance = idx_close - idx_open;
+    if idx >= padding && idx_open >= padding && idx_close >= padding {
+        debug!(
+            "{}[{}]: {}: ({}, {}) No-PAD: {}, ({}, {})",
+            prefix,
+            distance,
+            idx,
+            idx_open,
+            idx_close,
+            idx - padding,
+            idx_open - padding,
+            idx_close - padding,
+        );
+    } else {
+        debug!(
+            "{}[{}]: {}: ({}, {}) No-PAD: not possible because padding = {} is too high.",
+            prefix, distance, idx, idx_open, idx_close, padding
+        );
+    }
+}
+
+// Only for tracking jumps and not needed in normal runs
+fn track_skip(prefix: &str, distance: usize) {
+    if !(lut_skip_evaluation::SKIP_MODE == SkipMode::OFF) {
+        debug!("{prefix}: Track distance = {distance}");
+
+        if prefix == "ITE" {
+            track_distance_ite(distance);
+        } else if prefix == "LUT" {
+            track_distance_lut(distance)
+        } else {
+            panic!("Wrong debug input!")
+        }
     }
 }
 
