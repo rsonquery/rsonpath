@@ -4,6 +4,7 @@ use crate::{
     lookup_table::{self, lut_hash_map, pair_data, LookUpTable, LUT},
 };
 
+use serde_json::json;
 use std::{
     fs,
     io::{BufReader, Read},
@@ -282,20 +283,19 @@ pub fn test_build_and_queries() {
 fn test_build_correctness(json_path: &str, cutoff: usize) {
     println!("Building LUT: {}", json_path);
     let lut = LUT::build(&json_path, cutoff).expect("Fail @ building LUT");
-    println!("Building LUT (Hashmap): {}", json_path);
-    let lut_hash_map = lut_hash_map::LutHashMap::build(&json_path, cutoff).expect("Fail @ building LUT");
+    let lut_hash_map = lut_hash_map::LutHashMap::build(json_path, cutoff).expect("Fail @ building lut_hash_map");
 
     println!("Testing keys ...");
-    let (keys, values) = pair_data::get_keys_and_values(json_path, cutoff).expect("Fail @ finding pairs.");
+    let (keys, values) = pair_data::get_keys_and_values_absolute(json_path, cutoff).expect("Fail @ finding pairs.");
     let mut count_incorrect = 0;
     for (i, key) in keys.iter().enumerate() {
-        let found = lut.get(key).expect("Fail at getting value.");
-        let value_hash = lut_hash_map.get(key).expect("Fail at getting value.");
-        if found != values[i] || found != value_hash {
+        let found = lut.get(key).expect("Fail @ get(key) - LUT.");
+        let found_hash = lut_hash_map.get(key).expect("Fail @ get(key) - lut_hash_map.");
+        if found != values[i] {
             count_incorrect += 1;
             println!(
-                "  i: {}, Key {}, Found {}, Expected: {}, Hash {}",
-                i, key, found, values[i], value_hash
+                "  i: {}, Key {}, Found {}, Expected: {} and {}",
+                i, key, found, values[i], found_hash
             );
         }
     }
@@ -303,7 +303,7 @@ fn test_build_correctness(json_path: &str, cutoff: usize) {
     println!(" Correct {}/{}", keys.len() - count_incorrect, keys.len());
     println!(" Incorrect {}/{}", count_incorrect, keys.len());
 
-    std::mem::drop(lut);
+    drop(lut);
 }
 
 fn test_query_correctness_count(test_data: (&str, &[(&str, &str)]), cutoff: usize) {
@@ -342,7 +342,7 @@ fn test_query_correctness_count(test_data: (&str, &[(&str, &str)]), cutoff: usiz
         lut = engine.take_lut().expect("Failed to retrieve LUT from engine");
     }
 
-    std::mem::drop(lut);
+    drop(lut);
 }
 
 fn test_query_correctness_nodes(test_data: (&str, &[(&str, &str)]), cutoff: usize) {

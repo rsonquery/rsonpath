@@ -13,7 +13,6 @@ use crate::{
 use criterion::{Criterion, Throughput};
 use implementation::{Implementation, PreparedQuery};
 use once_cell::sync::Lazy;
-use rsonpath::lookup_table::distance_counter;
 use std::{path::PathBuf, time::Duration};
 use thiserror::Error;
 

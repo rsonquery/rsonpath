@@ -62,7 +62,8 @@ fn test_build_correctness(json_name: &str) {
     let lut = LUT::build(&json_path, 0).expect("Fail @ building LUT");
 
     debug!("Testing keys ...");
-    let (keys, values) = pair_data::get_keys_and_values(json_path, DISTANCE_CUT_OFF).expect("Fail @ finding pairs.");
+    let (keys, values) =
+        pair_data::get_keys_and_values_absolute(json_path, DISTANCE_CUT_OFF).expect("Fail @ finding pairs.");
     let mut count_incorrect = 0;
     for (i, key) in keys.iter().enumerate() {
         let value = lut.get(key).expect("Fail at getting value.");
@@ -123,7 +124,7 @@ fn test_query_correctness(test_data: (&str, &[(&str, &str)]), cutoff: usize) {
     std::mem::drop(lut);
 }
 
-// cargo test --test lut_build_tests -- debug_lut_group_buckets --nocapture | rg "(lut_build_tests|lut_phf_group)"
+// cargo test --test lut_debug_tests -- debug_lut_group_buckets --nocapture | rg "(lut_debug_tests|pair_data)"
 #[test]
 fn debug_lut_group_buckets() {
     // Enables to see log messages when running tests
@@ -141,9 +142,8 @@ fn debug_lut_group_buckets() {
     let bit_mask = 3; // powers of 2 -1
     let threaded = false;
 
-    let (keys, values) = pair_data::get_keys_and_values(json_path, DISTANCE_CUT_OFF).expect("Fail @ finding pairs.");
-    let lut = LutPHFGroup::build_buckets(lambda, json_path, DISTANCE_CUT_OFF, bit_mask, threaded)
-        .expect("Fail @ building lut_phf_double");
+    let (keys, values) = pair_data::get_keys_and_values_absolute(json_path, cutoff).expect("Fail @ finding pairs.");
+    let lut = LutPHFGroup::build_buckets(lambda, json_path, cutoff, bit_mask, threaded).expect("Fail @ build");
 
     let mut count_correct = 0;
     let mut count_incorrect = 0;
@@ -173,7 +173,8 @@ fn debug_lut_phf_double() {
     let json_file = format!("../../{}", POKEMON_MINI);
     let json_path = json_file.as_str();
 
-    let (keys, values) = pair_data::get_keys_and_values(json_path, DISTANCE_CUT_OFF).expect("Fail @ finding pairs.");
+    let (keys, values) =
+        pair_data::get_keys_and_values_absolute(json_path, DISTANCE_CUT_OFF).expect("Fail @ finding pairs.");
     let lut = LutPHFDouble::build(json_path, 0).expect("Fail @ building lut_phf_double");
 
     let mut count_correct = 0;

@@ -10,7 +10,7 @@ use stats_alloc::Region;
 use crate::{
     engine::{Compiler, Engine, RsonpathEngine},
     input::OwnedBytes,
-    lookup_table::{performance::lut_evaluation::GLOBAL, util_path, LookUpTable, LUT},
+    lookup_table::{performance::lut_evaluation::HEAP_TRACKER, util_path, LookUpTable, LUT},
 };
 
 use super::lut_query_data;
@@ -93,7 +93,7 @@ fn eval_lut(
     for cutoff in cutoffs {
         print!("  cutoff {cutoff}");
 
-        let start_heap = Region::new(GLOBAL);
+        let start_heap = Region::new(HEAP_TRACKER);
         let start_build = std::time::Instant::now();
         lut = LUT::build(json_path, *cutoff).expect("Fail @ build lut");
         let build_time = start_build.elapsed().as_secs_f64();

@@ -1,17 +1,12 @@
 use super::{lut_hash_map_double::LutHashMapDouble, pair_data::PairData, LookUpTable};
 use crate::{
-    classification::{
-        self,
-        simd::Simd,
-        structural::{BracketType, Structural, StructuralIterator},
-    },
+    classification::{self, simd::Simd},
     input::{self, error, Input},
     lookup_table::pair_data,
-    result::empty::EmptyRecorder,
     FallibleIterator,
 };
 use rayon::prelude::*;
-use std::{collections::VecDeque, fs};
+use std::fs;
 
 // A bit map that only keeps the lower 4 bit because we currently have 16 lut in the group. 16 is represented by 4 bits.
 const DEFAULT_BIT_MASK: usize = 0xF;
@@ -31,8 +26,11 @@ impl LookUpTable for LutHashMapGroup {
     #[inline]
     fn get(&self, key: &usize) -> Option<usize> {
         // Logical AND with BIT_MASK to get the correct index
-        let lut_double_index = key & self.bit_mask;
-        self.lut_doubles[lut_double_index].get(key)
+        self.lut_doubles[key & self.bit_mask].get(key)
+    }
+
+    fn get_cutoff(&self) -> usize {
+        self.cutoff
     }
 
     #[inline]
@@ -42,10 +40,6 @@ impl LookUpTable for LutHashMapGroup {
             total_size += lut_double.allocated_bytes();
         }
         total_size
-    }
-
-    fn get_cutoff(&self) -> usize {
-        self.cutoff
     }
 }
 

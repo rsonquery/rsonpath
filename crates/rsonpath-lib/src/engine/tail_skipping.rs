@@ -73,7 +73,7 @@ where
         lut: Option<&LUT>,
         padding: usize,
     ) -> Result<usize, EngineError> {
-        if let (Some(lut)) = lut {
+        if let Some(lut) = lut {
             if USE_SKIP_ABORT_STRATEGY {
                 // use ITE mainly and LUT only when the jump distance exceeds CUTOFF
                 self.skip_lut_abort(idx_open, idx, bracket_type, lut, padding)

@@ -82,29 +82,27 @@ where
                 };
 
                 let distance = idx_close - idx_open;
-                if distance <= cutoff {
-                    continue;
-                }
-
-                if distance < THRESHOLD_16_BITS {
-                    pairs.keys.push(idx_open);
-                    pairs.values.push(distance.try_into().expect("Fail at pushing value."));
-                } else {
-                    pairs.keys.push(idx_open);
-                    pairs.values.push(0);
-                    pairs.keys_64.push(idx_open);
-                    pairs.values_64.push(distance);
+                if distance > cutoff {
+                    if distance < THRESHOLD_16_BITS {
+                        pairs.keys.push(idx_open);
+                        pairs.values.push(distance.try_into().expect("Fail at pushing value."));
+                    } else {
+                        pairs.keys.push(idx_open);
+                        pairs.values.push(0);
+                        pairs.keys_64.push(idx_open);
+                        pairs.values_64.push(distance);
+                    }
                 }
             }
             Structural::Colon(_) | Structural::Comma(_) => unreachable!(),
         }
     }
 
-    debug!("Found keys and values:");
+    debug!("find_pairs - Found keys and values:");
     for (key, value) in pairs.keys.iter().zip(pairs.values.iter()) {
         debug!("({}, {})", key, value);
     }
-    debug!("Found keys_64 and values_64:");
+    debug!("find_pairs - Found keys_64 and values_64:");
     for (key_64, value_64) in pairs.keys_64.iter().zip(pairs.values_64.iter()) {
         debug!("({}, {})", key_64, value_64);
     }
@@ -159,38 +157,41 @@ where
                 };
 
                 let distance = idx_close - idx_open;
-                if distance <= cutoff {
-                    continue;
-                }
+                if distance > cutoff {
+                    // Map to correct bucket using the bit mask on the idx_open (= key)
+                    let bucket = &mut lut_doubles_pair_data[idx_open & bit_mask];
 
-                // Map to correct bucket using the bit mask on the idx_open (= key)
-                let lut_double = &mut lut_doubles_pair_data[idx_open & bit_mask];
-
-                if distance < THRESHOLD_16_BITS {
-                    // Can fit into 16 bits
-                    lut_double.keys.push(idx_open);
-                    lut_double
-                        .values
-                        .push(distance.try_into().expect("Fail @ convert to 16 bit"));
-                } else {
-                    // Needs 64 bits
-                    lut_double.keys_64.push(idx_open);
-                    lut_double.values_64.push(distance);
+                    if distance < THRESHOLD_16_BITS {
+                        // Can fit into 16 bits
+                        bucket.keys.push(idx_open);
+                        bucket.values.push(distance.try_into().expect("Fail @ convert"));
+                    } else {
+                        // Needs 64 bits
+                        bucket.keys.push(idx_open);
+                        bucket.values.push(0);
+                        bucket.keys_64.push(idx_open);
+                        bucket.values_64.push(distance);
+                    }
                 }
             }
             Structural::Colon(_) | Structural::Comma(_) => unreachable!(),
         }
     }
 
-    // debug!("Found keys and values:");
-    // let mut i = 0;
-    // for pair_data in &lut_doubles_pair_data {
-    //     debug!("bucket:{}", i);
-    //     i += 1;
-    //     for (key, value) in pair_data.keys.iter().zip(pair_data.values.iter()) {
-    //         debug!("({}, {})", key, value);
-    //     }
-    // }
+    debug!("find_pairs_buckets - Found keys and values:");
+    let mut i = 0;
+    for pair_data in &lut_doubles_pair_data {
+        debug!("bucket:{}", i);
+        i += 1;
+        debug!("  u16");
+        for (key, value) in pair_data.keys.iter().zip(pair_data.values.iter()) {
+            debug!("  ({}, {})", key, value);
+        }
+        debug!("  u64");
+        for (key, value) in pair_data.keys_64.iter().zip(pair_data.values_64.iter()) {
+            debug!("  ({}, {})", key, value);
+        }
+    }
 
     Ok(lut_doubles_pair_data)
 }
@@ -232,10 +233,6 @@ where
                 };
 
                 let distance = idx_close - idx_open;
-                if distance <= cutoff {
-                    continue;
-                }
-
                 if distance > cutoff {
                     keys.push(idx_open);
                     values.push(idx_close);
@@ -245,10 +242,10 @@ where
         }
     }
 
-    // debug!("Found keys and values:");
-    // for (key, value) in keys.iter().zip(values.iter()) {
-    //     debug!("({}, {})", key, value);
-    // }
+    debug!("find_pairs_absolute - Found keys and values:");
+    for (key, value) in keys.iter().zip(values.iter()) {
+        debug!("({}, {})", key, value);
+    }
 
     Ok((keys, values))
 }
@@ -256,7 +253,7 @@ where
 /// Used to check correctness for results of LUT implementations
 /// key = position of the opening bracket, value = position of the closing bracket
 #[inline]
-pub fn get_keys_and_values(
+pub fn get_keys_and_values_absolute(
     json_path: &str,
     cutoff: usize,
 ) -> Result<(Vec<usize>, Vec<usize>), Box<dyn std::error::Error>> {
@@ -330,15 +327,13 @@ where
                 };
 
                 let distance = idx_close - idx_open;
-                if distance <= cutoff {
-                    continue;
-                }
-
-                if b == BracketType::Square {
-                    num_squary += 1;
-                }
-                if b == BracketType::Curly {
-                    num_curly += 1;
+                if distance > cutoff {
+                    if b == BracketType::Square {
+                        num_squary += 1;
+                    }
+                    if b == BracketType::Curly {
+                        num_curly += 1;
+                    }
                 }
             }
             Structural::Colon(_) | Structural::Comma(_) => unreachable!(),

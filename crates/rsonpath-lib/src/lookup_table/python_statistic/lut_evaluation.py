@@ -33,32 +33,32 @@ def plot_all(df: pd.DataFrame, save_path: str) -> None:
     # Define the configurations for the plots (capacity plots removed)
     plot_configs = [
         {
-            'column_suffix': '_build_time',
+            'column_suffix': '_BUILD',
             'ylabel': 'Build time in seconds',
             'per_key': False
         },
         {
-            'column_suffix': '_query_time',
+            'column_suffix': '_QUERY',
             'ylabel': 'Sum of query time in seconds',
             'per_key': False
         },
         {
-            'column_suffix': '_heap',
+            'column_suffix': '_HEAP',
             'ylabel': 'Heap size in bytes',
             'per_key': False
         },
         {
-            'column_suffix': '_build_time',
+            'column_suffix': '_BUILD',
             'ylabel': 'Average build time in seconds per key',
             'per_key': True
         },
         {
-            'column_suffix': '_query_time',
+            'column_suffix': '_QUERY',
             'ylabel': 'Average query time in seconds per key',
             'per_key': True
         },
         {
-            'column_suffix': '_heap',
+            'column_suffix': '_HEAP',
             'ylabel': 'Heap size in bytes per key',
             'per_key': True
         },

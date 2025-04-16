@@ -4,7 +4,6 @@ use crate::{
     input::{self, error, Input},
     lookup_table::pair_data,
 };
-use log::debug;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
@@ -14,7 +13,6 @@ pub struct LutHashMap {
     hash_map: HashMap<usize, usize>,
     cutoff: usize,
 }
-
 impl LookUpTable for LutHashMap {
     #[inline]
     fn build(json_path: &str, cutoff: usize) -> Result<Self, Box<dyn std::error::Error>> {
@@ -45,15 +43,15 @@ impl LookUpTable for LutHashMap {
         self.hash_map.get(key).copied()
     }
 
+    fn get_cutoff(&self) -> usize {
+        self.cutoff
+    }
+
     #[inline]
     fn allocated_bytes(&self) -> usize {
         let mut total_size = 0;
         total_size += std::mem::size_of::<Self>();
         total_size += self.hash_map.capacity() * (std::mem::size_of::<usize>() + std::mem::size_of::<usize>());
         total_size
-    }
-
-    fn get_cutoff(&self) -> usize {
-        self.cutoff
     }
 }

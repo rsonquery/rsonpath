@@ -7,7 +7,6 @@ use crate::{
     classification::{self, simd::Simd},
     input::{self, error, Input},
 };
-use log::debug;
 use rayon::prelude::*;
 use std::fs;
 
@@ -29,7 +28,12 @@ impl LookUpTable for LutPHFGroup {
     #[inline]
     fn get(&self, key: &usize) -> Option<usize> {
         // Logical AND with BIT_MASK to get the correct index
-        self.lut_doubles[key & self.bit_mask].get(key)
+        let bucket = key & self.bit_mask;
+        self.lut_doubles[bucket].get(key)
+    }
+
+    fn get_cutoff(&self) -> usize {
+        self.cutoff
     }
 
     #[inline]
@@ -39,10 +43,6 @@ impl LookUpTable for LutPHFGroup {
             total_size += lut_double.allocated_bytes();
         }
         total_size
-    }
-
-    fn get_cutoff(&self) -> usize {
-        self.cutoff
     }
 }
 
@@ -72,7 +72,7 @@ impl LutPHFGroup {
         let input = unsafe { input::MmapInput::map_file(&file)? };
         let simd_c = classification::simd::configure();
 
-        let lut_perfect_naive = classification::simd::config_simd!(simd_c => |simd| {
+        let lut_phf_group = classification::simd::config_simd!(simd_c => |simd| {
             classification::simd::dispatch_simd!(simd; input, simd, lambda, bit_mask, cutoff, threaded => fn<I, V>(
                 input: I,
                 simd: V,
@@ -83,11 +83,11 @@ impl LutPHFGroup {
             ) -> Result<LutPHFGroup, error::InputError> where
             I: Input,
             V: Simd,{
-                let pair_data_buckets = pair_data::find_pairs_buckets::<I, V>(&input, simd, cutoff, bit_mask)?;
+                let pair_data_buckets = pair_data::find_pairs_buckets::<I, V>(&input, simd, bit_mask, cutoff)?;
                 Ok(LutPHFGroup::build_lut_doubles(lambda, pair_data_buckets, bit_mask, threaded, cutoff))
             })
         });
-        lut_perfect_naive.map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
+        lut_phf_group.map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
     }
 
     fn build_lut_doubles(
