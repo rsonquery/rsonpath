@@ -4,13 +4,14 @@ use std::{
 };
 
 use log::debug;
+use rsonpath::lookup_table::implementations::lut_hash_map;
+use rsonpath::lookup_table::implementations::lut_hash_map::LutHashMap;
+use rsonpath::lookup_table::implementations::lut_phf_double::LutPHFDouble;
+use rsonpath::lookup_table::implementations::lut_phf_group::LutPHFGroup;
 use rsonpath::{
     engine::{Compiler, Engine, RsonpathEngine},
     input::OwnedBytes,
     lookup_table::{
-        lut_hash_map,
-        lut_phf_double::LutPHFDouble,
-        lut_phf_group::LutPHFGroup,
         pair_data,
         performance::lut_query_data::{
             ALPHABET, GOOGLE, POKEMON_MINI, QUERY_BUGS, QUERY_GOOGLE, QUERY_JOHN_BIG, TWITTER_SHORT,
@@ -21,7 +22,7 @@ use rsonpath::{
 
 /// cargo test --test lut_debug_tests -- test_build_and_queries --nocapture | rg "(lut_debug_tests)"
 /// cargo test --test lut_debug_tests -- test_build_and_queries --nocapture | rg "(tail_skipping|lut_debug_tests|main)"
-/// cargo test --test lut_debug_tests -- test_build_and_queries --nocapture | rg ^"(tail_skipping|lut_debug_tests|main|lut_hash_map)"
+/// cargo test --test lut_debug_tests -- test_build_and_queries --nocapture | rg "(tail_skipping|lut_debug_tests|main|lut_hash_map)"
 #[test]
 fn test_build_and_queries() {
     // Enables to see log messages when running tests
@@ -31,9 +32,8 @@ fn test_build_and_queries() {
         .init()
         .unwrap();
 
-    debug!("Start");
-
     let cutoff = 128;
+    debug!("Start with cutoff={}", cutoff);
 
     // test_build_correctness(GOOGLE);
     // test_build_correctness(WALMART);
@@ -43,10 +43,10 @@ fn test_build_and_queries() {
     // test_build_correctness(TWITTER_SHORT);
     // test_build_correctness(ALPHABET);
 
-    // test_query_correctness(QUERY_BUGS);
+    test_query_correctness(QUERY_BUGS, cutoff);
     // test_query_correctness(QUERY_JOHN_BIG, cutoff);
     // test_query_correctness(QUERY_POKEMON_MINI);
-    test_query_correctness(QUERY_GOOGLE, cutoff);
+    // test_query_correctness(QUERY_GOOGLE, cutoff);
     // test_query_correctness(QUERY_TWITTER);
     // test_query_correctness(QUERY_BESTBUY);
     // test_query_correctness(QUERY_POKEMON_SHORT);
@@ -57,7 +57,7 @@ fn test_build_correctness(json_name: &str) {
     let json_path = s.as_str();
 
     debug!("Building LUT (Hashmap): {}", json_path);
-    let lut_hash_map = lut_hash_map::LutHashMap::build(&json_path, 0).expect("Fail @ building LUT");
+    let lut_hash_map = LutHashMap::build(&json_path, 0).expect("Fail @ building LUT");
     debug!("Building LUT: {}", json_path);
     let lut = LUT::build(&json_path, 0).expect("Fail @ building LUT");
 
