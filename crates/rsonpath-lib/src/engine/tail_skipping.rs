@@ -82,7 +82,7 @@ where
         } else {
             let idx_close = self.skip_ite(bracket_type)?;
 
-            track_skip("ITE", idx_close - idx);
+            // track_skip("ITE", idx_close - idx);
             debug_msg("ITE", idx, idx_open, idx_close, padding);
             Ok(idx_close)
         }

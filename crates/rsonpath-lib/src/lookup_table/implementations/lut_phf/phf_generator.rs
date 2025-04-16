@@ -8,6 +8,11 @@ use std::fmt;
 const DEFAULT_LAMBDA: usize = 5;
 const FIXED_SEED: u64 = 1_234_567_890;
 
+// ## Sources:
+// - https://docs.rs/phf_generator/0.11.2/src/phf_generator/lib.rs.html#1-109
+// - https://docs.rs/phf
+// - (paper) https://cmph.sourceforge.net/papers/esa09.pdf
+
 pub struct HashState {
     pub key: HashKey,
     pub displacements: Vec<(u32, u32)>,

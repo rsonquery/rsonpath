@@ -4,10 +4,13 @@ use std::{
 };
 
 use log::debug;
+use rsonpath::engine::main::MainEngine;
+use rsonpath::input::BorrowedBytes;
 use rsonpath::lookup_table::implementations::lut_hash_map;
 use rsonpath::lookup_table::implementations::lut_hash_map::LutHashMap;
 use rsonpath::lookup_table::implementations::lut_phf_double::LutPHFDouble;
 use rsonpath::lookup_table::implementations::lut_phf_group::LutPHFGroup;
+use rsonpath::lookup_table::performance::lut_query_data::BUGS;
 use rsonpath::{
     engine::{Compiler, Engine, RsonpathEngine},
     input::OwnedBytes,
@@ -19,6 +22,7 @@ use rsonpath::{
         LookUpTable, DISTANCE_CUT_OFF, LUT,
     },
 };
+use serde_json::json;
 
 /// cargo test --test lut_debug_tests -- test_build_and_queries --nocapture | rg "(lut_debug_tests)"
 /// cargo test --test lut_debug_tests -- test_build_and_queries --nocapture | rg "(tail_skipping|lut_debug_tests|main)"
@@ -43,13 +47,15 @@ fn test_build_and_queries() {
     // test_build_correctness(TWITTER_SHORT);
     // test_build_correctness(ALPHABET);
 
-    test_query_correctness(QUERY_BUGS, cutoff);
+    // test_query_correctness(QUERY_BUGS, cutoff);
     // test_query_correctness(QUERY_JOHN_BIG, cutoff);
     // test_query_correctness(QUERY_POKEMON_MINI);
     // test_query_correctness(QUERY_GOOGLE, cutoff);
     // test_query_correctness(QUERY_TWITTER);
     // test_query_correctness(QUERY_BESTBUY);
     // test_query_correctness(QUERY_POKEMON_SHORT);
+
+    test_bug();
 }
 
 fn test_build_correctness(json_name: &str) {
@@ -105,15 +111,17 @@ fn test_query_correctness(test_data: (&str, &[(&str, &str)]), cutoff: usize) {
         // Query normally and skip iteratively (ITE)
         debug!("---- ITE STYLE ----");
         let mut engine = RsonpathEngine::compile_query(&query).expect("Fail @ compile query");
-        let count = engine.count(&input).expect("Failed to run query normally");
+        let ite_count = engine.count(&input).expect("Failed to run query normally");
+        debug!("ITE: result count =  {}", ite_count);
 
         // Query normally and skip using the lookup table (LUT)
         debug!("---- LUT STYLE ----");
         engine.add_lut(lut);
         let lut_count = engine.count(&input).expect("LUT: Failed to run query normally");
+        debug!("LUT: result count =  {}", lut_count);
 
-        if lut_count != count {
-            debug!("Found {}, Expected {}", lut_count, count);
+        if lut_count != ite_count {
+            debug!("Found {}, Expected {}", lut_count, ite_count);
         } else {
             debug!("Correct");
         }
@@ -198,4 +206,49 @@ fn debug_lut_phf_double() {
     debug!("Correct: {}/{}", count_correct, total);
     debug!("Incorrect: {}/{}", count_incorrect, total);
     assert_eq!(count_incorrect, 0);
+}
+
+#[allow(unused_imports)]
+use std::str;
+
+fn test_bug() {
+    let json_path = format!("../../{}", BUGS);
+    let query = "$.a..b";
+    let cutoff = 128;
+
+    println ! ("on document atomic_after_list running the query $.a..b (select the 'a' object and then the atomic integer by descendant) with Input impl BorrowedBytes and result mode NodesResult using engine MainEngine(with LUT)");
+    let jsonpath_query = rsonpath_syntax::parse(query).expect("Fail at parse");
+    let raw_json = fs::read_to_string(&json_path).expect("Fail at reading json");
+    let input = BorrowedBytes::new(raw_json.as_bytes());
+    let lut = LUT::build(&json_path, cutoff).expect("Fail lut");
+    let mut engine = MainEngine::compile_query(&jsonpath_query).expect("Fail compile query");
+
+    // ITE
+    debug!("---- ITE STYLE ----");
+    let mut result = vec![];
+    engine.matches(&input, &mut result).expect("Fail matching");
+    let utf8: Result<Vec<&str>, _> = result.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8 = utf8.expect("valid utf8");
+
+    // LUT
+    debug!("---- LUT STYLE ----");
+    engine.add_lut(lut);
+    let mut result_lut = vec![];
+    engine.matches(&input, &mut result_lut).expect("Fail matching");
+    let utf8_lut: Result<Vec<&str>, _> = result_lut.iter().map(|x| str::from_utf8(x.bytes())).collect();
+    let utf8_lut = utf8_lut.expect("valid utf8");
+
+    let expected: Vec<&str> = vec!["45"];
+    if (utf8 == expected) {
+        // assert_eq!(utf8, expected, "result != expected");
+        debug!("Correct ITE");
+    } else {
+        debug!("No match");
+    }
+    if utf8_lut == expected {
+        // assert_eq!(utf8_lut, expected, "result != expected");
+        debug!("Correct LUT");
+    } else {
+        debug!("No match");
+    }
 }
