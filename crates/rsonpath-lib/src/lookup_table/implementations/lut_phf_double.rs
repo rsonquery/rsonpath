@@ -1,13 +1,11 @@
 use std::fs;
 
-use super::{
-    lut_phf::{
-        phf_generator_double_hash::{self, HashState},
-        DEFAULT_LAMBDA, DEFAULT_THREADED,
-    },
-    pair_data::PairData,
-    LookUpTable, LookUpTableLambda,
+use super::lut_phf::{
+    phf_generator_double_hash::{self, HashState},
+    DEFAULT_LAMBDA, DEFAULT_THREADED,
 };
+use crate::lookup_table::pair_data::PairData;
+use crate::lookup_table::{LookUpTable, LookUpTableLambda};
 use crate::{
     classification::{self, simd::Simd},
     input::{self, error, Input},

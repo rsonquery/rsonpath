@@ -6,11 +6,11 @@ use std::{
 
 use stats_alloc::{Region, StatsAlloc, INSTRUMENTED_SYSTEM};
 
+use crate::lookup_table::implementations::lut_hash_map::LutHashMap;
+use crate::lookup_table::implementations::lut_hash_map_group::LutHashMapGroup;
+use crate::lookup_table::implementations::lut_phf_group::LutPHFGroup;
 use crate::lookup_table::{
-    analysis::distance_distribution, lut_hash_map::LutHashMap, lut_hash_map_double::LutHashMapDouble,
-    lut_hash_map_group::LutHashMapGroup, lut_perfect_naive::LutPerfectNaive, lut_phf::LutPHF,
-    lut_phf_double::LutPHFDouble, lut_phf_group::LutPHFGroup, lut_ptr_hash_double::LutPtrHashDouble,
-    lut_vfunc_double::LutVFuncDouble, pair_data, util_path, LookUpTable, LookUpTableLambda, DISTANCE_CUT_OFF,
+    analysis::distance_distribution, pair_data, util_path, LookUpTable, LookUpTableLambda, DISTANCE_CUT_OFF,
 };
 
 /// Allocator to track how much allocations are happening during a specific time frame

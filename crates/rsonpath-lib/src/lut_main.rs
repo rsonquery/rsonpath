@@ -4,7 +4,6 @@ use rsonpath::lookup_table::{
         distance_distribution, json_size_distribution::create_json_size_csv,
         json_size_estimation_bits::print_estimation,
     },
-    lut_sichash,
     performance::{self, distance_cutoff_evaluation, lut_query_data, lut_skip_counter, lut_skip_evaluation, EVAL_DIR},
     pokemon_test_data_generator,
     query_with_lut::query_with_lut,

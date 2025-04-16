@@ -1,4 +1,4 @@
-use super::LookUpTable;
+use crate::lookup_table::LookUpTable;
 use crate::{
     classification::{self, simd::Simd},
     input::{self, error, Input},
@@ -163,17 +163,5 @@ impl Bucket {
         let value = self.elements[hash];
 
         (value != usize::MAX).then_some(value)
-    }
-
-    #[inline]
-    #[must_use]
-    pub fn capacity(&self) -> usize {
-        // Size of the `Bucket` struct itself
-        let mut total_size = std::mem::size_of::<Self>();
-
-        // Add the capacity of the `elements` vector
-        total_size += self.elements.capacity() * std::mem::size_of::<usize>();
-
-        total_size
     }
 }

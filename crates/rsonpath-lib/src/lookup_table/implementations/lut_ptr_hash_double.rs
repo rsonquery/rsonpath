@@ -3,7 +3,8 @@ use ptr_hash::{PtrHash, PtrHashParams};
 
 use std::fs;
 
-use super::{pair_data::PairData, LookUpTable};
+use crate::lookup_table::pair_data::PairData;
+use crate::lookup_table::LookUpTable;
 use crate::{
     classification::{self, simd::Simd},
     input::{self, error, Input},

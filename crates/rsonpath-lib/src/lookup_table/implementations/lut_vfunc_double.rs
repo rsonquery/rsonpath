@@ -6,13 +6,13 @@ use sux::{
     utils::FromIntoIterator,
 };
 
+use crate::lookup_table::pair_data::PairData;
+use crate::lookup_table::LookUpTable;
 use crate::{
     classification::{self, simd::Simd},
     input::{self, error, Input},
     lookup_table::pair_data,
 };
-
-use super::{pair_data::PairData, LookUpTable};
 
 pub struct LutVFuncDouble {
     vfunc: VFunc<usize, u16>,

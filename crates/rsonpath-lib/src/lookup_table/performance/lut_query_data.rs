@@ -1,9 +1,11 @@
 use crate::{
     engine::{Compiler, Engine, RsonpathEngine},
     input::OwnedBytes,
-    lookup_table::{self, lut_hash_map, pair_data, LookUpTable, LUT},
+    lookup_table::{self, pair_data, LookUpTable, LUT},
 };
 
+use crate::lookup_table::implementations::lut_hash_map;
+use crate::lookup_table::DISTANCE_CUT_OFF;
 use serde_json::json;
 use std::{
     fs,
@@ -257,7 +259,7 @@ pub const QUERY_BUGS_2: (&str, &[(&str, &str)]) = (BUGS_2, &[("1", "$.b[0]")]);
 // #########################
 // Run with: cargo run --bin lut --release -- test-query
 pub fn test_build_and_queries() {
-    let cutoff = 128;
+    let cutoff = DISTANCE_CUT_OFF;
 
     // test_build_correctness(BUGS, cutoff);
     // test_build_correctness(JOHN_BIG, cutoff);

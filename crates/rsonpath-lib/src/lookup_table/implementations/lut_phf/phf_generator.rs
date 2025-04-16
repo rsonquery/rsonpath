@@ -1,5 +1,5 @@
-use crate::lookup_table::lut_phf::phf_shared;
-use crate::lookup_table::lut_phf::phf_shared::{HashKey, PhfHash};
+use crate::lookup_table::implementations::lut_phf::phf_shared;
+use crate::lookup_table::implementations::lut_phf::phf_shared::{HashKey, PhfHash};
 use rand::distributions::Standard;
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};

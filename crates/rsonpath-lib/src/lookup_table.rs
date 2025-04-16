@@ -1,14 +1,11 @@
+use crate::lookup_table::implementations::lut_hash_map::LutHashMap;
+use crate::lookup_table::implementations::lut_hash_map_double::LutHashMapDouble;
+use crate::lookup_table::implementations::lut_phf_group::LutPHFGroup;
+use crate::lookup_table::implementations::lut_ptr_hash_double::LutPtrHashDouble;
+use crate::lookup_table::implementations::lut_vfunc_double::LutVFuncDouble;
+
 pub mod analysis;
-pub mod lut_hash_map;
-pub mod lut_hash_map_double;
-pub mod lut_hash_map_group;
-pub mod lut_perfect_naive;
-pub mod lut_phf;
-pub mod lut_phf_double;
-pub mod lut_phf_group;
-pub mod lut_ptr_hash_double;
-pub mod lut_sichash;
-pub mod lut_vfunc_double;
+pub mod implementations;
 pub mod packed_stacked_frame;
 pub mod pair_data;
 pub mod performance;
@@ -20,15 +17,12 @@ pub mod util_path;
 pub const DISTANCE_CUT_OFF: usize = 0;
 pub const USE_SKIP_ABORT_STRATEGY: bool = false;
 
-// no-aborts: OK
-pub type LUT = lut_hash_map::LutHashMap;
-// no-abort: OK
-// pub type LUT = lut_hash_map_double::LutHashMapDouble;
-
-// pub type LUT = lut_sichash::LutSicHash;
-// pub type LUT = lut_phf_group::LutPHFGroup; // BUGGED
-// pub type LUT = lut_ptr_hash_double::LutPtrHashDouble; // BUGGED
-// pub type LUT = lut_vfunc_double::LutVFuncDouble;
+// pub type LUT = LutHashMap;
+// pub type LUT = LutHashMapDouble;
+// pub type LUT = LutSicHash;
+// pub type LUT = LutPHFGroup;
+pub type LUT = LutPtrHashDouble;
+// pub type LUT = LutVFuncDouble;
 
 /// Lookup-table = LUT
 pub trait LookUpTable {
