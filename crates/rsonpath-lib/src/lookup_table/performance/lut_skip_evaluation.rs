@@ -75,10 +75,9 @@ fn eval_test_data(test_data: (&str, &[(&str, &str)]), cutoff: usize) {
     let start_build_time = Instant::now();
     let mut lut = LUT::build(json_path, cutoff).expect("Failed to build LUT");
     let t_lut_build = start_build_time.elapsed().as_nanos() as u64;
-    let capacity = lut.allocated_bytes();
 
     for &(query_name, query_text) in queries {
-        let (data_line, new_lut) = evaluate(lut, cutoff, json_path, query_name, query_text, t_lut_build, capacity);
+        let (data_line, new_lut) = evaluate(lut, cutoff, json_path, query_name, query_text, t_lut_build);
         lut = new_lut;
 
         // Write CSV header and data
@@ -104,7 +103,6 @@ fn evaluate(
     query_name: &str,
     query_text: &str,
     t_lut_build: u64,
-    capacity: usize,
 ) -> (String, LUT) {
     // Build query
     let query = rsonpath_syntax::parse(query_text).expect("Failed to parse query");
@@ -163,7 +161,7 @@ fn evaluate(
         t_lut,
         t_lut_skip,
         t_lut_build,
-        capacity,
+        0,
     );
 
     (result, lut)

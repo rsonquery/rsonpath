@@ -61,10 +61,6 @@ impl LookUpTable for LutPtrHashDouble {
         Some(*key + dst)
     }
 
-    fn allocated_bytes(&self) -> usize {
-        0
-    }
-
     fn get_cutoff(&self) -> usize {
         self.cutoff
     }

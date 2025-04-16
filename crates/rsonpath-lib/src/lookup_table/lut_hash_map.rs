@@ -46,12 +46,4 @@ impl LookUpTable for LutHashMap {
     fn get_cutoff(&self) -> usize {
         self.cutoff
     }
-
-    #[inline]
-    fn allocated_bytes(&self) -> usize {
-        let mut total_size = 0;
-        total_size += std::mem::size_of::<Self>();
-        total_size += self.hash_map.capacity() * (std::mem::size_of::<usize>() + std::mem::size_of::<usize>());
-        total_size
-    }
 }

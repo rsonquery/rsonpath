@@ -32,15 +32,6 @@ impl LookUpTable for LutHashMapGroup {
     fn get_cutoff(&self) -> usize {
         self.cutoff
     }
-
-    #[inline]
-    fn allocated_bytes(&self) -> usize {
-        let mut total_size = std::mem::size_of::<Self>();
-        for lut_double in &self.lut_doubles {
-            total_size += lut_double.allocated_bytes();
-        }
-        total_size
-    }
 }
 
 impl LutHashMapGroup {

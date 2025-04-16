@@ -86,12 +86,6 @@ impl MainEngine {
     pub fn take_lut(&mut self) -> Option<LUT> {
         self.lut.take()
     }
-
-    #[must_use = "if you are asking for the bytes then should also use them"]
-    #[inline(always)]
-    pub fn allocated_bytes_by_lut(&self) -> usize {
-        self.lut.as_ref().map_or(0, |lut| lut.allocated_bytes())
-    }
 }
 
 impl Compiler for MainEngine {

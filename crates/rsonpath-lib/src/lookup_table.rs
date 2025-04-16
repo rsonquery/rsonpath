@@ -20,12 +20,15 @@ pub mod util_path;
 pub const DISTANCE_CUT_OFF: usize = 0;
 pub const USE_SKIP_ABORT_STRATEGY: bool = false;
 
-pub type LUT = lut_hash_map::LutHashMap; // no-aborts: OK
-                                         // pub type LUT = lut_hash_map_double::LutHashMapDouble; // no-abort: OK
-                                         // pub type LUT = lut_sichash::LutSicHash;
-                                         // pub type LUT = lut_phf_group::LutPHFGroup; // BUGGED
-                                         // pub type LUT = lut_ptr_hash_double::LutPtrHashDouble;
-                                         // pub type LUT = lut_vfunc_double::LutVFuncDouble;
+// no-aborts: OK
+pub type LUT = lut_hash_map::LutHashMap;
+// no-abort: OK
+// pub type LUT = lut_hash_map_double::LutHashMapDouble;
+
+// pub type LUT = lut_sichash::LutSicHash;
+// pub type LUT = lut_phf_group::LutPHFGroup; // BUGGED
+// pub type LUT = lut_ptr_hash_double::LutPtrHashDouble; // BUGGED
+// pub type LUT = lut_vfunc_double::LutVFuncDouble;
 
 /// Lookup-table = LUT
 pub trait LookUpTable {
@@ -36,8 +39,6 @@ pub trait LookUpTable {
     fn get(&self, key: &usize) -> Option<usize>;
 
     fn get_cutoff(&self) -> usize;
-
-    fn allocated_bytes(&self) -> usize;
 }
 
 pub trait LookUpTableLambda: LookUpTable {

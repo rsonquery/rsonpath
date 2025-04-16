@@ -60,5 +60,4 @@ pub fn query_with_lut(json_path: &str, json_query: &str) {
     println!(" - LUT type:       {}", type_name::<LUT>());
     println!(" - LUT build time: {} seconds", build_time);
     println!(" - LUT query time: {} seconds", query_time);
-    println!(" - LUT size:       {} bytes", engine.allocated_bytes_by_lut());
 }

@@ -57,12 +57,7 @@ impl LookUpTable for LutVFuncDouble {
             result = self.vfunc_64.get(key);
         }
 
-        return Some(key + result);
-    }
-
-    fn allocated_bytes(&self) -> usize {
-        // todo!()
-        0
+        Some(key + result)
     }
 
     fn get_cutoff(&self) -> usize {

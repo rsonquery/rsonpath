@@ -54,28 +54,6 @@ impl LookUpTable for LutPerfectNaive {
         }
     }
 
-    #[inline]
-    fn allocated_bytes(&self) -> usize {
-        // Size of `self` (LutPerfectNaive) itself
-        let mut total_size = std::mem::size_of::<Self>();
-
-        // Add size of the `buckets` vector
-        total_size += self.buckets.capacity() * std::mem::size_of::<Entry>();
-
-        for entry in &self.buckets {
-            match entry {
-                Entry::Number(_) => {
-                    // Size of a single number is already accounted for
-                }
-                Entry::Bucket(bucket) => {
-                    total_size += bucket.capacity();
-                }
-            }
-        }
-
-        total_size
-    }
-
     fn get_cutoff(&self) -> usize {
         self.cutoff
     }
