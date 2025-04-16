@@ -5,7 +5,7 @@ use std::{
 
 use log::debug;
 use rsonpath::engine::main::MainEngine;
-use rsonpath::input::BorrowedBytes;
+use rsonpath::input::{BorrowedBytes, Input};
 use rsonpath::lookup_table::implementations::lut_hash_map;
 use rsonpath::lookup_table::implementations::lut_hash_map::LutHashMap;
 use rsonpath::lookup_table::implementations::lut_phf_double::LutPHFDouble;
@@ -212,14 +212,32 @@ fn debug_lut_phf_double() {
 use std::str;
 
 fn test_bug() {
-    let json_path = format!("../../{}", BUGS);
-    let query = "$.a..b";
+    let json_path = format!(
+        "../../{}",
+        "./crates/rsonpath-test/documents/json/compressed/twitter_urls.json"
+    );
+    let query = "$[0].url";
     let cutoff = 128;
+    let requested_padding = 112;
 
-    println ! ("on document atomic_after_list running the query $.a..b (select the 'a' object and then the atomic integer by descendant) with Input impl BorrowedBytes and result mode NodesResult using engine MainEngine(with LUT)");
+    //println ! ("on document atomic_after_list running the query $.a..b (select the 'a' object and then the atomic integer by descendant) with Input impl BorrowedBytes and result mode NodesResult using engine MainEngine(with LUT)");
     let jsonpath_query = rsonpath_syntax::parse(query).expect("Fail at parse");
     let raw_json = fs::read_to_string(&json_path).expect("Fail at reading json");
-    let input = BorrowedBytes::new(raw_json.as_bytes());
+
+    let json_with_leading_whitespace = {
+        let mut json = String::new();
+        for _ in 0..256 {
+            json.push(' ');
+        }
+        json += &raw_json;
+        json
+    };
+    let misalignment = json_with_leading_whitespace.as_ptr().align_offset(128);
+    let aligned_json = &json_with_leading_whitespace.as_bytes()[misalignment..];
+    let forced_padding_json = &aligned_json[requested_padding..];
+
+    let input = BorrowedBytes::new(forced_padding_json);
+    assert_eq!(input.leading_padding_len(), requested_padding);
     let lut = LUT::build(&json_path, cutoff).expect("Fail lut");
     let mut engine = MainEngine::compile_query(&jsonpath_query).expect("Fail compile query");
 
@@ -238,7 +256,8 @@ fn test_bug() {
     let utf8_lut: Result<Vec<&str>, _> = result_lut.iter().map(|x| str::from_utf8(x.bytes())).collect();
     let utf8_lut = utf8_lut.expect("valid utf8");
 
-    let expected: Vec<&str> = vec!["45"];
+    let expected_str = r#""https:\/\/t.co\/blQy8JxViF""#;
+    let expected: Vec<&str> = vec![expected_str];
     if (utf8 == expected) {
         // assert_eq!(utf8, expected, "result != expected");
         debug!("Correct ITE");

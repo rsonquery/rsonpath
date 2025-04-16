@@ -14,7 +14,7 @@ pub mod query_with_lut;
 pub mod sichash_test_data_generator;
 pub mod util_path;
 
-pub const DISTANCE_CUT_OFF: usize = 0;
+pub const DISTANCE_CUT_OFF: usize = 128;
 pub const USE_SKIP_ABORT_STRATEGY: bool = true;
 
 // pub type LUT = LutHashMap;

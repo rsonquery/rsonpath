@@ -21,6 +21,8 @@ serde_json = "1.0.133"
 pretty_assertions = { workspace = true }
 rsonpath-lib = { workspace = true }
 rsonpath-syntax = { workspace = true }
+simple_logger = "5.0.0"
+log = { workspace = true }
 
 [build-dependencies]
 eyre = "0.6.12"

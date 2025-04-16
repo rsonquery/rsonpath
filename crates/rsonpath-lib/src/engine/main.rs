@@ -526,18 +526,6 @@ where
 
         debug!("any_matched={}, self.depth={}", any_matched, self.depth);
 
-        if !any_matched && self.depth == Depth::ZERO {
-            debug!("TRANSITION DEPTH=0");
-
-            self.stack.push(StackFrame {
-                depth: *self.depth,
-                state: self.state,
-                is_list: self.is_list,
-                array_count: self.array_count,
-                idx_open: self.idx_open,
-            });
-        }
-
         // If nothing matched trigger the fallback transition.
         if !any_matched && self.depth != Depth::ZERO {
             let fallback = self.automaton[self.state].fallback_state();

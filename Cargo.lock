@@ -2106,6 +2106,7 @@ version = "0.9.2"
 dependencies = [
  "eyre",
  "glob",
+ "log",
  "md5",
  "pretty_assertions",
  "rsonpath-lib",
@@ -2113,6 +2114,7 @@ dependencies = [
  "rsonpath-test-codegen",
  "serde",
  "serde_json",
+ "simple_logger 5.0.0",
 ]
 
 [[package]]
