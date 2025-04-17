@@ -5,12 +5,12 @@ use std::{
 
 use crate::{
     engine::{skip_tracker, Engine},
-    lookup_table::{LookUpTableLambda, LUT},
+    lookup_table::LUT,
 };
 
 use super::{
-    lut_query_data::{POKEMON_SHORT, QUERY_BESTBUY, QUERY_GOOGLE, QUERY_POKEMON_SHORT, QUERY_TWITTER},
-    lut_skip_evaluation::{self, get_filename, SkipMode},
+    lut_query_data::{QUERY_BESTBUY, QUERY_GOOGLE, QUERY_TWITTER},
+    lut_skip_evaluation::{get_filename, SkipMode},
 };
 
 use crate::lookup_table::SKIP_MODE;
@@ -19,7 +19,7 @@ use crate::{
     input::OwnedBytes,
     lookup_table::LookUpTable,
 };
-use std::{error::Error, fs};
+use std::fs;
 
 pub const COUNTER_FILE_PATH: &str = ".a_lut_tests/performance/skip_tracker/COUNTER_";
 
@@ -29,7 +29,7 @@ pub fn track_skips() {
     count_test_data(QUERY_GOOGLE, cutoff);
     count_test_data(QUERY_BESTBUY, cutoff);
     count_test_data(QUERY_TWITTER, cutoff);
-    count_test_data(QUERY_POKEMON_SHORT, cutoff);
+    // count_test_data(QUERY_POKEMON_SHORT, cutoff);
 }
 
 fn count_test_data(test_data: (&str, &[(&str, &str)]), cutoff: usize) {

@@ -1,3 +1,5 @@
+// All listed queries here have a result with count > 0.
+
 // ##########
 // kB_1
 // ##########
@@ -269,33 +271,22 @@ pub const QUERY_POKEMON_MINI: (&str, &[(&str, &str)]) = (
     ],
 );
 
+// ##########
 // MB_100
-pub const APP: &str = ".a_lut_tests/test_data/MB_100/app_(97MB).json";
-pub const BESTBUY_SHORT: &str = ".a_lut_tests/test_data/MB_100/bestbuy_short_(103MB).json";
-pub const CROSSREF0: &str = ".a_lut_tests/test_data/MB_100/crossref0_(320MB).json";
-pub const GOOGLE_SHORT: &str = ".a_lut_tests/test_data/MB_100/google_map_short_(107MB).json";
-pub const POKEMON_SHORT: &str = ".a_lut_tests/test_data/MB_100/pokemon_(173MB).json";
-pub const TWITTER_SHORT: &str = ".a_lut_tests/test_data/MB_100/twitter_short_(80MB).json";
-pub const WALMART_SHORT: &str = ".a_lut_tests/test_data/MB_100/walmart_short_(95MB).json";
-
-// GB_1
-pub const BESTBUY: &str = ".a_lut_tests/test_data/GB_1/bestbuy_large_record_(1GB).json";
-pub const CROSSREF1: &str = ".a_lut_tests/test_data/GB_1/crossref1_(551MB).json";
-pub const CROSSREF2: &str = ".a_lut_tests/test_data/GB_1/crossref2_(1.1GB).json";
-pub const CROSSREF4: &str = ".a_lut_tests/test_data/GB_1/crossref4_(2.1GB).json";
-pub const GOOGLE: &str = ".a_lut_tests/test_data/GB_1/google_map_large_record_(1.1GB).json";
-pub const NSPL: &str = ".a_lut_tests/test_data/GB_1/nspl_large_record_(1.2GB).json";
-pub const TWITTER: &str = ".a_lut_tests/test_data/GB_1/twitter_large_record_(843MB).json";
-pub const WALMART: &str = ".a_lut_tests/test_data/GB_1/walmart_large_record_(995MB).json";
-pub const WIKI: &str = ".a_lut_tests/test_data/GB_1/wiki_large_record_(1.1GB).json";
-
-// GB_25
-pub const NESTED_COL: &str = ".a_lut_tests/test_data/GB_25/nested_col_(27.7GB).json";
-
-pub const QUERY_BESTBUY: (&str, &[(&str, &str)]) = (
-    BESTBUY,
+// ##########
+pub const QUERY_APP: (&str, &[(&str, &str)]) = (
+    ".a_lut_tests/test_data/MB_100/app_(97MB).json",
     &[
-        ("100", "$.products[5].videoChapters"),
+        // ("1", "$.['All ASCII'].here"),
+        ("2", "$..here"),
+        ("3", "$..sqsk"),
+        ("4", "$..xddt"),
+    ],
+);
+
+pub const QUERY_BESTBUY_SHORT: (&str, &[(&str, &str)]) = (
+    ".a_lut_tests/test_data/MB_100/bestbuy_short_(103MB).json",
+    &[
         ("101", "$.products[*].videoChapters"),
         ("102", "$.products[*].videoChapters[1].chapter"),
         ("103", "$.products[*].shipping[*]"),
@@ -311,90 +302,384 @@ pub const QUERY_BESTBUY: (&str, &[(&str, &str)]) = (
         ("113", "$.products[*].categoryPath[*].id"),
         ("114", "$.products[*].categoryPath[*].name"),
         ("115", "$.products[*].quantityLimit"),
-        ("116", "$.products[*].earlyTerminationFees[*]"),
         ("117", "$.products[*].frequentlyPurchasedWith[*]"),
         ("118", "$.products[*].includedItemList[*]"),
-        ("119", "$.products[*].accessories[*]"),
-        ("120", "$.products[*].planFeatures[*]"),
         ("121", "$.products[*].homeDelivery"),
-        ("122", "$.products[*].carrierPlans[*]"),
         ("123", "$.products[*].freeShipping"),
         ("124", "$.products[*].additionalFeatures[*]"),
         ("125", "$.products[*].additionalFeatures[*].feature"),
         ("126", "$.products[*].dollarSavings"),
         ("127", "$.products[*].lengthInMinutes"),
         ("128", "$.products[*].screenFormat"),
+        ("200", "$..freeShipping"),
+        ("201", "$..additionalFeatures[*]"),
+        ("202", "$..additionalFeatures[*].feature"),
+        ("203", "$..dollarSavings"),
+        ("204", "$..lengthInMinutes"),
+        ("205", "$..screenFormat"),
+        ("300", "$.products[4].categoryPath[2]"),
+        ("301", "$.products[4].categoryPath[*].id"),
+        ("302", "$.products[4].categoryPath[*].name"),
+        ("303", "$.products[4].quantityLimit"),
     ],
 );
 
-pub const QUERY_CROSSREF2: (&str, &[(&str, &str)]) = (CROSSREF2, &[("100", "$..")]);
+pub const QUERY_CROSSREF0: (&str, &[(&str, &str)]) = (
+    ".a_lut_tests/test_data/MB_100/crossref0_(320MB).json",
+    &[
+        ("1", "$.items[*].URL"),
+        ("2", "$.items[*].resource.primary.URL"),
+        ("3", "$.items[*].member"),
+        ("4", "$.items[*].author[*].given"),
+        ("5", "$.items[*].author[*].family"),
+        ("6", "$.items[*].author[*].sequence"),
+        ("7", "$.items[*].score"),
+        ("8", "$.items[0].prefix"),
+        ("9", "$.items[0].DOI"),
+        ("10", "$.items[1].URL"),
+        ("11", "$.items[1].author[*].given"),
+        ("12", "$.items[2].URL"),
+        ("13", "$.items[2].resource.primary.URL"),
+        ("14", "$..URL"),
+        ("15", "$..author[*].given"),
+        ("16", "$..author[*].family"),
+        ("17", "$..author[*].affiliation[0].name"),
+        ("18", "$..title[*]"),
+    ],
+);
 
-pub const QUERY_CROSSREF4: (&str, &[(&str, &str)]) = (CROSSREF4, &[("100", "$..")]);
+pub const QUERY_GOOGLE_SHORT: (&str, &[(&str, &str)]) = (
+    ".a_lut_tests/test_data/MB_100/google_map_short_(107MB).json",
+    &[
+        ("0", "$[*]..bounds"),
+        ("1", "$[*]..bounds.northeast"),
+        ("2", "$[*]..bounds.northeast.lat"),
+        ("3", "$[*]..bounds.northeast.lng"),
+        ("4", "$[*]..copyrights"),
+        ("5", "$[*]..summary"),
+        ("6", "$[*]..warnings"),
+        ("7", "$[*]..waypoint_order"),
+        ("8", "$[*].routes[*]"),
+        ("9", "$[*].routes[*]..legs"),
+        ("10", "$[*].routes[*]..points"),
+        ("11", "$[*].routes[*]..steps[*]"),
+        ("12", "$[*].routes[*].bounds"),
+        ("13", "$[*].routes[*].bounds.northeast"),
+        ("14", "$[*].routes[*].bounds.northeast.lat"),
+        ("15", "$[*].routes[*].bounds.northeast.lng"),
+        ("16", "$[*].routes[*].legs[*].start_location.lat"),
+        ("17", "$[*].routes[*].legs[*].steps[1]"),
+        ("18", "$[*].routes[*].legs[*].steps[1].distance.text"),
+        ("19", "$[*].routes[*].legs[*].traffic_speed_entry"),
+        ("20", "$[*].routes[*].overview_polyline"),
+        ("21", "$[*].routes[*].overview_polyline.points"),
+        ("22", "$[*].routes[*].summary"),
+        ("23", "$[*].routes[*].warnings"),
+        ("24", "$[*].routes[*].waypoint_order"),
+        ("25", "$[1]"),
+        ("26", "$[10].routes[*].bounds"),
+        ("27", "$[100].routes[*].bounds"),
+        ("100", "$[*].routes[*].legs[*]"),
+        ("101", "$[*].routes[*].legs[*].steps[*]"),
+        ("102", "$[*].routes[*].legs[*].steps[*].distance"),
+        ("103", "$[*].routes[*].legs[*].steps[*].distance.text"),
+        ("104", "$[*].routes[*].legs[*].steps[*].distance.value"),
+        ("108", "$[*].routes[*].legs[*].steps[*].duration"),
+        ("109", "$[*].routes[*].legs[*].steps[*].polyline"),
+        ("110", "$[*].routes[*].legs[*].steps[*].polyline.points"),
+        ("111", "$[*].routes[*].legs[*].steps[*].end_location"),
+        ("112", "$[*].routes[*].legs[*].steps[*].html_instructions"),
+        ("113", "$[*].routes[*].legs[*].steps[*].travel_mode"),
+        ("114", "$[*].routes[*].legs[*].steps[*].start_location"),
+        ("115", "$[*].routes[*].legs[*].steps[*].start_location.lat"),
+        ("116", "$[*].routes[*].legs[*].steps[*].start_location.lng"),
+        ("117", "$[*].routes[*].legs[*].steps[*].maneuver"),
+        ("118", "$[*].routes[*].legs[*]..lat"),
+        ("119", "$[*].routes[*].legs[*]..lng"),
+        ("200", "$[*].available_travel_modes"),
+        ("202", "$[*].routes[*]"),
+        ("203", "$[*].routes[*].legs[*]"),
+    ],
+);
+
+pub const QUERY_POKEMON: (&str, &[(&str, &str)]) = (
+    ".a_lut_tests/test_data/MB_100/pokemon_(173MB).json",
+    &[
+        ("1", "$.cfg1[0].Name"),
+        ("5", "$.cfg1[*].Abilities[0]"),
+        ("6", "$.cfg1[*].Moves[1].moveName"),
+        ("7", "$.cfg1[*].Name"),
+        ("11", "$.cfg1[*].Abilities[1]"),
+        ("12", "$..Moves[*].moveName"),
+        ("13", "$..Name"),
+        ("17", "$.cfg6[*].Abilities[*]"),
+        ("18", "$.cfg7[*].Moves[*].moveName"),
+    ],
+);
+
+pub const QUERY_TWITTER_SHORT: (&str, &[(&str, &str)]) = (
+    ".a_lut_tests/test_data/MB_100/twitter_short_(80MB).json",
+    &[
+        ("1", "$[*].geo"),
+        ("2", "$[*].id"),
+        ("3", "$[*].source"),
+        ("4", "$[*].timestamp_ms"),
+        ("5", "$[*].user.created_at"),
+        ("6", "$[*].retweeted_status.id"),
+        ("7", "$[*].retweeted_status.filter_level"),
+        ("8", "$[1].retweeted_status.user.following"),
+        ("9", "$[0].retweeted_status.user.name"),
+        ("10", "$[1].retweeted_status[*]"),
+        ("14", "$[1].retweeted_status[*]..id"),
+        ("16", "$[1].retweeted_status[*].user.lang"),
+        ("17", "$..entities.hashtags[*]"),
+        ("18", "$..entities.symbols[*]"),
+        ("19", "$..entities.symbols[1]"),
+        ("20", "$..urls[*].display_url"),
+        ("21", "$[*].entities..symbols[*]"),
+        ("22", "$[*].entities..url"),
+        ("23", "$[*]..id"),
+        ("24", "$[*].entities..symbols[*]"),
+        ("25", "$[*].entities..url"),
+        ("26", "$[*].entities.symbols[*]"),
+        ("27", "$[*].entities.symbols[1]"),
+        ("28", "$[*].entities.urls[*].display_url"),
+        ("29", "$[*].timestamp_ms"),
+    ],
+);
+
+pub const QUERY_WALMART_SHORT: (&str, &[(&str, &str)]) = (
+    ".a_lut_tests/test_data/MB_100/walmart_short_(95MB).json",
+    &[
+        ("1", "$.items[*].itemId"),
+        ("2", "$.items[*].name"),
+        ("3", "$.items[*].msrp"),
+        ("4", "$.items[*].salePrice"),
+        ("5", "$.items[*].upc"),
+        ("6", "$.items[*].categoryPath"),
+        ("7", "$.items[*].shortDescription"),
+        ("8", "$.items[*].longDescription"),
+        ("9", "$.items[0].thumbnailImage"),
+        ("10", "$.items[0].productTrackingUrl"),
+        ("11", "$.items[0].freeShipToStore"),
+        ("12", "$.items[0].stock"),
+        ("13", "$..addToCartUrl"),
+        ("14", "$..isbn"),
+        ("15", "$..availableOnline"),
+        ("16", "$..freeShippingOver50Dollars"),
+        ("17", "$..categoryNode"),
+        ("18", "$..marketplace"),
+        ("19", "$.category"),
+        ("20", "$.format"),
+    ],
+);
+
+// ##########
+// GB_1
+// ##########
+pub const QUERY_BESTBUY: (&str, &[(&str, &str)]) = (
+    ".a_lut_tests/test_data/GB_1/bestbuy_large_record_(1GB).json",
+    &[
+        ("101", "$.products[*].videoChapters"),
+        ("102", "$.products[*].videoChapters[1].chapter"),
+        ("103", "$.products[*].shipping[*]"),
+        ("104", "$.products[*].shipping[*].ground"),
+        ("105", "$.products[*].shipping[*].nextDay"),
+        ("106", "$.products[*].shipping[*].secondDay"),
+        ("107", "$.products[*].shipping[*].vendorDelivery"),
+        ("108", "$.products[*].shippingLevelsOfService[*]"),
+        ("109", "$.products[*].shippingLevelsOfService[*].serviceLevelId"),
+        ("110", "$.products[*].shippingLevelsOfService[*].serviceLevelName"),
+        ("111", "$.products[*].shippingLevelsOfService[*].unitShippingPrice"),
+        ("112", "$.products[*].categoryPath[2]"),
+        ("113", "$.products[*].categoryPath[*].id"),
+        ("114", "$.products[*].categoryPath[*].name"),
+        ("115", "$.products[*].quantityLimit"),
+        ("117", "$.products[*].frequentlyPurchasedWith[*]"),
+        ("118", "$.products[*].includedItemList[*]"),
+        ("121", "$.products[*].homeDelivery"),
+        ("123", "$.products[*].freeShipping"),
+        ("124", "$.products[*].additionalFeatures[*]"),
+        ("125", "$.products[*].additionalFeatures[*].feature"),
+        ("126", "$.products[*].dollarSavings"),
+        ("127", "$.products[*].lengthInMinutes"),
+        ("128", "$.products[*].screenFormat"),
+        ("200", "$..freeShipping"),
+        ("201", "$..additionalFeatures[*]"),
+        ("202", "$..additionalFeatures[*].feature"),
+        ("203", "$..dollarSavings"),
+        ("204", "$..lengthInMinutes"),
+        ("205", "$..screenFormat"),
+        ("300", "$.products[4].categoryPath[2]"),
+        ("301", "$.products[4].categoryPath[*].id"),
+        ("302", "$.products[4].categoryPath[*].name"),
+        ("303", "$.products[4].quantityLimit"),
+    ],
+);
+
+pub const QUERY_CROSSREF1: (&str, &[(&str, &str)]) = (
+    ".a_lut_tests/test_data/GB_1/crossref1_(551MB).json",
+    &[
+        ("1", "$.items[*].URL"),
+        ("2", "$.items[*].resource.primary.URL"),
+        ("3", "$.items[*].member"),
+        ("4", "$.items[*].author[*].given"),
+        ("5", "$.items[*].author[*].family"),
+        ("6", "$.items[*].author[*].sequence"),
+        ("7", "$.items[*].score"),
+        ("8", "$.items[0].prefix"),
+        ("9", "$.items[0].DOI"),
+        ("10", "$.items[1].URL"),
+        ("11", "$.items[1].author[*].given"),
+        ("12", "$.items[2].URL"),
+        ("13", "$.items[2].resource.primary.URL"),
+        ("14", "$..URL"),
+        ("15", "$..author[*].given"),
+        ("16", "$..author[*].family"),
+        ("17", "$..author[*].affiliation[0].name"),
+        ("18", "$..title[*]"),
+    ],
+);
+
+pub const QUERY_CROSSREF2: (&str, &[(&str, &str)]) = (
+    ".a_lut_tests/test_data/GB_1/crossref2_(1.1GB).json",
+    &[
+        ("1", "$.items[*].URL"),
+        ("2", "$.items[*].resource.primary.URL"),
+        ("3", "$.items[*].member"),
+        ("4", "$.items[*].author[*].given"),
+        ("5", "$.items[*].author[*].family"),
+        ("6", "$.items[*].author[*].sequence"),
+        ("7", "$.items[*].score"),
+        ("8", "$.items[0].prefix"),
+        ("9", "$.items[0].DOI"),
+        ("10", "$.items[1].URL"),
+        ("11", "$.items[1].author[*].given"),
+        ("12", "$.items[2].URL"),
+        ("13", "$.items[2].resource.primary.URL"),
+        ("14", "$..URL"),
+        ("15", "$..author[*].given"),
+        ("16", "$..author[*].family"),
+        ("17", "$..author[*].affiliation[0].name"),
+        ("18", "$..title[*]"),
+    ],
+);
+
+pub const QUERY_CROSSREF4: (&str, &[(&str, &str)]) = (
+    ".a_lut_tests/test_data/GB_1/crossref4_(2.1GB).json",
+    &[
+        ("1", "$.items[*].URL"),
+        ("2", "$.items[*].resource.primary.URL"),
+        ("3", "$.items[*].member"),
+        ("4", "$.items[*].author[*].given"),
+        ("5", "$.items[*].author[*].family"),
+        ("6", "$.items[*].author[*].sequence"),
+        ("7", "$.items[*].score"),
+        ("8", "$.items[0].prefix"),
+        ("9", "$.items[0].DOI"),
+        ("10", "$.items[1].URL"),
+        ("11", "$.items[1].author[*].given"),
+        ("12", "$.items[2].URL"),
+        ("13", "$.items[2].resource.primary.URL"),
+        ("14", "$..URL"),
+        ("15", "$..author[*].given"),
+        ("16", "$..author[*].family"),
+        ("17", "$..author[*].affiliation[0].name"),
+        ("18", "$..title[*]"),
+    ],
+);
 
 pub const QUERY_GOOGLE: (&str, &[(&str, &str)]) = (
-    GOOGLE,
+    ".a_lut_tests/test_data/GB_1/google_map_large_record_(1.1GB).json",
     &[
         // Random queries
-        // ("0", "$[*]..bounds"),
-        // ("1", "$[*]..bounds.northeast"),
-        // ("2", "$[*]..bounds.northeast.lat"),
-        // ("3", "$[*]..bounds.northeast.lng"),
-        // ("4", "$[*]..copyrights"),
-        // ("5", "$[*]..summary"),
-        // ("6", "$[*]..warnings"),
-        // ("7", "$[*]..waypoint_order"),
-        // ("8", "$[*].routes[*]"),
-        // ("9", "$[*].routes[*]..legs"),
-        // ("10", "$[*].routes[*]..points"),
-        // ("11", "$[*].routes[*]..steps[*]"),
-        // ("12", "$[*].routes[*].bounds"),
-        // ("13", "$[*].routes[*].bounds.northeast"),
-        // ("14", "$[*].routes[*].bounds.northeast.lat"),
-        // ("15", "$[*].routes[*].bounds.northeast.lng"),
-        // ("16", "$[*].routes[*].legs[*].start_location.lat"),
-        // ("17", "$[*].routes[*].legs[*].steps[1]"),
-        // ("18", "$[*].routes[*].legs[*].steps[1].distance.text"),
-        // ("19", "$[*].routes[*].legs[*].traffic_speed_entry"),
-        // ("20", "$[*].routes[*].overview_polyline"),
-        // ("21", "$[*].routes[*].overview_polyline.points"),
-        // ("22", "$[*].routes[*].summary"),
-        // ("23", "$[*].routes[*].warnings"),
-        // ("24", "$[*].routes[*].waypoint_order"),
-        // ("25", "$[1]"),
-        // ("26", "$[10].routes[*].bounds"),
-        // ("27", "$[100].routes[*].bounds"),
-        // ("28", "$[1000].routes[*].bounds"),
-        // ("29", "$[2000].routes[*].bounds"),
-        // ("30", "$[3000].routes[*].bounds"),
+        ("0", "$[*]..bounds"),
+        ("1", "$[*]..bounds.northeast"),
+        ("2", "$[*]..bounds.northeast.lat"),
+        ("3", "$[*]..bounds.northeast.lng"),
+        ("4", "$[*]..copyrights"),
+        ("5", "$[*]..summary"),
+        ("6", "$[*]..warnings"),
+        ("7", "$[*]..waypoint_order"),
+        ("8", "$[*].routes[*]"),
+        ("9", "$[*].routes[*]..legs"),
+        ("10", "$[*].routes[*]..points"),
+        ("11", "$[*].routes[*]..steps[*]"),
+        ("12", "$[*].routes[*].bounds"),
+        ("13", "$[*].routes[*].bounds.northeast"),
+        ("14", "$[*].routes[*].bounds.northeast.lat"),
+        ("15", "$[*].routes[*].bounds.northeast.lng"),
+        ("16", "$[*].routes[*].legs[*].start_location.lat"),
+        ("17", "$[*].routes[*].legs[*].steps[1]"),
+        ("18", "$[*].routes[*].legs[*].steps[1].distance.text"),
+        ("19", "$[*].routes[*].legs[*].traffic_speed_entry"),
+        ("20", "$[*].routes[*].overview_polyline"),
+        ("21", "$[*].routes[*].overview_polyline.points"),
+        ("22", "$[*].routes[*].summary"),
+        ("23", "$[*].routes[*].warnings"),
+        ("24", "$[*].routes[*].waypoint_order"),
+        ("25", "$[1]"),
+        ("26", "$[10].routes[*].bounds"),
+        ("27", "$[100].routes[*].bounds"),
+        ("28", "$[1000].routes[*].bounds"),
+        ("29", "$[2000].routes[*].bounds"),
+        ("30", "$[3000].routes[*].bounds"),
         // // More queries
         ("100", "$[*].routes[*].legs[*]"),
-        // ("101", "$[*].routes[*].legs[*].steps[*]"),
-        // ("102", "$[*].routes[*].legs[*].steps[*].distance"),
-        // ("103", "$[*].routes[*].legs[*].steps[*].distance.text"),
-        // ("104", "$[*].routes[*].legs[*].steps[*].distance.value"),
-        // ("108", "$[*].routes[*].legs[*].steps[*].duration"),
-        // ("109", "$[*].routes[*].legs[*].steps[*].polyline"),
-        // ("110", "$[*].routes[*].legs[*].steps[*].polyline.points"),
-        // ("111", "$[*].routes[*].legs[*].steps[*].end_location"),
-        // ("112", "$[*].routes[*].legs[*].steps[*].html_instructions"),
-        // ("113", "$[*].routes[*].legs[*].steps[*].travel_mode"),
-        // ("114", "$[*].routes[*].legs[*].steps[*].start_location"),
-        // ("115", "$[*].routes[*].legs[*].steps[*].start_location.lat"),
-        // ("116", "$[*].routes[*].legs[*].steps[*].start_location.lng"),
-        // ("117", "$[*].routes[*].legs[*].steps[*].maneuver"),
-        // ("118", "$[*].routes[*].legs[*]..lat"),
-        // ("119", "$[*].routes[*].legs[*]..lng"),
-        // ("200", "$[*].available_travel_modes"),
-        // ("202", "$[*].routes[*]"),
-        // ("203", "$[*].routes[*].legs[*]"),
-        // ("204", "$[4000].routes[*].bounds"),
+        ("101", "$[*].routes[*].legs[*].steps[*]"),
+        ("102", "$[*].routes[*].legs[*].steps[*].distance"),
+        ("103", "$[*].routes[*].legs[*].steps[*].distance.text"),
+        ("104", "$[*].routes[*].legs[*].steps[*].distance.value"),
+        ("108", "$[*].routes[*].legs[*].steps[*].duration"),
+        ("109", "$[*].routes[*].legs[*].steps[*].polyline"),
+        ("110", "$[*].routes[*].legs[*].steps[*].polyline.points"),
+        ("111", "$[*].routes[*].legs[*].steps[*].end_location"),
+        ("112", "$[*].routes[*].legs[*].steps[*].html_instructions"),
+        ("113", "$[*].routes[*].legs[*].steps[*].travel_mode"),
+        ("114", "$[*].routes[*].legs[*].steps[*].start_location"),
+        ("115", "$[*].routes[*].legs[*].steps[*].start_location.lat"),
+        ("116", "$[*].routes[*].legs[*].steps[*].start_location.lng"),
+        ("117", "$[*].routes[*].legs[*].steps[*].maneuver"),
+        ("118", "$[*].routes[*].legs[*]..lat"),
+        ("119", "$[*].routes[*].legs[*]..lng"),
+        ("200", "$[*].available_travel_modes"),
+        ("202", "$[*].routes[*]"),
+        ("203", "$[*].routes[*].legs[*]"),
+        ("204", "$[4000].routes[*].bounds"),
     ],
 );
 
-pub const QUERY_NSPL: (&str, &[(&str, &str)]) = (NSPL, &[("100", "$..")]);
+pub const QUERY_NSPL: (&str, &[(&str, &str)]) = (
+    ".a_lut_tests/test_data/GB_1/nspl_large_record_(1.2GB).json",
+    &[
+        ("1", "$.meta.view.id"),
+        ("2", "$.meta.view.name"),
+        ("3", "$.meta.view.attribution"),
+        ("4", "$.meta.view.attributionLink"),
+        ("5", "$.meta.view.category"),
+        ("6", "$.meta.view.createdAt"),
+        ("7", "$.meta.view.description"),
+        ("8", "$.meta.view.downloadCount"),
+        ("9", "$.meta.view.licenseId"),
+        ("10", "$.meta.view.publicationDate"),
+        ("11", "$.meta.view.viewCount"),
+        ("12", "$.meta.view.columns[*].name"),
+        ("13", "$.meta.view.columns[*].dataTypeName"),
+        ("14", "$.meta.view.columns[*].fieldName"),
+        ("15", "$.meta.view.columns[*].cachedContents.largest"),
+        ("16", "$.meta.view.columns[*].cachedContents.smallest"),
+        ("17", "$.meta.view.columns[*].cachedContents.null"),
+        ("18", "$.meta.view.columns[*].cachedContents.non_null"),
+        ("19", "$.meta.view.columns[*].cachedContents.average"),
+        ("20", "$.meta.view.columns[*].cachedContents.sum"),
+        ("21", "$..id"),
+        ("22", "$..name"),
+        ("23", "$..top[*]"),
+    ],
+);
 
 pub const QUERY_TWITTER: (&str, &[(&str, &str)]) = (
-    TWITTER,
+    ".a_lut_tests/test_data/GB_1/twitter_large_record_(843MB).json",
     &[
         // Random Queries
         ("100", "$[*].geo"),
@@ -437,49 +722,80 @@ pub const QUERY_TWITTER: (&str, &[(&str, &str)]) = (
     ],
 );
 
-pub const QUERY_WALMART: (&str, &[(&str, &str)]) = (WALMART, &[("100", "$..")]);
-
-pub const QUERY_WIKI: (&str, &[(&str, &str)]) = (WIKI, &[("100", "$..")]);
-
-pub const QUERY_POKEMON_SHORT: (&str, &[(&str, &str)]) = (
-    POKEMON_SHORT,
+pub const QUERY_WALMART: (&str, &[(&str, &str)]) = (
+    ".a_lut_tests/test_data/GB_1/walmart_large_record_(995MB).json",
     &[
-        // Group 1: Tail data
-        ("200", "$.taildata"),
-        ("201", "$.taildata2"),
-        // Group 2: cfg1 fields
-        ("202", "$.cfg1[*].ID"),
-        ("203", "$.cfg1[*].Name"),
-        ("204", "$.cfg1[*].Height"),
-        ("205", "$.cfg1[*].Weight"),
-        ("206", "$.cfg1[*].Abilities[*]"),
-        ("207", "$.cfg1[*].Moves[*].moveName"),
-        ("208", "$.cfg1[*].Moves[*].levelLearnedAt"),
-        ("209", "$.cfg1[*].Moves[*].moveLearnCondition"),
-        // Group 3: Recursive search
-        ("210", "$..ID"),
-        ("211", "$..Name"),
-        ("212", "$..Height"),
-        ("213", "$..Weight"),
-        ("214", "$..Abilities[*]"),
-        ("215", "$..Moves[*].moveName"),
-        ("216", "$..Moves[*].levelLearnedAt"),
-        ("217", "$..Moves[*].moveLearnCondition"),
-        // Group 4: cfg10 fields
-        ("218", "$.cfg10[*].ID"),
-        ("219", "$.cfg10[*].Abilities[*]"),
-        ("220", "$.cfg10[*].Moves[*].levelLearnedAt"),
-        // Group 5: cfg25 fields
-        ("221", "$.cfg25[*].ID"),
-        ("222", "$.cfg25[*].Abilities[*]"),
-        ("223", "$.cfg25[*].Moves[*].levelLearnedAt"),
-        // Group 6: cfg40 fields
-        ("224", "$.cfg40[*].ID"),
-        ("225", "$.cfg40[*].Abilities[*]"),
-        ("226", "$.cfg40[*].Moves[*].levelLearnedAt"),
-        // Group 7: cfg50 fields
-        ("227", "$.cfg50[*].ID"),
-        ("228", "$.cfg50[*].Abilities[*]"),
-        ("229", "$.cfg50[*].Moves[*].levelLearnedAt"),
+        ("1", "$.category"),
+        ("2", "$.format"),
+        ("3", "$.maxId"),
+        ("4", "$.nextPage"),
+        ("5", "$.items[*].itemId"),
+        ("6", "$.items[*].parentItemId"),
+        ("7", "$.items[*].name"),
+        ("8", "$.items[*].msrp"),
+        ("9", "$.items[*].salePrice"),
+        ("10", "$.items[*].upc"),
+        ("11", "$.items[*].isbn"),
+        ("12", "$.items[*].categoryPath"),
+        ("13", "$.items[*].shortDescription"),
+        ("14", "$.items[*].longDescription"),
+        ("15", "$.items[*].thumbnailImage"),
+        ("16", "$.items[*].mediumImage"),
+        ("17", "$.items[*].largeImage"),
+        ("18", "$.items[*].productTrackingUrl"),
+        ("19", "$.items[*].productUrl"),
+        ("20", "$.items[*].addToCartUrl"),
+        ("20", "$..category"),
+        ("21", "$..items[*]"),
+        ("22", "$..upc"),
+        ("23", "$..addToCartUrl"),
+    ],
+);
+
+pub const QUERY_WIKI: (&str, &[(&str, &str)]) = (
+    ".a_lut_tests/test_data/GB_1/wiki_large_record_(1.1GB).json",
+    &[
+        ("1", "$[*].id"),
+        ("2", "$[*].type"),
+        ("3", "$[*].labels.*.value"),
+        ("4", "$[*].labels.*.language"),
+        ("5", "$[*].descriptions..value"),
+        ("6", "$[*].descriptions..language"),
+        ("9", "$[0].id"),
+        ("10", "$[0].type"),
+        ("11", "$[0].labels.*.value"),
+        ("12", "$[0].labels.*.language"),
+        ("13", "$[0].descriptions..value"),
+        ("14", "$[0].descriptions..language"),
+        ("17", "$..language"),
+        ("18", "$..value"),
+    ],
+);
+
+// GB_25
+pub const QUERY_NESTED_COL: (&str, &[(&str, &str)]) = (
+    ".a_lut_tests/test_data/GB_25/nested_col_(27.7GB).json",
+    &[
+        ("1", "$[*].c_custkey"),
+        ("2", "$[*].c_name"),
+        ("9", "$[*].c_orders[*].o_orderkey"),
+        ("10", "$[*].c_orders[*].o_orderstatus"),
+        ("11", "$[*].c_orders[*].o_totalprice"),
+        ("12", "$[*].c_orders[*].o_orderdate"),
+        ("13", "$[*].c_orders[*].o_orderpriority"),
+        ("14", "$[*].c_orders[*].o_clerk"),
+        ("15", "$[*].c_orders[*].o_shippriority"),
+        ("16", "$[*].c_orders[*].o_comment"),
+        ("17", "$[*].c_orders[*].o_lineitems[*].l_partkey"),
+        ("18", "$[*].c_orders[*].o_lineitems[*].l_suppkey"),
+        ("19", "$[*].c_orders[*].o_lineitems[*].l_linenumber"),
+        ("101", "$[0].c_custkey"),
+        ("102", "$[0].c_name"),
+        ("103", "$[0].c_address"),
+        ("104", "$[0].c_nationkey"),
+        ("200", "$..l_receiptdate"),
+        ("201", "$..l_shipinstruct"),
+        ("202", "$..l_shipmode"),
+        ("203", "$..l_comment"),
     ],
 );

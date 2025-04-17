@@ -11,14 +11,15 @@ use rsonpath::lookup_table::implementations::lut_hash_map::LutHashMap;
 use rsonpath::lookup_table::implementations::lut_phf_double::LutPHFDouble;
 use rsonpath::lookup_table::implementations::lut_phf_group::LutPHFGroup;
 use rsonpath::lookup_table::performance::lut_query_data::{
-    QUERY_BESTBUY, QUERY_POKEMON_MINI, QUERY_POKEMON_SHORT, QUERY_TWITTER,
+    QUERY_BESTBUY, QUERY_CANADA, QUERY_NESTED_COL, QUERY_OPENFOOD, QUERY_PEOPLE, QUERY_POKEMON_MINI,
+    QUERY_PRETTY_PEOPLE, QUERY_TWITTER, QUERY_TWITTER_MINI,
 };
 use rsonpath::{
     engine::{Compiler, Engine, RsonpathEngine},
     input::OwnedBytes,
     lookup_table::{
         pair_data,
-        performance::lut_query_data::{GOOGLE, POKEMON_MINI, QUERY_BUGS, QUERY_GOOGLE, QUERY_JOHN_BIG, TWITTER_SHORT},
+        performance::lut_query_data::{QUERY_BUGS, QUERY_GOOGLE, QUERY_JOHN_BIG},
         LookUpTable, LUT,
     },
 };
@@ -39,26 +40,25 @@ fn test_build_and_queries() {
     let cutoff = 128;
     debug!("Start with cutoff={}", cutoff);
 
-    // test_build_correctness(GOOGLE, cutoff);
-    // test_build_correctness(WALMART, cutoff);
-    // test_build_correctness(BESTBUY, cutoff);
-    // test_build_correctness(TWITTER, cutoff);
-    // test_build_correctness(POKEMON_MINI, cutoff);
-    test_build_correctness(TWITTER_SHORT, cutoff);
-    // test_build_correctness(ALPHABET, cutoff);
+    // MB_1
+    test_build_correctness(QUERY_CANADA, cutoff);
+    test_build_correctness(QUERY_OPENFOOD, cutoff);
+    test_build_correctness(QUERY_PEOPLE, cutoff);
+    test_build_correctness(QUERY_PRETTY_PEOPLE, cutoff);
+    test_build_correctness(QUERY_TWITTER_MINI, cutoff);
 
-    test_query_correctness(QUERY_BUGS, cutoff);
-    test_query_correctness(QUERY_JOHN_BIG, cutoff);
-    test_query_correctness(QUERY_POKEMON_MINI, cutoff);
-    test_query_correctness(QUERY_GOOGLE, cutoff);
-    test_query_correctness(QUERY_TWITTER, cutoff);
-    test_query_correctness(QUERY_BESTBUY, cutoff);
-    test_query_correctness(QUERY_POKEMON_SHORT, cutoff);
+    // MB_1
+    test_query_correctness(QUERY_CANADA, cutoff);
+    test_query_correctness(QUERY_OPENFOOD, cutoff);
+    test_query_correctness(QUERY_PEOPLE, cutoff);
+    test_query_correctness(QUERY_PRETTY_PEOPLE, cutoff);
+    test_query_correctness(QUERY_TWITTER_MINI, cutoff);
 
-    // test_bug();
+    test_bug();
 }
 
-fn test_build_correctness(json_name: &str, cutoff: usize) {
+fn test_build_correctness(test_data: (&str, &[(&str, &str)]), cutoff: usize) {
+    let (json_name, _) = test_data;
     let s = format!("../../{}", json_name);
     let json_path = s.as_str();
 
@@ -85,7 +85,7 @@ fn test_build_correctness(json_name: &str, cutoff: usize) {
     debug!(" Correct {}/{}", keys.len() - count_incorrect, keys.len());
     debug!(" Incorrect {}/{}", count_incorrect, keys.len());
 
-    std::mem::drop(lut);
+    drop(lut);
 }
 
 fn test_query_correctness(test_data: (&str, &[(&str, &str)]), cutoff: usize) {
@@ -128,7 +128,7 @@ fn test_query_correctness(test_data: (&str, &[(&str, &str)]), cutoff: usize) {
         lut = engine.take_lut().expect("Failed to retrieve LUT from engine");
     }
 
-    std::mem::drop(lut);
+    drop(lut);
 }
 
 // cargo test --test lut_debug_tests -- debug_lut_group_buckets --nocapture | rg "(lut_debug_tests|pair_data)"
@@ -142,7 +142,7 @@ fn debug_lut_group_buckets() {
         .unwrap();
 
     // let json_file = format!("../../{}", ALPHABET);
-    let json_file = format!("../../{}", POKEMON_MINI);
+    let json_file = format!("../../{}", ".a_lut_tests/test_data/MB_15/pokemon_(6MB).json");
     let lambda = 1;
     let cutoff = 0;
     let json_path = json_file.as_str();
@@ -177,7 +177,7 @@ fn debug_lut_group_buckets() {
 
 #[test]
 fn debug_lut_phf_double() {
-    let json_file = format!("../../{}", POKEMON_MINI);
+    let json_file = format!("../../{}", ".a_lut_tests/test_data/MB_15/pokemon_(6MB).json");
     let json_path = json_file.as_str();
     let cutoff = 0;
 

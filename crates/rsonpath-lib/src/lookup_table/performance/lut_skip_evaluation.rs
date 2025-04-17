@@ -12,7 +12,7 @@ use std::{
     time::Instant,
 };
 
-use super::lut_query_data::{QUERY_BESTBUY, QUERY_GOOGLE, QUERY_POKEMON_SHORT, QUERY_TWITTER};
+use super::lut_query_data::{QUERY_BESTBUY, QUERY_GOOGLE, QUERY_TWITTER};
 use super::lut_skip_counter::COUNTER_FILE_PATH;
 
 static SKIP_TIME_ATOMIC: AtomicU64 = AtomicU64::new(0);

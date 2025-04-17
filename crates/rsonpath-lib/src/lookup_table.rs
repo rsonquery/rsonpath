@@ -23,8 +23,11 @@ const REPETITIONS: u64 = 1;
 
 // pub type LUT = LutHashMap;
 // pub type LUT = LutHashMapDouble;
-// pub type LUT = LutSicHash;
+// pub type LUT = LutHashMapGroup;
+// pub type LUT = LutPHF;
+// pub type LUT = LutPHFDouble;
 // pub type LUT = LutPHFGroup;
+// pub type LUT = LutSicHash;
 pub type LUT = LutPtrHashDouble;
 // pub type LUT = LutVFuncDouble;
 

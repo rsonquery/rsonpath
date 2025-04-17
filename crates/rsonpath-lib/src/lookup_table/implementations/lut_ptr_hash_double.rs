@@ -72,6 +72,8 @@ impl LutPtrHashDouble {
         let keys = pair_data.keys;
         let input_values = pair_data.values;
 
+        // println!("PtrHashDouble num keys: {}", keys.len());
+
         // Build minimal perfect hash function (mphf)
         let ptr_hash = <PtrHash<usize>>::new(&keys, PtrHashParams::default());
         // Sort values depending on the new mphf
