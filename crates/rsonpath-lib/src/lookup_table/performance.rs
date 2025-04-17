@@ -3,6 +3,7 @@ use std::{fs, path::Path};
 
 pub mod distance_cutoff_evaluation;
 pub mod lut_evaluation;
+pub mod lut_query_correctness;
 pub mod lut_query_data;
 pub mod lut_skip_counter;
 pub mod lut_skip_evaluation;

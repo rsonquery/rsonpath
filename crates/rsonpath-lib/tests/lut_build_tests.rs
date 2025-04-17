@@ -30,7 +30,7 @@ macro_rules! build_test {
 }
 
 fn compare_valid(lut: &dyn LookUpTable, json_path: &str, cutoff: usize) {
-    let (keys, values) = pair_data::get_keys_and_values_absolute(json_path, cutoff).expect("Fail @ finding pairs.");
+    let (keys, values) = pair_data::get_pairs_absolute(json_path, cutoff).expect("Fail @ finding pairs.");
 
     let mut count_incorrect: u64 = 0;
     for (i, key) in keys.iter().enumerate() {

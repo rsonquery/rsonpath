@@ -1,4 +1,5 @@
 use clap::{Parser, Subcommand};
+use rsonpath::lookup_table::performance::lut_query_correctness;
 use rsonpath::lookup_table::{
     analysis::{
         distance_distribution, json_size_distribution::create_json_size_csv,
@@ -92,7 +93,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             lut_skip_counter::track_skips();
         }
         Commands::TestQuery {} => {
-            lut_query_data::test_build_and_queries();
+            lut_query_correctness::test_build_and_queries();
         }
         Commands::Sichash { json_dir, out_dir } => {
             check_if_dir_exists(json_dir);

@@ -36,7 +36,7 @@ pub fn evaluate(json_path: &str, csv_path: &str) -> Result<(), Box<dyn std::erro
     let mut head_line = String::from("name,input_size_bytes,num_keys,");
     let mut data_line = format!("{},{},{},", filename, file.metadata()?.len(), num_keys);
 
-    let (keys, _) = pair_data::get_keys_and_values_absolute(json_path, cutoff).expect("Fail @ finding pairs.");
+    let (keys, _) = pair_data::get_pairs_absolute(json_path, cutoff).expect("Fail @ finding pairs.");
 
     let mut config = EvalConfig {
         json_path,

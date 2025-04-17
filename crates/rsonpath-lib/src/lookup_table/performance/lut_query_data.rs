@@ -1,41 +1,335 @@
-use crate::{
-    engine::{Compiler, Engine, RsonpathEngine},
-    input::OwnedBytes,
-    lookup_table::{self, pair_data, LookUpTable, LUT},
-};
-
-use crate::lookup_table::implementations::lut_hash_map;
-use serde_json::json;
-use std::{
-    fs,
-    io::{BufReader, Read},
-};
-
+// ##########
 // kB_1
-pub const JOHN: &str = ".a_lut_tests/test_data/kB_1/john_119.json";
-pub const JOHN_BIG: &str = ".a_lut_tests/test_data/kB_1/john_big.json";
-pub const BUGS: &str = ".a_lut_tests/test_data/kB_1/bugs.json";
-pub const BUGS_2: &str = ".a_lut_tests/test_data/kB_1/bugs_2.json";
-pub const ALPHABET: &str = ".a_lut_tests/test_data/kB_1/alphabet_(2kB).json";
+// ##########
+pub const QUERY_ALPHABET: (&str, &[(&str, &str)]) = (
+    ".a_lut_tests/test_data/kB_1/alphabet_(2kB).json",
+    &[
+        ("1", "$.alphabet[0]"),
+        ("2", "$.alphabet[*]"),
+        ("3", "$.alphabet[*].ID"),
+        ("4", "$.alphabet[*].Letter"),
+        ("5", "$.alphabet[*].Pronunciation"),
+        ("6", "$.alphabet[10].Letter"),
+        ("7", "$.alphabet[25].Pronunciation"),
+    ],
+);
 
+pub const QUERY_BUGS: (&str, &[(&str, &str)]) = (
+    ".a_lut_tests/test_data/kB_1/bugs.json",
+    &[
+        ("1", "$.a..b"),
+        ("2", "$.a"),
+        ("3", "$.a[0]"),
+        ("4", "$.a[0].c"),
+        ("5", "$.a[0].c.d"),
+        ("6", "$.a[0].c.b"),
+    ],
+);
+
+pub const QUERY_BUGS_2: (&str, &[(&str, &str)]) = (
+    ".a_lut_tests/test_data/kB_1/bugs_2.json",
+    &[
+        ("1", "$.b[0]"),
+        ("2", "$.a"),
+        ("3", "$.b"),
+        ("4", "$.b[0]"),
+        ("5", "$.b[0].b"),
+    ],
+);
+
+pub const QUERY_JOHN: (&str, &[(&str, &str)]) = (
+    ".a_lut_tests/test_data/kB_1/john_119.json",
+    &[
+        ("1", "$.name"),
+        ("2", "$.age"),
+        ("3", "$.isMale"),
+        ("4", "$.phones"),
+        ("5", "$.phones[0]"),
+        ("6", "$.phones[1]"),
+        ("7", "$.address"),
+    ],
+);
+
+pub const QUERY_JOHN_BIG: (&str, &[(&str, &str)]) = (
+    ".a_lut_tests/test_data/kB_1/john_big.json",
+    &[
+        ("1", "$.person.firstName"),
+        ("2", "$.person.lastName"),
+        ("3", "$.person.phoneNumber[1].type"),
+        ("4", "$.person.spouse.person.phoneNumber.*"),
+        ("5", "$.person.spouse.person.phoneNumber[0]"),
+        ("6", "$.person.spouse.person.phoneNumber[1]"),
+        ("7", "$[1]"),
+    ],
+);
+
+pub const QUERY_NUMBERS: (&str, &[(&str, &str)]) = (
+    ".a_lut_tests/test_data/kB_1/numbers_117.json",
+    &[
+        ("1", "$.numbers[0]"),
+        ("2", "$.numbers[*]"),
+        ("3", "$.numbers[25]"),
+        ("4", "$.numbers[10]"),
+    ],
+);
+
+pub const QUERY_SMALL: (&str, &[(&str, &str)]) = (".a_lut_tests/test_data/kB_1/small_14.json", &[("1", "$.x")]);
+
+// ##########
 // MB_1
-pub const TWITTER_MINI: &str = ".a_lut_tests/test_data/MB_1/twitter_(767kB).json";
+// ##########
+pub const QUERY_CANADA: (&str, &[(&str, &str)]) = (
+    ".a_lut_tests/test_data/MB_1/canada_(3MB).json",
+    &[
+        ("1", "$.features[0].properties.name"),
+        ("2", "$.features[*].properties.name"),
+        ("3", "$.features[0].geometry.coordinates[0]"),
+        ("4", "$.features[0].geometry.coordinates[1]"),
+        ("5", "$.features[0].geometry.coordinates[*]"),
+        ("6", "$.features[*].geometry.coordinates[*]"),
+        ("7", "$.features[0].geometry.type"),
+        ("8", "$.features[*].geometry.type"),
+    ],
+);
 
+pub const QUERY_OPENFOOD: (&str, &[(&str, &str)]) = (
+    ".a_lut_tests/test_data/MB_1/openfood_(867kB).json",
+    &[
+        ("1", "$.products[0].brands"),
+        ("2", "$.products[*].brands"),
+        ("3", "$.products[0].categories"),
+        ("4", "$.products[0].categories_hierarchy"),
+        ("5", "$.products[0].ingredients_text"),
+        ("6", "$.products[0].allergens"),
+        ("7", "$.products[0].ecoscore_grade"),
+        ("8", "$.products[*].ecoscore_grade"),
+        ("9", "$.products[0].packaging"),
+        ("10", "$.products[0].countries"),
+        ("13", "$.products[0].ecoscore_score"),
+        ("14", "$.products[0].categories_properties"),
+        ("15", "$.products[0].ciqual_food_name_tags"),
+        ("16", "$.products[0].ingredients_n"),
+    ],
+);
+
+pub const QUERY_PEOPLE: (&str, &[(&str, &str)]) = (
+    ".a_lut_tests/test_data/MB_1/people_(1.2MB).json",
+    &[
+        ("1", "$[0].name"),
+        ("2", "$[*].name"),
+        ("3", "$[0].email"),
+        ("4", "$[*].email"),
+        ("5", "$[0].address"),
+        ("6", "$[*].address"),
+        ("7", "$[0].phone"),
+        ("8", "$[*].phone"),
+        ("9", "$[0].website"),
+        ("10", "$[*].website"),
+    ],
+);
+
+pub const QUERY_PRETTY_PEOPLE: (&str, &[(&str, &str)]) = (
+    ".a_lut_tests/test_data/MB_1/pretty_people_(1.8MB).json",
+    &[
+        ("1", "$.ctRoot[0].name"),
+        ("2", "$.ctRoot[*].name"),
+        ("3", "$.ctRoot[0].dob"),
+        ("4", "$.ctRoot[*].dob"),
+        ("5", "$.ctRoot[0].address.street"),
+        ("6", "$.ctRoot[*].address.street"),
+        ("7", "$.ctRoot[0].address.town"),
+        ("8", "$.ctRoot[*].address.town"),
+        ("9", "$.ctRoot[0].address.postode"),
+        ("10", "$.ctRoot[*].address.postode"),
+        ("11", "$.ctRoot[0].telephone"),
+        ("12", "$.ctRoot[*].telephone"),
+        ("13", "$.ctRoot[0].pets"),
+        ("14", "$.ctRoot[*].pets"),
+        ("15", "$.ctRoot[0].score"),
+        ("16", "$.ctRoot[*].score"),
+        ("17", "$.ctRoot[0].email"),
+        ("18", "$.ctRoot[*].email"),
+        ("19", "$.ctRoot[0].url"),
+        ("20", "$.ctRoot[*].url"),
+        ("21", "$.ctRoot[0].description"),
+        ("22", "$.ctRoot[*].description"),
+        ("23", "$.ctRoot[0].verified"),
+        ("24", "$.ctRoot[*].verified"),
+        ("25", "$.ctRoot[0].salary"),
+        ("26", "$.ctRoot[*].salary"),
+    ],
+);
+
+pub const QUERY_TWITTER_MINI: (&str, &[(&str, &str)]) = (
+    ".a_lut_tests/test_data/MB_1/twitter_(767kB).json",
+    &[
+        ("1", "$.statuses[0].metadata.result_type"),
+        ("2", "$.statuses[0].metadata.iso_language_code"),
+        ("3", "$.statuses[0].created_at"),
+        ("4", "$.statuses[*].id"),
+        ("5", "$.statuses[*].text"),
+        ("6", "$.statuses[0].source"),
+        ("7", "$.statuses[0].user.id"),
+        ("8", "$.statuses[*].user.name"),
+        ("9", "$.statuses[0].user.screen_name"),
+        ("10", "$.statuses[*].user.followers_count"),
+        ("11", "$.statuses[*].user.friends_count"),
+        ("12", "$.statuses[0].retweet_count"),
+        ("13", "$.statuses[*].favorite_count"),
+        ("14", "$.statuses[0].entities.user_mentions"),
+        ("15", "$.statuses[*].lang"),
+    ],
+);
+
+// ##########
 // MB_15
-pub const POKEMON_MINI: &str = ".a_lut_tests/test_data/MB_15/pokemon_(6MB).json";
+// ##########
+pub const QUERY_AST: (&str, &[(&str, &str)]) = (
+    ".a_lut_tests/test_data/MB_15/ast_(26MB).json",
+    &[
+        ("1", "$.inner[0].name"),
+        ("2", "$.inner[1].name"),
+        ("3", "$.inner[*].type.qualType"),
+        ("4", "$.inner[2].type.qualType"),
+        ("5", "$.inner[0].inner[0].kind"),
+        ("6", "$.inner[1].inner[0].kind"),
+        ("7", "$..inner[0].kind"),
+        ("10", "$.inner[0].isImplicit"),
+        ("11", "$.inner[1].isImplicit"),
+        ("12", "$..range.begin.offset"),
+        ("14", "$..range.begin.col"),
+        ("17", "$..isReferenced"),
+    ],
+);
+
+pub const QUERY_DUMMY_10: (&str, &[(&str, &str)]) = (
+    ".a_lut_tests/test_data/MB_15/dummy_(10MB).json",
+    &[
+        ("1", "$[0].name"),
+        ("2", "$[*].name"),
+        ("3", "$[0].email"),
+        ("4", "$[*].email"),
+        ("5", "$[0].address"),
+        ("6", "$[*].address"),
+        ("7", "$[0].phone"),
+        ("8", "$[*].phone"),
+        ("9", "$[0].website"),
+        ("10", "$[*].website"),
+        ("11", "$[1].name"),
+        ("12", "$[1].email"),
+        ("13", "$..address"),
+        ("14", "$..phone"),
+        ("15", "$..website"),
+        ("16", "$..name"),
+    ],
+);
+
+pub const QUERY_DUMMY_20: (&str, &[(&str, &str)]) = (
+    ".a_lut_tests/test_data/MB_15/dummy_(20MB).json",
+    &[
+        ("1", "$[*].name"),
+        ("2", "$[1].email"),
+        ("3", "$[2].address"),
+        ("4", "$[3].phone"),
+        ("5", "$[4].website"),
+        ("6", "$[5].name"),
+        ("7", "$[6].email"),
+        ("8", "$[7].address"),
+        ("9", "$[8].phone"),
+        ("10", "$[9].website"),
+        ("11", "$[10].name"),
+        ("12", "$[11].email"),
+        ("13", "$[12].address"),
+        ("14", "$[13].phone"),
+        ("15", "$[14].website"),
+        ("16", "$..name"),
+        ("17", "$..email"),
+        ("18", "$..address"),
+        ("19", "$..phone"),
+        ("20", "$..website"),
+    ],
+);
+
+pub const QUERY_POKEMON_MINI: (&str, &[(&str, &str)]) = (
+    ".a_lut_tests/test_data/MB_15/pokemon_(6MB).json",
+    &[
+        ("1", "$.cfgs[*].Name"),
+        ("2", "$.cfgs[1].ID"),
+        ("6", "$.cfgs[*].Color"),
+        ("7", "$.cfgs[*].Habitat"),
+        ("8", "$.cfgs[6].Shape"),
+        ("10", "$.cfgs[*].BaseStats"),
+        ("11", "$.cfgs[*].Abilities"),
+        ("12", "$.cfgs[9].Moves"),
+        ("13", "$.cfgs[*].Moves[*].moveName"),
+        ("14", "$.cfgs[*].Moves[*].levelLearnedAt"),
+        ("16", "$..Genus"),
+        ("18", "$..Height"),
+        ("19", "$..Weight"),
+    ],
+);
 
 // MB_100
-pub const TWITTER_SHORT: &str = ".a_lut_tests/test_data/MB_100/twitter_short_(80MB).json";
+pub const APP: &str = ".a_lut_tests/test_data/MB_100/app_(97MB).json";
 pub const BESTBUY_SHORT: &str = ".a_lut_tests/test_data/MB_100/bestbuy_short_(103MB).json";
+pub const CROSSREF0: &str = ".a_lut_tests/test_data/MB_100/crossref0_(320MB).json";
 pub const GOOGLE_SHORT: &str = ".a_lut_tests/test_data/MB_100/google_map_short_(107MB).json";
-pub const WALMART_SHORT: &str = ".a_lut_tests/test_data/MB_100/walmart_short_(95MB).json";
 pub const POKEMON_SHORT: &str = ".a_lut_tests/test_data/MB_100/pokemon_(173MB).json";
+pub const TWITTER_SHORT: &str = ".a_lut_tests/test_data/MB_100/twitter_short_(80MB).json";
+pub const WALMART_SHORT: &str = ".a_lut_tests/test_data/MB_100/walmart_short_(95MB).json";
 
 // GB_1
 pub const BESTBUY: &str = ".a_lut_tests/test_data/GB_1/bestbuy_large_record_(1GB).json";
-pub const WALMART: &str = ".a_lut_tests/test_data/GB_1/walmart_large_record_(995MB).json";
-pub const TWITTER: &str = ".a_lut_tests/test_data/GB_1/twitter_large_record_(843MB).json";
+pub const CROSSREF1: &str = ".a_lut_tests/test_data/GB_1/crossref1_(551MB).json";
+pub const CROSSREF2: &str = ".a_lut_tests/test_data/GB_1/crossref2_(1.1GB).json";
+pub const CROSSREF4: &str = ".a_lut_tests/test_data/GB_1/crossref4_(2.1GB).json";
 pub const GOOGLE: &str = ".a_lut_tests/test_data/GB_1/google_map_large_record_(1.1GB).json";
+pub const NSPL: &str = ".a_lut_tests/test_data/GB_1/nspl_large_record_(1.2GB).json";
+pub const TWITTER: &str = ".a_lut_tests/test_data/GB_1/twitter_large_record_(843MB).json";
+pub const WALMART: &str = ".a_lut_tests/test_data/GB_1/walmart_large_record_(995MB).json";
+pub const WIKI: &str = ".a_lut_tests/test_data/GB_1/wiki_large_record_(1.1GB).json";
+
+// GB_25
+pub const NESTED_COL: &str = ".a_lut_tests/test_data/GB_25/nested_col_(27.7GB).json";
+
+pub const QUERY_BESTBUY: (&str, &[(&str, &str)]) = (
+    BESTBUY,
+    &[
+        ("100", "$.products[5].videoChapters"),
+        ("101", "$.products[*].videoChapters"),
+        ("102", "$.products[*].videoChapters[1].chapter"),
+        ("103", "$.products[*].shipping[*]"),
+        ("104", "$.products[*].shipping[*].ground"),
+        ("105", "$.products[*].shipping[*].nextDay"),
+        ("106", "$.products[*].shipping[*].secondDay"),
+        ("107", "$.products[*].shipping[*].vendorDelivery"),
+        ("108", "$.products[*].shippingLevelsOfService[*]"),
+        ("109", "$.products[*].shippingLevelsOfService[*].serviceLevelId"),
+        ("110", "$.products[*].shippingLevelsOfService[*].serviceLevelName"),
+        ("111", "$.products[*].shippingLevelsOfService[*].unitShippingPrice"),
+        ("112", "$.products[*].categoryPath[2]"),
+        ("113", "$.products[*].categoryPath[*].id"),
+        ("114", "$.products[*].categoryPath[*].name"),
+        ("115", "$.products[*].quantityLimit"),
+        ("116", "$.products[*].earlyTerminationFees[*]"),
+        ("117", "$.products[*].frequentlyPurchasedWith[*]"),
+        ("118", "$.products[*].includedItemList[*]"),
+        ("119", "$.products[*].accessories[*]"),
+        ("120", "$.products[*].planFeatures[*]"),
+        ("121", "$.products[*].homeDelivery"),
+        ("122", "$.products[*].carrierPlans[*]"),
+        ("123", "$.products[*].freeShipping"),
+        ("124", "$.products[*].additionalFeatures[*]"),
+        ("125", "$.products[*].additionalFeatures[*].feature"),
+        ("126", "$.products[*].dollarSavings"),
+        ("127", "$.products[*].lengthInMinutes"),
+        ("128", "$.products[*].screenFormat"),
+    ],
+);
+
+pub const QUERY_CROSSREF2: (&str, &[(&str, &str)]) = (CROSSREF2, &[("100", "$..")]);
+
+pub const QUERY_CROSSREF4: (&str, &[(&str, &str)]) = (CROSSREF4, &[("100", "$..")]);
 
 pub const QUERY_GOOGLE: (&str, &[(&str, &str)]) = (
     GOOGLE,
@@ -97,40 +391,7 @@ pub const QUERY_GOOGLE: (&str, &[(&str, &str)]) = (
     ],
 );
 
-pub const QUERY_BESTBUY: (&str, &[(&str, &str)]) = (
-    BESTBUY,
-    &[
-        ("100", "$.products[5].videoChapters"),
-        ("101", "$.products[*].videoChapters"),
-        ("102", "$.products[*].videoChapters[1].chapter"),
-        ("103", "$.products[*].shipping[*]"),
-        ("104", "$.products[*].shipping[*].ground"),
-        ("105", "$.products[*].shipping[*].nextDay"),
-        ("106", "$.products[*].shipping[*].secondDay"),
-        ("107", "$.products[*].shipping[*].vendorDelivery"),
-        ("108", "$.products[*].shippingLevelsOfService[*]"),
-        ("109", "$.products[*].shippingLevelsOfService[*].serviceLevelId"),
-        ("110", "$.products[*].shippingLevelsOfService[*].serviceLevelName"),
-        ("111", "$.products[*].shippingLevelsOfService[*].unitShippingPrice"),
-        ("112", "$.products[*].categoryPath[2]"),
-        ("113", "$.products[*].categoryPath[*].id"),
-        ("114", "$.products[*].categoryPath[*].name"),
-        ("115", "$.products[*].quantityLimit"),
-        ("116", "$.products[*].earlyTerminationFees[*]"),
-        ("117", "$.products[*].frequentlyPurchasedWith[*]"),
-        ("118", "$.products[*].includedItemList[*]"),
-        ("119", "$.products[*].accessories[*]"),
-        ("120", "$.products[*].planFeatures[*]"),
-        ("121", "$.products[*].homeDelivery"),
-        ("122", "$.products[*].carrierPlans[*]"),
-        ("123", "$.products[*].freeShipping"),
-        ("124", "$.products[*].additionalFeatures[*]"),
-        ("125", "$.products[*].additionalFeatures[*].feature"),
-        ("126", "$.products[*].dollarSavings"),
-        ("127", "$.products[*].lengthInMinutes"),
-        ("128", "$.products[*].screenFormat"),
-    ],
-);
+pub const QUERY_NSPL: (&str, &[(&str, &str)]) = (NSPL, &[("100", "$..")]);
 
 pub const QUERY_TWITTER: (&str, &[(&str, &str)]) = (
     TWITTER,
@@ -176,6 +437,10 @@ pub const QUERY_TWITTER: (&str, &[(&str, &str)]) = (
     ],
 );
 
+pub const QUERY_WALMART: (&str, &[(&str, &str)]) = (WALMART, &[("100", "$..")]);
+
+pub const QUERY_WIKI: (&str, &[(&str, &str)]) = (WIKI, &[("100", "$..")]);
+
 pub const QUERY_POKEMON_SHORT: (&str, &[(&str, &str)]) = (
     POKEMON_SHORT,
     &[
@@ -218,186 +483,3 @@ pub const QUERY_POKEMON_SHORT: (&str, &[(&str, &str)]) = (
         ("229", "$.cfg50[*].Moves[*].levelLearnedAt"),
     ],
 );
-
-pub const QUERY_POKEMON_MINI: (&str, &[(&str, &str)]) = (
-    POKEMON_MINI,
-    &[
-        ("200", "$.cfgs[1].ID"),
-        ("201", "$.cfgs[1].Name"),
-        ("202", "$.cfgs[*].ID"),
-        ("203", "$.cfgs[*].Name"),
-        ("204", "$.cfgs[*].BaseStats[1]"),
-        ("204", "$.cfgs[*].BaseStats[2]"),
-        ("204", "$.cfgs[*].BaseStats[*]"),
-        ("204", "$.cfgs[*].EggGroups[1]"),
-        ("204", "$.cfgs[*].EggGroups[2]"),
-        ("204", "$.cfgs[*].EggGroups[*]"),
-    ],
-);
-
-pub const QUERY_JOHN_BIG: (&str, &[(&str, &str)]) = (
-    JOHN_BIG,
-    &[
-        // OLD JOHN BIG
-        ("200", "$.person.firstName"),
-        ("201", "$.person.lastName"),
-        ("202", "$.person.phoneNumber[2].type"),
-        ("203", "$.person.spouse.person.phoneNumber.*"),
-        ("204", "$.person.spouse.person.phoneNumber[1]"),
-        ("205", "$.person.spouse.person.phoneNumber[2]"),
-        ("300", "$[1]"),
-    ],
-);
-
-pub const QUERY_BUGS: (&str, &[(&str, &str)]) = (BUGS, &[("1", "$.a..b")]);
-
-pub const QUERY_BUGS_2: (&str, &[(&str, &str)]) = (BUGS_2, &[("1", "$.b[0]")]);
-
-// ########################
-// #### Test functions ####
-// #########################
-// Run with: cargo run --bin lut --release -- test-query
-pub fn test_build_and_queries() {
-    let cutoff = 0;
-
-    // test_build_correctness(BUGS, cutoff);
-    // test_build_correctness(JOHN_BIG, cutoff);
-    // test_build_correctness(POKEMON_MINI, cutoff);
-    // test_build_correctness(GOOGLE, cutoff);
-    // test_build_correctness(WALMART, cutoff);
-    test_build_correctness(BESTBUY, cutoff);
-    // test_build_correctness(TWITTER, cutoff);
-    test_build_correctness(POKEMON_SHORT, cutoff);
-
-    test_query_correctness_count(QUERY_BUGS, cutoff);
-    test_query_correctness_count(QUERY_BUGS_2, cutoff);
-    test_query_correctness_count(QUERY_JOHN_BIG, cutoff);
-    test_query_correctness_count(QUERY_POKEMON_MINI, cutoff);
-    test_query_correctness_count(QUERY_GOOGLE, cutoff);
-    test_query_correctness_count(QUERY_TWITTER, cutoff);
-    test_query_correctness_count(QUERY_BESTBUY, cutoff);
-    test_query_correctness_count(QUERY_POKEMON_SHORT, cutoff);
-
-    // test_query_correctness_nodes(QUERY_BUGS_2, cutoff);
-}
-
-fn test_build_correctness(json_path: &str, cutoff: usize) {
-    println!("Building LUT: {}", json_path);
-    let lut = LUT::build(&json_path, cutoff).expect("Fail @ building LUT");
-    let lut_hash_map = lut_hash_map::LutHashMap::build(json_path, cutoff).expect("Fail @ building lut_hash_map");
-
-    println!("Testing keys ...");
-    let (keys, values) = pair_data::get_keys_and_values_absolute(json_path, cutoff).expect("Fail @ finding pairs.");
-    let mut count_incorrect = 0;
-    for (i, key) in keys.iter().enumerate() {
-        let found = lut.get(key).expect("Fail @ get(key) - LUT.");
-        let found_hash = lut_hash_map.get(key).expect("Fail @ get(key) - lut_hash_map.");
-        if found != values[i] {
-            count_incorrect += 1;
-            println!(
-                "  i: {}, Key {}, Found {}, Expected: {} and {}",
-                i, key, found, values[i], found_hash
-            );
-        }
-    }
-
-    println!(" Correct {}/{}", keys.len() - count_incorrect, keys.len());
-    println!(" Incorrect {}/{}", count_incorrect, keys.len());
-
-    drop(lut);
-}
-
-fn test_query_correctness_count(test_data: (&str, &[(&str, &str)]), cutoff: usize) {
-    let (json_path, queries) = test_data;
-    println!("Building LUT: {}", json_path);
-    let mut lut = LUT::build(&json_path, cutoff).expect("Fail @ building LUT");
-
-    // Run all queries
-    println!("Checking queries:");
-    for &(query_name, query_text) in queries {
-        print!(" Query: {} = \"{}\" ... ", query_name, query_text);
-        let input = {
-            let mut file = BufReader::new(fs::File::open(json_path).expect("Fail @ open File"));
-            let mut buf = vec![];
-            file.read_to_end(&mut buf).expect("Fail @ file read");
-            OwnedBytes::new(buf)
-        };
-        let query = rsonpath_syntax::parse(query_text).expect("Fail @ parse query");
-
-        // Query normally and skip iteratively (ITE)
-        // println!("---- ITE STYLE ----");
-        let mut engine = RsonpathEngine::compile_query(&query).expect("Fail @ compile query");
-        let count = engine.count(&input).expect("Failed to run query normally");
-
-        // Query normally and skip using the lookup table (LUT)
-        // println!("---- LUT STYLE ----");
-        engine.add_lut(lut);
-        let lut_count = engine.count(&input).expect("LUT: Failed to run query normally");
-
-        if lut_count != count {
-            println!("\n  Found {}, Expected {}", lut_count, count);
-        } else {
-            println!("  Correct");
-        }
-
-        lut = engine.take_lut().expect("Failed to retrieve LUT from engine");
-    }
-
-    drop(lut);
-}
-
-fn test_query_correctness_nodes(test_data: (&str, &[(&str, &str)]), cutoff: usize) {
-    let (json_path, queries) = test_data;
-    println!("Building LUT: {}", json_path);
-    let mut lut = LUT::build(&json_path, cutoff).expect("Fail @ building LUT");
-
-    // Run all queries
-    println!("Checking queries:");
-    for &(query_name, query_text) in queries {
-        println!(" Query: {} = \"{}\" ... ", query_name, query_text);
-        let input = {
-            let mut file = BufReader::new(fs::File::open(json_path).expect("Fail @ open File"));
-            let mut buf = vec![];
-            file.read_to_end(&mut buf).expect("Fail @ file read");
-            OwnedBytes::new(buf)
-        };
-        let query = rsonpath_syntax::parse(query_text).expect("Fail @ parse query");
-
-        // Query normally and skip iteratively (ITE)
-        println!("---- ITE STYLE ----");
-        let mut engine = RsonpathEngine::compile_query(&query).expect("Fail @ compile query");
-        let mut sink = vec![];
-        engine.matches(&input, &mut sink).expect("Fail @ engine matching.");
-        let results = sink
-            .into_iter()
-            .map(|m| String::from_utf8_lossy(m.bytes()).to_string())
-            .collect::<Vec<_>>();
-
-        // Print results
-        println!("ITE Results found: ");
-        for (i, result) in results.into_iter().enumerate() {
-            println!("Result {}:", i);
-            println!("{result}");
-        }
-
-        // Query normally and skip using the lookup table (LUT)
-        println!("---- LUT STYLE ----");
-        engine.add_lut(lut);
-        let mut sink_lut = vec![];
-        engine.matches(&input, &mut sink_lut).expect("Fail @ engine matching.");
-        let results_lut = sink_lut
-            .into_iter()
-            .map(|m| String::from_utf8_lossy(m.bytes()).to_string())
-            .collect::<Vec<_>>();
-
-        println!("LUT Results found: ");
-        for (i, result) in results_lut.into_iter().enumerate() {
-            println!("Result {}:", i);
-            println!("{result}");
-        }
-
-        lut = engine.take_lut().expect("Failed to retrieve LUT from engine");
-    }
-
-    std::mem::drop(lut);
-}

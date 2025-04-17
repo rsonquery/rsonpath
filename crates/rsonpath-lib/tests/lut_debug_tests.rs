@@ -11,16 +11,14 @@ use rsonpath::lookup_table::implementations::lut_hash_map::LutHashMap;
 use rsonpath::lookup_table::implementations::lut_phf_double::LutPHFDouble;
 use rsonpath::lookup_table::implementations::lut_phf_group::LutPHFGroup;
 use rsonpath::lookup_table::performance::lut_query_data::{
-    BUGS, QUERY_BESTBUY, QUERY_POKEMON_MINI, QUERY_POKEMON_SHORT, QUERY_TWITTER,
+    QUERY_BESTBUY, QUERY_POKEMON_MINI, QUERY_POKEMON_SHORT, QUERY_TWITTER,
 };
 use rsonpath::{
     engine::{Compiler, Engine, RsonpathEngine},
     input::OwnedBytes,
     lookup_table::{
         pair_data,
-        performance::lut_query_data::{
-            ALPHABET, GOOGLE, POKEMON_MINI, QUERY_BUGS, QUERY_GOOGLE, QUERY_JOHN_BIG, TWITTER_SHORT,
-        },
+        performance::lut_query_data::{GOOGLE, POKEMON_MINI, QUERY_BUGS, QUERY_GOOGLE, QUERY_JOHN_BIG, TWITTER_SHORT},
         LookUpTable, LUT,
     },
 };
@@ -70,7 +68,7 @@ fn test_build_correctness(json_name: &str, cutoff: usize) {
     let lut = LUT::build(&json_path, 0).expect("Fail @ building LUT");
 
     debug!("Testing keys ...");
-    let (keys, values) = pair_data::get_keys_and_values_absolute(json_path, cutoff).expect("Fail @ finding pairs.");
+    let (keys, values) = pair_data::get_pairs_absolute(json_path, cutoff).expect("Fail @ finding pairs.");
     let mut count_incorrect = 0;
     for (i, key) in keys.iter().enumerate() {
         let value = lut.get(key).expect("Fail at getting value.");
@@ -151,7 +149,7 @@ fn debug_lut_group_buckets() {
     let bit_mask = 3; // powers of 2 -1
     let threaded = false;
 
-    let (keys, values) = pair_data::get_keys_and_values_absolute(json_path, cutoff).expect("Fail @ finding pairs.");
+    let (keys, values) = pair_data::get_pairs_absolute(json_path, cutoff).expect("Fail @ finding pairs.");
     let lut = LutPHFGroup::build_buckets(lambda, json_path, cutoff, bit_mask, threaded).expect("Fail @ build");
 
     let mut count_correct = 0;
@@ -181,9 +179,9 @@ fn debug_lut_group_buckets() {
 fn debug_lut_phf_double() {
     let json_file = format!("../../{}", POKEMON_MINI);
     let json_path = json_file.as_str();
+    let cutoff = 0;
 
-    let (keys, values) =
-        pair_data::get_keys_and_values_absolute(json_path, DISTANCE_CUT_OFF).expect("Fail @ finding pairs.");
+    let (keys, values) = pair_data::get_pairs_absolute(json_path, cutoff).expect("Fail @ finding pairs.");
     let lut = LutPHFDouble::build(json_path, 0).expect("Fail @ building lut_phf_double");
 
     let mut count_correct = 0;

@@ -252,7 +252,7 @@ where
 /// Used to check correctness for results of LUT implementations
 /// key = position of the opening bracket, value = position of the closing bracket
 #[inline]
-pub fn get_keys_and_values_absolute(
+pub fn get_pairs_absolute(
     json_path: &str,
     cutoff: usize,
 ) -> Result<(Vec<usize>, Vec<usize>), Box<dyn std::error::Error>> {
