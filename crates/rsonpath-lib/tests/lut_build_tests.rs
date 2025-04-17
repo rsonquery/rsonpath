@@ -1,15 +1,15 @@
+use rsonpath::lookup_table::implementations::lut_hash_map::LutHashMap;
+use rsonpath::lookup_table::implementations::lut_hash_map_double::LutHashMapDouble;
+use rsonpath::lookup_table::implementations::lut_hash_map_group::LutHashMapGroup;
+use rsonpath::lookup_table::implementations::lut_perfect_naive::LutPerfectNaive;
+use rsonpath::lookup_table::implementations::lut_phf::LutPHF;
+use rsonpath::lookup_table::implementations::lut_phf_double::LutPHFDouble;
+use rsonpath::lookup_table::implementations::lut_phf_group::LutPHFGroup;
+use rsonpath::lookup_table::implementations::lut_ptr_hash_double::LutPtrHashDouble;
 use rsonpath::lookup_table::{
-    lut_hash_map::LutHashMap,
-    lut_hash_map_double::LutHashMapDouble,
-    lut_hash_map_group::LutHashMapGroup,
-    lut_perfect_naive::LutPerfectNaive,
-    lut_phf::LutPHF,
-    lut_phf_double::LutPHFDouble,
-    lut_phf_group::LutPHFGroup,
-    lut_ptr_hash_double::LutPtrHashDouble,
     pair_data,
     performance::lut_query_data::{BESTBUY_SHORT, JOHN_BIG, POKEMON_MINI, TWITTER_SHORT},
-    LookUpTable, DISTANCE_CUT_OFF,
+    LookUpTable,
 };
 
 // Macro to generate individual test functions for each (lut_type, json_file) combination
@@ -29,9 +29,8 @@ macro_rules! build_test {
     };
 }
 
-fn compare_valid(lut: &dyn LookUpTable, json_path: &str) {
-    let (keys, values) =
-        pair_data::get_keys_and_values_absolute(json_path, DISTANCE_CUT_OFF).expect("Fail @ finding pairs.");
+fn compare_valid(lut: &dyn LookUpTable, json_path: &str, cutoff: usize) {
+    let (keys, values) = pair_data::get_keys_and_values_absolute(json_path, cutoff).expect("Fail @ finding pairs.");
 
     let mut count_incorrect: u64 = 0;
     for (i, key) in keys.iter().enumerate() {

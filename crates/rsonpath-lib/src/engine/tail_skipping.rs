@@ -1,4 +1,5 @@
 #![allow(clippy::expect_used)] // Enforcing the classifier invariant is clunky without this.
+use crate::lookup_table::{SKIP_MODE, TRACK_SKIPPING_TIME_DURING_PERFORMANCE_TEST};
 use crate::{
     classification::{
         depth::{DepthBlock, DepthIterator, DepthIteratorResumeOutcome},
@@ -54,7 +55,7 @@ where
         lut: Option<&LUT>,
         padding: usize,
     ) -> Result<usize, EngineError> {
-        if lut_skip_evaluation::TRACK_SKIPPING_TIME_DURING_PERFORMANCE_TEST {
+        if TRACK_SKIPPING_TIME_DURING_PERFORMANCE_TEST {
             let start_skip = Instant::now();
             let result = self.skip_choice(idx_open, idx, bracket_type, lut, padding);
             let skip_time = start_skip.elapsed().as_nanos() as u64;
@@ -343,7 +344,7 @@ fn debug_msg(prefix: &str, idx: usize, idx_open: usize, idx_close: usize, paddin
 
 // Only for tracking jumps and not needed in normal runs
 fn track_skip(prefix: &str, distance: usize) {
-    if !(lut_skip_evaluation::SKIP_MODE == SkipMode::OFF) {
+    if !(SKIP_MODE == SkipMode::OFF) {
         debug!("{prefix}: Track distance = {distance}");
 
         if prefix == "ITE" {

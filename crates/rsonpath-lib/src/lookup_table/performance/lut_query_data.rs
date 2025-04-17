@@ -5,7 +5,6 @@ use crate::{
 };
 
 use crate::lookup_table::implementations::lut_hash_map;
-use crate::lookup_table::DISTANCE_CUT_OFF;
 use serde_json::json;
 use std::{
     fs,
@@ -259,16 +258,16 @@ pub const QUERY_BUGS_2: (&str, &[(&str, &str)]) = (BUGS_2, &[("1", "$.b[0]")]);
 // #########################
 // Run with: cargo run --bin lut --release -- test-query
 pub fn test_build_and_queries() {
-    let cutoff = DISTANCE_CUT_OFF;
+    let cutoff = 0;
 
     // test_build_correctness(BUGS, cutoff);
     // test_build_correctness(JOHN_BIG, cutoff);
     // test_build_correctness(POKEMON_MINI, cutoff);
     // test_build_correctness(GOOGLE, cutoff);
     // test_build_correctness(WALMART, cutoff);
-    // test_build_correctness(BESTBUY, cutoff);
+    test_build_correctness(BESTBUY, cutoff);
     // test_build_correctness(TWITTER, cutoff);
-    // test_build_correctness(POKEMON_SHORT, cutoff);
+    test_build_correctness(POKEMON_SHORT, cutoff);
 
     test_query_correctness_count(QUERY_BUGS, cutoff);
     test_query_correctness_count(QUERY_BUGS_2, cutoff);

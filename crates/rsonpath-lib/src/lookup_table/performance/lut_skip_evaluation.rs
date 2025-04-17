@@ -1,4 +1,4 @@
-use crate::lookup_table::{LookUpTable, LUT};
+use crate::lookup_table::{LookUpTable, LUT, REPETITIONS};
 use crate::{
     engine::{Compiler, Engine, RsonpathEngine},
     input::OwnedBytes,
@@ -14,13 +14,6 @@ use std::{
 
 use super::lut_query_data::{QUERY_BESTBUY, QUERY_GOOGLE, QUERY_POKEMON_SHORT, QUERY_TWITTER};
 use super::lut_skip_counter::COUNTER_FILE_PATH;
-
-// ##########
-// # Config #
-// ##########
-pub const SKIP_MODE: SkipMode = SkipMode::OFF;
-pub const TRACK_SKIPPING_TIME_DURING_PERFORMANCE_TEST: bool = false;
-const REPETITIONS: u64 = 1;
 
 static SKIP_TIME_ATOMIC: AtomicU64 = AtomicU64::new(0);
 

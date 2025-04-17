@@ -10,14 +10,12 @@ use crate::lookup_table::implementations::lut_hash_map::LutHashMap;
 use crate::lookup_table::implementations::lut_hash_map_group::LutHashMapGroup;
 use crate::lookup_table::implementations::lut_phf_group::LutPHFGroup;
 use crate::lookup_table::{
-    analysis::distance_distribution, pair_data, util_path, LookUpTable, LookUpTableLambda, DISTANCE_CUT_OFF,
+    analysis::distance_distribution, pair_data, util_path, LookUpTable, LookUpTableLambda, REPETITIONS,
 };
 
 /// Allocator to track how much allocations are happening during a specific time frame
 #[global_allocator]
 pub static HEAP_TRACKER: &StatsAlloc<System> = &INSTRUMENTED_SYSTEM;
-
-pub const REPETITIONS: usize = 10;
 
 /// Helper struct to reduce the number of parameters when calling functions
 pub struct EvalConfig<'a> {

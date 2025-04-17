@@ -3,6 +3,7 @@ use crate::lookup_table::implementations::lut_hash_map_double::LutHashMapDouble;
 use crate::lookup_table::implementations::lut_phf_group::LutPHFGroup;
 use crate::lookup_table::implementations::lut_ptr_hash_double::LutPtrHashDouble;
 use crate::lookup_table::implementations::lut_vfunc_double::LutVFuncDouble;
+use crate::lookup_table::performance::lut_skip_evaluation::SkipMode;
 
 pub mod analysis;
 pub mod implementations;
@@ -14,8 +15,11 @@ pub mod query_with_lut;
 pub mod sichash_test_data_generator;
 pub mod util_path;
 
-pub const DISTANCE_CUT_OFF: usize = 128;
 pub const USE_SKIP_ABORT_STRATEGY: bool = true;
+// More config for tracking skips:
+pub const SKIP_MODE: SkipMode = SkipMode::OFF;
+pub const TRACK_SKIPPING_TIME_DURING_PERFORMANCE_TEST: bool = false;
+const REPETITIONS: u64 = 1;
 
 // pub type LUT = LutHashMap;
 // pub type LUT = LutHashMapDouble;

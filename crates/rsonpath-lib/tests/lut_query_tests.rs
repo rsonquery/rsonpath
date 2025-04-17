@@ -4,7 +4,7 @@ use rsonpath::{
     input::OwnedBytes,
     lookup_table::{
         performance::lut_query_data::{QUERY_BESTBUY, QUERY_GOOGLE, QUERY_POKEMON_SHORT, QUERY_TWITTER},
-        LookUpTable, DISTANCE_CUT_OFF, LUT,
+        LookUpTable, LUT,
     },
 };
 use std::{

@@ -13,6 +13,7 @@ use super::{
     lut_skip_evaluation::{self, get_filename, SkipMode},
 };
 
+use crate::lookup_table::SKIP_MODE;
 use crate::{
     engine::{Compiler, RsonpathEngine},
     input::OwnedBytes,
@@ -43,13 +44,8 @@ fn count_test_data(test_data: (&str, &[(&str, &str)]), cutoff: usize) {
 }
 
 fn track(lut: LUT, cutoff: usize, json_path: &str, query_name: &str, query_text: &str) -> LUT {
-    if !(lut_skip_evaluation::SKIP_MODE == SkipMode::OFF) {
-        println!(
-            "Mode={:?}: Process query: {} = {}",
-            lut_skip_evaluation::SKIP_MODE,
-            query_name,
-            query_text
-        );
+    if !(SKIP_MODE == SkipMode::OFF) {
+        println!("Mode={:?}: Process query: {} = {}", SKIP_MODE, query_name, query_text);
     } else {
         println!("No tracking set. Abort.");
         return lut;
@@ -71,10 +67,10 @@ fn track(lut: LUT, cutoff: usize, json_path: &str, query_name: &str, query_text:
     print!("  COUNT = {} ", result);
 
     let filename = get_filename(json_path);
-    if lut_skip_evaluation::SKIP_MODE == SkipMode::COUNT {
+    if SKIP_MODE == SkipMode::COUNT {
         let csv_path = format!("{}{}.csv", COUNTER_FILE_PATH, filename);
         let _ = skip_tracker::save_count_to_csv(json_path, &csv_path, filename, query_name, query_text);
-    } else if lut_skip_evaluation::SKIP_MODE == SkipMode::TRACK {
+    } else if SKIP_MODE == SkipMode::TRACK {
         // Save the tracked skips to a csv
         let file_path = format!(".a_lut_tests/performance/skip_tracker/{}_{}.csv", filename, query_name);
         let save_result = skip_tracker::save_track_to_csv(&file_path);

@@ -8,6 +8,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Mutex;
 
 use crate::lookup_table::performance::lut_skip_evaluation::{self, SkipMode};
+use crate::lookup_table::SKIP_MODE;
 
 const ORDER: core::sync::atomic::Ordering = Ordering::Relaxed;
 
@@ -22,9 +23,9 @@ static LUT_DISTANCE: AtomicU64 = AtomicU64::new(0);
 static ITE_DISTANCE: AtomicU64 = AtomicU64::new(0);
 
 pub fn track_distance_lut(distance: usize) {
-    if lut_skip_evaluation::SKIP_MODE == SkipMode::COUNT {
+    if SKIP_MODE == SkipMode::COUNT {
         LUT_COUNT.fetch_add(1, Ordering::Relaxed);
-    } else if lut_skip_evaluation::SKIP_MODE == SkipMode::TRACK {
+    } else if SKIP_MODE == SkipMode::TRACK {
         let mut map = SKIP_TRACKER_LUT.lock().unwrap();
         *map.entry(distance).or_insert(0) += 1;
     }
@@ -33,9 +34,9 @@ pub fn track_distance_lut(distance: usize) {
 }
 
 pub fn track_distance_ite(distance: usize) {
-    if lut_skip_evaluation::SKIP_MODE == SkipMode::COUNT {
+    if SKIP_MODE == SkipMode::COUNT {
         ITE_COUNT.fetch_add(1, Ordering::Relaxed);
-    } else if lut_skip_evaluation::SKIP_MODE == SkipMode::TRACK {
+    } else if SKIP_MODE == SkipMode::TRACK {
         let mut map = SKIP_TRACKER_ITE.lock().unwrap();
         *map.entry(distance).or_insert(0) += 1;
     }
