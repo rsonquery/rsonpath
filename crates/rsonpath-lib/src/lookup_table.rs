@@ -16,11 +16,11 @@ pub mod sichash_test_data_generator;
 pub mod util_path;
 
 // CONFIG
-pub const USE_SKIP_ABORT_STRATEGY: bool = false;
+pub const USE_SKIP_ABORT_STRATEGY: bool = true;
 pub const SKIP_MODE: SkipMode = SkipMode::OFF;
-pub const TRACK_SKIPPING_TIME_DURING_PERFORMANCE_TEST: bool = true;
+pub const TRACK_SKIPPING_TIME_DURING_PERFORMANCE_TEST: bool = false;
 pub const REPETITIONS: u64 = 1;
-pub const QUERY_REPETITIONS: usize = 1;
+pub const QUERY_REPETITIONS: usize = 100;
 
 // pub type LUT = LutHashMap;
 // pub type LUT = LutHashMapDouble;

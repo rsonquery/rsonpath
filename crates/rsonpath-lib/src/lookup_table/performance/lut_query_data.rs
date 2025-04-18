@@ -583,23 +583,23 @@ pub const QUERY_CROSSREF4: (&str, &[(&str, &str)]) = (
 pub const QUERY_GOOGLE: (&str, &[(&str, &str)]) = (
     ".a_lut_tests/test_data/GB_1/google_map_large_record_(1.1GB).json",
     &[
-        ("0", "$[4000].routes[*].bounds"),                              // 0.999989
-        ("1", "$[*].routes[*].legs[*].steps[*].html_instructions"),     // 0.965067
-        ("2", "$[*].routes[*].legs[*].steps[*].distance.text"),         // 0.821380
-        ("3", "$[*].routes[*].legs[*].steps[*].distance"),              // 0.819461
-        ("4", "$[*].routes[*].legs[*].steps[*].maneuver"),              // 0.745787
-        ("5", "$[*].routes[*].legs[*].steps[*].start_location"),        // 0.673776
-        ("6", "$[*].routes[*].legs[*].steps[*].start_location.lat"),    // 0.665473
-        ("7", "$[1:2000].routes[*].legs[*].steps[*].polyline.points"),  // 0.654228
-        ("8", "$[*].routes[*].legs[*].steps[*].duration"),              // 0.594071
-        ("9", "$[*].routes[*].legs[*].steps[*].end_location"),          // 0.532257
-        ("10", "$[1:3000].routes[*].legs[*].steps[*].polyline.points"), // 0.467309
-        ("11", "$[*].routes[*].legs[*].steps[*]"),                      // 0.432387
-        ("12", "$[1:4000].routes[*].legs[*].steps[*].polyline.points"), // 0.269475
-        ("13", "$[*].routes[*].legs[*].steps[*].polyline"),             // 0.225161
-        ("14", "$[*].routes[*].legs[*].steps[*].polyline.points"),      // 0.173328
-        ("15", "$[*].routes[*].legs[*]..lat"),                          // 0.006689
-        ("16", "$[*]..bounds"),                                         // 0.000000
+        ("0", "$[4000].routes[*].bounds"), // 0.999989
+                                           // ("1", "$[*].routes[*].legs[*].steps[*].html_instructions"),     // 0.965067
+                                           // ("2", "$[*].routes[*].legs[*].steps[*].distance.text"),         // 0.821380
+                                           // ("3", "$[*].routes[*].legs[*].steps[*].distance"),              // 0.819461
+                                           // ("4", "$[*].routes[*].legs[*].steps[*].maneuver"),              // 0.745787
+                                           // ("5", "$[*].routes[*].legs[*].steps[*].start_location"),        // 0.673776
+                                           // ("6", "$[*].routes[*].legs[*].steps[*].start_location.lat"),    // 0.665473
+                                           // ("7", "$[1:2000].routes[*].legs[*].steps[*].polyline.points"),  // 0.654228
+                                           // ("8", "$[*].routes[*].legs[*].steps[*].duration"),              // 0.594071
+                                           // ("9", "$[*].routes[*].legs[*].steps[*].end_location"),          // 0.532257
+                                           // ("10", "$[1:3000].routes[*].legs[*].steps[*].polyline.points"), // 0.467309
+                                           // ("11", "$[*].routes[*].legs[*].steps[*]"),                      // 0.432387
+                                           // ("12", "$[1:4000].routes[*].legs[*].steps[*].polyline.points"), // 0.269475
+                                           // ("13", "$[*].routes[*].legs[*].steps[*].polyline"),             // 0.225161
+                                           // ("14", "$[*].routes[*].legs[*].steps[*].polyline.points"),      // 0.173328
+                                           // ("15", "$[*].routes[*].legs[*]..lat"),                          // 0.006689
+                                           // ("16", "$[*]..bounds"),                                         // 0.000000
     ],
 );
 

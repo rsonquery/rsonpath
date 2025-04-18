@@ -100,15 +100,15 @@ pub fn test_build_and_queries() {
     // test_query_correctness_count(QUERY_WALMART_SHORT, cutoff);
 
     // GB_1
-    test_query_correctness_count(QUERY_BESTBUY, cutoff);
-    test_query_correctness_count(QUERY_CROSSREF1, cutoff);
-    test_query_correctness_count(QUERY_CROSSREF2, cutoff);
-    test_query_correctness_count(QUERY_CROSSREF4, cutoff);
+    // test_query_correctness_count(QUERY_BESTBUY, cutoff);
+    // test_query_correctness_count(QUERY_CROSSREF1, cutoff);
+    // test_query_correctness_count(QUERY_CROSSREF2, cutoff);
+    // test_query_correctness_count(QUERY_CROSSREF4, cutoff);
     test_query_correctness_count(QUERY_GOOGLE, cutoff);
-    test_query_correctness_count(QUERY_NSPL, cutoff);
-    test_query_correctness_count(QUERY_TWITTER, cutoff);
-    test_query_correctness_count(QUERY_WALMART, cutoff);
-    test_query_correctness_count(QUERY_WIKI, cutoff);
+    // test_query_correctness_count(QUERY_NSPL, cutoff);
+    // test_query_correctness_count(QUERY_TWITTER, cutoff);
+    // test_query_correctness_count(QUERY_WALMART, cutoff);
+    // test_query_correctness_count(QUERY_WIKI, cutoff);
 
     // GB_25
     // test_query_correctness_count_big_json(QUERY_NESTED_COL, cutoff);

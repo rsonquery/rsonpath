@@ -28,7 +28,7 @@ const RESULT_CSV_PATH: &str = ".a_lut_tests/performance/skip_evaluation/";
 
 // run with: cargo run --bin lut --release -- skip
 pub fn skip_evaluation() {
-    if (SKIP_MODE != SkipMode::OFF || !TRACK_SKIPPING_TIME_DURING_PERFORMANCE_TEST) {
+    if SKIP_MODE != SkipMode::OFF || !TRACK_SKIPPING_TIME_DURING_PERFORMANCE_TEST {
         println!("Wrong paramters. Abort");
         return;
     }

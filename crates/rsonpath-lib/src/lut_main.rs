@@ -1,4 +1,5 @@
 use clap::{Parser, Subcommand};
+use rsonpath::lookup_table::performance::lut_hot::test_hotness;
 use rsonpath::lookup_table::performance::lut_query_correctness;
 use rsonpath::lookup_table::{
     analysis::{
@@ -60,6 +61,7 @@ enum Commands {
     Analysis {
         json_folder_path: String,
     },
+    Hot {},
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -107,6 +109,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
         Commands::Cutoff {} => {
             distance_cutoff_evaluation::evaluate();
+        }
+        Commands::Hot {} => {
+            test_hotness();
         }
     }
 

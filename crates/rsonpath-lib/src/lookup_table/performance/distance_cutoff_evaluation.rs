@@ -28,8 +28,9 @@ pub fn evaluate() {
         println!("Skipping mode or Strategy are not set correctly. Aborting");
         return;
     }
-    let cutoffs = vec![64, 128, 192, 256, 320, 384, 448, 512];
+    // let cutoffs = vec![64, 128, 192, 256, 320, 384, 448, 512];
     // let cutoffs = vec![64, 512, 1024, 2048, 4096, 8192];
+    let cutoffs = vec![128];
 
     // only_plot(QUERY_BESTBUY);
     // only_plot(QUERY_CROSSREF1);
@@ -38,15 +39,15 @@ pub fn evaluate() {
     // only_plot(QUERY_TWITTER);
 
     // GB_1
-    eval_all(QUERY_BESTBUY, &cutoffs);
+    // eval_all(QUERY_BESTBUY, &cutoffs);
     // eval_all(QUERY_CROSSREF1, &cutoffs);
     // eval_all(QUERY_CROSSREF2, &cutoffs);
     // eval_all(QUERY_CROSSREF4, &cutoffs);
-    // eval_all(QUERY_GOOGLE, &cutoffs);
-    eval_all(QUERY_NSPL, &cutoffs);
-    eval_all(QUERY_TWITTER, &cutoffs);
+    eval_all(QUERY_GOOGLE, &cutoffs);
+    // eval_all(QUERY_NSPL, &cutoffs);
+    // eval_all(QUERY_TWITTER, &cutoffs);
     // eval_all(QUERY_WALMART, &cutoffs);
-    eval_all(QUERY_WIKI, &cutoffs);
+    // eval_all(QUERY_WIKI, &cutoffs);
 }
 
 fn only_plot(test_data: (&str, &[(&str, &str)])) {
