@@ -1,4 +1,4 @@
-use crate::lookup_table::{LookUpTable, LUT, REPETITIONS};
+use crate::lookup_table::{LookUpTable, LUT, REPETITIONS, SKIP_MODE, TRACK_SKIPPING_TIME_DURING_PERFORMANCE_TEST};
 use crate::{
     engine::{Compiler, Engine, RsonpathEngine},
     input::OwnedBytes,
@@ -26,13 +26,18 @@ pub enum SkipMode {
 
 const RESULT_CSV_PATH: &str = ".a_lut_tests/performance/skip_evaluation/";
 
+// run with: cargo run --bin lut --release -- skip
 pub fn skip_evaluation() {
+    if (SKIP_MODE != SkipMode::OFF || !TRACK_SKIPPING_TIME_DURING_PERFORMANCE_TEST) {
+        println!("Wrong paramters. Abort");
+        return;
+    }
+
     let cutoff = 0;
 
-    eval_test_data(QUERY_GOOGLE, cutoff);
+    // eval_test_data(QUERY_GOOGLE, cutoff);
     // eval_test_data(QUERY_BESTBUY, cutoff);
-    // eval_test_data(TEST_TWITTER, cutoff);
-    // eval_test_data(QUERY_POKEMON_SHORT, cutoff);
+    eval_test_data(QUERY_TWITTER, cutoff);
 }
 
 pub fn add_skip_time(added_time: u64) {

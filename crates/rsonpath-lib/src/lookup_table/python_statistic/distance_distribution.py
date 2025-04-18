@@ -10,7 +10,7 @@ def plot_binned_frequencies(df: pd.DataFrame, directory: str, file_base_name: st
             "DataFrame should have exactly two columns: 'distance' and 'frequency'")
 
     # Build bins
-    bin_edges = [0] + [2**i for i in range(1, 41)]
+    bin_edges = [0] + [2 ** i for i in range(1, 41)]
     df['binned_distance'] = pd.cut(
         df['distance'], bins=bin_edges, right=False, include_lowest=True)
     binned_df = df.groupby('binned_distance').agg(
@@ -55,7 +55,7 @@ def plot_binned_frequencies(df: pd.DataFrame, directory: str, file_base_name: st
 
     # Save plot
     plt.tight_layout()
-    save_path = os.path.join(directory, f"{file_base_name}_plot.png")
+    save_path = os.path.join(directory, f"analysis/distance_distribution/{file_base_name}_plot.png")
     plt.savefig(save_path)
     plt.close()
 
@@ -65,7 +65,7 @@ def plot_binned_frequencies_short(df: pd.DataFrame, directory: str, file_base_na
     #     raise ValueError(
     #         "DataFrame should have exactly two columns: 'distance' and 'frequency'")
 
-    bin_edges = [0] + [2**i for i in range(1, 41)]
+    bin_edges = [0] + [2 ** i for i in range(1, 41)]
     df['binned_distance'] = pd.cut(
         df['distance'], bins=bin_edges, right=False, include_lowest=True)
     binned_df = df.groupby('binned_distance').agg(
@@ -103,7 +103,7 @@ def plot_binned_frequencies_short(df: pd.DataFrame, directory: str, file_base_na
     plt.legend()
 
     plt.tight_layout()
-    save_path = os.path.join(directory, f"{file_base_name}-short.png")
+    save_path = os.path.join(directory, f"analysis/distance_distribution_short/{file_base_name}-short.png")
     plt.savefig(save_path)
     plt.close()
 
@@ -119,8 +119,3 @@ if __name__ == "__main__":
     base_name = file_base_name.removesuffix("_distances")
     plot_binned_frequencies(df, directory, base_name)
     plot_binned_frequencies_short(df, directory, base_name)
-
-    # TODO I want to create another plot as the one in plot_binned_frequencies
-    # but I want no title and I want the x-axis labels to be 1, 2, 3, ... instead of the bin ranges
-    # also make the x-axis from 1 to 34, so stop a little earlier
-    # save this plot <name_of_the_other_plot>-short.png

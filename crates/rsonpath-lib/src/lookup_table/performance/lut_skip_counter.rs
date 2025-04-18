@@ -13,6 +13,9 @@ use super::{
     lut_skip_evaluation::{get_filename, SkipMode},
 };
 
+use crate::lookup_table::performance::lut_query_data::{
+    QUERY_CROSSREF1, QUERY_CROSSREF2, QUERY_CROSSREF4, QUERY_NSPL, QUERY_WALMART, QUERY_WIKI,
+};
 use crate::lookup_table::SKIP_MODE;
 use crate::{
     engine::{Compiler, RsonpathEngine},
@@ -23,16 +26,24 @@ use std::fs;
 
 pub const COUNTER_FILE_PATH: &str = ".a_lut_tests/performance/skip_tracker/COUNTER_";
 
+// Make sure SkipMode==COUNT
+// run with: cargo run --bin lut --release -- skip-count
 pub fn track_skips() {
     let cutoff = 0;
 
-    count_test_data(QUERY_GOOGLE, cutoff);
-    count_test_data(QUERY_BESTBUY, cutoff);
-    count_test_data(QUERY_TWITTER, cutoff);
-    // count_test_data(QUERY_POKEMON_SHORT, cutoff);
+    // GB_1
+    track_skip_count(QUERY_BESTBUY, cutoff);
+    track_skip_count(QUERY_CROSSREF1, cutoff);
+    track_skip_count(QUERY_CROSSREF2, cutoff);
+    track_skip_count(QUERY_CROSSREF4, cutoff);
+    track_skip_count(QUERY_GOOGLE, cutoff);
+    track_skip_count(QUERY_NSPL, cutoff);
+    track_skip_count(QUERY_TWITTER, cutoff);
+    track_skip_count(QUERY_WALMART, cutoff);
+    track_skip_count(QUERY_WIKI, cutoff);
 }
 
-fn count_test_data(test_data: (&str, &[(&str, &str)]), cutoff: usize) {
+fn track_skip_count(test_data: (&str, &[(&str, &str)]), cutoff: usize) {
     let (json_path, queries) = test_data;
 
     let mut lut = LUT::build(json_path, 0).expect("Fail @ building LUT");

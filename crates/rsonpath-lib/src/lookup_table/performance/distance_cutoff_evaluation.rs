@@ -7,29 +7,46 @@ use std::{
 use csv::Writer;
 use stats_alloc::Region;
 
+use super::lut_query_data;
+use crate::lookup_table::performance::lut_query_data::{
+    QUERY_BESTBUY, QUERY_CROSSREF1, QUERY_CROSSREF2, QUERY_CROSSREF4, QUERY_GOOGLE, QUERY_NSPL, QUERY_TWITTER,
+    QUERY_WALMART, QUERY_WIKI,
+};
+use crate::lookup_table::performance::lut_skip_evaluation::SkipMode;
+use crate::lookup_table::{QUERY_REPETITIONS, SKIP_MODE, USE_SKIP_ABORT_STRATEGY};
 use crate::{
     engine::{Compiler, Engine, RsonpathEngine},
     input::OwnedBytes,
     lookup_table::{performance::lut_evaluation::HEAP_TRACKER, util_path, LookUpTable, LUT},
 };
 
-use super::lut_query_data;
-
-const QUERY_REPETITIONS: usize = 3;
 const RESULTS_PATH: &str = ".a_lut_tests/performance/distance_cutoff_evaluation";
 
+// run with: cargo run --bin lut --release -- cutoff
 pub fn evaluate() {
-    let cutoffs = vec![16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192];
-    // let cutoffs = vec![64, 128, 1024, 2048];
+    if SKIP_MODE != SkipMode::OFF || !USE_SKIP_ABORT_STRATEGY {
+        println!("Skipping mode or Strategy are not set correctly. Aborting");
+        return;
+    }
+    let cutoffs = vec![64, 128, 192, 256, 320, 384, 448, 512];
+    // let cutoffs = vec![64, 512, 1024, 2048, 4096, 8192];
 
-    only_plot(lut_query_data::QUERY_GOOGLE);
-    only_plot(lut_query_data::QUERY_TWITTER);
-    only_plot(lut_query_data::QUERY_BESTBUY);
+    // only_plot(QUERY_BESTBUY);
+    // only_plot(QUERY_CROSSREF1);
+    // only_plot(QUERY_CROSSREF2);
+    // only_plot(QUERY_CROSSREF4);
+    // only_plot(QUERY_TWITTER);
 
-    // eval_all(lut_query_data::QUERY_GOOGLE, &cutoffs);
-    // eval_all(lut_query_data::QUERY_TWITTER, &cutoffs);
-    // eval_all(lut_query_data::QUERY_BESTBUY, &cutoffs);
-    // eval_all(lut_query_data::QUERY_POKEMON_SHORT, &cutoffs);
+    // GB_1
+    eval_all(QUERY_BESTBUY, &cutoffs);
+    // eval_all(QUERY_CROSSREF1, &cutoffs);
+    // eval_all(QUERY_CROSSREF2, &cutoffs);
+    // eval_all(QUERY_CROSSREF4, &cutoffs);
+    // eval_all(QUERY_GOOGLE, &cutoffs);
+    eval_all(QUERY_NSPL, &cutoffs);
+    eval_all(QUERY_TWITTER, &cutoffs);
+    // eval_all(QUERY_WALMART, &cutoffs);
+    eval_all(QUERY_WIKI, &cutoffs);
 }
 
 fn only_plot(test_data: (&str, &[(&str, &str)])) {
@@ -42,7 +59,10 @@ fn only_plot(test_data: (&str, &[(&str, &str)])) {
     let build_csv = format!("{}/{}_build_results.csv", RESULTS_PATH, filename);
     let query_csv = format!("{}/{}_query_results.csv", RESULTS_PATH, filename);
     let counter_csv_path = format!("{}/../skip_tracker/COUNTER_{}.csv", RESULTS_PATH, filename);
-    let distance_image_path = format!("{}/../distance_distribution/{}_plot.png", RESULTS_PATH, filename);
+    let distance_image_path = format!(
+        "{}/../../analysis/distance_distribution/{}_plot.png",
+        RESULTS_PATH, filename
+    );
     fs::create_dir_all(&RESULTS_PATH).expect("Could not create results directory");
 
     // Plot it with python
@@ -59,7 +79,10 @@ fn eval_all(test_data: (&str, &[(&str, &str)]), cutoffs: &Vec<usize>) {
     let build_csv = format!("{}/{}_build_results.csv", RESULTS_PATH, filename);
     let query_csv = format!("{}/{}_query_results.csv", RESULTS_PATH, filename);
     let counter_csv_path = format!("{}/../skip_tracker/COUNTER_{}.csv", RESULTS_PATH, filename);
-    let distance_image_path = format!("{}/../distance_distribution/{}_plot.png", RESULTS_PATH, filename);
+    let distance_image_path = format!(
+        "{}/../../analysis/distance_distribution/{}_plot.png",
+        RESULTS_PATH, filename
+    );
     fs::create_dir_all(&RESULTS_PATH).expect("Could not create results directory");
 
     // Write headers for the CSV files

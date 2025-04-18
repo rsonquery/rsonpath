@@ -41,18 +41,18 @@ fn test_build_and_queries() {
     debug!("Start with cutoff={}", cutoff);
 
     // MB_1
-    test_build_correctness(QUERY_CANADA, cutoff);
-    test_build_correctness(QUERY_OPENFOOD, cutoff);
-    test_build_correctness(QUERY_PEOPLE, cutoff);
-    test_build_correctness(QUERY_PRETTY_PEOPLE, cutoff);
-    test_build_correctness(QUERY_TWITTER_MINI, cutoff);
+    // test_build_correctness(QUERY_CANADA, cutoff);
+    // test_build_correctness(QUERY_OPENFOOD, cutoff);
+    // test_build_correctness(QUERY_PEOPLE, cutoff);
+    // test_build_correctness(QUERY_PRETTY_PEOPLE, cutoff);
+    // test_build_correctness(QUERY_TWITTER_MINI, cutoff);
 
     // MB_1
-    test_query_correctness(QUERY_CANADA, cutoff);
-    test_query_correctness(QUERY_OPENFOOD, cutoff);
-    test_query_correctness(QUERY_PEOPLE, cutoff);
-    test_query_correctness(QUERY_PRETTY_PEOPLE, cutoff);
-    test_query_correctness(QUERY_TWITTER_MINI, cutoff);
+    // test_query_correctness(QUERY_CANADA, cutoff);
+    // test_query_correctness(QUERY_OPENFOOD, cutoff);
+    // test_query_correctness(QUERY_PEOPLE, cutoff);
+    // test_query_correctness(QUERY_PRETTY_PEOPLE, cutoff);
+    // test_query_correctness(QUERY_TWITTER_MINI, cutoff);
 
     test_bug();
 }

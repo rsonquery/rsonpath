@@ -172,7 +172,6 @@ where
 
                 'outer: while let Some(ref mut vector) = current_vector {
                     if track_skipped_distance {
-                        skipped_distance = skipped_distance + BLOCK_SIZE;
                         if skipped_distance > lut.get_cutoff() {
                             // Check if the LUT has a hit
                             if let Some(lut_result) = lut.get(&idx_open_no_pad) {
@@ -189,6 +188,7 @@ where
                                 track_skipped_distance = false;
                             }
                         }
+                     skipped_distance = skipped_distance + BLOCK_SIZE;
                     }
 
                     vector.add_depth(current_depth);

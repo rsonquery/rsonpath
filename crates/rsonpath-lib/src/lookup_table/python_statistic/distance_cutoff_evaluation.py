@@ -21,9 +21,9 @@ def plot_all(build_csv_path: str, query_csv_path: str, counter_csv_path: str, to
     build_df = pd.read_csv(build_csv_path)
     counter_df = pd.read_csv(counter_csv_path)
 
-    cutoffs = [0, 1, 128]
-    query_df = query_df[query_df["CUTOFF"].isin(cutoffs)]
-    build_df = build_df[build_df["CUTOFF"].isin(cutoffs)]
+#     cutoffs = [0, 1, 128]
+#     query_df = query_df[query_df["CUTOFF"].isin(cutoffs)]
+#     build_df = build_df[build_df["CUTOFF"].isin(cutoffs)]
 
     # Sort counter_df by TOTAL_PERCENT_SKIP & filter relevant query names
     counter_df = counter_df.sort_values(

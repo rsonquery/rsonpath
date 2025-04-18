@@ -20,6 +20,7 @@ use crate::{
 pub const DISTANCE_EVAL_DIR: &str = "distance_distribution";
 
 /// Count the distances for each json file of the given directory
+// Run with e.g. cargo run --bin lut --release -- distances .a_lut_tests/test_data/GB_1 .a_lut_tests
 #[inline]
 pub fn count_distances_in_dir(json_dir_path: &str, result_dir: &str) {
     let dir = fs::read_dir(json_dir_path).expect("Failed to read directory");
