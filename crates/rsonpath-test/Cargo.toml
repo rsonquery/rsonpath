@@ -19,7 +19,7 @@ serde_json = { workspace = true }
 
 [dev-dependencies]
 pretty_assertions = { workspace = true }
-rsonpath-lib = { workspace = true }
+rsonpath-lib = { workspace = true, features = ["simd"] }
 rsonpath-syntax = { workspace = true }
 
 [build-dependencies]
