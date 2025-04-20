@@ -21,7 +21,11 @@ use super::{
     padding::PaddedBlock,
     Input, SliceSeekable, MAX_BLOCK_SIZE,
 };
-use crate::{input::padding::EndPaddedInput, result::InputRecorder, string_pattern::StringPattern};
+use crate::{
+    input::padding::EndPaddedInput,
+    result::InputRecorder,
+    string_pattern::{matcher::StringPatternMatcher, StringPattern},
+};
 use memmap2::{Mmap, MmapAsRawDesc};
 
 /// Input wrapping a memory mapped file.
@@ -161,19 +165,53 @@ impl Input for MmapInput {
     }
 
     #[inline]
-    fn is_member_match(&self, from: usize, to: usize, member: &StringPattern) -> Result<bool, Self::Error> {
-        debug_assert!(from < to);
+    fn pattern_match_from<M: StringPatternMatcher>(
+        &self,
+        from: usize,
+        pattern: &StringPattern,
+    ) -> Result<Option<usize>, Self::Error> {
+        let pessimistic_to = from + pattern.len_limit();
+        // The hot path is when we're checking fully within the middle section.
+        // This has to be as fast as possible, so the "cold" path referring to the TwoSidesPaddedInput
+        // impl is explicitly marked with #[cold].
+        if pessimistic_to < self.last_block_start {
+            // This is the hot path -- do the bounds check and memcmp.
+            let bytes = &self.mmap;
+            let slice = &bytes[from..pessimistic_to];
+            if let Some(idx) = M::pattern_match_forward(pattern, slice) {
+                Ok((from == 0 || bytes[from - 1] != b'\\').then_some(idx + from))
+            } else {
+                Ok(None)
+            }
+        } else {
+            // This is a very expensive, cold path.
+            Ok(self.as_padded_input().pattern_match_from::<M>(from, pattern))
+        }
+    }
+
+    #[inline]
+    fn pattern_match_to<M: StringPatternMatcher>(
+        &self,
+        to: usize,
+        pattern: &StringPattern,
+    ) -> Result<Option<usize>, Self::Error> {
+        let pessimistic_from = to.saturating_sub(pattern.len_limit());
         // The hot path is when we're checking fully within the middle section.
         // This has to be as fast as possible, so the "cold" path referring to the TwoSidesPaddedInput
         // impl is explicitly marked with #[cold].
         if to < self.last_block_start {
             // This is the hot path -- do the bounds check and memcmp.
             let bytes = &self.mmap;
-            let slice = &bytes[from..to];
-            Ok(member.quoted() == slice && (from == 0 || bytes[from - 1] != b'\\'))
+            let slice = &bytes[pessimistic_from..to];
+            if let Some(idx) = M::pattern_match_backward(pattern, slice) {
+                let in_bytes_idx = pessimistic_from + idx;
+                Ok((in_bytes_idx == 0 || bytes[in_bytes_idx - 1] != b'\\').then_some(in_bytes_idx))
+            } else {
+                Ok(None)
+            }
         } else {
             // This is a very expensive, cold path.
-            Ok(self.as_padded_input().is_member_match(from, to, member))
+            Ok(self.as_padded_input().pattern_match_to::<M>(to, pattern))
         }
     }
 }

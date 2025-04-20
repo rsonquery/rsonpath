@@ -1,9 +1,6 @@
 //! Engine decorator that performs **head skipping** &ndash; an extremely optimized search for
 //! the first matching member name in a query starting with a self-looping state.
 //! This happens in queries starting with a descendant selector.
-
-use std::sync::Arc;
-
 use crate::{
     automaton::{Automaton, State},
     classification::{
@@ -68,7 +65,7 @@ pub(super) struct HeadSkip<'b, I, V, const N: usize> {
     bytes: &'b I,
     state: State,
     is_accepting: bool,
-    member_name: Arc<StringPattern>,
+    member_pattern: &'b StringPattern,
     simd: V,
 }
 
@@ -95,7 +92,7 @@ impl<'b, I: Input, V: Simd> HeadSkip<'b, I, V, BLOCK_SIZE> {
     /// extremely quickly with [`classification::memmem`](crate::classification::memmem).
     ///
     /// In all other cases, head-skipping is not supported.
-    pub(super) fn new(bytes: &'b I, automaton: &Automaton, simd: V) -> Option<Self> {
+    pub(super) fn new(bytes: &'b I, automaton: &'b Automaton, simd: V) -> Option<Self> {
         let initial_state = automaton.initial_state();
         let fallback_state = automaton[initial_state].fallback_state();
         let transitions = automaton[initial_state].member_transitions();
@@ -104,13 +101,13 @@ impl<'b, I: Input, V: Simd> HeadSkip<'b, I, V, BLOCK_SIZE> {
             && transitions.len() == 1
             && automaton[initial_state].array_transitions().is_empty()
         {
-            let (member_name, target_state) = &transitions[0];
+            let (member_pattern, target_state) = &transitions[0];
             debug!("Automaton starts with a descendant search, using memmem heuristic.");
             return Some(Self {
                 bytes,
                 state: *target_state,
                 is_accepting: automaton.is_accepting(*target_state),
-                member_name: member_name.clone(),
+                member_pattern: member_pattern.as_ref(),
                 simd,
             });
         }
@@ -143,20 +140,21 @@ impl<'b, I: Input, V: Simd> HeadSkip<'b, I, V, BLOCK_SIZE> {
                 let mut memmem = head_skip.simd.memmem(head_skip.bytes, &mut input_iter);
                 debug!("Starting memmem search from {idx}");
 
-                if let Some((starting_quote_idx, last_block)) = memmem.find_label(first_block, idx, head_skip.member_name.as_ref())? {
+                if let Some((starting_quote_idx, ending_quote_idx, last_block)) = memmem.find_label(first_block, idx, head_skip.member_pattern)? {
                     drop(memmem);
 
                     first_block = Some(last_block);
                     idx = starting_quote_idx;
                     debug!("Needle found at {idx}");
-                    let seek_start_idx = idx + head_skip.member_name.quoted().len();
+                    let seek_start_idx = ending_quote_idx + 1;
+                    debug!("Seeking from {seek_start_idx}");
 
-                match head_skip.bytes.seek_non_whitespace_forward(seek_start_idx).e()? {
-                    Some((colon_idx, b':')) => {
-                        let (next_idx, next_c) = head_skip
-                            .bytes
-                            .seek_non_whitespace_forward(colon_idx + 1).e()?
-                            .ok_or(EngineError::MissingItem())?;
+                    match head_skip.bytes.seek_non_whitespace_forward(seek_start_idx).e()? {
+                        Some((colon_idx, b':')) => {
+                            let (next_idx, next_c) = head_skip
+                                .bytes
+                                .seek_non_whitespace_forward(colon_idx + 1).e()?
+                                .ok_or(EngineError::MissingItem())?;
 
                             let ResumedQuoteClassifier {
                                 classifier: quote_classifier,
@@ -214,6 +212,9 @@ impl<'b, I: Input, V: Simd> HeadSkip<'b, I, V, BLOCK_SIZE> {
                                 }
                             }
 
+                            debug!("is accepting? {}", head_skip.is_accepting);
+                            debug!("next_c is {next_c}");
+
                             classifier_state = match next_c {
                                 b'{' | b'[' => {
                                     debug!("resuming");
@@ -234,6 +235,7 @@ impl<'b, I: Input, V: Simd> HeadSkip<'b, I, V, BLOCK_SIZE> {
                                         .0
                                 }
                                 _ if head_skip.is_accepting => {
+                                    debug!("recording atomic match at {next_idx}");
                                     engine.recorder().record_match(
                                         next_idx,
                                         Depth::ZERO,

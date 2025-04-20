@@ -3,7 +3,7 @@
 use crate::{
     input::{error::InputError, Input},
     result::InputRecorder,
-    string_pattern::StringPattern,
+    string_pattern::{matcher::StringPatternMatcher, StringPattern},
     BLOCK_SIZE,
 };
 
@@ -16,6 +16,11 @@ pub trait Memmem<'i, 'b, 'r, I: Input, const N: usize> {
     /// - `start_idx` &ndash; index of the start of search, either falling inside `first_block`,
     ///   or at the start of the next block.
     ///
+    /// # Returns
+    /// None if there was nno match.
+    /// Otherwise, `Some((i, j, block))` where `i` and `j` delimit the match exactly,
+    /// and `block` is the input block in which the start of the match occured.
+    ///
     /// # Errors
     /// Errors when reading the underlying [`Input`] are propagated.
     fn find_label(
@@ -23,7 +28,7 @@ pub trait Memmem<'i, 'b, 'r, I: Input, const N: usize> {
         first_block: Option<I::Block<'i, N>>,
         start_idx: usize,
         label: &StringPattern,
-    ) -> Result<Option<(usize, I::Block<'i, N>)>, InputError>;
+    ) -> Result<Option<(usize, usize, I::Block<'i, N>)>, InputError>;
 }
 
 pub(crate) mod nosimd;
@@ -39,19 +44,21 @@ pub(crate) mod sse2_32;
 pub(crate) mod sse2_64;
 
 pub(crate) trait MemmemImpl {
-    type Classifier<'i, 'b, 'r, I, R>: Memmem<'i, 'b, 'r, I, BLOCK_SIZE>
+    type Classifier<'i, 'b, 'r, I, SM, R>: Memmem<'i, 'b, 'r, I, BLOCK_SIZE>
     where
         I: Input + 'i,
+        SM: StringPatternMatcher,
         <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>: 'b,
         R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>> + 'r,
         'i: 'r;
 
-    fn memmem<'i, 'b, 'r, I, R>(
+    fn memmem<'i, 'b, 'r, I, SM, R>(
         input: &'i I,
         iter: &'b mut <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>,
-    ) -> Self::Classifier<'i, 'b, 'r, I, R>
+    ) -> Self::Classifier<'i, 'b, 'r, I, SM, R>
     where
         I: Input,
+        SM: StringPatternMatcher,
         R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>>,
         'i: 'r;
 }

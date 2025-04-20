@@ -663,10 +663,10 @@ where
         }
     }
 
-    /// Check if the label ended with a colon at index `idx` matches the `member_name`.
+    /// Check if the label ended with a colon at index `idx` matches the `pattern`.
     #[inline(always)]
-    fn is_match(&self, idx: usize, member_name: &StringPattern) -> Result<bool, EngineError> {
-        let len = member_name.quoted().len();
+    fn is_match(&self, idx: usize, pattern: &StringPattern) -> Result<bool, EngineError> {
+        let len = pattern.quoted().len();
 
         // The colon can be preceded by whitespace before the actual label.
         let closing_quote_idx = match self.input.seek_backward(idx - 1, b'"') {
@@ -680,9 +680,9 @@ where
         }
 
         // Do the expensive memcmp.
-        let start_idx = closing_quote_idx + 1 - len;
         self.input
-            .is_member_match(start_idx, closing_quote_idx + 1, member_name)
+            .pattern_match_to::<V::StringPatternMatcher>(closing_quote_idx + 1, pattern)
+            .map(|x| x.is_some())
             .map_err(|x| x.into().into())
     }
 

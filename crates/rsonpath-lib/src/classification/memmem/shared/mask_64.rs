@@ -1,32 +1,36 @@
 use crate::{
-    debug,
     input::{
         error::{InputError, InputErrorConvertible},
         Input,
     },
-    string_pattern::StringPattern,
+    string_pattern::{matcher::StringPatternMatcher, StringPattern},
 };
 
 #[inline(always)]
-pub(crate) fn find_in_mask<I: Input>(
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn find_in_mask<I: Input, SM: StringPatternMatcher>(
     input: &I,
-    label: &StringPattern,
-    previous_block: u64,
+    pattern: &StringPattern,
+    previous_slash: u64,
+    previous_quote: u64,
+    previous_first: u64,
     first: u64,
     second: u64,
+    slash: u64,
+    quotes: u64,
     offset: usize,
-) -> Result<Option<usize>, InputError> {
-    let label_size = label.quoted().len();
-    let mut result = (previous_block | (first << 1)) & second;
+) -> Result<Option<(usize, usize)>, InputError> {
+    let slash_override = previous_slash | (slash << 1) | slash;
+    let first_mask = (first << 1) | previous_first;
+    let quote_mask = (quotes << 2) | previous_quote;
+    let character_mask = first_mask & second & quote_mask;
+    let mut result = slash_override | character_mask;
     while result != 0 {
         let idx = result.trailing_zeros() as usize;
-        debug!("{offset} + {idx} - 2 to {offset} + {idx} + {label_size} - 3");
-        if offset + idx > 1
-            && input
-                .is_member_match(offset + idx - 2, offset + idx + label_size - 2, label)
-                .e()?
-        {
-            return Ok(Some(offset + idx - 2));
+        if offset + idx > 1 {
+            if let Some(to) = input.pattern_match_from::<SM>(offset + idx - 2, pattern).e()? {
+                return Ok(Some((offset + idx - 2, to)));
+            }
         }
         result &= !(1 << idx);
     }
