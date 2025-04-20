@@ -247,7 +247,8 @@ impl StringPatternMatcher for Avx2StringMatcher64 {
                         }
                         // Fallthrough to alt match.
                     }
-                    64.. => {
+                    _ => {
+                        // >= 64
                         let rem_vec = _mm256_loadu_si256(rem_ptr.cast());
                         let in_vec = _mm256_loadu_si256(in_ptr.cast());
                         let cmpeq = _mm256_cmpeq_epi8(rem_vec, in_vec);

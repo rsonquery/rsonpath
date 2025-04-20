@@ -46,7 +46,7 @@ where
     phantom: PhantomData<SM>,
 }
 
-impl<'i, 'b, 'r, I, SM, R, const N: usize> SequentialMemmemClassifier<'i, 'b, 'r, I, SM, R, N>
+impl<'i, 'r, I, SM, R, const N: usize> SequentialMemmemClassifier<'i, '_, 'r, I, SM, R, N>
 where
     I: Input,
     SM: StringPatternMatcher,
