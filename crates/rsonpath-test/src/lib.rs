@@ -177,6 +177,10 @@ pub fn read_and_tag<P: AsRef<Path>>(path: P) -> Result<Vec<TaggedTestCase>, io::
         "excessively large from value with negative step",
         "excessively small to value with negative step",
         "excessively small step",
+        "min exact index",
+        "start, min exact",
+        "end, min exact",
+        "negative from, negative to, positive step",
     ];
     for test in tests {
         collection.add_special_case_tag(test, Tag::IndexingFromEnd);
@@ -190,6 +194,7 @@ pub fn read_and_tag<P: AsRef<Path>>(path: P) -> Result<Vec<TaggedTestCase>, io::
         "larger negative step",
         "negative step with empty array",
         "maximal range with negative step",
+        "step, min exact",
     ];
     for test in tests {
         collection.add_special_case_tag(test, Tag::BackwardStep);
@@ -222,6 +227,12 @@ pub fn read_and_tag<P: AsRef<Path>>(path: P) -> Result<Vec<TaggedTestCase>, io::
     ];
     for test in tests {
         collection.add_special_case_tag(test, Tag::StrictDescendantOrder);
+    }
+
+    // Tests that contain functions.
+    let tests = ["equals, empty node list and special nothing"];
+    for test in tests {
+        collection.add_special_case_tag(test, Tag::Function);
     }
 
     Ok(collection.get())
