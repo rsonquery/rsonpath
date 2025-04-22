@@ -57,7 +57,7 @@ jobs:
           - x86_64-pc-windows-msvc
           - x86_64-unknown-linux-gnu
         include:
-          - os: [self-hosted, linux, ARM64]
+          - os: ubuntu-24.04-arm
             target_triple: aarch64-unknown-linux-gnu
             rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
           - os: ubuntu-latest
@@ -116,7 +116,7 @@ jobs:
         with:
           submodules: true
       - name: Install lld (Unix)
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest' || matrix.os == 'ubuntu-24.04-arm'
         run: sudo apt install lld
       - name: Install Rust toolchain (stable)
         uses: dtolnay/rust-toolchain@56f84321dbccf38fb67ce29ab63e4754056677e0 # stable
