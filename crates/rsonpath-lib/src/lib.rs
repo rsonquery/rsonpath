@@ -148,7 +148,7 @@ pub mod input;
 pub mod result;
 pub(crate) mod string_pattern;
 
-pub use string_pattern::StringPattern;
+pub use string_pattern::{matcher::nosimd::NosimdStringMatcher as DefaultStringMatcher, StringPattern};
 
 cfg_if::cfg_if! {
     if #[cfg(target_pointer_width = "32")] {

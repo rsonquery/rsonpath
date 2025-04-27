@@ -24,7 +24,10 @@ use super::{
     padding::{PaddedBlock, TwoSidesPaddedInput},
     Input, SliceSeekable, MAX_BLOCK_SIZE,
 };
-use crate::{result::InputRecorder, string_pattern::StringPattern};
+use crate::{
+    result::InputRecorder,
+    string_pattern::{matcher::StringPatternMatcher, StringPattern},
+};
 use std::borrow::Borrow;
 
 /// Input wrapping a buffer borrowable as a slice of bytes.
@@ -159,12 +162,34 @@ where
     }
 
     #[inline]
-    fn is_member_match(&self, from: usize, to: usize, member: &StringPattern) -> Result<bool, Self::Error> {
+    fn pattern_match_from<M: StringPatternMatcher>(
+        &self,
+        from: usize,
+        pattern: &StringPattern,
+    ) -> Result<Option<usize>, Self::Error> {
         let offset = self.leading_padding_len();
         let Some(from) = from.checked_sub(offset) else {
-            return Ok(false);
+            return Ok(None);
         };
 
-        Ok(self.bytes.borrow().is_member_match(from, to - offset, member))
+        Ok(self
+            .bytes
+            .borrow()
+            .pattern_match_from::<M>(from, pattern)
+            .map(|x| x + offset))
+    }
+
+    #[inline]
+    fn pattern_match_to<M: StringPatternMatcher>(
+        &self,
+        to: usize,
+        pattern: &StringPattern,
+    ) -> Result<Option<usize>, Self::Error> {
+        let offset = self.leading_padding_len();
+        Ok(self
+            .bytes
+            .borrow()
+            .pattern_match_to::<M>(to - offset, pattern)
+            .map(|x| x + offset))
     }
 }

@@ -1,15 +1,31 @@
 use super::SliceSeekable;
-use crate::string_pattern::StringPattern;
+use crate::string_pattern::{matcher::StringPatternMatcher, StringPattern};
+use std::cmp;
 
 impl<T: AsRef<[u8]>> SliceSeekable for T {
-    fn is_member_match(&self, from: usize, to: usize, member: &StringPattern) -> bool {
+    fn pattern_match_from<M: StringPatternMatcher>(&self, from: usize, pattern: &StringPattern) -> Option<usize> {
         let bytes = self.as_ref();
+        let to = from + pattern.len_limit();
 
-        if to > bytes.len() {
-            return false;
+        if from >= bytes.len() {
+            return None;
         }
+
+        let slice = &bytes[from..cmp::min(to, bytes.len())];
+        let res = M::pattern_match_forward(pattern, slice)?;
+
+        (from == 0 || bytes[from - 1] != b'\\').then_some(from + res)
+    }
+
+    fn pattern_match_to<M: StringPatternMatcher>(&self, to: usize, pattern: &StringPattern) -> Option<usize> {
+        let bytes = self.as_ref();
+        let from = to.saturating_sub(pattern.len_limit());
+
         let slice = &bytes[from..to];
-        member.quoted() == slice && (from == 0 || bytes[from - 1] != b'\\')
+        let idx = M::pattern_match_backward(pattern, slice)?;
+        let in_bytes_idx = from + idx;
+
+        (in_bytes_idx == 0 || bytes[in_bytes_idx - 1] != b'\\').then_some(in_bytes_idx)
     }
 
     fn seek_backward(&self, from: usize, needle: u8) -> Option<usize> {
@@ -308,9 +324,11 @@ mod tests {
         }
     }
 
-    mod is_member_match {
-        use crate::input::SliceSeekable;
-        use crate::string_pattern::StringPattern;
+    mod pattern_match_from {
+        use crate::{
+            input::SliceSeekable,
+            string_pattern::{matcher::nosimd::NosimdStringMatcher, StringPattern},
+        };
         use pretty_assertions::assert_eq;
         use rsonpath_syntax::str::JsonString;
 
@@ -318,27 +336,30 @@ mod tests {
         fn on_exact_match_returns_true() {
             let bytes = r#"{"needle":42,"other":37}"#.as_bytes();
 
-            let result = bytes.is_member_match(1, 9, &StringPattern::new(&JsonString::new("needle")));
+            let result =
+                bytes.pattern_match_from::<NosimdStringMatcher>(1, &StringPattern::new(&JsonString::new("needle")));
 
-            assert_eq!(result, true);
+            assert_eq!(result, Some(8));
         }
 
         #[test]
         fn matching_without_double_quotes_returns_false() {
             let bytes = r#"{"needle":42,"other":37}"#.as_bytes();
 
-            let result = bytes.is_member_match(2, 8, &StringPattern::new(&JsonString::new("needle")));
+            let result =
+                bytes.pattern_match_from::<NosimdStringMatcher>(2, &StringPattern::new(&JsonString::new("needle")));
 
-            assert_eq!(result, false);
+            assert_eq!(result, None);
         }
 
         #[test]
         fn when_match_is_partial_due_to_escaped_double_quote_returns_false() {
             let bytes = r#"{"fake\"needle":42,"other":37}"#.as_bytes();
 
-            let result = bytes.is_member_match(7, 15, &StringPattern::new(&JsonString::new("needle")));
+            let result =
+                bytes.pattern_match_from::<NosimdStringMatcher>(7, &StringPattern::new(&JsonString::new("needle")));
 
-            assert_eq!(result, false);
+            assert_eq!(result, None);
         }
 
         #[test]
@@ -346,9 +367,10 @@ mod tests {
         fn when_looking_for_string_with_escaped_double_quote_returns_true() {
             let bytes = r#"{"fake\"needle":42,"other":37}"#.as_bytes();
 
-            let result = bytes.is_member_match(1, 15, &StringPattern::new(&JsonString::new(r#"fake"needle"#)));
+            let result = bytes
+                .pattern_match_from::<NosimdStringMatcher>(1, &StringPattern::new(&JsonString::new(r#"fake"needle"#)));
 
-            assert_eq!(result, true);
+            assert_eq!(result, Some(15));
         }
     }
 }

@@ -2,7 +2,7 @@ use pretty_assertions::assert_eq;
 use rsonpath::{
     input::{error::InputError, *},
     result::empty::EmptyRecorder,
-    StringPattern,
+    DefaultStringMatcher, StringPattern,
 };
 use std::{cmp, fs, fs::File, io::Read, iter};
 use test_case::test_case;
@@ -261,10 +261,12 @@ impl InMemoryTestInput {
     fn test_positive_is_member_match_buffered(bytes: &[u8], from: usize, to: usize, json_string: &StringPattern) {
         let input = create_buffered(bytes);
 
-        let result = input.is_member_match(from, to, json_string).expect("match succeeds");
+        let result = input
+            .pattern_match_from::<DefaultStringMatcher>(from, json_string)
+            .expect("match succeeds");
         // Buffered is never padded from the start.
 
-        assert!(result);
+        assert_eq!(result, Some(to - 1));
     }
 
     fn test_positive_is_member_match_borrowed(bytes: &[u8], from: usize, to: usize, json_string: &StringPattern) {
@@ -273,9 +275,11 @@ impl InMemoryTestInput {
         // Need to take padding into account.
         let from = from + input.leading_padding_len();
         let to = to + input.leading_padding_len();
-        let result = input.is_member_match(from, to, json_string).expect("match succeeds");
+        let result = input
+            .pattern_match_from::<DefaultStringMatcher>(from, json_string)
+            .expect("match succeeds");
 
-        assert!(result);
+        assert_eq!(result, Some(to - 1));
     }
 
     fn test_positive_is_member_match_owned(bytes: &[u8], from: usize, to: usize, json_string: &StringPattern) {
@@ -284,9 +288,11 @@ impl InMemoryTestInput {
         // Need to take padding into account.
         let from = from + input.leading_padding_len();
         let to = to + input.leading_padding_len();
-        let result = input.is_member_match(from, to, json_string).expect("match succeeds");
+        let result = input
+            .pattern_match_from::<DefaultStringMatcher>(from, json_string)
+            .expect("match succeeds");
 
-        assert!(result);
+        assert_eq!(result, Some(to - 1));
     }
 
     fn test_padding_buffered(bytes: &[u8]) {

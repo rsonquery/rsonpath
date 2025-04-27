@@ -3,60 +3,69 @@ use crate::{
     classification::mask::m32,
     input::{error::InputErrorConvertible, InputBlock, InputBlockIterator},
 };
+use std::marker::PhantomData;
 
 const SIZE: usize = 32;
 
 pub(crate) struct Constructor;
 
 impl MemmemImpl for Constructor {
-    type Classifier<'i, 'b, 'r, I, R>
-        = Sse2MemmemClassifier32<'i, 'b, 'r, I, R>
+    type Classifier<'i, 'b, 'r, I, SM, R>
+        = Sse2MemmemClassifier32<'i, 'b, 'r, I, SM, R>
     where
         I: Input + 'i,
+        SM: StringPatternMatcher,
         <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>: 'b,
         R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>> + 'r,
         'i: 'r;
 
-    fn memmem<'i, 'b, 'r, I, R>(
+    fn memmem<'i, 'b, 'r, I, SM, R>(
         input: &'i I,
         iter: &'b mut <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>,
-    ) -> Self::Classifier<'i, 'b, 'r, I, R>
+    ) -> Self::Classifier<'i, 'b, 'r, I, SM, R>
     where
         I: Input,
+        SM: StringPatternMatcher,
         R: InputRecorder<<I as Input>::Block<'i, BLOCK_SIZE>>,
         'i: 'r,
     {
-        Self::Classifier { input, iter }
+        Self::Classifier::new(input, iter)
     }
 }
 
-pub(crate) struct Sse2MemmemClassifier32<'i, 'b, 'r, I, R>
+pub(crate) struct Sse2MemmemClassifier32<'i, 'b, 'r, I, SM, R>
 where
     I: Input,
     R: InputRecorder<I::Block<'i, SIZE>> + 'r,
 {
     input: &'i I,
     iter: &'b mut I::BlockIterator<'i, 'r, R, SIZE>,
+    phantom_data: PhantomData<SM>,
 }
 
-impl<'i, 'b, 'r, I, R> Sse2MemmemClassifier32<'i, 'b, 'r, I, R>
+impl<'i, 'b, 'r, I, SM, R> Sse2MemmemClassifier32<'i, 'b, 'r, I, SM, R>
 where
     I: Input,
+    SM: StringPatternMatcher,
     R: InputRecorder<I::Block<'i, SIZE>>,
     'i: 'r,
 {
     #[inline]
     #[allow(dead_code)]
     pub(crate) fn new(input: &'i I, iter: &'b mut I::BlockIterator<'i, 'r, R, SIZE>) -> Self {
-        Self { input, iter }
+        Self {
+            input,
+            iter,
+            phantom_data: PhantomData,
+        }
     }
 
     #[inline(always)]
     unsafe fn find_empty(
         &mut self,
-        label: &StringPattern,
+        pattern: &StringPattern,
         mut offset: usize,
-    ) -> Result<Option<(usize, I::Block<'i, SIZE>)>, InputError> {
+    ) -> Result<Option<(usize, usize, I::Block<'i, SIZE>)>, InputError> {
         let classifier = vector_128::BlockClassifier128::new(b'"', b'"');
         let mut previous_block: u32 = 0;
 
@@ -71,12 +80,8 @@ where
             let mut result = (previous_block | (first_bitmask << 1)) & second_bitmask;
             while result != 0 {
                 let idx = result.trailing_zeros() as usize;
-                if self
-                    .input
-                    .is_member_match(offset + idx - 1, offset + idx + 1, label)
-                    .e()?
-                {
-                    return Ok(Some((offset + idx - 1, block)));
+                if let Some(to) = self.input.pattern_match_from::<SM>(offset + idx - 1, pattern).e()? {
+                    return Ok(Some((offset + idx - 1, to, block)));
                 }
                 result &= !(1 << idx);
             }
@@ -94,11 +99,13 @@ where
     #[inline(always)]
     unsafe fn find_letter(
         &mut self,
-        label: &StringPattern,
+        pattern: &StringPattern,
         mut offset: usize,
-    ) -> Result<Option<(usize, I::Block<'i, SIZE>)>, InputError> {
-        let classifier = vector_128::BlockClassifier128::new(label.unquoted()[0], b'"');
-        let mut previous_block: u32 = 0;
+    ) -> Result<Option<(usize, usize, I::Block<'i, SIZE>)>, InputError> {
+        let classifier = vector_128::BlockClassifier128::new(pattern.unquoted()[0], b'"');
+        let mut previous_slash: u32 = 0;
+        let mut previous_first: u32 = 0;
+        let mut previous_quote: u32 = 0;
 
         while let Some(block) = self.iter.next().e()? {
             let (block1, block2) = block.halves();
@@ -107,15 +114,28 @@ where
 
             let first_bitmask = m32::combine_16(classified1.first, classified2.first);
             let second_bitmask = m32::combine_16(classified1.second, classified2.second);
+            let slash_bitmask = m32::combine_16(classified1.slashes, classified2.slashes);
+            let quote_bitmask = m32::combine_16(classified1.quotes, classified2.quotes);
 
-            if let Some(res) =
-                mask_32::find_in_mask(self.input, label, previous_block, first_bitmask, second_bitmask, offset)?
-            {
-                return Ok(Some((res, block)));
+            if let Some((from, to)) = mask_32::find_in_mask::<_, SM>(
+                self.input,
+                pattern,
+                previous_slash,
+                previous_quote,
+                previous_first,
+                first_bitmask,
+                second_bitmask,
+                slash_bitmask,
+                quote_bitmask,
+                offset,
+            )? {
+                return Ok(Some((from, to, block)));
             }
 
             offset += SIZE;
-            previous_block = first_bitmask >> (SIZE - 1);
+            previous_slash = (slash_bitmask & (quote_bitmask << 1)) >> (SIZE - 1);
+            previous_first = (first_bitmask & (quote_bitmask << 1)) >> (SIZE - 1);
+            previous_quote = quote_bitmask >> (SIZE - 2);
         }
 
         Ok(None)
@@ -124,17 +144,19 @@ where
     #[inline(always)]
     unsafe fn find_label_sse2(
         &mut self,
-        label: &StringPattern,
+        pattern: &StringPattern,
         mut offset: usize,
-    ) -> Result<Option<(usize, I::Block<'i, SIZE>)>, InputError> {
-        if label.unquoted().is_empty() {
-            return self.find_empty(label, offset);
-        } else if label.unquoted().len() == 1 {
-            return self.find_letter(label, offset);
+    ) -> Result<Option<(usize, usize, I::Block<'i, SIZE>)>, InputError> {
+        if pattern.unquoted().is_empty() {
+            return self.find_empty(pattern, offset);
+        } else if pattern.unquoted().len() == 1 {
+            return self.find_letter(pattern, offset);
         }
 
-        let classifier = vector_128::BlockClassifier128::new(label.unquoted()[0], label.unquoted()[1]);
-        let mut previous_block: u32 = 0;
+        let classifier = vector_128::BlockClassifier128::new(pattern.unquoted()[0], pattern.unquoted()[1]);
+        let mut previous_slash: u32 = 0;
+        let mut previous_first: u32 = 0;
+        let mut previous_quote: u32 = 0;
 
         while let Some(block) = self.iter.next().e()? {
             let (block1, block2) = block.halves();
@@ -143,24 +165,38 @@ where
 
             let first_bitmask = m32::combine_16(classified1.first, classified2.first);
             let second_bitmask = m32::combine_16(classified1.second, classified2.second);
+            let slash_bitmask = m32::combine_16(classified1.slashes, classified2.slashes);
+            let quote_bitmask = m32::combine_16(classified1.quotes, classified2.quotes);
 
-            if let Some(res) =
-                mask_32::find_in_mask(self.input, label, previous_block, first_bitmask, second_bitmask, offset)?
-            {
-                return Ok(Some((res, block)));
+            if let Some((from, to)) = mask_32::find_in_mask::<_, SM>(
+                self.input,
+                pattern,
+                previous_slash,
+                previous_quote,
+                previous_first,
+                first_bitmask,
+                second_bitmask,
+                slash_bitmask,
+                quote_bitmask,
+                offset,
+            )? {
+                return Ok(Some((from, to, block)));
             }
 
             offset += SIZE;
-            previous_block = first_bitmask >> (SIZE - 1);
+            previous_slash = (slash_bitmask & (quote_bitmask << 1)) >> (SIZE - 1);
+            previous_first = (first_bitmask & (quote_bitmask << 1)) >> (SIZE - 1);
+            previous_quote = quote_bitmask >> (SIZE - 2);
         }
 
         Ok(None)
     }
 }
 
-impl<'i, 'b, 'r, I, R> Memmem<'i, 'b, 'r, I, SIZE> for Sse2MemmemClassifier32<'i, 'b, 'r, I, R>
+impl<'i, 'b, 'r, I, SM, R> Memmem<'i, 'b, 'r, I, SIZE> for Sse2MemmemClassifier32<'i, 'b, 'r, I, SM, R>
 where
     I: Input,
+    SM: StringPatternMatcher,
     R: InputRecorder<I::Block<'i, SIZE>>,
     'i: 'r,
 {
@@ -169,15 +205,15 @@ where
         &mut self,
         first_block: Option<I::Block<'i, SIZE>>,
         start_idx: usize,
-        label: &StringPattern,
-    ) -> Result<Option<(usize, I::Block<'i, SIZE>)>, InputError> {
+        pattern: &StringPattern,
+    ) -> Result<Option<(usize, usize, I::Block<'i, SIZE>)>, InputError> {
         if let Some(b) = first_block {
-            if let Some(res) = shared::find_label_in_first_block(self.input, b, start_idx, label)? {
+            if let Some(res) = shared::find_pattern_in_first_block::<_, SM, SIZE>(self.input, b, start_idx, pattern)? {
                 return Ok(Some(res));
             }
         }
         let next_block_offset = self.iter.get_offset();
         // SAFETY: target feature invariant
-        unsafe { self.find_label_sse2(label, next_block_offset) }
+        unsafe { self.find_label_sse2(pattern, next_block_offset) }
     }
 }

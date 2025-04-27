@@ -36,6 +36,7 @@ macro_rules! repr_align_block_size {
         $it
     };
 }
+use crate::string_pattern::matcher::StringPatternMatcher;
 pub(crate) use repr_align_block_size;
 
 /// Global padding guarantee for all [`Input`] implementations.
@@ -140,17 +141,44 @@ pub trait Input: Sized {
     #[must_use]
     fn seek_non_whitespace_backward(&self, from: usize) -> Option<(usize, u8)>;
 
-    /// Decide whether the slice of input between `from` (inclusive)
-    /// and `to` (exclusive) matches the `member` (comparing bitwise,
-    /// including double quotes delimiters).
+    /// Decide whether a `pattern` matches the input bytes starting from `from`.
     ///
     /// This will also check if the leading double quote is not
     /// escaped by a backslash character.
     ///
+    /// # Returns
+    /// If matched, `Some` containing the index of the last character of the match.
+    /// If not matched, `None`.
+    ///
     /// # Errors
-    /// This function can read more data from the input if `to` falls beyond
-    /// the range that was already read, and the read operation can fail.
-    fn is_member_match(&self, from: usize, to: usize, member: &StringPattern) -> Result<bool, Self::Error>;
+    /// This function can read more data from the input if needed to conclusively
+    /// decide the result, and the read operation can fail depending on the input implementation.
+    fn pattern_match_from<M: StringPatternMatcher>(
+        &self,
+        from: usize,
+        pattern: &StringPattern,
+    ) -> Result<Option<usize>, Self::Error>;
+
+    /// Decide whether a `pattern` matches the input bytes ending at `to` (inclusive).
+    ///
+    /// This is similar to [`pattern_match_from`](Input::pattern_match_from),
+    /// but matches backwards from `to`.
+    ///
+    /// This will also check if the leading double quote is not
+    /// escaped by a backslash character.
+    ///
+    /// # Returns
+    /// If matched, `Some` containing the index of the first character of the match.
+    /// If not matched, `None`.
+    ///
+    /// # Errors
+    /// This function can read more data from the input if `to` falls after the bytes
+    /// already read, and the read operation can fail depending on the input implementation.
+    fn pattern_match_to<M: StringPatternMatcher>(
+        &self,
+        to: usize,
+        pattern: &StringPattern,
+    ) -> Result<Option<usize>, Self::Error>;
 }
 
 /// An iterator over blocks of input of size `N`.
@@ -210,7 +238,9 @@ impl<'i, const N: usize> InputBlock<'i, N> for &'i [u8] {
 }
 
 pub(super) trait SliceSeekable {
-    fn is_member_match(&self, from: usize, to: usize, member: &StringPattern) -> bool;
+    fn pattern_match_from<M: StringPatternMatcher>(&self, from: usize, pattern: &StringPattern) -> Option<usize>;
+
+    fn pattern_match_to<M: StringPatternMatcher>(&self, to: usize, pattern: &StringPattern) -> Option<usize>;
 
     fn seek_backward(&self, from: usize, needle: u8) -> Option<usize>;
 

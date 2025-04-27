@@ -1,7 +1,6 @@
 ---
 source: crates/rsonpath-lib/tests/engine_serialization_snapshots.rs
 expression: "&engine(\"$\")?"
-snapshot_kind: text
 ---
 (V1, Automaton(
   states: [
