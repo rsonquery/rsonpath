@@ -25,7 +25,7 @@ name = "rq"
 
 [dependencies]
 clap = { version = "4.5.37", features = ["derive", "wrap_help"] }
-color-eyre = { version = "0.6.3", default-features = false }
+color-eyre = { version = "0.6.4", default-features = false }
 eyre = "0.6.12"
 log = { workspace = true }
 rsonpath-lib = { workspace = true }
