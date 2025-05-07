@@ -4,8 +4,7 @@ members = [
     "crates/rsonpath",
     "crates/rsonpath-lib",
     "crates/rsonpath-syntax",
-    "crates/rsonpath-syntax-proptest",
-    "crates/rsonpath-test",
+    "crates/rsonpath-syntax-proptest", "crates/rsonpath-website",
 ]
 
 exclude = ["crates/rsonpath-benchmarks", "crates/rsonpath-test-codegen"]
