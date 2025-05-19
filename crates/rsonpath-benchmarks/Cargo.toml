@@ -22,7 +22,7 @@ name = "pathimpl"
 cfg-if = "1.0.0"
 clap = { version = "4.5.23", features = ["derive", "wrap_help"] }
 color-eyre = { version = "0.6.3", default-features = false }
-criterion = "0.5.1"
+criterion = "0.6.0"
 eyre = "0.6.12"
 flate2 = "1.0.35"
 hex-literal = "1.0.0"
