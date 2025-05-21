@@ -35,7 +35,7 @@ serde = { workspace = true, optional = true, features = ["derive", "rc"] }
 smallvec = { version = "1.15.0", features = ["union"] }
 static_assertions = "1.1.0"
 thiserror = { workspace = true }
-vector-map = "1.0.1"
+vector-map = "1.0.2"
 
 [dev-dependencies]
 ciborium = { workspace = true, default-features = true }
