@@ -19,7 +19,7 @@ impl BlockClassifier512 {
 
     #[target_feature(enable = "avx512f")]
     pub(crate) unsafe fn classify_block(&self, block: &[u8]) -> BlockClassification512 {
-        let byte_vector = _mm512_loadu_si512(block.as_ptr().cast::<i32>());
+        let byte_vector = _mm512_loadu_si512(block.as_ptr().cast::<__m512i>());
 
         let first = _mm512_cmpeq_epi8_mask(byte_vector, self.first);
         let second = _mm512_cmpeq_epi8_mask(byte_vector, self.second);

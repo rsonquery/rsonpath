@@ -59,7 +59,6 @@ where
         let classifier = vector_512::BlockClassifier512::new(b'"', b'"');
         let mut previous_block: u64 = 0;
 
-        // copied from avx2_32.
         while let Some(block) = self.iter.next().e()? {
             let classified = classifier.classify_block(&block);
 

@@ -51,25 +51,25 @@ pub(crate) unsafe fn upper_nibble_zeroing_mask() -> __m512i {
 #[target_feature(enable = "avx512f")]
 #[inline]
 pub(crate) unsafe fn lower_nibble_mask() -> __m512i {
-    _mm512_loadu_si512(LOWER_NIBBLE_MASK_ARRAY.as_ptr().cast::<i32>())
+    _mm512_loadu_si512(LOWER_NIBBLE_MASK_ARRAY.as_ptr().cast::<__m512i>())
 }
 
 #[target_feature(enable = "avx512f")]
 #[inline]
 pub(crate) unsafe fn upper_nibble_mask() -> __m512i {
-    _mm512_loadu_si512(UPPER_NIBBLE_MASK_ARRAY.as_ptr().cast::<i32>())
+    _mm512_loadu_si512(UPPER_NIBBLE_MASK_ARRAY.as_ptr().cast::<__m512i>())
 }
 
 #[target_feature(enable = "avx512f")]
 #[inline]
 pub(crate) unsafe fn commas_toggle_mask() -> __m512i {
-    _mm512_loadu_si512(COMMAS_TOGGLE_MASK_ARRAY.as_ptr().cast::<i32>())
+    _mm512_loadu_si512(COMMAS_TOGGLE_MASK_ARRAY.as_ptr().cast::<__m512i>())
 }
 
 #[target_feature(enable = "avx512f")]
 #[inline]
 pub(crate) unsafe fn colons_toggle_mask() -> __m512i {
-    _mm512_loadu_si512(COLON_TOGGLE_MASK_ARRAY.as_ptr().cast::<i32>())
+    _mm512_loadu_si512(COLON_TOGGLE_MASK_ARRAY.as_ptr().cast::<__m512i>())
 }
 
 #[target_feature(enable = "avx512f")]
@@ -113,7 +113,7 @@ impl BlockClassifier512 {
     #[target_feature(enable = "avx512bw")]
     #[inline]
     pub(crate) unsafe fn classify_block(&self, block: &[u8]) -> BlockClassification512 {
-        let byte_vector = _mm512_loadu_si512(block.as_ptr().cast::<i32>());
+        let byte_vector = _mm512_loadu_si512(block.as_ptr().cast::<__m512i>());
         let shifted_byte_vector = _mm512_srli_epi16::<4>(byte_vector);
         let upper_nibble_byte_vector = _mm512_and_si512(shifted_byte_vector, upper_nibble_zeroing_mask());
         let lower_nibble_lookup = _mm512_shuffle_epi8(lower_nibble_mask(), byte_vector);

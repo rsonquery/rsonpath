@@ -36,7 +36,7 @@ impl DelimiterClassifierImpl512 {
         assert_eq!(64, bytes.len());
         // SAFETY: target_feature invariant
         unsafe {
-            let byte_vector = _mm512_loadu_si512(bytes.as_ptr().cast::<i32>());
+            let byte_vector = _mm512_loadu_si512(bytes.as_ptr().cast::<__m512i>());
             let opening_mask = _mm512_cmpeq_epi8_mask(byte_vector, self.opening_mask());
             let closing_mask = _mm512_cmpeq_epi8_mask(byte_vector, self.closing_mask());
 
