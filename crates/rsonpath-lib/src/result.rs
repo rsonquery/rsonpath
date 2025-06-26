@@ -44,9 +44,7 @@ impl MatchSpan {
     pub(crate) fn from_indices(start_idx: usize, end_idx: usize) -> Self {
         assert!(
             start_idx <= end_idx,
-            "start of span {} is greater than end {}",
-            start_idx,
-            end_idx
+            "start of span {start_idx} is greater than end {end_idx}"
         );
         Self {
             start_idx,

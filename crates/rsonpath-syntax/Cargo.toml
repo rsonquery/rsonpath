@@ -19,11 +19,11 @@ all-features = true
 
 [dependencies]
 arbitrary = { workspace = true, features = ["derive"], optional = true }
-owo-colors = { version = "4.2.0", default-features = false, optional = true }
+owo-colors = { version = "4.2.2", default-features = false, optional = true }
 nom = "8.0.0"
 serde = { workspace = true, optional = true, features = ["derive"] }
 thiserror = { workspace = true }
-unicode-width = "0.2.0"
+unicode-width = "0.2.1"
 
 [dev-dependencies]
 ciborium = { workspace = true, default-features = true }

@@ -16,7 +16,7 @@ categories = [
 ]
 build = "build.rs"
 workspace = "../.."
-rust-version = "1.81.0"
+rust-version = "1.82.0"
 
 [[bin]]
 bench = false
@@ -24,8 +24,8 @@ path = "./src/main.rs"
 name = "rq"
 
 [dependencies]
-clap = { version = "4.5.37", features = ["derive", "wrap_help"] }
-color-eyre = { version = "0.6.3", default-features = false }
+clap = { version = "4.5.40", features = ["derive", "wrap_help"] }
+color-eyre = { version = "0.6.5", default-features = false }
 eyre = "0.6.12"
 log = { workspace = true }
 rsonpath-lib = { workspace = true }

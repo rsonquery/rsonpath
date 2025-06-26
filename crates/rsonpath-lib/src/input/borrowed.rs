@@ -53,7 +53,7 @@ impl<'a> BorrowedBytes<'a> {
         }
     }
 
-    pub(super) fn as_padded_input(&self) -> TwoSidesPaddedInput {
+    pub(super) fn as_padded_input(&self) -> TwoSidesPaddedInput<'_> {
         TwoSidesPaddedInput::new(&self.first_block, self.middle_bytes, &self.last_block)
     }
 }

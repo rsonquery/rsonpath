@@ -18,7 +18,7 @@ pub(super) fn get_long_version() -> &'static str {
         res += "\n";
         for (k, v) in details {
             if v != "VERGEN_IDEMPOTENT_OUTPUT" {
-                res += &format!("\n{: <16} {}", k, v);
+                res += &format!("\n{k: <16} {v}");
             }
         }
 

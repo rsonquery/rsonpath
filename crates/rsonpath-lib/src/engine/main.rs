@@ -94,14 +94,14 @@ impl Compiler for MainEngine {
         let automaton = Automaton::new(query)?;
         debug!("DFA:\n {}", automaton);
         let simd = simd::configure();
-        log::info!("SIMD configuration:\n {}", simd);
+        log::info!("SIMD configuration:\n {simd}");
         Ok(Self { automaton, simd })
     }
 
     #[inline(always)]
     fn from_compiled_query(automaton: Automaton) -> Self::E {
         let simd = simd::configure();
-        log::info!("SIMD configuration:\n {}", simd);
+        log::info!("SIMD configuration:\n {simd}");
         Self { automaton, simd }
     }
 }
