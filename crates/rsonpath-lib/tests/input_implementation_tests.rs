@@ -305,7 +305,7 @@ impl InMemoryTestInput {
     }
 }
 
-fn create_buffered(bytes: &[u8]) -> BufferedInput<ReadBytes> {
+fn create_buffered(bytes: &[u8]) -> BufferedInput<ReadBytes<'_>> {
     let read = ReadBytes(bytes, 0);
     BufferedInput::new(read)
 }
