@@ -44,7 +44,7 @@ impl std::hash::Hash for StringPattern {
 impl PartialOrd for StringPattern {
     #[inline]
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.bytes.cmp(&other.bytes))
+        Some(self.cmp(other))
     }
 }
 

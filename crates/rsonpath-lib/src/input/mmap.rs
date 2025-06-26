@@ -62,7 +62,7 @@ impl MmapInput {
         }
     }
 
-    pub(super) fn as_padded_input(&self) -> EndPaddedInput {
+    pub(super) fn as_padded_input(&self) -> EndPaddedInput<'_> {
         let middle = &self.mmap.as_ref()[..self.last_block_start];
         EndPaddedInput::new(middle, &self.last_block)
     }

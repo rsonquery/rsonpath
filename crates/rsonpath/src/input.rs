@@ -48,7 +48,7 @@ impl<S> JsonSource<S> {
         }
     }
 
-    pub(crate) fn try_as_read(&mut self) -> Option<JsonSourceRead> {
+    pub(crate) fn try_as_read(&mut self) -> Option<JsonSourceRead<'_>> {
         match self {
             Self::File(f) => Some(JsonSourceRead::File(f)),
             Self::Stdin(s) => Some(JsonSourceRead::Stdin(s)),

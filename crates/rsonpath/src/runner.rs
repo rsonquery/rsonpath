@@ -102,10 +102,7 @@ impl<S: AsRef<str>> ResolvedInput<S> {
                     Ok(input) => with_output.run_and_output(&engine, &input),
                     Err(err) => match self.fallback_kind {
                         Some(fallback_kind) => {
-                            warn!(
-                                "Creating a memory map failed: '{}'. Falling back to a slower input strategy.",
-                                err
-                            );
+                            warn!("Creating a memory map failed: '{err}'. Falling back to a slower input strategy.");
                             let new_input = Self {
                                 kind: fallback_kind,
                                 fallback_kind: None,

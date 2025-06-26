@@ -65,7 +65,7 @@ impl<'de> Visitor<'de> for EngineVisitor {
         let version = seq.next_element::<BinaryVersion>()?;
         match version {
             Some(BinaryVersion::V1) => (),
-            Some(v) => return Err(de::Error::custom(format!("binary version {:?} is incompatible", v))),
+            Some(v) => return Err(de::Error::custom(format!("binary version {v:?} is incompatible"))),
             None => return Err(de::Error::missing_field("version")),
         }
         let automaton = seq.next_element::<Automaton>()?;

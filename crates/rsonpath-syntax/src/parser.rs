@@ -184,7 +184,7 @@ fn child_segment<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, Segment, Int
     .parse(q)
 }
 
-fn failed_segment<T>(kind: SyntaxErrorKind) -> impl FnMut(&str) -> IResult<&str, T, InternalParseError> {
+fn failed_segment<T>(kind: SyntaxErrorKind) -> impl FnMut(&str) -> IResult<&str, T, InternalParseError<'_>> {
     move |q: &str| {
         let rest = skip_one(q)
             .trim_start_matches('.')
@@ -239,7 +239,7 @@ fn bracketed_selection<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, Select
     }
 }
 
-fn member_name_shorthand(q: &str) -> IResult<&str, Selectors, InternalParseError> {
+fn member_name_shorthand(q: &str) -> IResult<&str, Selectors, InternalParseError<'_>> {
     return map(
         preceded(
             peek(name_first),
@@ -252,13 +252,13 @@ fn member_name_shorthand(q: &str) -> IResult<&str, Selectors, InternalParseError
     )
     .parse(q);
 
-    fn name_first(q: &str) -> IResult<&str, char, InternalParseError> {
+    fn name_first(q: &str) -> IResult<&str, char, InternalParseError<'_>> {
         satisfy(|x| x.is_ascii_alphabetic() || matches!(x, '_' | '\u{0080}'..='\u{D7FF}' | '\u{E000}'..='\u{10FFFF}'))(
             q,
         )
     }
 
-    fn name_char(q: &str) -> IResult<&str, char, InternalParseError> {
+    fn name_char(q: &str) -> IResult<&str, char, InternalParseError<'_>> {
         alt((name_first, satisfy(|x| x.is_ascii_digit()))).parse(q)
     }
 }
@@ -281,11 +281,11 @@ enum StringParseMode {
     SingleQuoted,
 }
 
-fn name_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
+fn name_selector(q: &str) -> IResult<&str, Selector, InternalParseError<'_>> {
     map(string_literal, Selector::Name).parse(q)
 }
 
-fn string_literal(q: &str) -> IResult<&str, JsonString, InternalParseError> {
+fn string_literal(q: &str) -> IResult<&str, JsonString, InternalParseError<'_>> {
     alt((
         preceded(char('\''), string(StringParseMode::SingleQuoted)),
         preceded(char('"'), string(StringParseMode::DoubleQuoted)),
@@ -293,11 +293,11 @@ fn string_literal(q: &str) -> IResult<&str, JsonString, InternalParseError> {
     .parse(q)
 }
 
-fn wildcard_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
+fn wildcard_selector(q: &str) -> IResult<&str, Selector, InternalParseError<'_>> {
     map(tag("*"), |_| Selector::Wildcard).parse(q)
 }
 
-fn slice_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
+fn slice_selector(q: &str) -> IResult<&str, Selector, InternalParseError<'_>> {
     let (rest, opt_start) = terminated(opt(int), ignore_whitespace(char(':'))).parse(q)?;
     // We have parsed a ':', so this *must* be a slice selector. Any errors after here are fatal.
     let mut slice = crate::Slice::default();
@@ -350,7 +350,7 @@ fn slice_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
     Ok((rest, Selector::Slice(slice)))
 }
 
-fn index_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
+fn index_selector(q: &str) -> IResult<&str, Selector, InternalParseError<'_>> {
     // This has to be called after the slice selector.
     // Thanks to that we can make a hard cut if we parsed an integer but it doesn't work as an index.
     let (rest, int) = int(q)?;
@@ -364,7 +364,7 @@ fn index_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
     }
 }
 
-fn failed_selector(q: &str) -> IResult<&str, Selector, InternalParseError> {
+fn failed_selector(q: &str) -> IResult<&str, Selector, InternalParseError<'_>> {
     let rest = q.trim_start_matches(|x| x != ',' && x != ']');
     let error_len = q.len() - rest.len();
     let error_span = &q[..error_len];
@@ -639,7 +639,9 @@ fn filter_query<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, FilterQuery, 
     }
 }
 
-fn failed_segment_within_filter<T>(kind: SyntaxErrorKind) -> impl FnMut(&str) -> IResult<&str, T, InternalParseError> {
+fn failed_segment_within_filter<T>(
+    kind: SyntaxErrorKind,
+) -> impl FnMut(&str) -> IResult<&str, T, InternalParseError<'_>> {
     move |q: &str| {
         // We want to find the next segment or close the filter.
         let rest = skip_one(q)
@@ -649,7 +651,7 @@ fn failed_segment_within_filter<T>(kind: SyntaxErrorKind) -> impl FnMut(&str) ->
     }
 }
 
-fn failed_filter_expression<T>(kind: SyntaxErrorKind) -> impl FnMut(&str) -> IResult<&str, T, InternalParseError> {
+fn failed_filter_expression<T>(kind: SyntaxErrorKind) -> impl FnMut(&str) -> IResult<&str, T, InternalParseError<'_>> {
     move |q: &str| {
         // We want to close the filter, so just try to find the next ']' or ','
         let rest = skip_one(q).trim_start_matches(|x| x != ',' && x != ']');
@@ -657,7 +659,7 @@ fn failed_filter_expression<T>(kind: SyntaxErrorKind) -> impl FnMut(&str) -> IRe
     }
 }
 
-fn comparison_operator(q: &str) -> IResult<&str, ComparisonOp, InternalParseError> {
+fn comparison_operator(q: &str) -> IResult<&str, ComparisonOp, InternalParseError<'_>> {
     alt((
         value(ComparisonOp::EqualTo, tag("==")),
         value(ComparisonOp::NotEqualTo, tag("!=")),
@@ -682,7 +684,7 @@ fn comparable<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, Comparable, Int
     }
 }
 
-fn literal(q: &str) -> IResult<&str, Literal, InternalParseError> {
+fn literal(q: &str) -> IResult<&str, Literal, InternalParseError<'_>> {
     alt((
         into(number),
         into(string_literal),
@@ -693,12 +695,12 @@ fn literal(q: &str) -> IResult<&str, Literal, InternalParseError> {
     .parse(q)
 }
 
-fn number(q: &str) -> IResult<&str, JsonNumber, InternalParseError> {
+fn number(q: &str) -> IResult<&str, JsonNumber, InternalParseError<'_>> {
     map(float, |f| JsonNumber::from(f).normalize()).parse(q)
 }
 
 // Exported for JsonFloat::from_str
-fn float(q: &str) -> IResult<&str, JsonFloat, InternalParseError> {
+fn float(q: &str) -> IResult<&str, JsonFloat, InternalParseError<'_>> {
     // Look ahead to verify that this has a chance to be a number.
     let (rest, valid_str) = recognize(alt((preceded(char('-'), base_float), base_float))).parse(q)?;
 
@@ -708,7 +710,7 @@ fn float(q: &str) -> IResult<&str, JsonFloat, InternalParseError> {
         Err(e) => fail(SyntaxErrorKind::NumberParseError(e), rest.len(), valid_str.len(), q),
     };
 
-    fn base_float(q: &str) -> IResult<&str, &str, InternalParseError> {
+    fn base_float(q: &str) -> IResult<&str, &str, InternalParseError<'_>> {
         recognize((
             digit1,
             opt(preceded(char('.'), digit1)),
@@ -740,7 +742,7 @@ fn parse_directional_int(int_str: &str) -> DirectionalInt {
     }
 }
 
-fn int(q: &str) -> IResult<&str, &str, InternalParseError> {
+fn int(q: &str) -> IResult<&str, &str, InternalParseError<'_>> {
     let (rest, int) = recognize(alt((preceded(char('-'), digit1), digit1))).parse(q)?;
 
     if int != "0" {
@@ -756,7 +758,7 @@ fn int(q: &str) -> IResult<&str, &str, InternalParseError> {
     Ok((rest, int))
 }
 
-fn string(mode: StringParseMode) -> impl FnMut(&str) -> IResult<&str, JsonString, InternalParseError> {
+fn string(mode: StringParseMode) -> impl FnMut(&str) -> IResult<&str, JsonString, InternalParseError<'_>> {
     move |q: &str| {
         let mut builder = JsonStringBuilder::new();
         let mut syntax_errors = vec![];
@@ -924,7 +926,12 @@ fn string(mode: StringParseMode) -> impl FnMut(&str) -> IResult<&str, JsonString
     }
 }
 
-fn fail<T>(kind: SyntaxErrorKind, rev_idx: usize, err_len: usize, rest: &str) -> IResult<&str, T, InternalParseError> {
+fn fail<T>(
+    kind: SyntaxErrorKind,
+    rev_idx: usize,
+    err_len: usize,
+    rest: &str,
+) -> IResult<&str, T, InternalParseError<'_>> {
     Err(Err::Failure(InternalParseError::SyntaxError(
         SyntaxError::new(kind, rev_idx, err_len),
         rest,
