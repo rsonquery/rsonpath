@@ -16,7 +16,7 @@ categories = [
 ]
 build = "build.rs"
 workspace = "../.."
-rust-version = "1.81.0"
+rust-version = "1.82.0"
 
 [[bin]]
 bench = false

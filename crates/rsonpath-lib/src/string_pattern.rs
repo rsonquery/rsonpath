@@ -17,7 +17,7 @@ impl std::hash::Hash for StringPattern {
 impl PartialOrd for StringPattern {
     #[inline]
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.0.unquoted().cmp(other.0.unquoted()))
+        Some(self.cmp(other))
     }
 }
 

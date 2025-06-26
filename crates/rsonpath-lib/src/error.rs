@@ -80,7 +80,7 @@ impl Display for InternalRsonpathError {
             writeln!(f, "; the error details follow")?;
             write!(f, "{}", self.details)?;
             if let Some(source) = &self.source {
-                write!(f, "; source: {}", source)?;
+                write!(f, "; source: {source}")?;
             }
         }
 

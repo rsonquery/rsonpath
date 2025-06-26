@@ -43,11 +43,7 @@ pub(crate) fn generate() -> eyre::Result<()> {
 
     let rustfmt_status = rustfmt_cmd.status()?;
 
-    assert!(
-        rustfmt_status.success(),
-        "'rustfmt' excited with code {}",
-        rustfmt_status
-    );
+    assert!(rustfmt_status.success(), "'rustfmt' excited with code {rustfmt_status}");
 
     Ok(())
 }
