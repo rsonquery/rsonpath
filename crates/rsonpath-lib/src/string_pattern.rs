@@ -33,8 +33,10 @@ pub struct StringPattern {
     len: usize,
     len_limit: usize,
     #[cfg(feature = "regex-matcher")]
+    #[serde(with = "serde_regex")]
     regex_forward: regex::bytes::Regex,
     #[cfg(feature = "regex-matcher")]
+    #[serde(with = "serde_regex")]
     regex_backward: regex::bytes::Regex,
 }
 
