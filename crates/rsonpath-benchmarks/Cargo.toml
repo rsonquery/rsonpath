@@ -27,7 +27,7 @@ flate2 = "1.0.35"
 hex-literal = "1.0.0"
 indicatif = "0.17.9"
 jni = { version = "0.21.1", features = ["invocation", "default"] }
-jsonpath-rust = "1.0.0"
+jsonpath-rust = "0.7.5"
 lazy_static = "1.5.0"
 serde_json = "1.0.134"
 sha2 = "0.10.8"
@@ -48,9 +48,10 @@ regex = "1.11.1"
 memchr = "2.7.4"
 
 [features]
-default = ["simd"]
+default = ["simd", "regex-matcher"]
 simd = ["rsonpath-lib/simd"]
 jsurfer = []
+regex-matcher = ["rsonpath-lib/regex-matcher"]
 
 [build-dependencies]
 eyre = "0.6.12"

@@ -30,6 +30,8 @@ all-features = true
 cfg-if = { workspace = true }
 log = { workspace = true }
 memmap2 = "0.9.5"
+regex = { version = "1.11.1", optional = true }
+regex-syntax = { version = "0.8.5", optional = true }
 rsonpath-syntax = { workspace = true }
 serde = { workspace = true, optional = true, features = ["derive", "rc"] }
 smallvec = { version = "1.15.1", features = ["union"] }
@@ -52,6 +54,7 @@ test-case = { workspace = true }
 default = ["simd"]
 serde = ["dep:serde", "smallvec/serde", "rsonpath-syntax/serde"]
 simd = []
+regex-matcher = ["dep:regex", "dep:regex-syntax"]
 
 [[example]]
 name = "approx_spans_usage"

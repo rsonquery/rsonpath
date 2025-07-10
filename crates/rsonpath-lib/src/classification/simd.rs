@@ -804,7 +804,7 @@ cfg_if! {
                                 $crate::classification::structural::nosimd::Constructor,
                                 $crate::classification::depth::nosimd::Constructor,
                                 $crate::classification::memmem::nosimd::Constructor,
-                                        $crate::string_pattern::matcher::nosimd::NosimdStringMatcher,
+                                $crate::string_pattern::matcher::nosimd::NosimdStringMatcher,
                                 {$crate::classification::simd::NOSIMD}
                             >::new();
                             $b
@@ -941,7 +941,7 @@ cfg_if! {
                                 $crate::classification::structural::nosimd::Constructor,
                                 $crate::classification::depth::nosimd::Constructor,
                                 $crate::classification::memmem::nosimd::Constructor,
-                                        $crate::string_pattern::matcher::nosimd::NosimdStringMatcher,
+                                $crate::string_pattern::matcher::nosimd::NosimdStringMatcher,
                                 {$crate::classification::simd::NOSIMD}
                             >::new();
                             $b

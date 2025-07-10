@@ -13,10 +13,10 @@
 //! [`cmpeq_backward`] allow matching a pattern against an input.
 //!
 pub(crate) mod matcher;
+use crate::{BLOCK_SIZE, JSON_SPACE_BYTE};
+use cfg_if::cfg_if;
 use rsonpath_syntax::str::JsonString;
 use std::fmt::Debug;
-
-use crate::{BLOCK_SIZE, JSON_SPACE_BYTE};
 
 /// Compiled JSONString representation allowing pattern-matching JSON strings.
 ///
@@ -32,6 +32,10 @@ pub struct StringPattern {
     alternatives: Vec<AlternativeRepresentation>,
     len: usize,
     len_limit: usize,
+    #[cfg(feature = "regex-matcher")]
+    regex_forward: regex::bytes::Regex,
+    #[cfg(feature = "regex-matcher")]
+    regex_backward: regex::bytes::Regex,
 }
 
 impl std::hash::Hash for StringPattern {
@@ -78,6 +82,8 @@ struct StringPatternBuilder {
     bytes: Vec<u8>,
     alternatives: Vec<AlternativeRepresentation>,
     len_limit: usize,
+    #[cfg(feature = "regex-matcher")]
+    regex_pattern: String,
 }
 
 impl StringPattern {
@@ -182,14 +188,34 @@ impl StringPattern {
 
 impl StringPatternBuilder {
     fn new(byte_len: usize) -> Self {
-        let mut this = Self {
-            bytes: Vec::with_capacity(byte_len),
-            alternatives: Vec::with_capacity(byte_len),
-            len_limit: 0,
-        };
+        let mut this;
+
+        cfg_if! {
+            if #[cfg(feature = "regex-matcher")] {
+                this = Self {
+                    bytes: Vec::with_capacity(byte_len),
+                    alternatives: Vec::with_capacity(byte_len),
+                    len_limit: 0,
+                    regex_pattern: String::new(),
+                };
+            }
+            else {
+                this = Self {
+                    bytes: Vec::with_capacity(byte_len),
+                    alternatives: Vec::with_capacity(byte_len),
+                    len_limit: 0,
+                };
+            }
+        }
+
         this.bytes.push(b'"');
         this.alternatives.push(AlternativeRepresentation::None);
         this.len_limit += 1;
+        #[cfg(feature = "regex-matcher")]
+        {
+            this.regex_pattern.push('^');
+            this.regex_pattern.push('"');
+        }
 
         this
     }
@@ -202,12 +228,31 @@ impl StringPatternBuilder {
         for _ in 0..BLOCK_SIZE {
             self.bytes.push(JSON_SPACE_BYTE);
         }
+        #[cfg(feature = "regex-matcher")]
+        self.regex_pattern.push('"');
 
-        StringPattern {
-            bytes: self.bytes,
-            alternatives: self.alternatives,
-            len_limit: self.len_limit,
-            len,
+        cfg_if! {
+            if #[cfg(feature = "regex-matcher")] {
+                let regex_forward = regex::bytes::RegexBuilder::new(&self.regex_pattern).size_limit(16 * 1024 * 1024).build().expect("regex pattern must be constructed correctly");
+                self.regex_pattern.push('$');
+                let regex_backward = regex::bytes::RegexBuilder::new(&self.regex_pattern[1..]).size_limit(16 * 1024 * 1024).build().expect("regex pattern must be constructed correctly");
+                StringPattern {
+                    bytes: self.bytes,
+                    alternatives: self.alternatives,
+                    len_limit: self.len_limit,
+                    len,
+                    regex_forward,
+                    regex_backward,
+                }
+            }
+            else {
+                StringPattern {
+                    bytes: self.bytes,
+                    alternatives: self.alternatives,
+                    len_limit: self.len_limit,
+                    len,
+                }
+            }
         }
     }
 
@@ -223,21 +268,55 @@ impl StringPatternBuilder {
         self.alternatives.push(AlternativeRepresentation::USingle(code));
 
         self.len_limit += 6;
+
+        #[cfg(feature = "regex-matcher")]
+        {
+            let bs = code.to_ne_bytes();
+            self.regex_pattern.push('(');
+            self.regex_pattern.push('\\');
+            self.regex_pattern.push('\\');
+            self.regex_pattern.push('u');
+            self.add_regex_case_insensitive_hex(bs[0]);
+            self.add_regex_case_insensitive_hex(bs[1]);
+            self.add_regex_case_insensitive_hex(bs[2]);
+            self.add_regex_case_insensitive_hex(bs[3]);
+            self.regex_pattern.push('|');
+            self.regex_pattern.push('\\');
+            self.regex_pattern.push('\\');
+            if regex_syntax::is_meta_character(code_letter as char) {
+                self.regex_pattern.push('\\');
+            }
+            self.regex_pattern.push(code_letter as char);
+            self.regex_pattern.push(')');
+        }
     }
 
     fn long_escape(&mut self, c: char) {
+        let b3 = Self::encode_nibble((c as u8 & 0xF0) >> 4);
+        let b4 = Self::encode_nibble((c as u8 & 0xF0) >> 4);
         self.bytes.push(b'\\');
         self.bytes.push(b'u');
         self.bytes.push(b'0');
         self.bytes.push(b'0');
-        self.bytes.push(Self::encode_nibble((c as u8 & 0xF0) >> 4));
-        self.bytes.push(Self::encode_nibble(c as u8 & 0x0F));
+        self.bytes.push(b3);
+        self.bytes.push(b4);
 
         for _ in 0..6 {
             self.alternatives.push(AlternativeRepresentation::None);
         }
 
         self.len_limit += 6;
+
+        #[cfg(feature = "regex-matcher")]
+        {
+            self.regex_pattern.push('\\');
+            self.regex_pattern.push('\\');
+            self.regex_pattern.push('u');
+            self.regex_pattern.push('0');
+            self.regex_pattern.push('0');
+            self.add_regex_case_insensitive_hex(b3);
+            self.add_regex_case_insensitive_hex(b4);
+        }
     }
 
     fn special_escape(&mut self, c: char) {
@@ -245,12 +324,39 @@ impl StringPatternBuilder {
 
         let mut utf16_buf = [0; 1];
         let utf16 = c.encode_utf16(&mut utf16_buf);
+        assert_eq!(utf16.len(), 1);
         let code = Self::encode(utf16[0]);
 
         self.alternatives
             .push(AlternativeRepresentation::SlashByteOrUSingle(c as u8, code));
 
         self.len_limit += 6;
+
+        #[cfg(feature = "regex-matcher")]
+        {
+            let bs = code.to_ne_bytes();
+            self.regex_pattern.push('(');
+            self.regex_pattern.push('\\');
+            self.regex_pattern.push('\\');
+            self.regex_pattern.push('u');
+            self.add_regex_case_insensitive_hex(bs[0]);
+            self.add_regex_case_insensitive_hex(bs[1]);
+            self.add_regex_case_insensitive_hex(bs[2]);
+            self.add_regex_case_insensitive_hex(bs[3]);
+            self.regex_pattern.push('|');
+            if regex_syntax::is_meta_character(c) {
+                self.regex_pattern.push('\\');
+            }
+            self.regex_pattern.push(c);
+            self.regex_pattern.push('|');
+            self.regex_pattern.push('\\');
+            self.regex_pattern.push('\\');
+            if regex_syntax::is_meta_character(c) {
+                self.regex_pattern.push('\\');
+            }
+            self.regex_pattern.push(c);
+            self.regex_pattern.push(')');
+        }
     }
 
     fn regular_escape(&mut self, c: char) {
@@ -281,6 +387,44 @@ impl StringPatternBuilder {
         }
         let last_idx = self.alternatives.len() - 1;
         self.alternatives[last_idx] = repr;
+
+        #[cfg(feature = "regex-matcher")]
+        {
+            self.regex_pattern.push('(');
+            if utf16.len() == 1 {
+                let bs = Self::encode(utf16[0]).to_ne_bytes();
+                self.regex_pattern.push('\\');
+                self.regex_pattern.push('\\');
+                self.regex_pattern.push('u');
+                self.add_regex_case_insensitive_hex(bs[0]);
+                self.add_regex_case_insensitive_hex(bs[1]);
+                self.add_regex_case_insensitive_hex(bs[2]);
+                self.add_regex_case_insensitive_hex(bs[3]);
+            } else {
+                let bs1 = Self::encode(utf16[0]).to_ne_bytes();
+                let bs2 = Self::encode(utf16[1]).to_ne_bytes();
+                self.regex_pattern.push('\\');
+                self.regex_pattern.push('\\');
+                self.regex_pattern.push('u');
+                self.add_regex_case_insensitive_hex(bs1[0]);
+                self.add_regex_case_insensitive_hex(bs1[1]);
+                self.add_regex_case_insensitive_hex(bs1[2]);
+                self.add_regex_case_insensitive_hex(bs1[3]);
+                self.regex_pattern.push('\\');
+                self.regex_pattern.push('\\');
+                self.regex_pattern.push('u');
+                self.add_regex_case_insensitive_hex(bs2[0]);
+                self.add_regex_case_insensitive_hex(bs2[1]);
+                self.add_regex_case_insensitive_hex(bs2[2]);
+                self.add_regex_case_insensitive_hex(bs2[3]);
+            }
+            self.regex_pattern.push('|');
+            if regex_syntax::is_meta_character(c) {
+                self.regex_pattern.push('\\');
+            }
+            self.regex_pattern.push(c);
+            self.regex_pattern.push(')');
+        }
     }
 
     fn encode(utf16: u16) -> u32 {
@@ -299,6 +443,17 @@ impl StringPatternBuilder {
             0x00..=0x09 => b'0' + nibble,
             0x0A..=0x0F => b'a' + nibble - 0x0A,
             _ => unreachable!(),
+        }
+    }
+
+    fn add_regex_case_insensitive_hex(&mut self, b: u8) {
+        if b'a' <= b && b <= b'f' {
+            self.regex_pattern.push('[');
+            self.regex_pattern.push(b as char);
+            self.regex_pattern.push((b as char).to_ascii_uppercase());
+            self.regex_pattern.push(']');
+        } else {
+            self.regex_pattern.push(b as char);
         }
     }
 }

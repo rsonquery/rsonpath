@@ -1,6 +1,7 @@
 #[cfg(target_arch = "x86_64")]
 pub(crate) mod avx2_64;
 pub(crate) mod nosimd;
+pub(crate) mod regex;
 mod shared;
 use crate::StringPattern;
 

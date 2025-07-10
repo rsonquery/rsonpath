@@ -1220,6 +1220,8 @@ dependencies = [
  "memmap2",
  "pretty_assertions",
  "proptest",
+ "regex",
+ "regex-syntax",
  "rmp-serde",
  "rsonpath-syntax",
  "rsonpath-syntax-proptest",
