@@ -163,7 +163,11 @@ mod tests {
                     }
                 }
 
-                let automaton = Automaton::new(&parsed)?;
+                let automaton = match Automaton::new(&parsed) {
+                    Ok(x) => Ok(x),
+                    Err(crate::automaton::error::CompilerError::QueryTooComplex(_)) => Err(TestCaseError::Reject("query too complex".into())),
+                    Err(e) => Err(e.into()),
+                }?;
                 let engine = RsonpathEngine::from_compiled_query(automaton.clone());
 
                 let mut buf = vec![];
@@ -182,7 +186,11 @@ mod tests {
                     ..Default::default()
                 }
             )) {
-                let automaton = Automaton::new(&parsed)?;
+                let automaton = match Automaton::new(&parsed) {
+                    Ok(x) => Ok(x),
+                    Err(crate::automaton::error::CompilerError::QueryTooComplex(_)) => Err(TestCaseError::Reject("query too complex".into())),
+                    Err(e) => Err(e.into()),
+                }?;
                 let engine = RsonpathEngine::from_compiled_query(automaton.clone());
 
                 let json_str = serde_json::to_string(&engine)?;
@@ -198,7 +206,11 @@ mod tests {
                     ..Default::default()
                 }
             )) {
-                let automaton = Automaton::new(&parsed)?;
+                let automaton = match Automaton::new(&parsed) {
+                    Ok(x) => Ok(x),
+                    Err(crate::automaton::error::CompilerError::QueryTooComplex(_)) => Err(TestCaseError::Reject("query too complex".into())),
+                    Err(e) => Err(e.into()),
+                }?;
                 let engine = RsonpathEngine::from_compiled_query(automaton.clone());
 
                 let buf = rmp_serde::to_vec(&engine)?;
