@@ -25,7 +25,7 @@ criterion = "0.6.0"
 eyre = "0.6.12"
 flate2 = "1.0.35"
 hex-literal = "1.0.0"
-indicatif = "0.17.9"
+indicatif = "0.18.0"
 jni = { version = "0.21.1", features = ["invocation", "default"] }
 jsonpath-rust = "1.0.0"
 lazy_static = "1.5.0"
