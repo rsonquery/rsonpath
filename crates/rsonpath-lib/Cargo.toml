@@ -48,6 +48,11 @@ rsonpath-syntax-proptest = { workspace = true }
 serde_json = { workspace = true }
 test-case = { workspace = true }
 
+[patch.crates-io]
+getrandom_v03 = { package = "getrandom", version = "0.3.3", features = ["wasm_js"] }
+getrandom_v02 = { package = "getrandom", version = "0.2.12", features = ["wasm_js"] }
+getrandom_v01 = { package = "getrandom", version = "0.1.16", features = ["wasm_js"] }
+
 [features]
 default = ["simd"]
 serde = ["dep:serde", "smallvec/serde", "rsonpath-syntax/serde"]

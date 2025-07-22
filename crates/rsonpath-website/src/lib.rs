@@ -1,8 +1,12 @@
 use eframe::emath::Align;
 use eframe::epaint::Color32;
 use eframe::Frame;
-use egui::{Button, Context, Layout, RichText, TextEdit, TopBottomPanel};
+use egui::{Button, ComboBox, Context, Layout, RichText, ScrollArea, TextEdit, TopBottomPanel};
+use rsonpath::*;
+use std::sync::{Mutex, OnceLock};
+use strip_ansi_escapes::strip;
 use wasm_bindgen::prelude::*;
+use web_sys::window;
 
 pub struct WebsiteGui {
     json_input: String,
@@ -11,6 +15,78 @@ pub struct WebsiteGui {
     console_output: String,
     toggle_dark_mode_on: bool,
     toggle_console_on: bool,
+    argument_verbose: bool,
+    argument_compile: bool,
+    argument_result_arg: ResultArg,
+}
+
+//File select for native version
+#[cfg(not(target_arch = "wasm32"))]
+impl WebsiteGui {
+    fn open_file(&mut self, _ctx: &egui::Context) {
+        if let Some(path) = rfd::FileDialog::new().add_filter("JSON", &["json"]).pick_file() {
+            if let Ok(contents) = std::fs::read_to_string(path) {
+                self.json_input = contents;
+            } else {
+                self.console_output = "Failed to read the selected file.".to_owned();
+            }
+        }
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+//For drag and dropping files
+pub static JSON_INPUT_REF: OnceLock<Mutex<Option<String>>> = OnceLock::new();
+//For importing files
+pub static FILE_INPUT_REF: OnceLock<Mutex<Option<String>>> = OnceLock::new();
+
+//File select for web version
+#[cfg(target_arch = "wasm32")]
+impl WebsiteGui {
+    fn open_file(&mut self, _ctx: &Context) {
+        use wasm_bindgen::JsCast;
+        use web_sys::{FileReader, HtmlInputElement};
+
+        let document = window().unwrap().document().unwrap();
+        let body = document.body().unwrap();
+
+        let file_input = document
+            .create_element("input")
+            .unwrap()
+            .dyn_into::<HtmlInputElement>()
+            .unwrap();
+
+        file_input.set_type("file");
+        file_input.set_accept(".json");
+
+        let reader = FileReader::new().unwrap();
+        let reader_clone = reader.clone();
+
+        let onloadend_cb = Closure::wrap(Box::new(move |_event: web_sys::Event| {
+            if let Ok(result) = reader_clone.result() {
+                if let Some(text) = result.as_string() {
+                    let cell = FILE_INPUT_REF.get_or_init(|| Mutex::new(None));
+                    *cell.lock().unwrap() = Some(text);
+                }
+            }
+        }) as Box<dyn FnMut(_)>);
+        reader.set_onloadend(Some(onloadend_cb.as_ref().unchecked_ref()));
+        onloadend_cb.forget();
+
+        let file_input_clone = file_input.clone();
+        let onchange_cb = Closure::wrap(Box::new(move |_event: web_sys::Event| {
+            let files = file_input_clone.files().unwrap();
+            if let Some(file) = files.get(0) {
+                reader.read_as_text(&file).unwrap();
+            }
+        }) as Box<dyn FnMut(_)>);
+
+        file_input.set_onchange(Some(onchange_cb.as_ref().unchecked_ref()));
+        onchange_cb.forget();
+
+        body.append_child(&file_input).unwrap();
+        file_input.click();
+    }
 }
 
 impl Default for WebsiteGui {
@@ -22,6 +98,9 @@ impl Default for WebsiteGui {
             console_output: String::new(),
             toggle_dark_mode_on: true,
             toggle_console_on: true,
+            argument_verbose: false,
+            argument_compile: false,
+            argument_result_arg: ResultArg::Nodes,
         }
     }
 }
@@ -46,6 +125,22 @@ impl eframe::App for WebsiteGui {
             style
         });
 
+        //Checks for imported files file
+        #[cfg(target_arch = "wasm32")]
+        if let Some(cell) = FILE_INPUT_REF.get() {
+            if let Some(contents) = cell.lock().unwrap().take() {
+                self.json_input = contents;
+            }
+        }
+
+        //Checks for drag & dropped files
+        #[cfg(target_arch = "wasm32")]
+        if let Some(cell) = JSON_INPUT_REF.get() {
+            if let Some(contents) = cell.lock().unwrap().take() {
+                self.json_input = contents;
+            }
+        }
+
         if self.toggle_dark_mode_on {
             ctx.set_visuals(egui::Visuals::dark());
         } else {
@@ -57,19 +152,24 @@ impl eframe::App for WebsiteGui {
                 // File menu button
                 ui.menu_button("File", |ui| {
                     if ui.button("New").clicked() {
-                        //TODO: Add functionality for New button
-                        ui.close_menu();
+                        self.json_input.clear();
+                        self.query_input.clear();
+                        self.json_output.clear();
+                        self.console_output.clear();
+
+                        ui.close();
                     }
                     if ui.button("Open...").clicked() {
-                        //TODO: Add functionality for Open button
-                        ui.close_menu();
+                        self.open_file(ctx);
+                        ui.close();
                     }
 
                     ui.separator();
 
                     if ui.button("Export to JSON").clicked() {
-                        //TODO: Add functionality for Export to JSON button
-                        ui.close_menu();
+                        web_sys::console::log_1(&"Export button clicked".into()); // Debug
+                        export_to_json(&self.json_input);
+                        ui.close();
                     }
                 });
 
@@ -93,74 +193,314 @@ impl eframe::App for WebsiteGui {
         });
 
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.with_layout(Layout::left_to_right(Align::Center), |ui| {
-                ui.vertical(|ui| {
-                    let hint_text = RichText::new("Enter your json code here...")
-                        .size(15.0)
-                        .color(Color32::GRAY)
-                        .strong();
+            ScrollArea::both().auto_shrink([false; 2]).show(ui, |ui| {
+                let screen_width = ctx.screen_rect().width();
+                let screen_height = ctx.screen_rect().height();
 
-                    //Json input window
-                    ui.add_sized(
-                        [ui.available_width() / 2.0, ui.available_height() / 1.5],
-                        TextEdit::multiline(&mut self.json_input).hint_text(hint_text),
-                    );
+                ui.with_layout(Layout::left_to_right(Align::Center), |ui| {
+                    ui.vertical(|ui| {
+                        let hint_text = RichText::new("Enter your json code here...")
+                            .size(15.0)
+                            .color(Color32::GRAY)
+                            .strong();
+
+                        let left_side_width = screen_width * 0.5;
+
+                        let json_box_height = screen_height * 0.65;
+
+                        //Json input window
+                        ScrollArea::vertical()
+                            .id_salt("Json input window")
+                            .max_height(json_box_height)
+                            .show(ui, |ui| {
+                                ui.add_sized(
+                                    [left_side_width, json_box_height],
+                                    TextEdit::multiline(&mut self.json_input).hint_text(hint_text),
+                                );
+                            });
+
+                        ui.add_space(15.0);
+
+                        // Query input + arguments
+                        ui.horizontal(|ui| {
+                            ui.vertical(|ui| {
+                                let query_label = RichText::new("Enter your query here...")
+                                    .size(15.0)
+                                    .color(Color32::GRAY)
+                                    .strong();
+
+                                //Query input
+                                ScrollArea::vertical()
+                                    .id_salt("query_input_scroll")
+                                    .max_height(ui.available_height())
+                                    .show(ui, |ui| {
+                                        ui.add_sized(
+                                            [left_side_width * 0.75, screen_height * 0.077],
+                                            TextEdit::multiline(&mut self.query_input)
+                                                .hint_text(query_label)
+                                                .desired_rows(1),
+                                        );
+                                    });
+                            });
+
+                            ui.add_space(10.0);
+
+                            ui.vertical(|ui| {
+                                //Arguments
+                                ui.horizontal(|ui| {
+
+                                    ui.vertical(|ui| {
+                                        ui.checkbox(&mut self.argument_compile, "Compile only");
+                                    });
+                                });
+
+                                ui.add_space(10.0);
+
+                                ui.horizontal(|ui| {
+                                    ui.vertical(|ui| {
+                                        ComboBox::from_label("Result Mode")
+                                            .selected_text(format!("{:?}", self.argument_result_arg))
+                                            .show_ui(ui, |ui| {
+                                                ui.selectable_value(
+                                                    &mut self.argument_result_arg,
+                                                    ResultArg::Nodes,
+                                                    "Nodes",
+                                                );
+                                                ui.selectable_value(
+                                                    &mut self.argument_result_arg,
+                                                    ResultArg::Count,
+                                                    "Count",
+                                                );
+                                                ui.selectable_value(
+                                                    &mut self.argument_result_arg,
+                                                    ResultArg::Indices,
+                                                    "Indices",
+                                                );
+                                            });
+                                    });
+                                });
+                            });
+                        });
+
+                        ui.add_space(20.0);
+
+                        let button_text = RichText::new("Run Query").size(20.0).color(Color32::WHITE).strong();
+
+                        //Run button
+                        if ui
+                            .add_sized(
+                                [left_side_width, screen_height * 0.144],
+                                Button::new(button_text).fill(Color32::BROWN),
+                            )
+                            .clicked()
+                        {
+                            match run_with_args(&create_args(
+                                self.query_input.clone(),
+                                None,
+                                Option::from(self.json_input.clone()),
+                                self.argument_verbose,
+                                self.argument_compile,
+                                self.argument_result_arg,
+                                None,
+                            )) {
+                                Ok(run_output) => {
+                                    self.json_output = run_output.stdout;
+                                    self.console_output = run_output.stderr;
+                                }
+                                Err(e) => {
+                                    self.json_output.clear();
+
+                                    let report = format!("{:?}", eyre::Report::from(e));
+                                    let stripped_bytes = strip(report.as_bytes());
+                                    let cleaned_report = String::from_utf8_lossy(&stripped_bytes).into_owned();
+                                    let no_location = strip_location_paragraph(&cleaned_report);
+
+                                    self.console_output = strip_last_paragraph(&no_location);
+                                }
+                            };
+                        }
+                    });
 
                     ui.add_space(10.0);
 
-                    let query_field_text = RichText::new("Enter your query here...")
-                        .size(15.0)
-                        .color(Color32::GRAY)
-                        .strong();
+                    ui.vertical(|ui| {
+                        //Output window
+                        let output_window_height = if self.toggle_console_on {
+                            screen_height * 0.50
+                        } else {
+                            screen_height
+                        };
+                        let output_window_width = screen_width * 0.48;
 
-                    //Query input field
-                    ui.add_sized(
-                        [ui.available_width() / 2.0, ui.available_height() - 100.0],
-                        TextEdit::singleline(&mut self.query_input).hint_text(query_field_text),
-                    );
+                        let query_output_hint_text = RichText::new("The result of your query will appear here...")
+                            .size(15.0)
+                            .color(Color32::GRAY)
+                            .strong();
 
-                    let button_text = RichText::new("Run Query").size(20.0).color(Color32::WHITE).strong();
+                        ScrollArea::vertical()
+                            .id_salt("Query output window")
+                            .max_height(output_window_height)
+                            .show(ui, |ui| {
+                                ui.add_sized(
+                                    [output_window_width, output_window_height],
+                                    TextEdit::multiline(&mut self.json_output)
+                                        .desired_rows(5)
+                                        .interactive(false)
+                                        .hint_text(query_output_hint_text),
+                                );
+                            });
 
-                    ui.add_space(10.0);
+                        //Console window
+                        if self.toggle_console_on {
+                            ui.add_space(15.0);
 
-                    //Run button
-                    //TODO: Add button functionality
-                    ui.add_sized(
-                        [ui.available_width() / 2.0, ui.available_height()],
-                        Button::new(button_text).fill(Color32::BROWN),
-                    );
-                });
+                            let console_output_hint_text = RichText::new("Console output will appear here...")
+                                .size(15.0)
+                                .color(Color32::GRAY)
+                                .strong();
 
-                ui.add_space(10.0);
+                            ScrollArea::vertical()
+                                .id_salt("Console output window")
+                                .max_height(output_window_height)
+                                .show(ui, |ui| {
+                                    ui.add_sized(
+                                        [output_window_width, screen_height * 0.40],
+                                        TextEdit::multiline(&mut self.console_output)
+                                            .interactive(false)
+                                            .hint_text(console_output_hint_text),
+                                    );
+                                });
+                        }
+                    });
+                })
+            });
+        });
 
-                ui.vertical(|ui| {
-                    let mut output_window_height = if self.toggle_console_on {
-                        ui.available_height() / 2.0
-                    } else {
-                        ui.available_height()
-                    };
+        for file in &ctx.input(|i| i.raw.dropped_files.clone()) {
+            if let Some(path_buf) = &file.path {
+                if let Ok(contents) = std::fs::read_to_string(path_buf) {
+                    self.json_input = contents;
+                }
+            }
+        }
+    }
+}
 
-                    //Output window
-                    ui.add_sized(
-                        [ui.available_width(), output_window_height],
-                        TextEdit::multiline(&mut self.json_output)
-                            .desired_rows(5)
-                            .interactive(false), //TODO: Change placeholder to result of query
-                    );
+//Removes the backtrace message from error
+fn strip_last_paragraph(error: &str) -> String {
+    let mut paragraphs: Vec<&str> = error.split("\n\n").collect();
+    if paragraphs.len() > 1 {
+        paragraphs.pop();
+    }
+    paragraphs.join("\n\n")
+}
 
-                    //Console window
-                    if self.toggle_console_on {
-                        ui.add_space(10.0);
+//Removes the location of the error (security risk)
+fn strip_location_paragraph(error: &str) -> String {
+    let mut result = String::new();
+    let mut skip = false;
 
-                        ui.add_sized(
-                            [ui.available_width(), ui.available_height()],
-                            TextEdit::multiline(&mut self.console_output).interactive(false),
-                        );
-                    }
-                });
-            })
+    for line in error.lines() {
+        if line.trim().starts_with("Location:") {
+            skip = true;
+            continue;
+        }
+
+        if skip {
+            if line.trim().is_empty() {
+                skip = false;
+            }
+            continue;
+        }
+
+        result.push_str(line);
+        result.push('\n');
+    }
+
+    result.trim_end().to_owned()
+}
+
+//Export to JSON for native version
+#[cfg(not(target_arch = "wasm32"))]
+fn export_to_json(json_input: &str) {
+    if let Some(path) = rfd::FileDialog::new()
+        .set_title("Save JSON File")
+        .add_filter("JSON", &["json"])
+        .save_file()
+    {
+        std::fs::write(path, json_input).unwrap_or_else(|err| {
+            eprintln!("Failed to save file: {err}");
         });
     }
+}
+
+//Export to JSON for web version
+#[cfg(target_arch = "wasm32")]
+fn export_to_json(json_input: &str) {
+    use wasm_bindgen::JsCast;
+    use web_sys::{Blob, BlobPropertyBag, HtmlAnchorElement, Url};
+
+    web_sys::console::log_1(&"Export triggered".into());
+
+    let window = window().unwrap();
+    let document = window.document().unwrap();
+    let body = document.body().unwrap();
+
+    // Create JSON blob
+    let array = js_sys::Array::new();
+    array.push(&JsValue::from_str(json_input));
+
+    let bag = BlobPropertyBag::new();
+    bag.set_type("application/json");
+
+    let blob = Blob::new_with_str_sequence_and_options(&array, &bag).expect("Failed to create Blob");
+
+    let url = Url::create_object_url_with_blob(&blob).expect("Failed to create URL");
+
+    // Create invisible link
+    let link = document
+        .create_element("a")
+        .unwrap()
+        .dyn_into::<HtmlAnchorElement>()
+        .unwrap();
+    link.set_href(&url);
+    link.set_download("data.json");
+    link.style().set_property("display", "none").unwrap();
+
+    // Append link to DOM *before* clicking
+    body.append_child(&link).unwrap();
+    link.click();
+    body.remove_child(&link).unwrap(); // Clean up
+    Url::revoke_object_url(&url).unwrap(); // Free memory
+}
+
+//Logic for enabling drag-and-dropping files into the app
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen(js_name = handle_dropped_file)]
+pub fn handle_dropped_file(contents: String) {
+    web_sys::console::log_1(&format!("📦 Received dropped file with length: {}", contents.len()).into());
+    let cell = JSON_INPUT_REF.get_or_init(|| Mutex::new(None));
+    *cell.lock().unwrap() = Some(contents);
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+pub fn register_file_handler() {
+    let closure = Closure::wrap(Box::new(move |text: JsValue| {
+        if let Some(text_str) = text.as_string() {
+            handle_dropped_file(text_str);
+        }
+    }) as Box<dyn FnMut(JsValue)>);
+
+    let window = window().expect("no global window");
+    let func = closure.as_ref().unchecked_ref::<js_sys::Function>();
+
+    // Use Reflect to set the global function
+    js_sys::Reflect::set(&window, &JsValue::from_str("handle_dropped_file"), func)
+        .expect("Failed to assign handle_dropped_file to window");
+
+    closure.forget(); // Leak the closure to keep it alive
+    web_sys::console::log_1(&"✅ Registered handle_dropped_file".into());
 }
 
 #[cfg(test)]
