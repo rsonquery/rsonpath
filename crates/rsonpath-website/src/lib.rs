@@ -13,11 +13,29 @@ pub struct WebsiteGui {
     query_input: String,
     json_output: String,
     console_output: String,
+    is_dragging_file: bool,
     toggle_dark_mode_on: bool,
     toggle_console_on: bool,
     argument_verbose: bool,
     argument_compile: bool,
     argument_result_arg: ResultArg,
+}
+
+impl Default for WebsiteGui {
+    fn default() -> Self {
+        Self {
+            json_input: String::new(),
+            query_input: String::new(),
+            json_output: String::new(),
+            console_output: String::new(),
+            is_dragging_file: false,
+            toggle_dark_mode_on: true,
+            toggle_console_on: true,
+            argument_verbose: false,
+            argument_compile: false,
+            argument_result_arg: ResultArg::Nodes,
+        }
+    }
 }
 
 //File select for native version
@@ -89,28 +107,14 @@ impl WebsiteGui {
     }
 }
 
-impl Default for WebsiteGui {
-    fn default() -> Self {
-        Self {
-            json_input: String::new(),
-            query_input: String::new(),
-            json_output: String::new(),
-            console_output: String::new(),
-            toggle_dark_mode_on: true,
-            toggle_console_on: true,
-            argument_verbose: false,
-            argument_compile: false,
-            argument_result_arg: ResultArg::Nodes,
-        }
-    }
-}
+
 
 impl eframe::App for WebsiteGui {
     fn update(&mut self, ctx: &Context, _frame: &mut Frame) {
         //Sets the font size for buttons and menu bodies, as well as the padding
         ctx.set_style({
             let mut style = (*ctx.style()).clone();
-            style.spacing.button_padding = egui::vec2(12.0, 8.0); // Wider buttons
+            style.spacing.button_padding = egui::vec2(12.0, 8.0);
             style.text_styles = [
                 (
                     egui::TextStyle::Button,
@@ -149,8 +153,11 @@ impl eframe::App for WebsiteGui {
 
         TopBottomPanel::top("menu bar").show(ctx, |ui| {
             ui.horizontal_wrapped(|ui| {
+
                 // File menu button
                 ui.menu_button("File", |ui| {
+
+                    //Wipes all text windows to allow user to start anew
                     if ui.button("New").clicked() {
                         self.json_input.clear();
                         self.query_input.clear();
@@ -159,6 +166,8 @@ impl eframe::App for WebsiteGui {
 
                         ui.close();
                     }
+
+                    //Opens JSON file from computer
                     if ui.button("Open...").clicked() {
                         self.open_file(ctx);
                         ui.close();
@@ -166,8 +175,8 @@ impl eframe::App for WebsiteGui {
 
                     ui.separator();
 
+                    //Exports input text into a JSON file
                     if ui.button("Export to JSON").clicked() {
-                        web_sys::console::log_1(&"Export button clicked".into()); // Debug
                         export_to_json(&self.json_input);
                         ui.close();
                     }
@@ -383,6 +392,26 @@ impl eframe::App for WebsiteGui {
                 }
             }
         }
+
+        //Checks if any files are dragged over and if yes, darkens the screen and displays a piece of text to confirm something happened
+        let input = ctx.input(|i| i.clone());
+        self.is_dragging_file = input.raw.hovered_files.len() > 0;
+
+        if self.is_dragging_file {
+            use egui::{Align2, Color32};
+
+            let screen_rect = ctx.screen_rect();
+            let painter = ctx.layer_painter(egui::LayerId::new(egui::Order::Foreground, egui::Id::new("drag_overlay")));
+            painter.rect_filled(screen_rect, 0.0, Color32::from_black_alpha(180));
+
+            painter.text(
+                screen_rect.center(),
+                Align2::CENTER_CENTER,
+                "📂 Drop your file here",
+                egui::FontId::proportional(32.0),
+                Color32::WHITE,
+            );
+        }
     }
 }
 
@@ -440,8 +469,6 @@ fn export_to_json(json_input: &str) {
     use wasm_bindgen::JsCast;
     use web_sys::{Blob, BlobPropertyBag, HtmlAnchorElement, Url};
 
-    web_sys::console::log_1(&"Export triggered".into());
-
     let window = window().unwrap();
     let document = window.document().unwrap();
     let body = document.body().unwrap();
@@ -478,7 +505,6 @@ fn export_to_json(json_input: &str) {
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen(js_name = handle_dropped_file)]
 pub fn handle_dropped_file(contents: String) {
-    web_sys::console::log_1(&format!("📦 Received dropped file with length: {}", contents.len()).into());
     let cell = JSON_INPUT_REF.get_or_init(|| Mutex::new(None));
     *cell.lock().unwrap() = Some(contents);
 }
@@ -495,12 +521,10 @@ pub fn register_file_handler() {
     let window = window().expect("no global window");
     let func = closure.as_ref().unchecked_ref::<js_sys::Function>();
 
-    // Use Reflect to set the global function
     js_sys::Reflect::set(&window, &JsValue::from_str("handle_dropped_file"), func)
         .expect("Failed to assign handle_dropped_file to window");
 
-    closure.forget(); // Leak the closure to keep it alive
-    web_sys::console::log_1(&"✅ Registered handle_dropped_file".into());
+    closure.forget();
 }
 
 #[cfg(test)]
