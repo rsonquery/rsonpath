@@ -47,3 +47,6 @@ simd = ["rsonpath-lib/simd"]
 
 [lints]
 workspace = true
+
+[lib]
+path = "src/lib.rs"

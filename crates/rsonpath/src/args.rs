@@ -7,7 +7,7 @@ use clap::{Parser, ValueEnum};
 /// Blazing fast JSONPath CLI tool powered by SIMD.
 ///
 /// A usage guide is available at <https://v0ldek.github.io/rsonpath/>.
-pub(super) struct Args {
+pub struct Args {
     /// JSONPath query to run against the input JSON.
     pub query: String,
     /// Input JSON file to query.
@@ -41,7 +41,7 @@ pub(super) struct Args {
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
-pub(super) enum ResultArg {
+pub enum ResultArg {
     /// Return only the number of matches.
     Count,
     /// Return a list of all bytes at which a match occurred.
@@ -51,7 +51,7 @@ pub(super) enum ResultArg {
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
-pub(super) enum InputArg {
+pub enum InputArg {
     /// Use a memory map over a file.
     ///
     /// This is preferred by default, if available on a given platform.

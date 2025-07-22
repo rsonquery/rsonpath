@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RsonQuery Web</title>
+    <link data-trunk rel="rust" data-bin="rsonpath-website" />
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+<canvas id="rsonquery_web"></canvas>
+
+<script type="text/javascript">
+    function setupDropListener() {
+        const canvas = document.querySelector("canvas");
+
+        canvas.addEventListener("dragover", (e) => {
+            e.preventDefault();
+        });
+
+        canvas.addEventListener("drop", async (event) => {
+            event.preventDefault();
+
+            const file = event.dataTransfer.files[0];
+
+            if (file && file.name.endsWith(".json")) {
+
+                const text = await file.text();
+
+                if (typeof window.handle_dropped_file === "function") {
+                    window.handle_dropped_file(text);
+                } else {
+                    console.warn("Rust WASM not ready yet — drop ignored.");
+                }
+            }
+        });
+    }
+
+    function waitForWasmExport() {
+        const checkInterval = setInterval(() => {
+            if (typeof window.handle_dropped_file === "function") {
+                clearInterval(checkInterval);
+                setupDropListener();
+            } else {
+                console.log("⏳ Waiting for WASM export...");
+            }
+        }, 200);
+    }
+
+    window.addEventListener("DOMContentLoaded", waitForWasmExport);
+</script>
+</body>
+</html>
