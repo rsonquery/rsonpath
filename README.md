@@ -40,7 +40,7 @@ $ rq '$..a.b' --json '{"c":{"a":{"b":42}}}'
 
 ```
 
-For details, consult `rq --help` or [the rsonbook](https://v0ldek.github.io/rsonpath/).
+For details, consult `rq --help` or [the rsonbook](https://rsonquery.github.io/rsonpath/).
 
 ### Results
 
