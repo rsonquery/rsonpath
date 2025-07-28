@@ -1,11 +1,12 @@
 pub use crate::args::{Args, InputArg, ResultArg};
 use crate::error::{report_compiler_error, report_parser_error};
-use crate::runner::Runner;
+use crate::runner::{BenchmarkRunOutput, Runner};
 use clap::Parser;
 use color_eyre::{eyre::Result, Help};
 use log::*;
 use rsonpath_lib::automaton::Automaton;
 use rsonpath_syntax::{JsonPathQuery, ParserBuilder};
+use web_time::{Duration, Instant};
 
 pub mod args;
 mod error;
@@ -16,7 +17,6 @@ mod version;
 
 pub fn run_main() -> Result<RunOutput> {
     use color_eyre::owo_colors::OwoColorize;
-    // color_eyre::install()?;
 
     let args = Args::parse();
 
@@ -26,25 +26,31 @@ pub fn run_main() -> Result<RunOutput> {
 }
 
 pub fn run_with_args(args: &Args) -> Result<RunOutput> {
+    // Benchmark parsing
+    let parse_start = Instant::now();
     let query = parse_query(&args.query)?;
-    info!("Preparing query: `{query}`\n");
+    let parse_time = parse_start.elapsed();
 
+    let compile_start = Instant::now();
     let automaton = compile_query(&query)?;
-    info!("Automaton: {automaton}");
+    let compile_time = compile_start.elapsed();
 
     let out = String::new();
     let err = String::new();
 
     if args.compile {
-        // Only compilation was requested, so we print the automaton and exit.
         println!("{automaton}");
         debug!("{automaton:?}");
         Ok(RunOutput {
             stdout: out,
             stderr: err,
+            benchmark_stats: Some(BenchmarkStats {
+                parse_time,
+                compile_time,
+                run_time: Duration::ZERO,
+            }),
         })
     } else {
-        // Actual query execution.
         let input = runner::resolve_input(
             args.file_path.as_deref(),
             args.json.as_deref(),
@@ -53,13 +59,26 @@ pub fn run_with_args(args: &Args) -> Result<RunOutput> {
         let engine = runner::resolve_engine();
         let output = runner::resolve_output(args.result);
 
-        Runner {
+        let runner = Runner {
             with_compiled_query: automaton,
             with_engine: engine,
             with_input: input,
             with_output: output,
-        }
-        .run()
+        };
+
+        // Benchmark execution
+        let BenchmarkRunOutput {
+            mut run_output,
+            duration: run_time,
+        } = runner.run_with_benchmark()?;
+
+        run_output.benchmark_stats = Some(BenchmarkStats {
+            parse_time,
+            compile_time,
+            run_time,
+        });
+
+        Ok(run_output)
     }
 }
 
@@ -96,7 +115,14 @@ pub fn create_args(
     }
 }
 
+pub struct BenchmarkStats {
+    pub parse_time: Duration,
+    pub compile_time: Duration,
+    pub run_time: Duration,
+}
+
 pub struct RunOutput {
     pub stdout: String,
     pub stderr: String,
+    pub benchmark_stats: Option<BenchmarkStats>,
 }

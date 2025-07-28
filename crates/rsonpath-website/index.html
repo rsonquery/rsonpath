@@ -38,11 +38,14 @@
             const file = event.dataTransfer.files[0];
 
             if (file && file.name.endsWith(".json")) {
-
+                const start = performance.now(); // Start timer before reading file
                 const text = await file.text();
 
                 if (typeof window.handle_dropped_file === "function") {
                     window.handle_dropped_file(text);
+
+                    // If you want to print elapsed time from JS side:
+                    console.log(`File read took ${(performance.now() - start).toFixed(2)} ms`);
                 } else {
                     console.warn("Rust WASM not ready yet — drop ignored.");
                 }

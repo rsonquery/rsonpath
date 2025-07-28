@@ -1,3 +1,4 @@
+use std::cell::{OnceCell, RefCell};
 use eframe::emath::Align;
 use eframe::epaint::Color32;
 use eframe::Frame;
@@ -23,6 +24,10 @@ pub struct WebsiteGui {
 
 impl Default for WebsiteGui {
     fn default() -> Self {
+        FILE_BUFFER.with(|cell| {
+            cell.get_or_init(|| RefCell::new(None));
+        });
+
         Self {
             json_input: String::new(),
             query_input: String::new(),
@@ -58,12 +63,18 @@ pub static JSON_INPUT_REF: OnceLock<Mutex<Option<String>>> = OnceLock::new();
 //For importing files
 pub static FILE_INPUT_REF: OnceLock<Mutex<Option<String>>> = OnceLock::new();
 
+thread_local! {
+    static FILE_BUFFER: OnceCell<RefCell<Option<(String, f64)>>> = OnceCell::new();
+    static FILE_START: std::cell::Cell<f64> = std::cell::Cell::new(0.0);
+}
+
+
 //File select for web version
 #[cfg(target_arch = "wasm32")]
 impl WebsiteGui {
-    fn open_file(&mut self, _ctx: &Context) {
+    pub fn open_file() {
         use wasm_bindgen::JsCast;
-        use web_sys::{FileReader, HtmlInputElement};
+        use web_sys::{window, FileReader, HtmlInputElement};
 
         let document = window().unwrap().document().unwrap();
         let body = document.body().unwrap();
@@ -73,32 +84,47 @@ impl WebsiteGui {
             .unwrap()
             .dyn_into::<HtmlInputElement>()
             .unwrap();
-
         file_input.set_type("file");
         file_input.set_accept(".json");
 
         let reader = FileReader::new().unwrap();
         let reader_clone = reader.clone();
 
+        // reader.onloadend callback
         let onloadend_cb = Closure::wrap(Box::new(move |_event: web_sys::Event| {
             if let Ok(result) = reader_clone.result() {
                 if let Some(text) = result.as_string() {
-                    let cell = FILE_INPUT_REF.get_or_init(|| Mutex::new(None));
-                    *cell.lock().unwrap() = Some(text);
+                    // Get elapsed time saved earlier in FILE_START
+                    let elapsed = FILE_START.with(|start_cell| {
+                        let start = start_cell.get();
+                        window().unwrap().performance().unwrap().now() - start
+                    });
+
+                    FILE_BUFFER.with(|cell| {
+                        if let Some(buf) = cell.get() {
+                            *buf.borrow_mut() = Some((text, elapsed));
+                        }
+                    });
                 }
             }
         }) as Box<dyn FnMut(_)>);
         reader.set_onloadend(Some(onloadend_cb.as_ref().unchecked_ref()));
         onloadend_cb.forget();
 
+        // Save the start time right before reading the file
         let file_input_clone = file_input.clone();
+        let reader_clone = reader.clone();
         let onchange_cb = Closure::wrap(Box::new(move |_event: web_sys::Event| {
             let files = file_input_clone.files().unwrap();
             if let Some(file) = files.get(0) {
-                reader.read_as_text(&file).unwrap();
+                // Start the timer *right before* reading the file
+                FILE_START.with(|cell| {
+                    cell.set(window().unwrap().performance().unwrap().now());
+                });
+
+                reader_clone.read_as_text(&file).unwrap();
             }
         }) as Box<dyn FnMut(_)>);
-
         file_input.set_onchange(Some(onchange_cb.as_ref().unchecked_ref()));
         onchange_cb.forget();
 
@@ -106,7 +132,6 @@ impl WebsiteGui {
         file_input.click();
     }
 }
-
 
 
 impl eframe::App for WebsiteGui {
@@ -169,7 +194,7 @@ impl eframe::App for WebsiteGui {
 
                     //Opens JSON file from computer
                     if ui.button("Open...").clicked() {
-                        self.open_file(ctx);
+                        WebsiteGui::open_file();
                         ui.close();
                     }
 
@@ -313,8 +338,24 @@ impl eframe::App for WebsiteGui {
                                 None,
                             )) {
                                 Ok(run_output) => {
+
                                     self.json_output = run_output.stdout;
-                                    self.console_output = run_output.stderr;
+
+                                    if let Some(benchmarks) = run_output.benchmark_stats {
+                                        self.console_output = format!(
+                                            "{}Benchmark Stats:\n\n\t- Parse time: {:?}\n\t- Compile time: {:?}\n\t- Run time: {:?}",
+                                            run_output.stderr,
+                                            benchmarks.parse_time,
+                                            benchmarks.compile_time,
+                                            benchmarks.run_time
+                                        );
+                                    } else {
+                                        self.console_output = run_output.stderr;
+                                    }
+
+                                    if self.json_output.is_empty() && !self.argument_compile {
+                                        self.console_output = String::from("ERROR: No result found. Please make sure all the variable names in your query are correct.")
+                                    }
                                 }
                                 Err(e) => {
                                     self.json_output.clear();
@@ -392,6 +433,15 @@ impl eframe::App for WebsiteGui {
                 }
             }
         }
+
+        FILE_BUFFER.with(|cell| {
+            if let Some(buf) = cell.get() {
+                if let Some((text, elapsed)) = buf.borrow_mut().take() {
+                    self.json_input = text;
+                    self.console_output = format!("File opened in {:.2} ms", elapsed);
+                }
+            }
+        });
 
         //Checks if any files are dragged over and if yes, darkens the screen and displays a piece of text to confirm something happened
         let input = ctx.input(|i| i.clone());

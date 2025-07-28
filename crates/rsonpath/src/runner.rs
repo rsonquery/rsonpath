@@ -12,17 +12,37 @@ use rsonpath_lib::{
     input::{BorrowedBytes, BufferedInput, Input, OwnedBytes},
     result::MatchWriter,
 };
+use std::io::Write;
+#[cfg(not(target_arch = "wasm32"))]
+use std::time::Instant;
 use std::{
     fs,
     io::{self, Read},
     path::Path,
 };
+#[cfg(target_arch = "wasm32")]
+use web_time::Instant;
 
 pub(super) struct Runner<S> {
     pub with_compiled_query: Automaton,
     pub with_engine: ResolvedEngine,
     pub with_input: ResolvedInput<S>,
     pub with_output: ResolvedOutput,
+}
+
+pub(super) struct BenchmarkRunOutput {
+    pub run_output: RunOutput,
+    pub duration: std::time::Duration,
+}
+
+impl<S: AsRef<str>> Runner<S> {
+    pub(super) fn run_with_benchmark(self) -> Result<BenchmarkRunOutput> {
+        let start = Instant::now();
+        let run_output = self.run()?;
+        let duration = start.elapsed();
+
+        Ok(BenchmarkRunOutput { run_output, duration })
+    }
 }
 
 impl<S: AsRef<str>> Runner<S> {
@@ -124,16 +144,16 @@ impl<S: AsRef<str>> ResolvedInput<S> {
                 JsonSource::File(f) => {
                     let contents = get_contents(f)?;
                     let input = OwnedBytes::new(contents.into_bytes());
-                    with_output.run_and_output(&engine, &input)
+                    Ok(with_output.run_and_output_with_benchmark(&engine, &input)?.run_output)
                 }
                 JsonSource::Stdin(s) => {
                     let contents = get_contents(s)?;
                     let input = OwnedBytes::new(contents.into_bytes());
-                    with_output.run_and_output(&engine, &input)
+                    Ok(with_output.run_and_output_with_benchmark(&engine, &input)?.run_output)
                 }
                 JsonSource::Inline(j) => {
                     let input = BorrowedBytes::new(j.as_ref().as_bytes());
-                    with_output.run_and_output(&engine, &input)
+                    Ok(with_output.run_and_output_with_benchmark(&engine, &input)?.run_output)
                 }
             },
             ResolvedInputKind::Buffered => {
@@ -142,16 +162,14 @@ impl<S: AsRef<str>> ResolvedInput<S> {
                     .try_as_read()
                     .ok_or_else(|| eyre::eyre!("Attempt to buffer reads on inline JSON input."))?;
                 let input = BufferedInput::new(read);
-                with_output.run_and_output(&engine, &input)
+                Ok(with_output.run_and_output_with_benchmark(&engine, &input)?.run_output)
             }
         }
     }
 }
 
-use std::io::Write;
-
 impl ResolvedOutput {
-    fn run_and_output<E: Engine, I: Input>(self, engine: &E, input: &I) -> eyre::Result<RunOutput> {
+    fn run_and_output<E: Engine, I: Input>(self, engine: &E, input: &I) -> Result<RunOutput> {
         // Allocate buffers
         let mut stdout_buf = Vec::new();
         let stderr_buf = Vec::new(); // unused for now
@@ -189,7 +207,26 @@ impl ResolvedOutput {
         let stdout = String::from_utf8(stdout_buf).unwrap_or_else(|_| "<Invalid UTF-8 in stdout>".to_string());
         let stderr = String::from_utf8(stderr_buf).unwrap_or_else(|_| "<Invalid UTF-8 in stderr>".to_string());
 
-        Ok(RunOutput { stdout, stderr })
+        Ok(RunOutput {
+            stdout,
+            stderr,
+            benchmark_stats: None,
+        })
+    }
+
+    pub(crate) fn run_and_output_with_benchmark<E: Engine, I: Input>(
+        self,
+        engine: &E,
+        input: &I,
+    ) -> Result<BenchmarkRunOutput> {
+        let start = Instant::now();
+        let output = self.run_and_output(engine, input)?;
+        let duration = start.elapsed();
+
+        Ok(BenchmarkRunOutput {
+            run_output: output,
+            duration,
+        })
     }
 }
 

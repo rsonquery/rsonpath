@@ -31,6 +31,7 @@ log = { workspace = true }
 rsonpath-lib = { workspace = true }
 rsonpath-syntax = { workspace = true, features = ["color"] }
 simple_logger = "5.1.0"
+web-time = "1.0"
 
 [build-dependencies]
 rustflags = { version = "0.1.7" }
