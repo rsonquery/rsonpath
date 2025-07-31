@@ -329,7 +329,7 @@ impl<I: Implementation> BenchFn for PreparedQuery<I> {
         };
 
         let result = self.implementation.run(q, f).unwrap();
-        criterion::black_box(result);
+        std::hint::black_box(result);
     }
 }
 
