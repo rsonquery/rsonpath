@@ -1,20 +1,22 @@
 use crate::framework::implementation::Implementation;
-use jsonpath_rust::{parser::JsonPath, JsonPathValue};
+use jsonpath_rust::{
+    parser::{errors::JsonPathError, model::JpQuery, parse_json_path},
+    query::{js_path_process, QueryRef},
+};
 use serde_json::Value;
 use std::{
     fmt::Display,
     fs,
     io::{self, BufReader},
-    str::FromStr,
 };
 use thiserror::Error;
 
 pub struct JsonpathRust {}
 
-pub struct JsonpathRustResult<'a>(Vec<JsonPathValue<'a, Value>>);
+pub struct JsonpathRustResult<'a>(Vec<QueryRef<'a, Value>>);
 
 impl Implementation for JsonpathRust {
-    type Query = JsonPath;
+    type Query = JpQuery;
 
     type File = Value;
 
@@ -39,11 +41,11 @@ impl Implementation for JsonpathRust {
     }
 
     fn compile_query(&self, query: &str) -> Result<Self::Query, Self::Error> {
-        JsonPath::from_str(query).map_err(JsonpathRustError::JsonPathInstError)
+        parse_json_path(query).map_err(JsonpathRustError::JsonPathInstError)
     }
 
     fn run<'a>(&self, query: &'a Self::Query, file: &'a Self::File) -> Result<Self::Result<'a>, Self::Error> {
-        let results = query.find_slice(file);
+        let results = js_path_process(query, file)?;
 
         Ok(JsonpathRustResult(results))
     }
@@ -52,8 +54,7 @@ impl Implementation for JsonpathRust {
 impl Display for JsonpathRustResult<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for res in &self.0 {
-            let val = res.clone().to_data();
-            writeln!(f, "{}", val)?;
+            writeln!(f, "{}", res.clone().val())?;
         }
 
         Ok(())
@@ -67,5 +68,5 @@ pub enum JsonpathRustError {
     #[error("error parsing JSON with serde: '{0}'")]
     SerdeError(#[from] serde_json::Error),
     #[error("error parsing JSONPath query: '{0}'")]
-    JsonPathInstError(<JsonPath as TryFrom<&'static str>>::Error),
+    JsonPathInstError(#[from] JsonPathError),
 }

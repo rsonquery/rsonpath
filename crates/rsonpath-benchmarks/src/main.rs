@@ -23,7 +23,7 @@ fn run<I: Implementation>(imp: I, query_str: &str, path_str: &str) -> Result<()>
 
     let result = imp.run(&query, &file)?;
 
-    println!("{}", result);
+    println!("{result}");
 
     Ok(())
 }
