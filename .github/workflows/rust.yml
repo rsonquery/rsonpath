@@ -95,7 +95,7 @@ jobs:
       - name: Cache restore (MinGW)
         id: cache-restore-mingw
         if: matrix.needs-mingw != ''
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
           path: |
             C:\ProgramData\chocolatey\lib\mingw
@@ -128,7 +128,7 @@ jobs:
         run: rustup override set ${{ matrix.toolchain }}
       - name: Cache restore (Cargo)
         id: cache-restore-cargo
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
           path: |
             ~/.cargo/bin/
@@ -198,7 +198,7 @@ jobs:
           target: ${{ matrix.target_triple }}
       - name: Cache restore (Cargo)
         id: cache-restore-cargo
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
           path: |
             ~/.cargo/bin/
@@ -253,7 +253,7 @@ jobs:
         run: rustup override set ${{ matrix.toolchain }}
       - name: Cache restore
         id: cache-restore
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
           path: |
             ~/.cargo/bin/
@@ -297,7 +297,7 @@ jobs:
         run: sudo apt install lld
       - name: Cache restore
         id: cache-restore
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
           path: |
             ~/.cargo/bin/
@@ -347,7 +347,7 @@ jobs:
           egress-policy: audit
 
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: EmbarkStudios/cargo-deny-action@30f817c6f72275c6d54dc744fbca09ebc958599f # v2.0.12
+      - uses: EmbarkStudios/cargo-deny-action@f2ba7abc2abebaf185c833c3961145a3c275caad # v2.0.13
 
   cargo-msrv:
     name: Verify MSRV (cargo-msrv)
