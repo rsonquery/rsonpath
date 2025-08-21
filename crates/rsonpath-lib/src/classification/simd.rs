@@ -458,6 +458,8 @@ pub(crate) enum SimdTag {
     Ssse3,
     /// AVX2 detected.
     Avx2,
+    ///WASM32 detected
+    Wasm32,
 }
 
 /// Runtime-detected SIMD configuration guiding how to construct a [`Simd`] implementation for the engine.
@@ -562,6 +564,12 @@ pub(crate) fn configure() -> SimdConfiguration {
             let fast_quotes = is_x86_feature_detected!("pclmulqdq");
             let fast_popcnt = is_x86_feature_detected!("popcnt");
         }
+        else if #[cfg(target_arch = "wasm32")]
+        {
+            let highest_simd = SimdTag::Wasm32;
+            let fast_quotes = false;
+            let fast_popcnt = false;
+        }
         else
         {
             let highest_simd = SimdTag::Nosimd;
@@ -585,6 +593,7 @@ impl Display for SimdConfiguration {
             SimdTag::Sse2 => "sse2",
             SimdTag::Ssse3 => "ssse3",
             SimdTag::Avx2 => "avx2",
+            SimdTag::Wasm32 => "wasm32",
         };
         let quote_desc = if self.fast_quotes { "fast_quotes" } else { "slow_quotes" };
         let popcnt_desc = if self.fast_popcnt { "fast_popcnt" } else { "slow_popcnt" };
@@ -653,6 +662,26 @@ cfg_if! {
                         $crate::classification::simd::SSE2_PCLMULQDQ => sse2_pclmulqdq($($arg),*),
                         $crate::classification::simd::SSE2_POPCNT => sse2_popcnt($($arg),*),
                         $crate::classification::simd::SSE2 => sse2($($arg),*),
+                        _ => nosimd($($arg),*),
+                    }
+                }
+            }};
+        }
+    }
+    else if #[cfg(target_arch = "wasm32")] {
+        pub(crate) const WASM32_SIMD128: usize = 1;
+
+        macro_rules! dispatch_simd {
+            ($simd:expr; $( $arg:expr ),* => fn $( $fn:tt )*) => {{
+                #[target_feature(enable = "simd128")]
+                unsafe fn wasm32_simd $($fn)*
+                fn nosimd $($fn)*
+
+                let simd = $simd;
+
+                unsafe {
+                    match simd.dispatch_tag() {
+                        $crate::classification::simd::WASM32_SIMD128 => wasm32_simd($($arg),*),
                         _ => nosimd($($arg),*),
                     }
                 }
@@ -792,6 +821,16 @@ cfg_if! {
                             >::new();
                             $b
                         }
+                        $crate::classification::simd::SimdTag::Wasm32 => {
+                            let $simd = $crate::classification::simd::ResolvedSimd::<
+                                $crate::classification::quotes::nosimd::Constructor,
+                                $crate::classification::structural::nosimd::Constructor,
+                                $crate::classification::depth::nosimd::Constructor,
+                                $crate::classification::memmem::nosimd::Constructor,
+                                {$crate::classification::simd::NOSIMD}
+                            >::new();
+                            $b
+                        }
                     }
                 }
             };
@@ -916,6 +955,52 @@ cfg_if! {
                                 $crate::classification::depth::nosimd::Constructor,
                                 $crate::classification::memmem::nosimd::Constructor,
                                 {$crate::classification::simd::NOSIMD}
+                            >::new();
+                            $b
+                        }
+                        $crate::classification::simd::SimdTag::Wasm32 => {
+                            let $simd = $crate::classification::simd::ResolvedSimd::<
+                                $crate::classification::quotes::nosimd::Constructor,
+                                $crate::classification::structural::nosimd::Constructor,
+                                $crate::classification::depth::nosimd::Constructor,
+                                $crate::classification::memmem::nosimd::Constructor,
+                                {$crate::classification::simd::NOSIMD}
+                            >::new();
+                            $b
+                        }
+                    }
+                }
+            };
+        }
+    }
+    else if #[cfg(target_arch = "wasm32")] {
+        macro_rules! config_simd {
+            ($conf:expr => |$simd:ident| $b:block) => {
+                {
+                    let conf = $conf;
+
+                    match conf.highest_simd() {
+                        $crate::classification::simd::SimdTag::Wasm32 => {
+                            let $simd = $crate::classification::simd::ResolvedSimd::<
+                                $crate::classification::quotes::nosimd::Constructor,
+                                $crate::classification::structural::nosimd::Constructor,
+                                $crate::classification::depth::wasm_32::Constructor,
+                                $crate::classification::memmem::wasm_32::Constructor,
+                                {$crate::classification::simd::WASM32_SIMD128},
+                            >::new();
+                            $b
+                        }
+
+                        $crate::classification::simd::SimdTag::Avx2
+                        | $crate::classification::simd::SimdTag::Ssse3
+                        | $crate::classification::simd::SimdTag::Sse2
+                        | $crate::classification::simd::SimdTag::Nosimd => {
+                            let $simd = $crate::classification::simd::ResolvedSimd::<
+                                $crate::classification::quotes::nosimd::Constructor,
+                                $crate::classification::structural::nosimd::Constructor,
+                                $crate::classification::depth::nosimd::Constructor,
+                                $crate::classification::memmem::nosimd::Constructor,
+                                {$crate::classification::simd::NOSIMD},
                             >::new();
                             $b
                         }

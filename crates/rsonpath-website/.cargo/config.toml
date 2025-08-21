@@ -1,2 +1,5 @@
 [build]
 target = "wasm32-unknown-unknown"
+
+[env]
+RUSTFLAGS = "--cfg target_feature=\"simd128\""
