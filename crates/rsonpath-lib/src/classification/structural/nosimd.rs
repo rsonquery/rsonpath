@@ -124,7 +124,7 @@ where
             let relative_idx = idx + 1 - self.iter.get_offset();
             let quote_classified_block = block.quote_classified;
             debug!("relative_idx is {relative_idx}.");
-            if relative_idx < 64 {
+            if relative_idx < N {
                 let new_block = Block::from_idx(
                     quote_classified_block,
                     relative_idx,

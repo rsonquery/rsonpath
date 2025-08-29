@@ -62,7 +62,7 @@ macro_rules! structural_classifier {
                     let quote_classified_block = block.quote_classified;
                     debug!("relative_idx is {relative_idx}.");
 
-                    if relative_idx < 64 {
+                    if relative_idx < $size {
                         debug!("need to reclassify.");
 
                         let mask = <$mask_ty>::MAX << relative_idx;
