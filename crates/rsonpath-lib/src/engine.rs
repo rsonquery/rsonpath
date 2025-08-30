@@ -42,7 +42,7 @@ pub trait Engine {
     /// Find the starting indices of matches on the given [`Input`] and write them to the [`Sink`].
     ///
     /// The result is equivalent to using [`matches`](Engine::matches) and extracting the
-    /// [`Match::span.start_idx`],
+    /// [`Match::span`] and [`MatchSpan::start_idx`],
     /// but in general is much more time and memory efficient.
     ///
     /// # Errors

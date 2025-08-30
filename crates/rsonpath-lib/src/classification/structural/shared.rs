@@ -58,15 +58,14 @@ macro_rules! structural_classifier {
             #[inline]
             fn reclassify(&mut self, idx: usize) {
                 if let Some(block) = self.block.take() {
+                    let relative_idx = idx + 1 - self.iter.get_offset();
                     let quote_classified_block = block.quote_classified;
-                    let relevant_idx = idx + 1;
-                    let block_idx = (idx + 1) % $size;
-                    debug!("relevant_idx is {relevant_idx}.");
+                    debug!("relative_idx is {relative_idx}.");
 
-                    if block_idx != 0 || relevant_idx == self.iter.get_offset() {
+                    if relative_idx < $size {
                         debug!("need to reclassify.");
 
-                        let mask = <$mask_ty>::MAX << block_idx;
+                        let mask = <$mask_ty>::MAX << relative_idx;
                         // SAFETY: target_feature invariant
                         let mut new_block = unsafe { self.classifier.classify(quote_classified_block) };
                         new_block.structural_mask &= mask;
