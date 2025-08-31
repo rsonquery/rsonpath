@@ -31,13 +31,13 @@ Options:
 
   -r, --result <RESULT>
           Result reporting mode
-          
-          [default: nodes]
 
           Possible values:
           - count:   Return only the number of matches
           - indices: Return a list of all bytes at which a match occurred
           - nodes:   Returns the full text of the matched nodes
+          
+          [default: nodes]
 
       --force-input <FORCE_INPUT>
           Bypass automatic resolution of the input strategy and force a specific one.
