@@ -29,11 +29,11 @@ rsonpath-syntax-proptest = { version = "0.4.0", path = "./crates/rsonpath-syntax
 # Main dependencies
 arbitrary = { version = "1.4.2" }
 cfg-if = "1.0.3"
-log = "0.4.27"
+log = "0.4.28"
 thiserror = "2.0.16"
 # Dev-dependencies
 ciborium = { version = "0.2.2", default-features = false }
-insta = { version = "1.43.1" }
+insta = { version = "1.43.2" }
 itertools = "0.14.0"
 pretty_assertions = "1.4.1"
 proptest = "1.7.0"
