@@ -20,6 +20,7 @@ pub struct WebsiteGui {
     argument_verbose: bool,
     argument_compile: bool,
     argument_result_arg: ResultArg,
+    benchmark_repetitions: usize,
 }
 
 impl Default for WebsiteGui {
@@ -39,6 +40,7 @@ impl Default for WebsiteGui {
             argument_verbose: false,
             argument_compile: false,
             argument_result_arg: ResultArg::Nodes,
+            benchmark_repetitions: 1,
         }
     }
 }
@@ -154,7 +156,7 @@ impl eframe::App for WebsiteGui {
             style
         });
 
-        //Checks for imported files file
+        //Checks for imported files
         #[cfg(target_arch = "wasm32")]
         if let Some(cell) = FILE_INPUT_REF.get() {
             if let Some(contents) = cell.lock().unwrap().take() {
@@ -240,7 +242,7 @@ impl eframe::App for WebsiteGui {
 
                         let left_side_width = screen_width * 0.5;
 
-                        let json_box_height = screen_height * 0.65;
+                        let json_box_height = screen_height * 0.620;
 
                         //Json input window
                         ScrollArea::vertical()
@@ -280,13 +282,14 @@ impl eframe::App for WebsiteGui {
                             ui.add_space(10.0);
 
                             ui.vertical(|ui| {
-                                //Arguments
-                                ui.horizontal(|ui| {
 
-                                    ui.vertical(|ui| {
-                                        ui.checkbox(&mut self.argument_compile, "Compile only");
-                                    });
-                                });
+                                //Arguments
+                                // ui.horizontal(|ui| {
+                                //
+                                //     ui.vertical(|ui| {
+                                //         ui.checkbox(&mut self.argument_compile, "Compile only");
+                                //     });
+                                // });
 
                                 ui.add_space(10.0);
 
@@ -313,6 +316,16 @@ impl eframe::App for WebsiteGui {
                                             });
                                     });
                                 });
+
+                                ui.add_space(10.0);
+
+                                //Repeat query x times
+                                ui.add(
+                                    egui::DragValue::new(&mut self.benchmark_repetitions)
+                                        .speed(1)
+                                        .range(1..=10000)
+                                        .prefix("Repetitions: ")
+                                );
                             });
                         });
 
@@ -328,46 +341,68 @@ impl eframe::App for WebsiteGui {
                             )
                             .clicked()
                         {
-                            match run_with_args(&create_args(
-                                self.query_input.clone(),
-                                None,
-                                Option::from(self.json_input.clone()),
-                                self.argument_verbose,
-                                self.argument_compile,
-                                self.argument_result_arg,
-                                None,
-                            )) {
-                                Ok(run_output) => {
+                            let mut total_parse = std::time::Duration::ZERO;
+                            let mut total_compile = std::time::Duration::ZERO;
+                            let mut total_run = std::time::Duration::ZERO;
 
-                                    self.json_output = run_output.stdout;
+                            let mut last_stdout = String::new();
+                            let mut last_stderr = String::new();
 
-                                    if let Some(benchmarks) = run_output.benchmark_stats {
-                                        self.console_output = format!(
-                                            "{}Benchmark Stats:\n\n\t- Parse time: {:?}\n\t- Compile time: {:?}\n\t- Run time: {:?}",
-                                            run_output.stderr,
-                                            benchmarks.parse_time,
-                                            benchmarks.compile_time,
-                                            benchmarks.run_time
-                                        );
+                            for _ in 0..self.benchmark_repetitions {
+                                match run_with_args(&create_args(
+                                    self.query_input.clone(),
+                                    None,
+                                    Option::from(self.json_input.clone()),
+                                    self.argument_verbose,
+                                    self.argument_compile,
+                                    self.argument_result_arg,
+                                    None,
+                                )) {
+                                    Ok(run_output) => {
+                                        last_stdout = run_output.stdout.clone();
+                                        last_stderr = run_output.stderr.clone();
+
+                                        if let Some(benchmarks) = run_output.benchmark_stats {
+                                            total_parse += benchmarks.parse_time;
+                                            total_compile += benchmarks.compile_time;
+                                            total_run += benchmarks.run_time;
+                                        }
+                                    }
+                                    Err(e) => {
+                                        self.json_output.clear();
+
+                                        let report = format!("{:?}", eyre::Report::from(e));
+                                        let stripped_bytes = strip(report.as_bytes());
+                                        let cleaned_report =
+                                            String::from_utf8_lossy(&stripped_bytes).into_owned();
+                                        let no_location = strip_location_paragraph(&cleaned_report);
+
+                                        self.console_output = strip_last_paragraph(&no_location);
+                                        return;
+                                    }
+                                };
+                            }
+
+                            self.json_output = last_stdout;
+
+                            if self.json_output.is_empty() && !self.argument_compile {
+                                self.console_output = String::from(
+                                    "ERROR: No result found. Please make sure all the variable names in your query are correct."
+                                );
+                            } else {
+                                self.console_output = format!(
+                                    "{}Benchmark Stats{}:\n\n\t- Parse time: {:?}\n\t- Compile time: {:?}\n\t- Run time: {:?}",
+                                    last_stderr,
+                                    if self.benchmark_repetitions > 1 {
+                                        format!(" (averaged over {} runs)", self.benchmark_repetitions)
                                     } else {
-                                        self.console_output = run_output.stderr;
-                                    }
-
-                                    if self.json_output.is_empty() && !self.argument_compile {
-                                        self.console_output = String::from("ERROR: No result found. Please make sure all the variable names in your query are correct.")
-                                    }
-                                }
-                                Err(e) => {
-                                    self.json_output.clear();
-
-                                    let report = format!("{:?}", eyre::Report::from(e));
-                                    let stripped_bytes = strip(report.as_bytes());
-                                    let cleaned_report = String::from_utf8_lossy(&stripped_bytes).into_owned();
-                                    let no_location = strip_location_paragraph(&cleaned_report);
-
-                                    self.console_output = strip_last_paragraph(&no_location);
-                                }
-                            };
+                                        "".to_string()
+                                    },
+                                    total_parse / self.benchmark_repetitions as u32,
+                                    total_compile / self.benchmark_repetitions as u32,
+                                    total_run / self.benchmark_repetitions as u32,
+                                );
+                            }
                         }
                     });
 
