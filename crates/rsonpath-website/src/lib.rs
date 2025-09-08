@@ -17,10 +17,9 @@ pub struct WebsiteGui {
     is_dragging_file: bool,
     toggle_dark_mode_on: bool,
     toggle_console_on: bool,
-    argument_verbose: bool,
-    argument_compile: bool,
     argument_result_arg: ResultArg,
     benchmark_repetitions: usize,
+    warmup: bool,
 }
 
 impl Default for WebsiteGui {
@@ -37,10 +36,9 @@ impl Default for WebsiteGui {
             is_dragging_file: false,
             toggle_dark_mode_on: true,
             toggle_console_on: true,
-            argument_verbose: false,
-            argument_compile: false,
             argument_result_arg: ResultArg::Nodes,
             benchmark_repetitions: 1,
+            warmup: true,
         }
     }
 }
@@ -155,14 +153,6 @@ impl eframe::App for WebsiteGui {
             .into();
             style
         });
-
-        //Checks for imported files
-        #[cfg(target_arch = "wasm32")]
-        if let Some(cell) = FILE_INPUT_REF.get() {
-            if let Some(contents) = cell.lock().unwrap().take() {
-                self.json_input = contents;
-            }
-        }
 
         //Checks for drag & dropped files
         #[cfg(target_arch = "wasm32")]
@@ -283,14 +273,6 @@ impl eframe::App for WebsiteGui {
 
                             ui.vertical(|ui| {
 
-                                //Arguments
-                                // ui.horizontal(|ui| {
-                                //
-                                //     ui.vertical(|ui| {
-                                //         ui.checkbox(&mut self.argument_compile, "Compile only");
-                                //     });
-                                // });
-
                                 ui.add_space(10.0);
 
                                 ui.horizontal(|ui| {
@@ -349,12 +331,26 @@ impl eframe::App for WebsiteGui {
                             let mut last_stderr = String::new();
 
                             for _ in 0..self.benchmark_repetitions {
+
+                                if self.warmup {
+                                    let _ = run_with_args(&create_args(
+                                        self.query_input.clone(),
+                                        None,
+                                        Some(self.json_input.clone()),
+                                        false,
+                                        false,
+                                        self.argument_result_arg,
+                                        None,
+                                    ));
+                                    self.warmup = false;
+                                }
+
                                 match run_with_args(&create_args(
                                     self.query_input.clone(),
                                     None,
                                     Option::from(self.json_input.clone()),
-                                    self.argument_verbose,
-                                    self.argument_compile,
+                                    false,
+                                    false,
                                     self.argument_result_arg,
                                     None,
                                 )) {
@@ -385,7 +381,7 @@ impl eframe::App for WebsiteGui {
 
                             self.json_output = last_stdout;
 
-                            if self.json_output.is_empty() && !self.argument_compile {
+                            if self.json_output.is_empty() {
                                 self.console_output = String::from(
                                     "ERROR: No result found. Please make sure all the variable names in your query are correct."
                                 );
