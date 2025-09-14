@@ -54,3 +54,6 @@ rfd = "0.15.3"
 [lib]
 path = "src/lib.rs"
 crate-type = ["cdylib", "rlib"]
+
+[profile.release]
+incremental = true

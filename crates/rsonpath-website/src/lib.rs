@@ -239,10 +239,21 @@ impl eframe::App for WebsiteGui {
                             .id_salt("Json input window")
                             .max_height(json_box_height)
                             .show(ui, |ui| {
-                                ui.add_sized(
-                                    [left_side_width, json_box_height],
-                                    TextEdit::multiline(&mut self.json_input).hint_text(hint_text),
-                                );
+
+                                //Truncates the input to the first 10,000 characters if imported file is > 10MB
+                                if self.json_input.len() > 10_000_000 {
+                                    let preview: String = self.json_input.chars().take(10_000).collect();
+                                    ui.add_sized(
+                                        [left_side_width, json_box_height],
+                                        TextEdit::multiline(&mut preview.clone()).hint_text(hint_text).interactive(false),
+                                    );
+                                }
+                                else {
+                                    ui.add_sized(
+                                        [left_side_width, json_box_height],
+                                        TextEdit::multiline(&mut self.json_input).hint_text(hint_text)
+                                    );
+                                }
                             });
 
                         ui.add_space(15.0);
