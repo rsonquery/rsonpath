@@ -45,15 +45,12 @@ where
     type Block = Vector<'i, I, N>;
 
     fn stop(self, block: Option<Self::Block>) -> ResumeClassifierState<'i, I, Q, MaskType, N> {
-        let block_state = block.and_then(|b| {
-            debug!("Depth iterator stopping at index {}", b.idx);
-            if b.idx >= b.quote_classified.len() {
-                None
-            } else {
-                Some(ResumeClassifierBlockState {
-                    block: b.quote_classified,
-                    idx: b.idx,
-                })
+        let block_state = block.map(|b| {
+            let idx = b.idx;
+            debug!("Depth iterator stopping at index {idx}");
+            ResumeClassifierBlockState {
+                block: b.quote_classified,
+                idx,
             }
         });
 

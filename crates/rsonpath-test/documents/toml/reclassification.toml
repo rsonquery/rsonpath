@@ -1,0 +1,50 @@
+# Define the JSON input for all query test cases.
+[input]
+# Short description of the input structure.
+description = "Nested lists and objects to stress structural reclassification logic."
+# Set to true only if your specific test input is fully compressed (no extraneous whitespace).
+is_compressed = false
+
+# Inline JSON document.
+[input.source]
+json_string = '''
+[
+  {
+    "x": [
+      {
+        "id": 1
+      }
+    ]
+  },
+  {
+    "x": [
+      {
+        "id": 2
+      }
+    ]
+  },
+  {
+    "x": [
+      {
+        "id": 3
+      }]}]
+'''
+
+# Define queries to test on the input.
+[[queries]]
+# Valid JSONPath query string.
+query = "$[:2].x[*].id"
+# Short descritpion of the query semantics.
+description = "select a slice from the top and then dig into structure of all children"
+
+[queries.results]
+# Number of expected matches.
+count = 2
+# Byte locations of spans of all matches, in order.
+spans = [[39, 40], [97, 98]]
+# Stringified values of all matches, verbatim as in the input,
+# in the same order as above.
+nodes = [
+    '1',
+    '2',
+]
