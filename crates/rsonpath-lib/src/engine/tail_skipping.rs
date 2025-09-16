@@ -95,7 +95,7 @@ where
                 debug!("Skipping complete, resuming structural classification.");
                 let resume_state = depth_classifier.stop(current_vector);
                 debug!("Finished at {}", resume_state.get_idx());
-                idx = resume_state.get_idx();
+                idx = resume_state.get_idx() - 1;
                 tail_skip.simd.resume_structural_classification(resume_state)
             });
 

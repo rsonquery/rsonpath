@@ -52,16 +52,12 @@ macro_rules! depth_classifier {
 
             #[inline(always)]
             fn stop(self, block: Option<Self::Block>) -> ResumeClassifierState<'a, I, Q, $mask_ty, $size> {
-                let block_state = block.and_then(|b| {
+                let block_state = block.map(|b| {
                     let idx = b.idx;
                     debug!("Depth iterator stopping at index {idx}");
-                    if idx >= b.quote_classified.len() {
-                        None
-                    } else {
-                        Some(ResumeClassifierBlockState {
-                            block: b.quote_classified,
-                            idx,
-                        })
+                    ResumeClassifierBlockState {
+                        block: b.quote_classified,
+                        idx,
                     }
                 });
 
