@@ -193,10 +193,8 @@ $ just test
 
 ## Benchmarks
 
-Benchmarks for `rsonpath` are located in a [separate repository](https://github.com/v0ldek/rsonpath-benchmarks),
-included as a [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules) in this main repository.
-
-Easiest way to run all the benchmarks is `just bench`. For details, look at the README in the submodule.
+Benchmarks for `rsonpath` are located in the benchmark crate of this repository. 
+Easiest way to run all the benchmarks is `just bench` within the directory `crates/rsonpath-benchmarks` . For details, look at the README in this directory.
 
 ## Background
 
