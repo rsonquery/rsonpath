@@ -333,7 +333,7 @@ impl eframe::App for WebsiteGui {
                         if ui
                             .add_sized(
                                 [left_side_width, screen_height * 0.144],
-                                Button::new(button_text).fill(Color32::BROWN),
+                                Button::new(button_text).fill(Color32::from_rgb(227, 60, 38)),
                             )
                             .clicked()
                         {
