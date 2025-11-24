@@ -1,6 +1,8 @@
+[build]
+rustflags = ["-C", "link-arg=-fuse-ld=lld"]
+
 [alias]
 rsontest = "hack test -q --feature-powerset --skip default -F arbitrary -F serde --ignore-unknown-features"
-build-website = "build -p rsonpath-website --target wasm32-unknown-unknown"
 
 [env]
 RUST_BACKTRACE = "1"
