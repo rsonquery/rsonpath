@@ -1,10 +1,10 @@
-use std::cell::{OnceCell, RefCell};
+use eframe::Frame;
 use eframe::emath::Align;
 use eframe::epaint::Color32;
-use eframe::Frame;
-use egui::{Button, ComboBox, Context, Layout, RichText, ScrollArea, TextEdit, TopBottomPanel};
+use egui::{Button, ComboBox, Context, Layout, RichText, ScrollArea, TextEdit, TopBottomPanel, Vec2};
 use rsonpath::*;
-use std::sync::{Mutex, OnceLock};
+use std::cell::{OnceCell, RefCell};
+use std::sync::{Arc, Mutex, OnceLock};
 use strip_ansi_escapes::strip;
 use wasm_bindgen::prelude::*;
 use web_sys::window;
@@ -68,13 +68,12 @@ thread_local! {
     static FILE_START: std::cell::Cell<f64> = std::cell::Cell::new(0.0);
 }
 
-
 //File select for web version
 #[cfg(target_arch = "wasm32")]
 impl WebsiteGui {
     pub fn open_file() {
         use wasm_bindgen::JsCast;
-        use web_sys::{window, FileReader, HtmlInputElement};
+        use web_sys::{FileReader, HtmlInputElement, window};
 
         let document = window().unwrap().document().unwrap();
         let body = document.body().unwrap();
@@ -133,9 +132,10 @@ impl WebsiteGui {
     }
 }
 
-
 impl eframe::App for WebsiteGui {
     fn update(&mut self, ctx: &Context, _frame: &mut Frame) {
+        // Set image loaders.
+        egui_extras::install_image_loaders(ctx);
         //Sets the font size for buttons and menu bodies, as well as the padding
         ctx.set_style({
             let mut style = (*ctx.style()).clone();
@@ -170,10 +170,13 @@ impl eframe::App for WebsiteGui {
 
         TopBottomPanel::top("menu bar").show(ctx, |ui| {
             ui.horizontal_wrapped(|ui| {
-
+                let logo_src = egui::include_image!("../assets/rsonquery-rq-logo.svg");
+                let logo_image = egui::Image::new(logo_src)
+                    .max_height(100.0)
+                    .fit_to_exact_size(Vec2::new(200.0, 40.0));
+                ui.add(logo_image);
                 // File menu button
                 ui.menu_button("File", |ui| {
-
                     //Wipes all text windows to allow user to start anew
                     if ui.button("New").clicked() {
                         self.json_input.clear();
@@ -493,7 +496,10 @@ impl eframe::App for WebsiteGui {
             use egui::{Align2, Color32};
 
             let screen_rect = ctx.screen_rect();
-            let painter = ctx.layer_painter(egui::LayerId::new(egui::Order::Foreground, egui::Id::new("drag_overlay")));
+            let painter = ctx.layer_painter(egui::LayerId::new(
+                egui::Order::Foreground,
+                egui::Id::new("drag_overlay"),
+            ));
             painter.rect_filled(screen_rect, 0.0, Color32::from_black_alpha(180));
 
             painter.text(
