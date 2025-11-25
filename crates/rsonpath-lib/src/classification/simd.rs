@@ -570,7 +570,7 @@ pub(crate) fn configure() -> SimdConfiguration {
         // without simd128 we require the target_feature on compile-time to enable SIMD.
         else if #[cfg(all(target_arch = "wasm32", target_feature = "simd128"))]
         {
-            let highest_simd = SimdTag::SimdWasm32;
+            let highest_simd = SimdTag::WasmSimd128;
             let fast_quotes = false;
             let fast_popcnt = true; // popcnt is built-in on Wasm32
         }
@@ -968,7 +968,9 @@ cfg_if! {
                     let conf = $conf;
 
                     match conf.highest_simd() {
-                        $crate::classification::simd::SimdTag::Wasm32 => {
+                        $crate::classification::simd::SimdTag::WasmSimd128 => {
+                            assert!(!conf.fast_quotes());
+                            assert!(conf.fast_popcnt());
                             let $simd = $crate::classification::simd::ResolvedSimd::<
                                 $crate::classification::quotes::nosimd::Constructor,
                                 $crate::classification::structural::nosimd::Constructor,

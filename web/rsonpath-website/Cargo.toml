@@ -1,10 +1,11 @@
 [package]
 name = "rsonpath-website"
 version = "0.1.0"
-authors = ["Georgios Chatzikyriakou"]
+authors = ["Georgios Chatzikyriakou", "Mateusz Gienieczko <mat@gienieczko.com>"]
 #add readme
 license = "MIT"
-repository = "https://github.com/GeoChatzik/rsonpath"
+repository = "https://github.com/rsonquery/rsonpath"
+homepage = "https://rsonquery.github.io/web"
 edition = "2024"
 
 [dependencies]
@@ -19,12 +20,14 @@ eframe = { version = "0.32.0", default-features = false, features = [
 egui = "0.32.0"
 egui_extras = {  version = "0.32.0", features = ["all_loaders", "svg"] }
 wasm-bindgen = "0.2"
-rsonpath = { path = "../../crates/rsonpath" }
+rsonpath = { path = "../../crates/rsonpath-lib", package = "rsonpath-lib" }
+rsonpath-syntax = { path = "../../crates/rsonpath-syntax" }
 rfd = { version = "0.15.3", optional = true }
 js-sys = "0.3.77"
 color-eyre = { version = "0.6", default-features = false, features = ["track-caller"] }
 eyre = "0.6"
 strip-ansi-escapes = "0.2.1"
+web-time = "1.0"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen-futures = "0.4.50"

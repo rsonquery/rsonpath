@@ -2,12 +2,30 @@ use eframe::Frame;
 use eframe::emath::Align;
 use eframe::epaint::Color32;
 use egui::{Button, ComboBox, Context, Layout, RichText, ScrollArea, TextEdit, TopBottomPanel, Vec2};
-use rsonpath::*;
+use eyre::Result;
+use rsonpath::automaton::{Automaton, error::CompilerError};
+use rsonpath::engine::{Compiler, Engine, RsonpathEngine};
+use rsonpath::input::BorrowedBytes;
+use rsonpath::result::MatchWriter;
+use rsonpath_syntax::error::ParseError;
+use rsonpath_syntax::{JsonPathQuery, ParserBuilder};
 use std::cell::{OnceCell, RefCell};
-use std::sync::{Arc, Mutex, OnceLock};
+use std::io::Write;
+use std::sync::{Mutex, OnceLock};
 use strip_ansi_escapes::strip;
 use wasm_bindgen::prelude::*;
 use web_sys::window;
+use web_time::{Duration, Instant};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ResultArg {
+    /// Return only the number of matches.
+    Count,
+    /// Return a list of all bytes at which a match occurred.
+    Indices,
+    /// Returns the full text of the matched nodes.
+    Nodes,
+}
 
 pub struct WebsiteGui {
     json_input: String,
@@ -245,7 +263,7 @@ impl eframe::App for WebsiteGui {
 
                                 //Truncates the input to the first 10,000 characters if imported file is > 10MB
                                 if self.json_input.len() > 10_000_000 {
-                                    let preview: String = self.json_input.chars().take(10_000).collect();
+                                    let preview: String = "<JSON file too large to render>".to_string();
                                     ui.add_sized(
                                         [left_side_width, json_box_height],
                                         TextEdit::multiline(&mut preview.clone()).hint_text(hint_text).interactive(false),
@@ -342,35 +360,17 @@ impl eframe::App for WebsiteGui {
                             let mut total_run = std::time::Duration::ZERO;
 
                             let mut last_stdout = String::new();
-                            let mut last_stderr = String::new();
 
                             for _ in 0..self.benchmark_repetitions {
 
                                 if self.warmup {
-                                    let _ = run_with_args(&create_args(
-                                        self.query_input.clone(),
-                                        None,
-                                        Some(self.json_input.clone()),
-                                        false,
-                                        false,
-                                        self.argument_result_arg,
-                                        None,
-                                    ));
+                                    let _ = run(&self.query_input, &self.json_input, self.argument_result_arg);
                                     self.warmup = false;
                                 }
 
-                                match run_with_args(&create_args(
-                                    self.query_input.clone(),
-                                    None,
-                                    Option::from(self.json_input.clone()),
-                                    false,
-                                    false,
-                                    self.argument_result_arg,
-                                    None,
-                                )) {
+                                match run(&self.query_input, &self.json_input, self.argument_result_arg) {
                                     Ok(run_output) => {
                                         last_stdout = run_output.stdout.clone();
-                                        last_stderr = run_output.stderr.clone();
 
                                         if let Some(benchmarks) = run_output.benchmark_stats {
                                             total_parse += benchmarks.parse_time;
@@ -401,8 +401,7 @@ impl eframe::App for WebsiteGui {
                                 );
                             } else {
                                 self.console_output = format!(
-                                    "{}Benchmark Stats{}:\n\n\t- Parse time: {:?}\n\t- Compile time: {:?}\n\t- Run time: {:?}",
-                                    last_stderr,
+                                    "Benchmark Stats{}:\n\n\t- Parse time: {:?}\n\t- Compile time: {:?}\n\t- Run time: {:?}",
                                     if self.benchmark_repetitions > 1 {
                                         format!(" (averaged over {} runs)", self.benchmark_repetitions)
                                     } else {
@@ -625,10 +624,65 @@ pub fn register_file_handler() {
     closure.forget();
 }
 
-#[cfg(test)]
-mod tests {
-    //use super::*;
+fn run(query: &str, json: &str, result_arg: ResultArg) -> Result<RunOutput> {
+    // Benchmark parsing
+    let parse_start = Instant::now();
+    let query = parse_query(query)?;
+    let parse_time = parse_start.elapsed();
 
-    #[test]
-    fn it_works() {}
+    let compile_start = Instant::now();
+    let automaton = compile_query(&query)?;
+    let compile_time = compile_start.elapsed();
+
+    let mut out = Vec::new();
+
+    let engine = RsonpathEngine::from_compiled_query(automaton);
+    let input = BorrowedBytes::new(json.as_bytes());
+    let start = Instant::now();
+    match result_arg {
+        ResultArg::Count => {
+            let result = engine.count(&input)?;
+            write!(&mut out, "{result}")?;
+        }
+        ResultArg::Indices => {
+            let mut sink = MatchWriter::from(&mut out);
+            engine.indices(&input, &mut sink)?;
+        }
+        ResultArg::Nodes => {
+            let mut sink = MatchWriter::from(&mut out);
+            engine.matches(&input, &mut sink)?;
+        }
+    };
+    let run_time = start.elapsed();
+
+    Ok(RunOutput {
+        stdout: String::from_utf8(out).expect("<Invalid UTF-8 in stdout>"),
+        benchmark_stats: Some(BenchmarkStats {
+            parse_time,
+            compile_time,
+            run_time,
+        }),
+    })
+}
+
+fn parse_query(query_string: &str) -> Result<JsonPathQuery, ParseError> {
+    let mut parser_builder = ParserBuilder::default();
+    parser_builder.allow_surrounding_whitespace(true);
+    let parser: rsonpath_syntax::Parser = parser_builder.into();
+    parser.parse(query_string)
+}
+
+fn compile_query(query: &JsonPathQuery) -> Result<Automaton, CompilerError> {
+    Automaton::new(query)
+}
+
+pub struct BenchmarkStats {
+    pub parse_time: Duration,
+    pub compile_time: Duration,
+    pub run_time: Duration,
+}
+
+pub struct RunOutput {
+    pub stdout: String,
+    pub benchmark_stats: Option<BenchmarkStats>,
 }

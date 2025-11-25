@@ -2,26 +2,20 @@ use crate::input::{self, JsonSource, ResolvedInputKind};
 use crate::{
     args::{InputArg, ResultArg},
     error::report_engine_error,
-    RunOutput,
 };
 use eyre::{Result, WrapErr};
-// use log::warn;
+use log::warn;
 use rsonpath_lib::{
     automaton::Automaton,
     engine::{error::EngineError, main::MainEngine, Compiler, Engine},
-    input::{BorrowedBytes, BufferedInput, Input, OwnedBytes},
+    input::{BorrowedBytes, BufferedInput, Input, MmapInput, OwnedBytes},
     result::MatchWriter,
 };
-use std::io::Write;
-#[cfg(not(target_arch = "wasm32"))]
-use std::time::Instant;
 use std::{
     fs,
     io::{self, Read},
     path::Path,
 };
-#[cfg(target_arch = "wasm32")]
-use web_time::Instant;
 
 pub(super) struct Runner<S> {
     pub with_compiled_query: Automaton,
@@ -30,23 +24,8 @@ pub(super) struct Runner<S> {
     pub with_output: ResolvedOutput,
 }
 
-pub(super) struct BenchmarkRunOutput {
-    pub run_output: RunOutput,
-    pub duration: std::time::Duration,
-}
-
 impl<S: AsRef<str>> Runner<S> {
-    pub(super) fn run_with_benchmark(self) -> Result<BenchmarkRunOutput> {
-        let start = Instant::now();
-        let run_output = self.run()?;
-        let duration = start.elapsed();
-
-        Ok(BenchmarkRunOutput { run_output, duration })
-    }
-}
-
-impl<S: AsRef<str>> Runner<S> {
-    pub(super) fn run(self) -> Result<RunOutput> {
+    pub(super) fn run(self) -> Result<()> {
         match self.with_engine {
             ResolvedEngine::Main => {
                 let engine = MainEngine::from_compiled_query(self.with_compiled_query);
@@ -108,52 +87,48 @@ pub(super) enum ResolvedOutput {
 }
 
 impl<S: AsRef<str>> ResolvedInput<S> {
-    fn run_engine<E: Engine>(mut self, engine: E, with_output: ResolvedOutput) -> Result<RunOutput> {
+    fn run_engine<E: Engine>(mut self, engine: E, with_output: ResolvedOutput) -> Result<()> {
         match self.kind {
             ResolvedInputKind::Mmap => {
-                //     let raw_desc = self
-                //         .file
-                //         .try_as_raw_desc()
-                //         .ok_or_else(|| eyre::eyre!("Attempt to create a memory map on inline JSON input."))?;
+                let raw_desc = self
+                    .file
+                    .try_as_raw_desc()
+                    .ok_or_else(|| eyre::eyre!("Attempt to create a memory map on inline JSON input."))?;
                 // SAFETY: The file is open for at least as long as self exists, so the fd should remain valid
                 // throughout this function.
-                // let mmap_result = unsafe { MmapInput::map_file(raw_desc) };
+                let mmap_result = unsafe { MmapInput::map_file(raw_desc) };
 
-                //     match mmap_result {
-                //         Ok(input) => with_output.run_and_output(&engine, &input),
-                //         Err(err) => match self.fallback_kind {
-                //             Some(fallback_kind) => {
-                //                 warn!(
-                //                     "Creating a memory map failed: '{}'. Falling back to a slower input strategy.",
-                //                     err
-                //                 );
-                //                 let new_input = Self {
-                //                     kind: fallback_kind,
-                //                     fallback_kind: None,
-                //                     file: self.file,
-                //                 };
-                //
-                //                 new_input.run_engine(engine, with_output)
-                //             }
-                //             None => Err(err).wrap_err("Creating a memory map failed."),
-                //         },
-                //     }
-                Err(eyre::eyre!("This operation is not possible on this version"))
+                match mmap_result {
+                    Ok(input) => with_output.run_and_output(&engine, &input),
+                    Err(err) => match self.fallback_kind {
+                        Some(fallback_kind) => {
+                            warn!("Creating a memory map failed: '{err}'. Falling back to a slower input strategy.");
+                            let new_input = Self {
+                                kind: fallback_kind,
+                                fallback_kind: None,
+                                file: self.file,
+                            };
+
+                            new_input.run_engine(engine, with_output)
+                        }
+                        None => Err(err).wrap_err("Creating a memory map failed."),
+                    },
+                }
             }
             ResolvedInputKind::Owned => match self.file {
                 JsonSource::File(f) => {
                     let contents = get_contents(f)?;
                     let input = OwnedBytes::new(contents.into_bytes());
-                    Ok(with_output.run_and_output_with_benchmark(&engine, &input)?.run_output)
+                    with_output.run_and_output(&engine, &input)
                 }
                 JsonSource::Stdin(s) => {
                     let contents = get_contents(s)?;
                     let input = OwnedBytes::new(contents.into_bytes());
-                    Ok(with_output.run_and_output_with_benchmark(&engine, &input)?.run_output)
+                    with_output.run_and_output(&engine, &input)
                 }
                 JsonSource::Inline(j) => {
                     let input = BorrowedBytes::new(j.as_ref().as_bytes());
-                    Ok(with_output.run_and_output_with_benchmark(&engine, &input)?.run_output)
+                    with_output.run_and_output(&engine, &input)
                 }
             },
             ResolvedInputKind::Buffered => {
@@ -162,36 +137,26 @@ impl<S: AsRef<str>> ResolvedInput<S> {
                     .try_as_read()
                     .ok_or_else(|| eyre::eyre!("Attempt to buffer reads on inline JSON input."))?;
                 let input = BufferedInput::new(read);
-                Ok(with_output.run_and_output_with_benchmark(&engine, &input)?.run_output)
+                with_output.run_and_output(&engine, &input)
             }
         }
     }
 }
 
 impl ResolvedOutput {
-    fn run_and_output<E: Engine, I: Input>(self, engine: &E, input: &I) -> Result<RunOutput> {
-        // Allocate buffers
-        let mut stdout_buf = Vec::new();
-        let stderr_buf = Vec::new(); // unused for now
-
-        // Inner implementation — takes a writer
-        fn run_impl<E: Engine, I: Input>(
-            out: &ResolvedOutput,
-            engine: &E,
-            input: &I,
-            writer: &mut dyn Write,
-        ) -> Result<(), EngineError> {
+    fn run_and_output<E: Engine, I: Input>(self, engine: &E, input: &I) -> Result<()> {
+        fn run_impl<E: Engine, I: Input>(out: &ResolvedOutput, engine: &E, input: &I) -> Result<(), EngineError> {
             match out {
                 ResolvedOutput::Count => {
                     let result = engine.count(input)?;
-                    write!(writer, "{result}")?;
+                    print!("{result}");
                 }
                 ResolvedOutput::Index => {
-                    let mut sink = MatchWriter::from(writer);
+                    let mut sink = MatchWriter::from(io::stdout().lock());
                     engine.indices(input, &mut sink)?;
                 }
                 ResolvedOutput::Nodes => {
-                    let mut sink = MatchWriter::from(writer);
+                    let mut sink = MatchWriter::from(io::stdout().lock());
                     engine.matches(input, &mut sink)?;
                 }
             }
@@ -199,34 +164,7 @@ impl ResolvedOutput {
             Ok(())
         }
 
-        // Run and collect output
-        run_impl(&self, engine, input, &mut stdout_buf)
-            .map_err(|err| report_engine_error(err).wrap_err("Error executing the query."))?;
-
-        // Convert buffers to strings
-        let stdout = String::from_utf8(stdout_buf).unwrap_or_else(|_| "<Invalid UTF-8 in stdout>".to_string());
-        let stderr = String::from_utf8(stderr_buf).unwrap_or_else(|_| "<Invalid UTF-8 in stderr>".to_string());
-
-        Ok(RunOutput {
-            stdout,
-            stderr,
-            benchmark_stats: None,
-        })
-    }
-
-    pub(crate) fn run_and_output_with_benchmark<E: Engine, I: Input>(
-        self,
-        engine: &E,
-        input: &I,
-    ) -> Result<BenchmarkRunOutput> {
-        let start = Instant::now();
-        let output = self.run_and_output(engine, input)?;
-        let duration = start.elapsed();
-
-        Ok(BenchmarkRunOutput {
-            run_output: output,
-            duration,
-        })
+        run_impl(&self, engine, input).map_err(|err| report_engine_error(err).wrap_err("Error executing the query."))
     }
 }
 
