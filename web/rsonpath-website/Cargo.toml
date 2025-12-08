@@ -9,7 +9,8 @@ homepage = "https://rsonquery.github.io/web"
 edition = "2024"
 
 [dependencies]
-eframe = { version = "0.32.0", default-features = false, features = [
+color-eyre = { version = "0.6.5", default-features = false, features = ["track-caller"] }
+eframe = { version = "0.33.2", default-features = false, features = [
     "accesskit",
     "default_fonts",
     "glow",
@@ -17,47 +18,46 @@ eframe = { version = "0.32.0", default-features = false, features = [
     "wayland",
     "x11",
 ] }
-egui = "0.32.0"
-egui_extras = {  version = "0.32.0", features = ["all_loaders", "svg"] }
-wasm-bindgen = "0.2"
+egui = "0.33.2"
+egui-async = "0.2.5"
+egui_extras = { version = "0.33.2", features = ["all_loaders", "svg"] }
+eyre = "0.6.12"
+js-sys = "0.3.83"
 rsonpath = { path = "../../crates/rsonpath-lib", package = "rsonpath-lib" }
 rsonpath-syntax = { path = "../../crates/rsonpath-syntax" }
-rfd = { version = "0.15.3", optional = true }
-js-sys = "0.3.77"
-color-eyre = { version = "0.6", default-features = false, features = ["track-caller"] }
-eyre = "0.6"
-strip-ansi-escapes = "0.2.1"
-web-time = "1.0"
+wasm-bindgen = "0.2.106"
+web-time = "1.1.0"
 
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-wasm-bindgen-futures = "0.4.50"
-web-sys = "0.3.70"
 console_error_panic_hook = "0.1.7"
-gloo-timers = "0.3"
-
-[dependencies.web-sys]
-version = "0.3"
-features = [
-    "Url",
+wasm-bindgen-futures = "0.4.56"
+web-sys = { version = "0.3.83", features = [
     "Blob",
+    "DedicatedWorkerGlobalScope",
+    "Document",
+    "DomException",
+    "Event",
     "FileReader",
     "HtmlInputElement",
     "HtmlAnchorElement",
-    "Event",
-    "Document",
-    "Window",
+    "MessageEvent",
     "Node",
-]
-
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-rfd = "0.15.3"
-
-#[lints]
-#workspace = true
+    "ProgressEvent",
+    "Url",
+    "Window",
+    "Worker",
+] }
 
 [lib]
 path = "src/lib.rs"
 crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+path = "src/eframe.rs"
+name = "eframe"
+
+[[bin]]
+path = "src/runner.rs"
+name = "runner"
 
 [profile.release]
 incremental = true

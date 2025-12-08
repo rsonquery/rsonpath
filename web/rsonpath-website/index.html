@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RsonQuery Web</title>
-    <link data-trunk rel="rust" data-bin="rsonpath-website" />
+    <link data-trunk rel="rust" data-bin="eframe" data-wasm-opt="z" data-type="main" />
+    <link data-trunk rel="rust" data-bin="runner" data-wasm-opt="4" data-type="worker" />
     <style>
         html, body {
             margin: 0;
@@ -22,48 +23,8 @@
     </style>
 </head>
 <body>
-<canvas id="rsonquery_web"></canvas>
+<canvas id="rsonquery-web-canvas"></canvas>
+<input type="file" id="file-input" name="file-input" accept=".json" hidden aria-hidden="true">
 
-<script type="text/javascript">
-    function setupDropListener() {
-        const canvas = document.querySelector("canvas");
-
-        canvas.addEventListener("dragover", (e) => {
-            e.preventDefault();
-        });
-
-        canvas.addEventListener("drop", async (event) => {
-            event.preventDefault();
-
-            const file = event.dataTransfer.files[0];
-
-            if (file && file.name.endsWith(".json")) {
-                const start = performance.now();
-                const text = await file.text();
-
-                if (typeof window.handle_dropped_file === "function") {
-                    window.handle_dropped_file(text);
-
-                    console.log(`File read took ${(performance.now() - start).toFixed(2)} ms`);
-                } else {
-                    console.warn("Rust WASM not ready yet — drop ignored.");
-                }
-            }
-        });
-    }
-
-    function waitForWasmExport() {
-        const checkInterval = setInterval(() => {
-            if (typeof window.handle_dropped_file === "function") {
-                clearInterval(checkInterval);
-                setupDropListener();
-            } else {
-                console.log("⏳ Waiting for WASM export...");
-            }
-        }, 200);
-    }
-
-    window.addEventListener("DOMContentLoaded", waitForWasmExport);
-</script>
 </body>
 </html>

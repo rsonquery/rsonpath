@@ -1,0 +1,9 @@
+pub const CANVAS_ELEMENT_ID: &str = "rsonquery-web-canvas";
+pub const FILE_INPUT_ELEMENT_ID: &str = "file-input";
+pub const WORKER_BIN_NAME: &str = "runner";
+pub const FILE_PREVIEW_CHARS: usize = 64_000;
+pub const MAX_OUTPUT_BYTES: usize = 10_000_000;
+pub const FILE_MAX_BYTES: usize = 1_000_000_000;
+pub const WARMUP_RUNS: usize = 2;
+pub const FONT_SIZE_NORMAL: f32 = 15.0;
+pub const RQ_COLOR: egui::Color32 = egui::Color32::from_rgb(227, 60, 38);
