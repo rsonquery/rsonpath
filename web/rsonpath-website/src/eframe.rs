@@ -47,8 +47,8 @@ fn create_worker() -> impl Future<Output = Result<web_sys::Worker, JsValue>> {
     let origin = web_sys::window()
         .expect("window to be available")
         .location()
-        .origin()
-        .expect("origin to be available");
+        .href()
+        .expect("location href to be available");
 
     let script = Array::new();
     script.push(
