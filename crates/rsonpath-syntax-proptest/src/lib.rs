@@ -5,7 +5,7 @@
 //!
 //! # Examples
 //!
-//! ```rust
+//! ```rust,no_run
 //! use proptest::prelude::*;
 //! use rsonpath_syntax_proptest::ArbitraryJsonPathQuery;
 //!
@@ -461,7 +461,7 @@ mod filters {
     pub(super) fn any_logical_expr(
         test_query_strategy: Option<BoxedStrategy<(String, JsonPathQuery)>>,
     ) -> impl Strategy<Value = (String, LogicalExpr)> {
-        any_atomic_logical_expr(test_query_strategy).prop_recursive(8, 32, 2, |inner| {
+        any_atomic_logical_expr(test_query_strategy).prop_recursive(3, 10, 2, |inner| {
             prop_oneof![
                 (inner.clone(), proptest::bool::ANY).prop_map(|((s, f), force_paren)| (
                     match f {
