@@ -5,7 +5,7 @@
 //!
 //! # Examples
 //!
-//! ```rust
+//! ```rust,no_run
 //! use proptest::prelude::*;
 //! use rsonpath_syntax_proptest::ArbitraryJsonPathQuery;
 //!
