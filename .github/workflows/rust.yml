@@ -120,7 +120,7 @@ jobs:
         with:
           submodules: true
       - name: Install Rust toolchain (${{ matrix.toolchain }})
-        uses: dtolnay/rust-toolchain@b3b07ba8b418998c39fb20f53e8b695cdcc8de1b # master
+        uses: dtolnay/rust-toolchain@0b1efabc08b657293548b77fb76cc02d26091c7e # master
         with:
           toolchain: ${{ matrix.toolchain }}
           target: ${{ matrix.target_triple }}
@@ -192,7 +192,7 @@ jobs:
         with:
           submodules: true
       - name: Install Rust toolchain (stable)
-        uses: dtolnay/rust-toolchain@b3b07ba8b418998c39fb20f53e8b695cdcc8de1b # master
+        uses: dtolnay/rust-toolchain@0b1efabc08b657293548b77fb76cc02d26091c7e # master
         with:
           toolchain: stable
           target: ${{ matrix.target_triple }}
@@ -245,7 +245,7 @@ jobs:
       - name: Install lld
         run: sudo apt update && sudo apt install lld
       - name: Install Rust toolchain (${{ matrix.toolchain }})
-        uses: dtolnay/rust-toolchain@b3b07ba8b418998c39fb20f53e8b695cdcc8de1b # master
+        uses: dtolnay/rust-toolchain@0b1efabc08b657293548b77fb76cc02d26091c7e # master
         with:
           toolchain: ${{ matrix.toolchain }}
           components: clippy, rustfmt
@@ -288,7 +288,7 @@ jobs:
         with:
           submodules: true
       - name: Install Rust toolchain (nightly)
-        uses: dtolnay/rust-toolchain@b3b07ba8b418998c39fb20f53e8b695cdcc8de1b # master
+        uses: dtolnay/rust-toolchain@0b1efabc08b657293548b77fb76cc02d26091c7e # master
         with:
           toolchain: nightly
       - name: Override toolchain
@@ -328,7 +328,7 @@ jobs:
         with:
           submodules: true
       - name: Install Rust toolchain (stable)
-        uses: dtolnay/rust-toolchain@b3b07ba8b418998c39fb20f53e8b695cdcc8de1b # master
+        uses: dtolnay/rust-toolchain@0b1efabc08b657293548b77fb76cc02d26091c7e # master
         with:
           toolchain: stable
           components: rustfmt
