@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Harden Runner
-      uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+      uses: step-security/harden-runner@df199fb7be9f65074067a9eb93f12bb4c5547cf2 # v2.13.3
       with:
         egress-policy: audit
 
@@ -27,14 +27,14 @@ jobs:
       run: sed -i '/^\[patch.crates-io\]/d' ./Cargo.toml && sed -i '/^rsonpath-lib = { path = .*$/d' ./Cargo.toml
     - name: Install lld
       run: sudo apt install lld
-    - uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
+    - uses: actions/setup-java@f2beeb24e141e01a676f977032f5a29d81c9e27e # v5.1.0
       name: Setup Java JDK
       with:
         distribution: temurin
         java-version: 17
     - name: Cache restore
       id: cache-restore
-      uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
       with:
         path: |
           ~/.cargo/bin/
@@ -56,7 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Harden Runner
-      uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+      uses: step-security/harden-runner@df199fb7be9f65074067a9eb93f12bb4c5547cf2 # v2.13.3
       with:
         egress-policy: audit
 
@@ -65,14 +65,14 @@ jobs:
       run: sed -i '/^\[patch.crates-io\]/d' ./Cargo.toml && sed -i '/^rsonpath-lib = { path = .*$/d' ./Cargo.toml
     - name: Install lld
       run: sudo apt install lld
-    - uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
+    - uses: actions/setup-java@f2beeb24e141e01a676f977032f5a29d81c9e27e # v5.1.0
       name: Setup Java JDK
       with:
         distribution: temurin
         java-version: 17
     - name: Cache restore
       id: cache-restore
-      uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
       with:
         path: |
           ~/.cargo/bin/
@@ -101,7 +101,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Harden Runner
-      uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+      uses: step-security/harden-runner@df199fb7be9f65074067a9eb93f12bb4c5547cf2 # v2.13.3
       with:
         egress-policy: audit
 
@@ -110,14 +110,14 @@ jobs:
       run: sed -i '/^\[patch.crates-io\]/d' ./Cargo.toml && sed -i '/^rsonpath-lib = { path = .*$/d' ./Cargo.toml
     - name: Install lld
       run: sudo apt install lld
-    - uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
+    - uses: actions/setup-java@f2beeb24e141e01a676f977032f5a29d81c9e27e # v5.1.0
       name: Setup Java JDK
       with:
         distribution: temurin
         java-version: 17
     - name: Cache restore
       id: cache-restore
-      uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
       with:
         path: |
           ~/.cargo/bin/
