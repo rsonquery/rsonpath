@@ -76,6 +76,7 @@ jobs:
         with:
           # Name of the crate to install
           crate: mdbook-katex
+          version: '>=0.10.0-alpha' # Required for mdbook 0.5.0
         env:
           CARGO_TARGET_DIR: target/
       - name: Build the book

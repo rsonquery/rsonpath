@@ -4,7 +4,6 @@ authors = ["Mateusz Gienieczko <mat@gienieczko.com>"]
 description = "User and developer guide for the rsonpath project."
 src = "src"
 language = "en"
-multilingual = false
 
 [rust]
 edition = "2021"
@@ -17,8 +16,8 @@ after = ["links"]
 
 [output.html]
 preferred-dark-theme = "ayu"
-curly-quotes = true
+smart_punctuation = true
 mathjax-support = false # we use katex
 additional-css = ["rsonbook.css"]
-git-repository-url = "https://github.com/v0ldek/rsonpath"
-edit-url-template = "https://github.com/V0ldek/rsonpath/edit/main/book/{path}"
+git-repository-url = "https://github.com/rsonquery/rsonpath"
+edit-url-template = "https://github.com/rsonquery/rsonpath/edit/main/book/{path}"
