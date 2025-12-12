@@ -1,0 +1,6 @@
+[build]
+target = "wasm32-unknown-unknown"
+rustflags = ["-C", "target-feature=+simd128"]
+
+[alias]
+build-website = "build -p rsonpath-website --target wasm32-unknown-unknown"
