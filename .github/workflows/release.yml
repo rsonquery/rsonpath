@@ -147,7 +147,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: mv -Force "target/${{ matrix.target_triple }}/distribution/rq.exe" target/distribution/rq-${{ matrix.target_triple }}.exe
       - name: Upload the binary as artifact
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: rq-${{ matrix.target_triple }}
           # The * matches .exe if on windows and nothing otherwise.
