@@ -1022,6 +1022,18 @@ impl From<JsonFloat> for JsonNumber {
     }
 }
 
+// Not the smartest implementation, but a working one.
+// Every valid JsonInt is a valid JsonFloat, so parse a JsonFloat first and then try to canonicalize
+// the JsonNumber.
+impl FromStr for JsonNumber {
+    type Err = JsonFloatParseError;
+
+    #[inline]
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self::Float(JsonFloat::from_str(s)?).normalize())
+    }
+}
+
 impl Display for JsonInt {
     #[inline]
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {

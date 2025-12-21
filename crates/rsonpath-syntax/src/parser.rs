@@ -3,15 +3,13 @@ use crate::{
     num::{error::JsonIntParseError, JsonFloat, JsonInt, JsonNonZeroUInt, JsonNumber, JsonUInt},
     str::{JsonString, JsonStringBuilder},
     Comparable, ComparisonExpr, ComparisonOp, Index, JsonPathQuery, Literal, LogicalExpr, ParserOptions, Result,
-    Segment, Selector, Selectors, Step, TestExpr,
+    Segment, Selector, Selectors, Step, TestExpr, JSONPATH_WHITESPACE,
 };
 use nom::{branch::*, bytes::complete::*, character::complete::*, combinator::*, multi::*, sequence::*, *};
 use std::{iter::Peekable, str::FromStr};
 
-const WHITESPACE: [char; 4] = [' ', '\n', '\r', '\t'];
-
 fn skip_whitespace(q: &str) -> &str {
-    q.trim_start_matches(WHITESPACE)
+    q.trim_start_matches(JSONPATH_WHITESPACE)
 }
 
 fn skip_one(q: &str) -> &str {
@@ -121,7 +119,7 @@ fn parse_json_path_query(q: &str, ctx: ParseCtx) -> Result<JsonPathQuery> {
     // For strict RFC compliance trailing whitespace has to be disallowed.
     // This is hard to organically obtain from the parsing above, so we insert this awkward direct check if needed.
     if !ctx.options.is_trailing_whitespace_allowed() {
-        let trimmed = original_input.trim_end_matches(WHITESPACE);
+        let trimmed = original_input.trim_end_matches(JSONPATH_WHITESPACE);
         let trailing_whitespace_len = original_input.len() - trimmed.len();
         if trailing_whitespace_len > 0 {
             parse_error.add(SyntaxError::new(
@@ -186,10 +184,31 @@ fn child_segment<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, Segment, Int
 
 fn failed_segment<T>(kind: SyntaxErrorKind) -> impl FnMut(&str) -> IResult<&str, T, InternalParseError<'_>> {
     move |q: &str| {
-        let rest = skip_one(q)
-            .trim_start_matches('.')
-            .trim_start_matches(|x| x != '.' && x != '[');
-        fail(kind.clone(), q.len(), q.len() - rest.len(), rest)
+        // Special case when the error span starts with a bunch of periods.
+        // The best error message to display is to skip all those periods and try to recover after.
+        // This handles cases like e.g. `$....a`, where we will highlight `..a` as the error and
+        // try to continue from there. We also handle this as a separate suggestion to remove extraneous periods.
+        let rest = if q.starts_with('.') {
+            q.trim_start_matches('.')
+        } else {
+            skip_one(q)
+        }
+        .trim_start_matches(|x| x != '.' && x != '[');
+        // Don't highlight leading whitespace in an error.
+        // This logic is duplicated with failed_selector, but I didn't find a way to extract this logic that wouldn't
+        // make it actually *harder* to follow wtf is happening in the code, so...
+        let error_len = q.len() - rest.len();
+        let error_span = &q[..error_len];
+        if error_span.chars().all(|x| [' ', '\n', '\r', '\t'].contains(&x)) {
+            // Special case for a completely empty selector where we don't want to ignore whitespace.
+            fail(SyntaxErrorKind::EmptySelector, q.len() + 1, error_len + 2, rest)
+        } else {
+            // Don't highlight leading whitespace in an error.
+            let meaningful_span = skip_whitespace(error_span);
+            let skipped_whitespace_len = error_span.len() - meaningful_span.len();
+            let trimmed_span = meaningful_span.trim_end_matches(JSONPATH_WHITESPACE);
+            fail(kind.clone(), q.len() - skipped_whitespace_len, trimmed_span.len(), rest)
+        }
     }
 }
 
@@ -369,22 +388,21 @@ fn failed_selector(q: &str) -> IResult<&str, Selector, InternalParseError<'_>> {
     let error_len = q.len() - rest.len();
     let error_span = &q[..error_len];
 
-    Err(Err::Failure(InternalParseError::SyntaxError(
-        if error_span.chars().all(|x| [' ', '\n', '\r', '\t'].contains(&x)) {
-            SyntaxError::new(SyntaxErrorKind::EmptySelector, q.len() + 1, error_len + 2)
-        } else {
-            let meaningful_span = skip_whitespace(error_span);
-            let skipped_whitespace_len = error_span.len() - meaningful_span.len();
-            let trimmed_span = meaningful_span.trim_end_matches(WHITESPACE);
-
-            SyntaxError::new(
-                SyntaxErrorKind::InvalidSelector,
-                q.len() - skipped_whitespace_len,
-                trimmed_span.len(),
-            )
-        },
-        rest,
-    )))
+    if error_span.chars().all(|x| [' ', '\n', '\r', '\t'].contains(&x)) {
+        // Special case for a completely empty selector where we don't want to ignore whitespace.
+        fail(SyntaxErrorKind::EmptySelector, q.len() + 1, error_len + 2, rest)
+    } else {
+        // Don't highlight leading whitespace in an error.
+        let meaningful_span = skip_whitespace(error_span);
+        let skipped_whitespace_len = error_span.len() - meaningful_span.len();
+        let trimmed_span = meaningful_span.trim_end_matches(JSONPATH_WHITESPACE);
+        fail(
+            SyntaxErrorKind::InvalidSelector,
+            q.len() - skipped_whitespace_len,
+            trimmed_span.len(),
+            rest,
+        )
+    }
 }
 
 fn filter_selector<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, Selector, InternalParseError<'q>> {
