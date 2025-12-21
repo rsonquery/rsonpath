@@ -1,0 +1,253 @@
+---
+source: crates/rsonpath-syntax/tests/error_snapshots.rs
+expression: result
+---
+error: query not starting with the root identifier '$'
+
+   1 | .[a]
+     | ^ the '$' character missing before here
+     (byte 0)
+
+
+error: invalid short member name syntax
+
+   1 | .[a]
+     |  ^^^ not a valid name shorthand
+     (bytes 1-3)
+
+
+error: invalid short member name syntax
+
+   2 | .[a]
+     |  ^^^ not a valid name shorthand
+     (bytes 6-8)
+
+
+error: invalid short member name syntax
+
+   3 | .[a]
+     |  ^^^ not a valid name shorthand
+     (bytes 11-13)
+
+
+error: invalid short member name syntax
+
+   4 | .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a] (...)
+     |  ^^^ not a valid name shorthand
+     (bytes 16-18)
+
+
+error: invalid short member name syntax
+
+   4 | .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a] (...)
+     |      ^^^ not a valid name shorthand
+     (bytes 20-22)
+
+
+error: invalid short member name syntax
+
+   4 | .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a] (...)
+     |          ^^^ not a valid name shorthand
+     (bytes 24-26)
+
+
+error: invalid short member name syntax
+
+   4 | .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a] (...)
+     |              ^^^ not a valid name shorthand
+     (bytes 28-30)
+
+
+error: invalid short member name syntax
+
+   4 | .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a] (...)
+     |                  ^^^ not a valid name shorthand
+     (bytes 32-34)
+
+
+error: invalid short member name syntax
+
+   4 | .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a] (...)
+     |                      ^^^ not a valid name shorthand
+     (bytes 36-38)
+
+
+error: invalid short member name syntax
+
+   4 | .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a] (...)
+     |                          ^^^ not a valid name shorthand
+     (bytes 40-42)
+
+
+error: invalid short member name syntax
+
+   4 | .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a] (...)
+     |                              ^^^ not a valid name shorthand
+     (bytes 44-46)
+
+
+error: invalid short member name syntax
+
+   4 | .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a] (...)
+     |                                  ^^^ not a valid name shorthand
+     (bytes 48-50)
+
+
+error: invalid short member name syntax
+
+   4 | .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a] (...)
+     |                                      ^^^ not a valid name shorthand
+     (bytes 52-54)
+
+
+error: invalid short member name syntax
+
+   4 | .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a] (...)
+     |                                          ^^^ not a valid name shorthand
+     (bytes 56-58)
+
+
+error: invalid short member name syntax
+
+   4 | .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a] (...)
+     |                                              ^^^ not a valid name shorthand
+     (bytes 60-62)
+
+
+error: invalid short member name syntax
+
+   4 | .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a] (...)
+     |                                                  ^^^ not a valid name shorthand
+     (bytes 64-66)
+
+
+error: invalid short member name syntax
+
+   4 | (...) .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a] (...)
+     |                                                        ^^^ not a valid name shorthand
+     (bytes 68-70)
+
+
+error: invalid short member name syntax
+
+   4 | (...) .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a] (...)
+     |                                                        ^^^ not a valid name shorthand
+     (bytes 72-74)
+
+
+error: invalid short member name syntax
+
+   4 | (...) .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a] (...)
+     |                                                        ^^^ not a valid name shorthand
+     (bytes 76-78)
+
+
+error: invalid short member name syntax
+
+   4 | (...) .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a] (...)
+     |                                                        ^^^ not a valid name shorthand
+     (bytes 80-82)
+
+
+error: invalid short member name syntax
+
+   4 | (...) .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a]
+     |                                                        ^^^ not a valid name shorthand
+     (bytes 84-86)
+
+
+error: invalid short member name syntax
+
+   4 | (...) .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a]
+     |                                                            ^^^ not a valid name shorthand
+     (bytes 88-90)
+
+
+error: invalid short member name syntax
+
+   4 | (...) .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a]
+     |                                                                ^^^ not a valid name shorthand
+     (bytes 92-94)
+
+
+error: invalid short member name syntax
+
+   4 | (...) .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a]
+     |                                                                    ^^^ not a valid name shorthand
+     (bytes 96-98)
+
+
+error: invalid short member name syntax
+
+   4 | (...) .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a]
+     |                                                                        ^^^ not a valid name shorthand
+     (bytes 100-102)
+
+
+error: invalid short member name syntax
+
+   4 | (...) .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a]
+     |                                                                            ^^^ not a valid name shorthand
+     (bytes 104-106)
+
+
+error: invalid short member name syntax
+
+   4 | (...) .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a]
+     |                                                                                ^^^ not a valid name shorthand
+     (bytes 108-110)
+
+
+error: invalid short member name syntax
+
+   4 | (...) .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a]
+     |                                                                                    ^^^ not a valid name shorthand
+     (bytes 112-114)
+
+
+error: invalid short member name syntax
+
+   4 | (...) .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a]
+     |                                                                                        ^^^ not a valid name shorthand
+     (bytes 116-118)
+
+
+error: invalid short member name syntax
+
+   4 | (...) .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a]
+     |                                                                                            ^^^ not a valid name shorthand
+     (bytes 120-122)
+
+
+error: invalid short member name syntax
+
+   4 | (...) .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a]
+     |                                                                                                ^^^ not a valid name shorthand
+     (bytes 124-126)
+
+
+error: invalid short member name syntax
+
+   4 | (...) [a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a]
+     |                                                                                                           ^^^ not a valid name shorthand
+     (bytes 128-130)
+
+
+error: invalid short member name syntax
+
+   4 | (...) [a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a]
+     |                                                                                                           ^^^ not a valid name shorthand
+     (bytes 132-134)
+
+
+error: query ending with whitespace
+
+   4 | (...) .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a]
+   5 | 
+     (byte 135)
+
+
+suggestion: did you mean `$['a']
+['a']
+['a']
+['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']` ?

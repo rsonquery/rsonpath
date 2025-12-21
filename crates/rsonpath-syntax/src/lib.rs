@@ -120,6 +120,11 @@ mod parser;
 pub mod prelude;
 pub mod str;
 
+/// All characters that are valid whitespace within a JSONPath query.
+pub(crate) const JSONPATH_WHITESPACE: [char; 4] = [' ', '\t', '\n', '\r'];
+/// All ASCII bytes that are valid whitespace within a JSONPath query.
+pub(crate) const JSONPATH_WHITESPACE_BYTES: [u8; 4] = [0x20, 0x09, 0x0A, 0x0D];
+
 use std::{
     fmt::{self, Display},
     ops::Deref,
