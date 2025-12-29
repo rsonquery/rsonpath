@@ -16,8 +16,8 @@ publish = false
 
 [dependencies]
 serde = { version = "1.0.228", features = ["derive"] }
-toml = "0.9.8"
-proc-macro2 = "1.0.103"
+toml = "0.9.10"
+proc-macro2 = "1.0.104"
 quote = "1.0.42"
 heck = { version = "0.5.0" }
 walkdir = "2.5.0"
