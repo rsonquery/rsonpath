@@ -31,6 +31,12 @@ pub enum DepthError {
 
 struct InternalErrorSource(Box<dyn std::error::Error + Send + Sync>);
 
+impl From<std::io::Error> for InternalRsonpathError {
+    fn from(e: std::io::Error) -> Self {
+        InternalRsonpathError::from_error(e, "IO error during output write")
+    }
+}
+
 impl fmt::Debug for InternalErrorSource {
     #[inline(always)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
