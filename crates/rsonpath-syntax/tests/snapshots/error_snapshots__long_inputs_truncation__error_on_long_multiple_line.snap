@@ -1,0 +1,648 @@
+---
+source: crates/rsonpath-syntax/tests/error_snapshots.rs
+expression: result
+---
+error: query not starting with the root identifier '$'
+
+   1 | ['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a' (...)
+     | ^ the '$' character missing before here
+     (byte 0)
+
+
+error: invalid short member name syntax
+
+   1 | ['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a' (...)
+     |       ^^^^^ not a valid name shorthand
+     (bytes 6-10)
+
+
+error: invalid short member name syntax
+
+   1 | ['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a' (...)
+     |             ^^^^^ not a valid name shorthand
+     (bytes 12-16)
+
+
+error: invalid short member name syntax
+
+   1 | ['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a' (...)
+     |                   ^^^^^ not a valid name shorthand
+     (bytes 18-22)
+
+
+error: invalid short member name syntax
+
+   1 | ['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a' (...)
+     |                         ^^^^^ not a valid name shorthand
+     (bytes 24-28)
+
+
+error: invalid short member name syntax
+
+   1 | ['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a' (...)
+     |                               ^^^^^ not a valid name shorthand
+     (bytes 30-34)
+
+
+error: invalid short member name syntax
+
+   1 | ['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a' (...)
+     |                                     ^^^^^ not a valid name shorthand
+     (bytes 36-40)
+
+
+error: invalid short member name syntax
+
+   1 | ['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a' (...)
+     |                                           ^^^^^ not a valid name shorthand
+     (bytes 42-46)
+
+
+error: invalid short member name syntax
+
+   1 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 48-52)
+
+
+error: invalid short member name syntax
+
+   1 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 54-58)
+
+
+error: invalid short member name syntax
+
+   1 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 60-64)
+
+
+error: invalid short member name syntax
+
+   1 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 66-70)
+
+
+error: invalid short member name syntax
+
+   1 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 72-76)
+
+
+error: invalid short member name syntax
+
+   1 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 78-82)
+
+
+error: invalid short member name syntax
+
+   1 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 84-88)
+
+
+error: invalid short member name syntax
+
+   1 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 90-94)
+
+
+error: invalid short member name syntax
+
+   1 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 96-100)
+
+
+error: invalid short member name syntax
+
+   1 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 102-106)
+
+
+error: invalid short member name syntax
+
+   1 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 108-112)
+
+
+error: invalid short member name syntax
+
+   1 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 114-118)
+
+
+error: invalid short member name syntax
+
+   1 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 120-124)
+
+
+error: invalid short member name syntax
+
+   1 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 126-130)
+
+
+error: invalid short member name syntax
+
+   1 | (...) a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].
+     |                                                           ^^^^^ not a valid name shorthand
+     (bytes 132-136)
+
+
+error: invalid short member name syntax
+
+   1 | (...) a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].
+     |                                                                 ^^^^^ not a valid name shorthand
+     (bytes 138-142)
+
+
+error: invalid short member name syntax
+
+   1 | (...) a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].
+     |                                                                       ^^^^^ not a valid name shorthand
+     (bytes 144-148)
+
+
+error: invalid short member name syntax
+
+   1 | (...) a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].
+     |                                                                             ^^^^^ not a valid name shorthand
+     (bytes 150-154)
+
+
+error: invalid short member name syntax
+
+   1 | (...) a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].
+     |                                                                                   ^^^^^ not a valid name shorthand
+     (bytes 156-160)
+
+
+error: invalid short member name syntax
+
+   1 | (...) a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].
+     |                                                                                         ^^^^^ not a valid name shorthand
+     (bytes 162-166)
+
+
+error: invalid short member name syntax
+
+   1 | (...) a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].
+     |                                                                                               ^^^^^ not a valid name shorthand
+     (bytes 168-172)
+
+
+error: invalid short member name syntax
+
+   1 | (...) a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].
+     |                                                                                                     ^^^^^ not a valid name shorthand
+     (bytes 174-178)
+
+
+error: invalid selector - empty
+
+   1 | (...) a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].
+     |                                                                                                          ^
+   2 | ['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a' (...)
+     | ^ expected a selector here, but found nothing
+     (bytes 179-181)
+
+note: if you meant to match any value, you should use the wildcard selector `*`
+error: invalid short member name syntax
+
+   2 | ['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a' (...)
+     |       ^^^^^ not a valid name shorthand
+     (bytes 187-191)
+
+
+error: invalid short member name syntax
+
+   2 | ['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a' (...)
+     |             ^^^^^ not a valid name shorthand
+     (bytes 193-197)
+
+
+error: invalid short member name syntax
+
+   2 | ['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a' (...)
+     |                   ^^^^^ not a valid name shorthand
+     (bytes 199-203)
+
+
+error: invalid short member name syntax
+
+   2 | ['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a' (...)
+     |                         ^^^^^ not a valid name shorthand
+     (bytes 205-209)
+
+
+error: invalid short member name syntax
+
+   2 | ['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a' (...)
+     |                               ^^^^^ not a valid name shorthand
+     (bytes 211-215)
+
+
+error: invalid short member name syntax
+
+   2 | ['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a' (...)
+     |                                     ^^^^^ not a valid name shorthand
+     (bytes 217-221)
+
+
+error: invalid short member name syntax
+
+   2 | ['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a' (...)
+     |                                           ^^^^^ not a valid name shorthand
+     (bytes 223-227)
+
+
+error: invalid short member name syntax
+
+   2 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 229-233)
+
+
+error: invalid short member name syntax
+
+   2 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 235-239)
+
+
+error: invalid short member name syntax
+
+   2 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 241-245)
+
+
+error: invalid short member name syntax
+
+   2 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 247-251)
+
+
+error: invalid short member name syntax
+
+   2 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 253-257)
+
+
+error: invalid short member name syntax
+
+   2 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 259-263)
+
+
+error: invalid short member name syntax
+
+   2 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 265-269)
+
+
+error: invalid short member name syntax
+
+   2 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 271-275)
+
+
+error: invalid short member name syntax
+
+   2 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 277-281)
+
+
+error: invalid short member name syntax
+
+   2 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 283-287)
+
+
+error: invalid short member name syntax
+
+   2 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 289-293)
+
+
+error: invalid short member name syntax
+
+   2 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 295-299)
+
+
+error: invalid short member name syntax
+
+   2 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 301-305)
+
+
+error: invalid short member name syntax
+
+   2 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 307-311)
+
+
+error: invalid short member name syntax
+
+   2 | (...) a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].
+     |                                                           ^^^^^ not a valid name shorthand
+     (bytes 313-317)
+
+
+error: invalid short member name syntax
+
+   2 | (...) a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].
+     |                                                                 ^^^^^ not a valid name shorthand
+     (bytes 319-323)
+
+
+error: invalid short member name syntax
+
+   2 | (...) a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].
+     |                                                                       ^^^^^ not a valid name shorthand
+     (bytes 325-329)
+
+
+error: invalid short member name syntax
+
+   2 | (...) a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].
+     |                                                                             ^^^^^ not a valid name shorthand
+     (bytes 331-335)
+
+
+error: invalid short member name syntax
+
+   2 | (...) a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].
+     |                                                                                   ^^^^^ not a valid name shorthand
+     (bytes 337-341)
+
+
+error: invalid short member name syntax
+
+   2 | (...) a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].
+     |                                                                                         ^^^^^ not a valid name shorthand
+     (bytes 343-347)
+
+
+error: invalid short member name syntax
+
+   2 | (...) a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].
+     |                                                                                               ^^^^^ not a valid name shorthand
+     (bytes 349-353)
+
+
+error: invalid short member name syntax
+
+   2 | (...) a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].
+     |                                                                                                     ^^^^^ not a valid name shorthand
+     (bytes 355-359)
+
+
+error: invalid selector - empty
+
+   2 | (...) a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].
+     |                                                                                                          ^
+   3 | ['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a' (...)
+     | ^ expected a selector here, but found nothing
+     (bytes 360-362)
+
+note: if you meant to match any value, you should use the wildcard selector `*`
+error: invalid short member name syntax
+
+   3 | ['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a' (...)
+     |       ^^^^^ not a valid name shorthand
+     (bytes 368-372)
+
+
+error: invalid short member name syntax
+
+   3 | ['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a' (...)
+     |             ^^^^^ not a valid name shorthand
+     (bytes 374-378)
+
+
+error: invalid short member name syntax
+
+   3 | ['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a' (...)
+     |                   ^^^^^ not a valid name shorthand
+     (bytes 380-384)
+
+
+error: invalid short member name syntax
+
+   3 | ['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a' (...)
+     |                         ^^^^^ not a valid name shorthand
+     (bytes 386-390)
+
+
+error: invalid short member name syntax
+
+   3 | ['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a' (...)
+     |                               ^^^^^ not a valid name shorthand
+     (bytes 392-396)
+
+
+error: invalid short member name syntax
+
+   3 | ['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a' (...)
+     |                                     ^^^^^ not a valid name shorthand
+     (bytes 398-402)
+
+
+error: invalid short member name syntax
+
+   3 | ['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a' (...)
+     |                                           ^^^^^ not a valid name shorthand
+     (bytes 404-408)
+
+
+error: invalid short member name syntax
+
+   3 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 410-414)
+
+
+error: invalid short member name syntax
+
+   3 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 416-420)
+
+
+error: invalid short member name syntax
+
+   3 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 422-426)
+
+
+error: invalid short member name syntax
+
+   3 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 428-432)
+
+
+error: invalid short member name syntax
+
+   3 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 434-438)
+
+
+error: invalid short member name syntax
+
+   3 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 440-444)
+
+
+error: invalid short member name syntax
+
+   3 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 446-450)
+
+
+error: invalid short member name syntax
+
+   3 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 452-456)
+
+
+error: invalid short member name syntax
+
+   3 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 458-462)
+
+
+error: invalid short member name syntax
+
+   3 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 464-468)
+
+
+error: invalid short member name syntax
+
+   3 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 470-474)
+
+
+error: invalid short member name syntax
+
+   3 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 476-480)
+
+
+error: invalid short member name syntax
+
+   3 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 482-486)
+
+
+error: invalid short member name syntax
+
+   3 | (...) 'a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'] (...)
+     |                                                      ^^^^^ not a valid name shorthand
+     (bytes 488-492)
+
+
+error: invalid short member name syntax
+
+   3 | (...) a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].
+     |                                                           ^^^^^ not a valid name shorthand
+     (bytes 494-498)
+
+
+error: invalid short member name syntax
+
+   3 | (...) a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].
+     |                                                                 ^^^^^ not a valid name shorthand
+     (bytes 500-504)
+
+
+error: invalid short member name syntax
+
+   3 | (...) a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].
+     |                                                                       ^^^^^ not a valid name shorthand
+     (bytes 506-510)
+
+
+error: invalid short member name syntax
+
+   3 | (...) a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].
+     |                                                                             ^^^^^ not a valid name shorthand
+     (bytes 512-516)
+
+
+error: invalid short member name syntax
+
+   3 | (...) a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].
+     |                                                                                   ^^^^^ not a valid name shorthand
+     (bytes 518-522)
+
+
+error: invalid short member name syntax
+
+   3 | (...) a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].
+     |                                                                                         ^^^^^ not a valid name shorthand
+     (bytes 524-528)
+
+
+error: invalid short member name syntax
+
+   3 | (...) a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].
+     |                                                                                               ^^^^^ not a valid name shorthand
+     (bytes 530-534)
+
+
+error: invalid short member name syntax
+
+   3 | (...) a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].
+     |                                                                                                     ^^^^^ not a valid name shorthand
+     (bytes 536-540)
+
+
+error: invalid selector - empty
+
+   3 | (...) '].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].['a'].
+     |                                                                                                         ^^ expected a selector here, but found nothing
+     (bytes 541-542)
+
+note: if you meant to match any value, you should use the wildcard selector `*`
+suggestion: did you mean `$['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a'].*
+['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a'].*
+['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a']['a'].*` ?

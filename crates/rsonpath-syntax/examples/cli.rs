@@ -1,16 +1,24 @@
+use std::io::Read;
 use std::process::ExitCode;
 
 fn main() -> ExitCode {
     let args: Vec<_> = std::env::args().collect();
 
-    if args.len() != 2 {
-        eprintln!("provide exactly one argument, the query string");
+    if args.len() != 1 {
+        eprintln!("no arguments are expected");
         return ExitCode::FAILURE;
     }
 
-    let input: &str = &args[1];
+    let input = {
+        let mut buf = String::new();
+        if let Err(err) = std::io::stdin().read_to_string(&mut buf) {
+            eprintln!("error reading stdin: {err}");
+            return ExitCode::FAILURE;
+        }
+        buf
+    };
 
-    let res = rsonpath_syntax::parse(input);
+    let res = rsonpath_syntax::parse(&input);
 
     match res {
         Ok(x) => println!("OK: {x:?}\nDISPLAY:{x}\nINPUT: {input}"),
