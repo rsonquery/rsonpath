@@ -16,7 +16,7 @@ use std::fmt::{self, Display};
 use thiserror::Error;
 
 mod display;
-mod input_index;
+mod formatter;
 mod style;
 
 #[derive(Debug)]

@@ -3,10 +3,10 @@
 //! Managing the style of displayed messages: coloring, emphasis, etc. - is done by the [`style`]
 //! submodule, while this submodule deals with generating all the underlines, suggestions, notes,
 //! and printing it to screen with an injected style.
-use super::{input_index, style};
+use super::{formatter, style};
 use crate::error::{InnerParseError, ParseError, SyntaxErrorKind};
 use crate::str::EscapeMode;
-use std::collections::VecDeque;
+use formatter::SyntaxErrorLine;
 #[cfg(feature = "color")]
 use std::error::Error;
 use std::fmt;
@@ -33,17 +33,24 @@ pub(super) const MAX_ERROR_LINE_WIDTH: usize = 100;
 /// it to print at least a few characters.
 pub(super) const MIN_CONTEXT_WIDTH: usize = 5;
 
-/// Width of a character to consider for calculating underline offsets and lengths.
-///
-/// This is the Unicode width of the character, except for `\t`: it has a Unicode width of 1, which is dumb.
-/// We use [`TAB_DISPLAY_WIDTH`] to control it instead.
-pub(super) fn tweaked_width(c: char) -> usize {
-    use unicode_width::UnicodeWidthChar;
-    // Display tabs with a fixed width.
-    // How this looks depends on the user's terminal settings, but we use a reasonable default.
-    match c {
-        '\t' => TAB_DISPLAY_WIDTH,
-        _ => c.width().unwrap_or(0),
+/// Allows querying for display width of a character.
+pub(super) trait UnicodeWidth {
+    /// Width of a character to consider for calculating underline offsets and lengths.
+    fn width(&self) -> usize;
+}
+
+impl UnicodeWidth for char {
+    /// Width of a character to consider for calculating underline offsets and lengths.
+    ///
+    /// This is the Unicode width of the character, except for `\t`: it has a Unicode width of 1, which is dumb.
+    /// We use [`TAB_DISPLAY_WIDTH`] to control it instead.
+    fn width(&self) -> usize {
+        // Display tabs with a fixed width.
+        // How this looks depends on the user's terminal settings, but we use a reasonable default.
+        match self {
+            '\t' => TAB_DISPLAY_WIDTH,
+            _ => unicode_width::UnicodeWidthChar::width(*self).unwrap_or(0),
+        }
     }
 }
 
@@ -168,72 +175,41 @@ impl super::SyntaxError {
     /// and use it in every [`display`] invocation.
     fn display(
         &self,
-        input: &input_index::IndexedInput,
+        input: &formatter::ErrorFormatter,
         suggestion: &mut Suggestion,
         style: ErrorStyleImpl,
     ) -> DisplayableSyntaxError {
         let start_idx = input.len() - self.rev_idx;
         let end_idx = start_idx + self.len - 1;
-        let mut builder = DisplayableSyntaxErrorBuilder::new();
-        builder.set_multiline(input.is_multiline());
-        // Needed to verify if we processed the entire line or cut early.
-        let mut first = true;
-        let mut last_i = 0;
 
-        // Use IndexedInput to only process the characters that have a chance to be displayed in the context.
-        for c_data in input.iter_useful_chars(start_idx, end_idx, MAX_ERROR_LINE_WIDTH) {
-            if first {
-                first = false;
-                if c_data.idx != 0 {
-                    builder.mark_pre_context_as_truncated();
-                }
-            }
-            last_i = c_data.idx;
-            builder.set_line_number(c_data.line);
-            let width = tweaked_width(c_data.char);
-            if c_data.idx < start_idx {
-                // We are in the pre-context (before the error).
-                builder.add_non_underline(width);
-            } else if c_data.idx <= end_idx {
-                // We are in the invalid portion that needs to be highlighted/underlined.
-                if !builder.is_underline_enabled() {
-                    builder.enable_underline();
-                    builder.set_underline_message(self.kind.underline_message());
-                }
-                builder.add_underline(width);
-            } else {
-                // We are in the post-context (after the error).
-                builder.disable_underline();
-            }
-            builder.add_char(c_data.char);
-            // The builder might know that no further characters will be ever displayed. Ask it if we can early-exit.
-            if !builder.makes_sense_to_continue() {
-                break;
-            }
-        }
-        // This is a special case where the error is that some characters are missing from the end (e.g. `$['a'`).
-        // We don't print any character as the input line, but we extend the underline by one.
-        if end_idx >= input.len() {
-            builder.enable_underline();
-            builder.set_underline_message(self.kind.underline_message());
-            builder.add_underline(1);
-        }
-        if !input.is_empty() && last_i != input.len() - 1 {
-            builder.mark_post_context_as_truncated();
-        }
+        let lines = input.build_error_lines(
+            start_idx,
+            end_idx,
+            MIN_CONTEXT_WIDTH,
+            MAX_ERROR_LINE_WIDTH,
+            self.kind.underline_message(),
+        );
+        let notes = self.generate_notes(suggestion, input.str());
 
-        self.generate_notes(&mut builder, suggestion, input.str());
-
-        builder.finish(self.kind.toplevel_message(), start_idx, end_idx, style)
+        DisplayableSyntaxError {
+            toplevel_message: self.kind.toplevel_message(),
+            start_idx,
+            end_idx,
+            lines,
+            notes,
+            is_multiline: input.is_multiline(),
+            style,
+        }
     }
 
     /// Add suggestions and notes to the error message based on the error kind.
-    fn generate_notes(&self, builder: &mut DisplayableSyntaxErrorBuilder, suggestion: &mut Suggestion, input: &str) {
+    fn generate_notes(&self, suggestion: &mut Suggestion, input: &str) -> Vec<SyntaxErrorNote> {
         // Figure out the first and last byte of the highlighted error. Errors always respect UTF-8 boundaries.
         let start_idx = input.len() - self.rev_idx;
         let end_idx = start_idx + self.len - 1;
         let (prefix, error, suffix) = self.split_error(input);
         // Kind-specific notes and suggestion building.
+        let mut notes = vec![];
         match self.kind {
             SyntaxErrorKind::DisallowedLeadingWhitespace | SyntaxErrorKind::DisallowedTrailingWhitespace => {
                 // Suggestion is to just remove the whitespace.
@@ -254,45 +230,45 @@ impl super::SyntaxError {
             SyntaxErrorKind::InvalidEscapeSequence => {
                 if error == r"\U" && suffix.len() >= 4 && suffix[..4].chars().all(|x| x.is_ascii_hexdigit()) {
                     // The user probably tried to use a Unicode escape but is unaware the `u` is case-sensitive.
-                    builder.add_note("unicode escape sequences must use a lowercase 'u'");
+                    notes.push("unicode escape sequences must use a lowercase 'u'".into());
                     suggestion.replace(start_idx, 2, r"\u");
                 } else if error == r#"\""# {
                     // We were in a string but escaping `"` was an error.
                     // Thus, the string must be single-quote delimited and the double quote should be unescaped.
-                    builder.add_note("double quotes may only be escaped within double-quoted name selectors");
+                    notes.push("double quotes may only be escaped within double-quoted name selectors".into());
                     suggestion.replace(start_idx, 2, r#"""#);
                 } else if error == r"\'" {
                     // Analogous to above, but for single quotes in double-quote delimited strings.
-                    builder.add_note("single quotes may only be escaped within single-quoted name selectors");
+                    notes.push("single quotes may only be escaped within single-quoted name selectors".into());
                     suggestion.replace(start_idx, 2, r#"'"#);
                 } else {
                     // Try to suggest escaping the backslash. This might not be accurate, as the user might've tried to
                     // use some unsupported escape sequence like \v. It might be useful to add some common escape
                     // sequences not valid for JSONPath and suggest to replace them with the corresponding character
                     // or full Unicode escape. This is "good enough" though, it's just a suggestion after all.
-                    builder.add_note(r#"the only valid escape sequences are \n, \r, \t, \f, \b, \\, \/, \' (in single quoted names), \" (in double quoted names), and \uXXXX where X are hex digits"#);
-                    builder.add_note(r#"if you meant to match a literal backslash, you need to escape it with \\"#);
+                    notes.push(r#"the only valid escape sequences are \n, \r, \t, \f, \b, \\, \/, \' (in single quoted names), \" (in double quoted names), and \uXXXX where X are hex digits"#.into());
+                    notes.push(r#"if you meant to match a literal backslash, you need to escape it with \\"#.into());
                     suggestion.insert(start_idx, r"\");
                 }
             }
             SyntaxErrorKind::UnpairedHighSurrogate => {
-                builder.add_note(
-                    "a UTF-16 high surrogate has to be followed by a low surrogate to encode a valid Unicode character",
+                notes.push(
+                    "a UTF-16 high surrogate has to be followed by a low surrogate to encode a valid Unicode character".into(),
                 );
-                builder.add_note("for more information about UTF-16 surrogate pairs see https://en.wikipedia.org/wiki/UTF-16#Code_points_from_U+010000_to_U+10FFFF");
+                notes.push("for more information about UTF-16 surrogate pairs see https://en.wikipedia.org/wiki/UTF-16#Code_points_from_U+010000_to_U+10FFFF".into());
                 // No way to guess what the user wanted here.
                 suggestion.invalidate();
             }
             SyntaxErrorKind::UnpairedLowSurrogate => {
-                builder.add_note(
-                    "a UTF-16 low surrogate has to be preceded by a high surrogate to encode a valid Unicode character",
+                notes.push(
+                    "a UTF-16 low surrogate has to be preceded by a high surrogate to encode a valid Unicode character".into(),
                 );
-                builder.add_note("for more information about UTF-16 surrogate pairs see https://en.wikipedia.org/wiki/UTF-16#Code_points_from_U+010000_to_U+10FFFF");
+                notes.push("for more information about UTF-16 surrogate pairs see https://en.wikipedia.org/wiki/UTF-16#Code_points_from_U+010000_to_U+10FFFF".into());
                 // No way to guess what the user wanted here.
                 suggestion.invalidate();
             }
             SyntaxErrorKind::InvalidHexDigitInUnicodeEscape => {
-                builder.add_note("valid hex digits are 0 through 9 and A through F (case-insensitive)");
+                notes.push("valid hex digits are 0 through 9 and A through F (case-insensitive)".into());
                 // We can't possibly guess what the user got wrong here. Most likely they forgot one of the digits
                 // and the next character was picked up as a hex digit, but we can't resolve that.
                 suggestion.invalidate();
@@ -302,7 +278,7 @@ impl super::SyntaxError {
             SyntaxErrorKind::MissingClosingDoubleQuote => suggestion.insert(end_idx, "\""),
             SyntaxErrorKind::MissingRootIdentifier => suggestion.insert(start_idx, "$"),
             SyntaxErrorKind::InvalidSegmentStart => {
-                builder.add_note("valid segments are: member name shorthands like `.name`/`..name`; or child/descendant bracketed selections like `[<segments>]`/`..[<segments>]`");
+                notes.push("valid segments are: member name shorthands like `.name`/`..name`; or child/descendant bracketed selections like `[<segments>]`/`..[<segments>]`".into());
                 // We can't possibly guess what segment the user wanted here.
                 suggestion.invalidate();
             }
@@ -317,7 +293,7 @@ impl super::SyntaxError {
                     // a name selector for the string "5", i.e. `$..['5']`. Both suggestions seem equally plausible.
                     suggestion.invalidate();
                 }
-                builder.add_note("valid segments are either member name shorthands `name`, or bracketed selections like `['name']` or `[42]`");
+                notes.push("valid segments are either member name shorthands `name`, or bracketed selections like `['name']` or `[42]`".into());
             }
             SyntaxErrorKind::InvalidNameShorthandAfterOnePeriod => {
                 // Detects using periods in conjunction with bracketed selectors - it's a very common mistake, so it's
@@ -375,7 +351,7 @@ impl super::SyntaxError {
                 }
             }
             SyntaxErrorKind::NonSingularQueryInComparison => {
-                builder.add_note("singular queries use only child segments with single name or index selectors");
+                notes.push("singular queries use only child segments with single name or index selectors".into());
                 // There is no way to fix it, this is simply unsupported by JSONPath.
                 suggestion.invalidate();
             }
@@ -457,12 +433,12 @@ impl super::SyntaxError {
             SyntaxErrorKind::EmptySelector => {
                 // An empty selector like `$[]`. Maybe the user wants to select everything with no particular filter?
                 suggestion.insert(start_idx + 1, "*");
-                builder.add_note("if you meant to match any value, you should use the wildcard selector `*`");
+                notes.push("if you meant to match any value, you should use the wildcard selector `*`".into());
             }
             SyntaxErrorKind::InvalidNegation => {
                 // This is an ambiguous logical negation. We cannot resolve it for the user since
                 // we don't know which version they meant, so we signal to disambiguate.
-                builder.add_note("add parenthesis around the expression you want to negate");
+                notes.push("add parenthesis around the expression you want to negate".into());
             }
             // These are number-parsing errors other than the JSONPath-specific leading-zero and negative-zero ones.
             // Can't think of a good suggestion algorithm for those.
@@ -482,8 +458,10 @@ impl super::SyntaxError {
 
         // Generic notes.
         if error.starts_with('$') {
-            builder.add_note("the root identifier '$' must appear exactly once at the start of the query");
+            notes.push("the root identifier '$' must appear exactly once at the start of the query".into());
         }
+
+        return notes;
 
         fn fix_unquoted_bracketed_selector(suggestion: &mut Suggestion, selector_bytes: &[u8], idx_offset: usize) {
             // Try to fix a selector of the form `[somestr]` that is missing quotes.
@@ -554,7 +532,7 @@ pub(super) fn fmt_parse_error(error: &ParseError, style: &ErrorStyleImpl, f: &mu
         InnerParseError::Syntax(syntax_errors) => {
             // We display all the errors separately and accumulate the fixes to show one suggestion at the end.
             // First, index the input to avoid repeating work between consecutive errors.
-            let indexed_input = input_index::IndexedInput::new(&error.input);
+            let indexed_input = formatter::ErrorFormatter::new(&error.input);
             let mut suggestion = Suggestion::new();
             for syntax_error in syntax_errors {
                 writeln!(
@@ -594,327 +572,6 @@ pub(super) fn fmt_parse_error(error: &ParseError, style: &ErrorStyleImpl, f: &mu
     Ok(())
 }
 
-/// Encapsulates formatting logic for an error with an underline, including context truncation.
-///
-/// The input is split into three parts - pre-context, underline, post-context. The underline is the part marked
-/// as erroneous by the parser. Pre-context and post-context are there to let the user know where
-/// the error is in the input. For short inputs this is straightforward. For long inputs we might need to truncate
-/// either or both parts. The error is always displayed in full.
-struct DisplayableSyntaxErrorBuilder {
-    /// Current input line as a double-ended queue, to allow truncating the pre- and post-context.
-    current_line: VecDeque<char>,
-    /// State of the builder; whether we are in pre-context, middle, or post-context.
-    state: SyntaxErrorBuilderState,
-    /// Offset of the underline relative to the error. This is how far away from the left the underline has to
-    /// be displayed underneath the input line. This is not the number of bytes or characters in the pre-context,
-    /// but the *width* of those characters.
-    current_underline_offset: usize,
-    /// The display length of the underline. This is the total width of characters in the error.
-    current_underline_len: usize,
-    /// Optional message of the underline. This will not always be set, as a multiline error will have underlines
-    /// on every line, but the message only under the last line.
-    current_underline_message: Option<String>,
-    /// A line is only emitted if it contains the error (and, consequently, the underline).
-    /// We remember whether anything interesting has happened during this line's building.
-    is_line_enabled: bool,
-    /// Remember whether we removed anything from the pre-context.
-    is_pre_context_truncated: bool,
-    /// Remember whether we had to ignore characters in the post-context.
-    is_post_context_truncated: bool,
-    /// Track the current line number, as it may be different from the number of lines to be displayed.
-    current_line_number: usize,
-    /// Whether the input is multiline or not; influences whether line numbers are displayed at all.
-    is_multiline: bool,
-    /// All finished lines to be displayed in the error.
-    lines: Vec<SyntaxErrorLine>,
-    /// All notes added to the error, to be displayed at the end.
-    notes: Vec<SyntaxErrorNote>,
-}
-
-/// State of the builder; whether we are in pre-context, middle, or post-context.
-enum SyntaxErrorBuilderState {
-    /// Includes the length of pre-context currently in the `current_line` buffer.
-    PreContext(usize),
-    /// Includes the length of pre-context.
-    Underline(usize),
-    /// Includes the lengths of pre- and post-contexts.
-    PostContext(usize, usize),
-}
-
-impl DisplayableSyntaxErrorBuilder {
-    fn new() -> Self {
-        Self {
-            current_line: VecDeque::new(),
-            lines: vec![],
-            current_underline_offset: 0,
-            current_underline_len: 0,
-            current_underline_message: None,
-            state: SyntaxErrorBuilderState::PreContext(0),
-            is_line_enabled: false,
-            is_pre_context_truncated: false,
-            is_post_context_truncated: false,
-            current_line_number: 0,
-            is_multiline: false,
-            notes: vec![],
-        }
-    }
-
-    /// Inform the builder that the current line's pre-context should be extended by `width`.
-    fn add_non_underline(&mut self, width: usize) {
-        debug_assert!(matches!(self.state, SyntaxErrorBuilderState::PreContext(_)));
-        if self.current_underline_len == 0 {
-            self.current_underline_offset += width;
-        }
-    }
-
-    /// Inform the builder the current line's underline should be extended by `width`.
-    fn add_underline(&mut self, width: usize) {
-        debug_assert!(matches!(self.state, SyntaxErrorBuilderState::Underline(_)));
-        self.current_underline_len += width;
-    }
-
-    /// Set the underline message to `message`.
-    fn set_underline_message<S: AsRef<str>>(&mut self, message: S) {
-        self.current_underline_message = Some(message.as_ref().to_string());
-    }
-
-    /// Add a note to be displayed at the end.
-    fn add_note<S: AsRef<str>>(&mut self, message: S) {
-        self.notes.push(SyntaxErrorNote {
-            message: message.as_ref().to_string(),
-        })
-    }
-
-    /// Add a character to the current line.
-    fn add_char(&mut self, c: char) {
-        if c == '\n' {
-            self.is_multiline = true;
-            self.finish_line();
-        } else {
-            let c_width = tweaked_width(c);
-            debug_assert!(c_width < MAX_ERROR_LINE_WIDTH);
-            match self.state {
-                SyntaxErrorBuilderState::PreContext(width) => {
-                    let mut new_width = width + c_width;
-                    while new_width > MAX_ERROR_LINE_WIDTH {
-                        self.is_pre_context_truncated = true;
-                        let removed_c = self
-                            .current_line
-                            .pop_front()
-                            .expect("buffer cannot be empty while width is > 0");
-                        let c_width = tweaked_width(removed_c);
-                        new_width -= c_width;
-                        self.current_underline_offset -= c_width;
-                    }
-                    self.current_line.push_back(c);
-                    self.state = SyntaxErrorBuilderState::PreContext(new_width);
-                }
-                SyntaxErrorBuilderState::Underline(mut pre_width) => {
-                    while pre_width + self.current_underline_len > MAX_ERROR_LINE_WIDTH {
-                        let removed_c = *self
-                            .current_line
-                            .front()
-                            .expect("buffer cannot be empty while width is > 0");
-                        let c_width = tweaked_width(removed_c);
-                        if pre_width - c_width >= MIN_CONTEXT_WIDTH {
-                            break;
-                        }
-                        self.current_line.pop_front();
-                        self.is_pre_context_truncated = true;
-                        pre_width -= c_width;
-                        self.current_underline_offset -= c_width;
-                    }
-                    self.state = SyntaxErrorBuilderState::Underline(pre_width);
-                    self.current_line.push_back(c);
-                }
-                SyntaxErrorBuilderState::PostContext(mut pre_width, post_width) => {
-                    // If we already truncated the post-context then we're skipping.
-                    if self.is_post_context_truncated {
-                        return;
-                    }
-                    let new_post_width = post_width + c_width;
-                    // First, if we can fit the additional context then just do it.
-                    if pre_width + new_post_width + self.current_underline_len <= MAX_ERROR_LINE_WIDTH
-                        || new_post_width <= MIN_CONTEXT_WIDTH
-                    {
-                        self.current_line.push_back(c);
-                        self.state = SyntaxErrorBuilderState::PostContext(pre_width, new_post_width);
-                    } else {
-                        // Otherwise, we need to either remove something from pre-context to make space, or
-                        // skip adding post-context whatsoever. We try to balance the length of pre- and post-context
-                        // so that the actual error appears roughly in the middle.
-                        // First, remove pre-context while it's longer than post-context.
-                        while pre_width > new_post_width
-                            && pre_width + new_post_width + self.current_underline_len > MAX_ERROR_LINE_WIDTH
-                        {
-                            let removed_c = *self
-                                .current_line
-                                .front()
-                                .expect("buffer cannot be empty while width is > 0");
-                            let c_width = tweaked_width(removed_c);
-                            if pre_width - c_width < MIN_CONTEXT_WIDTH {
-                                break;
-                            }
-                            self.current_line.pop_front();
-                            self.is_pre_context_truncated = true;
-                            pre_width -= c_width;
-                            self.current_underline_offset -= c_width;
-                        }
-                        // Either of the conditions in the above loop could be false now.
-                        // If it's the second condition then we can add the char to post-context.
-                        if pre_width + new_post_width + self.current_underline_len <= MAX_ERROR_LINE_WIDTH {
-                            self.current_line.push_back(c);
-                            self.state = SyntaxErrorBuilderState::PostContext(pre_width, new_post_width);
-                        }
-                        // If it's the first then we are balanced, but the additional char would still be too much.
-                        // At this point it makes no sense to add more chars since all will be discarded.
-                        else {
-                            self.is_post_context_truncated = true;
-                            self.state = SyntaxErrorBuilderState::PostContext(pre_width, post_width);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /// Returns whether adding any more characters to the builder with [`add_char`] will result in any changes.
-    ///
-    /// If this is false then further processing can be stopped early and the message finalized.
-    fn makes_sense_to_continue(&self) -> bool {
-        !self.is_post_context_truncated
-    }
-
-    /// Inform the builder that the pre-context is truncated.
-    ///
-    /// If the truncation happens as part of regular builder operation in [`add_char`] the builder will determine it
-    /// automatically. However, if the input was truncated earlier (e.g. by [`IndexedInput::iter_useful_chars`]) then
-    /// this should be used to manually add the truncation marker.
-    fn mark_pre_context_as_truncated(&mut self) {
-        self.is_pre_context_truncated = true;
-    }
-
-    /// Inform the builder that the post-context is truncated.
-    ///
-    /// If the truncation happens as part of regular builder operation in [`add_char`] the builder will determine it
-    /// automatically. However, if the input was truncated earlier (e.g. by [`IndexedInput::iter_useful_chars`]) then
-    /// this should be used to manually add the truncation marker.
-    fn mark_post_context_as_truncated(&mut self) {
-        self.is_post_context_truncated = true;
-    }
-
-    /// Set whether the input should be considered multiline or not.
-    ///
-    /// If a newline is added in [`add_char`] the builder will determine this automatically.
-    /// However, if only characters inside a long line are added then this should be used to manually
-    /// enable line numbers.
-    fn set_multiline(&mut self, val: bool) {
-        self.is_multiline = val;
-    }
-
-    /// Set the current line number.
-    ///
-    /// The builder assumes lines start at 1 and automatically counts them based on newline characters.
-    /// However, if building starts from a different line than 1 then this should be used to manually set the correct
-    /// line number.
-    fn set_line_number(&mut self, line: usize) {
-        self.current_line_number = line;
-    }
-
-    /// Inform the builder that future characters added with [`add_char`] are part of the underlined error.
-    fn enable_underline(&mut self) {
-        self.is_line_enabled = true;
-        match self.state {
-            SyntaxErrorBuilderState::PreContext(pre_width) => {
-                self.state = SyntaxErrorBuilderState::Underline(pre_width)
-            }
-            SyntaxErrorBuilderState::Underline(_) => (),
-            SyntaxErrorBuilderState::PostContext(_, _) => {
-                // If this is violated the error messages will look weird,
-                // but we should not crash the entire process because of it.
-                #[cfg(debug_assertions)]
-                panic!("underline in errors must always be contiguous; this is a bug in rsonpath_syntax");
-            }
-        }
-    }
-
-    /// Inform the builder that future characters added with [`add_char`] are not part of the underlined error.
-    fn disable_underline(&mut self) {
-        match self.state {
-            SyntaxErrorBuilderState::Underline(pre_width) => {
-                self.state = SyntaxErrorBuilderState::PostContext(pre_width, 0);
-            }
-            SyntaxErrorBuilderState::PreContext(_) | SyntaxErrorBuilderState::PostContext(_, _) => (),
-        }
-    }
-
-    /// Are we currently in underline mode, i.e. was [`enable_underline`] called and [`disable_underline`] wasn't?
-    fn is_underline_enabled(&self) -> bool {
-        matches!(self.state, SyntaxErrorBuilderState::Underline(_))
-    }
-
-    /// Finish the current line. The builder calls this automatically when a newline is pushed to [`add_char`].
-    /// Calling it manually is never needed.
-    fn finish_line(&mut self) {
-        self.current_line_number += 1;
-        let underline = self.finish_underline();
-        if self.is_line_enabled {
-            let line = self.current_line.iter().collect::<String>();
-            self.current_line.clear();
-            self.lines.push(SyntaxErrorLine {
-                line,
-                underline,
-                truncated_start: self.is_pre_context_truncated,
-                truncated_end: self.is_post_context_truncated,
-                line_number: self.current_line_number,
-            })
-        } else {
-            self.current_line.clear();
-        }
-        self.is_line_enabled = self.is_underline_enabled();
-        self.is_pre_context_truncated = false;
-        self.is_post_context_truncated = false;
-        self.state = match self.state {
-            SyntaxErrorBuilderState::PreContext(_) => SyntaxErrorBuilderState::PreContext(0),
-            SyntaxErrorBuilderState::Underline(_) => SyntaxErrorBuilderState::Underline(0),
-            SyntaxErrorBuilderState::PostContext(_, _) => SyntaxErrorBuilderState::PostContext(0, 0),
-        }
-    }
-
-    /// Finalize the underline message, if it exists.
-    fn finish_underline(&mut self) -> Option<SyntaxErrorUnderline> {
-        let res = (self.current_underline_len > 0).then(|| SyntaxErrorUnderline {
-            start_pos: self.current_underline_offset,
-            len: self.current_underline_len,
-            message: self.current_underline_message.take(),
-        });
-
-        self.current_underline_offset = 0;
-        self.current_underline_len = 0;
-        res
-    }
-
-    /// Finalize the error message.
-    fn finish(
-        mut self,
-        toplevel_message: String,
-        start_idx: usize,
-        end_idx: usize,
-        style: ErrorStyleImpl,
-    ) -> DisplayableSyntaxError {
-        self.finish_line();
-        DisplayableSyntaxError {
-            toplevel_message,
-            start_idx,
-            end_idx,
-            lines: self.lines,
-            notes: self.notes,
-            is_multiline: self.is_multiline,
-            style,
-        }
-    }
-}
-
 /// Syntax error that can be pretty-printed.
 ///
 /// This is not a publicly accessible type and exists only as an intermediary between the actual [`ParserError`]
@@ -933,18 +590,13 @@ struct SyntaxErrorNote {
     message: String,
 }
 
-struct SyntaxErrorLine {
-    line: String,
-    line_number: usize,
-    underline: Option<SyntaxErrorUnderline>,
-    truncated_start: bool,
-    truncated_end: bool,
-}
-
-struct SyntaxErrorUnderline {
-    start_pos: usize,
-    len: usize,
-    message: Option<String>,
+impl From<&str> for SyntaxErrorNote {
+    #[inline]
+    fn from(value: &str) -> Self {
+        Self {
+            message: value.to_string(),
+        }
+    }
 }
 
 /// Suggestion for correcting the erroneous input, displayed to the user.
@@ -1094,7 +746,7 @@ impl Display for DisplayableSyntaxError {
                 write!(
                     f,
                     " {: >3} {} ",
-                    self.style.line_numbers(&(line.line_number)),
+                    self.style.line_numbers(&(line.line_number + 1)),
                     self.style.line_numbers(&"|"),
                 )?;
             } else {
@@ -1107,30 +759,34 @@ impl Display for DisplayableSyntaxError {
             if line.truncated_end {
                 write!(f, "{}", self.style.truncation_marks(&" (...)"))?;
             }
-            writeln!(f)?;
+            if !line.line.ends_with('\n') {
+                writeln!(f)?;
+            }
 
             // Print the underline if it exists in this line.
             if let Some(underline) = &line.underline {
-                // If the input is multiline then we extend the vertical line to look nicer.
-                if self.is_multiline {
-                    write!(f, "     {} ", self.style.line_numbers(&"|"))?;
-                } else {
-                    write!(f, "  ")?;
-                }
+                if underline.len > 0 {
+                    // If the input is multiline then we extend the vertical line to look nicer.
+                    if self.is_multiline {
+                        write!(f, "     {} ", self.style.line_numbers(&"|"))?;
+                    } else {
+                        write!(f, "  ")?;
+                    }
 
-                for _ in 0..underline.start_pos {
-                    write!(f, " ")?;
-                }
-                if line.truncated_start {
-                    write!(f, "      ")?;
-                }
-                for _ in 0..underline.len {
-                    write!(f, "{}", self.style.error_underline(&"^"))?;
-                }
-                if let Some(msg) = &underline.message {
-                    writeln!(f, " {}", self.style.error_underline_message(msg))?;
-                } else {
-                    writeln!(f)?;
+                    for _ in 0..underline.start_pos {
+                        write!(f, " ")?;
+                    }
+                    if line.truncated_start {
+                        write!(f, "      ")?;
+                    }
+                    for _ in 0..underline.len {
+                        write!(f, "{}", self.style.error_underline(&"^"))?;
+                    }
+                    if let Some(msg) = &underline.message {
+                        writeln!(f, " {}", self.style.error_underline_message(msg))?;
+                    } else {
+                        writeln!(f)?;
+                    }
                 }
             }
         }

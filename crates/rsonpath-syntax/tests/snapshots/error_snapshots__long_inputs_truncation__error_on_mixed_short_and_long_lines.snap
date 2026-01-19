@@ -116,36 +116,36 @@ error: invalid short member name syntax
 
 error: invalid short member name syntax
 
-   4 | .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a] (...)
-     |                                                  ^^^ not a valid name shorthand
+   4 | (...) [a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a]. (...)
+     |                                                       ^^^ not a valid name shorthand
      (bytes 64-66)
 
 
 error: invalid short member name syntax
 
-   4 | (...) .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a] (...)
-     |                                                        ^^^ not a valid name shorthand
+   4 | (...) [a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a]. (...)
+     |                                                       ^^^ not a valid name shorthand
      (bytes 68-70)
 
 
 error: invalid short member name syntax
 
-   4 | (...) .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a] (...)
-     |                                                        ^^^ not a valid name shorthand
+   4 | (...) [a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a]. (...)
+     |                                                       ^^^ not a valid name shorthand
      (bytes 72-74)
 
 
 error: invalid short member name syntax
 
-   4 | (...) .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a] (...)
-     |                                                        ^^^ not a valid name shorthand
+   4 | (...) [a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a]. (...)
+     |                                                       ^^^ not a valid name shorthand
      (bytes 76-78)
 
 
 error: invalid short member name syntax
 
-   4 | (...) .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a] (...)
-     |                                                        ^^^ not a valid name shorthand
+   4 | (...) [a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a]. (...)
+     |                                                       ^^^ not a valid name shorthand
      (bytes 80-82)
 
 
@@ -228,22 +228,21 @@ error: invalid short member name syntax
 
 error: invalid short member name syntax
 
-   4 | (...) [a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a]
-     |                                                                                                           ^^^ not a valid name shorthand
+   4 | (...) .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a]
+     |                                                                                                    ^^^ not a valid name shorthand
      (bytes 128-130)
 
 
 error: invalid short member name syntax
 
-   4 | (...) [a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a]
-     |                                                                                                           ^^^ not a valid name shorthand
+   4 | (...) .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a]
+     |                                                                                                        ^^^ not a valid name shorthand
      (bytes 132-134)
 
 
 error: query ending with whitespace
 
    4 | (...) .[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a].[a]
-   5 | 
      (byte 135)
 
 

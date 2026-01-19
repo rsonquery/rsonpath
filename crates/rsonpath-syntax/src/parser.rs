@@ -503,17 +503,7 @@ fn logical_expr<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, LogicalExpr, 
                     }
                 };
                 let rest = skip_whitespace(rest);
-                let (rest, rhs) = match comparable(rest, ctx) {
-                    Ok((rest, rhs)) => (rest, rhs),
-                    Err(Err::Failure(err)) => return Err(Err::Failure(err)),
-                    _ => {
-                        if peek(char::<_, ()>(']')).parse(rest).is_ok() {
-                            return fail(SyntaxErrorKind::InvalidComparable, rest.len(), 1, rest);
-                        } else {
-                            return failed_filter_expression(SyntaxErrorKind::InvalidComparable)(rest);
-                        };
-                    }
-                };
+                let (rest, rhs) = comparable(rest, ctx)?;
                 if negated {
                     return fail(SyntaxErrorKind::InvalidNegation, q.len(), 1, rest);
                 } else {
@@ -537,9 +527,7 @@ fn logical_expr<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, LogicalExpr, 
                 let rest = skip_whitespace(rest);
                 if let Ok((rest, comp_op)) = comparison_operator(rest) {
                     let rest = skip_whitespace(rest);
-                    let Ok((rest, rhs)) = comparable(rest, ctx) else {
-                        return failed_filter_expression(SyntaxErrorKind::InvalidComparable)(rest);
-                    };
+                    let (rest, rhs) = comparable(rest, ctx)?;
                     let Some(singular_query) = query.try_to_comparable() else {
                         return fail(SyntaxErrorKind::NonSingularQueryInComparison, q.len(), query_len, rest);
                     };
@@ -690,7 +678,12 @@ fn comparison_operator(q: &str) -> IResult<&str, ComparisonOp, InternalParseErro
 }
 
 fn comparable<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, Comparable, InternalParseError<'q>> {
-    return alt((into(literal), |q| singular_query(q, ctx))).parse(q);
+    return alt((
+        into(literal),
+        |q| singular_query(q, ctx),
+        failed_filter_expression(SyntaxErrorKind::InvalidComparable),
+    ))
+    .parse(q);
 
     fn singular_query<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, Comparable, InternalParseError<'q>> {
         let (rest, query) = filter_query(q, ctx)?;
