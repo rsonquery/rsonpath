@@ -1,0 +1,31 @@
+---
+source: crates/rsonpath-syntax/tests/error_snapshots.rs
+expression: result
+---
+error: selectors not separated with commas
+
+   2 | .hereWeErr[100.0]
+     |               ^ expected a comma separator before this character
+     (byte 45)
+
+
+error: invalid selector syntax
+
+   2 | .hereWeErr[100.0]
+     |               ^^ not a valid selector
+     (bytes 45-46)
+
+
+error: non-singular query used in comparison
+
+   4 | .nowFilter[?@.a < @.thisWillBeInvalid
+     |                   ^^^^^^^^^^^^^^^^^^^
+   5 | .becauseItIsNotSingular
+     | ^^^^^^^^^^^^^^^^^^^^^^^
+   6 | .*
+     | ^^
+   7 | .see]
+     | ^^^^ this query is not singular
+     (bytes 84-134)
+
+note: singular queries use only child segments with single name or index selectors

@@ -73,7 +73,7 @@ impl From<&str> for JsonString {
 pub enum EscapeMode {
     /// Treat the string as within single quotes `'`.
     SingleQuoted,
-    /// Treat the string as withing double quotes `"`.
+    /// Treat the string as within double quotes `"`.
     DoubleQuoted,
 }
 
