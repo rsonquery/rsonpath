@@ -54,6 +54,10 @@ jobs:
         sanitizer: ${{ matrix.sanitizer }}
         output-sarif: true
         storage-repo: https://${{ secrets.CLUSTERFUZZLITE_STORAGE_TOKEN }}@github.com/rsonquery/rsonpath-fuzz-storage.git
+        parallel-fuzzing: true
+        report-timeouts: true
+        report-ooms: true
+        report-unreproducible-crashes: true
 
   ReportCrash:
     runs-on: ubuntu-latest

@@ -3,8 +3,36 @@ name: Benchmarks
 on:
   push:
     branches: [ "main" ]
+    paths-ignore:
+      - '.clusterfuzzlite/**'
+      - '.codeql/**'
+      - '.github/internal_templates/**'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/dependabot.yml'
+      - '**/.vscode/**'
+      - '**/*.code-workspace'
+      - '**/LICENSE'
+      - '**/cliff.toml'
+      - '**/*.md'
+      - 'book/**'
+      - 'img/**'
+      - 'pdf/**'
   pull_request:
     branches: [ "main" ]
+    paths-ignore:
+      - '.clusterfuzzlite/**'
+      - '.codeql/**'
+      - '.github/internal_templates/**'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/dependabot.yml'
+      - '**/.vscode/**'
+      - '**/*.code-workspace'
+      - '**/LICENSE'
+      - '**/cliff.toml'
+      - '**/*.md'
+      - 'book/**'
+      - 'img/**'
+      - 'pdf/**'
 
 env:
   CARGO_TERM_COLOR: always
