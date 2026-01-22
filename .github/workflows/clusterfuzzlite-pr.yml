@@ -19,19 +19,6 @@ on:
       - 'pdf/**'
   pull_request:
     branches: ["main"]
-    paths-ignore:
-      - '.codeql/**'
-      - '.github/internal_templates/**'
-      - '.github/ISSUE_TEMPLATE/**'
-      - '.github/dependabot.yml'
-      - '**/.vscode/**'
-      - '**/*.code-workspace'
-      - '**/LICENSE'
-      - '**/cliff.toml'
-      - '**/*.md'
-      - 'book/**'
-      - 'img/**'
-      - 'pdf/**'
 
 permissions:
   contents: read
