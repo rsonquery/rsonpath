@@ -75,7 +75,7 @@ $ RUSTFLAGS="-C target-cpu=native" cargo install rsonpath
 ...
 ```
 
-Check out [the relevant chapter in the rsonbook](https://v0ldek.github.io/rsonpath/user/installation/manual.html).
+Check out [the relevant chapter in the rsonbook](https://rsonquery.github.io/rsonpath/user/installation/manual.html)
 
 ## Query language
 
