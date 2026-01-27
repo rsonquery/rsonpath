@@ -104,7 +104,7 @@ jobs:
           key: ${{ matrix.os }}-mingw-${{ matrix.needs-mingw }}-11-2
       - name: Set up MinGW ${{ matrix.needs-mingw }}
         if: matrix.needs-mingw != '' && steps.cache-restore-mingw.outputs.cache-hit != 'true'
-        uses: egor-tensin/setup-mingw@84c781b557efd538dec66bde06988d81cd3138cf # v2.2.0
+        uses: egor-tensin/setup-mingw@41b837e47d7f85214629d255b9c4bc3fcbe9fd63 # v3.0
         with:
           platform: ${{ matrix.needs-mingw }}
           version: 12.2.0 # https://github.com/egor-tensin/setup-mingw/issues/14
