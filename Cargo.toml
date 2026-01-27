@@ -5,10 +5,10 @@ members = [
     "crates/rsonpath-lib",
     "crates/rsonpath-syntax",
     "crates/rsonpath-syntax-proptest",
-    "crates/rsonpath-test",
+    "crates/rsonpath-test"
 ]
 
-exclude = ["crates/rsonpath-benchmarks", "crates/rsonpath-test-codegen"]
+exclude = ["crates/rsonpath-benchmarks", "crates/rsonpath-test-codegen", "web/rsonpath-website"]
 
 resolver = "2"
 

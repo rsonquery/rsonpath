@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RsonQuery Web</title>
+    <link data-trunk rel="rust" data-bin="eframe" data-wasm-opt="z" data-type="main" />
+    <link data-trunk rel="rust" data-bin="runner" data-wasm-opt="4" data-type="worker" />
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+<canvas id="rsonquery-web-canvas"></canvas>
+<input type="file" id="file-input" name="file-input" accept=".json" hidden aria-hidden="true">
+
+</body>
+</html>
