@@ -189,7 +189,7 @@ jobs:
 
   provenance:
     needs: [github-release]
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@9255e11bd1ff6fa028051c099dc4549121d250d2 # v2.1.0
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@a09dd8c05eda63cace134cb7dccd7e019f25e6f3 # v2.1.0
     permissions:
       actions: read
       id-token: write
