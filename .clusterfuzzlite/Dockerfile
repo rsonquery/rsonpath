@@ -3,4 +3,3 @@ RUN apt-get update && apt-get install -y make autoconf automake libtool
 COPY . $SRC/rsonpath
 WORKDIR $SRC/rsonpath
 COPY .clusterfuzzlite/build.sh $SRC/
-ENV FUZZER_ARGS="-rss_limit_mb=8192 -timeout=30"

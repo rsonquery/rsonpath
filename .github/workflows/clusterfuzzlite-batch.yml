@@ -5,7 +5,7 @@ on:
       fuzz-seconds:
         description: 'Total time to fuzz, in seconds'
         required: true
-        default: '2700'
+        default: '4800'
         type: string
   schedule:
     - cron: '0 3 * * *'

@@ -240,6 +240,7 @@ impl JsonPathSelectorsBuilder {
     }
 
     fn build(self) -> Selectors {
+        assert!(!self.selectors.is_empty());
         Selectors::many(self.selectors)
     }
 

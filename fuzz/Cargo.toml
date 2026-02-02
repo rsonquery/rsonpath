@@ -18,7 +18,6 @@ path = "../crates/rsonpath-lib"
 
 [dependencies.rsonpath-syntax]
 path = "../crates/rsonpath-syntax"
-features = ["arbitrary"]
 
 # Prevent this from interfering with workspaces
 [workspace]

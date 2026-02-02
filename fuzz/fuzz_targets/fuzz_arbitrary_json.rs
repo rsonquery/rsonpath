@@ -6,16 +6,12 @@ use rsonpath::{
     automaton::error::CompilerError,
     engine::{Compiler, Engine, RsonpathEngine},
 };
-use rsonpath_syntax::{builder::JsonPathQueryBuilder, num, str, JsonPathQuery};
-use std::{
-    collections::HashMap,
-    fmt::{Debug, Display},
-};
+use rsonpath_lib_fuzz::{ArbitraryJson, ArbitrarySupportedQuery};
 
 #[derive(Debug, Arbitrary)]
 struct FuzzData {
-    query: SupportedQuery,
-    json: Json,
+    query: ArbitrarySupportedQuery,
+    json: ArbitraryJson<2048>,
 }
 
 fuzz_target!(|data: FuzzData| -> Corpus {
@@ -32,82 +28,3 @@ fuzz_target!(|data: FuzzData| -> Corpus {
 
     Corpus::Keep
 });
-
-#[derive(Debug)]
-struct Json(serde_json::Value);
-
-#[derive(Debug)]
-struct SupportedQuery(JsonPathQuery);
-
-#[derive(Debug, Arbitrary)]
-enum SupportedSegment {
-    Child(SupportedSelector),
-    Descendant(SupportedSelector),
-}
-
-#[derive(Debug, Arbitrary)]
-enum SupportedSelector {
-    Name(str::JsonString),
-    Wildcard,
-    Index(num::JsonUInt),
-}
-
-impl Display for Json {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl<'a> Arbitrary<'a> for SupportedQuery {
-    fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
-        let segment_count = u.arbitrary_len::<SupportedSegment>()?;
-        let mut query = JsonPathQueryBuilder::new();
-
-        for _ in 0..segment_count {
-            let segment = u.arbitrary::<SupportedSegment>()?;
-            match segment {
-                SupportedSegment::Child(SupportedSelector::Name(name)) => query.child_name(name),
-                SupportedSegment::Child(SupportedSelector::Wildcard) => query.child_wildcard(),
-                SupportedSegment::Child(SupportedSelector::Index(idx)) => query.child_index(idx),
-                SupportedSegment::Descendant(SupportedSelector::Name(name)) => query.descendant_name(name),
-                SupportedSegment::Descendant(SupportedSelector::Wildcard) => query.descendant_wildcard(),
-                SupportedSegment::Descendant(SupportedSelector::Index(idx)) => query.descendant_index(idx),
-            };
-        }
-
-        Ok(SupportedQuery(query.into()))
-    }
-}
-
-impl<'a> Arbitrary<'a> for Json {
-    fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
-        #[derive(Arbitrary)]
-        enum RawValue {
-            Null,
-            Bool(bool),
-            Integer(i64),
-            Float(f64),
-            String(String),
-            Array(Vec<RawValue>),
-            Object(HashMap<String, RawValue>),
-        }
-
-        impl From<RawValue> for serde_json::Value {
-            fn from(value: RawValue) -> Self {
-                match value {
-                    RawValue::Null => serde_json::Value::Null,
-                    RawValue::Bool(b) => serde_json::Value::Bool(b),
-                    RawValue::Integer(n) => serde_json::Value::from(n),
-                    RawValue::Float(f) => serde_json::Value::from(f),
-                    RawValue::String(s) => serde_json::Value::String(s),
-                    RawValue::Array(arr) => serde_json::Value::Array(arr.into_iter().map(|x| x.into()).collect()),
-                    RawValue::Object(obj) => {
-                        serde_json::Value::Object(obj.into_iter().map(|x| (x.0, x.1.into())).collect())
-                    }
-                }
-            }
-        }
-
-        Ok(Json(u.arbitrary::<RawValue>()?.into()))
-    }
-}

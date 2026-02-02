@@ -88,9 +88,7 @@
 //!
 //! ## Crate features
 //!
-//! There are two optional features:
-//! - `arbitrary`, which enables a dependency on the [`arbitrary` crate](https://docs.rs/arbitrary/latest/arbitrary/)
-//!   to provide [`Arbitrary`](`arbitrary::Arbitrary`) implementations on query types; this is used e.g. for fuzzing.
+//! There is one optional features:
 //! - `color`, which enables a dependency on the [`owo_colors` crate](https://docs.rs/owo-colors/latest/owo_colors/)
 //!   to provide colorful [`Display`] representations of [`ParseError`](error::ParseError);
 //!   see [`ParseError::colored`](error::ParseError::colored).
@@ -125,6 +123,10 @@ pub(crate) const JSONPATH_WHITESPACE: [char; 4] = [' ', '\t', '\n', '\r'];
 /// All ASCII bytes that are valid whitespace within a JSONPath query.
 pub(crate) const JSONPATH_WHITESPACE_BYTES: [u8; 4] = [0x20, 0x09, 0x0A, 0x0D];
 
+use crate::builder::{
+    EmptyComparisonExprBuilder, EmptyLogicalExprBuilder, JsonPathQueryBuilder, SingularJsonPathQueryBuilder,
+    SliceBuilder,
+};
 use std::{
     fmt::{self, Display},
     ops::Deref,
@@ -320,7 +322,6 @@ impl Parser {
 /// each applying one or more selectors to a node and passing it along to the
 /// subsequent segments.
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
-#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Segment {
     /// A child segment contains a sequence of selectors,
@@ -329,20 +330,6 @@ pub enum Segment {
     /// A child segment contains a sequence of selectors,
     /// each of which selects zero or more descendants of a node.
     Descendant(Selectors),
-}
-
-// We don't derive this because an empty Vec of Selectors is not a valid representation.
-#[cfg(feature = "arbitrary")]
-#[cfg_attr(docsrs, doc(cfg(feature = "arbitrary")))]
-impl<'a> arbitrary::Arbitrary<'a> for Selectors {
-    #[inline]
-    fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
-        let first = u.arbitrary::<Selector>()?;
-        let mut rest = u.arbitrary::<Vec<Selector>>()?;
-        rest.push(first);
-
-        Ok(Self::many(rest))
-    }
 }
 
 /// Collection of one or more [`Selector`] instances.
@@ -357,7 +344,6 @@ pub struct Selectors {
 /// Each [`Segment`] defines one or more selectors.
 /// A selector produces one or more children/descendants of the node it is applied to.
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
-#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Selector {
     /// A name selector selects at most one object member value under the key equal to the
@@ -416,17 +402,6 @@ pub enum Index {
     FromEnd(num::JsonNonZeroUInt),
 }
 
-// We don't derive this because FromEnd(0) is not a valid index.
-#[cfg(feature = "arbitrary")]
-#[cfg_attr(docsrs, doc(cfg(feature = "arbitrary")))]
-impl<'a> arbitrary::Arbitrary<'a> for Index {
-    #[inline]
-    fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
-        let num = u.arbitrary::<num::JsonInt>()?;
-        Ok(Self::from(num))
-    }
-}
-
 impl<N: Into<num::JsonInt>> From<N> for Index {
     #[inline]
     fn from(value: N) -> Self {
@@ -447,17 +422,6 @@ pub enum Step {
     Forward(num::JsonUInt),
     /// Step backward by a given offset amount.
     Backward(num::JsonNonZeroUInt),
-}
-
-// We don't derive this because Backward(0) is not a valid step.
-#[cfg(feature = "arbitrary")]
-#[cfg_attr(docsrs, doc(cfg(feature = "arbitrary")))]
-impl<'a> arbitrary::Arbitrary<'a> for Step {
-    #[inline]
-    fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
-        let num = u.arbitrary::<num::JsonInt>()?;
-        Ok(Self::from(num))
-    }
 }
 
 impl From<num::JsonInt> for Step {
@@ -492,7 +456,6 @@ impl From<num::JsonInt> for Step {
 /// assert_eq!(slice.step(), Step::Forward(JsonUInt::ONE));
 /// ```
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
-#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Slice {
     start: Index,
@@ -508,6 +471,13 @@ impl Slice {
         Index::FromEnd(1.try_into().expect("const 1 is nonzero"))
     }
     pub(crate) const DEFAULT_STEP: Step = Step::Forward(num::JsonUInt::ONE);
+
+    /// Start building a new [`Slice`].
+    #[inline(always)]
+    #[must_use]
+    pub fn build() -> SliceBuilder {
+        SliceBuilder::new()
+    }
 
     /// Create a new [`Slice`] from given bounds and step.
     #[inline(always)]
@@ -551,7 +521,6 @@ impl Default for Slice {
 
 /// JSON literal value available in comparison expressions of a filter selector.
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
-#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Literal {
     /// [`JsonString`](str::JsonString) literal.
@@ -609,7 +578,6 @@ impl From<bool> for Literal {
 /// and [`Test`](LogicalExpr::Test) expressions can be leaves, and boolean combinators
 /// (OR, AND, NOT) store their children as [`Boxes`](Box).
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
-#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum LogicalExpr {
     /// Logical disjunction of two child expressions.
@@ -626,6 +594,13 @@ pub enum LogicalExpr {
 }
 
 impl LogicalExpr {
+    /// Start building a new [`LogicalExpr`].
+    #[inline(always)]
+    #[must_use]
+    pub fn build() -> EmptyLogicalExprBuilder {
+        EmptyLogicalExprBuilder
+    }
+
     fn precedence(&self) -> usize {
         match self {
             Self::Or(_, _) => 2,
@@ -641,7 +616,6 @@ type LogicalExprNode = Box<LogicalExpr>;
 
 /// Existence test based on a relative or absolute [`JsonPathQuery`].
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
-#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum TestExpr {
     /// Relative test &ndash; query from the selected node.
@@ -669,7 +643,6 @@ pub enum TestExpr {
 /// assert_eq!(&rhs, comparison.rhs());
 /// ```
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
-#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ComparisonExpr {
     lhs: Comparable,
@@ -678,6 +651,13 @@ pub struct ComparisonExpr {
 }
 
 impl ComparisonExpr {
+    /// Start building a new [`ComparisonExpr`].
+    #[inline(always)]
+    #[must_use]
+    pub fn build() -> EmptyComparisonExprBuilder {
+        EmptyComparisonExprBuilder
+    }
+
     /// Get the comparable left-hand side of the comparison operation.
     #[inline]
     #[must_use]
@@ -709,7 +689,6 @@ impl ComparisonExpr {
 
 /// Comparison operator usable in a [`ComparisonExpr`].
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
-#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum ComparisonOp {
     /// Compares two values for equality; `==`
@@ -728,7 +707,6 @@ pub enum ComparisonOp {
 
 /// One of the sides of a [`ComparisonExpr`], either a constant literal or a singular JSONPath query.
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
-#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Comparable {
     /// Constant [`Literal`] value.
@@ -755,13 +733,19 @@ impl From<Literal> for Comparable {
 /// in a [`SingularJsonPathQuery`], which naturally matches only the precise specified path,
 /// if it exists.
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
-#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct SingularJsonPathQuery {
     segments: Vec<SingularSegment>,
 }
 
 impl SingularJsonPathQuery {
+    /// Start building a new [`SingularJsonPathQuery`].
+    #[inline(always)]
+    #[must_use]
+    pub fn build() -> SingularJsonPathQueryBuilder {
+        SingularJsonPathQueryBuilder::new()
+    }
+
     /// Iterate over the [`SingularSegments`](SingularSegment) of this query.
     #[inline]
     pub fn segments(&self) -> impl Iterator<Item = &'_ SingularSegment> {
@@ -771,7 +755,6 @@ impl SingularJsonPathQuery {
 
 /// Segment allowed in a [`SingularJsonPathQuery`].
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
-#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum SingularSegment {
     /// Child name selector. Equivalent of [`Selector::Name`].
@@ -801,7 +784,6 @@ impl From<SingularSegment> for Segment {
 
 /// JSONPath query structure represented by a sequence of [`Segments`](Segment).
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
-#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct JsonPathQuery {
     segments: Vec<Segment>,
@@ -817,6 +799,13 @@ impl FromIterator<Segment> for JsonPathQuery {
 }
 
 impl JsonPathQuery {
+    /// Start building a new [`JsonPathQuery`].
+    #[inline(always)]
+    #[must_use]
+    pub fn build() -> JsonPathQueryBuilder {
+        JsonPathQueryBuilder::new()
+    }
+
     fn try_to_singular(self) -> std::result::Result<SingularJsonPathQuery, Self> {
         if self.segments.iter().all(Segment::is_singular) {
             let mut singular_segments = Vec::with_capacity(self.segments.len());

@@ -16,21 +16,33 @@
 //!     }
 //! }
 //! ```
+
 use proptest::{option, prelude::*, strategy};
 use rsonpath_syntax::{
     builder::SliceBuilder, num::JsonInt, str::JsonString, JsonPathQuery, LogicalExpr, Segment, Selector, Selectors,
 };
+use std::fmt::Debug;
 
 /// A valid JSONPath string and the [`JsonPathQuery`] object parsed from it.
 ///
 /// This is the struct through which an [`proptest::arbitrary::Arbitrary`] implementation
 /// for [`JsonPathQuery`] is provided.
-#[derive(Debug)]
 pub struct ArbitraryJsonPathQuery {
     /// The JSONPath query string.
     pub string: String,
     /// The parsed JSONPath query.
     pub parsed: JsonPathQuery,
+}
+
+impl Debug for ArbitraryJsonPathQuery {
+    #[inline]
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ArbitraryJsonPathQuery")
+            .field("string", &self.string)
+            .field("parsed", &self.parsed)
+            .field("string_raw", &self.string.as_bytes())
+            .finish()
+    }
 }
 
 /// Parameters of the [`ArbitraryJsonPathQuery`] [`Arbitrary`](`proptest::arbitrary::Arbitrary`) implementation.

@@ -185,7 +185,6 @@ impl std::hash::Hash for JsonFloat {
 /// assert_eq!("42.01", num_float.to_string());
 /// ```
 #[derive(Clone, Copy, Debug)]
-#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum JsonNumber {
     /// A [`JsonInt`] number.
@@ -499,6 +498,15 @@ impl JsonNonZeroUInt {
 }
 
 impl JsonFloat {
+    /// A constant value of zero. Equivalent to [`JsonFloat::default`](`Default::default`).
+    ///
+    /// # Examples
+    /// ```
+    /// # use rsonpath_syntax::num::JsonFloat;
+    /// assert_eq!(JsonFloat::ZERO.as_f64(), 0.0);
+    /// ```
+    pub const ZERO: Self = Self(0.0);
+
     fn new(x: f64) -> Self {
         debug_assert!(x.is_finite());
         Self(x)
@@ -544,6 +552,17 @@ impl JsonFloat {
 }
 
 impl JsonNumber {
+    /// A constant value of zero, as an integer.
+    /// Equivalent to [`JsonNumber::default`](`Default::default`) and
+    /// [`JsonNumber::from(JsonInt::ZERO)`](`JsonNumber::Int`).
+    ///
+    /// # Examples
+    /// ```
+    /// # use rsonpath_syntax::num::{JsonNumber, JsonInt};
+    /// assert_eq!(JsonNumber::ZERO, JsonNumber::Int(JsonInt::ZERO));
+    /// ```
+    pub const ZERO: Self = Self::Int(JsonInt(0));
+
     /// Normalize a [`JsonNumber`] so that valid [`JsonInt`] value is represented
     /// by [`JsonNumber::Int`].
     ///
@@ -1069,58 +1088,6 @@ impl Display for JsonNumber {
             Self::Int(int) => int.fmt(f),
             Self::Float(flt) => flt.fmt(f),
         }
-    }
-}
-
-#[cfg(feature = "arbitrary")]
-#[cfg_attr(docsrs, doc(cfg(feature = "arbitrary")))]
-impl<'a> arbitrary::Arbitrary<'a> for JsonInt {
-    #[inline]
-    fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
-        let val = u.int_in_range(JSON_INT_LOWER_LIMIT..=JSON_INT_UPPER_LIMIT)?;
-
-        Ok(Self::new(val))
-    }
-}
-
-#[cfg(feature = "arbitrary")]
-#[cfg_attr(docsrs, doc(cfg(feature = "arbitrary")))]
-impl<'a> arbitrary::Arbitrary<'a> for JsonUInt {
-    #[inline]
-    fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
-        let val = u.int_in_range(0..=JSON_UINT_UPPER_LIMIT)?;
-
-        Ok(Self::new(val))
-    }
-}
-
-#[cfg(feature = "arbitrary")]
-#[cfg_attr(docsrs, doc(cfg(feature = "arbitrary")))]
-impl<'a> arbitrary::Arbitrary<'a> for JsonNonZeroUInt {
-    #[inline]
-    fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
-        let val = u.int_in_range(1..=JSON_UINT_UPPER_LIMIT)?;
-
-        Ok(Self::new(NonZeroU64::new(val).expect("range starts at 1")))
-    }
-}
-
-#[cfg(feature = "arbitrary")]
-#[cfg_attr(docsrs, doc(cfg(feature = "arbitrary")))]
-impl<'a> arbitrary::Arbitrary<'a> for JsonFloat {
-    #[inline]
-    fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
-        let val = u.arbitrary::<f64>()?;
-        // Wrap NaN, +Inf, -Inf into zero.
-        let val = if val.is_nan() {
-            0.0
-        } else if val.is_infinite() {
-            (0.0_f64).copysign(val)
-        } else {
-            val
-        };
-
-        Ok(Self(val))
     }
 }
 

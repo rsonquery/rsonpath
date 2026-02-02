@@ -68,6 +68,19 @@ impl From<&str> for JsonString {
     }
 }
 
+impl FromIterator<char> for JsonString {
+    #[inline]
+    fn from_iter<T: IntoIterator<Item = char>>(iter: T) -> Self {
+        let mut quoted = String::new();
+        quoted.push('"');
+        for c in iter {
+            quoted.push(c);
+        }
+        quoted.push('"');
+        Self { quoted }
+    }
+}
+
 /// Escape mode for the [`escape`] function.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum EscapeMode {
@@ -219,34 +232,6 @@ impl std::hash::Hash for JsonString {
     #[inline(always)]
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.unquoted().hash(state);
-    }
-}
-
-#[cfg(feature = "arbitrary")]
-#[cfg_attr(docsrs, doc(cfg(feature = "arbitrary")))]
-impl<'a> arbitrary::Arbitrary<'a> for JsonString {
-    #[inline]
-    fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
-        let chars = u.arbitrary_iter()?;
-        let mut builder = JsonStringBuilder::new();
-
-        // RFC 7159: All Unicode characters may be placed [in the string],
-        // except for characters that must be escaped: quotation mark,
-        // reverse solidus, and the control characters (U+0000 through U+001F).
-        for c in chars {
-            let c = c?;
-            match c {
-                '\u{0000}'..='\u{001F}' | '\"' | '\\' => {
-                    builder.push('\\');
-                    builder.push(c);
-                }
-                _ => {
-                    builder.push(c);
-                }
-            }
-        }
-
-        Ok(builder.into())
     }
 }
 

@@ -148,7 +148,6 @@ dependencies = [
 name = "rsonpath-syntax"
 version = "0.4.0"
 dependencies = [
- "arbitrary",
  "nom",
  "thiserror",
  "unicode-width",
