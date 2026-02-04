@@ -24,7 +24,7 @@ path = "./src/main.rs"
 name = "rq"
 
 [dependencies]
-clap = { version = "4.5.54", features = ["derive", "wrap_help"] }
+clap = { version = "4.5.57", features = ["derive", "wrap_help"] }
 color-eyre = { version = "0.6.5", default-features = false }
 eyre = "0.6.12"
 log = { workspace = true }
