@@ -109,7 +109,7 @@ jobs:
       - name: Cache restore (MinGW)
         id: cache-restore-mingw
         if: matrix.needs-mingw != ''
-        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7 # v5.0.2
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: |
             C:\ProgramData\chocolatey\lib\mingw
@@ -142,7 +142,7 @@ jobs:
         run: rustup override set ${{ matrix.toolchain }}
       - name: Cache restore (Cargo)
         id: cache-restore-cargo
-        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7 # v5.0.2
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: |
             ~/.cargo/bin/
@@ -212,7 +212,7 @@ jobs:
           target: ${{ matrix.target_triple }}
       - name: Cache restore (Cargo)
         id: cache-restore-cargo
-        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7 # v5.0.2
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: |
             ~/.cargo/bin/
@@ -267,7 +267,7 @@ jobs:
         run: rustup override set ${{ matrix.toolchain }}
       - name: Cache restore
         id: cache-restore
-        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7 # v5.0.2
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: |
             ~/.cargo/bin/
@@ -311,7 +311,7 @@ jobs:
         run: sudo apt install lld
       - name: Cache restore
         id: cache-restore
-        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7 # v5.0.2
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: |
             ~/.cargo/bin/
