@@ -36,7 +36,7 @@ ciborium = { version = "0.2.2", default-features = false }
 insta = { version = "1.46.3" }
 itertools = "0.14.0"
 pretty_assertions = "1.4.1"
-proptest = "1.9.0"
+proptest = "1.10.0"
 rmp-serde = "1.3.1"
 serde = { version = "1.0.228" }
 serde_json = { version = "1.0.149", default-features = true, features = [
