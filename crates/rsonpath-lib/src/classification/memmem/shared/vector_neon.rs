@@ -8,13 +8,13 @@ use ::core::arch::aarch64::*;
 #[target_feature(enable = "neon")]
 unsafe fn neon_movemask_epi8(cmp_vector: uint8x16_t) -> i16 {
     let shift_values: [i8; 16] = [-7, -6, -5, -4, -3, -2, -1, 0, -7, -6, -5, -4, -3, -2, -1, 0];
-    
+
     let vshift = vld1q_s8(shift_values.as_ptr());
-    
+
     let vmask = vandq_u8(cmp_vector, vdupq_n_u8(0x80));
-    
+
     let vmask = vshlq_u8(vmask, vshift);
-    
+
     let low = vaddv_u8(vget_low_u8(vmask)) as i16;
     let high = vaddv_u8(vget_high_u8(vmask)) as i16;
 

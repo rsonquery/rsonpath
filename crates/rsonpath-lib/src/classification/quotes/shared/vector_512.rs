@@ -16,7 +16,7 @@ pub(crate) unsafe fn slash_mask() -> __m512i {
 #[target_feature(enable = "avx512f")]
 #[target_feature(enable = "avx512bw")]
 pub(crate) unsafe fn classify_block(block: &[u8]) -> BlockClassification512 {
-    let byte_vector = _mm512_loadu_si512(block.as_ptr().cast::<i32>());
+    let byte_vector = _mm512_loadu_si512(block.as_ptr().cast());
 
     let slashes = _mm512_cmpeq_epi8_mask(byte_vector, slash_mask());
 

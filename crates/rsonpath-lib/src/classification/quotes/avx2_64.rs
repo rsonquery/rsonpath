@@ -5,7 +5,7 @@ use super::{
 use crate::{block, classification::mask::m64, debug, input::error::InputErrorConvertible as _};
 use std::marker::PhantomData;
 
-super::shared::quote_classifier!(Avx2QuoteClassifier64, BlockAvx2Classifier, 64, u64);
+shared::quote_classifier!(Avx2QuoteClassifier64, BlockAvx2Classifier, 64, u64);
 
 struct BlockAvx2Classifier {
     internal_classifier: mask_64::BlockClassifier64Bit,

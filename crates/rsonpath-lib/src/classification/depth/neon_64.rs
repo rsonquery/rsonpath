@@ -11,7 +11,13 @@ use std::marker::PhantomData;
 
 const SIZE: usize = 64;
 
-shared::depth_classifier!(NeonVectorIterator, DelimiterClassifierImplNeon, DepthVectorNeon, 64, u64);
+shared::depth_classifier!(
+    NeonVectorIterator,
+    DelimiterClassifierImplNeon,
+    DepthVectorNeon,
+    64,
+    u64
+);
 
 #[inline(always)]
 fn new_vector<'a, B: InputBlock<'a, SIZE>>(

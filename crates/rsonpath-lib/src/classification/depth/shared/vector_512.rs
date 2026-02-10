@@ -33,10 +33,10 @@ impl DelimiterClassifierImpl512 {
     #[target_feature(enable = "avx512bw")]
     #[inline]
     pub(crate) unsafe fn get_opening_and_closing_masks(&self, bytes: &[u8]) -> (u64, u64) {
-        assert_eq!(64, bytes.len());
+        assert_eq!(64, bytes.len(), "vector_256 requires 64 bytes");
         // SAFETY: target_feature invariant
         unsafe {
-            let byte_vector = _mm512_loadu_si512(bytes.as_ptr().cast::<i32>());
+            let byte_vector = _mm512_loadu_si512(bytes.as_ptr().cast());
             let opening_mask = _mm512_cmpeq_epi8_mask(byte_vector, self.opening_mask());
             let closing_mask = _mm512_cmpeq_epi8_mask(byte_vector, self.closing_mask());
 

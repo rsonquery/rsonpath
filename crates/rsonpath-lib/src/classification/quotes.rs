@@ -97,18 +97,18 @@ where
 pub(crate) mod nosimd;
 pub(crate) mod shared;
 
-#[cfg(target_arch = "x86_64")]
-pub(crate) mod avx512_64;
 #[cfg(target_arch = "x86")]
 pub(crate) mod avx2_32;
 #[cfg(target_arch = "x86_64")]
 pub(crate) mod avx2_64;
+#[cfg(target_arch = "x86_64")]
+pub(crate) mod avx512_64;
+#[cfg(target_arch = "aarch64")]
+pub(crate) mod neon_64;
 #[cfg(target_arch = "x86")]
 pub(crate) mod sse2_32;
 #[cfg(target_arch = "x86_64")]
 pub(crate) mod sse2_64;
-#[cfg(target_arch = "aarch64")]
-pub(crate) mod neon_64;
 
 pub(crate) trait QuotesImpl {
     type Classifier<'i, I>: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE> + InnerIter<I>

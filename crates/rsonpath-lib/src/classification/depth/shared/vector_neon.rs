@@ -8,16 +8,16 @@ use ::core::arch::aarch64::*;
 unsafe fn neon_movemask_epi8(cmp_vector: uint8x16_t) -> i16 {
     // Tablica shiftów
     let shift_values: [i8; 16] = [-7, -6, -5, -4, -3, -2, -1, 0, -7, -6, -5, -4, -3, -2, -1, 0];
-    
+
     // Załaduj shift do NEON
     let vshift = vld1q_s8(shift_values.as_ptr());
-    
+
     // Zamaskowanie bitu 7 (0x80)
     let vmask = vandq_u8(cmp_vector, vdupq_n_u8(0x80));
-    
+
     // Przesunięcie bitów
     let vmask = vshlq_u8(vmask, vshift);
-    
+
     // Sumowanie dolnej i górnej połowy
     let low = vaddv_u8(vget_low_u8(vmask)) as i16;
     let high = vaddv_u8(vget_high_u8(vmask)) as i16;

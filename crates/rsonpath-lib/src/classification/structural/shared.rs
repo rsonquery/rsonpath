@@ -11,8 +11,7 @@ pub(super) mod vector_512;
 #[cfg(target_arch = "aarch64")]
 pub(super) mod vector_neon;
 
-
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+#[cfg(any(target_arch = "x86", target_arch = "x86_64", target_arch = "aarch64"))]
 macro_rules! structural_classifier {
     ($name:ident, $core:ident, $mask_mod:ident, $size:literal, $mask_ty:ty) => {
         pub(crate) struct Constructor;

@@ -1,14 +1,13 @@
 use super::{shared::mask_64, shared::vector_512, *};
-use crate::{
-    input::{error::InputErrorConvertible, InputBlockIterator},
-};
+use crate::input::{error::InputErrorConvertible as _, InputBlockIterator as _};
 
 const SIZE: usize = 64;
 
 pub(crate) struct Constructor;
 
 impl MemmemImpl for Constructor {
-    type Classifier<'i, 'b, 'r, I, R> = Avx512MemmemClassifier64<'i, 'b, 'r, I, R>
+    type Classifier<'i, 'b, 'r, I, R>
+        = Avx512MemmemClassifier64<'i, 'b, 'r, I, R>
     where
         I: Input + 'i,
         <I as Input>::BlockIterator<'i, 'r, R, BLOCK_SIZE>: 'b,
@@ -43,16 +42,10 @@ where
     R: InputRecorder<I::Block<'i, SIZE>>,
     'i: 'r,
 {
-    #[inline]
-    #[allow(dead_code)]
-    pub(crate) fn new(input: &'i I, iter: &'b mut I::BlockIterator<'i, 'r, R, SIZE>) -> Self {
-        Self { input, iter }
-    }
-
     #[inline(always)]
     unsafe fn find_empty(
         &mut self,
-        label: &JsonString,
+        label: &StringPattern,
         mut offset: usize,
     ) -> Result<Option<(usize, I::Block<'i, SIZE>)>, InputError> {
         let classifier = vector_512::BlockClassifier512::new(b'"', b'"');
@@ -86,10 +79,10 @@ where
     #[inline(always)]
     unsafe fn find_letter(
         &mut self,
-        label: &JsonString,
+        label: &StringPattern,
         mut offset: usize,
     ) -> Result<Option<(usize, I::Block<'i, SIZE>)>, InputError> {
-        let classifier = vector_512::BlockClassifier512::new(label.unquoted().as_bytes()[0], b'"');
+        let classifier = vector_512::BlockClassifier512::new(label.unquoted()[0], b'"');
         let mut previous_block: u64 = 0;
 
         while let Some(block) = self.iter.next().e()? {
@@ -116,7 +109,7 @@ where
     #[inline(always)]
     unsafe fn find_label_avx512(
         &mut self,
-        label: &JsonString,
+        label: &StringPattern,
         mut offset: usize,
     ) -> Result<Option<(usize, I::Block<'i, SIZE>)>, InputError> {
         if label.unquoted().is_empty() {
@@ -125,8 +118,7 @@ where
             return self.find_letter(label, offset);
         }
 
-        let classifier =
-            vector_512::BlockClassifier512::new(label.unquoted().as_bytes()[0], label.unquoted().as_bytes()[1]);
+        let classifier = vector_512::BlockClassifier512::new(label.unquoted()[0], label.unquoted()[1]);
         let mut previous_block: u64 = 0;
         while let Some(block) = self.iter.next().e()? {
             let classified = classifier.classify_block(&block);
@@ -161,7 +153,7 @@ where
         &mut self,
         first_block: Option<I::Block<'i, SIZE>>,
         start_idx: usize,
-        label: &JsonString,
+        label: &StringPattern,
     ) -> Result<Option<(usize, I::Block<'i, SIZE>)>, InputError> {
         if let Some(b) = first_block {
             if let Some(res) = shared::find_label_in_first_block(self.input, b, start_idx, label)? {

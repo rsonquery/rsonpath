@@ -870,7 +870,7 @@ cfg_if! {
                     match conf.highest_simd() {
                         // AVX2 implies all other optimizations.
                         // AVX512 on x86 is yet to be implemented.
-                        $crate::classification::simd::SimdTag::Avx2 | 
+                        $crate::classification::simd::SimdTag::Avx2 |
                         $crate::classification::simd::SimdTag::Avx512 => {
                             assert!(conf.fast_quotes());
                             assert!(conf.fast_popcnt());
@@ -1011,9 +1011,9 @@ cfg_if! {
                             $b
                         }
                         // nosimd denies all optimizations.
-			// detection of other options makes no sense in aarch64.
+            // detection of other options makes no sense in aarch64.
 //                        $crate::classification::simd::SimdTag::Nosimd => {
-			_ => {
+            _ => {
                             let $simd = $crate::classification::simd::ResolvedSimd::<
                                 $crate::classification::quotes::nosimd::Constructor,
                                 $crate::classification::structural::nosimd::Constructor,

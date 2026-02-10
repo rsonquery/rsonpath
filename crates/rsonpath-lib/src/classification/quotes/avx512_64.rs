@@ -2,10 +2,10 @@ use super::{
     shared::{mask_64, vector_512},
     *,
 };
-use crate::{block, classification::mask::m64, debug, input::error::InputErrorConvertible};
+use crate::{block, debug, input::error::InputErrorConvertible as _};
 use std::marker::PhantomData;
 
-super::shared::quote_classifier!(Avx512QuoteClassifier64, BlockAvx512Classifier, 64, u64);
+shared::quote_classifier!(Avx512QuoteClassifier64, BlockAvx512Classifier, 64, u64);
 
 struct BlockAvx512Classifier {
     internal_classifier: mask_64::BlockClassifier64Bit,
@@ -31,10 +31,9 @@ impl BlockAvx512Classifier {
     }
 }
 
-// FIXME add test with 512 bytes.
-#[cfg(all(test, cfg = "avx_512"))]
+#[cfg(test)]
 mod tests {
-    use super::Avx512QuoteClassifier64;
+    use super::{Constructor, QuotesImpl};
     use crate::{
         input::{Input, OwnedBytes},
         result::empty::EmptyRecorder,
@@ -42,18 +41,44 @@ mod tests {
     };
     use test_case::test_case;
 
-    #[test_case("" => None)]
-    #[test_case("abcd" => Some(0))]
-    #[test_case(r#""abcd""# => Some(0b01_1111))]
-    #[test_case(r#""number": 42, "string": "something" "# => Some(0b0011_1111_1111_0001_1111_1100_0000_0111_1111))]
-    #[test_case(r#"abc\"abc\""# => Some(0b00_0000_0000))]
-    #[test_case(r#"abc\\"abc\\""# => Some(0b0111_1110_0000))]
-    #[test_case(r#"{"aaa":[{},{"b":{"c":[1,2,3]}}],"e":{"a":[[],[1,2,3],"# => Some(0b0_0000_0000_0000_0110_0011_0000_0000_0000_0110_0011_0000_0001_1110))]
-    fn single_block(str: &str) -> Option<u64> {
+    #[test_case("", 0)]
+    #[test_case("abcd", 0)]
+    #[test_case(r#""abcd""#, 0b01_1111)]
+    #[test_case(
+        r#""number": 42, "string": "something" "#,
+        0b0011_1111_1111_0001_1111_1100_0000_0111_1111
+    )]
+    #[test_case(r#"abc\"abc\""#, 0b00_0000_0000)]
+    #[test_case(r#"abc\\"abc\\""#, 0b0111_1110_0000)]
+    #[test_case(
+        r#"{"aaa":[{},{"b":{"c":[1,2,3]}}],"e":{"a":[[],[1,2,3],"#,
+        0b0_0000_0000_0000_0110_0011_0000_0000_0000_0110_0011_0000_0001_1110
+    )]
+    fn single_block(str: &str, expected: u64) {
+        if !std::arch::is_x86_feature_detected!("avx512f") {
+            return;
+        }
+
         let owned_str = str.to_owned();
-        let input = OwnedBytes::new(&owned_str).unwrap();
+        let input = OwnedBytes::from(owned_str);
+        let mut leading_padding = input.leading_padding_len() as u64;
         let iter = input.iter_blocks::<_, 64>(&EmptyRecorder);
-        let mut classifier = Avx512QuoteClassifier64::new(iter);
-        classifier.next().unwrap().map(|x| x.within_quotes_mask)
+        let mut classifier = Constructor::new(iter);
+
+        // Drop padding-only blocks.
+        while leading_padding >= 64 {
+            let mask = classifier.next().unwrap().unwrap().within_quotes_mask;
+            assert_eq!(mask, 0);
+            leading_padding -= 64;
+        }
+
+        // The actual classification is now either contained in the next block,
+        // or split between the two next blocks. Combine them.
+        let first_mask = classifier.next().unwrap().unwrap().within_quotes_mask;
+        let len_in_first_mask = if leading_padding == 0 { 0 } else { 64 - leading_padding };
+        let second_mask = classifier.next().unwrap().unwrap().within_quotes_mask;
+        let combined_mask = (first_mask >> leading_padding) | (second_mask << len_in_first_mask);
+
+        assert_eq!(combined_mask, expected);
     }
 }
