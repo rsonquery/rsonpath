@@ -62,3 +62,9 @@ pub enum EngineError {
         InternalRsonpathError,
     ),
 }
+
+impl From<std::io::Error> for EngineError {
+    fn from(e: std::io::Error) -> Self {
+        EngineError::InternalError(InternalRsonpathError::from_error(e, "IO error during output write"))
+    }
+}

@@ -79,6 +79,8 @@ pub(crate) mod avx2_64;
 pub(crate) mod sse2_32;
 #[cfg(target_arch = "x86_64")]
 pub(crate) mod sse2_64;
+#[cfg(target_arch = "wasm32")]
+pub(crate) mod wasm_32;
 
 pub(crate) trait DepthImpl {
     type Classifier<'i, I, Q>: DepthIterator<'i, I, Q, MaskType, BLOCK_SIZE>

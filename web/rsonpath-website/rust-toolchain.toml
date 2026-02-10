@@ -1,0 +1,3 @@
+[toolchain]
+channel = "nightly" # Required for wasm128 SIMD
+components = [ "cargo", "rustfmt", "clippy" ]

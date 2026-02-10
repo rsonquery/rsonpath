@@ -1,4 +1,4 @@
-[build]
+[target.'cfg(not(target_arch = "wasm32"))'] # lld is not supported for wasm
 rustflags = ["-C", "link-arg=-fuse-ld=lld"]
 
 [alias]
