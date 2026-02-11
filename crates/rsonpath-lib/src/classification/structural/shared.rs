@@ -7,6 +7,7 @@ pub(super) mod vector_128;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub(super) mod vector_256;
 
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 macro_rules! structural_classifier {
     ($name:ident, $core:ident, $mask_mod:ident, $size:literal, $mask_ty:ty) => {
         pub(crate) struct Constructor;
@@ -239,4 +240,5 @@ macro_rules! structural_classifier {
     };
 }
 
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub(crate) use structural_classifier;
