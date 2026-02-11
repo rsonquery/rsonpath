@@ -71,7 +71,7 @@ impl BlockClassifierNeon {
 
         let nonescaped_quotes = (quotes & !escaped) ^ self.get_prev_quote_mask();
 
-        let cumulative_xor = vmull_p64(nonescaped_quotes as u64, all_ones128());
+        let cumulative_xor = vmull_p64(nonescaped_quotes, all_ones128());
 
         let within_quotes = cumulative_xor as u64;
         self.update_prev_block_mask(set_prev_slash_mask, within_quotes);

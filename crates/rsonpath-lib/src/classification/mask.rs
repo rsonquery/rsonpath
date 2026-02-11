@@ -59,6 +59,7 @@ pub(crate) mod m64 {
         u64::from(m1) | (u64::from(m2) << 16) | (u64::from(m3) << 32) | (u64::from(m4) << 48)
     }
 
+    #[cfg(target_arch = "x86_64")]
     pub(crate) fn combine_32(m1: u32, m2: u32) -> u64 {
         u64::from(m1) | (u64::from(m2) << 32)
     }

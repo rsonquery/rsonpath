@@ -1,9 +1,6 @@
 #[cfg(target_arch = "aarch64")]
 use ::core::arch::aarch64::*;
 
-#[cfg(target_arch = "aarch64")]
-use ::core::arch::aarch64::*;
-
 #[inline]
 #[target_feature(enable = "neon")]
 unsafe fn neon_movemask_epi8(cmp_vector: uint8x16_t) -> i16 {
@@ -15,8 +12,8 @@ unsafe fn neon_movemask_epi8(cmp_vector: uint8x16_t) -> i16 {
 
     let vmask = vshlq_u8(vmask, vshift);
 
-    let low = vaddv_u8(vget_low_u8(vmask)) as i16;
-    let high = vaddv_u8(vget_high_u8(vmask)) as i16;
+    let low = i16::from(vaddv_u8(vget_low_u8(vmask)));
+    let high = i16::from(vaddv_u8(vget_high_u8(vmask)));
 
     low | (high << 8)
 }

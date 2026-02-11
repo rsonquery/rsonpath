@@ -19,8 +19,8 @@ unsafe fn neon_movemask_epi8(cmp_vector: uint8x16_t) -> i16 {
     let vmask = vshlq_u8(vmask, vshift);
 
     // Sumowanie dolnej i górnej połowy
-    let low = vaddv_u8(vget_low_u8(vmask)) as i16;
-    let high = vaddv_u8(vget_high_u8(vmask)) as i16;
+    let low = i16::from(vaddv_u8(vget_low_u8(vmask)));
+    let high = i16::from(vaddv_u8(vget_high_u8(vmask)));
 
     low | (high << 8)
 }
@@ -52,7 +52,7 @@ impl DelimiterClassifierImplNeon {
     #[target_feature(enable = "neon")]
     #[inline]
     pub(crate) unsafe fn get_opening_and_closing_masks(&self, bytes: &[u8]) -> (u16, u16) {
-        assert_eq!(16, bytes.len());
+        assert_eq!(16, bytes.len(), "vector_neon requires 16 bytes");
         // SAFETY: target_feature invariant
         unsafe {
             let byte_vector = vreinterpretq_s8_u8(vld1q_u8(bytes.as_ptr()));

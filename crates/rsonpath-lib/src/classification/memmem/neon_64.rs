@@ -1,7 +1,7 @@
 use super::{shared::mask_64, shared::vector_neon, *};
 use crate::{
     classification::mask::m64,
-    input::{error::InputErrorConvertible, InputBlock, InputBlockIterator},
+    input::{error::InputErrorConvertible as _, InputBlock as _, InputBlockIterator as _},
 };
 
 const SIZE: usize = 64;
