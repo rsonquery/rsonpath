@@ -126,7 +126,13 @@
 // Documentation lints, enabled only on --release.
 #![cfg_attr(
     not(debug_assertions),
-    warn(missing_docs, clippy::missing_errors_doc, clippy::missing_panics_doc,)
+    warn(
+        missing_docs,
+        clippy::cargo_common_metadata,
+        clippy::missing_errors_doc,
+        clippy::missing_panics_doc,
+        clippy::too_long_first_doc_paragraph
+    )
 )]
 #![cfg_attr(not(debug_assertions), warn(rustdoc::missing_crate_level_docs))]
 // Panic-free lints (disabled for tests).
@@ -134,7 +140,7 @@
 // IO hygiene, only on --release.
 #![cfg_attr(
     not(debug_assertions),
-    warn(clippy::print_stderr, clippy::print_stdout, clippy::todo)
+    warn(clippy::print_stderr, clippy::print_stdout, clippy::todo, clippy::dbg_macro)
 )]
 // Docs.rs config.
 #![cfg_attr(docsrs, feature(doc_cfg))]
@@ -167,13 +173,13 @@ cfg_if::cfg_if! {
 /// Use this instead of plain [`log::debug`], since this is automatically removed in
 /// release mode and incurs no performance penalties.
 #[cfg(debug_assertions)]
-#[allow(unused_macros)]
+#[allow(unused_macros, reason = "crate-wide debug macros for convenience, may be unused")]
 macro_rules! debug {
     (target: $target:expr, $($arg:tt)+) => (log::debug!(target: $target, $($arg)+));
     ($($arg:tt)+) => (log::debug!($($arg)+))
 }
 
-#[allow(unused_macros)]
+#[allow(unused_macros, reason = "crate-wide debug macros for convenience, may be unused")]
 macro_rules! block {
     ($b:expr) => {
         crate::debug!(
@@ -195,14 +201,14 @@ macro_rules! block {
 /// Use this instead of plain [`log::debug`], since this is automatically removed in
 /// release mode and incurs no performance penalties.
 #[cfg(not(debug_assertions))]
-#[allow(unused_macros)]
+#[allow(unused_macros, reason = "crate-wide debug macros for convenience, may be unused")]
 macro_rules! debug {
     (target: $target:expr, $($arg:tt)+) => {};
     ($($arg:tt)+) => {};
 }
 
 /// Debug log the given u64 expression by its full 64-bit binary string representation.
-#[allow(unused_macros)]
+#[allow(unused_macros, reason = "crate-wide debug macros for convenience, may be unused")]
 macro_rules! bin_u64 {
     ($name:expr, $e:expr) => {
         $crate::debug!(
@@ -222,7 +228,7 @@ macro_rules! bin_u64 {
 }
 
 /// Debug log the given u32 expression by its full 32-bit binary string representation.
-#[allow(unused_macros)]
+#[allow(unused_macros, reason = "crate-wide debug macros for convenience, may be unused")]
 macro_rules! bin_u32 {
     ($name:expr, $e:expr) => {
         $crate::debug!(
@@ -241,13 +247,13 @@ macro_rules! bin_u32 {
     };
 }
 
-#[allow(unused_imports)]
+#[allow(unused_imports, reason = "crate-wide debug macros for convenience, may be unused")]
 pub(crate) use bin_u32;
-#[allow(unused_imports)]
+#[allow(unused_imports, reason = "crate-wide debug macros for convenience, may be unused")]
 pub(crate) use bin_u64;
-#[allow(unused_imports)]
+#[allow(unused_imports, reason = "crate-wide debug macros for convenience, may be unused")]
 pub(crate) use block;
-#[allow(unused_imports)]
+#[allow(unused_imports, reason = "crate-wide debug macros for convenience, may be unused")]
 pub(crate) use debug;
 
 /// Variation of the [`Iterator`] trait where each read can fail.

@@ -132,7 +132,7 @@ impl ArrayTransitionLabel {
         match self {
             Self::Index(_) => true,
             Self::Slice(slice) => {
-                slice.step == JsonUInt::ZERO && slice.end.map_or(false, |end| slice.start.as_u64() + 1 >= end.as_u64())
+                slice.step == JsonUInt::ZERO && slice.end.is_some_and(|end| slice.start.as_u64() + 1 >= end.as_u64())
             }
         }
     }
@@ -233,9 +233,11 @@ impl Automaton {
     /// the current subtree is guaranteed to have no matches.
     #[must_use]
     #[inline(always)]
-    #[allow(clippy::unused_self)] /* This is for stability. If the implementation changes so that
-                                   * this is not always a 0 we don't want to have to change callsites.
-                                   */
+    #[allow(
+        clippy::unused_self,
+        reason = "This is for stability. If the implementation changes so that
+                                   this is not always a 0 we don't want to have to change callsites."
+    )]
     pub fn rejecting_state(&self) -> State {
         State(0)
     }
@@ -245,9 +247,11 @@ impl Automaton {
     /// Query execution should start from this state.
     #[must_use]
     #[inline(always)]
-    #[allow(clippy::unused_self)] /* This is for stability. If the implementation changes so that
-                                   * this is not always a 1 we don't want to have to change callsites.
-                                   */
+    #[allow(
+        clippy::unused_self,
+        reason = "This is for stability. If the implementation changes so that
+                                   this is not always a 1 we don't want to have to change callsites."
+    )]
     pub fn initial_state(&self) -> State {
         State(1)
     }
@@ -533,9 +537,9 @@ impl SimpleSlice {
         }
         let offset = index.as_u64() - self.start.as_u64();
         if let Some(end) = self.end {
-            index < end && offset % self.step.as_u64() == 0
+            index < end && offset.is_multiple_of(self.step.as_u64())
         } else {
-            offset % self.step.as_u64() == 0
+            offset.is_multiple_of(self.step.as_u64())
         }
     }
 }

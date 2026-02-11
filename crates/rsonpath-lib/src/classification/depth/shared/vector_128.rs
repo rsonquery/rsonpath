@@ -32,7 +32,7 @@ impl DelimiterClassifierImpl128 {
     #[target_feature(enable = "sse2")]
     #[inline]
     pub(crate) unsafe fn get_opening_and_closing_masks(&self, bytes: &[u8]) -> (u16, u16) {
-        assert_eq!(16, bytes.len());
+        assert_eq!(16, bytes.len(), "vector_128 requires 16 bytes");
         // SAFETY: target_feature invariant
         unsafe {
             let byte_vector = _mm_loadu_si128(bytes.as_ptr().cast::<__m128i>());

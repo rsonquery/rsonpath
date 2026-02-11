@@ -3,11 +3,11 @@ use crate::{
     args::{InputArg, ResultArg},
     error::report_engine_error,
 };
-use eyre::{Result, WrapErr};
+use eyre::{Result, WrapErr as _};
 use log::warn;
 use rsonpath_lib::{
     automaton::Automaton,
-    engine::{error::EngineError, main::MainEngine, Compiler, Engine},
+    engine::{error::EngineError, main::MainEngine, Compiler as _, Engine},
     input::{BorrowedBytes, BufferedInput, Input, MmapInput, OwnedBytes},
     result::MatchWriter,
 };

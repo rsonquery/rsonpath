@@ -45,12 +45,6 @@ where
     R: InputRecorder<I::Block<'i, SIZE>>,
     'i: 'r,
 {
-    #[inline]
-    #[allow(dead_code)]
-    pub(crate) fn new(input: &'i I, iter: &'b mut I::BlockIterator<'i, 'r, R, SIZE>) -> Self {
-        Self { input, iter }
-    }
-
     #[inline(always)]
     unsafe fn find_empty(
         &mut self,

@@ -65,47 +65,47 @@ pub(super) mod colored {
         }
 
         pub(crate) fn error_prefix<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
-            use owo_colors::OwoColorize;
+            use owo_colors::OwoColorize as _;
             target.style(self.error_prefix)
         }
 
         pub(crate) fn error_message<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
-            use owo_colors::OwoColorize;
+            use owo_colors::OwoColorize as _;
             target.style(self.error_message)
         }
 
         pub(crate) fn error_position_hint<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
-            use owo_colors::OwoColorize;
+            use owo_colors::OwoColorize as _;
             target.style(self.error_position_hint)
         }
 
         pub(crate) fn error_underline<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
-            use owo_colors::OwoColorize;
+            use owo_colors::OwoColorize as _;
             target.style(self.error_underline)
         }
 
         pub(crate) fn error_underline_message<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
-            use owo_colors::OwoColorize;
+            use owo_colors::OwoColorize as _;
             target.style(self.error_underline_message)
         }
 
         pub(crate) fn line_numbers<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
-            use owo_colors::OwoColorize;
+            use owo_colors::OwoColorize as _;
             target.style(self.line_numbers)
         }
 
         pub(crate) fn note_prefix<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
-            use owo_colors::OwoColorize;
+            use owo_colors::OwoColorize as _;
             target.style(self.note_prefix)
         }
 
         pub(crate) fn suggestion<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
-            use owo_colors::OwoColorize;
+            use owo_colors::OwoColorize as _;
             target.style(self.suggestion)
         }
 
         pub(crate) fn truncation_marks<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
-            use owo_colors::OwoColorize;
+            use owo_colors::OwoColorize as _;
             target.style(self.truncation_marks)
         }
     }

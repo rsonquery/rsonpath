@@ -48,7 +48,7 @@
 //!    but it does help reduce transitions, especially in cases where X is a singleton.
 
 use super::{
-    small_set::{SmallSet, SmallSet256},
+    small_set::{SmallSet as _, SmallSet256},
     ArrayTransitionLabel, SimpleSlice,
 };
 use rsonpath_syntax::num::JsonUInt;
@@ -180,7 +180,10 @@ impl LinearSet {
                         // Only one item within the slice.
                         Some(Self::Singleton(slice.start))
                     } else {
-                        debug_assert!(end > JsonUInt::ZERO);
+                        assert!(
+                            end > JsonUInt::ZERO,
+                            "end is a one-past-last index, must not be zero in a valid query"
+                        );
                         Some(Self::BoundedSlice(slice.start, end, slice.step))
                     }
                 } else {
@@ -200,7 +203,10 @@ impl LinearSet {
                 // Only one item within the slice.
                 Some(Self::Singleton(start))
             } else {
-                debug_assert!(end > JsonUInt::ZERO);
+                assert!(
+                    end > JsonUInt::ZERO,
+                    "end is a one-past-last index, must not be zero in a valid query"
+                );
                 Some(Self::BoundedSlice(start, end, step))
             }
         } else {
@@ -213,9 +219,8 @@ impl LinearSet {
         if self.start() > other.start() {
             return other.overlap_with(self);
         }
-        // Empty sets are discarded on construction.
-        assert_ne!(self.step().as_u64(), 0);
-        assert_ne!(other.step().as_u64(), 0);
+        assert_ne!(self.step().as_u64(), 0, "empty sets must be discarded on construction");
+        assert_ne!(other.step().as_u64(), 0, "empty sets must be discarded on construction");
 
         // First we take both sets as if they are open-ended and linear.
         // We can take an overlap under that assumption and then simply apply the lower of the two end constraints,
@@ -245,7 +250,7 @@ impl LinearSet {
 
         return match JsonUInt::try_from(common_step).ok() {
             Some(step) => Self::from_slice(start, end, step),
-            None if end.map_or(false, |end| end <= start) => None,
+            None if end.is_some_and(|end| end <= start) => None,
             None => Some(Self::Singleton(start)),
         };
 
@@ -296,7 +301,7 @@ impl LinearSet {
 /// x === k mod m AND 0 <= k < m
 /// m must be positive.
 fn umod(x: i64, m: i64) -> i64 {
-    assert!(m > 0);
+    assert!(m > 0, "m must be positive");
     let k = x % m;
     if k < 0 {
         m + k

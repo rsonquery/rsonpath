@@ -6,7 +6,7 @@
 //! here.
 use crate::{
     engine::{error::EngineError, Input},
-    input::{error::InputErrorConvertible, InputBlockIterator},
+    input::{error::InputErrorConvertible as _, InputBlockIterator as _},
     is_json_whitespace,
     result::{empty::EmptyRecorder, Match, MatchCount, MatchIndex, MatchSpan, Sink},
     BLOCK_SIZE,

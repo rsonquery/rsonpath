@@ -32,7 +32,7 @@ pub(crate) struct JsonStringBuilder {
 impl std::fmt::Debug for JsonString {
     #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
-        write!(f, r#"JsonString({})"#, self.quoted)
+        write!(f, "JsonString({})", self.quoted)
     }
 }
 
@@ -143,7 +143,7 @@ pub enum EscapeMode {
 #[inline]
 #[must_use]
 pub fn escape(str: &str, mode: EscapeMode) -> String {
-    use std::fmt::Write;
+    use std::fmt::Write as _;
     let mut result = String::new();
     for c in str.chars() {
         match c {
@@ -200,7 +200,7 @@ impl JsonString {
     #[inline(always)]
     pub fn unquoted(&self) -> &str {
         let len = self.quoted.len();
-        debug_assert!(len >= 2);
+        debug_assert!(len >= 2, "self.quoted must contain at least the two quote characters");
         &self.quoted[1..len - 1]
     }
 

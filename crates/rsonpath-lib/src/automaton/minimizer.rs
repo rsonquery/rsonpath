@@ -8,7 +8,7 @@ use super::{
     array_transition_set::ArrayTransitionSet,
     error::CompilerError,
     nfa::{self, NfaState, NfaStateId},
-    small_set::{SmallSet, SmallSet256},
+    small_set::{SmallSet as _, SmallSet256},
     state::StateAttributesBuilder,
     Automaton, NondeterministicAutomaton, State as DfaStateId, StateAttributes, StateTable,
 };

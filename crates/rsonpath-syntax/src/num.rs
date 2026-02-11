@@ -508,7 +508,7 @@ impl JsonFloat {
     pub const ZERO: Self = Self(0.0);
 
     fn new(x: f64) -> Self {
-        debug_assert!(x.is_finite());
+        debug_assert!(x.is_finite(), "attempt to create a JsonFloat from inf/-inf or NaN");
         Self(x)
     }
 
@@ -987,8 +987,11 @@ impl FromStr for JsonFloat {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match f64::from_str(s) {
             Ok(x) => {
-                assert!(!s.is_empty()); // Empty strings are not accepted by f64::from_str.
-                                        // Rule 1.
+                assert!(
+                    !s.is_empty(),
+                    "empty strings are not accepted by f64::from_str, this is impossible"
+                );
+                // Rule 1.
                 if x.is_nan() || x.is_infinite() {
                     return Err(Self::Err::infinite_or_nan(s));
                 }

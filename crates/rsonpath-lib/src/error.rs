@@ -53,12 +53,6 @@ impl std::error::Error for InternalErrorSource {
 }
 
 impl InternalRsonpathError {
-    #[allow(unused)]
-    pub(crate) fn from_expectation(details: &'static str) -> Self {
-        Self { details, source: None }
-    }
-
-    #[allow(unused)]
     pub(crate) fn from_error<E: std::error::Error + Send + Sync + 'static>(err: E, details: &'static str) -> Self {
         Self {
             details,
@@ -99,7 +93,10 @@ pub struct UnsupportedFeatureError {
 
 impl UnsupportedFeatureError {
     #[must_use]
-    #[allow(dead_code)]
+    #[allow(
+        dead_code,
+        reason = "we might not have any tracked issues but the function should be available"
+    )]
     #[inline(always)]
     fn tracked(issue: usize, feature: &'static str) -> Self {
         Self {

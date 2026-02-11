@@ -28,7 +28,7 @@ pub(super) enum ResolvedInputKind {
 impl<S> JsonSource<S> {
     #[cfg(unix)]
     pub(crate) fn try_as_raw_desc(&self) -> Option<os::fd::RawFd> {
-        use std::os::fd::AsRawFd;
+        use std::os::fd::AsRawFd as _;
 
         match self {
             Self::File(f) => Some(f.as_raw_fd()),

@@ -105,8 +105,11 @@ impl proptest::arbitrary::Arbitrary for ArbitraryJsonPathQuery {
 
     #[inline]
     fn arbitrary_with(args: Self::Parameters) -> Self::Strategy {
-        assert!(args.min_selectors > 0);
-        assert!(args.max_selectors >= args.min_selectors);
+        assert!(args.min_selectors > 0, "cannot generate a query with no selectors");
+        assert!(
+            args.max_selectors >= args.min_selectors,
+            "[min_selectors, max_selectors] must be non-empty"
+        );
 
         if args.only_rsonpath_supported_subset {
             rsonpath_valid_query(&args).prop_map(|x| Self::new(x.0, x.1)).boxed()
@@ -407,8 +410,8 @@ mod strings {
                     JsonStringTokenEncodingMode::SingleQuoted => r#"""#.to_owned(),
                 },
                 Self::EncodeNormally('\'') => match mode {
-                    JsonStringTokenEncodingMode::DoubleQuoted => r#"'"#.to_owned(),
-                    JsonStringTokenEncodingMode::SingleQuoted => r#"\'"#.to_owned(),
+                    JsonStringTokenEncodingMode::DoubleQuoted => "'".to_owned(),
+                    JsonStringTokenEncodingMode::SingleQuoted => r"\'".to_owned(),
                 },
                 Self::EncodeNormally('/') => r"\/".to_owned(),
                 Self::EncodeNormally('\\') => r"\\".to_owned(),
@@ -534,7 +537,11 @@ mod filters {
     ) -> impl Strategy<Value = (String, TestExpr)> {
         (proptest::bool::ANY, test_query_strategy).prop_map(|(relative, (mut s, q))| {
             if relative {
-                assert_eq!(s.as_bytes()[0], b'$');
+                assert_eq!(
+                    s.as_bytes()[0],
+                    b'$',
+                    "test_query_strategy should always generate root-based queries"
+                );
                 s.replace_range(0..1, "@");
                 (s, TestExpr::Relative(q))
             } else {
@@ -559,7 +566,11 @@ mod filters {
             any_literal().prop_map(|(s, l)| (s, Comparable::Literal(l))),
             (proptest::bool::ANY, any_singular_query()).prop_map(|(relative, (mut s, q))| {
                 if relative {
-                    assert_eq!(s.as_bytes()[0], b'$');
+                    assert_eq!(
+                        s.as_bytes()[0],
+                        b'$',
+                        "test_query_strategy should always generate root-based queries"
+                    );
                     s.replace_range(0..1, "@");
                     (s, Comparable::RelativeSingularQuery(q))
                 } else {

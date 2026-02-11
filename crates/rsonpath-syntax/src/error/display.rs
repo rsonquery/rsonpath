@@ -240,14 +240,14 @@ impl super::SyntaxError {
                 } else if error == r"\'" {
                     // Analogous to above, but for single quotes in double-quote delimited strings.
                     notes.push("single quotes may only be escaped within single-quoted name selectors".into());
-                    suggestion.replace(start_idx, 2, r#"'"#);
+                    suggestion.replace(start_idx, 2, "'");
                 } else {
                     // Try to suggest escaping the backslash. This might not be accurate, as the user might've tried to
                     // use some unsupported escape sequence like \v. It might be useful to add some common escape
                     // sequences not valid for JSONPath and suggest to replace them with the corresponding character
                     // or full Unicode escape. This is "good enough" though, it's just a suggestion after all.
                     notes.push(r#"the only valid escape sequences are \n, \r, \t, \f, \b, \\, \/, \' (in single quoted names), \" (in double quoted names), and \uXXXX where X are hex digits"#.into());
-                    notes.push(r#"if you meant to match a literal backslash, you need to escape it with \\"#.into());
+                    notes.push(r"if you meant to match a literal backslash, you need to escape it with \\".into());
                     suggestion.insert(start_idx, r"\");
                 }
             }
@@ -367,7 +367,7 @@ impl super::SyntaxError {
                 let input_bytes = input.as_bytes();
                 // Handle the minus-with-whitespace case first.
                 if error.starts_with('-') {
-                    use std::str::FromStr;
+                    use std::str::FromStr as _;
                     let white_space_len = error
                         .as_bytes()
                         .iter()
@@ -826,7 +826,7 @@ impl Display for DisplayableSyntaxError {
             for note in &self.notes {
                 if !first {
                     writeln!(f)?;
-                };
+                }
                 write!(f, "{} {note}", self.style.note_prefix(&"note:"))?;
                 first = false;
             }

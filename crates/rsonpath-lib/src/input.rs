@@ -192,7 +192,7 @@ pub trait InputBlock<'i, const N: usize>: Deref<Target = [u8]> {
     #[inline]
     #[must_use]
     fn quarters(&self) -> (&[u8], &[u8], &[u8], &[u8]) {
-        assert_eq!(N % 4, 0);
+        assert!(N.is_multiple_of(4), "block must be a power of two larger than 2");
         let (half1, half2) = self.halves();
         let (q1, q2) = (&half1[..N / 4], &half1[N / 4..]);
         let (q3, q4) = (&half2[..N / 4], &half2[N / 4..]);
@@ -204,7 +204,7 @@ pub trait InputBlock<'i, const N: usize>: Deref<Target = [u8]> {
 impl<'i, const N: usize> InputBlock<'i, N> for &'i [u8] {
     #[inline(always)]
     fn halves(&self) -> (&[u8], &[u8]) {
-        assert_eq!(N % 2, 0);
+        assert!(N.is_multiple_of(2), "block must be a power of two larger than 1");
         (&self[..N / 2], &self[N / 2..])
     }
 }

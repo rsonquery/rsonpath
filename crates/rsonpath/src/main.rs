@@ -1,6 +1,6 @@
 use args::Args;
-use clap::Parser;
-use color_eyre::{eyre::Result, Help};
+use clap::Parser as _;
+use color_eyre::{eyre::Result, Help as _};
 use error::{report_compiler_error, report_parser_error};
 use log::*;
 use rsonpath_lib::automaton::Automaton;
@@ -15,7 +15,7 @@ mod runner;
 mod version;
 
 fn main() -> Result<()> {
-    use color_eyre::owo_colors::OwoColorize;
+    use color_eyre::owo_colors::OwoColorize as _;
     color_eyre::install()?;
 
     let args = Args::parse();

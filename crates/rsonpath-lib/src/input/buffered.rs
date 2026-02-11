@@ -17,7 +17,7 @@
 //! reallocating the internal buffers.
 
 use super::{
-    error::InputError, repr_align_block_size, Input, InputBlock, InputBlockIterator, SliceSeekable, MAX_BLOCK_SIZE,
+    error::InputError, repr_align_block_size, Input, InputBlock, InputBlockIterator, SliceSeekable as _, MAX_BLOCK_SIZE,
 };
 use crate::{error::InternalRsonpathError, result::InputRecorder, string_pattern::StringPattern, JSON_SPACE_BYTE};
 use std::{cell::RefCell, io::Read, ops::Deref, slice};
@@ -29,7 +29,7 @@ use std::{cell::RefCell, io::Read, ops::Deref, slice};
 const BUF_SIZE: usize = 64 * 1024;
 
 static_assertions::const_assert!(BUF_SIZE >= MAX_BLOCK_SIZE);
-static_assertions::const_assert!(BUF_SIZE % MAX_BLOCK_SIZE == 0);
+static_assertions::const_assert!(BUF_SIZE.is_multiple_of(MAX_BLOCK_SIZE));
 
 /// Input supporting a buffered read over a [`Read`] implementation.
 pub struct BufferedInput<R>(RefCell<InternalBuffer<R>>);
@@ -269,7 +269,7 @@ where
 
     #[inline(always)]
     fn offset(&mut self, count: isize) {
-        assert!(count >= 0);
+        assert!(count >= 0, "must offset by at least one byte");
         self.idx += count as usize * N;
     }
 
@@ -291,7 +291,7 @@ impl<const N: usize> Deref for BufferedInputBlock<N> {
 impl<const N: usize> InputBlock<'_, N> for BufferedInputBlock<N> {
     #[inline(always)]
     fn halves(&self) -> (&[u8], &[u8]) {
-        assert_eq!(N % 2, 0);
+        assert!(N.is_multiple_of(2), "input blocks must be powers-of-two bigger than 1");
         (&self[..N / 2], &self[N / 2..])
     }
 }

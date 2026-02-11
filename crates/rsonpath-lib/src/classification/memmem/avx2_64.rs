@@ -1,7 +1,7 @@
 use super::{shared::mask_64, shared::vector_256, *};
 use crate::{
     classification::mask::m64,
-    input::{error::InputErrorConvertible, InputBlock, InputBlockIterator},
+    input::{error::InputErrorConvertible as _, InputBlock as _, InputBlockIterator as _},
 };
 
 const SIZE: usize = 64;
@@ -45,12 +45,6 @@ where
     R: InputRecorder<I::Block<'i, SIZE>>,
     'i: 'r,
 {
-    #[inline]
-    #[allow(dead_code)]
-    pub(crate) fn new(input: &'i I, iter: &'b mut I::BlockIterator<'i, 'r, R, SIZE>) -> Self {
-        Self { input, iter }
-    }
-
     #[inline(always)]
     unsafe fn find_empty(
         &mut self,

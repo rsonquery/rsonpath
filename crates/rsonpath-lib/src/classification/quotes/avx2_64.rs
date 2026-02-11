@@ -2,7 +2,7 @@ use super::{
     shared::{mask_64, vector_256},
     *,
 };
-use crate::{block, classification::mask::m64, debug, input::error::InputErrorConvertible};
+use crate::{block, classification::mask::m64, debug, input::error::InputErrorConvertible as _};
 use std::marker::PhantomData;
 
 super::shared::quote_classifier!(Avx2QuoteClassifier64, BlockAvx2Classifier, 64, u64);

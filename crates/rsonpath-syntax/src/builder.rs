@@ -240,7 +240,7 @@ impl JsonPathSelectorsBuilder {
     }
 
     fn build(self) -> Selectors {
-        assert!(!self.selectors.is_empty());
+        assert!(!self.selectors.is_empty(), "there must be at least one selector");
         Selectors::many(self.selectors)
     }
 

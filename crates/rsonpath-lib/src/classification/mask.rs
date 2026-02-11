@@ -36,14 +36,14 @@ impl Mask for usize {
     }
 }
 
-#[allow(dead_code)]
+#[cfg(target_arch = "x86")]
 pub(crate) mod m32 {
     pub(crate) fn combine_16(m1: u16, m2: u16) -> u32 {
         u32::from(m1) | (u32::from(m2) << 16)
     }
 }
 
-#[allow(dead_code)]
+#[cfg(target_arch = "x86_64")]
 pub(crate) mod m64 {
     pub(crate) fn combine_16(m1: u16, m2: u16, m3: u16, m4: u16) -> u64 {
         u64::from(m1) | (u64::from(m2) << 16) | (u64::from(m3) << 32) | (u64::from(m4) << 48)

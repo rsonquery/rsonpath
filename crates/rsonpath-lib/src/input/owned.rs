@@ -22,7 +22,7 @@ use super::{
     borrowed::BorrowedBytesBlockIterator,
     error::Infallible,
     padding::{PaddedBlock, TwoSidesPaddedInput},
-    Input, SliceSeekable, MAX_BLOCK_SIZE,
+    Input, SliceSeekable as _, MAX_BLOCK_SIZE,
 };
 use crate::{result::InputRecorder, string_pattern::StringPattern};
 use std::borrow::Borrow;
@@ -108,7 +108,11 @@ where
         R: InputRecorder<Self::Block<'i, N>>,
     {
         let (_, middle, _) = align_to::<MAX_BLOCK_SIZE>(self.bytes.borrow());
-        assert_eq!(middle.len(), self.middle_len);
+        assert_eq!(
+            middle.len(),
+            self.middle_len,
+            "it is impossible for alignment to change after construction"
+        );
 
         let padded = TwoSidesPaddedInput::new(&self.first_block, middle, &self.last_block);
 

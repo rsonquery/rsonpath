@@ -1,4 +1,4 @@
-use color_eyre::{Help, SectionExt};
+use color_eyre::{Help as _, SectionExt as _};
 use eyre::eyre;
 use rsonpath_lib::{automaton::error::CompilerError, engine::error::EngineError, error::UnsupportedFeatureError};
 use rsonpath_syntax::{error::ParseError, JsonPathQuery};
@@ -51,7 +51,7 @@ pub(super) fn report_engine_error(error: EngineError) -> eyre::Report {
 }
 
 fn report_unsupported_error(unsupported: &UnsupportedFeatureError) -> eyre::Report {
-    use color_eyre::owo_colors::OwoColorize;
+    use color_eyre::owo_colors::OwoColorize as _;
     let feature = unsupported.feature();
     let base_report = if unsupported.is_planned() {
         let feature = feature.blue();
@@ -64,7 +64,7 @@ fn report_unsupported_error(unsupported: &UnsupportedFeatureError) -> eyre::Repo
 }
 
 fn add_unsupported_context(report: eyre::Report, unsupported: &UnsupportedFeatureError) -> eyre::Report {
-    use color_eyre::owo_colors::OwoColorize;
+    use color_eyre::owo_colors::OwoColorize as _;
     let feature = unsupported.feature();
     if let Some(issue) = unsupported.issue() {
         let feature = feature.blue();

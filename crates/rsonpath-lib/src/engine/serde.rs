@@ -1,10 +1,10 @@
 use crate::{
     automaton::Automaton,
-    engine::{main::MainEngine, Compiler},
+    engine::{main::MainEngine, Compiler as _},
 };
 use serde::{
     de::{self, Visitor},
-    ser::SerializeTuple,
+    ser::SerializeTuple as _,
     Deserialize, Serialize,
 };
 

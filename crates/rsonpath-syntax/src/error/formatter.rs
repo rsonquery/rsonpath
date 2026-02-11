@@ -1,4 +1,4 @@
-use super::display::UnicodeWidth;
+use super::display::UnicodeWidth as _;
 
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) struct SyntaxErrorLine {

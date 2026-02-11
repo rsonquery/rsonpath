@@ -16,7 +16,7 @@ use super::{
     align_to,
     error::Infallible,
     padding::{EndPaddedInput, PaddedBlock, TwoSidesPaddedInput},
-    Input, InputBlockIterator, SliceSeekable, MAX_BLOCK_SIZE,
+    Input, InputBlockIterator, SliceSeekable as _, MAX_BLOCK_SIZE,
 };
 use crate::{debug, result::InputRecorder, string_pattern::StringPattern};
 
@@ -220,7 +220,7 @@ impl Input for BorrowedBytes<'_> {
 
     #[inline(always)]
     fn is_member_match(&self, from: usize, to: usize, member: &StringPattern) -> Result<bool, Self::Error> {
-        debug_assert!(from < to);
+        debug_assert!(from < to, "[from..to] must be a valid substring");
         // The hot path is when we're checking fully within the middle section.
         // This has to be as fast as possible, so the "cold" path referring to the TwoSidesPaddedInput
         // impl is explicitly marked with #[cold].
@@ -282,7 +282,7 @@ where
 
     #[inline(always)]
     fn offset(&mut self, count: isize) {
-        assert!(count >= 0);
+        assert!(count >= 0, "must offset by at least one byte");
         debug!("offsetting input iter by {count}");
         self.idx += count as usize * N;
     }
@@ -337,7 +337,7 @@ where
 
     #[inline(always)]
     fn offset(&mut self, count: isize) {
-        assert!(count >= 0);
+        assert!(count >= 0, "must offset by at least one byte");
         debug!("offsetting input iter by {count}");
         self.idx += count as usize * N;
     }

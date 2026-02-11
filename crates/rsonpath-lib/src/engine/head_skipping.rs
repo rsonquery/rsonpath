@@ -7,23 +7,23 @@ use std::sync::Arc;
 use crate::{
     automaton::{Automaton, State},
     classification::{
-        mask::Mask,
-        memmem::Memmem,
-        quotes::{InnerIter, QuoteClassifiedIterator, ResumedQuoteClassifier},
+        mask::Mask as _,
+        memmem::Memmem as _,
+        quotes::{InnerIter as _, QuoteClassifiedIterator, ResumedQuoteClassifier},
         simd::{dispatch_simd, Simd},
-        structural::{BracketType, Structural, StructuralIterator},
+        structural::{BracketType, Structural, StructuralIterator as _},
         ResumeClassifierBlockState, ResumeClassifierState,
     },
     debug,
     depth::Depth,
     engine::EngineError,
     input::{
-        error::{InputError, InputErrorConvertible},
+        error::{InputError, InputErrorConvertible as _},
         Input, InputBlockIterator,
     },
     result::Recorder,
     string_pattern::StringPattern,
-    FallibleIterator, MaskType, BLOCK_SIZE,
+    FallibleIterator as _, MaskType, BLOCK_SIZE,
 };
 
 /// Trait that needs to be implemented by an [`Engine`](`super::Engine`) to use this submodule.
@@ -196,7 +196,7 @@ impl<'b, I: Input, V: Simd> HeadSkip<'b, I, V, BLOCK_SIZE> {
                                 forward_to(&mut classifier_state, next_idx + 1)?;
                             } else {
                                 forward_to(&mut classifier_state, next_idx)?;
-                            };
+                            }
 
                             // We now have the block where we want and we ran quote classification, but during the `forward_to`
                             // call we lose all the flow-through quote information that usually is passed from one block to the next.
@@ -276,7 +276,7 @@ impl<'b, I: Input, V: Simd> HeadSkip<'b, I, V, BLOCK_SIZE> {
             /// # Panics
             /// If the `index` is not ahead of the current position of the state ([`get_idx`](ResumeClassifierState::get_idx)).
             #[inline(always)]
-            #[allow(clippy::panic_in_result_fn)]
+            #[allow(clippy::panic_in_result_fn, reason = "Err here is only raised for input errors, assertions check programming bugs")]
             fn forward_to<'i, I, Q, M, const N: usize>(state: &mut ResumeClassifierState<'i, I, Q, M, N>, index: usize) -> Result<(), InputError>
             where
                 I: InputBlockIterator<'i, N>,
@@ -290,8 +290,8 @@ impl<'b, I: Input, V: Simd> HeadSkip<'b, I, V, BLOCK_SIZE> {
                     "Calling forward_to({index}) when the inner iter offset is {current_block_start} and block idx is {current_block_idx:?}"
                 );
 
-                // We want to move by this much forward, and delta > 0.
-                assert!(index > current_idx);
+                // We want to move by this much forward.
+                assert!(index > current_idx, "must forward by at least one byte");
                 let delta = index - current_idx;
 
                 // First we virtually pretend to move *backward*, setting the index of the current block to zero,

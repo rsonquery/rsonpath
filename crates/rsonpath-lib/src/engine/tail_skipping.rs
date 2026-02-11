@@ -1,7 +1,6 @@
-#![allow(clippy::expect_used)] // Enforcing the classifier invariant is clunky without this.
 use crate::{
     classification::{
-        depth::{DepthBlock, DepthIterator, DepthIteratorResumeOutcome},
+        depth::{DepthBlock as _, DepthIterator as _, DepthIteratorResumeOutcome},
         quotes::QuoteClassifiedIterator,
         simd::{dispatch_simd, Simd},
         structural::{BracketType, StructuralIterator},
@@ -10,7 +9,7 @@ use crate::{
     debug,
     engine::error::EngineError,
     input::InputBlockIterator,
-    FallibleIterator, MaskType, BLOCK_SIZE,
+    FallibleIterator as _, MaskType, BLOCK_SIZE,
 };
 use std::marker::PhantomData;
 
@@ -33,6 +32,10 @@ where
         }
     }
 
+    #[allow(
+        clippy::expect_used,
+        reason = "Enforcing the classifier invariant is clunky without this."
+    )]
     pub(crate) fn skip(&mut self, opening: BracketType) -> Result<usize, EngineError> {
         dispatch_simd!(self.simd; self, opening =>
         fn <'i, I, V>(

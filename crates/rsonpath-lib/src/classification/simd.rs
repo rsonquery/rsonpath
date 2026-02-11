@@ -247,7 +247,10 @@ pub(crate) trait Simd: Copy {
     /// The value should correspond to the `const`s defined in [`simd`](`self`),
     /// like [`AVX2_PCLMULQDQ_POPCNT`] or [`NOSIMD`].
     #[must_use]
-    #[allow(dead_code)] // Not used in targets that have only one possible tag (NOSIMD for non-x86 for example).
+    #[allow(
+        dead_code,
+        reason = "Not used in targets that have only one possible tag (NOSIMD for non-x86 for example)."
+    )]
     fn dispatch_tag(self) -> usize;
 
     /// Walk through the JSON document given by the `iter` and classify quoted sequences.
@@ -536,7 +539,10 @@ impl SimdConfiguration {
 #[must_use]
 pub(crate) fn configure() -> SimdConfiguration {
     if let Ok(simd) = std::env::var(SIMD_OVERRIDE_ENV_VARIABLE) {
-        #[allow(clippy::expect_used)] // This is already an unsafe override, not expected to be used by users.
+        #[allow(
+            clippy::expect_used,
+            reason = "This is already an unsafe override, not expected to be used by users."
+        )]
         return SimdConfiguration::try_parse(&simd).expect("invalid simd configuration override");
     }
 

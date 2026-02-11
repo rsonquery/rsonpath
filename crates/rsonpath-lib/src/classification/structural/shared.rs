@@ -7,7 +7,6 @@ pub(super) mod vector_128;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub(super) mod vector_256;
 
-#[allow(unused_macros)]
 macro_rules! structural_classifier {
     ($name:ident, $core:ident, $mask_mod:ident, $size:literal, $mask_ty:ty) => {
         pub(crate) struct Constructor;
@@ -20,7 +19,6 @@ macro_rules! structural_classifier {
                 Q: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE>;
 
             #[inline]
-            #[allow(dead_code)]
             fn new<'i, I, Q>(iter: Q) -> Self::Classifier<'i, I, Q>
             where
                 I: InputBlockIterator<'i, BLOCK_SIZE>,
@@ -241,5 +239,4 @@ macro_rules! structural_classifier {
     };
 }
 
-#[allow(unused_imports)]
 pub(crate) use structural_classifier;

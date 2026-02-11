@@ -1,4 +1,4 @@
-use color_eyre::eyre::{Result, WrapErr};
+use color_eyre::eyre::{Result, WrapErr as _};
 use log::LevelFilter;
 use simple_logger::SimpleLogger;
 

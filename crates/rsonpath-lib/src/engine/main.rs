@@ -38,12 +38,15 @@
  * state changes.
  */
 
-#![allow(clippy::type_complexity)] // The private Classifier type is very complex, but we specifically macro it out.
+#![allow(
+    clippy::type_complexity,
+    reason = "The private Classifier type is very complex, but we specifically macro it out."
+)]
 use crate::{
     automaton::{error::CompilerError, Automaton, State},
     classification::{
         simd::{self, config_simd, dispatch_simd, Simd, SimdConfiguration},
-        structural::{BracketType, Structural, StructuralIterator},
+        structural::{BracketType, Structural, StructuralIterator as _},
     },
     debug,
     depth::Depth,
@@ -54,13 +57,13 @@ use crate::{
         tail_skipping::TailSkip,
         Compiler, Engine, Input,
     },
-    input::error::InputErrorConvertible,
+    input::error::InputErrorConvertible as _,
     result::{
         approx_span::ApproxSpanRecorder, count::CountRecorder, index::IndexRecorder, nodes::NodesRecorder, Match,
         MatchCount, MatchIndex, MatchSpan, MatchedNodeType, Recorder, Sink,
     },
     string_pattern::StringPattern,
-    FallibleIterator, MaskType, BLOCK_SIZE,
+    FallibleIterator as _, MaskType, BLOCK_SIZE,
 };
 use rsonpath_syntax::{num::JsonUInt, JsonPathQuery};
 use smallvec::{smallvec, SmallVec};
@@ -355,11 +358,7 @@ where
     /// This method only handles atomic values after the colon.
     /// Objects and arrays are processed at their respective opening character.
     #[inline(always)]
-    fn handle_colon(
-        &mut self,
-        #[allow(unused_variables)] classifier: &mut Classifier!(),
-        idx: usize,
-    ) -> Result<(), EngineError> {
+    fn handle_colon(&mut self, classifier: &mut Classifier!(), idx: usize) -> Result<(), EngineError> {
         debug!("Colon");
 
         // Lookahead to see if the next character is an opening.
@@ -701,7 +700,7 @@ where
     }
 
     /// Pass information to the Recorder that we found a match of type `ty` at `start_idx`.
-    fn record_match_detected_at(&mut self, start_idx: usize, ty: NodeType) -> Result<(), EngineError> {
+    fn record_match_detected_at(&self, start_idx: usize, ty: NodeType) -> Result<(), EngineError> {
         debug!("Reporting result somewhere after {start_idx} with node type {ty:?}");
 
         let index = match ty {
@@ -757,7 +756,7 @@ impl SmallStack {
     }
 
     #[inline]
-    fn peek(&mut self) -> Option<StackFrame> {
+    fn peek(&self) -> Option<StackFrame> {
         self.contents.last().copied()
     }
 

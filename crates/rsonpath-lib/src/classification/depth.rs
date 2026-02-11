@@ -14,7 +14,6 @@ use crate::{
 };
 
 /// Common trait for structs that enrich a byte block with JSON depth information.
-#[allow(clippy::len_without_is_empty)]
 pub trait DepthBlock<'a>: Sized {
     /// Add depth to the block.
     /// This is usually done at the start of a block to carry any accumulated

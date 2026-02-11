@@ -1,5 +1,5 @@
 use super::*;
-use crate::input::{error::InputErrorConvertible, InputBlockIterator};
+use crate::input::{error::InputErrorConvertible as _, InputBlockIterator as _};
 
 pub(crate) struct Constructor;
 

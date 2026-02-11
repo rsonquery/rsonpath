@@ -19,7 +19,7 @@ use super::{
     borrowed::BorrowedBytesBlockIterator,
     error::{Infallible, InputError},
     padding::PaddedBlock,
-    Input, SliceSeekable, MAX_BLOCK_SIZE,
+    Input, SliceSeekable as _, MAX_BLOCK_SIZE,
 };
 use crate::{input::padding::EndPaddedInput, result::InputRecorder, string_pattern::StringPattern};
 use memmap2::{Mmap, MmapAsRawDesc};
@@ -162,7 +162,7 @@ impl Input for MmapInput {
 
     #[inline]
     fn is_member_match(&self, from: usize, to: usize, member: &StringPattern) -> Result<bool, Self::Error> {
-        debug_assert!(from < to);
+        debug_assert!(from < to, "[from..to] must be a valid substring");
         // The hot path is when we're checking fully within the middle section.
         // This has to be as fast as possible, so the "cold" path referring to the TwoSidesPaddedInput
         // impl is explicitly marked with #[cold].

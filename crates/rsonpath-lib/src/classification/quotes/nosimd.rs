@@ -1,5 +1,5 @@
 use super::*;
-use crate::{debug, input::error::InputErrorConvertible};
+use crate::{debug, input::error::InputErrorConvertible as _};
 use std::marker::PhantomData;
 
 pub(crate) struct Constructor;
@@ -11,7 +11,6 @@ impl QuotesImpl for Constructor {
         I: InputBlockIterator<'i, BLOCK_SIZE>;
 
     #[inline(always)]
-    #[allow(dead_code)]
     fn new<'i, I>(iter: I) -> Self::Classifier<'i, I>
     where
         I: InputBlockIterator<'i, BLOCK_SIZE>,
@@ -124,9 +123,10 @@ where
     }
 
     fn offset(&mut self, count: isize) -> QuoteIterResult<I::Block, MaskType, N> {
-        debug_assert!(count > 0);
+        debug_assert!(count > 0, "must not offset by zero");
         debug!("Offsetting by {count}");
 
+        // This cannot overflow due to the assertion above.
         for _ in 0..count - 1 {
             self.iter.next().e()?;
         }

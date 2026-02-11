@@ -16,7 +16,7 @@ exclude = [
     "/src/classification/classifier_correctness_tests.proptest-regressions",
 ]
 categories = ["text-processing"]
-rust-version = "1.68.0"
+rust-version = "1.89.0"
 
 [lib]
 bench = false

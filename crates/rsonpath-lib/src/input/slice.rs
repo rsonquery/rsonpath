@@ -16,7 +16,7 @@ impl<T: AsRef<[u8]>> SliceSeekable for T {
         let bytes = self.as_ref();
 
         let mut idx = from;
-        assert!(idx < bytes.len());
+        assert!(idx < bytes.len(), "from is outside of the slice bounds");
 
         loop {
             if bytes[idx] == needle {
@@ -33,7 +33,7 @@ impl<T: AsRef<[u8]>> SliceSeekable for T {
     fn seek_forward<const N: usize>(&self, from: usize, needles: [u8; N]) -> Option<(usize, u8)> {
         let bytes = self.as_ref();
 
-        assert!(N > 0);
+        assert!(N > 0, "cannot seek 0 needles");
         let mut idx = from;
 
         if idx >= bytes.len() {

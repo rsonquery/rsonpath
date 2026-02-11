@@ -69,7 +69,10 @@ impl MatchSpan {
     /// Returns the length of the match.
     #[inline(always)]
     #[must_use]
-    #[allow(clippy::len_without_is_empty)] // is_empty makes no sense for a match (matches are non-empty)
+    #[allow(
+        clippy::len_without_is_empty,
+        reason = "is_empty makes no sense for a match (matches are non-empty)"
+    )]
     pub fn len(&self) -> usize {
         self.len
     }

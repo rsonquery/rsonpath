@@ -12,7 +12,6 @@ impl StructuralImpl for Constructor {
         Q: QuoteClassifiedIterator<'i, I, MaskType, BLOCK_SIZE>;
 
     #[inline(always)]
-    #[allow(dead_code)]
     fn new<'i, I, Q>(iter: Q) -> Self::Classifier<'i, I, Q>
     where
         I: InputBlockIterator<'i, BLOCK_SIZE>,
@@ -96,7 +95,7 @@ where
 
             if structural.is_some() {
                 return structural;
-            };
+            }
         }
 
         None

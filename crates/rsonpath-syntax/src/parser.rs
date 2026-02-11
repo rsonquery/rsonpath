@@ -6,7 +6,7 @@ use crate::{
     Segment, Selector, Selectors, Step, TestExpr, JSONPATH_WHITESPACE,
 };
 use nom::{branch::*, bytes::complete::*, character::complete::*, combinator::*, multi::*, sequence::*, *};
-use std::{iter::Peekable, str::FromStr};
+use std::{iter::Peekable, str::FromStr as _};
 
 fn skip_whitespace(q: &str) -> &str {
     q.trim_start_matches(JSONPATH_WHITESPACE)
@@ -333,7 +333,7 @@ fn slice_selector(q: &str) -> IResult<&str, Selector, InternalParseError<'_>> {
                     rest,
                 );
             }
-        };
+        }
     }
     let q = rest;
     let (rest, opt_end) = opt(ignore_whitespace(int)).parse(q)?;
@@ -345,7 +345,7 @@ fn slice_selector(q: &str) -> IResult<&str, Selector, InternalParseError<'_>> {
             DirectionalInt::Error(err) => {
                 return fail(SyntaxErrorKind::SliceEndParseError(err), q.len(), end_str.len(), rest);
             }
-        };
+        }
     }
 
     let q = rest;
@@ -358,7 +358,7 @@ fn slice_selector(q: &str) -> IResult<&str, Selector, InternalParseError<'_>> {
             DirectionalInt::Error(err) => {
                 return fail(SyntaxErrorKind::SliceStepParseError(err), q.len(), step_str.len(), rest);
             }
-        };
+        }
     }
 
     // Fixup the bounds - if start was not given and step is negative, the default must be reversed.
@@ -519,7 +519,7 @@ fn logical_expr<'q>(q: &'q str, ctx: ParseCtx) -> IResult<&'q str, LogicalExpr, 
             }
             Err(Err::Failure(err)) => return Err(Err::Failure(err)),
             _ => (),
-        };
+        }
 
         match filter_query(rest, ctx) {
             Ok((rest, query)) => {
@@ -777,16 +777,14 @@ fn string(mode: StringParseMode) -> impl FnMut(&str) -> IResult<&str, JsonString
 
         while let Some((c_idx, c)) = stream.next() {
             match (c, mode) {
-                ('\\', _) => {
-                    match read_escape_sequence(q.len(), c_idx, &mut stream, mode) {
-                        Ok(r) => {
-                            builder.push(r);
-                        }
-                        Err(err) => {
-                            syntax_errors.push(err);
-                        }
-                    };
-                }
+                ('\\', _) => match read_escape_sequence(q.len(), c_idx, &mut stream, mode) {
+                    Ok(r) => {
+                        builder.push(r);
+                    }
+                    Err(err) => {
+                        syntax_errors.push(err);
+                    }
+                },
                 ('"', StringParseMode::DoubleQuoted) | ('\'', StringParseMode::SingleQuoted) => {
                     let rest = stream.next().map_or("", |(i, _)| &q[i..]);
                     return if syntax_errors.is_empty() {

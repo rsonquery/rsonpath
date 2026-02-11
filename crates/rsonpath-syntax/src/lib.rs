@@ -98,7 +98,13 @@
 // Documentation lints, enabled only on --release.
 #![cfg_attr(
     not(debug_assertions),
-    warn(missing_docs, clippy::missing_errors_doc, clippy::missing_panics_doc,)
+    warn(
+        missing_docs,
+        clippy::cargo_common_metadata,
+        clippy::missing_errors_doc,
+        clippy::missing_panics_doc,
+        clippy::too_long_first_doc_paragraph
+    )
 )]
 #![cfg_attr(not(debug_assertions), warn(rustdoc::missing_crate_level_docs))]
 // Panic-free lints (disabled for tests).
@@ -876,7 +882,7 @@ impl Segment {
     }
 
     fn into_singular(self) -> SingularSegment {
-        assert!(self.is_singular());
+        assert!(self.is_singular(), "forcing a non-singular segment, this is a bug");
         match self {
             Self::Child(mut s) => match s.inner.drain(..).next().expect("is_singular") {
                 Selector::Name(n) => SingularSegment::Name(n),

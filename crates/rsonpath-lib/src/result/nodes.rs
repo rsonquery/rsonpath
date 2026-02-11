@@ -1,11 +1,12 @@
 //! Main [`Recorder`] implementation collecting the bytes of all matches.
 //!
 //! This is the heaviest recorder. It will copy all bytes of all matches into [`Vecs`](`Vec`).
-//!
-// There is number of invariants that are hard to enforce on the type level,
-// and handling of Depth that should be properly error-handled by the engine, not here.
-// Using `expect` here is idiomatic.
-#![allow(clippy::expect_used)]
+#![allow(
+    clippy::expect_used,
+    reason = "There is number of invariants that are hard to enforce on the type level, \
+    and handling of Depth that should be properly error-handled by the engine, not here. \
+    Using `expect` here is idiomatic"
+)]
 
 use super::{output_queue::OutputQueue, *};
 use crate::{debug, is_json_whitespace};
@@ -180,7 +181,7 @@ where
         }
     }
 
-    #[allow(clippy::panic_in_result_fn)] // Reaching unreachable is an unrecoverable bug.
+    #[allow(clippy::panic_in_result_fn, reason = "Reaching unreachable is an unrecoverable bug.")]
     #[inline(always)]
     fn record_value_terminator(&mut self, idx: usize, depth: Depth) -> Result<(), EngineError> {
         match self {
@@ -424,7 +425,7 @@ fn append_block(dest: &mut Vec<u8>, src: &[u8], src_start: usize, read_start: us
 #[inline(always)]
 fn append_final_block(dest: &mut Vec<u8>, src: &[u8], src_start: usize, read_start: usize, read_end: usize) {
     debug!("src_start: {src_start}, read_start: {read_start}, read_end: {read_end}");
-    debug_assert!(read_end >= src_start);
+    debug_assert!(read_end >= src_start, "block cannot end before it starts");
     let in_block_start = read_start.saturating_sub(src_start);
     let in_block_end = read_end - src_start;
 

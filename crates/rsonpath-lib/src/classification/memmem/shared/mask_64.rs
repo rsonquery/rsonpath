@@ -1,7 +1,7 @@
 use crate::{
     debug,
     input::{
-        error::{InputError, InputErrorConvertible},
+        error::{InputError, InputErrorConvertible as _},
         Input,
     },
     string_pattern::StringPattern,
