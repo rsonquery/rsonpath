@@ -26,6 +26,8 @@ impl DelimiterClassifierImpl256 {
 
     #[inline(always)]
     unsafe fn closing_mask(&self) -> __m256i {
+        // Difference between ASCII codes of opening and closing is always 2.
+        // b'[' + 2 == b']' and b'{' + 2 == b'}'
         _mm256_set1_epi8(self.opening + 2)
     }
 

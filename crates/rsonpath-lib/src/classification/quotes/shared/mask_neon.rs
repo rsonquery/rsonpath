@@ -8,8 +8,8 @@ pub(crate) const ODD: u64 = 0b0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_
 pub(crate) const EVEN: u64 = 0b1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_u64;
 
 #[target_feature(enable = "neon")]
-unsafe fn all_ones128() -> u64 {
-    !0
+unsafe fn all_ones64() -> u64 {
+    0xFFFF_FFFF_FFFF_FFFF
 }
 
 pub(crate) struct BlockClassifierNeon {
@@ -48,7 +48,8 @@ impl BlockClassifierNeon {
         u64::from((self.prev_block_mask & 0x02) >> 1)
     }
 
-    #[target_feature(enable = "neon,aes")]
+    #[target_feature(enable = "neon")]
+    #[target_feature(enable = "aes")]
     pub(crate) unsafe fn classify(&mut self, slashes: u64, quotes: u64) -> u64 {
         let (escaped, set_prev_slash_mask) = if slashes == 0 {
             (self.get_prev_slash_mask(), false)
@@ -71,7 +72,7 @@ impl BlockClassifierNeon {
 
         let nonescaped_quotes = (quotes & !escaped) ^ self.get_prev_quote_mask();
 
-        let cumulative_xor = vmull_p64(nonescaped_quotes, all_ones128());
+        let cumulative_xor = vmull_p64(nonescaped_quotes, all_ones64());
 
         let within_quotes = cumulative_xor as u64;
         self.update_prev_block_mask(set_prev_slash_mask, within_quotes);

@@ -26,6 +26,8 @@ impl DelimiterClassifierImpl512 {
 
     #[inline(always)]
     unsafe fn closing_mask(&self) -> __m512i {
+        // Difference between ASCII codes of opening and closing is always 2.
+        // b'[' + 2 == b']' and b'{' + 2 == b'}'
         _mm512_set1_epi8(self.opening + 2)
     }
 
