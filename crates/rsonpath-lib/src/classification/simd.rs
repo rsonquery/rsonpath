@@ -568,7 +568,11 @@ pub(crate) fn configure() -> SimdConfiguration {
         }
         else if #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         {
-            let highest_simd = if is_x86_feature_detected!("avx512f") && is_x86_feature_detected!("avx512bw") {
+            #[cfg(target_arch = "x86")]
+            let is_64_bit = false;
+            #[cfg(target_arch = "x86_64")]
+            let is_64_bit = true;
+            let highest_simd = if is_x86_feature_detected!("avx512f") && is_x86_feature_detected!("avx512bw") && is_64_bit {
                 SimdTag::Avx512
             } else if is_x86_feature_detected!("avx2") {
                 SimdTag::Avx2
@@ -869,9 +873,8 @@ cfg_if! {
 
                     match conf.highest_simd() {
                         // AVX2 implies all other optimizations.
-                        // AVX512 on x86 is yet to be implemented.
-                        $crate::classification::simd::SimdTag::Avx2 |
-                        $crate::classification::simd::SimdTag::Avx512 => {
+                        $crate::classification::simd::SimdTag::Avx512 => unreachable!("Avx512 should never be configured on 32-bit targets."),
+                        $crate::classification::simd::SimdTag::Avx2 => {
                             assert!(conf.fast_quotes());
                             assert!(conf.fast_popcnt());
                             let $simd = $crate::classification::simd::ResolvedSimd::<
@@ -974,6 +977,7 @@ cfg_if! {
                                 }
                             }
                         }
+                        $crate::classification::simd::SimdTag::Neon => unreachable!("NEON should never be configured on non-ARM targets."),
                         // nosimd denies all optimizations.
                         $crate::classification::simd::SimdTag::Nosimd => {
                             let $simd = $crate::classification::simd::ResolvedSimd::<

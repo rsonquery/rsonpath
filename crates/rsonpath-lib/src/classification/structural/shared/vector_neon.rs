@@ -31,8 +31,8 @@ unsafe fn neon_shuffle(data: int8x16_t, mask: int8x16_t) -> int8x16_t {
     let recombined = int8x8x2_t(low, high);
 
     vcombine_s8(
-        vtbl2_s8(recombined, vand_s8(VDUP_N_S8(0x0F), vget_low_s8(mask))),
-        vtbl2_s8(recombined, vand_s8(VDUP_N_S8(0x0F), vget_high_s8(mask))),
+        vtbl2_s8(recombined, vand_s8(vdup_n_s8(0x0F), vget_low_s8(mask))),
+        vtbl2_s8(recombined, vand_s8(vdup_n_s8(0x0F), vget_high_s8(mask))),
     )
 }
 
