@@ -236,6 +236,62 @@ jobs:
           RSONPATH_UNSAFE_FORCE_SIMD: ${{ matrix.simd_override }}
           RUSTFLAGS: "-C link-arg=-fuse-ld=lld --deny warnings"
 
+  test-arm-simd:
+    name: Test all ARM SIMD configurations
+    runs-on: ubuntu-24.04-arm
+    needs: test-gen
+    strategy:
+      fail-fast: false
+      matrix:
+        target_triple:
+          - aarch64-unknown-linux-gnu
+        simd_override:
+          - neon;fast_quotes;fast_popcnt
+          - neon;slow_quotes;fast_popcnt
+          - nosimd;slow_quotes;slow_popcnt
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
+        with:
+          egress-policy: audit
+
+      - name: Install lld
+        run: sudo apt update && sudo apt install lld
+      - name: Checkout sources
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          submodules: true
+      - name: Install Rust toolchain (stable)
+        uses: dtolnay/rust-toolchain@f7ccc83f9ed1e5b9c81d8a67d7ad1a747e22a561 # master
+        with:
+          toolchain: stable
+          target: ${{ matrix.target_triple }}
+      - name: Cache restore (Cargo)
+        id: cache-restore-cargo
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: stable-${{ matrix.target_triple }}-cargo-${{ hashFiles('**/Cargo.toml') }}-x86-simd
+      - name: Build
+        run: cargo build --workspace --target ${{ matrix.target_triple }}
+        env:
+          RUSTFLAGS: "-C link-arg=-fuse-ld=lld --deny warnings"
+      - name: Download rsonpath-test artifact
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: ${{ needs.test-gen.outputs.artifact-name }}
+          path: ${{ needs.test-gen.outputs.artifact-path }}
+      - name: Test
+        run: cargo test --workspace --target ${{ matrix.target_triple }}
+        env:
+          RSONPATH_UNSAFE_FORCE_SIMD: ${{ matrix.simd_override }}
+          RUSTFLAGS: "-C link-arg=-fuse-ld=lld --deny warnings"
+
   clippy:
     strategy:
       fail-fast: false
