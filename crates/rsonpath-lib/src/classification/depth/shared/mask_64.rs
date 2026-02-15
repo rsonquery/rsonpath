@@ -29,10 +29,6 @@ pub(crate) struct DepthVector64<'a, B: InputBlock<'a, SIZE>> {
 impl<'a, B: InputBlock<'a, SIZE>> DepthBlock<'a> for DepthVector64<'a, B> {
     #[inline(always)]
     fn advance_to_next_depth_decrease(&mut self) -> bool {
-        debug_assert!(
-            is_x86_feature_detected!("popcnt"),
-            "depth classifier should be disabled when popcnt is not available"
-        );
         let next_closing = self.closing_mask.trailing_zeros() as usize;
 
         if next_closing == SIZE {
@@ -71,10 +67,6 @@ impl<'a, B: InputBlock<'a, SIZE>> DepthBlock<'a> for DepthVector64<'a, B> {
 
     #[inline(always)]
     fn depth_at_end(&self) -> isize {
-        debug_assert!(
-            is_x86_feature_detected!("popcnt"),
-            "depth classifier should be disabled when popcnt is not available"
-        );
         (((self.opening_count as i32) - self.closing_mask.count_ones() as i32) + self.depth) as isize
     }
 
@@ -85,10 +77,6 @@ impl<'a, B: InputBlock<'a, SIZE>> DepthBlock<'a> for DepthVector64<'a, B> {
 
     #[inline(always)]
     fn estimate_lowest_possible_depth(&self) -> isize {
-        debug_assert!(
-            is_x86_feature_detected!("popcnt"),
-            "depth classifier should be disabled when popcnt is not available"
-        );
         (self.depth - self.closing_mask.count_ones() as i32) as isize
     }
 }

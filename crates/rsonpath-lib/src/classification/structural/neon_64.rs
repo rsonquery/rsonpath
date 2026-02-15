@@ -10,7 +10,7 @@ use crate::{
     input::InputBlock,
 };
 
-super::shared::structural_classifier!(NeonClassifier, BlockNeonClassifier, mask_64, 64, u64);
+shared::structural_classifier!(NeonClassifier, BlockNeonClassifier, mask_64, 64, u64);
 
 struct BlockNeonClassifier {
     internal_classifier: vector_neon::BlockClassifierNeon,

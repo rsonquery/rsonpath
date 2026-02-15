@@ -1,5 +1,5 @@
 use super::{
-    shared::{mask_neon::DepthVectorNeon, vector_neon::DelimiterClassifierImplNeon},
+    shared::{mask_64::DepthVector64, vector_neon::DelimiterClassifierImplNeon},
     *,
 };
 use crate::{
@@ -11,19 +11,13 @@ use std::marker::PhantomData;
 
 const SIZE: usize = 64;
 
-shared::depth_classifier!(
-    NeonVectorIterator,
-    DelimiterClassifierImplNeon,
-    DepthVectorNeon,
-    64,
-    u64
-);
+shared::depth_classifier!(NeonVectorIterator, DelimiterClassifierImplNeon, DepthVector64, 64, u64);
 
 #[inline(always)]
 fn new_vector<'a, B: InputBlock<'a, SIZE>>(
     bytes: QuoteClassifiedBlock<B, u64, SIZE>,
     classifier: &DelimiterClassifierImplNeon,
-) -> DepthVectorNeon<'a, B> {
+) -> DepthVector64<'a, B> {
     new_vector_from(bytes, classifier, 0)
 }
 
@@ -32,7 +26,7 @@ fn new_vector_from<'a, B: InputBlock<'a, SIZE>>(
     bytes: QuoteClassifiedBlock<B, u64, SIZE>,
     classifier: &DelimiterClassifierImplNeon,
     idx: usize,
-) -> DepthVectorNeon<'a, B> {
+) -> DepthVector64<'a, B> {
     // SAFETY: target_feature invariant
     unsafe { new_neon(bytes, classifier, idx) }
 }
@@ -42,7 +36,7 @@ unsafe fn new_neon<'a, B: InputBlock<'a, SIZE>>(
     bytes: QuoteClassifiedBlock<B, u64, SIZE>,
     classifier: &DelimiterClassifierImplNeon,
     start_idx: usize,
-) -> DepthVectorNeon<'a, B> {
+) -> DepthVector64<'a, B> {
     let idx_mask = 0xFFFF_FFFF_FFFF_FFFF_u64 << start_idx;
     let (block1, block2, block3, block4) = bytes.block.quarters();
     let (opening_mask1, closing_mask1) = classifier.get_opening_and_closing_masks(block1);
@@ -56,7 +50,7 @@ unsafe fn new_neon<'a, B: InputBlock<'a, SIZE>>(
     let opening_mask = combined_opening_mask & (!bytes.within_quotes_mask) & idx_mask;
     let closing_mask = combined_closing_mask & (!bytes.within_quotes_mask) & idx_mask;
 
-    DepthVectorNeon {
+    DepthVector64 {
         quote_classified: bytes,
         opening_mask,
         closing_mask,

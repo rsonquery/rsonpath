@@ -8,8 +8,7 @@ use crate::{
     debug,
     input::InputBlock,
 };
-
-super::shared::structural_classifier!(Avx512Classifier64, BlockAvx512Classifier64, mask_64, 64, u64);
+shared::structural_classifier!(Avx512Classifier64, BlockAvx512Classifier64, mask_64, 64, u64);
 
 struct BlockAvx512Classifier64 {
     internal_classifier: vector_512::BlockClassifier512,

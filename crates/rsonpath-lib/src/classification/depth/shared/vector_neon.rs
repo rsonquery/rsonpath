@@ -1,7 +1,5 @@
 use crate::classification::simd::neon::neon_movemask_epi8;
 use crate::classification::structural::BracketType;
-
-#[cfg(target_arch = "aarch64")]
 use ::core::arch::aarch64::*;
 
 pub(crate) struct DelimiterClassifierImplNeon {

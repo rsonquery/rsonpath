@@ -1,5 +1,4 @@
 use crate::bin_u64;
-#[cfg(target_arch = "aarch64")]
 use ::core::arch::aarch64::*;
 
 /// Bitmask selecting bits on even positions when indexing from zero.
@@ -7,7 +6,6 @@ pub(crate) const ODD: u64 = 0b0101_0101_0101_0101_0101_0101_0101_0101_0101_0101_
 /// Bitmask selecting bits on odd positions when indexing from zero.
 pub(crate) const EVEN: u64 = 0b1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_1010_u64;
 
-#[target_feature(enable = "neon")]
 unsafe fn all_ones64() -> u64 {
     0xFFFF_FFFF_FFFF_FFFF
 }
