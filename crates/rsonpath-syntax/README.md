@@ -55,12 +55,11 @@ cargo tree --package rsonpath-lib --edges normal --depth 1 --target=all --all-fe
 <!-- rsonpath-syntax dependencies start -->
 ```ini
 rsonpath-syntax v0.4.0 (/home/mat/src/rsonpath/crates/rsonpath-syntax)
-├── arbitrary v1.4.1
-├── nom v7.1.3
-├── owo-colors v4.1.0
-├── serde v1.0.217
-├── thiserror v2.0.9
-└── unicode-width v0.2.0
+├── nom v8.0.0
+├── owo-colors v4.2.3
+├── serde v1.0.228
+├── thiserror v2.0.18
+└── unicode-width v0.2.2
 ```
 <!-- rsonpath-syntax dependencies end -->
 

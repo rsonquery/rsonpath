@@ -2,6 +2,84 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.10.0] - 2025-02-16
+
+### Features
+
+- Support for AVX512 SIMD.
+  - available on x86-64
+- Support for Neon SIMD.
+  - available on aarch64
+- MSRV bumped to 1.89.
+  - stable AVX512 since 1.89
+
+- Revised the list of Tier 1 targets that are continuously built and released.
+  - The following targets are now in CI and release:
+    - `aarch64-apple-darwin`
+    - `aarch64-pc-windows-msvc`
+  - The following targets are no longer built or released:
+    - `i686-pc-windows-gnu` 
+    - `x86_64-apple-darwin`
+- Added prebuilt binaries for a few MUSL-based Tier 2 targets.
+  - Binaries now released for:
+    - `aarch64-unknown-linux-musl`
+    - `i686-unknown-linux-musl`
+    - `x86_64-unknown-linux-musl`
+
+### Bug Fixes
+
+- Skipping inside arrays on comma-atomic ([#757](https://github.com/V0ldek/rsonpath/issues/757), [#751](https://github.com/V0ldek/rsonpath/issues/751))
+  - Tail skipping was not triggered when the item matching the unitary
+    transition was an atomic value inside a list. For example,
+    selecting `$[0]` from a long list of integers would never skip,
+    massively degrading performance.
+  - Skipping was added to `handle_comma` in the same vein as it was in
+    `handle_colon` to enable this.
+
+- Fix panic in specific cases of reclassification at end of file ([#788](https://github.com/V0ldek/rsonpath/issues/788))
+  - A particular combination of reclassification after tail-skipping
+    at the very end of the file could cause a panic if the file-ending
+    closing occurred directly after the skipped-to character.
+
+### Reliability
+
+- Use github hosted ARM runners. ([#718](https://github.com/V0ldek/rsonpath/issues/718))
+
+- ARM SIMD is now tested in CI.
+
+- Fix serde proptests. ([#742](https://github.com/V0ldek/rsonpath/issues/742))
+  - Proptests in automaton serde were not properly guarding for
+    arbitrary generated queries being too complex and exceeding the
+    automaton size limit.
+
+- Add CodeQl for Rust scanning.
+  - We now require the analysis to pass before PR merges.
+
+- All fuzzers now correctly run on a nightly basis (#868). ([#868](https://github.com/V0ldek/rsonpath/issues/868))
+
+
+### Dependencies
+
+- Update `cfg-if` from 1.0.0 to 1.0.4
+- Update `clap` from 4.5.23 to 4.5.58
+- Update `color-eyre` from 0.6.3 to 0.6.5
+- Update `log` from 0.4.22 to 0.4.29
+- Update `memmap2` from 0.9.5 to 0.9.9
+- Update `rustflags` from 0.1.6 to 0.1.7
+- Update `serde` from 1.0.217 to 1.0.228
+- Update `simple_logger` from 5.0.0 to 5.1.0
+- Update `smallvec` from 1.13.2 to 1.15.1
+- Update `thiserror` from 2.0.9 to 2.0.18
+- Update `vector-map` from 1.0.1 to 1.0.2
+- Update `vergen` from 9.0.2 to 9.1.0
+- Update `vergen-git2` from 1.0.2 to 9.1.0
+- Remove `vergen-gitcl` from build dependencies
+
+### Documentation
+
+- Fix old link to rsonbook in readme.
+- Add a strict no-LLM policy to CONTRIBUTING.
+
 ## [0.9.4] - 2024-12-31
 
 ### Library

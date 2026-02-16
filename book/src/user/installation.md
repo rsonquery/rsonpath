@@ -1,7 +1,7 @@
 # Installation
 
 Currently, the easiest way to get it is from [latest GitHub release](https://github.com/V0ldek/rsonpath/releases/latest).
-We have a binary for each Tier 1 Rust target.
+We have a binary for each Tier 1 Rust target and a few Tier 2 targets.
 
 ## Verifying provenance
 
@@ -35,7 +35,7 @@ To verify it works, check if `rq` is available from your command line:
 
 ```console
 $ rq -V
-rq 0.9.4
+rq 0.10.0
 
 ```
 

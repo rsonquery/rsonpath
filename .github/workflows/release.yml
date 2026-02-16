@@ -48,36 +48,38 @@ jobs:
       fail-fast: true
       matrix:
         target_triple:
+          # Tier 1
+          - aarch64-apple-darwin
+          - aarch64-pc-windows-msvc
           - aarch64-unknown-linux-gnu
-          - i686-pc-windows-gnu
           - i686-pc-windows-msvc
           - i686-unknown-linux-gnu
-          - x86_64-apple-darwin
           - x86_64-pc-windows-gnu
           - x86_64-pc-windows-msvc
           - x86_64-unknown-linux-gnu
+          # Tier 2
+          - aarch64-unknown-linux-musl
+          - i686-unknown-linux-musl
+          - x86_64-unknown-linux-musl
         include:
+          - os: macos-latest
+            target_triple: aarch64-apple-darwin
+            rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
+          - os: windows-11-arm
+            target_triple: aarch64-pc-windows-msvc
+            rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
           - os: ubuntu-24.04-arm
             target_triple: aarch64-unknown-linux-gnu
             rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
-          - os: ubuntu-latest
-            target_triple: i686-unknown-linux-gnu
-            # This target needs special setup.
-            prologue-script: sudo apt update && sudo apt install gcc-multilib
-            rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
-          - os: ubuntu-latest
-            target_triple: x86_64-unknown-linux-gnu
-            rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
-          - os: macos-latest
-            target_triple: x86_64-apple-darwin
-            rustflags: "--deny warnings"
           - os: windows-latest
             target_triple: i686-pc-windows-gnu
             # This target needs special setup with MinGW.
             needs-mingw: x86
             rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
-          - os: windows-latest
-            target_triple: i686-pc-windows-msvc
+          - os: ubuntu-latest
+            target_triple: i686-unknown-linux-gnu
+            # This target needs special setup.
+            prologue-script: sudo apt update && sudo apt install gcc-multilib
             rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
           - os: windows-latest
             target_triple: x86_64-pc-windows-gnu
@@ -85,6 +87,20 @@ jobs:
           - os: windows-latest
             target_triple: x86_64-pc-windows-msvc
             rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
+          - os: ubuntu-latest
+            target_triple: x86_64-unknown-linux-gnu
+            rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
+          - os: ubuntu-24.04-arm
+            target_triple: aarch64-unknown-linux-musl
+            rustflags: "-C link-arg=-fuse-ld=lld --deny warnings"
+          - os: ubuntu-latest
+            target_triple: i686-unknown-linux-musl
+            # This target needs special setup.
+            prologue-script: sudo apt update && sudo apt install gcc-multilib
+          - os: ubuntu-latest
+            target_triple: x86_64-unknown-linux-musl
+            # This target needs special setup.
+            prologue-script: sudo apt update && sudo apt install gcc-multilib
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
@@ -101,13 +117,12 @@ jobs:
         with:
           path: |
             C:\ProgramData\chocolatey\lib\mingw
-          key: ${{ matrix.os }}-mingw-${{ matrix.needs-mingw }}-11-2
+          key: ${{ matrix.os }}-mingw-${{ matrix.needs-mingw }}-13
       - name: Set up MinGW ${{ matrix.needs-mingw }}
         if: matrix.needs-mingw != '' && steps.cache-restore-mingw.outputs.cache-hit != 'true'
         uses: egor-tensin/setup-mingw@41b837e47d7f85214629d255b9c4bc3fcbe9fd63 # v3.0
         with:
           platform: ${{ matrix.needs-mingw }}
-          version: 12.2.0 # https://github.com/egor-tensin/setup-mingw/issues/14
       - name: Add MinGW to PATH
         if: matrix.needs-mingw != ''
         run: echo "C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw32\bin" >> $env:GITHUB_PATH

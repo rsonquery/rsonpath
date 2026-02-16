@@ -277,7 +277,7 @@ assert-benchmarks-committed:
 # Execute prerequisites for a release for the given version.
 release ver:
     cargo update
-    just release-patch {{ver}}
+    just release-main {{ver}}
     just release-readme
     just release-bug-template {{ver}}
 

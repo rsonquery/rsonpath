@@ -2,6 +2,40 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.1] - 2026-02-16
+
+### Features
+
+- Removed the `arbitrary` feature and the `Arbitrary` implementations.
+
+### Bug Fixes
+
+- Error messages blowing up on long inputs. ([#842](https://github.com/V0ldek/rsonpath/issues/842), [#749](https://github.com/V0ldek/rsonpath/issues/749))
+  - Previously, when displaying a ParseError every underlying
+    SyntaxError would be printed with the full query input as context.
+    If the density of errors in the input was high this would effectively
+    cause a quadratic blowup during printing.
+  - It's probably unlikely inputs like this would be given by a user,
+    but they do happen during fuzzing (when we're throwing long strings
+    of essentially random characters at the parser) and could potentially
+    be used as a DoS attack vector (intentionally supplying nonsensical
+    large queries and forcing error messages to be sent back).
+  - Additionally fixed an invalid error message given when a side of
+    a comparison operator was a non-singular query.
+
+### Reliability
+
+- The structural fuzzer now correctly runs on a nightly basis. ([#749](https://github.com/V0ldek/rsonpath/issues/749))
+
+### Dependencies
+
+- Update `nom` from 7.1.3 to 8.0.0
+- Update `owo-colors` from 4.1.0 to 4.2.3
+- Update `serde` from 1.0.217 to 1.0.228
+- Update `thiserror` from 2.0.9 to 2.0.18
+- Update `unicode-width` from 0.2.0 to 0.2.2
+- Remove `arbitrary` from dependencies
+
 ## [0.4.0] - 2024-12-31
 
 ### Features
