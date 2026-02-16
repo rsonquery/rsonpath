@@ -5,7 +5,7 @@ repository = { workspace = true }
 homepage = { workspace = true }
 edition = { workspace = true }
 name = "rsonpath-syntax"
-version = "0.4.0"
+version = "0.4.1"
 description = "A JSONPath parser."
 readme = "README.md"
 keywords = ["json", "jsonpath", "query", "search", "parser"]
