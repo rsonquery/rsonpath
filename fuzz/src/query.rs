@@ -5,7 +5,7 @@ use rsonpath_syntax::builder::{
 };
 use rsonpath_syntax::num::{JsonFloat, JsonInt, JsonNumber, JsonUInt};
 use rsonpath_syntax::prelude::JsonString;
-use rsonpath_syntax::{ComparisonExpr, JsonPathQuery, Literal};
+use rsonpath_syntax::{ComparisonExpr, JsonPathQuery, Literal, Slice};
 
 struct SafeUnstructured<'a, 'b> {
     u: &'b mut Unstructured<'a>,
@@ -53,6 +53,7 @@ enum SupportedSelector {
     Name(ArbitraryJsonString),
     Wildcard,
     Index(ArbitraryJsonUInt),
+    Slice(ArbitrarySlice),
 }
 
 impl<'a> Arbitrary<'a> for ArbitrarySupportedQuery {
@@ -66,9 +67,11 @@ impl<'a> Arbitrary<'a> for ArbitrarySupportedQuery {
                 SupportedSegment::Child(SupportedSelector::Name(name)) => query.child_name(name.0),
                 SupportedSegment::Child(SupportedSelector::Wildcard) => query.child_wildcard(),
                 SupportedSegment::Child(SupportedSelector::Index(idx)) => query.child_index(idx.0),
+                SupportedSegment::Child(SupportedSelector::Slice(slice)) => query.child_slice(slice.0),
                 SupportedSegment::Descendant(SupportedSelector::Name(name)) => query.descendant_name(name.0),
                 SupportedSegment::Descendant(SupportedSelector::Wildcard) => query.descendant_wildcard(),
                 SupportedSegment::Descendant(SupportedSelector::Index(idx)) => query.descendant_index(idx.0),
+                SupportedSegment::Descendant(SupportedSelector::Slice(slice)) => query.descendant_slice(slice.0),
             };
         }
 
@@ -82,6 +85,8 @@ pub struct ArbitraryJsonPathQuery(pub JsonPathQuery);
 pub struct ArbitraryJsonString(pub JsonString);
 #[derive(Debug)]
 pub struct ArbitraryJsonUInt(pub JsonUInt);
+#[derive(Debug)]
+pub struct ArbitrarySlice(pub Slice);
 
 impl<'a> arbitrary::Arbitrary<'a> for ArbitraryJsonPathQuery {
     fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
@@ -105,6 +110,15 @@ impl<'a> arbitrary::Arbitrary<'a> for ArbitraryJsonUInt {
         let mut u = SafeUnstructured::new(u);
         let inner = generate_json_uint(&mut u);
         u.err_or(Self(inner))
+    }
+}
+
+impl<'a> arbitrary::Arbitrary<'a> for ArbitrarySlice {
+    fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
+        let mut u = SafeUnstructured::new(u);
+        let mut slice_builder = Slice::build();
+        generate_forward_slice(&mut slice_builder, &mut u);
+        u.err_or(Self(Slice::from(slice_builder)))
     }
 }
 
@@ -176,7 +190,9 @@ impl ArbitraryQueryGenerator {
     }
 
     fn generate_slice_selector(builder: &mut JsonPathSelectorsBuilder, u: &mut SafeUnstructured) {
-        builder.slice(|b| generate_slice(b, u));
+        let mut slice_builder = Slice::build();
+        generate_slice(&mut slice_builder, u);
+        builder.slice(Slice::from(slice_builder));
     }
 
     fn generate_wildcard_selector(builder: &mut JsonPathSelectorsBuilder, _u: &mut SafeUnstructured) {
@@ -318,6 +334,15 @@ fn generate_json_uint(u: &mut SafeUnstructured) -> JsonUInt {
     })
 }
 
+fn generate_json_non_zero_uint(u: &mut SafeUnstructured) -> JsonUInt {
+    u.access(|u| {
+        let val = u.int_in_range(1..=JsonUInt::MAX.as_u64())?;
+        let int = JsonUInt::try_from(val).expect("uint is in range above and should succeed");
+        assert!(int.as_u64() > 0, "non-zero range above");
+        Ok(int)
+    })
+}
+
 fn generate_json_float(u: &mut SafeUnstructured) -> JsonFloat {
     struct SafeFloat(JsonFloat);
     impl Default for SafeFloat {
@@ -358,6 +383,24 @@ fn generate_string(u: &mut SafeUnstructured) -> JsonString {
     })
     .0
 }
+
+fn generate_forward_slice<'a>(builder: &'a mut SliceBuilder, u: &mut SafeUnstructured) -> &'a mut SliceBuilder {
+    let (has_start, has_end, has_step) = u.access(|u| Ok((u.arbitrary()?, u.arbitrary()?, u.arbitrary()?)));
+    if has_start {
+        let int = generate_json_uint(u);
+        builder.with_start(int);
+    }
+    if has_end {
+        let int = generate_json_non_zero_uint(u);
+        builder.with_end(int);
+    }
+    if has_step {
+        let int = generate_json_non_zero_uint(u);
+        builder.with_step(int);
+    }
+    builder
+}
+
 
 fn generate_slice<'a>(builder: &'a mut SliceBuilder, u: &mut SafeUnstructured) -> &'a mut SliceBuilder {
     let (has_start, has_end, has_step) = u.access(|u| Ok((u.arbitrary()?, u.arbitrary()?, u.arbitrary()?)));

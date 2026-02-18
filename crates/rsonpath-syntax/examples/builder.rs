@@ -2,6 +2,7 @@ use rsonpath_syntax::{
     builder::JsonPathQueryBuilder,
     num::{JsonFloat, JsonInt},
     str::JsonString,
+    Slice,
 };
 use std::{error::Error, process::ExitCode};
 
@@ -75,7 +76,7 @@ fn main() -> Result<ExitCode, Box<dyn Error>> {
     // $..book[:2]
     let query = JsonPathQueryBuilder::new()
         .descendant_name("book")
-        .child_slice(|s| s.with_end(2))
+        .child_slice(Slice::build().with_end(2))
         .to_query();
     println!("{query}");
 
@@ -233,13 +234,13 @@ fn main() -> Result<ExitCode, Box<dyn Error>> {
         .descendant(|x| {
             x.index(3)
                 .index(-5)
-                .slice(|x| x.with_step(3))
-                .slice(|x| x.with_step(-5))
-                .slice(|x| x.with_end(7).with_step(2))
-                .slice(|x| x.with_start(3).with_step(2))
-                .slice(|x| x.with_start(3).with_end(7))
-                .slice(|x| x.with_start(3).with_end(7).with_step(2))
-                .slice(|x| x.with_start(-3).with_end(-7).with_step(-2))
+                .slice(Slice::build().with_step(3))
+                .slice(Slice::build().with_step(-5))
+                .slice(Slice::build().with_end(7).with_step(2))
+                .slice(Slice::build().with_start(3).with_step(2))
+                .slice(Slice::build().with_start(3).with_end(7))
+                .slice(Slice::build().with_start(3).with_end(7).with_step(2))
+                .slice(Slice::build().with_start(-3).with_end(-7).with_step(-2))
         })
         .child_wildcard()
         .child_filter(|f| {

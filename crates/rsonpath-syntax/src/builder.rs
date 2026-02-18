@@ -13,7 +13,7 @@ use crate::{
 ///
 /// # Examples
 /// ```
-/// # use rsonpath_syntax::{JsonPathQuery, builder::JsonPathQueryBuilder, str::JsonString};
+/// # use rsonpath_syntax::{JsonPathQuery, builder::JsonPathQueryBuilder, str::JsonString, Slice};
 /// let mut builder = JsonPathQueryBuilder::new();
 ///     
 /// builder.child_name("a")
@@ -21,7 +21,7 @@ use crate::{
 ///     .child_wildcard()
 ///     .child_name("c")
 ///     .descendant_wildcard()
-///     .child_slice(|x| x.with_start(3).with_end(-7).with_step(2));
+///     .child_slice(Slice::build().with_start(3).with_end(-7).with_step(2));
 ///
 /// // Can also use `builder.build()` as a non-consuming version.
 /// let query: JsonPathQuery = builder.into();
@@ -143,13 +143,10 @@ impl JsonPathQueryBuilder {
 
     /// Add a child segment with a single slice selector.
     ///
-    /// This is a shorthand for `.child(|x| x.slice(slice_builder))`.
+    /// This is a shorthand for `.child(|x| x.slice(slice))`.
     #[inline(always)]
-    pub fn child_slice<F>(&mut self, slice_builder: F) -> &mut Self
-    where
-        F: FnOnce(&mut SliceBuilder) -> &mut SliceBuilder,
-    {
-        self.child(|x| x.slice(slice_builder))
+    pub fn child_slice(&mut self, slice: impl Into<Slice>) -> &mut Self {
+        self.child(|x| x.slice(slice))
     }
 
     /// Add a child segment with a single filter selector.
@@ -189,13 +186,10 @@ impl JsonPathQueryBuilder {
 
     /// Add a descendant segment with a single slice selector.
     ///
-    /// This is a shorthand for `.descendant(|x| x.slice(slice_builder))`.
+    /// This is a shorthand for `.descendant(|x| x.slice(slice))`.
     #[inline(always)]
-    pub fn descendant_slice<F>(&mut self, slice_builder: F) -> &mut Self
-    where
-        F: FnOnce(&mut SliceBuilder) -> &mut SliceBuilder,
-    {
-        self.descendant(|x| x.slice(slice_builder))
+    pub fn descendant_slice(&mut self, slice: impl Into<Slice>) -> &mut Self {
+        self.descendant(|x| x.slice(slice))
     }
 
     /// Add a descendant segment with a single filter selector.
@@ -303,8 +297,8 @@ impl JsonPathSelectorsBuilder {
     /// # use rsonpath_syntax::{prelude::*, num::JsonNonZeroUInt};
     /// let mut builder = JsonPathQueryBuilder::new();
     /// builder.child(|x| x
-    ///     .slice(|s| s.with_start(10).with_end(-20).with_step(5))
-    ///     .slice(|s| s.with_start(-20).with_step(-30)));
+    ///     .slice(Slice::build().with_start(10).with_end(-20).with_step(5))
+    ///     .slice(Slice::build().with_start(-20).with_step(-30)));
     /// let result = builder.into_query();
     ///
     /// assert_eq!(result.segments().len(), 1);
@@ -323,14 +317,8 @@ impl JsonPathSelectorsBuilder {
     /// }
     /// ```
     #[inline(always)]
-    pub fn slice<F>(&mut self, slice_builder: F) -> &mut Self
-    where
-        F: FnOnce(&mut SliceBuilder) -> &mut SliceBuilder,
-    {
-        let mut slice = SliceBuilder::new();
-        slice_builder(&mut slice);
-        let slice = slice.into();
-        self.selectors.push(Selector::Slice(slice));
+    pub fn slice(&mut self, slice: impl Into<Slice>) -> &mut Self {
+        self.selectors.push(Selector::Slice(slice.into()));
         self
     }
 
@@ -482,6 +470,13 @@ impl SliceBuilder {
 impl From<SliceBuilder> for Slice {
     #[inline]
     fn from(mut value: SliceBuilder) -> Self {
+        value.to_slice()
+    }
+}
+
+impl<'a> From<&'a mut SliceBuilder> for Slice {
+    #[inline]
+    fn from(value: &'a mut SliceBuilder) -> Self {
         value.to_slice()
     }
 }
