@@ -149,7 +149,7 @@ jobs:
             target/
           key: ${{ matrix.toolchain }}-${{ matrix.target_triple }}-cargo-${{ hashFiles('**/Cargo.toml') }}
       - name: cargo install cargo-hack
-        uses: baptiste0928/cargo-install@b687c656bda5733207e629b50a22bf68974a0305 # v3.3.2
+        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3.4.0
         with:
           # Name of the crate to install
           crate: cargo-hack
@@ -427,7 +427,7 @@ jobs:
         with:
           submodules: true
       - name: cargo install cargo-msrv
-        uses: baptiste0928/cargo-install@b687c656bda5733207e629b50a22bf68974a0305 # v3.3.2
+        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3.4.0
         with:
           # Name of the crate to install
           crate: cargo-msrv
