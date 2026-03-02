@@ -26,7 +26,7 @@ eyre = "0.6.12"
 flate2 = "1.1.8"
 hex-literal = "1.0.0"
 indicatif = "0.18.3"
-jni = { version = "0.21.1", features = ["invocation", "default"] }
+jni = { version = "0.22.2", features = ["invocation", "default"] }
 jsonpath-rust = "1.0.4"
 lazy_static = "1.5.0"
 serde_json = "1.0.149"
