@@ -14,7 +14,7 @@ jobs:
       repository-projects: write
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
+        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
         with:
           egress-policy: audit
 
@@ -26,7 +26,7 @@ jobs:
           label-id: "LA_kwDOHodxeM8AAAABA8dlvA"
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Issue comment tag
-        uses: devops-actions/issue-comment-tag@6dbf2b1d509b1255e744349f7b0d5c1f723b22ef # v0.1.9
+        uses: devops-actions/issue-comment-tag@3a605c5f21e15e5b963c866421bf4189bcc32310 # v0.1.10
         with:
           # The tag of the team to mention in the issue comment
           team: V0ldek
