@@ -1,0 +1,12 @@
+bin = { name = "rq" }
+
+args = ["-c", "$"]
+stdout = """
+digraph {
+node [shape=circle style=filled gradientangle=45 fillcolor=gray ]; 0
+node [shape=doublecircle style=filled gradientangle=45 fillcolor="white;0.5 :white"]; 1
+  0 -> 0 [label="*"]
+  1 -> 0 [label="*"]
+}
+"""
+
