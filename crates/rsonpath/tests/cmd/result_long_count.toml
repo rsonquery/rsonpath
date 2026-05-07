@@ -1,0 +1,5 @@
+bin = { name = "rq" }
+
+args = ["--result", "count", "$", "--json", "{}"]
+stdout = "1"
+
