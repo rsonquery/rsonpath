@@ -1,0 +1,15 @@
+bin = { name = "rq" }
+
+args = ["--force-input", "buffered", "$", "--json", "{}"]
+status = { code = 1 }
+stdout = ""
+stderr = """
+Error: 
+   0: \u001B[91mError running the main engine.\u001B[0m
+   1: \u001B[91mAttempt to buffer reads on inline JSON input.\u001B[0m
+
+\u001B[96mNote\u001B[0m: Query string: '\u001B[2m$\u001B[0m'.
+
+Backtrace omitted. Run with RUST_BACKTRACE=1 environment variable to display it.
+Run with RUST_BACKTRACE=full to include source snippets.
+"""
