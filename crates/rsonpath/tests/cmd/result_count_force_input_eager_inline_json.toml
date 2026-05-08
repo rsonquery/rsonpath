@@ -1,7 +1,4 @@
 bin = { name = "rq" }
 
-args = ["--force-input", "eager", "-r", "nodes", "$", "--json", "{}"]
-status = { code = 0 }
-stdout = """
-{}
-"""
+args = ["-r", "count", "--force-input", "eager",  "$", "--json", "{}"]
+stdout = "1"

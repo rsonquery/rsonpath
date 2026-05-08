@@ -1,6 +1,6 @@
 bin = { name = "rq" }
 
-args = ["-r", "count", "--force-input", "buffered", "$", "--json", "{}"]
+args = ["-r", "nodes", "--force-input", "buffered", "$", "--json", "{}"]
 status = { code = 1 }
 stderr = """
 Error: 
