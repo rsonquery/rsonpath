@@ -168,7 +168,7 @@ impl<'b, I: Input, V: Simd> HeadSkip<'b, I, V, BLOCK_SIZE> {
                             let mut classifier_state = ResumeClassifierState {
                                 iter: quote_classifier,
                                 block: quote_classified_first_block
-                                    .map(|b| ResumeClassifierBlockState { block: b, idx: 0 }),
+                                    .map(|b| ResumeClassifierBlockState { quote_classified: b, idx: 0 }),
                                 are_colons_on: false,
                                 are_commas_on: head_skip.is_accepting,
                             };
@@ -206,10 +206,10 @@ impl<'b, I: Input, V: Simd> HeadSkip<'b, I, V, BLOCK_SIZE> {
                             // 2. the only way the mask can be wrong is if it is flipped - marks chars within quotes
                             //    as outside and vice versa - so it suffices to flip it if it is wrong.
                             if let Some(block) = classifier_state.block.as_mut() {
-                                let should_be_quoted = block.block.block[block.idx] == b'"';
-                                if block.block.within_quotes_mask.is_lit(block.idx) != should_be_quoted {
+                                let should_be_quoted = block.quote_classified.block[block.idx] == b'"';
+                                if block.quote_classified.within_quotes_mask.is_lit(block.idx) != should_be_quoted {
                                     debug!("Mask needs flipping!");
-                                    block.block.within_quotes_mask = !block.block.within_quotes_mask;
+                                    block.quote_classified.within_quotes_mask = !block.quote_classified.within_quotes_mask;
                                     classifier_state.iter.flip_quotes_bit();
                                 }
                             }
@@ -254,7 +254,7 @@ impl<'b, I: Input, V: Simd> HeadSkip<'b, I, V, BLOCK_SIZE> {
                             debug!("Quote classified up to {}", classifier_state.get_idx());
                             idx = classifier_state.get_idx();
 
-                            first_block = classifier_state.block.map(|b| b.block.block);
+                            first_block = classifier_state.block.map(|b| b.quote_classified.block);
                             input_iter = classifier_state.iter.into_inner();
                         }
                         _ => idx += 1,
@@ -310,7 +310,7 @@ impl<'b, I: Input, V: Simd> HeadSkip<'b, I, V, BLOCK_SIZE> {
                             .iter
                             .offset(blocks_to_skip as isize)?
                             .map(|b| ResumeClassifierBlockState {
-                                block: b,
+                                quote_classified: b,
                                 idx: remainder,
                             });
                     }
@@ -319,7 +319,7 @@ impl<'b, I: Input, V: Simd> HeadSkip<'b, I, V, BLOCK_SIZE> {
                             .iter
                             .offset((blocks_to_skip + 1) as isize)?
                             .map(|b| ResumeClassifierBlockState {
-                                block: b,
+                                quote_classified: b,
                                 idx: remainder,
                             });
                     }

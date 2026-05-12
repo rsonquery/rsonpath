@@ -224,7 +224,7 @@ where
 
     fn stop(self) -> ResumeClassifierState<'i, I, Q, MaskType, N> {
         let block = self.block.map(|b| ResumeClassifierBlockState {
-            block: b.quote_classified,
+            quote_classified: b.quote_classified,
             idx: b.idx,
         });
         ResumeClassifierState {
@@ -239,7 +239,7 @@ where
         Self {
             iter: state.iter,
             block: state.block.map(|b| Block {
-                quote_classified: b.block,
+                quote_classified: b.quote_classified,
                 idx: b.idx,
                 are_commas_on: state.are_commas_on,
                 are_colons_on: state.are_colons_on,

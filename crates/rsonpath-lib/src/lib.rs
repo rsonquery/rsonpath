@@ -302,7 +302,7 @@ impl<F: FallibleIterator> Iterator for FallibleIntoIter<F> {
 
 pub(crate) const JSON_SPACE_BYTE: u8 = b' ';
 
-pub(crate) const JSON_WHITESPACE_BYTES: [u8; 4] = [b' ', b'\t', b'\n', b'\r'];
+pub(crate) const JSON_WHITESPACE_BYTES: [u8; 4] = *b" \t\n\r";
 
 #[inline(always)]
 #[must_use]

@@ -194,7 +194,7 @@ macro_rules! structural_classifier {
             fn stop(self) -> ResumeClassifierState<'a, I, Q, $mask_ty, $size> {
                 let block = self.block.map(|b| ResumeClassifierBlockState {
                     idx: b.get_idx() as usize,
-                    block: b.quote_classified,
+                    quote_classified: b.quote_classified,
                 });
 
                 ResumeClassifierState {
@@ -225,7 +225,7 @@ macro_rules! structural_classifier {
 
                 let block = state.block.map(|b| {
                     // SAFETY: target_feature invariant
-                    let mut block = unsafe { classifier.classify(b.block) };
+                    let mut block = unsafe { classifier.classify(b.quote_classified) };
                     let idx_mask = <$mask_ty>::MAX.checked_shl(b.idx as u32).unwrap_or(0);
                     block.structural_mask &= idx_mask;
 

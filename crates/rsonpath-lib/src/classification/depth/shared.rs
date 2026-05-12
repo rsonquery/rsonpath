@@ -60,7 +60,7 @@ macro_rules! depth_classifier {
                     let idx = b.idx;
                     debug!("Depth iterator stopping at index {idx}");
                     ResumeClassifierBlockState {
-                        block: b.quote_classified,
+                        quote_classified: b.quote_classified,
                         idx,
                     }
                 });
@@ -83,7 +83,7 @@ macro_rules! depth_classifier {
                     if b.idx == $size {
                         None
                     } else {
-                        Some(new_vector_from(b.block, &classifier, b.idx))
+                        Some(new_vector_from(b.quote_classified, &classifier, b.idx))
                     }
                 });
 

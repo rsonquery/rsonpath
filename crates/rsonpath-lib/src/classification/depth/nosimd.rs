@@ -49,7 +49,7 @@ where
             let idx = b.idx;
             debug!("Depth iterator stopping at index {idx}");
             ResumeClassifierBlockState {
-                block: b.quote_classified,
+                quote_classified: b.quote_classified,
                 idx,
             }
         });
@@ -66,7 +66,9 @@ where
         state: ResumeClassifierState<'i, I, Q, MaskType, N>,
         opening: BracketType,
     ) -> (Option<Self::Block>, Self) {
-        let first_block = state.block.map(|b| Vector::new_from(b.block, opening, b.idx));
+        let first_block = state
+            .block
+            .map(|b| Vector::new_from(b.quote_classified, opening, b.idx));
 
         (
             first_block,

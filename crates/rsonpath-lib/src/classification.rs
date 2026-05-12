@@ -48,7 +48,7 @@ where
     I: InputBlockIterator<'i, N>,
 {
     /// Quote classified information about the block.
-    pub block: QuoteClassifiedBlock<I::Block, M, N>,
+    pub quote_classified: QuoteClassifiedBlock<I::Block, M, N>,
     /// The index at which classification was stopped.
     pub idx: usize,
 }
