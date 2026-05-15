@@ -442,7 +442,7 @@ fn finalize_node(buf: &mut Vec<u8>, ty: MatchedNodeType) {
         // We need to remove it before saving the result.
         if buf.len() <= 1 {
             // This should never happen in a valid JSON, but we also don't want to panic if the file is invalid.
-            buf.truncate(0)
+            buf.clear();
         } else {
             let mut i = buf.len() - 2;
             while is_json_whitespace(buf[i]) {
