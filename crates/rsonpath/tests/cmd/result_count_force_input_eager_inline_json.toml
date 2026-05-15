@@ -1,0 +1,4 @@
+bin = { name = "rq" }
+
+args = ["-r", "count", "--force-input", "eager",  "$", "--json", "{}"]
+stdout = "1"

@@ -1,0 +1,6 @@
+bin = { name = "rq" }
+
+args = ["--force-input", "eager", "$", "./tests/test.json"]
+stdout = """
+{}
+"""
