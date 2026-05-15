@@ -1,0 +1,4 @@
+bin = { name = "rq" }
+
+args = ["-r", "count", "--force-input", "buffered", "$", "./tests/test.json"]
+stdout = "1"
