@@ -1,6 +1,6 @@
 #[cfg(feature = "color")]
 pub(super) mod colored {
-    use super::super::{fmt_parse_error, ParseError};
+    use super::super::{ParseError, fmt_parse_error};
     use std::fmt::{self, Display};
     use thiserror::Error;
 
@@ -165,6 +165,7 @@ pub(super) mod plain {
             target
         }
 
+        #[allow(clippy::unused_self)]
         pub(crate) fn truncation_marks<'a, D: Display>(&self, target: &'a D) -> impl Display + 'a {
             target
         }

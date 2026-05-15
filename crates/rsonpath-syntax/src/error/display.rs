@@ -414,8 +414,8 @@ impl super::SyntaxError {
                     }
 
                     // If it's brackets or commas then we can try to fix the selector.
-                    if [b'[', b','].contains(&input_bytes[start_boundary])
-                        && [b']', b','].contains(&input_bytes[end_boundary])
+                    if b"[,".contains(&input_bytes[start_boundary])
+                        && b"],".contains(&input_bytes[end_boundary])
                     {
                         // The invalid selector is bracketed, so the user might've meant to search for the string inside
                         // but forgot the quotes. Try to fix it if possible.

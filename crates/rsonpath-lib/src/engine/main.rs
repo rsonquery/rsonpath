@@ -704,8 +704,8 @@ where
         debug!("Reporting result somewhere after {start_idx} with node type {ty:?}");
 
         let index = match ty {
-            NodeType::Complex(BracketType::Curly) => self.input.seek_forward(start_idx, [b'{']).e()?,
-            NodeType::Complex(BracketType::Square) => self.input.seek_forward(start_idx, [b'[']).e()?,
+            NodeType::Complex(BracketType::Curly) => self.input.seek_forward(start_idx, *b"{").e()?,
+            NodeType::Complex(BracketType::Square) => self.input.seek_forward(start_idx, *b"[").e()?,
             NodeType::Atomic => self.input.seek_non_whitespace_forward(start_idx).e()?,
         }
         .map(|x| x.0);
