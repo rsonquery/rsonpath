@@ -151,12 +151,12 @@ impl<'b, I: Input, V: Simd> HeadSkip<'b, I, V, BLOCK_SIZE> {
                     debug!("Needle found at {idx}");
                     let seek_start_idx = idx + head_skip.member_name.quoted().len();
 
-                match head_skip.bytes.seek_non_whitespace_forward(seek_start_idx).e()? {
-                    Some((colon_idx, b':')) => {
-                        let (next_idx, next_c) = head_skip
-                            .bytes
-                            .seek_non_whitespace_forward(colon_idx + 1).e()?
-                            .ok_or(EngineError::MissingItem())?;
+                    match head_skip.bytes.seek_non_whitespace_forward(seek_start_idx).e()? {
+                        Some((colon_idx, b':')) => {
+                            let (next_idx, next_c) = head_skip
+                                .bytes
+                                .seek_non_whitespace_forward(colon_idx + 1).e()?
+                                .ok_or(EngineError::MissingItem())?;
 
                             let ResumedQuoteClassifier {
                                 classifier: quote_classifier,
@@ -254,7 +254,7 @@ impl<'b, I: Input, V: Simd> HeadSkip<'b, I, V, BLOCK_SIZE> {
                             debug!("Quote classified up to {}", classifier_state.get_idx());
                             idx = classifier_state.get_idx();
 
-                            first_block = classifier_state.block.map(|b| b.quote_classified.block);
+                            first_block = classifier_state.block.and_then(|b| (b.idx < BLOCK_SIZE).then_some(b.quote_classified.block));
                             input_iter = classifier_state.iter.into_inner();
                         }
                         _ => idx += 1,

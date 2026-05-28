@@ -1,0 +1,27 @@
+# Define the JSON input for all query test cases.
+[input]
+# Short description of the input structure.
+description = """Issue #971. Force head skipping to stop in a block that ends in a structural and resume from there.
+The second match must align its quote with a quote in the first block."""
+ # Set to true only if your specific test input is fully compressed (no extraneous whitespace).
+is_compressed = true
+
+# Inline JSON document.
+[input.source]
+json_string = '{"values":[{"needle":"This string has exactly forty characters"},{"needle":"other"},{"needle":"final"}]}'
+
+# Define queries to test on the input.
+[[queries]]
+ # Valid JSONPath query string.
+query = '$..needle'
+# Short descritpion of the query semantics.
+description = "descendant search for the needle"
+
+[queries.results]
+# Number of expected matches.
+count = 3
+# Byte locations of spans of all matches, in order.
+spans = [[21, 63], [75, 82], [94,101]]
+# Stringified values of all matches, verbatim as in the input,
+# in the same order as above.
+nodes = ['"This string has exactly forty characters"', '"other"', '"final"']
