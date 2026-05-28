@@ -30,3 +30,4 @@ All of these should be ticked off before you submit the PR.
 - [ ] I ran `just verify` locally and it succeeded.
 - [ ] Issue was given <span style="color: #FF4400">go ahead</span> and is linked above **OR** I have included justification for a minor change.
 - [ ] Unit tests for my changes are included **OR** no functionality was changed.
+- [ ] No LLMs have been used to produce the contents of this pull request.

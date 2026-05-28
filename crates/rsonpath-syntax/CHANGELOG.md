@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.2] - 2026-05-28
+
+Minor update mostly bumping indirect and dev dependencies.
+
 ## [0.4.1] - 2026-02-16
 
 ### Features
@@ -26,6 +30,7 @@ All notable changes to this project will be documented in this file.
 ### Reliability
 
 - The structural fuzzer now correctly runs on a nightly basis. ([#749](https://github.com/V0ldek/rsonpath/issues/749))
+- Added a strict no LLM policy to the CONTRIBUTING guidelines.
 
 ### Dependencies
 

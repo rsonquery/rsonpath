@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.10.1] - 2025-05-28
+
+### Bug Fixes
+
+- Fixed head-skipping dropping matches in rare circumstances. ([#971](https::/github.com/rsonquery/rsonpath/issues/971))
+  - Queries starting with the descendant selectors would sometimes miss some matches in very specific alignment situations.
+
+### Dependencies
+
+- Update `clap` from 4.5.58 to 4.6.1
+- Update `log` from 0.4.29 to 0.4.30
+- Update `simple_logger` from 5.1.0 to 5.2.0
+- Update `vector-map` from 1.0.2 to 1.1.0
+
+### Reliability
+
+- Extended CLI tests to cover all available arguments. ([#951](https://github.com/rsonquery/rsonpath/issues/951))
+
 ## [0.10.0] - 2025-02-16
 
 ### Features
@@ -57,6 +75,7 @@ All notable changes to this project will be documented in this file.
 
 - All fuzzers now correctly run on a nightly basis (#868). ([#868](https://github.com/V0ldek/rsonpath/issues/868))
 
+- Added a strict no LLM policy to the CONTRIBUTING guidelines.
 
 ### Dependencies
 
@@ -211,7 +230,7 @@ All notable changes to this project will be documented in this file.
 
 - U+001A-U+001F in name selectors.
   - Characters U+001A through U+001F were erroneously accepted unescaped.
-    This is now a hard error.
+    This is nowa hard error.
 
 ### Dependencies
 

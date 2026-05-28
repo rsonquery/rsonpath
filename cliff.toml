@@ -72,5 +72,5 @@ date_order = true
 sort_commits = "oldest"
 # An array of link parsers for extracting external references, and turning them into URLs, using regex.
 link_parsers = [
-    { pattern = "#(\\d+)", href = "https://github.com/V0ldek/rsonpath/issues/$1" }
+    { pattern = "#(\\d+)", href = "https://github.com/rsonquery/rsonpath/issues/$1" }
 ]
