@@ -180,7 +180,11 @@ impl super::SyntaxError {
         style: ErrorStyleImpl,
     ) -> DisplayableSyntaxError {
         let start_idx = input.len() - self.rev_idx;
-        let end_idx = start_idx + self.len - 1;
+        let end_idx = if self.len > 0 {
+            start_idx + self.len - 1
+        } else {
+            start_idx
+        };
 
         let lines = input.build_error_lines(
             start_idx,
@@ -206,7 +210,11 @@ impl super::SyntaxError {
     fn generate_notes(&self, suggestion: &mut Suggestion, input: &str) -> Vec<SyntaxErrorNote> {
         // Figure out the first and last byte of the highlighted error. Errors always respect UTF-8 boundaries.
         let start_idx = input.len() - self.rev_idx;
-        let end_idx = start_idx + self.len - 1;
+        let end_idx = if self.len > 0 {
+            start_idx + self.len - 1
+        } else {
+            start_idx
+        };
         let (prefix, error, suffix) = self.split_error(input);
         // Kind-specific notes and suggestion building.
         let mut notes = vec![];

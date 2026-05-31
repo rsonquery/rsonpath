@@ -835,6 +835,50 @@ mod escaped_sequence_suggestions {
     }
 }
 
+/// Verify that a filter expression error produced at end of input is properly highlighted
+mod filter_error_at_end_of_input {
+    use insta::assert_snapshot;
+    use rsonpath_syntax::parse;
+
+    #[test]
+    fn incomplete_filter_selector() {
+        let result = parse("$.a[?").expect_err("should fail to parse");
+        assert_snapshot!(result, @"
+        error: invalid filter expression syntax
+
+          $.a[?
+               ^ not a valid filter expression
+          (byte 5)
+
+
+        error: bracketed selection is not closed
+
+          $.a[?
+               ^ expected a closing bracket ']'
+          (byte 5)
+        ");
+    }
+
+    #[test]
+    fn filter_comparison_missing_rhs() {
+        let result = parse("$[?@.b ==").expect_err("should fail to parse");
+        assert_snapshot!(result, @"
+        error: invalid right-hand side of comparison
+
+          $[?@.b ==
+                   ^ expected a literal or a filter query here
+          (byte 9)
+
+
+        error: bracketed selection is not closed
+
+          $[?@.b ==
+                   ^ expected a closing bracket ']'
+          (byte 9)
+        ");
+    }
+}
+
 mod multiline {
     // These are too long to be useful so we use the out-of-line snapshots.
     use insta::assert_snapshot;
