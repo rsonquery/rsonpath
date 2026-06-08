@@ -661,7 +661,8 @@ fn failed_filter_expression<T>(kind: SyntaxErrorKind) -> impl FnMut(&str) -> IRe
     move |q: &str| {
         // We want to close the filter, so just try to find the next ']' or ','
         let rest = skip_one(q).trim_start_matches(|x| x != ',' && x != ']');
-        fail(kind.clone(), q.len(), q.len() - rest.len(), rest)
+        let len = (q.len() - rest.len()).max(1);
+        fail(kind.clone(), q.len(), len, rest)
     }
 }
 

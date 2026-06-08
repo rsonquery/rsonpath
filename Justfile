@@ -112,7 +112,11 @@ test-engine: (gen-tests)
 test-input:
     cargo test --test input_implementation_tests -q
 
-# Run the query tests on default features.
+# Run the rsonpath-syntax tests.
+test-syntax:
+    cargo test -p rsonpath-syntax -q
+
+# Run the query parser tests on default features.
 test-parser:
     cargo test --test query_parser_tests -q
 

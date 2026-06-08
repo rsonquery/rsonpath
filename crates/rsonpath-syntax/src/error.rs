@@ -139,6 +139,7 @@ pub(crate) enum SyntaxErrorKind {
 
 impl SyntaxError {
     pub(crate) fn new(kind: SyntaxErrorKind, rev_idx: usize, len: usize) -> Self {
+        assert_ne!(len, 0, "do not create zero-length errors");
         Self { kind, rev_idx, len }
     }
 }
