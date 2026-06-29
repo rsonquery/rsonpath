@@ -55,7 +55,7 @@ jobs:
       run: sed -i '/^\[patch.crates-io\]/d' ./Cargo.toml && sed -i '/^rsonpath-lib = { path = .*$/d' ./Cargo.toml
     - name: Install lld
       run: sudo apt install lld
-    - uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+    - uses: actions/setup-java@1bcf9fb12cf4aa7d266a90ae39939e61372fe520 # v5.4.0
       name: Setup Java JDK
       with:
         distribution: temurin
@@ -93,7 +93,7 @@ jobs:
       run: sed -i '/^\[patch.crates-io\]/d' ./Cargo.toml && sed -i '/^rsonpath-lib = { path = .*$/d' ./Cargo.toml
     - name: Install lld
       run: sudo apt install lld
-    - uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+    - uses: actions/setup-java@1bcf9fb12cf4aa7d266a90ae39939e61372fe520 # v5.4.0
       name: Setup Java JDK
       with:
         distribution: temurin
@@ -138,7 +138,7 @@ jobs:
       run: sed -i '/^\[patch.crates-io\]/d' ./Cargo.toml && sed -i '/^rsonpath-lib = { path = .*$/d' ./Cargo.toml
     - name: Install lld
       run: sudo apt install lld
-    - uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+    - uses: actions/setup-java@1bcf9fb12cf4aa7d266a90ae39939e61372fe520 # v5.4.0
       name: Setup Java JDK
       with:
         distribution: temurin
